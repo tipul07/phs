@@ -2,54 +2,12 @@
 
 define( 'PHS_VERSION', '1.0.0' );
 
-@date_default_timezone_set( 'Europe/London' );
-
-if( @function_exists( 'mb_internal_encoding' ) )
-    @mb_internal_encoding( 'UTF-8' );
-
-// Platform full absolute path
-define( 'PHS_PATH', '/data/phpprojects/test/' );
-
-// If no domain is defined for current request in config directory system will use PHS_DEFAULT_* values
-define( 'PHS_DEFAULT_DOMAIN', 'iasi.smart2pay.com' ); // only domain name (used to set cookies)
-define( 'PHS_DEFAULT_PORT', '7020' ); // port (if applicable) if using default port don't put anything here
-define( 'PHS_DEFAULT_DOMAIN_PATH', 'test/' ); // tells the path from domain to get to root URL of the platform
-
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
 define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 define( 'PHS_DEFAULT_HTTPS', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 
-// Default database settings (these settings will be used when creating default database connection)
-define( 'PHS_DB_DRIVER', 'mysqli' );
-define( 'PHS_DB_HOSTNAME', 'localhost' );
-define( 'PHS_DB_USERNAME', 'testdb' );
-define( 'PHS_DB_PASSWORD', 'Fj4EAdeGuSyXJ737' );
-define( 'PHS_DB_DATABASE', 'testdb' );
-define( 'PHS_DB_PREFIX', '' );
-define( 'PHS_DB_PORT', '3306' );
-define( 'PHS_DB_TIMEZONE', date( 'P' ) );
-define( 'PHS_DB_CHARSET', 'UTF8' );
-
-// Default session settings
-define( 'PHS_DEFAULT_SESSION_DIR', PHS_PATH.'sess/' );
-define( 'PHS_DEFAULT_SESSION_NAME', 'PHS_SESS' );
-// 0 to close session when browser closes...
-define( 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME', 0 );
-define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/' );
-// Session starts automatically if it is required a variable.
-// If system gets to the point to start displaying something and this constant is set to true, session will be started before displaying
-// It is important to start the session before sending headers, as it cannot be started once headers were sent to browser
-define( 'PHS_DEFAULT_SESSION_AUTOSTART', false );
-// END Default session settings
-
-define( 'PHS_DEFAULT_THEME', 'default' );
-
-// php binary executable full path (point this to your CLI executable)
-define( 'PHP_EXEC', '/usr/bin/php' );
-
-
-// Root folders
+    // Root folders
 define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
 define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
 define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
