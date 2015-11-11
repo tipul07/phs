@@ -273,7 +273,7 @@ final class PHS_db extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( !($all_connections = self::get_db_connection( self::DB_SETTINGS )) )
+        if( !($all_connections = self::get_data( self::DB_SETTINGS )) )
         {
             self::st_set_error( self::ERR_DATABASE, self::_t( 'No database connection configured.' ) );
             return false;

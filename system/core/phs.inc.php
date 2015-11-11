@@ -91,6 +91,8 @@ final class PHS extends PHS_Registry
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',
 
+            'PHS_CRYPT_KEY' => 'PHS_DEFAULT_CRYPT_KEY',
+
             'PHS_DB_CONNECTION' => 'PHS_DB_DEFAULT_CONNECTION',
 
             'PHS_SESSION_DIR' => 'PHS_DEFAULT_SESSION_DIR',
@@ -150,64 +152,30 @@ final class PHS extends PHS_Registry
         return self::$instance;
     }
 
-    public static function prepare_module_name( $mname )
-    {
-        if( empty( $mname ) or !is_string( $mname )
-         or preg_match( '/[^a-zA-Z0-9]/', $mname ) )
-            return false;
-
-        return strtolower( $mname );
-    }
-
     /**
      * @param string $model_name
      *
      * @return false|PHS_Model Returns false on error or an instance of loaded model
      */
-    public static function load_model( $model_name, $plugin = false )
+    public static function load_model( $model, $plugin = false )
     {
-        if( $plugin !== false
-        and (!is_string( $plugin ) or empty( $plugin )) )
+        if( empty( $model )
+         or !($model_name = PHS_Instantiable::safe_escape_name( $model )) )
         {
-            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Please provide a valid plugin name' ) );
+            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load model %s from plugin %s.', $model, (empty( $plugin )?'CORE':$plugin) ) );
             return false;
         }
 
-        if( empty( $plugin ) )
-            $model_path = PHS_CORE_MODEL_DIR;
-        else
-            $model_path = PHS_PLUGINS_DIR.self::prepare_module_name( $plugin ).'/model/';
+        $class_name = 'PHS_Model_'.ucfirst( $model_name );
 
-        if( empty( $model_name )
-         or !($module_name = self::prepare_module_name( $model_name ))
-         or !@file_exists( $model_path.'phs_'.$module_name.'.inc.php' ) )
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
         {
-            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load model %s from plugin %s.', $model_name, (empty( $plugin )?'CORE':$plugin) ) );
+            if( PHS_Instantiable::st_has_error() )
+                self::st_copy_error_from_array( PHS_Instantiable::st_get_error() );
             return false;
         }
 
-        $file_name = 'phs_'.$module_name.'.inc.php';
-
-        ob_start();
-        include_once( $model_path.$file_name );
-        ob_end_clean();
-
-        $model_class_name = 'PHS_Model_'.ucfirst( $module_name );
-
-        if( !class_exists( $model_class_name, false ) )
-        {
-            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Class %s not defined in %s model file.', $model_class_name, $file_name ) );
-            return false;
-        }
-
-        if( !($instance = @call_user_func( array( $model_class_name, 'get_instance' ) )) )
-        {
-            if( PHS_Model::st_has_error() )
-                self::st_copy_error_from_array( PHS_Model::st_get_error() );
-            return false;
-        }
-
-        return $instance;
+        return $instance_obj;
     }
 
     /**

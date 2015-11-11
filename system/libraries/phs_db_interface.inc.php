@@ -25,4 +25,10 @@ interface PHS_db_interface
 
     // Returns number of records from database resource
     public function num_rows( $qid );
+
+    // Returns an INSERT query string for table $table_name for $insert_arr data
+    public function quick_insert( $table_name, $insert_arr, $connection = false, $params = false );
+
+    // Returns an EDIT query string for table $table_name for $edit_arr data with $where_arr conditions
+    public function quick_edit( $table_name, $edit_arr, $connection = false, $params = false );
 }

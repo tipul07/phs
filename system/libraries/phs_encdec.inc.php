@@ -1,50 +1,51 @@
 <?php
 
-//! \version 1.32
+//! @version 1.33
 
 class PHS_encdec extends PHS_Language
 {
     //! Functionality error
     const ERR_FUNCTIONALITY = 2;
 
+    // Default crypting keys
     // this array must have max 34 elements!!! and all elements must have same length
     // ONCE YOU START ENCODING STRINGS WITH A SET OF INTERNAL KEYS DON'T CHANGE THEM
-    var $internal_keys = array(
-        'bcbb6ba1334720bf035e1527f315507b',
-        '65f58c1f74b28613a06b19ebe107dad6',
-        '10f5ca50cfe342a724d1f62d8089864c',
-        'ffff0fb6313e37e8994ff92a19387fcd',
-        'b5e042703bd952cac114ee97efed6292',
-        '853594ab8f44ba8be925927c9f66804c',
-        '66c7ec1e693e0c25276df73650047ef4',
-        '75f19f81997a921b5aa503c9319d415b',
-        'e3b1eb8c8f849ce0612ea5a0b0c043f1',
-        'c91e9d7f076c4c6ca82e8a52e406fc1a',
-        'c8be4bc90ed25dfe89192831519faf22',
-        'd8b4b66fe29a45c5a93a9ea0e3924e21',
-        '72c4de79c01f6b6dd80bf94e3f1e5467',
-        '5e3523bef7ac2d670943b53bfae207b0',
-        'e3f22f34bbad86b27217b5ce141ce69e',
-        '812767e60cd7a28673036de2192ca866',
-        '680bc74d2e177c21808fc9babff3e9b8',
-        '275e633c19427f4eada7a97f853490b3',
-        'f03d7df604db763a1746ebb26633e3f3',
-        '7954ef52a44b392a50cffa130de9dd34',
-        '87712eed730d32e42a4a494677b84f7a',
-        'a870a966f0d6a9b53ac97d241af552aa',
-        'd352323e852d8fcbefdbb0a18746ddce',
-        'c8234aaaf88f94671cf62e36649b6868',
-        '182927ae71257091c0f4afac13fe20d3',
-        '62537d3e59720dd701f5e781a80e0cc5',
-        '4169e71e8d4dcb8545c21b41ecfe182c',
-        '4425aa956e2bae0c48c95b3c3434fc5c',
-        '45b77e1cb98c6d5717e9f16768fee2cb',
-        'faa03a8fbc1d8de6e1eb5d23f0430765',
-        '4e01249c84e7445d4a26c32cc0ed755d',
-        'c07c5e4f358bd7784bb072e7134468d7',
-        'b8cbb6eefaf86f4c3e838f50fbe85bd4',
-        '3a9babe18c91a9ffaddcce4f0171b089'
-        );
+    private $internal_keys = array(
+        '7105adad1f765d1066756cbb9b14664a',
+        '164785354dd2a185fd5f6ba0a751c9b6',
+        '7f637c2c12939c635757b78248cc1576',
+        '22ac54d2a482041d898a022754bc17da',
+        'd8f1567b89c0ef0a6539273477b8c869',
+        '116f6e3efc9a8527898160c3bf5c6899',
+        '64172ee7ee8ff1a7abfec21535fb7213',
+        '7fff16511ab89b6525370965600b6b11',
+        'de0aaf829049aec0c8c479c09b4589c6',
+        '975c220611a4ef9e0e52223bd7448c51',
+        '0965193e60c50692d3a98581cb447c05',
+        '810ce8fe7fd87624915c1eadbaaa6b69',
+        'b81737f17491d881f209de959dab163a',
+        '72cbac90c35e0def1cb826fba64fe888',
+        'db27505a42ebbaaf37926f6417c06a74',
+        '465a3b8ed6ddfb973ffca2bc64c87317',
+        '6b2f38aeace04507be22cf3a505ef0b9',
+        '32917422d0c262b5979158a3f4008230',
+        '6ccbb647466e81219967140de7c5a3e8',
+        'e82f0f88d7d5ffcfc0e2e9de3356e28b',
+        '29a3488a7e531092270cd13400593935',
+        '618dc771d4cd21bfc285aa2f2fd024ef',
+        '889ce7dfa626259f2c39baf78c35d2f9',
+        '247b10c3090e6ce3043d713beb4082fb',
+        'e00af92112f64e8d13941d5f31f2ec9e',
+        'c0e522c5f567f9a021df0fdfe3fcc09c',
+        '1c5fbd41fbbe1d7c483ee607cf729440',
+        'fd345ccdd40d054999097144917c18af',
+        '27b94f70725b2c50ff103a71436983c5',
+        '686849ed65ba14dc70926d46b1a32c3d',
+        '08c8aa10603afd9c816fdacc25df3084',
+        '0297c2317a7b935a479f9843f1f4ff51',
+        'd30a0fd5c5394b4621c90f98519c65d7',
+        'a3f60905c42e9bebb39a671ad5cef5d0',
+    );
 
     var $internal_keys_count, $internal_keys_len;
     var $private_key, $encoded_private_key, $encoded_private_key_len;
@@ -56,15 +57,15 @@ class PHS_encdec extends PHS_Language
      * @since     0.3
      * @access    private
      */
-    var $use_base64_encode = false;
+    var $use_base64_encode = true;
 
-    function __construct( $priv_key, $use_base64 = false )
+    function __construct( $priv_key, $use_base64 = true )
     {
         parent::__construct();
 
         if( !strlen( $priv_key ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, 'Private key is empty.' );
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Private key is empty.' ) );
             return;
         }
 
@@ -77,7 +78,7 @@ class PHS_encdec extends PHS_Language
         $this->use_base64_encode = $use_base64;
     }
 
-    function set_internal_keys( $keys_array )
+    public function set_internal_keys( $keys_array )
     {
         if( !is_array( $keys_array ) )
             return false;
@@ -89,11 +90,11 @@ class PHS_encdec extends PHS_Language
 
     }
 
-    function check_internal_keys()
+    final private function check_internal_keys()
     {
         if( empty( $this->internal_keys ) or !is_array( $this->internal_keys ) or !isset( $this->internal_keys[0] ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid!' );
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid!' ) );
             return false;
         }
 
@@ -103,7 +104,7 @@ class PHS_encdec extends PHS_Language
         if( !$this->internal_keys_count or !$this->internal_keys_len
          or $this->internal_keys_count > 35 )
         {
-            $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' ) );
             return false;
         }
 
@@ -111,7 +112,7 @@ class PHS_encdec extends PHS_Language
         {
             if( strlen( $key ) != $this->internal_keys_len )
             {
-                $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
+                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' ) );
                 return false;
             }
         }
@@ -119,9 +120,9 @@ class PHS_encdec extends PHS_Language
         return true;
     }
 
-    function encrypt( $str )
+    public function encrypt( $str )
     {
-        if( $this->get_error_code() != self::ERR_OK )
+        if( $this->has_error() )
             return $str;
 
         if( $this->use_base64_encode !== false )
@@ -182,9 +183,9 @@ class PHS_encdec extends PHS_Language
         return strtoupper( $encrypted_str );
     }
 
-    function decrypt( $decstr )
+    public function decrypt( $decstr )
     {
-        if( $this->get_error_code() != self::ERR_OK )
+        if( $this->has_error() )
             return $decstr;
 
         $str = strtolower( $decstr );
@@ -238,7 +239,7 @@ class PHS_encdec extends PHS_Language
             //if( ($key_found_pos = array_search( $str[$i].$str[$i+1], $translation_arr )) === false )
             if( ($key_found_pos = array_search( $str_check, $translation_arr )) === false )
             {
-                $this->set_error( self::ERR_FUNCTIONALITY, 'Couldn\'t decode the string.' );
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t decode the string.' ) );
                 return $decstr;
             }
 

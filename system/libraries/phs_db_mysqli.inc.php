@@ -315,6 +315,95 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         return true;
     }
 
+    // Returns an INSERT query string for table $table_name for $insert_arr data
+    public function quick_insert( $table_name, $insert_arr, $connection_name = false, $params = false )
+    {
+        if( !is_array( $insert_arr ) or !count( $insert_arr ) )
+            return '';
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['escape'] ) )
+            $params['escape'] = true;
+
+        $return = '';
+        foreach( $insert_arr as $key => $val )
+        {
+            if( is_array( $val ) )
+            {
+                if( !isset( $val['value'] ) )
+                    continue;
+
+                if( empty( $val['raw_field'] ) )
+                    $val['raw_field'] = false;
+
+                $field_value = $val['value'];
+
+                if( empty( $val['raw_field'] ) )
+                {
+                    if( !empty( $params['secure'] ) )
+                        $field_value = $this->escape( $field_value, $connection_name );
+
+                    $field_value = '\''.$field_value.'\'';
+                }
+            } else
+                $field_value = '\''.(!empty( $params['secure'] )?$this->escape( $val, $connection_name ):$val).'\'';
+
+            $return .= '`'.$key.'`='.$field_value.', ';
+        }
+
+        if( $return == '' )
+            return '';
+
+        return 'INSERT INTO `'.$table_name.'` SET '.substr( $return, 0, -2 );
+    }
+
+    // Returns an EDIT query string for table $table_name for $edit_arr data conditions added outside this method
+    // in future where conditions should be added here to support more drivers...
+    public function quick_edit( $table_name, $edit_arr, $connection_name = false, $params = false )
+    {
+        if( !is_array( $edit_arr ) or !count( $edit_arr ) )
+            return '';
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['escape'] ) )
+            $params['escape'] = true;
+
+        $return = '';
+        foreach( $edit_arr as $key => $val )
+        {
+            if( is_array( $val ) )
+            {
+                if( !isset( $val['value'] ) )
+                    continue;
+
+                if( empty( $val['raw_field'] ) )
+                    $val['raw_field'] = false;
+
+                $field_value = $val['value'];
+
+                if( empty( $val['raw_field'] ) )
+                {
+                    if( !empty( $params['secure'] ) )
+                        $field_value = $this->escape( $field_value, $connection_name );
+
+                    $field_value = '\''.$field_value.'\'';
+                }
+            } else
+                $field_value = '\''.(!empty( $params['secure'] )?$this->escape( $val, $connection_name ):$val).'\'';
+
+            $return .= '`'.$key.'`='.$field_value.', ';
+        }
+
+        if( $return == '' )
+            return '';
+
+        return 'UPDATE `'.$table_name.'` SET '.substr( $return, 0, -2 );
+    }
+
     function formated_query( $format, $fields = false, $connection_name = false )
     {
         if( $connection_name === false )

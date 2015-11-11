@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0' );
+define( 'PHS_VERSION', '1.0.0.1' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -16,8 +16,9 @@ define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
 define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
 define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
 
-define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'model/' );
-define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controller/' );
+define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
+define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
+define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
 
 // These paths will need a www pair, but after bootstrap
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
@@ -27,17 +28,22 @@ define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
 include_once( PHS_LIBRARIES_DIR.'phs_error.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_instantiable.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_encdec.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_db_interface.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_params.inc.php' );
 include_once( PHS_CORE_DIR. 'phs.inc.php' );
 include_once( PHS_CORE_DIR. 'phs_db.inc.php' );
 include_once( PHS_CORE_DIR. 'phs_session.inc.php' );
+include_once( PHS_CORE_DIR. 'phs_crypt.inc.php' );
 
 PHS::init();
 
 // Running in debugging mode?
-PHS::st_debugging_mode( true );
+PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
 // Should errors be thrown?
-PHS::st_throw_errors( true );
+PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
 
 if( PHS::st_debugging_mode() )
 {
@@ -126,5 +132,9 @@ include_once( PHS_SYSTEM_DIR.'session_init.inc.php' );
 // Init language system
 include_once( PHS_SYSTEM_DIR.'languages_init.inc.php' );
 
+// Init crypting system
+include_once( PHS_SYSTEM_DIR.'crypt_init.inc.php' );
+
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.inc.php' );
+
