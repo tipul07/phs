@@ -1,28 +1,8 @@
 <?php
 
-class PHS_Model_Accounts extends PHS_Model
+class PHS_Model_Accounts_details extends PHS_Model
 {
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses', HOOK_SETTINGS = 'phs_accounts_settings';
-
-    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
-
-    protected static $STATUSES_ARR = array(
-        self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
-        self::STATUS_ACTIVE => array( 'title' => 'Active' ),
-        self::STATUS_SUSPENDED => array( 'title' => 'Suspended' ),
-        self::STATUS_DELETED => array( 'title' => 'Deleted' ),
-    );
-
-    const LVL_GUEST = 0, LVL_MEMBER = 1,
-          LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
-
-    protected static $LEVELS_ARR = array(
-        self::LVL_MEMBER => array( 'title' => 'Member' ),
-        self::LVL_OPERATOR => array( 'title' => 'Operator' ),
-        self::LVL_ADMIN => array( 'title' => 'Admin' ),
-        self::LVL_SUPERADMIN => array( 'title' => 'Super admin' ),
-        self::LVL_DEVELOPER => array( 'title' => 'Developer' ),
-    );
 
     /**
      * @return string Returns version of model
@@ -37,7 +17,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'users', 'users_details', 'online' );
+        return array( 'users_details' );
     }
 
     /**
@@ -45,7 +25,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     function get_main_table_name()
     {
-        return 'users';
+        return 'users_details';
     }
 
     /**
@@ -61,153 +41,6 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
-    public function accounts_settings()
-    {
-        static $settings_arr = array();
-
-        if( !empty( $settings_arr ) )
-            return $settings_arr;
-
-        $settings_arr = array(
-            'email_mandatory' => true,
-            'replace_nick_with_email' => true,
-            'account_requires_activation' => true,
-            'min_password_length' => 6,
-            'pass_salt_length' => 8,
-        );
-
-        if( ($extra_settings_arr = PHS::trigger_hooks( self::HOOK_SETTINGS, array( 'settings_arr' => $settings_arr ) ))
-        and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
-            $settings_arr = array_merge( $settings_arr, $extra_settings_arr['settings_arr'] );
-
-        return $settings_arr;
-    }
-
-    final public function get_levels()
-    {
-        static $levels_arr = array();
-
-        if( !empty( $levels_arr ) )
-            return $levels_arr;
-
-        $new_levels_arr = self::$LEVELS_ARR;
-        if( ($extra_levels_arr = PHS::trigger_hooks( self::HOOK_LEVELS, array( 'levels_arr' => self::$LEVELS_ARR ) ))
-        and is_array( $extra_levels_arr ) and !empty( $extra_levels_arr['levels_arr'] ) )
-            $new_levels_arr = array_merge( $extra_levels_arr['levels_arr'], $new_levels_arr );
-
-        $levels_arr = array();
-        // Translate and validate levels...
-        if( !empty( $new_levels_arr ) and is_array( $new_levels_arr ) )
-        {
-            foreach( $new_levels_arr as $level_id => $level_arr )
-            {
-                $level_id = intval( $level_id );
-                if( empty( $level_id ) )
-                    continue;
-
-                if( empty( $level_arr['title'] ) )
-                    $level_arr['title'] = self::_t( 'Level %s', $level_id );
-                else
-                    $level_arr['title'] = self::_t( $level_arr['title'] );
-
-                $levels_arr[$level_id] = array(
-                    'title' => $level_arr['title']
-                );
-            }
-        }
-
-        return $levels_arr;
-    }
-
-    public function valid_level( $level )
-    {
-        $all_levels = $this->get_levels();
-        if( empty( $level )
-         or empty( $all_levels[$level] ) )
-            return false;
-
-        return $all_levels[$level];
-    }
-
-    final public function get_statuses()
-    {
-        static $statuses_arr = array();
-
-        if( !empty( $statuses_arr ) )
-            return $statuses_arr;
-
-        $new_statuses_arr = self::$STATUSES_ARR;
-        if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
-        and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
-            $new_statuses_arr = array_merge( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
-
-        $statuses_arr = array();
-        // Translate and validate statuses...
-        if( !empty( $new_statuses_arr ) and is_array( $new_statuses_arr ) )
-        {
-            foreach( $new_statuses_arr as $status_id => $status_arr )
-            {
-                $status_id = intval( $status_id );
-                if( empty( $status_id ) )
-                    continue;
-
-                if( empty( $status_arr['title'] ) )
-                    $status_arr['title'] = self::_t( 'Status %s', $status_id );
-                else
-                    $status_arr['title'] = self::_t( $status_arr['title'] );
-
-                $statuses_arr[$status_id] = array(
-                    'title' => $status_arr['title']
-                );
-            }
-        }
-
-        return $statuses_arr;
-    }
-
-    public function valid_status( $status )
-    {
-        $all_statuses = $this->get_statuses();
-        if( empty( $status )
-         or empty( $all_statuses[$status] ) )
-            return false;
-
-        return $all_statuses[$status];
-    }
-
-    public static function generate_password( $len = 10 )
-    {
-        $dict = '!ac5d#befgh9ij1kl2mn*q3(pr)4s_t-6u=vw7xy,8z.'; // all lower letters
-        $dict_len = strlen( $dict );
-
-        $ret = '';
-        for( $ret_len = 0; $ret_len < $len; $ret_len++ )
-        {
-            $ch = substr( $dict, mt_rand( 0, $dict_len - 1 ), 1 );
-            if( mt_rand( 0, 100 ) > 50 )
-                $ch = strtoupper( $ch );
-
-            $ret .= $ch;
-        }
-
-        return $ret;
-    }
-
-    public static function encode_pass( $pass, $salt )
-    {
-        return md5( $salt.'_'.$pass );
-    }
-
-    public function check_pass( $account_data, $pass )
-    {
-        if( !($account_arr = $this->data_to_array( $account_data ))
-         or !isset( $account_arr['pass_salt'] )
-         or self::encode_pass( $pass, $account_arr['pass_salt'] ) != $account_arr['pass'] )
-            return false;
-
-        return $account_arr;
-    }
-
     /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
@@ -221,10 +54,6 @@ class PHS_Model_Accounts extends PHS_Model
     {
         if( empty( $params ) or !is_array( $params ) )
             return false;
-
-        if( !($accounts_settings = $this->accounts_settings())
-         or !is_array( $accounts_settings ) )
-            $accounts_settings = array();
 
         if( !empty( $accounts_settings['email_mandatory'] )
         and empty( $params['fields']['email'] ) )

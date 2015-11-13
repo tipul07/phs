@@ -66,8 +66,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
+     * @param string $instance_type What kind of instance is this
      * @param string $instance_name Part of class name after predefined prefix (eg. phs_model_ for models, phs_controller_ for controller etc)
-     * @param string $plugin_name Plugin name or 'core'
+     * @param string|bool $plugin_name Plugin name or 'core'
      * @return string|false Returns generated string from $instance_name and $plugin_name. This will uniquely identify the file we have to load. false on error
      */
     public static function generate_instance_id( $instance_type, $instance_name, $plugin_name = false )
@@ -80,6 +81,11 @@ abstract class PHS_Instantiable extends PHS_Registry
             self::st_set_error( self::ERR_INSTANCE, self::_t( 'Please provide a valid plugin name.' ) );
             return false;
         }
+
+        if( empty( $plugin_name ) )
+            $plugin_name = 'core';
+        else
+            $plugin_name = self::safe_escape_name( $plugin_name );
 
         if( !is_string( $instance_name ) or empty( $instance_name ) )
         {

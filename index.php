@@ -1,12 +1,10 @@
 <?php
-
     include_once( 'main.inc.php' );
 
     /** @var PHS_Model_Accounts $accounts_obj */
     $accounts_obj = PHS::load_model( 'accounts', 'accounts' );
-    $plugins_model = PHS::load_model( 'plugins' );
+    //$plugins_model = PHS::load_model( 'plugins' );
 
-    var_dump( $plugins_model->install() );
     var_dump( $accounts_obj->install() );
     var_dump( $accounts_obj->instance_details() );
 
@@ -19,8 +17,6 @@
     //var_dump( $accounts_obj->insert( $insert_arr ) );
 
     //var_dump( $accounts_obj );
-    //var_dump( $accounts_obj::MODEL_VERSION );
-
 
     //PHS_session::_s( 'bubu', 12 );
     //var_dump( PHS_session::_g() );

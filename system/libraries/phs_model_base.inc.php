@@ -2,13 +2,11 @@
 
 abstract class PHS_Model_Core_Base extends PHS_Instantiable
 {
-    // Default Model version. This constant should be overwritten by child class (model)
-    const MODEL_VERSION = '1.0.0';
-
-    // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL VERSION
+    // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
 
-    const ERR_MODEL_FIELDS = 1000, ERR_STATIC_INSTANCE = 1001, ERR_TABLE_GENERATE = 1002, ERR_INSTALL = 1003, ERR_INSERT = 1004;
+    const ERR_MODEL_FIELDS = 1000, ERR_STATIC_INSTANCE = 1001, ERR_TABLE_GENERATE = 1002, ERR_INSTALL = 1003,
+          ERR_INSERT = 1004, ERR_EDIT = 1005, ERR__INSERT_EDIT = 1006;
 
     const FTYPE_UNKNOWN = 0,
           FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
@@ -68,7 +66,12 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    abstract function get_main_table_name();
+    abstract public function get_main_table_name();
+
+    /**
+     * @return string Returns version of model
+     */
+    abstract public function get_model_version();
 
     /**
      * @param array|false $params Parameters in the flow
@@ -76,6 +79,16 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
      * @return array Returns an array with table fields
      */
     abstract protected function fields_definition( $params = false );
+
+    /**
+     * Performs any necessary actions when upgrading model from $old_version to $new_version
+     *
+     * @param string $old_version Old version of model
+     * @param string $new_version New version of model
+     *
+     * @return bool true on success, false on failure
+     */
+    abstract protected function upgrade( $old_version, $new_version );
 
     /**
      * @return int Should return INSTANCE_TYPE_* constant
@@ -136,6 +149,21 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
     }
 
     /**
+     * Called first in edit flow.
+     * Parses flow parameters if anything special should be done.
+     * This should do checks on raw parameters received by edit method.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array|false $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    protected function get_edit_prepare_params( $existing_data, $params )
+    {
+        return $params;
+    }
+
+    /**
      * @param array $insert_arr Data array which should be added to database
      * @param array $params Flow parameters
      */
@@ -144,7 +172,18 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
     }
 
     /**
-     * Called right after a successfull insert in database. Some model must do more database work after successfully adding records in database or eventually chaining
+     * Called right after a database update fails.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array $edit_arr Data array which should be saved in database (only fields that change)
+     * @param array $params Flow parameters
+     */
+    protected function edit_failed( $existing_data, $edit_arr, $params )
+    {
+    }
+
+    /**
+     * Called right after a successfull insert in database. Some model need more database work after successfully adding records in database or eventually chaining
      * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
      * key-values added in database.
      *
@@ -157,6 +196,37 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
     protected function insert_after( $insert_arr, $params )
     {
         return $insert_arr;
+    }
+
+    /**
+     * Called right after a successfull edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
+     * in database.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
+     * @param array $params Flow parameters
+     *
+     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * Deleted record will be hard-deleted
+     */
+    protected function edit_after( $existing_data, $edit_arr, $params )
+    {
+        return $existing_data;
+    }
+
+    /**
+     * Called right after finding a record in database in PHS_Model_Core_Base::insert_or_edit() with provided conditions. This helps unsetting some fields which should not
+     * be passed to edit function in case we execute an edit.
+     *
+     * @param array $existing_arr Data which already exists in database (array with all database fields)
+     * @param array $constrain_arr Conditional db fields
+     * @param array $params Flow parameters
+     *
+     * @return array Returns modified parameters (if required)
+     */
+    protected function insert_or_edit_editing( $existing_arr, $constrain_arr, $params )
+    {
+        return $params;
     }
 
     /**
@@ -552,7 +622,9 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             {
                 $data_arr[$field_name] = self::validate_field_value( $params['fields'][ $field_name ], $field_name, $field_details );
                 $validated_fields[] = $field_name;
-            } elseif( isset( $field_details['default'] ) )
+            } elseif( isset( $field_details['default'] )
+                  and $params['action'] == 'insert' )
+                // When editting records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
         }
 
@@ -570,7 +642,7 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         if( !($params = $this->fetch_default_flow_params( $params ))
          or !isset( $params['fields'] ) or !is_array( $params['fields'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Bad parameters.' ) );
+            $this->set_error( self::ERR_INSERT, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
 
@@ -604,6 +676,9 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
 
         $insert_arr[$params['table_index']] = $item_id;
 
+        // Set to tell future calls record was just added to database...
+        $insert_arr['<new_in_db>'] = true;
+
         if( !($new_insert_arr = $this->insert_after( $insert_arr, $params )) )
         {
             // TODO: Move all queries to a higher level so we can have database connections with different drivers...
@@ -617,6 +692,114 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         $insert_arr = $new_insert_arr;
 
         return $insert_arr;
+    }
+
+    public function edit( $existing_data, $params )
+    {
+        $this->reset_error();
+
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or !isset( $params['fields'] ) or !is_array( $params['fields'] ) )
+        {
+            $this->set_error( self::ERR_EDIT, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( !($existing_arr = $this->data_to_array( $existing_data, $params ))
+         or !array_key_exists( $params['table_index'], $existing_arr ) )
+        {
+            $this->set_error( self::ERR_EDIT, self::_t( 'Exiting record not found in database.' ) );
+            return false;
+        }
+
+        $params['action'] = 'edit';
+
+        if( !($params = $this->get_edit_prepare_params( $existing_arr, $params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_EDIT, self::_t( 'Couldn\'t parse parameters for database edit.' ) );
+            return false;
+        }
+
+        if( !($validation_arr = $this->validate_data_for_fields( $params ))
+         or empty( $validation_arr['data_arr'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_EDIT, self::_t( 'Error validating parameters.' ) );
+            return false;
+        }
+
+        $edit_arr = $validation_arr['data_arr'];
+        if( !empty( $edit_arr )
+        and (!($sql = db_quick_edit( $params['table_name'], $edit_arr ))
+                or !db_query( $sql.' WHERE `'.$params['table_name'].'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $params['db_connection'] )
+            ) )
+        {
+            $this->edit_failed( $existing_arr, $edit_arr, $params );
+
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_EDIT, self::_t( 'Failed saving information to database.' ) );
+            return false;
+        }
+
+        if( !($new_edit_arr = $this->edit_after( $existing_arr, $edit_arr, $params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database edit.' ) );
+            return false;
+        }
+
+        if( !empty( $edit_arr ) )
+        {
+            foreach( $edit_arr as $key => $val )
+                $existing_arr[$key] = $val;
+        }
+
+        return $existing_arr;
+    }
+
+    /**
+     * Checks if $constrain_arr conditional fields find a record in database. If they return a record, method will edit that record and if none found, method will add new record
+     * with provided fields in $params
+     *
+     * @param array $constrain_arr Conditional db fields
+     * @param array $params Parameters in the flow
+     *
+     * @return bool
+     */
+    public function insert_or_edit( $constrain_arr, $params )
+    {
+        $this->reset_error();
+
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or ! isset($params['fields']) or ! is_array( $params['fields'] ) )
+        {
+            $this->set_error( self::ERR_EDIT, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        $check_params = $params;
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+        if( !($existing_arr = $this->get_details_fields( $constrain_arr, $params )) )
+        {
+            if( !array_key_exists( $params['table_index'], $existing_arr ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Exiting record not found in database.' ) );
+                return false;
+            }
+
+            return $this->insert( $params );
+        }
+
+        if( !($new_edit_arr = $this->insert_or_edit_editing( $existing_arr, $constrain_arr, $params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database edit.' ) );
+            return false;
+        }
+
+        return $this->edit( $existing_arr, $params );
     }
 
     protected function get_details_common( $constrain_arr, $params = false )
@@ -636,7 +819,7 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             $params['order_by'] = '';
 
         if( !isset( $params['limit'] )
-            or $params['result_type'] == 'single' )
+         or $params['result_type'] == 'single' )
             $params['limit'] = 1;
         else
         {
@@ -674,7 +857,8 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
      */
     function get_details_fields( $constrain_arr, $params = false )
     {
-        if( !($common_arr = $this->get_details_common( $constrain_arr, $params ))
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or !($common_arr = $this->get_details_common( $constrain_arr, $params ))
          or !is_array( $common_arr ) or empty( $common_arr['qid'] ) )
             return false;
 
@@ -938,8 +1122,10 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         return $ret_arr;
     }
 
-    public function install()
+    final public function install()
     {
+        $this->reset_error();
+
         if( !($plugins_model_id = self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'plugins' )) )
         {
             $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t obtain plugins model id.' ) );
@@ -952,31 +1138,97 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             return false;
         }
 
-        if( !$this->install_tables() )
-            return false;
-
         /** @var PHS_Model_Plugins $plugins_model */
         if( $this_instance_id == $plugins_model_id )
+        {
             $plugins_model = $this;
-
-        elseif( !($plugins_model = PHS::load_model( 'plugins' )) )
+        } elseif( !($plugins_model = PHS::load_model( 'plugins' )) )
         {
             $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
             return false;
+        } elseif( !$plugins_model->install() )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install plugin model.' ) );
+            return false;
         }
 
-        $fields_arr = array();
-        $fields_arr['instance_id'] = $this_instance_id;
-        $fields_arr['is_core'] = ($this->instance_is_core()?1:0);
-        $fields_arr['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
+        if( $this_instance_id == $plugins_model_id )
+            $this->install_tables();
 
-        $insert_arr = array();
-        $insert_arr['fields'] = $fields_arr;
+        $this_version = $this->get_model_version();
 
-        return $plugins_model->insert( $insert_arr );
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        $check_params = array();
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        if( !($existing_arr = $plugins_model->get_details_fields( $check_arr, $check_params )) )
+        {
+            $fields_arr = array();
+            $fields_arr['instance_id'] = $this_instance_id;
+            $fields_arr['is_core'] = ($this->instance_is_core() ? 1 : 0);
+            $fields_arr['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
+            $fields_arr['version'] = $this_version;
+
+            $insert_arr = array();
+            $insert_arr['fields'] = $fields_arr;
+
+            if( !($plugin_arr = $plugins_model->insert( $insert_arr )) )
+            {
+                if( $plugins_model->has_error() )
+                    $this->copy_error( $plugins_model );
+                else
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
+
+                return false;
+            }
+
+            // This will only create non-existing tables...
+            if( $this_instance_id != $plugins_model_id
+            and !$this->install_tables() )
+                return false;
+        } else
+        {
+            // This will only create non-existing tables...
+            if( $this_instance_id != $plugins_model_id
+            and !$this->install_tables() )
+                return false;
+
+            // Performs any necessary actions when upgrading model from old version to new version
+            if( version_compare( $existing_arr['version'], $this_version, '<' ) )
+            {
+                // Installed version is bigger than what we already had in database... upgrade...
+                if( !$this->upgrade( $existing_arr['version'], $this_version ) )
+                    return false;
+            }
+
+            $fields_arr = array();
+            $fields_arr['is_core'] = ($this->instance_is_core() ? 1 : 0);
+            $fields_arr['version'] = $this_version;
+
+            $edit_arr = array();
+            $edit_arr['fields'] = $fields_arr;
+
+            if( !($plugin_arr = $plugins_model->edit( $existing_arr, $edit_arr )) )
+            {
+                if( $plugins_model->has_error() )
+                    $this->copy_error( $plugins_model );
+                else
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
+
+                return false;
+            }
+        }
+
+        return $plugin_arr;
     }
 
-    public function install_tables()
+    final public function install_tables()
     {
         $this->reset_error();
 
@@ -1019,8 +1271,11 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
                     $keys_str .= ($keys_str!=''?', ':'').' KEY `'.$field_name.'` (`'.$field_name.'`)';
 
                 $field_str .= '`'.$field_name.'` '.$type_details['title'];
-                if( $field_details['length'] !== null
-                and $field_details['length'] !== false )
+                if( ($field_details['length'] !== null and $field_details['length'] !== false
+                        and !in_array( $field_details['type'], array( self::FTYPE_DATETIME, self::FTYPE_DATE ) ))
+                 or (!empty( $field_details['length'] )
+                        and in_array( $field_details['type'], array( self::FTYPE_DATETIME, self::FTYPE_DATE ) )
+                    ) )
                     $field_str .= '('.$field_details['length'].')';
 
                 if( !empty( $field_details['nullable'] ) )

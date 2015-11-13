@@ -495,7 +495,8 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         if( !$this->query_id )
         {
             $this->set_my_error( self::ERR_QUERY,
-                                 'Error on query: '.(is_string( $query )?htmlspecialchars( $query ):print_r( $query, true )),
+                                 'Error on query: '.(is_string( $query )?htmlspecialchars( $query ):print_r( $query, true )).
+                                 ', MySQL error: ['.@mysqli_error( $this->connection_id[$connection_name] ).']',
                                  'query error',
                                  $connection_name );
             if( $this->close_after_query )
