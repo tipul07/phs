@@ -118,6 +118,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             'plugin_name' => '',
             'plugin_www' => '',
             'plugin_path' => '',
+            'instance_type' => '',
             'instance_path' => '',
             'instance_class' => '',
             'instance_name' => '',
@@ -128,6 +129,8 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     public static function get_instance_details( $class, $plugin_name = false, $instance_type = false )
     {
+        self::st_reset_error();
+
         if( $plugin_name !== false
         and (!is_string( $plugin_name ) or empty( $plugin_name )) )
         {
@@ -148,6 +151,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $return_arr = self::empty_instance_details();
         $return_arr['plugin_name'] = $plugin_name;
+        $return_arr['instance_type'] = $instance_type;
         $return_arr['instance_class'] = $class;
 
         switch( $instance_type )
@@ -249,6 +253,13 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( is_null( $class ) )
             $class = get_called_class();
 
+        if( empty( $class )
+         or !($class = PHS_Instantiable::safe_escape_name( $class )) )
+        {
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Bad class name.' ) );
+            return false;
+        }
+
         if( !($instance_details = self::get_instance_details( $class, $plugin_name, $instance_type ))
          or empty( $instance_details['instance_id'] ) )
             return false;
@@ -271,7 +282,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        /** @var PHS_Model $model_instance */
+        /** @var PHS_Model $instance_obj */
         if( !empty( $singleton )
         and isset( self::$instances[$instance_details['instance_id']] ) )
             $instance_obj = self::$instances[$instance_details['instance_id']];
@@ -284,7 +295,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
             if( $instance_obj->has_error() )
             {
-                self::st_copy_error( $model_instance );
+                self::st_copy_error( $instance_obj );
                 return false;
             }
         }

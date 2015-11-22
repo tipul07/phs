@@ -170,8 +170,8 @@ final class PHS extends PHS_Registry
 
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
         {
-            if( PHS_Instantiable::st_has_error() )
-                self::st_copy_error_from_array( PHS_Instantiable::st_get_error() );
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty( $plugin )?'CORE':$plugin) ) );
             return false;
         }
 

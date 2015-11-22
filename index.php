@@ -1,12 +1,29 @@
 <?php
     include_once( 'main.inc.php' );
 
-    /** @var PHS_Model_Accounts $accounts_obj */
-    $accounts_obj = PHS::load_model( 'accounts', 'accounts' );
-    //$plugins_model = PHS::load_model( 'plugins' );
+    if( !($plugins_model = PHS::load_model( 'plugins' )) )
+    {
+        var_dump( PHS::st_get_error() );
+        exit;
+    }
 
-    var_dump( $accounts_obj->install() );
-    var_dump( $accounts_obj->instance_details() );
+    $plugins_model->add_connection( 'PHS_Model_Accounts', 'accounts', $plugins_model::INSTANCE_TYPE_MODEL );
+    $plugins_model->add_connection( 'PHS_Model_Accounts_details', 'accounts', $plugins_model::INSTANCE_TYPE_MODEL );
+
+    $plugins_model->install();
+
+    /** @var PHS_Model_Accounts $accounts_obj */
+    //if( !($accounts_obj = PHS::load_model( 'accounts', 'accounts' ))
+    // or !($plugins_model = PHS::load_model( 'plugins' )) )
+    //{
+    //    var_dump( PHS::st_get_error() );
+    //    exit;
+    //}
+    //
+    //$plugins_model->install();
+    //
+    //var_dump( $accounts_obj->install() );
+    //var_dump( $accounts_obj->instance_details() );
 
     //$fields_arr = array();
     //$fields_arr['email'] = 'gica@email.com';

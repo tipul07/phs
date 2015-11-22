@@ -267,7 +267,7 @@ final class PHS_db extends PHS_Registry
     /**
      * On-demand database driver instantiation... best way to use database connections...
      *
-     * @return bool|PHS_db_interface Returns database driver instance
+     * @return bool|PHS_db_interface|PHS_Language Returns database driver instance
      */
     public static function db( $connection_name = false )
     {

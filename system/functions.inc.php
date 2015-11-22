@@ -100,7 +100,7 @@ function db_num_rows( $qid, $connection = false )
         return false;
     }
 
-    return $db_instance->fetch_assoc( $qid );
+    return $db_instance->num_rows( $qid );
 }
 
 function db_query_count( $connection = false )

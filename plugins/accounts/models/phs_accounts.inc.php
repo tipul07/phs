@@ -24,6 +24,13 @@ class PHS_Model_Accounts extends PHS_Model
         self::LVL_DEVELOPER => array( 'title' => 'Developer' ),
     );
 
+    function __construct( $instance_details = false )
+    {
+        $this->add_connection( 'PHS_Model_Accounts_details', 'accounts', self::INSTANCE_TYPE_MODEL );
+
+        parent::__construct( $instance_details );
+    }
+
     /**
      * @return string Returns version of model
      */
@@ -37,7 +44,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'users', 'users_details', 'online' );
+        return array( 'users', 'online' );
     }
 
     /**
@@ -49,14 +56,14 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * Performs any necessary actions when upgrading model from $old_version to $new_version
+     * Performs any necessary actions when updating model from $old_version to $new_version
      *
      * @param string $old_version Old version of model
      * @param string $new_version New version of model
      *
      * @return bool true on success, false on failure
      */
-    protected function upgrade( $old_version, $new_version )
+    protected function update( $old_version, $new_version )
     {
         return true;
     }
@@ -358,6 +365,10 @@ class PHS_Model_Accounts extends PHS_Model
                     'added_by' => array(
                         'type' => self::FTYPE_INT,
                     ),
+                    'details_id' => array(
+                        'type' => self::FTYPE_INT,
+                        'comment' => 'users_details.id',
+                    ),
                     'status' => array(
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
@@ -381,47 +392,12 @@ class PHS_Model_Accounts extends PHS_Model
                 );
             break;
 
-            case 'users_details':
-                $return_arr = array(
-                    'id' => array(
-                        'type' => self::FTYPE_INT,
-                        'primary' => true,
-                        'auto_increment' => true,
-                    ),
-                    'uid' => array(
-                        'type' => self::FTYPE_INT,
-                        'index' => true,
-                    ),
-                    'title' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '20',
-                        'nullable' => true,
-                    ),
-                    'fname' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
-                        'nullable' => true,
-                    ),
-                    'lname' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
-                        'nullable' => true,
-                    ),
-                    'phone' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '50',
-                        'nullable' => true,
-                    ),
-                    'company' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
-                        'nullable' => true,
-                    ),
-                );
-            break;
-
             case 'online':
                 $return_arr = array(
+                    self::T_DETAILS_KEY => array(
+                        'comment' => 'Users session details',
+                    ),
+
                     'id' => array(
                         'type' => self::FTYPE_INT,
                         'primary' => true,
@@ -461,6 +437,18 @@ class PHS_Model_Accounts extends PHS_Model
                     ),
                 );
                 break;
+        }
+
+        return $return_arr;
+    }
+
+    protected function signal_receive( $sender, $signal, $signal_params )
+    {
+        $return_arr = self::default_signal_response();
+
+        if( $signal == self::SIGNAL_INSTALL or $signal == self::SIGNAL_UPDATE )
+        {
+            $this->install();
         }
 
         return $return_arr;

@@ -38,14 +38,14 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
-     * Performs any necessary actions when upgrading model from $old_version to $new_version
+     * Performs any necessary actions when updating model from $old_version to $new_version
      *
      * @param string $old_version Old version of model
      * @param string $new_version New version of model
      *
      * @return bool true on success, false on failure
      */
-    protected function upgrade( $old_version, $new_version )
+    protected function update( $old_version, $new_version )
     {
         return true;
     }
@@ -288,6 +288,13 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         return $return_arr;
+    }
+
+    public function force_models_install()
+    {
+        $this->install();
+
+
     }
 
 }

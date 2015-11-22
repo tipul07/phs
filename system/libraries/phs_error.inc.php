@@ -361,7 +361,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error( $obj )
+    public function copy_error( $obj, $force_error_code = false )
     {
         if( empty( $obj ) or !($obj instanceof PHS_Error)
          or !($error_arr = $obj->get_error())
@@ -373,6 +373,9 @@ class PHS_Error
         $this->error_simple_msg = $error_arr['error_simple_msg'];
         $this->error_debug_msg = $error_arr['error_debug_msg'];
 
+        if( $force_error_code !== false )
+            $this->error_no = $force_error_code;
+
         return true;
     }
 
@@ -383,7 +386,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error_from_array( $error_arr )
+    public function copy_error_from_array( $error_arr, $force_error_code = false )
     {
         if( empty( $error_arr ) or !is_array( $error_arr )
          or !isset( $error_arr['error_no'] ) or !isset( $error_arr['error_msg'] )
@@ -395,22 +398,25 @@ class PHS_Error
         $this->error_simple_msg = $error_arr['error_simple_msg'];
         $this->error_debug_msg = $error_arr['error_debug_msg'];
 
+        if( $force_error_code !== false )
+            $this->error_no = $force_error_code;
+
         return true;
     }
 
-    public static function st_copy_error_from_array( $error_arr )
+    public static function st_copy_error_from_array( $error_arr, $force_error_code = false )
     {
-        return self::get_error_static_instance()->copy_error_from_array( $error_arr );
+        return self::get_error_static_instance()->copy_error_from_array( $error_arr, $force_error_code );
     }
 
-    public static function st_copy_error( $obj )
+    public static function st_copy_error( $obj, $force_error_code = false )
     {
-        return self::get_error_static_instance()->copy_error( $obj );
+        return self::get_error_static_instance()->copy_error( $obj, $force_error_code );
     }
 
-    public function copy_static_error()
+    public function copy_static_error( $force_error_code = false )
     {
-        return $this->copy_error( self::get_error_static_instance() );
+        return $this->copy_error( self::get_error_static_instance(), $force_error_code );
     }
 
     public static function st_get_error_code()

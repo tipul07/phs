@@ -1,12 +1,18 @@
 <?php
 
-abstract class PHS_Model_Core_Base extends PHS_Instantiable
+abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 {
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
 
-    const ERR_MODEL_FIELDS = 1000, ERR_STATIC_INSTANCE = 1001, ERR_TABLE_GENERATE = 1002, ERR_INSTALL = 1003,
-          ERR_INSERT = 1004, ERR_EDIT = 1005, ERR__INSERT_EDIT = 1006;
+    const ERR_MODEL_FIELDS = 1000, ERR_TABLE_GENERATE = 1001, ERR_INSTALL = 1002,
+          ERR_INSERT = 1003, ERR_EDIT = 1004, ERR_DELETE_BY_INDEX = 1005;
+
+    const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
+          HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
+
+    const SIGNAL_INSERT = 'phs_model_insert', SIGNAL_EDIT = 'phs_model_edit', SIGNAL_HARD_DELETE = 'phs_model_hard_delete',
+          SIGNAL_INSTALL = 'phs_model_install', SIGNAL_UPDATE = 'phs_model_update', SIGNAL_FORCE_INSTALL = 'phs_model_force_install';
 
     const FTYPE_UNKNOWN = 0,
           FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
@@ -15,16 +21,6 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
           FTYPE_BINARY = 17, FTYPE_VARBINARY = 18,
           FTYPE_TINYBLOB = 19, FTYPE_MEDIUMBLOB = 20, FTYPE_BLOB = 21, FTYPE_LONGBLOB = 22,
           FTYPE_ENUM = 23;
-
-    const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
-          DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
-
-    const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
-          HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields';
-
-    protected static $_definition = array();
-
-    private $model_tables_arr = array();
 
     private static $FTYPE_ARR = array(
         self::FTYPE_TINYINT => array( 'title' => 'tinyint', 'default_length' => 4, 'default_value' => 0 ),
@@ -56,7 +52,14 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         self::FTYPE_ENUM => array( 'title' => 'enum', 'default_length' => '', 'default_value' => null, ),
     );
 
+    const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
+          DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
+
     const T_DETAILS_KEY = '<details>';
+
+    protected static $_definition = array();
+
+    private $model_tables_arr = array();
 
     /**
      * @return array of string Returns an array of strings containing tables that model will handle
@@ -81,14 +84,14 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
     abstract protected function fields_definition( $params = false );
 
     /**
-     * Performs any necessary actions when upgrading model from $old_version to $new_version
+     * Performs any necessary actions when updating model from $old_version to $new_version
      *
      * @param string $old_version Old version of model
      * @param string $new_version New version of model
      *
      * @return bool true on success, false on failure
      */
-    abstract protected function upgrade( $old_version, $new_version );
+    abstract protected function update( $old_version, $new_version );
 
     /**
      * @return int Should return INSTANCE_TYPE_* constant
@@ -266,6 +269,66 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             return false;
 
         return $fields_arr[$type];
+    }
+
+    /**
+     * This method hard-deletes a record from database. If additional work is required before hard-deleting record, self::HOOK_HARD_DELETE is called before deleting.
+     *
+     * @param array|int $existing_data Array with full database fields or index id
+     * @param array|false $params Parameters in the flow
+     *
+     * @return bool Returns true or false depending on hard delete success
+     */
+    public function hard_delete( $existing_data, $params = false )
+    {
+        self::st_reset_error();
+        $this->reset_error();
+
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or !($existing_arr = $this->data_to_array( $existing_data, $params )) )
+            return false;
+
+        $hook_params = array();
+        $hook_params['params'] = $params;
+        $hook_params['existing_data'] = $existing_arr;
+
+        if( ($trigger_result = PHS::trigger_hooks( self::HOOK_HARD_DELETE, $hook_params )) !== null )
+        {
+            if( !$trigger_result )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::HOOK_HARD_DELETE );
+                else
+                    $this->set_error( self::HOOK_HARD_DELETE, self::_t( 'Delete cancelled by trigger.' ) );
+
+                return false;
+            }
+
+            if( is_array( $trigger_result ) )
+            {
+                if( !empty( $trigger_result['params'] ) )
+                    $params = $trigger_result['params'];
+            }
+        }
+
+        if( ($announce_result = $this->announce_hard_delete( $existing_arr, $params ))
+        and ($announce_result = self::validate_array( $announce_result, self::default_announce_response() )) )
+        {
+            if( !empty( $announce_result['stop_process'] ) )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::HOOK_HARD_DELETE, self::_t( 'Delete cancelled by delete announce.' ) );
+
+                return false;
+            }
+        }
+
+        // TODO: Move all queries to a higher level so we can have database connections with different drivers...
+        $result = false;
+        if( db_query( 'DELETE FROM `'.$params['table_name'].'` WHERE `'.$params['table_index'].'` = \''.db_escape( $existing_arr[$params['table_index']], $params['db_connection'] ).'\'', $params['db_connection'] ) )
+            $result = true;
+
+        return $result;
     }
 
     static public function safe_escape( $str, $char = '\'' )
@@ -471,9 +534,20 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         return true;
     }
 
-    function __construct( $class_name, $plugin = false )
+    function __construct( $instance_details = false )
     {
-        parent::__construct( $class_name, $plugin );
+        parent::__construct( $instance_details );
+
+        $signal_defaults = array();
+        $signal_defaults['version'] = '';
+
+        $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+
+        $signal_defaults = array();
+        $signal_defaults['old_version'] = '';
+        $signal_defaults['new_version'] = '';
+
+        $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
 
         $this->validate_tables_definition();
     }
@@ -681,8 +755,7 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
 
         if( !($new_insert_arr = $this->insert_after( $insert_arr, $params )) )
         {
-            // TODO: Move all queries to a higher level so we can have database connections with different drivers...
-            db_query( 'DELETE FROM `'.$params['table_name'].'` WHERE `'.$params['table_index'].'` = \''.$item_id.'\'', $params['db_connection'] );
+            $this->hard_delete( $insert_arr );
 
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database insert.' ) );
@@ -1142,21 +1215,15 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         if( $this_instance_id == $plugins_model_id )
         {
             $plugins_model = $this;
+
+            if( !$this->install_tables() )
+                return false;
+
         } elseif( !($plugins_model = PHS::load_model( 'plugins' )) )
         {
             $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
             return false;
-        } elseif( !$plugins_model->install() )
-        {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
-            else
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install plugin model.' ) );
-            return false;
         }
-
-        if( $this_instance_id == $plugins_model_id )
-            $this->install_tables();
 
         $this_version = $this->get_model_version();
 
@@ -1181,7 +1248,7 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             if( !($plugin_arr = $plugins_model->insert( $insert_arr )) )
             {
                 if( $plugins_model->has_error() )
-                    $this->copy_error( $plugins_model );
+                    $this->copy_error( $plugins_model, self::ERR_INSTALL );
                 else
                     $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
@@ -1192,6 +1259,11 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             if( $this_instance_id != $plugins_model_id
             and !$this->install_tables() )
                 return false;
+
+            $signal_params = array();
+            $signal_params['version'] = $this_version;
+
+            $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
         } else
         {
             // This will only create non-existing tables...
@@ -1199,12 +1271,15 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             and !$this->install_tables() )
                 return false;
 
-            // Performs any necessary actions when upgrading model from old version to new version
+            $trigger_update_signal = false;
+            // Performs any necessary actions when updating model from old version to new version
             if( version_compare( $existing_arr['version'], $this_version, '<' ) )
             {
-                // Installed version is bigger than what we already had in database... upgrade...
-                if( !$this->upgrade( $existing_arr['version'], $this_version ) )
+                // Installed version is bigger than what we already had in database... update...
+                if( !$this->update( $existing_arr['version'], $this_version ) )
                     return false;
+
+                $trigger_update_signal = true;
             }
 
             $fields_arr = array();
@@ -1217,11 +1292,26 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
             if( !($plugin_arr = $plugins_model->edit( $existing_arr, $edit_arr )) )
             {
                 if( $plugins_model->has_error() )
-                    $this->copy_error( $plugins_model );
+                    $this->copy_error( $plugins_model, self::ERR_INSTALL );
                 else
                     $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
                 return false;
+            }
+
+            if( $trigger_update_signal )
+            {
+                $signal_params = array();
+                $signal_params['old_version'] = $existing_arr['version'];
+                $signal_params['new_version'] = $this_version;
+
+                $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
+            } else
+            {
+                $signal_params = array();
+                $signal_params['version'] = $this_version;
+
+                $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
             }
         }
 
@@ -1271,11 +1361,8 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
                     $keys_str .= ($keys_str!=''?', ':'').' KEY `'.$field_name.'` (`'.$field_name.'`)';
 
                 $field_str .= '`'.$field_name.'` '.$type_details['title'];
-                if( ($field_details['length'] !== null and $field_details['length'] !== false
-                        and !in_array( $field_details['type'], array( self::FTYPE_DATETIME, self::FTYPE_DATE ) ))
-                 or (!empty( $field_details['length'] )
-                        and in_array( $field_details['type'], array( self::FTYPE_DATETIME, self::FTYPE_DATE ) )
-                    ) )
+                if( $field_details['length'] !== null
+                and $field_details['length'] !== false )
                     $field_str .= '('.$field_details['length'].')';
 
                 if( !empty( $field_details['nullable'] ) )
@@ -1317,5 +1404,24 @@ abstract class PHS_Model_Core_Base extends PHS_Instantiable
         }
 
         return true;
+    }
+
+    protected function signal_receive( $sender, $signal, $signal_params )
+    {
+        $return_arr = self::default_signal_response();
+
+        if( $signal == self::SIGNAL_FORCE_INSTALL )
+        {
+            if( !$this->install() )
+            {
+                if( $this->has_error() )
+                {
+                    $return_arr['error_arr'] = $this->get_error();
+                    $return_arr['stop_process'] = true;
+                }
+            }
+        }
+
+        return $return_arr;
     }
 }
