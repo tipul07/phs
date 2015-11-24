@@ -311,13 +311,16 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             }
         }
 
-        if( ($announce_result = $this->announce_hard_delete( $existing_arr, $params ))
-        and ($announce_result = self::validate_array( $announce_result, self::default_announce_response() )) )
+        $signal_params = array();
+        $signal_params['existing_data'] = $existing_arr;
+        $signal_params['params'] = $params;
+
+        if( ($signal_result = $this->signal_trigger( self::SIGNAL_HARD_DELETE, $signal_params )) )
         {
-            if( !empty( $announce_result['stop_process'] ) )
+            if( !empty( $signal_result['stop_process'] ) )
             {
                 if( !$this->has_error() )
-                    $this->set_error( self::HOOK_HARD_DELETE, self::_t( 'Delete cancelled by delete announce.' ) );
+                    $this->set_error( self::HOOK_HARD_DELETE, self::_t( 'Delete cancelled by delete signal trigger.' ) );
 
                 return false;
             }
@@ -538,16 +541,38 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     {
         parent::__construct( $instance_details );
 
-        $signal_defaults = array();
-        $signal_defaults['version'] = '';
+        if( !$this->signal_defined( self::SIGNAL_INSTALL ) )
+        {
+            $signal_defaults            = array();
+            $signal_defaults['version'] = '';
 
-        $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+            $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+        }
 
-        $signal_defaults = array();
-        $signal_defaults['old_version'] = '';
-        $signal_defaults['new_version'] = '';
+        if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
+        {
+            $signal_defaults                = array();
+            $signal_defaults['old_version'] = '';
+            $signal_defaults['new_version'] = '';
 
-        $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
+            $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
+        }
+
+        if( !$this->signal_defined( self::SIGNAL_HARD_DELETE ) )
+        {
+            $signal_defaults                  = array();
+            $signal_defaults['existing_data'] = false;
+            $signal_defaults['params']        = false;
+
+            $this->define_signal( self::SIGNAL_HARD_DELETE, $signal_defaults );
+        }
+
+        if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
+        {
+            $signal_defaults = array();
+
+            $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
+        }
 
         $this->validate_tables_definition();
     }
@@ -1410,17 +1435,24 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     {
         $return_arr = self::default_signal_response();
 
-        if( $signal == self::SIGNAL_FORCE_INSTALL )
+        switch( $signal )
         {
-            if( !$this->install() )
-            {
-                if( $this->has_error() )
+            default:
+                $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
+            break;
+
+            case self::SIGNAL_FORCE_INSTALL:
+                if( !$this->install() )
                 {
-                    $return_arr['error_arr'] = $this->get_error();
-                    $return_arr['stop_process'] = true;
+                    if( $this->has_error() )
+                    {
+                        $return_arr['error_arr'] = $this->get_error();
+                        $return_arr['stop_process'] = true;
+                    }
                 }
-            }
+            break;
         }
+
 
         return $return_arr;
     }

@@ -29,6 +29,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_error.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.inc.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.inc.php' );

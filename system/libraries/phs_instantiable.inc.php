@@ -240,7 +240,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function safe_escape_name( $name )
     {
         if( empty( $name ) or !is_string( $name )
-         or preg_match( '/[^a-zA-Z0-9]/', $name ) )
+         or preg_match( '/[^a-zA-Z0-9_]/', $name ) )
             return false;
 
         return strtolower( $name );

@@ -6,6 +6,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
 
     private static $_signals = array();
     private $_connections = array();
+    private static $signal_backtrace = false;
 
     final public static function default_signal_response()
     {
@@ -57,13 +58,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if( !is_string( $signal ) )
-        {
-            $this->set_error( self::ERR_SIGNAL_DEFINITION, self::_t( 'Signal should be string.' ) );
-            return false;
-        }
-
-        if( array_key_exists( $signal, self::$_signals ) )
+        if( $this->signal_defined( $signal ) )
         {
             $this->set_error( self::ERR_SIGNAL_DEFINITION, self::_t( 'Signal already defined.' ) );
             return false;
@@ -86,12 +81,12 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         return self::$_signals[$signal];
     }
 
-    final protected function signal_trigger( $signal, $signal_params )
+    final protected function signal_trigger( $signal, $signal_params = false )
     {
-        static $signal_backtrace = false;
+        static $signal_level = 0;
 
-        if( empty( $signal_backtrace ) )
-            $signal_backtrace = array();
+        if( empty( self::$signal_backtrace ) )
+            self::$signal_backtrace = array();
 
         if( ($default_signal_params = $this->signal_defined( $signal )) === false  )
         {
@@ -112,8 +107,12 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         {
             // Make sure we don't get into a loop
             if( $instance_id == $this->instance_id()
-             or !empty( $signal_backtrace[$signal.'_'.$instance_id] ) )
+             or !empty( self::$signal_backtrace[$signal.'_'.$instance_id] ) )
                 continue;
+
+            self::$signal_backtrace[$signal.'_'.$instance_id] = true;
+
+            $signal_level++;
 
             if( !($instance_obj = self::get_instance( $instance_details['instance_class'], $instance_details['plugin_name'], $instance_details['instance_type'] )) )
             {
@@ -128,6 +127,8 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
                 return false;
             }
 
+            $signal_level--;
+
             $signal_result = self::validate_array( $signal_result, $default_signal_response );
 
             $signal_response['instance_responses'][$instance_id] = $signal_result;
@@ -141,6 +142,9 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
                 break;
             }
         }
+
+        if( !$signal_level )
+            self::$signal_backtrace = array();
 
         return $signal_response;
     }

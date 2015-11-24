@@ -806,6 +806,11 @@ class PHS_utils extends PHS_Language
         if( empty( $params['userpass'] ) or !is_array( $params['userpass'] ) or !isset( $params['userpass']['user'] ) or !isset( $params['userpass']['pass'] ) )
             $params['userpass'] = false;
 
+        if( empty( $params['follow_location'] ) )
+            $params['follow_location'] = false;
+        else
+            $params['follow_location'] = (!empty( $params['follow_location'] )?true:false);
+
         if( empty( $params['timeout'] ) )
             $params['timeout'] = 30;
         else
@@ -902,6 +907,7 @@ class PHS_utils extends PHS_Language
         @curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
         @curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
         @curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
+        @curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, $params['follow_location'] );
         @curl_setopt( $ch, CURLOPT_TIMEOUT, $params['timeout'] );
 
         if( !empty( $params['userpass'] ) )
