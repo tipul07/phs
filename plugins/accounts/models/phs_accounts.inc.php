@@ -442,7 +442,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
-    protected function signal_receive( $sender, $signal, $signal_params )
+    protected function signal_receive( $sender, $signal, $signal_params = false )
     {
         $return_arr = self::default_signal_response();
 

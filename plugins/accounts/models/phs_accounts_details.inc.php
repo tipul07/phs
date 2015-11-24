@@ -129,15 +129,26 @@ class PHS_Model_Accounts_details extends PHS_Model
         return $return_arr;
     }
 
-    protected function signal_receive( $sender, $signal, $signal_params )
+    /**
+     * Method which handles receiving signals
+     *
+     * @param PHS_Signal_and_slot $sender Class that sent the signal
+     * @param string $signal Signal sent
+     * @param array|false $signal_params Signal parameters
+     *
+     * @return array Signal response array
+     */
+    protected function signal_receive( $sender, $signal, $signal_params = false )
     {
-        parent::signal_receive( $sender, $signal, $signal_params );
+        $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
 
-        $return_arr = self::default_signal_response();
-
-        if( $signal == self::SIGNAL_INSTALL or $signal == self::SIGNAL_UPDATE )
+        switch( $signal )
         {
-            $this->install();
+            case self::SIGNAL_INSTALL:
+            case self::SIGNAL_UPDATE:
+                if( $sender->instance_id() === self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'accounts', 'accounts' ) )
+                    $this->install();
+            break;
         }
 
         return $return_arr;

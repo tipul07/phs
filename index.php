@@ -2,6 +2,10 @@
 
     include_once( 'main.inc.php' );
 
+    var_dump( PHS::execute_route() );
+
+    exit;
+
     /** @var PHS_Model_Plugins $plugins_model */
     if( !($plugins_model = PHS::load_model( 'plugins' )) )
     {
@@ -10,7 +14,6 @@
     }
 
     $plugins_model->add_connection( 'PHS_Model_Accounts', 'accounts', $plugins_model::INSTANCE_TYPE_MODEL );
-    $plugins_model->add_connection( 'PHS_Model_Accounts_details', 'accounts', $plugins_model::INSTANCE_TYPE_MODEL );
 
     var_dump( $plugins_model->force_install() );
     var_dump( $plugins_model->get_error() );

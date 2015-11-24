@@ -1453,7 +1453,6 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             break;
         }
 
-
         return $return_arr;
     }
 }

@@ -11,6 +11,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
     final public static function default_signal_response()
     {
         return array(
+            'stop_propagation' => false,
             'stop_process' => false,
             'error_arr' => false,
             'instance_responses' => array(),
@@ -149,7 +150,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         return $signal_response;
     }
 
-    protected function signal_receive( $sender, $signal, $signal_params )
+    protected function signal_receive( $sender, $signal, $signal_params = false )
     {
         return self::default_signal_response();
     }
