@@ -1,5 +1,9 @@
 <?php
 
+// Version main,inc.php was installed with. In case there are variables / definitions that change in future releases
+// bootstrap.php will announce that main.inc.php has to be updated
+define( 'PHS_KNOWN_VERSION', '1.0.0.1' );
+
 @date_default_timezone_set( 'Europe/London' );
 
 if( @function_exists( 'mb_internal_encoding' ) )
