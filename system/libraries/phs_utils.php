@@ -1,6 +1,8 @@
 <?php
 
-/*! \file phs_utils.inc.php
+namespace phs\libraries;
+
+/*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
  *  \version 1.27
  */

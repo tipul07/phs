@@ -1,6 +1,10 @@
 <?php
 
-class PHS_Controller_Index extends PHS_Controller
+namespace phs\system\core\controllers;
+
+use \phs\libraries;
+
+class PHS_Controller_Index extends \phs\libraries\PHS_Controller
 {
     public function get_models()
     {

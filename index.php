@@ -1,15 +1,16 @@
 <?php
 
-    include_once( 'main.inc.php' );
+    include_once( 'main.php' );
 
-    var_dump( PHS::execute_route() );
+    var_dump( phs\PHS::execute_route() );
+    var_dump( phs\PHS::st_get_error() );
 
     exit;
 
     /** @var PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = PHS::load_model( 'plugins' )) )
+    if( !($plugins_model = phs\PHS::load_model( 'plugins' )) )
     {
-        var_dump( PHS::st_get_error() );
+        var_dump( phs\PHS::st_get_error() );
         exit;
     }
 

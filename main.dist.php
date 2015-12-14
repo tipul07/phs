@@ -1,7 +1,7 @@
 <?php
 
 // Version main,inc.php was installed with. In case there are variables / definitions that change in future releases
-// bootstrap.php will announce that main.inc.php has to be updated
+// bootstrap.php will announce that main.php has to be updated
 define( 'PHS_KNOWN_VERSION', '1.0.0.1' );
 
 @date_default_timezone_set( 'Europe/London' );
@@ -88,4 +88,4 @@ define( 'PHP_EXEC', '/usr/bin/php' );
 define( 'PHS_DEBUG_MODE', true );
 define( 'PHS_DEBUG_THROW_ERRORS', true );
 
-include_once( PHS_PATH.'bootstrap.inc.php' );
+include_once( PHS_PATH.'bootstrap.php' );

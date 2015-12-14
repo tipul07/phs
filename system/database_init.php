@@ -9,7 +9,7 @@ define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
 define( 'PHS_DB_USE_PCONNECT', true );
 
 // Define any common database connections (if required)
-//if( !PHS_db::db_drivers_init() )
+//if( !\phs\libraries\PHS_db::db_drivers_init() )
 //{
-//    PHS_db::st_throw_error();
+//    \phs\libraries\PHS_db::st_throw_error();
 //}

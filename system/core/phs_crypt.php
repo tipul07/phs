@@ -1,8 +1,12 @@
 <?php
 
+namespace phs;
+
+use phs\libraries;
+
 //! @version 1.00
 
-class PHS_crypt extends PHS_Language
+class PHS_crypt extends \phs\libraries\PHS_Language
 {
     static private $internal_keys = array();
     static private $crypt_key = '';

@@ -1,4 +1,5 @@
 <?php
+namespace phs\libraries;
 
 abstract class PHS_Controller extends PHS_Signal_and_slot
 {

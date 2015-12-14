@@ -1,10 +1,12 @@
 <?php
 
+namespace phs\libraries;
+
 abstract class PHS_Instantiable extends PHS_Registry
 {
     const ERR_INSTANCE = 10000, ERR_INSTANCE_ID = 10001, ERR_INSTANCE_CLASS = 10002;
 
-    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller';
+    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_VIEW = 'view';
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
@@ -127,9 +129,17 @@ abstract class PHS_Instantiable extends PHS_Registry
         );
     }
 
+    /**
+     * @param string $class Class name
+     * @param string|false $plugin_name
+     * @param string|false $instance_type
+     * @return array|bool Returns array with details about a class in core or plugin
+     */
     public static function get_instance_details( $class, $plugin_name = false, $instance_type = false )
     {
         self::st_reset_error();
+
+        var_dump( $class ); exit;
 
         if( $plugin_name !== false
         and (!is_string( $plugin_name ) or empty( $plugin_name )) )
@@ -232,7 +242,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         $return_arr['instance_id'] = $instance_id;
-        $return_arr['instance_file_name'] = 'phs_'.$return_arr['instance_name'].'.inc.php';
+        $return_arr['instance_file_name'] = 'phs_'.$return_arr['instance_name'].'.php';
 
         return $return_arr;
     }

@@ -1,6 +1,10 @@
 <?php
 
-final class PHS_db extends PHS_Registry
+namespace phs;
+
+use phs\libraries;
+
+final class PHS_db extends \phs\libraries\PHS_Registry
 {
     const ERR_DATABASE = 2000;
 
@@ -228,7 +232,7 @@ final class PHS_db extends PHS_Registry
                 /** @var PHS_db_mysqli $db_instance */
                 if( !($db_instance = self::get_data( self::DB_MYSQLI_INSTANCE )) )
                 {
-                    include_once( PHS_LIBRARIES_DIR . 'phs_db_mysqli.inc.php' );
+                    include_once( PHS_LIBRARIES_DIR . 'phs_db_mysqli.php' );
 
                     if( !($db_instance = new PHS_db_mysqli())
                      or $db_instance->has_error() )

@@ -1,6 +1,10 @@
 <?php
 
-final class PHS extends PHS_Registry
+namespace phs;
+
+use \phs\libraries;
+
+final class PHS extends \phs\libraries\PHS_Registry
 {
     const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_ROUTE = 2002, ERR_EXECUTE_ROUTE = 2003;
 
@@ -223,9 +227,9 @@ final class PHS extends PHS_Registry
         if( empty( $action ) )
             $action = self::ROUTE_DEFAULT_ACTION;
 
-        if( ($plugin !== false and !($plugin = PHS_Instantiable::safe_escape_name( $plugin )))
-         or !($controller = PHS_Instantiable::safe_escape_name( $controller ))
-         or !($action = PHS_Instantiable::safe_escape_name( $action ))
+        if( ($plugin !== false and !($plugin = \phs\libraries\PHS_Instantiable::safe_escape_name( $plugin )))
+         or !($controller = \phs\libraries\PHS_Instantiable::safe_escape_name( $controller ))
+         or !($action = \phs\libraries\PHS_Instantiable::safe_escape_name( $action ))
         )
         {
             self::st_set_error( self::ERR_ROUTE, self::_t( 'Bad route in request.' ) );
@@ -303,7 +307,7 @@ final class PHS extends PHS_Registry
     public static function load_model( $model, $plugin = false )
     {
         if( empty( $model )
-         or !($model_name = PHS_Instantiable::safe_escape_name( $model )) )
+         or !($model_name = \phs\libraries\PHS_Instantiable::safe_escape_name( $model )) )
         {
             self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load model %s from plugin %s.', $model, (empty( $plugin )?'CORE':$plugin) ) );
             return false;
@@ -311,7 +315,11 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Model_'.ucfirst( $model_name );
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
+        if( !($instance_obj = \phs\libraries\PHS_Instantiable::get_instance(
+                                            $class_name,
+                                            $plugin,
+                                            \phs\libraries\PHS_Instantiable::INSTANCE_TYPE_MODEL
+        )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty( $plugin )?'CORE':$plugin) ) );
@@ -322,14 +330,15 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $model_name
+     * @param string $controller
+     * @param string|false $plugin
      *
-     * @return false|PHS_Model Returns false on error or an instance of loaded model
+     * @return false|\phs\libraries\PHS_Model Returns false on error or an instance of loaded model
      */
     public static function load_controller( $controller, $plugin = false )
     {
         if( empty( $controller )
-         or !($controller_name = PHS_Instantiable::safe_escape_name( $controller )) )
+         or !($controller_name = \phs\libraries\PHS_Instantiable::safe_escape_name( $controller )) )
         {
             self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load controller %s from plugin %s.', $controller, (empty( $plugin )?'CORE':$plugin) ) );
             return false;
@@ -337,7 +346,7 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Controller_'.ucfirst( $controller_name );
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
+        if( !($instance_obj = \phs\libraries\PHS_Instantiable::get_instance( $class_name, $plugin, \phs\libraries\PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty( $plugin )?'CORE':$plugin) ) );

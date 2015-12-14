@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 //! \author Andy (andy [at] sqnp [dot] net)
 //! \version 2.01
 

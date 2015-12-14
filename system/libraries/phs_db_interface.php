@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 interface PHS_db_interface
 {
     // Getter and setter for connection settings

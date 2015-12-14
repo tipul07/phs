@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 if( !defined( 'PHS_VERSION' ) )
     exit;
 

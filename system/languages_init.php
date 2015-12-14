@@ -9,16 +9,16 @@ define( 'LANG_EN_DIR', PHS_LANGUAGES_DIR.'en/' );
 define( 'LANG_EN_WWW', PHS_LANGUAGES_WWW.'en/' );
 
 if(
-    !PHS_Language::define_language( LANG_EN, array(
+    !\phs\libraries\PHS_Language::define_language( LANG_EN, array(
         'title' => 'English',
         'files' => array( LANG_EN_DIR.'en.csv' ),
     ) )
 )
 {
     // Do something if we cannot initialize English language
-    PHS_Language::st_throw_error();
+    \phs\libraries\PHS_Language::st_throw_error();
 } else
 {
-    PHS_Language::set_current_language( LANG_EN );
+    \phs\libraries\PHS_Language::set_current_language( LANG_EN );
 }
 

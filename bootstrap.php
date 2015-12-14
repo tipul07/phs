@@ -25,36 +25,36 @@ define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
 define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
 define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
 
-include_once( PHS_LIBRARIES_DIR.'phs_error.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_language.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_registry.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_instantiable.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_model.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_controller.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_encdec.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_db_interface.inc.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_params.inc.php' );
-include_once( PHS_CORE_DIR. 'phs.inc.php' );
-include_once( PHS_CORE_DIR. 'phs_db.inc.php' );
-include_once( PHS_CORE_DIR. 'phs_session.inc.php' );
-include_once( PHS_CORE_DIR. 'phs_crypt.inc.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_language.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_params.php' );
+include_once( PHS_CORE_DIR. 'phs.php' );
+include_once( PHS_CORE_DIR. 'phs_db.php' );
+include_once( PHS_CORE_DIR. 'phs_session.php' );
+include_once( PHS_CORE_DIR. 'phs_crypt.php' );
 
-PHS::init();
+\phs\PHS::init();
 
 // Running in debugging mode?
-PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
+\phs\PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
 // Should errors be thrown?
-PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
+\phs\PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
 
-if( PHS::st_debugging_mode() )
+if( \phs\PHS::st_debugging_mode() )
 {
     // Make sure we get all errors if we are in debugging mode and set custom error handler
     error_reporting( -1 );
     ini_set( 'display_errors', true );
     ini_set( 'display_startup_errors', true );
 
-    $old_error_handler = set_error_handler( array( 'PHS', 'error_handler' ) );
+    $old_error_handler = set_error_handler( array( '\phs\PHS', 'error_handler' ) );
 } else
 {
     // Make sure we don't display errors if we'r not in debugging mode
@@ -79,9 +79,9 @@ $mysql_settings['charset'] = PHS_DB_CHARSET;
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
-if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
+if( !\phs\PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {
-    PHS_db::st_throw_error();
+    \phs\PHS_db::st_throw_error();
     exit;
 }
 //
@@ -91,25 +91,25 @@ if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 //
 // Request domain settings (if available)
 //
-if( ($request_full_host = PHS::get_data( PHS::REQUEST_FULL_HOST )) )
+if( ($request_full_host = \phs\PHS::get_data( \phs\PHS::REQUEST_FULL_HOST )) )
 {
-    if( @is_file( PHS_CONFIG_DIR.$request_full_host.'.inc.php' ) )
+    if( @is_file( PHS_CONFIG_DIR.$request_full_host.'.php' ) )
     {
-        include_once( PHS_CONFIG_DIR.$request_full_host.'.inc.php' );
+        include_once( PHS_CONFIG_DIR.$request_full_host.'.php' );
     }
 }
 //
 // END Request domain settings (if available)
 //
 
-PHS::define_constants();
+\phs\PHS::define_constants();
 
 //
 // Init database settings
 // We don't create a connection with database server yet, we just instantiate database objects and
 // validate database settings
 //
-include_once( PHS_SYSTEM_DIR.'database_init.inc.php' );
+include_once( PHS_SYSTEM_DIR.'database_init.php' );
 //
 // END Init database settings
 //
@@ -119,7 +119,7 @@ define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!=''?':':'').PHS_PORT.'/'.PHS_D
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
 define( 'PHS_HTTPS', 'http://'.PHS_FULL_PATH_WWW );
 
-if( !($base_url = PHS::get_base_url()) )
+if( !($base_url = \phs\PHS::get_base_url()) )
     $base_url = '/';
 
 define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
@@ -129,14 +129,14 @@ define( 'PHS_LANGUAGES_WWW', $base_url.'languages/' );
 define( 'PHS_DOWNLOADS_WWW', $base_url.'downloads/' );
 
 // Init session
-include_once( PHS_SYSTEM_DIR.'session_init.inc.php' );
+include_once( PHS_SYSTEM_DIR.'session_init.php' );
 
 // Init language system
-include_once( PHS_SYSTEM_DIR.'languages_init.inc.php' );
+include_once( PHS_SYSTEM_DIR.'languages_init.php' );
 
 // Init crypting system
-include_once( PHS_SYSTEM_DIR.'crypt_init.inc.php' );
+include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 
 // most used functionalities defined as functions for quick access (doh...)
-include_once( PHS_SYSTEM_DIR.'functions.inc.php' );
+include_once( PHS_SYSTEM_DIR.'functions.php' );
 

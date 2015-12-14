@@ -1,6 +1,10 @@
 <?php
 
-final class PHS_session extends PHS_Registry
+namespace phs;
+
+use phs\libraries;
+
+final class PHS_session extends \phs\libraries\PHS_Registry
 {
     const ERR_DOMAIN = 1;
 

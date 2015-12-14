@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 {
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
@@ -1431,7 +1433,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return true;
     }
 
-    protected function signal_receive( $sender, $signal, $signal_params )
+    protected function signal_receive( $sender, $signal, $signal_params = false )
     {
         $return_arr = self::default_signal_response();
 

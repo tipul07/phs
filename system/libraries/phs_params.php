@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 //! \version 1.63
 
 class PHS_params

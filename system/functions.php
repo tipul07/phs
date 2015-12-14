@@ -5,10 +5,10 @@
 //
 function db_query_insert( $query, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( \phs\PHS_db::st_debugging_mode() )
+            \phs\PHS_db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -37,10 +37,10 @@ function db_query_insert( $query, $connection = false )
 
 function db_query( $query, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( \phs\PHS_db::st_debugging_mode() )
+            \phs\PHS_db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -67,10 +67,10 @@ function db_query( $query, $connection = false )
 
 function db_fetch_assoc( $qid, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( \phs\PHS_db::st_debugging_mode() )
+            \phs\PHS_db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -86,10 +86,10 @@ function db_fetch_assoc( $qid, $connection = false )
 
 function db_num_rows( $qid, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( \phs\PHS_db::st_debugging_mode() )
+            \phs\PHS_db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -105,7 +105,7 @@ function db_num_rows( $qid, $connection = false )
 
 function db_query_count( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return 0;
 
     return $db_instance->queries_number();
@@ -113,7 +113,7 @@ function db_query_count( $connection = false )
 
 function db_quick_insert( $table_name, $insert_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return '';
 
     return $db_instance->quick_insert( $table_name, $insert_arr, $connection, $params );
@@ -121,7 +121,7 @@ function db_quick_insert( $table_name, $insert_arr, $connection = false, $params
 
 function db_quick_edit( $table_name, $edit_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return '';
 
     return $db_instance->quick_edit( $table_name, $edit_arr, $connection, $params );
@@ -129,7 +129,7 @@ function db_quick_edit( $table_name, $edit_arr, $connection = false, $params = f
 
 function db_escape( $fields, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return false;
 
     return $db_instance->escape( $fields, $connection );
@@ -137,7 +137,7 @@ function db_escape( $fields, $connection = false )
 
 function db_last_id( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return -1;
 
     return $db_instance->last_inserted_id();
@@ -145,7 +145,7 @@ function db_last_id( $connection = false )
 
 function db_settings( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = \phs\PHS_db::db( $connection )) )
         return -1;
 
     return $db_instance->connection_settings( $connection );

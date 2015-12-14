@@ -1,5 +1,7 @@
 <?php
 
+namespace phs\libraries;
+
 //! @version 1.33
 
 class PHS_encdec extends PHS_Language
