@@ -4,15 +4,16 @@ namespace phs\libraries;
 
 abstract class PHS_Instantiable extends PHS_Registry
 {
-    const ERR_INSTANCE = 10000, ERR_INSTANCE_ID = 10001, ERR_INSTANCE_CLASS = 10002;
+    const ERR_INSTANCE = 10000, ERR_INSTANCE_ID = 10001, ERR_INSTANCE_CLASS = 10002, ERR_CLASS_NAME = 10002;
 
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_VIEW = 'view';
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
-        self::INSTANCE_TYPE_PLUGIN => 'Plugin',
-        self::INSTANCE_TYPE_MODEL => 'Model',
-        self::INSTANCE_TYPE_CONTROLLER => 'Controller',
+        self::INSTANCE_TYPE_PLUGIN => array( 'title' => 'Plugin', 'dir_name' => 'plugins' ),
+        self::INSTANCE_TYPE_MODEL => array( 'title' => 'Model', 'dir_name' => 'models' ),
+        self::INSTANCE_TYPE_CONTROLLER => array( 'title' => 'Controller', 'dir_name' => 'controllers' ),
+        self::INSTANCE_TYPE_VIEW => array( 'title' => 'View', 'dir_name' => 'views' ),
     );
 
     protected static $instances = array();
@@ -37,6 +38,28 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         return $types_arr[$type];
+    }
+
+    static public function validate_instance_type_dir( $type_dir )
+    {
+        if( !($types_arr = self::get_instance_types()) )
+            return false;
+
+        foreach( $types_arr as $type => $type_details )
+        {
+            if( $type_details['dir_name'] === $type_dir )
+                return $type;
+        }
+
+        return false;
+    }
+
+    static public function instance_type_dir( $type )
+    {
+        if( !($types_details = self::valid_instance_type( $type )) )
+            return false;
+
+        return $types_details['dir_name'];
     }
 
     function __construct( $instance_details = false )
@@ -87,7 +110,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( empty( $plugin_name ) )
             $plugin_name = 'core';
         else
-            $plugin_name = self::safe_escape_name( $plugin_name );
+            $plugin_name = self::safe_escape_plugin_name( $plugin_name );
 
         if( !is_string( $instance_name ) or empty( $instance_name ) )
         {
@@ -122,6 +145,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             'plugin_path' => '',
             'instance_type' => '',
             'instance_path' => '',
+            'instance_full_class' => '',
             'instance_class' => '',
             'instance_name' => '',
             'instance_file_name' => '',
@@ -131,15 +155,20 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     /**
      * @param string $class Class name
-     * @param string|false $plugin_name
-     * @param string|false $instance_type
+     * @param string|bool|false $plugin_name
+     * @param string|bool|false $instance_type
      * @return array|bool Returns array with details about a class in core or plugin
      */
     public static function get_instance_details( $class, $plugin_name = false, $instance_type = false )
     {
         self::st_reset_error();
 
-        var_dump( $class ); exit;
+        if( empty( $class )
+         or !($class = self::safe_escape_class_name( $class )) )
+        {
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Bad class name.' ) );
+            return false;
+        }
 
         if( $plugin_name !== false
         and (!is_string( $plugin_name ) or empty( $plugin_name )) )
@@ -148,7 +177,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        if( !self::valid_instance_type( $instance_type ) )
+        if( !($instance_type_details = self::valid_instance_type( $instance_type )) )
         {
             self::st_set_error( self::ERR_INSTANCE, self::_t( 'Please provide a valid instance type.' ) );
             return false;
@@ -157,12 +186,23 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( empty( $plugin_name ) )
             $plugin_name = 'core';
         else
-            $plugin_name = self::safe_escape_name( $plugin_name );
+            $plugin_name = self::safe_escape_plugin_name( $plugin_name );
 
         $return_arr = self::empty_instance_details();
         $return_arr['plugin_name'] = $plugin_name;
         $return_arr['instance_type'] = $instance_type;
         $return_arr['instance_class'] = $class;
+        $return_arr['instance_full_class'] = '\\phs\\';
+
+        if( $plugin_name == 'core' )
+            $return_arr['instance_full_class'] .= 'system\\core\\';
+        else
+            $return_arr['instance_full_class'] .= 'plugins\\'.$plugin_name.'\\';
+
+        if( !($instance_type_dir = self::instance_type_dir( $instance_type )) )
+            $instance_type_dir = '';
+
+        $return_arr['instance_full_class'] .= $instance_type_dir.'\\'.$class;
 
         switch( $instance_type )
         {
@@ -180,7 +220,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                     return false;
                 }
 
-                $return_arr['instance_name'] = strtolower( substr( $class, 10 ) );
+                $return_arr['instance_name'] = substr( $class, 10 );
 
                 if( $plugin_name == 'core' )
                 {
@@ -189,7 +229,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 {
                     $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
                     $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
-                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/models/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
                 }
             break;
 
@@ -202,7 +242,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                     return false;
                 }
 
-                $return_arr['instance_name'] = strtolower( substr( $class, 15 ) );
+                $return_arr['instance_name'] = substr( $class, 15 );
 
                 if( $plugin_name == 'core' )
                 {
@@ -211,7 +251,29 @@ abstract class PHS_Instantiable extends PHS_Registry
                 {
                     $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
                     $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
-                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/controllers/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
+                }
+            break;
+
+            case self::INSTANCE_TYPE_VIEW:
+
+                if( empty( $class )
+                 or strtolower( substr( $class, 0, 9 ) ) != 'phs_view_' )
+                {
+                    self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework view.' ) );
+                    return false;
+                }
+
+                $return_arr['instance_name'] = substr( $class, 9 );
+
+                if( $plugin_name == 'core' )
+                {
+                    $return_arr['instance_path'] = PHS_CORE_CONTROLLER_DIR;
+                } else
+                {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
                 }
             break;
 
@@ -224,7 +286,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                     return false;
                 }
 
-                $return_arr['instance_name'] = strtolower( substr( $class, 11 ) );
+                $return_arr['instance_name'] = substr( $class, 11 );
 
                 if( $plugin_name == 'core' )
                 {
@@ -241,36 +303,101 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( !($instance_id = self::generate_instance_id( $instance_type, $return_arr['instance_name'], $plugin_name )) )
             return false;
 
+        $return_arr['instance_name'] = ucfirst( strtolower( $return_arr['instance_name'] ) );
         $return_arr['instance_id'] = $instance_id;
-        $return_arr['instance_file_name'] = 'phs_'.$return_arr['instance_name'].'.php';
+        $return_arr['instance_file_name'] = 'phs_'.strtolower( $return_arr['instance_name'] ).'.php';
 
         return $return_arr;
     }
 
-    public static function safe_escape_name( $name )
+    public static function safe_escape_action_name( $name )
     {
         if( empty( $name ) or !is_string( $name )
-         or preg_match( '/[^a-zA-Z0-9_]/', $name ) )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return strtolower( $name );
     }
 
-    final public static function get_instance( $class = null, $plugin_name = false, $instance_type = false, $singleton = true )
+    public static function safe_escape_class_name( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+            return false;
+
+        return $name;
+    }
+
+    public static function safe_escape_class_name_with_namespace( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_/]@', $name ) )
+            return false;
+
+        return $name;
+    }
+
+    public static function safe_escape_plugin_name( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+            return false;
+
+        return strtolower( $name );
+    }
+
+    public static function extract_details_from_full_namespace_name( $class_with_namespace )
     {
         self::st_reset_error();
 
-        if( is_null( $class ) )
-            $class = get_called_class();
-
-        if( empty( $class )
-         or !($class = PHS_Instantiable::safe_escape_name( $class )) )
+        if( empty( $class_with_namespace )
+         or !($class_namespace_path = explode( '\\', $class_with_namespace )) )
         {
-            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Bad class name.' ) );
+            self::st_set_error( self::ERR_CLASS_NAME, self::_t( 'Seems like class name doesn\'t contain namespace.' ) );
             return false;
         }
 
-        if( !($instance_details = self::get_instance_details( $class, $plugin_name, $instance_type ))
+        $class_name = array_pop( $class_namespace_path );
+
+        if( empty( $class_namespace_path[0] ) or $class_namespace_path[0] != 'phs'
+         or empty( $class_namespace_path[1] ) or !in_array( $class_namespace_path[1], array( 'plugins', 'system' ) )
+         or empty( $class_namespace_path[2] ) )
+        {
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t create instance for classes outside phs namespace.' ) );
+            return false;
+        }
+
+        $plugin_name = (isset( $class_namespace_path[2] )?$class_namespace_path[2]:'');
+        $instance_type_dir = (isset( $class_namespace_path[3] )?$class_namespace_path[3]:'');
+
+        // Special case for plugin classes used in plugins dirs...
+        if( $class_namespace_path[1] == 'plugins' and !isset( $class_namespace_path[3] ) )
+            $instance_type = self::INSTANCE_TYPE_PLUGIN;
+        else
+            $instance_type = self::validate_instance_type_dir( $instance_type_dir );
+
+        return array(
+          'class_name' => $class_name,
+          'plugin_name' => $plugin_name,
+          'instance_type' => $instance_type,
+        );
+    }
+
+    final public static function get_instance( $class_name = null, $plugin_name = false, $instance_type = false, $singleton = true )
+    {
+        self::st_reset_error();
+
+        if( is_null( $class_name ) )
+        {
+            if( !($class_details = self::extract_details_from_full_namespace_name( get_called_class() )) )
+                return false;
+
+            $class_name = $class_details['class_name'];
+            $plugin_name = $class_details['plugin_name'];
+            $instance_type = $class_details['instance_type'];
+        }
+
+        if( !($instance_details = self::get_instance_details( $class_name, $plugin_name, $instance_type ))
          or empty( $instance_details['instance_id'] ) )
             return false;
 
@@ -286,9 +413,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         include_once( $instance_file_path );
         ob_end_clean();
 
-        if( !class_exists( $instance_details['instance_class'], false ) )
+        if( !class_exists( $instance_details['instance_full_class'], false ) )
         {
-            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Class %s not defined in %s file.', $instance_details['instance_class'], $instance_details['instance_file_name'] ) );
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Class %s not defined in %s file.', $instance_details['instance_full_class'], $instance_details['instance_file_name'] ) );
             return false;
         }
 
@@ -298,7 +425,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             $instance_obj = self::$instances[$instance_details['instance_id']];
         else
         {
-            $instance_class = $instance_details['instance_class'];
+            $instance_class = $instance_details['instance_full_class'];
 
             /** @var PHS_Instantiable $instance_obj */
             $instance_obj = new $instance_class( $instance_details );

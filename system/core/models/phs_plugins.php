@@ -1,6 +1,8 @@
 <?php
 namespace phs\models;
 
+use phs\libraries;
+
 class PHS_Model_Plugins extends \phs\libraries\PHS_Model
 {
     const ERR_FORCE_INSTALL = 100;
