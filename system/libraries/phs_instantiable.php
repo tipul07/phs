@@ -8,9 +8,11 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_VIEW = 'view';
 
+    const CORE_PLUGIN = 'core';
+
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
-        self::INSTANCE_TYPE_PLUGIN => array( 'title' => 'Plugin', 'dir_name' => 'plugins' ),
+        self::INSTANCE_TYPE_PLUGIN => array( 'title' => 'Plugin', 'dir_name' => '' ),
         self::INSTANCE_TYPE_MODEL => array( 'title' => 'Model', 'dir_name' => 'models' ),
         self::INSTANCE_TYPE_CONTROLLER => array( 'title' => 'Controller', 'dir_name' => 'controllers' ),
         self::INSTANCE_TYPE_VIEW => array( 'title' => 'View', 'dir_name' => 'views' ),
@@ -87,13 +89,40 @@ abstract class PHS_Instantiable extends PHS_Registry
          or empty( $this->instance_details['plugin_name'] ) )
             return false;
 
-        return ($this->instance_details['plugin_name']=='core');
+        return ($this->instance_details['plugin_name']==self::CORE_PLUGIN);
+    }
+
+    final public function instance_plugin_name()
+    {
+        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
+         or empty( $this->instance_details['plugin_name'] ) )
+            return false;
+
+        return $this->instance_details['plugin_name'];
+    }
+
+    final public function instance_plugin_www()
+    {
+        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
+         or empty( $this->instance_details['plugin_www'] ) )
+            return false;
+
+        return $this->instance_details['plugin_www'];
+    }
+
+    final public function instance_plugin_path()
+    {
+        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
+         or empty( $this->instance_details['plugin_path'] ) )
+            return false;
+
+        return $this->instance_details['plugin_path'];
     }
 
     /**
      * @param string $instance_type What kind of instance is this
      * @param string $instance_name Part of class name after predefined prefix (eg. phs_model_ for models, phs_controller_ for controller etc)
-     * @param string|bool $plugin_name Plugin name or 'core'
+     * @param string|bool $plugin_name Plugin name or false meaning core class
      * @return string|false Returns generated string from $instance_name and $plugin_name. This will uniquely identify the file we have to load. false on error
      */
     public static function generate_instance_id( $instance_type, $instance_name, $plugin_name = false )
@@ -108,7 +137,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if( empty( $plugin_name ) )
-            $plugin_name = 'core';
+            $plugin_name = self::CORE_PLUGIN;
         else
             $plugin_name = self::safe_escape_plugin_name( $plugin_name );
 
@@ -184,9 +213,17 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if( empty( $plugin_name ) )
-            $plugin_name = 'core';
+            $plugin_name = self::CORE_PLUGIN;
         else
+        {
             $plugin_name = self::safe_escape_plugin_name( $plugin_name );
+
+            if( $plugin_name == self::CORE_PLUGIN )
+            {
+                self::st_set_error( self::ERR_INSTANCE, self::_t( 'Plugin name not allowed.' ) );
+                return false;
+            }
+        }
 
         $return_arr = self::empty_instance_details();
         $return_arr['plugin_name'] = $plugin_name;
@@ -194,7 +231,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         $return_arr['instance_class'] = $class;
         $return_arr['instance_full_class'] = '\\phs\\';
 
-        if( $plugin_name == 'core' )
+        if( $plugin_name == self::CORE_PLUGIN )
             $return_arr['instance_full_class'] .= 'system\\core\\';
         else
             $return_arr['instance_full_class'] .= 'plugins\\'.$plugin_name.'\\';
@@ -202,7 +239,15 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( !($instance_type_dir = self::instance_type_dir( $instance_type )) )
             $instance_type_dir = '';
 
-        $return_arr['instance_full_class'] .= $instance_type_dir.'\\'.$class;
+        // Core plugin classes are stored in a special plugins dir
+        if( empty( $instance_type_dir )
+        and $plugin_name == self::CORE_PLUGIN and $instance_type == self::INSTANCE_TYPE_PLUGIN )
+            $instance_type_dir = 'plugins';
+
+        if( !empty( $instance_type_dir ) )
+            $instance_type_dir .= '\\';
+
+        $return_arr['instance_full_class'] .= $instance_type_dir.$class;
 
         switch( $instance_type )
         {
@@ -222,7 +267,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 10 );
 
-                if( $plugin_name == 'core' )
+                if( $plugin_name == self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_MODEL_DIR;
                 } else
@@ -244,7 +289,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 15 );
 
-                if( $plugin_name == 'core' )
+                if( $plugin_name == self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_CONTROLLER_DIR;
                 } else
@@ -258,17 +303,21 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_VIEW:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 9 ) ) != 'phs_view_' )
+                 or (strtolower( substr( $class, 0, 9 ) ) != 'phs_view_'
+                        and strtolower( $class ) != 'phs_view' ) )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework view.' ) );
                     return false;
                 }
 
-                $return_arr['instance_name'] = substr( $class, 9 );
+                $return_arr['instance_name'] = trim( substr( $class, 8 ), '_' );
 
-                if( $plugin_name == 'core' )
+                if( empty( $return_arr['instance_name'] ) )
+                    $return_arr['instance_name'] = 'view';
+
+                if( $plugin_name == self::CORE_PLUGIN )
                 {
-                    $return_arr['instance_path'] = PHS_CORE_CONTROLLER_DIR;
+                    $return_arr['instance_path'] = PHS_CORE_VIEW_DIR;
                 } else
                 {
                     $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
@@ -288,7 +337,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 11 );
 
-                if( $plugin_name == 'core' )
+                if( $plugin_name == self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_PLUGIN_DIR;
                 } else
@@ -338,6 +387,15 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     public static function safe_escape_plugin_name( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+            return false;
+
+        return strtolower( $name );
+    }
+
+    public static function safe_escape_theme_name( $name )
     {
         if( empty( $name ) or !is_string( $name )
          or preg_match( '@[^a-zA-Z0-9_]@', $name ) )

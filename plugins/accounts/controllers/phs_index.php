@@ -2,9 +2,9 @@
 
 namespace phs\plugins\accounts\controllers;
 
-use \phs\libraries;
+use \phs\libraries\PHS_Controller;
 
-class PHS_Controller_Index extends \phs\libraries\PHS_Controller
+class PHS_Controller_Index extends PHS_Controller
 {
     public function get_models()
     {
@@ -13,6 +13,9 @@ class PHS_Controller_Index extends \phs\libraries\PHS_Controller
 
     public function action_index()
     {
-        echo 'Accounts index';
+        if( !($view_obj = $this->init_view( 'test' )) )
+            return false;
+
+        echo $view_obj->render();
     }
 }

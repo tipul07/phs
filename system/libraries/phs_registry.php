@@ -35,8 +35,25 @@ class PHS_Registry extends PHS_Language
         return true;
     }
 
-    public static function set_data( $key, $val )
+    public static function set_data( $key, $val = null )
     {
+        if( $val === null )
+        {
+            if( !is_array( $key ) )
+                return false;
+
+            foreach( $key as $kkey => $kval )
+            {
+                if( !is_scalar( $kkey ) )
+                    continue;
+
+                self::$data[$kkey] = $kval;
+            }
+        }
+
+        if( !is_scalar( $key ) )
+            return false;
+
         self::$data[$key] = $val;
     }
 

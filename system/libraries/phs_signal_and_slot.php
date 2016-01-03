@@ -53,7 +53,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
 
     /**
      * @param string $signal Signal to be defined
-     * @param array|false $default_signal_params Default parameters that should be passed when a signal is called
+     * @param array|bool $default_signal_params Default parameters that should be passed when a signal is called
      *
      * @return bool
      */

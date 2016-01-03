@@ -18,12 +18,15 @@ define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
 
 define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
 define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
+define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
 define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
 
 // These paths will need a www pair, but after bootstrap
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
 define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
 define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
+
+use \phs\libraries;
 
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );

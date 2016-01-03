@@ -29,6 +29,15 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param string $key Language array key to be returned
+     * @return mixed Returns currently selected language details from language array definition
+     */
+    public static function get_current_language_key( $key )
+    {
+        return self::language_container()->get_current_language_key( $key );
+    }
+
+    /**
      * @return string Returns currently selected language
      */
     public static function get_current_language()
@@ -37,6 +46,7 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param string $lang Language to be set as current
      * @return string Returns currently selected language
      */
     public static function set_current_language( $lang )
@@ -45,6 +55,9 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param string $lang For which language to add files
+     * @param string $files_arr Array of files to be added
+     *
      * @return string Returns currently selected language
      */
     public static function add_language_files( $lang, $files_arr )
@@ -124,7 +137,12 @@ class PHS_Language_Container extends PHS_Error
     //! Current language
     private static $CURRENT_LANGUAGE = '';
     //! Contains defined language which can be used by the system. These are not necessary loaded in memory in order to optimize memory
-    //! eg. $DEFINED_LANGUAGES['en'] = array( 'title' => 'English (friendly name of language)', 'files' => array( 'path_to_csv_file1', 'path_to_csv_file2' ) );
+    //! eg. $DEFINED_LANGUAGES['en'] = array(
+    // 'title' => 'English (friendly name of language)',
+    // 'files' => array( 'path_to_csv_file1', 'path_to_csv_file2' ),
+    // 'browser_lang' => 'en-GB', // what should be sent to browser as language
+    // 'flag_file' => 'en.png', // file name of language flag (used when displaying language chooser)
+    // );
     private static $DEFINED_LANGUAGES = array();
 
     private static $LANGUAGE_INDEXES = array();
@@ -148,6 +166,23 @@ class PHS_Language_Container extends PHS_Error
         return self::$CURRENT_LANGUAGE;
     }
 
+    public static function st_get_current_language_key( $key )
+    {
+        $clang = self::st_get_current_language();
+        if( empty( $clang )
+         or !is_scalar( $key )
+         or empty( self::$DEFINED_LANGUAGES[$clang] ) or !is_array( self::$DEFINED_LANGUAGES[$clang] )
+         or !array_key_exists( self::$DEFINED_LANGUAGES[$clang], $key ) )
+            return false;
+
+        return self::$DEFINED_LANGUAGES[$clang][$key];
+    }
+
+    public function get_current_language_key( $key )
+    {
+        return self::st_get_current_language_key( $key );
+    }
+
     public function get_current_language()
     {
         return self::st_get_current_language();
@@ -167,7 +202,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * Reset all indexes loaded for provided language if $lang !== false or all loaded indexes if $lang === false
      *
-     * @param bool|string $lang
+     * @param string|bool $lang
      *
      * @return $this
      */
@@ -205,10 +240,20 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool|string
      */
-    static function language_loaded( $lang )
+    public static function language_loaded( $lang )
     {
         $lang = self::prepare_lang_index( $lang );
         return (isset( self::$LANGUAGE_INDEXES[$lang] )?$lang:false);
+    }
+
+    public static function get_default_language_structure()
+    {
+        return array(
+            'title' => '',
+            'files' => array(),
+            'browser_lang' => '',
+            'flag_file' =>'',
+        );
     }
 
     /**
@@ -232,9 +277,6 @@ class PHS_Language_Container extends PHS_Error
             return false;
         }
 
-        if( empty( $lang_params['files'] ) or !is_array( $lang_params['files'] ) )
-            $lang_params['files'] = array();
-
         if( empty( self::$DEFINED_LANGUAGES[$lang] ) )
             self::$DEFINED_LANGUAGES[$lang] = array();
 
@@ -247,6 +289,16 @@ class PHS_Language_Container extends PHS_Error
         {
             if( !$this->add_language_files( $lang, $lang_params['files'] ) )
                 return false;
+        }
+
+        $default_language_structure = self::get_default_language_structure();
+        foreach( $default_language_structure as $key => $def_value )
+        {
+            if( array_key_exists( $key, $lang_params ) )
+                self::$DEFINED_LANGUAGES[$lang][$key] = $lang_params[$key];
+
+            elseif( !array_key_exists( $key, self::$DEFINED_LANGUAGES[$lang] ) )
+                self::$DEFINED_LANGUAGES[$lang][$key] = $def_value;
         }
 
         return true;

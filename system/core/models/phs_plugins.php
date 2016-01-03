@@ -1,9 +1,11 @@
 <?php
+
 namespace phs\models;
 
-use phs\libraries;
+use \phs\PHS;
+use \phs\libraries\PHS_Model;
 
-class PHS_Model_Plugins extends \phs\libraries\PHS_Model
+class PHS_Model_Plugins extends PHS_Model
 {
     const ERR_FORCE_INSTALL = 100;
 
@@ -159,6 +161,7 @@ class PHS_Model_Plugins extends \phs\libraries\PHS_Model
      * Parses flow parameters if anything special should be done.
      * This should do checks on raw parameters received by edit method.
      *
+     * @param array $existing_arr Array with existing data
      * @param array|false $params Parameters in the flow
      *
      * @return array Flow parameters array
@@ -236,7 +239,7 @@ class PHS_Model_Plugins extends \phs\libraries\PHS_Model
     }
 
     /**
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Returns an array with table fields
      */

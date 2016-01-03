@@ -1,5 +1,12 @@
 <?php
 
+namespace phs\plugins\accounts\models;
+
+use \phs\PHS;
+use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_params;
+use \phs\PHS_crypt;
+
 class PHS_Model_Accounts extends PHS_Model
 {
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses', HOOK_SETTINGS = 'phs_accounts_settings';
@@ -305,7 +312,7 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Returns an array with table fields
      */

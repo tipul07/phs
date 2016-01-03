@@ -7,12 +7,15 @@ use \phs\libraries\PHS_Instantiable;
 
 final class PHS extends PHS_Registry
 {
-    const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_ROUTE = 2002, ERR_EXECUTE_ROUTE = 2003;
+    const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_VIEW = 2003, ERR_LOAD_PLUGIN = 2004,
+          ERR_ROUTE = 2005, ERR_EXECUTE_ROUTE = 2006, ERR_THEME = 2007;
 
     const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
           COOKIE_DOMAIN = 'cookie_domain',
 
-          ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action';
+          ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action',
+
+          CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme';
 
     const ROUTE_PARAM = '_route',
           ROUTE_DEFAULT_CONTROLLER = 'index',
@@ -90,6 +93,93 @@ final class PHS extends PHS_Registry
         self::set_data( self::REQUEST_PORT, '' );
         self::set_data( self::COOKIE_DOMAIN, '' );
         self::set_data( self::REQUEST_HTTPS, false );
+
+        self::set_data( self::CURRENT_THEME, '' );
+        self::set_data( self::DEFAULT_THEME, '' );
+    }
+
+    public static function valid_theme( $theme )
+    {
+        if( empty( $theme )
+         or !($theme = PHS_Instantiable::safe_escape_theme_name( $theme ))
+         or !@is_dir( PHS_THEMES_DIR . $theme ) or !@is_readable( PHS_THEMES_DIR . $theme ) )
+        {
+            self::st_set_error( self::ERR_THEME, self::_t( 'Theme %s doesn\'t exist or directory is not readable.', ($theme?$theme:'N/A') ) );
+            return false;
+        }
+
+        return $theme;
+    }
+
+    public static function set_theme( $theme )
+    {
+        if( !($theme = self::valid_theme( $theme )) )
+            return false;
+
+        self::set_data( self::CURRENT_THEME, $theme );
+
+        if( !self::get_data( self::DEFAULT_THEME ) )
+            self::set_data( self::DEFAULT_THEME, $theme );
+
+        return true;
+    }
+
+    public static function set_defaut_theme( $theme )
+    {
+        if( !($theme = self::valid_theme( $theme )) )
+            return false;
+
+        self::set_data( self::DEFAULT_THEME, $theme );
+
+        return true;
+    }
+
+    public static function resolve_theme()
+    {
+        // First set default so it doesn't get auto-set in set_theme() method
+        if( !self::get_data( self::DEFAULT_THEME )
+        and defined( 'PHS_DEFAULT_THEME' ) )
+        {
+            if( !self::set_defaut_theme( PHS_DEFAULT_THEME ) )
+                return false;
+        }
+
+        if( !self::get_data( self::CURRENT_THEME )
+        and defined( 'PHS_THEME' ) )
+        {
+            if( !self::set_theme( PHS_THEME ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    public static function get_theme()
+    {
+        $theme = self::get_data( self::CURRENT_THEME );
+
+        if( !$theme )
+        {
+            if( !self::resolve_theme()
+             or !($theme = self::get_data( self::CURRENT_THEME )) )
+                return false;
+        }
+
+        return $theme;
+    }
+
+    public static function get_default_theme()
+    {
+        $theme = self::get_data( self::DEFAULT_THEME );
+
+        if( !$theme )
+        {
+            if( !self::resolve_theme()
+             or !($theme = self::get_data( self::DEFAULT_THEME )) )
+                return false;
+        }
+
+        return $theme;
     }
 
     public static function domain_constants()
@@ -178,6 +268,8 @@ final class PHS extends PHS_Registry
      * {plugin}/{controller}/{action} If controller is part of a plugin
      * or
      * {controller}/{action} If controller is a core controller
+     * or
+     * {plugin}-{action} Controller will be 'index'
      *
      * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
      * @return bool Returns true on success or false on error
@@ -310,16 +402,58 @@ final class PHS extends PHS_Registry
     {
         if( !($model_name = PHS_Instantiable::safe_escape_class_name( $model )) )
         {
-            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load model %s from plugin %s.', $model, (empty( $plugin )?'CORE':$plugin) ) );
+            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load model %s from plugin %s.', $model, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 
         $class_name = 'PHS_Model_'.ucfirst( strtolower( $model_name ) );
 
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
         {
             if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty( $plugin )?'CORE':$plugin) ) );
+                self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * Returns an instance of a view. If view is part of a plugin $plugin will contain name of that plugin.
+     *
+     * @param string|bool $view View to be loaded (part of class name after PHS_View_)
+     * @param string|bool $plugin Plugin where view is located (false means a core view)
+     *
+     * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
+     */
+    public static function load_view( $view = false, $plugin = false )
+    {
+        self::st_reset_error();
+
+        $view_class = '';
+        if( !empty( $view )
+        and !($view_class = PHS_Instantiable::safe_escape_class_name( $view )) )
+        {
+            self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t load view %s from plugin %s.', $view, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        if( !empty( $view_class ) )
+            $class_name = 'PHS_View_'.ucfirst( strtolower( $view_class ) );
+        else
+            $class_name = 'PHS_View';
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        // Views are not singletons
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, false )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 
@@ -336,16 +470,48 @@ final class PHS extends PHS_Registry
     {
         if( !($controller_name = PHS_Instantiable::safe_escape_class_name( $controller )) )
         {
-            self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t load controller %s from plugin %s.', $controller, (empty( $plugin )?'CORE':$plugin) ) );
+            self::st_set_error( self::ERR_LOAD_CONTROLLER, self::_t( 'Couldn\'t load controller %s from plugin %s.', $controller, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 
         $class_name = 'PHS_Controller_'.ucfirst( strtolower( $controller_name ) );
 
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
         {
             if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty( $plugin )?'CORE':$plugin) ) );
+                self::st_set_error( self::ERR_LOAD_CONTROLLER, self::_t( 'Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string|bool $plugin
+     *
+     * @return false|\phs\libraries\PHS_Plugin Returns false on error or an instance of loaded plugin
+     */
+    public static function load_plugin( $plugin_name, $plugin = false )
+    {
+        if( !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
+        {
+            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin class %s from plugin %s.', $plugin_name, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Controller_'.ucfirst( strtolower( $plugin_safe_name ) );
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s .', $plugin_name, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 

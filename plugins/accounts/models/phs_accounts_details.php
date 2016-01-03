@@ -1,5 +1,9 @@
 <?php
 
+namespace phs\plugins\accounts\models;
+
+use \phs\libraries\PHS_Model;
+
 class PHS_Model_Accounts_details extends PHS_Model
 {
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses', HOOK_SETTINGS = 'phs_accounts_settings';
@@ -72,7 +76,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     }
 
     /**
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Returns an array with table fields
      */
@@ -132,9 +136,9 @@ class PHS_Model_Accounts_details extends PHS_Model
     /**
      * Method which handles receiving signals
      *
-     * @param PHS_Signal_and_slot $sender Class that sent the signal
+     * @param \phs\libraries\PHS_Signal_and_slot $sender Class that sent the signal
      * @param string $signal Signal sent
-     * @param array|false $signal_params Signal parameters
+     * @param array|bool $signal_params Signal parameters
      *
      * @return array Signal response array
      */

@@ -2,6 +2,9 @@
 
 namespace phs\libraries;
 
+use \phs\PHS;
+use \phs\models\PHS_Model_Plugins;
+
 abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 {
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
