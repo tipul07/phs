@@ -2,13 +2,14 @@
 
 namespace phs\libraries;
 
-//! \version 1.63
+//! \version 1.70
 
 class PHS_params
 {
     const ERR_OK = 0, ERR_PARAMS = 1;
 
-    const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7, T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11;
+    const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7,
+          T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12;
 
     const FLOAT_PRECISION = 10;
 
@@ -113,6 +114,8 @@ class PHS_params
                         if( substr( $val, 0, 1 ) == '.' )
                             $val = '0'.$val;
                     }
+
+                    $val = floatval( $val );
                 }
 
                 return $val;
@@ -171,6 +174,23 @@ class PHS_params
 
             case self::T_URL:
                 return strip_tags( $val );
+            break;
+
+            case self::T_BOOL:
+                if( is_string( $val ) )
+                {
+                    if( empty( $extra['trim_before'] ) )
+                        $val = trim( $val );
+
+                    $low_val = strtolower( $val );
+
+                    if( $low_val == 'true' )
+                        return true;
+                    elseif( $low_val == 'false' )
+                        return false;
+                }
+
+                return (!empty( $val )?true:false);
             break;
         }
     }
