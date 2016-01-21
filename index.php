@@ -14,7 +14,7 @@
 
     exit;
 
-    /** @var PHS_Model_Plugins $plugins_model */
+    /** @var \phs\models\PHS_Model_Plugins $plugins_model */
     if( !($plugins_model = phs\PHS::load_model( 'plugins' )) )
     {
         var_dump( phs\PHS::st_get_error() );

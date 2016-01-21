@@ -66,9 +66,9 @@ class PHS_Error
             return false;
 
         if( $this->debugging_mode() )
-            throw new Exception( $this->error_debug_msg.":\n".$this->error_msg, $this->error_no );
+            throw new \Exception( $this->error_debug_msg.":\n".$this->error_msg, $this->error_no );
         else
-            throw new Exception( $this->error_simple_msg, $this->error_no );
+            throw new \Exception( $this->error_simple_msg, $this->error_no );
     }
 
     public static function st_throw_error()
@@ -79,9 +79,9 @@ class PHS_Error
         //    return false;
         //
         //if( self::st_debugging_mode() )
-        //    throw new Exception( $error_arr['error_msg'], $error_arr['error_no'] );
+        //    throw new \Exception( $error_arr['error_msg'], $error_arr['error_no'] );
         //else
-        //    throw new Exception( $error_arr['error_simple_msg'], $error_arr['error_no'] );
+        //    throw new \Exception( $error_arr['error_simple_msg'], $error_arr['error_no'] );
         return self::get_error_static_instance()->throw_error();
     }
 

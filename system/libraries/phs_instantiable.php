@@ -6,7 +6,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 {
     const ERR_INSTANCE = 10000, ERR_INSTANCE_ID = 10001, ERR_INSTANCE_CLASS = 10002, ERR_CLASS_NAME = 10002;
 
-    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_VIEW = 'view';
+    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view';
 
     const CORE_PLUGIN = 'core';
 
@@ -15,6 +15,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_PLUGIN => array( 'title' => 'Plugin', 'dir_name' => '' ),
         self::INSTANCE_TYPE_MODEL => array( 'title' => 'Model', 'dir_name' => 'models' ),
         self::INSTANCE_TYPE_CONTROLLER => array( 'title' => 'Controller', 'dir_name' => 'controllers' ),
+        self::INSTANCE_TYPE_ACTION => array( 'title' => 'Action', 'dir_name' => 'actions' ),
         self::INSTANCE_TYPE_VIEW => array( 'title' => 'View', 'dir_name' => 'views' ),
     );
 
@@ -90,6 +91,15 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         return ($this->instance_details['plugin_name']==self::CORE_PLUGIN);
+    }
+
+    final public function instance_name()
+    {
+        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
+         or empty( $this->instance_details['instance_name'] ) )
+            return false;
+
+        return $this->instance_details['instance_name'];
     }
 
     final public function instance_plugin_name()
@@ -292,6 +302,31 @@ abstract class PHS_Instantiable extends PHS_Registry
                 if( $plugin_name == self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_CONTROLLER_DIR;
+                } else
+                {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
+                }
+            break;
+
+            case self::INSTANCE_TYPE_ACTION:
+
+                if( empty( $class )
+                 or strtolower( substr( $class, 0, 11 ) ) != 'phs_action_' )
+                {
+                    self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework action.' ) );
+                    return false;
+                }
+
+                $return_arr['instance_name'] = trim( substr( $class, 11 ), '_' );
+
+                if( empty( $return_arr['instance_name'] ) )
+                    $return_arr['instance_name'] = 'view';
+
+                if( $plugin_name == self::CORE_PLUGIN )
+                {
+                    $return_arr['instance_path'] = PHS_CORE_ACTION_DIR;
                 } else
                 {
                     $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';

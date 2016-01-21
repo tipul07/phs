@@ -4,10 +4,11 @@ namespace phs\system\core\views;
 use \phs\PHS;
 use \phs\libraries\PHS_Signal_and_slot;
 use \phs\libraries\PHS_Controller;
+use \phs\libraries\PHS_Action;
 
 class PHS_View extends PHS_Signal_and_slot
 {
-    const ERR_BAD_CONTROLLER = 30000, ERR_BAD_TEMPLATE = 30001, ERR_BAD_THEME = 30002, ERR_TEMPLATE_DIRS = 30003;
+    const ERR_BAD_CONTROLLER = 30000, ERR_BAD_ACTION = 30001, ERR_BAD_TEMPLATE = 30002, ERR_BAD_THEME = 30003, ERR_TEMPLATE_DIRS = 30004;
 
     protected $_template = '';
     protected $_theme = '';
@@ -17,8 +18,11 @@ class PHS_View extends PHS_Signal_and_slot
     // Resulting template file
     protected $_template_file = '';
 
-    /** @var PHS_Controller|bool $_controller */
+    /** @var PHS_Controller|bool */
     protected $_controller = false;
+
+    /** @var PHS_Action|bool */
+    protected $_action = false;
 
     protected function instance_type()
     {
@@ -48,6 +52,19 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         $this->_controller = $controller_obj;
+        return true;
+    }
+
+    public function set_action( $action_obj )
+    {
+        if( $action_obj !== false
+        and !($action_obj instanceof PHS_Action) )
+        {
+            $this->set_error( self::ERR_BAD_ACTION, self::_t( 'Not an action instance.' ) );
+            return false;
+        }
+
+        $this->_action = $action_obj;
         return true;
     }
 

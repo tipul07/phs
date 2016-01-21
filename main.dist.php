@@ -1,6 +1,6 @@
 <?php
 
-// Version main,inc.php was installed with. In case there are variables / definitions that change in future releases
+// Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
 define( 'PHS_KNOWN_VERSION', '1.0.0.1' );
 

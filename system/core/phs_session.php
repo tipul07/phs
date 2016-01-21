@@ -70,7 +70,6 @@ final class PHS_session extends \phs\libraries\PHS_Registry
         return true;
     }
 
-
     public static function start()
     {
         if( self::is_started() )

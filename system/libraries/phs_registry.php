@@ -55,6 +55,8 @@ class PHS_Registry extends PHS_Language
             return false;
 
         self::$data[$key] = $val;
+
+        return true;
     }
 
     public static function validate_array( $arr, $default_arr )

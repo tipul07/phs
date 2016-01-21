@@ -19,6 +19,7 @@ define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
 define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
 define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
 define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
+define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
 define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
 
 // These paths will need a www pair, but after bootstrap
@@ -35,6 +36,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_params.php' );

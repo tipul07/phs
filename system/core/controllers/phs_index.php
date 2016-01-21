@@ -10,15 +10,4 @@ class PHS_Controller_Index extends PHS_Controller
     {
         return array();
     }
-
-    public function action_index()
-    {
-        if( !($view_obj = $this->init_view( 'test' )) )
-        {
-            var_dump( $this->get_error() );
-            return false;
-        }
-
-        echo $view_obj->render();
-    }
 }

@@ -2,9 +2,14 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\libraries\PHS_Action;
 
 abstract class PHS_Controller extends PHS_Signal_and_slot
 {
+    const ERR_RUN_ACTION = 30000;
+
+    private $_action = false;
+
     /**
      * @return array An array of strings which are the models used by this controller
      */
@@ -15,27 +20,37 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         return self::INSTANCE_TYPE_CONTROLLER;
     }
 
-    public function init_view( $template, $theme = false, $view_class = false, $plugin = false )
+    public function get_action()
     {
-        if( $plugin === false )
+        return $this->_action;
+    }
+
+    /**
+     * @param string $action Action to be loaded and executed
+     * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
+     *
+     * @return bool|
+     */
+    public function execute_action( $action, $plugin = null )
+    {
+        PHS::running_controller( $this );
+
+        if( $plugin === null )
             $plugin = $this->instance_plugin_name();
 
-        if( !($view_obj = PHS::load_view( $view_class, $plugin )) )
+        /** @var \phs\libraries\PHS_Action $action_obj */
+        if( !($action_obj = PHS::load_action( $action, $plugin )) )
         {
-            $this->copy_static_error();
+            if( self::st_has_error() )
+                $this->copy_static_error();
+            else
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Couldn\'t load action [%s].', $action ) );
             return false;
         }
 
-        if( !$view_obj->set_controller( $this )
-         or !$view_obj->set_theme( $theme )
-         or !$view_obj->set_template( $template )
-        )
-        {
-            $this->copy_error( $view_obj );
-            return false;
-        }
+        $action_obj->set_controller( $this );
 
-        return $view_obj;
+        return $action_obj->run_action();
     }
 
 }

@@ -4,11 +4,13 @@ namespace phs;
 
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
+use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Controller;
 
 final class PHS extends PHS_Registry
 {
-    const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_VIEW = 2003, ERR_LOAD_PLUGIN = 2004,
-          ERR_ROUTE = 2005, ERR_EXECUTE_ROUTE = 2006, ERR_THEME = 2007;
+    const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
+          ERR_ROUTE = 2006, ERR_EXECUTE_ROUTE = 2007, ERR_THEME = 2008;
 
     const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
           COOKIE_DOMAIN = 'cookie_domain',
@@ -20,6 +22,8 @@ final class PHS extends PHS_Registry
     const ROUTE_PARAM = '_route',
           ROUTE_DEFAULT_CONTROLLER = 'index',
           ROUTE_DEFAULT_ACTION = 'index';
+
+    const RUNNING_ACTION = 'r_action', RUNNING_CONTROLLER = 'r_controller';
 
     private static $inited = false;
     private static $instance = false;
@@ -96,6 +100,41 @@ final class PHS extends PHS_Registry
 
         self::set_data( self::CURRENT_THEME, '' );
         self::set_data( self::DEFAULT_THEME, '' );
+
+        self::set_data( self::RUNNING_ACTION, array(
+            'name' => '',
+            'instance' => false ) );
+        self::set_data( self::RUNNING_CONTROLLER, array(
+            'name' => '',
+            'instance' => false ) );
+    }
+
+    /**
+     * @param PHS_Action $action_obj
+     */
+    public static function running_action( PHS_Action $action_obj = null )
+    {
+        if( $action_obj === null )
+            return self::get_data( self::RUNNING_ACTION );
+
+        if( !($action_obj instanceof PHS_Action) )
+            return false;
+
+        return self::set_data( self::RUNNING_ACTION, $action_obj );
+    }
+
+    /**
+     * @param PHS_Controller $action_obj
+     */
+    public static function running_controller( PHS_Controller $controller_obj = null )
+    {
+        if( $controller_obj === null )
+            return self::get_data( self::RUNNING_CONTROLLER );
+
+        if( !($controller_obj instanceof PHS_Controller) )
+            return false;
+
+        return self::set_data( self::RUNNING_CONTROLLER, $controller_obj );
     }
 
     public static function valid_theme( $theme )
@@ -373,15 +412,7 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        $action_method = 'action_'.$route_details[self::ROUTE_ACTION];
-
-        if( !method_exists( $controller_obj, $action_method ) )
-        {
-            self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Action not defined in current controller.' ) );
-            return false;
-        }
-
-        echo 'Executing ['.$route_details[self::ROUTE_PLUGIN].':'.$route_details[self::ROUTE_CONTROLLER].':'.$route_details[self::ROUTE_ACTION].']';
+        $action_buf = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] );
 
         ob_start();
         @call_user_func( array( $controller_obj, $action_method ) );
@@ -429,7 +460,7 @@ final class PHS extends PHS_Registry
      *
      * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
      */
-    public static function load_view( $view = false, $plugin = false )
+    public static function load_view( $view = false, $plugin = false, $as_singleton = true )
     {
         self::st_reset_error();
 
@@ -450,7 +481,7 @@ final class PHS extends PHS_Registry
             $plugin = false;
 
         // Views are not singletons
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, false )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
@@ -483,6 +514,36 @@ final class PHS extends PHS_Registry
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_CONTROLLER, self::_t( 'Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $controller
+     * @param string|bool $plugin
+     *
+     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded controller
+     */
+    public static function load_action( $action, $plugin = false )
+    {
+        if( !($action_name = PHS_Instantiable::safe_escape_class_name( $action )) )
+        {
+            self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t load action %s from plugin %s.', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Action_'.ucfirst( strtolower( $action_name ) );
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        /** @var \phs\libraries\PHS_Action */
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t obtain instance for action %s from plugin %s .', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 

@@ -16,6 +16,8 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
             'stop_propagation' => false,
             'stop_process' => false,
             'error_arr' => false,
+            // null|mixed, Tells to replace return of method which triggered the signal (stop_proccess should be true and this value should be != null)
+            'replace_result' => null,
             'instance_responses' => array(),
         );
     }
@@ -142,6 +144,12 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
             if( !empty( $signal_result['stop_process'] ) )
             {
                 $signal_response['stop_process'] = true;
+
+                if( !empty( $signal_result['error_arr'] ) )
+                    $this->copy_error_from_array( $signal_result['error_arr'] );
+                if( $signal_result['replace_result'] !== null )
+                    $signal_response['replace_result'] = $signal_result['replace_result'];
+
                 break;
             }
         }
