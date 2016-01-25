@@ -1167,7 +1167,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         if( empty( $params['join_sql'] ) )
             $params['join_sql'] = '';
         if( empty( $params['db_fields'] ) )
-            $params['db_fields'] = '`'.$params['table_index'].'`.*';
+            $params['db_fields'] = '`'.$params['table_name'].'`.*';
         if( empty( $params['offset'] ) )
             $params['offset'] = 0;
         if( empty( $params['enregs_no'] ) )
