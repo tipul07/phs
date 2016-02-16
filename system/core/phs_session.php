@@ -2,9 +2,9 @@
 
 namespace phs;
 
-use phs\libraries;
+use phs\libraries\PHS_Registry;
 
-final class PHS_session extends \phs\libraries\PHS_Registry
+final class PHS_session extends PHS_Registry
 {
     const ERR_DOMAIN = 1;
 

@@ -21,38 +21,49 @@ define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
 define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
 define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
 define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
+define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
 
 // These paths will need a www pair, but after bootstrap
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
 define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
 define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
 
-use \phs\libraries;
-
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_params.php' );
-include_once( PHS_CORE_DIR. 'phs.php' );
-include_once( PHS_CORE_DIR. 'phs_db.php' );
-include_once( PHS_CORE_DIR. 'phs_session.php' );
-include_once( PHS_CORE_DIR. 'phs_crypt.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_hooks.php' );
+include_once( PHS_CORE_DIR.'phs.php' );
+include_once( PHS_CORE_DIR.'phs_db.php' );
+include_once( PHS_CORE_DIR.'phs_session.php' );
+include_once( PHS_CORE_DIR.'phs_crypt.php' );
+include_once( PHS_CORE_DIR.'phs_scope.php' );
 
-\phs\PHS::init();
+use \phs\PHS;
+use \phs\PHS_db;
+use \phs\PHS_scope;
+use \phs\libraries\PHS_Hooks;
+
+// Default scope settings... These are overwritten when runing specific actions
+PHS_Scope::default_scope( PHS_Scope::SCOPE_WEB );
+PHS_Scope::current_scope( PHS_Scope::SCOPE_WEB );
+
+PHS::init();
 
 // Running in debugging mode?
-\phs\PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
+PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
 // Should errors be thrown?
-\phs\PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
+PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
 
-if( \phs\PHS::st_debugging_mode() )
+if( PHS::st_debugging_mode() )
 {
     // Make sure we get all errors if we are in debugging mode and set custom error handler
     error_reporting( -1 );
@@ -84,9 +95,9 @@ $mysql_settings['charset'] = PHS_DB_CHARSET;
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
-if( !\phs\PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
+if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {
-    \phs\PHS_db::st_throw_error();
+    PHS_db::st_throw_error();
     exit;
 }
 //
@@ -96,7 +107,7 @@ if( !\phs\PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings 
 //
 // Request domain settings (if available)
 //
-if( ($request_full_host = \phs\PHS::get_data( \phs\PHS::REQUEST_FULL_HOST )) )
+if( ($request_full_host = PHS::get_data( PHS::REQUEST_FULL_HOST )) )
 {
     if( @is_file( PHS_CONFIG_DIR.$request_full_host.'.php' ) )
     {
@@ -107,7 +118,7 @@ if( ($request_full_host = \phs\PHS::get_data( \phs\PHS::REQUEST_FULL_HOST )) )
 // END Request domain settings (if available)
 //
 
-\phs\PHS::define_constants();
+PHS::define_constants();
 
 //
 // Init database settings
@@ -124,7 +135,7 @@ define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!=''?':':'').PHS_PORT.'/'.PHS_D
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
 define( 'PHS_HTTPS', 'http://'.PHS_FULL_PATH_WWW );
 
-if( !($base_url = \phs\PHS::get_base_url()) )
+if( !($base_url = PHS::get_base_url()) )
     $base_url = '/';
 
 define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
@@ -144,4 +155,19 @@ include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.php' );
+
+// Walk thgrough plugins bootstrap scripts...
+foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
+{
+    if( ($bootstrap_scripts = @glob( $bstrap_dir . '*/phs_bootstrap_{0,10,20,30,40,50,60,70,80,90}.php', GLOB_BRACE ))
+    and is_array( $bootstrap_scripts ) )
+    {
+        foreach( $bootstrap_scripts as $bootstrap_script )
+        {
+            include_once( $bootstrap_script );
+        }
+    }
+}
+
+PHS::trigger_hooks( PHS_Hooks::H_AFTER_BOOTSTRAP );
 

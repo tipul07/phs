@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Controller;
 final class PHS extends PHS_Registry
 {
     const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
-          ERR_ROUTE = 2006, ERR_EXECUTE_ROUTE = 2007, ERR_THEME = 2008;
+          ERR_ROUTE = 2006, ERR_EXECUTE_ROUTE = 2007, ERR_THEME = 2008, ERR_SCOPE = 2009;
 
     const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
           COOKIE_DOMAIN = 'cookie_domain',
@@ -346,11 +346,11 @@ final class PHS extends PHS_Registry
         $rp_count = count( $route_parts );
         if( $rp_count == 2 or $rp_count == 1 )
         {
-            $controller = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
+            $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
             $action = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
         } elseif( $rp_count == 3 )
         {
-            $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
+            $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
             $controller = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
             $action = (!empty( $route_parts[2] )?trim( $route_parts[2] ):'');
         }
@@ -413,10 +413,6 @@ final class PHS extends PHS_Registry
         }
 
         $action_buf = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] );
-
-        ob_start();
-        @call_user_func( array( $controller_obj, $action_method ) );
-        $action_buf = ob_get_clean();
 
         return $action_buf;
     }
@@ -483,9 +479,26 @@ final class PHS extends PHS_Registry
         // Views are not singletons
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
-            return false;
+            if( $plugin === false )
+            {
+                if( !self::st_has_error() )
+                    self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin) ) );
+
+                return false;
+            }
+
+            $plugin = false;
+
+            self::st_reset_error();
+
+            // We tried loading plugin view, try again with a core view...
+            if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
+            {
+                if( !self::st_has_error() )
+                    self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin) ) );
+
+                return false;
+            }
         }
 
         return $instance_obj;
@@ -556,23 +569,24 @@ final class PHS extends PHS_Registry
      *
      * @return false|\phs\libraries\PHS_Plugin Returns false on error or an instance of loaded plugin
      */
-    public static function load_plugin( $plugin_name, $plugin = false )
+    public static function load_plugin( $plugin_name )
     {
-        if( !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
+        if( $plugin_name == PHS_Instantiable::CORE_PLUGIN )
+            $plugin_name = false;
+
+        if( empty( $plugin_name )
+         or !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
         {
-            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin class %s from plugin %s.', $plugin_name, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin %s.', (empty( $plugin_name )?PHS_Instantiable::CORE_PLUGIN:$plugin_name) ) );
             return false;
         }
 
-        $class_name = 'PHS_Controller_'.ucfirst( strtolower( $plugin_safe_name ) );
+        $class_name = 'PHS_Plugin_'.ucfirst( strtolower( $plugin_safe_name ) );
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
-            $plugin = false;
-
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
         {
             if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s .', $plugin_name, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+                self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name ) );
             return false;
         }
 
@@ -656,7 +670,7 @@ final class PHS extends PHS_Registry
     public static function trigger_hooks( $hook_name, array $hook_args = array() )
     {
         if( !($hook_name = self::prepare_hook_name( $hook_name ))
-            or empty( self::$hooks[$hook_name] ) or !is_array( self::$hooks[$hook_name] ) )
+         or empty( self::$hooks[$hook_name] ) or !is_array( self::$hooks[$hook_name] ) )
             return null;
 
         if( empty( $hook_args ) or !is_array( $hook_args ) )

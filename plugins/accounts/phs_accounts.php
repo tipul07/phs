@@ -7,4 +7,5 @@ use \phs\libraries\PHS_Plugin;
 
 class PHS_Plugin_Accounts extends PHS_Plugin
 {
+
 }

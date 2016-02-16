@@ -2,9 +2,10 @@
 
 namespace phs;
 
-use phs\libraries;
+use \phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_db_mysqli;
 
-final class PHS_db extends \phs\libraries\PHS_Registry
+final class PHS_db extends PHS_Registry
 {
     const ERR_DATABASE = 2000;
 

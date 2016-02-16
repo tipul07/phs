@@ -693,8 +693,32 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return $value;
     }
 
+    protected function get_empty_data( $params = false )
+    {
+        $this->reset_error();
+
+        if( !($table_fields = $this->get_definition( $params ))
+         or !is_array( $table_fields ) )
+        {
+            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Invalid table definition.' ) );
+            return false;
+        }
+
+        $data_arr = array();
+        foreach( $table_fields as $field_name => $field_details )
+        {
+            if( isset( $field_details['default'] ) )
+                $data_arr[$field_name] = $field_details['default'];
+            else
+                $data_arr[$field_name] = self::validate_field_value( 0, $field_name, $field_details );
+        }
+
+        return $data_arr;
+    }
+
     protected function validate_data_for_fields( $params )
     {
+        $this->reset_error();
 
         if( !($table_fields = $this->get_definition( $params ))
          or !is_array( $table_fields ) )

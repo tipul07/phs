@@ -10,12 +10,4 @@ class PHS_Controller_Index extends PHS_Controller
     {
         return array( 'accounts', 'accounts_details' );
     }
-
-    public function action_index()
-    {
-        if( !($view_obj = $this->init_view( 'test' )) )
-            return false;
-
-        echo $view_obj->render();
-    }
 }

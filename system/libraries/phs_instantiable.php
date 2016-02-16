@@ -2,11 +2,14 @@
 
 namespace phs\libraries;
 
+use \phs\PHS;
+
 abstract class PHS_Instantiable extends PHS_Registry
 {
     const ERR_INSTANCE = 10000, ERR_INSTANCE_ID = 10001, ERR_INSTANCE_CLASS = 10002, ERR_CLASS_NAME = 10002;
 
-    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view';
+    const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view',
+          INSTANCE_TYPE_SCOPE = 'scope';
 
     const CORE_PLUGIN = 'core';
 
@@ -17,6 +20,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_CONTROLLER => array( 'title' => 'Controller', 'dir_name' => 'controllers' ),
         self::INSTANCE_TYPE_ACTION => array( 'title' => 'Action', 'dir_name' => 'actions' ),
         self::INSTANCE_TYPE_VIEW => array( 'title' => 'View', 'dir_name' => 'views' ),
+        self::INSTANCE_TYPE_SCOPE => array( 'title' => 'Scope', 'dir_name' => 'scopes' ),
     );
 
     protected static $instances = array();
@@ -73,6 +77,28 @@ abstract class PHS_Instantiable extends PHS_Registry
             $instance_details = self::empty_instance_details();
 
         $this->set_instance_details( $instance_details );
+    }
+
+    /**
+     * Gets plugin instance where current instance is running
+     *
+     * @return bool|false|PHS_Plugin
+     */
+    final public function get_plugin_instance()
+    {
+        $this->reset_error();
+
+        if( !($plugin_name = $this->instance_plugin_name())
+         or $plugin_name == self::CORE_PLUGIN
+         or !($plugin_obj = PHS::load_plugin( $plugin_name )) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error();
+
+            return false;
+        }
+
+        return $plugin_obj;
     }
 
     final public function instance_id()
@@ -235,6 +261,13 @@ abstract class PHS_Instantiable extends PHS_Registry
             }
         }
 
+        // We don't have core plugins...
+        if( $plugin_name == self::CORE_PLUGIN and $instance_type == self::INSTANCE_TYPE_PLUGIN )
+        {
+            self::st_set_error( self::ERR_INSTANCE, self::_t( 'Unknown plugin name.' ) );
+            return false;
+        }
+
         $return_arr = self::empty_instance_details();
         $return_arr['plugin_name'] = $plugin_name;
         $return_arr['instance_type'] = $instance_type;
@@ -249,15 +282,12 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( !($instance_type_dir = self::instance_type_dir( $instance_type )) )
             $instance_type_dir = '';
 
-        // Core plugin classes are stored in a special plugins dir
-        if( empty( $instance_type_dir )
-        and $plugin_name == self::CORE_PLUGIN and $instance_type == self::INSTANCE_TYPE_PLUGIN )
-            $instance_type_dir = 'plugins';
+        $return_arr['instance_full_class'] .= $instance_type_dir;
 
         if( !empty( $instance_type_dir ) )
-            $instance_type_dir .= '\\';
+            $return_arr['instance_full_class'] .= '\\';
 
-        $return_arr['instance_full_class'] .= $instance_type_dir.$class;
+        $return_arr['instance_full_class'] .= $class;
 
         switch( $instance_type )
         {
@@ -322,7 +352,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 $return_arr['instance_name'] = trim( substr( $class, 11 ), '_' );
 
                 if( empty( $return_arr['instance_name'] ) )
-                    $return_arr['instance_name'] = 'view';
+                    $return_arr['instance_name'] = 'index';
 
                 if( $plugin_name == self::CORE_PLUGIN )
                 {
@@ -361,6 +391,28 @@ abstract class PHS_Instantiable extends PHS_Registry
                 }
             break;
 
+            case self::INSTANCE_TYPE_SCOPE:
+
+                if( empty( $class )
+                 or strtolower( substr( $class, 0, 10 ) ) != 'phs_scope_' )
+                {
+                    self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework scope.' ) );
+                    return false;
+                }
+
+                $return_arr['instance_name'] = trim( substr( $class, 10 ), '_' );
+
+                if( $plugin_name == self::CORE_PLUGIN )
+                {
+                    $return_arr['instance_path'] = PHS_CORE_SCOPE_DIR;
+                } else
+                {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
+                }
+            break;
+
             case self::INSTANCE_TYPE_PLUGIN:
 
                 if( empty( $class )
@@ -372,15 +424,9 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 11 );
 
-                if( $plugin_name == self::CORE_PLUGIN )
-                {
-                    $return_arr['instance_path'] = PHS_CORE_PLUGIN_DIR;
-                } else
-                {
-                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
-                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
-                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
-                }
+                $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
+                $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
+                $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
             break;
         }
 
@@ -498,7 +544,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if( !@file_exists( $instance_file_path ) )
         {
-            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance %s from plugin %s.', $instance_details['instance_name'], $instance_details['plugin_name'] ) );
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance file %s from plugin %s.', $instance_details['instance_name'], $instance_details['plugin_name'] ) );
             return false;
         }
 

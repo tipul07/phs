@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\models;
+namespace phs\system\core\models;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Model;

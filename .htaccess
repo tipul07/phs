@@ -1,0 +1,118 @@
+<IfModule mod_php5.c>
+
+############################################
+## adjust memory limit
+
+#    php_value memory_limit 64M
+    php_value memory_limit 256M
+    php_value max_execution_time 18000
+
+############################################
+## disable magic quotes for php request vars
+
+    php_flag magic_quotes_gpc off
+
+############################################
+## disable automatic session start
+## before autoload was initialized
+
+    php_flag session.auto_start off
+
+############################################
+## enable resulting html compression
+
+    #php_flag zlib.output_compression on
+
+###########################################
+# disable user agent verification to not break multiple image upload
+
+    php_flag suhosin.session.cryptua off
+
+</IfModule>
+
+<IfModule mod_ssl.c>
+
+############################################
+## make HTTPS env vars available for CGI mode
+
+    SSLOptions StdEnvVars
+
+</IfModule>
+
+<IfModule mod_rewrite.c>
+
+############################################
+## enable rewrites
+
+    Options +FollowSymLinks
+    RewriteEngine on
+
+############################################
+## you can put here your magento root folder
+## path relative to web root
+
+    #RewriteBase /phs/
+
+############################################
+## workaround for HTTP authorization
+## in CGI environment
+
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+############################################
+## TRACE and TRACK HTTP methods disabled to prevent XSS attacks
+
+    RewriteCond %{REQUEST_METHOD} ^TRAC[EK]
+    RewriteRule .* - [L,R=405]
+
+############################################
+## never rewrite for existing files, directories and links
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-l
+
+############################################
+## rewrite everything else to index.php
+
+    RewriteRule .* index.php [L]
+
+</IfModule>
+
+
+############################################
+## Prevent character encoding issues from server overrides
+## If you still have problems, use the second line instead
+
+    AddDefaultCharset Off
+    #AddDefaultCharset UTF-8
+
+<IfModule mod_expires.c>
+
+############################################
+## Add default Expires header
+## http://developer.yahoo.com/performance/rules.html#expires
+
+    ExpiresDefault "access plus 1 year"
+
+</IfModule>
+
+############################################
+## By default allow all access
+
+    Order allow,deny
+    Allow from all
+
+###########################################
+## Deny access to release notes to prevent disclosure of the installed Magento version
+
+    <Files RELEASE_NOTES.txt>
+        order allow,deny
+        deny from all
+    </Files>
+
+############################################
+## If running in cluster environment, uncomment this
+## http://developer.yahoo.com/performance/rules.html#etags
+
+    #FileETag none

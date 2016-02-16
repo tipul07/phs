@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Hooks;
 
 abstract class PHS_Controller extends PHS_Signal_and_slot
 {
@@ -50,7 +51,14 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
         $action_obj->set_controller( $this );
 
-        return $action_obj->run_action();
+        $action_result = $action_obj->run_action();
+
+        if( ($plugin_instance = $this->get_plugin_instance()) )
+        {
+            var_dump( $plugin_instance->get_db_details() );
+        }
+
+        return $action_result['buffer'];
     }
 
 }
