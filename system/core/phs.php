@@ -301,6 +301,11 @@ final class PHS extends PHS_Registry
         return $_GET[self::ROUTE_PARAM];
     }
 
+    public static function db_user()
+    {
+
+    }
+
     /**
      * Parse request route. Route is something like:
      *

@@ -14,6 +14,6 @@ class PHS_Action_Index extends PHS_Action
             return false;
         }
 
-        return $view_obj->render();
+        return self::validate_array( array( 'buffer' => $view_obj->render() ), self::default_action_result() );
     }
 }

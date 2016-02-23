@@ -4,13 +4,11 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.27
+ *  \version 1.29
  */
 
 class PHS_utils extends PHS_Language
 {
-    //! /descr Class was initialised succesfully
-    const ERR_OK = 0;
     //! Error related to parameters sent to method
     const ERR_PARAMS = 1;
     //! Functionality error
@@ -43,8 +41,8 @@ class PHS_utils extends PHS_Language
         $nowtime = $params['start_timestamp'];
         $pasttime = $nowtime - $seconds_span;
 
-        $nowdate_obj = new DateTime( '@'.$nowtime );
-        $pastdate_obj = new DateTime( '@'.$pasttime );
+        $nowdate_obj = new \DateTime( '@'.$nowtime );
+        $pastdate_obj = new \DateTime( '@'.$pasttime );
         $interval = $nowdate_obj->diff( $pastdate_obj );
 
         $years = $interval->y;
@@ -591,19 +589,23 @@ class PHS_utils extends PHS_Language
             $mystr = $res[0];
 
             if( substr( $mystr, 0, 2 ) == '//' )
+            {
                 $ret['scheme'] = '//';
-            else
+                $mystr = substr( $mystr, 2 );
+            } else
                 $ret['scheme'] = '';
         }
 
         $path_present = true;
         $host_present = true;
+        // host is not present - only the path might be present
         if( ($dotpos = strpos( $mystr , '.' )) === false
-        and (!isset( $ret['scheme'] ) or $ret['scheme'] == '') ) // host is not present - only the path might be present
+        and $ret['scheme'] == '' )
             $host_present = false;
 
+        // no path is present or only a directory name is present
         if( ($slashpos = strpos( $mystr , '/' )) === false
-        and isset( $ret['scheme'] ) and $ret['scheme'] == '' ) // no path is present or only a directory name is present
+        and $ret['scheme'] == '' )
         {
             $host_present = true;
             $path_present = false;
@@ -611,14 +613,25 @@ class PHS_utils extends PHS_Language
 
         if( $host_present and $dotpos !== false  )
         {
-           if( $slashpos !== false )
-           {
-               if( $dotpos > $slashpos )
-                  $host_present = false;
-               elseif( $ret['scheme'] == '' )
-                  $host_present = false;
-           } elseif( $ret['scheme'] == '' )
-               $host_present = false;
+            if( $slashpos !== false )
+            {
+                if( $dotpos > $slashpos )
+                {
+                    // dot is after / so it must be a path
+                    $host_present = false;
+                    $path_present = true;
+                } elseif( $ret['scheme'] == '' )
+                {
+                    // no scheme given, might be a server path...
+                    $host_present = false;
+                    $path_present = true;
+                }
+            } elseif( $ret['scheme'] == '' )
+            {
+                // we don't have any slashes... might be a filename/dir name in current folder
+                $host_present = false;
+                $path_present = true;
+            }
         }
 
         if( $path_present )
@@ -679,6 +692,36 @@ class PHS_utils extends PHS_Language
         }
 
         return $ret;
+    }
+
+    public static function rebuild_url( $url_parts )
+    {
+        if( empty( $url_parts ) or !is_array( $url_parts ) )
+            return '';
+
+        $parts_arr = array( 'scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'anchor' );
+        foreach( $parts_arr as $part_field )
+        {
+            if( !isset( $url_parts[$part_field] ) )
+                $url_parts[$part_field] = '';
+        }
+
+        $final_url = $url_parts['scheme'];
+
+        if( $url_parts['scheme'] != '//' )
+        {
+            $final_url .= (!empty( $url_parts['scheme'] )?':':'').'//';
+        }
+
+        $final_url .= $url_parts['user'];
+        $final_url .= (!empty( $url_parts['pass'] )?':':'').$url_parts['pass'].((!empty( $url_parts['user'] ) or !empty( $url_parts['pass'] ))?'@':'');
+        $final_url .= $url_parts['host'];
+        $final_url .= (!empty( $url_parts['port'] )?':':'').$url_parts['port'];
+        $final_url .= $url_parts['path'];
+        $final_url .= (!empty( $url_parts['query'] )?'?':'').$url_parts['query'];
+        $final_url .= (!empty( $url_parts['anchor'] )?'#':'').$url_parts['anchor'];
+
+        return $final_url;
     }
 
     public static function quick_watermark( $source, $destination, $watermark, $params = false )

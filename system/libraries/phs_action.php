@@ -141,8 +141,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         if( ($plugin_instance = $this->get_plugin_instance()) )
         {
-            echo 'Sets';
-            var_dump( $plugin_instance->get_db_details() );
+            var_dump( $plugin_instance->get_plugin_db_settings() );
             var_dump( $plugin_instance->get_error() );
         }
 

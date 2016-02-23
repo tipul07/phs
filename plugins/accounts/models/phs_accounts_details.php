@@ -6,11 +6,9 @@ use \phs\libraries\PHS_Model;
 
 class PHS_Model_Accounts_details extends PHS_Model
 {
-    const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses', HOOK_SETTINGS = 'phs_accounts_settings';
-
     function __construct( $instance_details = false )
     {
-        $this->add_connection( 'PHS_Model_Accounts', 'accounts', self::INSTANCE_TYPE_MODEL );
+        //$this->add_connection( 'PHS_Model_Accounts', 'accounts', self::INSTANCE_TYPE_MODEL );
 
         parent::__construct( $instance_details );
     }
@@ -142,20 +140,20 @@ class PHS_Model_Accounts_details extends PHS_Model
      *
      * @return array Signal response array
      */
-    protected function signal_receive( $sender, $signal, $signal_params = false )
-    {
-        $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
-
-        switch( $signal )
-        {
-            case self::SIGNAL_INSTALL:
-            case self::SIGNAL_UPDATE:
-                if( $sender->instance_id() === self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'accounts', 'accounts' ) )
-                    $this->install();
-            break;
-        }
-
-        return $return_arr;
-    }
+    //protected function signal_receive( $sender, $signal, $signal_params = false )
+    //{
+    //    $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
+    //
+    //    switch( $signal )
+    //    {
+    //        case self::SIGNAL_INSTALL:
+    //        case self::SIGNAL_UPDATE:
+    //            if( $sender->instance_id() === self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'accounts', 'accounts' ) )
+    //                $this->install();
+    //        break;
+    //    }
+    //
+    //    return $return_arr;
+    //}
 
 }

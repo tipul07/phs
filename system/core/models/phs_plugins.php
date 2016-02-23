@@ -4,21 +4,35 @@ namespace phs\system\core\models;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_line_params;
 
 class PHS_Model_Plugins extends PHS_Model
 {
-    const ERR_FORCE_INSTALL = 100;
+    const ERR_FORCE_INSTALL = 100, ERR_DB_DETAILS = 101;
 
     const HOOK_STATUSES = 'phs_plugins_statuses';
 
-    const STATUS_COPIED = 1, STATUS_INSTALLED = 2, STATUS_ACTIVE = 3, STATUS_INACTIVE = 4;
+    const STATUS_INSTALLED = 1, STATUS_ACTIVE = 2, STATUS_INACTIVE = 3;
+
+    // Cached database rows
+    private static $db_plugins = array();
+
+    // Cached plugin settings
+    private static $plugin_settings = array();
 
     protected static $STATUSES_ARR = array(
-        self::STATUS_COPIED => array( 'title' => 'Copied' ),
         self::STATUS_INSTALLED => array( 'title' => 'Installed' ),
         self::STATUS_ACTIVE => array( 'title' => 'Active' ),
         self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
     );
+
+    function __construct( $instance_details )
+    {
+        parent::__construct( $instance_details );
+
+        $this->_reset_db_plugin_cache();
+        $this->_reset_plugin_settings_cache();
+    }
 
     /**
      * @return string Returns version of model
@@ -42,19 +56,6 @@ class PHS_Model_Plugins extends PHS_Model
     function get_main_table_name()
     {
         return 'plugins';
-    }
-
-    /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
     }
 
     final public function get_statuses()
@@ -93,6 +94,15 @@ class PHS_Model_Plugins extends PHS_Model
         return $statuses_arr;
     }
 
+    public function active_status( $status )
+    {
+        if( !$this->valid_status( $status )
+         or !in_array( $status, array( self::STATUS_ACTIVE ) ) )
+            return false;
+
+        return true;
+    }
+
     public function valid_status( $status )
     {
         $all_statuses = $this->get_statuses();
@@ -101,6 +111,180 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
 
         return $all_statuses[$status];
+    }
+
+    private function _reset_plugin_settings_cache()
+    {
+        self::$plugin_settings = array();
+    }
+
+    private function _reset_db_plugin_cache()
+    {
+        self::$db_plugins = array();
+    }
+
+    public function get_db_settings( $instance_id = null, $force = false )
+    {
+        $this->reset_error();
+
+        if( $instance_id != null
+        and !self::valid_instance_id( $instance_id ))
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
+            return false;
+        }
+
+        if( $instance_id == null
+        and !($instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Unknown instance ID.' ) );
+            return false;
+        }
+
+        if( !empty( $force )
+        and isset( self::$plugin_settings[$instance_id] ) )
+            unset( self::$plugin_settings[$instance_id] );
+
+        if( isset( self::$plugin_settings[$instance_id] ) )
+            return self::$plugin_settings[$instance_id];
+
+        if( !($db_details = $this->get_db_details( $instance_id, $force )) )
+            return false;
+
+        if( empty( $db_details['settings'] ) )
+            self::$plugin_settings[$instance_id] = array();
+
+        else
+            // parse settings in database...
+            self::$plugin_settings[$instance_id] = PHS_line_params::parse_string( $db_details['settings'] );
+
+        return self::$plugin_settings[$instance_id];
+    }
+
+    public function get_db_details( $instance_id = null, $force = false )
+    {
+        $this->reset_error();
+
+        if( $instance_id != null
+            and !self::valid_instance_id( $instance_id ))
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
+            return false;
+        }
+
+        if( $instance_id == null
+        and !($instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Unknown instance ID.' ) );
+            return false;
+        }
+
+        if( !empty( $force )
+            and !empty( self::$db_plugins[$instance_id] ) )
+            unset( self::$db_plugins[$instance_id] );
+
+        if( !empty( self::$db_plugins[$instance_id] ) )
+            return self::$db_plugins[$instance_id];
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $instance_id;
+
+        db_supress_errors( $this->get_db_connection() );
+        if( !($db_details = $this->get_details_fields( $check_arr )) )
+        {
+            db_restore_errors_state( $this->get_db_connection() );
+
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t find plugin settings in database. Try re-installing plugin.' ) );
+
+            return false;
+        }
+
+        db_restore_errors_state( $this->get_db_connection() );
+
+        self::$db_plugins[$instance_id] = $db_details;
+
+        return $db_details;
+    }
+
+    public function update_db_details( $fields_arr )
+    {
+        if( empty( $fields_arr ) or !is_array( $fields_arr )
+         or empty( $fields_arr['instance_id'] )
+         or !($instance_details = self::valid_instance_id( $fields_arr['instance_id'] ))
+         or !($params = $this->fetch_default_flow_params()) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown instance database details.' ) );
+            return false;
+        }
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $fields_arr['instance_id'];
+
+        $check_params = array();
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        $params['fields'] = $fields_arr;
+
+        if( !($existing_arr = $this->get_details_fields( $check_arr, $check_params )) )
+        {
+            $existing_arr = false;
+            $params['action'] = 'insert';
+        } else
+        {
+            $params['action'] = 'edit';
+        }
+
+        if( !($validate_fields = $this->validate_data_for_fields( $params ))
+         or empty( $validate_fields['data_arr'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Error validating plugin database fields.' ) );
+            return false;
+        }
+
+        $new_fields_arr = $validate_fields['data_arr'];
+        // Try updating settings...
+        if( !empty( $new_fields_arr['settings'] )
+        and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
+            $new_fields_arr['settings'] =
+                PHS_line_params::to_string( self::validate_array_to_new_array( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
+
+        $details_arr = array();
+        $details_arr['fields'] = $new_fields_arr;
+
+        if( empty( $existing_arr ) )
+            $plugin_arr = $this->insert( $details_arr );
+        else
+            $plugin_arr = $this->edit( $existing_arr, $details_arr );
+
+        if( empty( $plugin_arr ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
+
+            return false;
+        }
+
+        $return_arr = array();
+        $return_arr['old_data'] = $existing_arr;
+        $return_arr['new_data'] = $plugin_arr;
+
+        return $return_arr;
+    }
+
+    /**
+     * Performs any necessary actions when updating model from $old_version to $new_version
+     *
+     * @param string $old_version Old version of model
+     * @param string $new_version New version of model
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function update( $old_version, $new_version )
+    {
+        return true;
     }
 
     /**
@@ -118,7 +302,7 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
 
         if( empty( $params['fields']['status'] ) )
-            $params['fields']['status'] = self::STATUS_COPIED;
+            $params['fields']['status'] = self::STATUS_INSTALLED;
 
         if( !$this->valid_status( $params['fields']['status'] ) )
         {
@@ -238,6 +422,26 @@ class PHS_Model_Plugins extends PHS_Model
         return $params;
     }
 
+    final public function check_install_plugins_db()
+    {
+        static $check_result = null;
+
+        if( $check_result !== null )
+            return $check_result;
+
+        if( $this->check_table_exists() )
+        {
+            $check_result = true;
+            return true;
+        }
+
+        $this->reset_error();
+
+        $check_result = $this->install();
+
+        return $check_result;
+    }
+
     /**
      * @param array|bool $params Parameters in the flow
      *
@@ -264,15 +468,22 @@ class PHS_Model_Plugins extends PHS_Model
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '255',
                         'nullable' => true,
+                        'editable' => false,
                         'index' => true,
                     ),
                     'added_by' => array(
                         'type' => self::FTYPE_INT,
+                        'editable' => false,
                     ),
                     'is_core' => array(
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
+                        'editable' => false,
                         'index' => true,
+                    ),
+                    'settings' => array(
+                        'type' => self::FTYPE_LONGTEXT,
+                        'nullable' => true,
                     ),
                     'status' => array(
                         'type' => self::FTYPE_TINYINT,
@@ -290,6 +501,7 @@ class PHS_Model_Plugins extends PHS_Model
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,
+                        'editable' => false,
                     ),
                 );
             break;

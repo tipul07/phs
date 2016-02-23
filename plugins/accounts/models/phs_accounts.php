@@ -33,7 +33,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     function __construct( $instance_details = false )
     {
-        $this->add_connection( 'PHS_Model_Accounts_details', 'accounts', self::INSTANCE_TYPE_MODEL );
+        //$this->add_connection( 'PHS_Model_Accounts_details', 'accounts', self::INSTANCE_TYPE_MODEL );
 
         parent::__construct( $instance_details );
     }
@@ -449,16 +449,25 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
-    protected function signal_receive( $sender, $signal, $signal_params = false )
-    {
-        $return_arr = self::default_signal_response();
-
-        if( $signal == self::SIGNAL_INSTALL or $signal == self::SIGNAL_UPDATE )
-        {
-            $this->install();
-        }
-
-        return $return_arr;
-    }
+    /**
+     * Method which handles receiving signals
+     *
+     * @param \phs\libraries\PHS_Signal_and_slot $sender Class that sent the signal
+     * @param string $signal Signal sent
+     * @param array|bool $signal_params Signal parameters
+     *
+     * @return array Signal response array
+     */
+    //protected function signal_receive( $sender, $signal, $signal_params = false )
+    //{
+    //    $return_arr = self::default_signal_response();
+    //
+    //    if( $signal == self::SIGNAL_INSTALL or $signal == self::SIGNAL_UPDATE )
+    //    {
+    //        $this->install();
+    //    }
+    //
+    //    return $return_arr;
+    //}
 
 }

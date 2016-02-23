@@ -11,11 +11,6 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
     private $_action = false;
 
-    /**
-     * @return array An array of strings which are the models used by this controller
-     */
-    abstract public function get_models();
-
     protected function instance_type()
     {
         return self::INSTANCE_TYPE_CONTROLLER;
@@ -53,10 +48,14 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
         $action_result = $action_obj->run_action();
 
+        var_dump( $action_result );
+
         if( ($plugin_instance = $this->get_plugin_instance()) )
         {
-            var_dump( $plugin_instance->get_db_details() );
+            var_dump( $plugin_instance->get_plugin_db_settings() );
         }
+
+        var_dump( $plugin_instance );
 
         return $action_result['buffer'];
     }

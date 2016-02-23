@@ -6,8 +6,4 @@ use \phs\libraries\PHS_Controller;
 
 class PHS_Controller_Index extends PHS_Controller
 {
-    public function get_models()
-    {
-        return array();
-    }
 }

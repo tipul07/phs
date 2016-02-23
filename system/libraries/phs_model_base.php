@@ -3,7 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
-use \phs\models\PHS_Model_Plugins;
+use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 {
@@ -114,6 +114,84 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     function get_db_connection( $params = false )
     {
         return false;
+    }
+
+    /**
+     * Override this function and return an array with default settings to be saved for current plugin
+     *
+     * @return array
+     */
+    public function get_default_settings()
+    {
+        return array();
+    }
+
+    public function get_plugin_settings()
+    {
+        $this->reset_error();
+
+        if( !($plugin_obj = $this->get_plugin_instance()) )
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        if( ($plugins_settings = $plugin_obj->get_plugin_settings()) === false )
+        {
+            if( $plugin_obj->has_error() )
+                $this->copy_error( $plugin_obj );
+            else
+                $this->set_error( self::ERR_INSTANCE, self::_t( 'Couldn\'t obtain plugin settings.' ) );
+
+            return false;
+        }
+
+        if( empty( $plugins_settings ) )
+            $plugins_settings = $plugin_obj->get_default_settings();
+
+        return $plugins_settings;
+    }
+
+    public function get_model_settings()
+    {
+        $this->reset_error();
+
+        if( !($plugins_model_id = self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'plugins' )) )
+        {
+            $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t obtain plugins model id.' ) );
+            return false;
+        }
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t obtain current model id.' ) );
+            return false;
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( $this_instance_id == $plugins_model_id )
+        {
+            $plugins_model = $this;
+        } else
+        {
+            if( !($plugins_model = PHS::load_model( 'plugins' )) )
+            {
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+                return false;
+            }
+        }
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        $check_params = array();
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        db_supress_errors( $plugins_model->get_db_connection() );
+        if( !($existing_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
+         or empty( $existing_arr['settings'] ) )
+            return false;
     }
 
     /**
@@ -276,6 +354,32 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return $fields_arr[$type];
     }
 
+    public function check_table_exists( $params = false )
+    {
+        $this->reset_error();
+
+        if( !($params = $this->fetch_default_flow_params( $params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( ($qid = db_query( 'SHOW TABLES', $params['db_connection'] )) )
+        {
+            while( ($table_name = db_fetch_assoc( $qid )) )
+            {
+                if( !is_array( $table_name ) )
+                    continue;
+
+                $table_arr = array_values( $table_name );
+                if( $table_arr[0] == $params['table_name'] )
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * This method hard-deletes a record from database. If additional work is required before hard-deleting record, self::HOOK_HARD_DELETE is called before deleting.
      *
@@ -348,6 +452,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     {
         return array(
             'type' => self::FTYPE_UNKNOWN,
+            'editable' => true,
             'length' => null,
             'primary' => false,
             'auto_increment' => false,
@@ -531,7 +636,10 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
                 $new_field_arr['default'] = $field_details['default_value'];
 
             if( !empty( $new_field_arr['primary'] ) )
+            {
+                $new_field_arr['editable'] = false;
                 $new_field_arr['default'] = null;
+            }
 
             self::$_definition[$params['table_name']][$field_name] = $new_field_arr;
         }
@@ -563,6 +671,13 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
         }
 
+        if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
+        {
+            $signal_defaults = array();
+
+            $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
+        }
+
         if( !$this->signal_defined( self::SIGNAL_HARD_DELETE ) )
         {
             $signal_defaults                  = array();
@@ -570,13 +685,6 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             $signal_defaults['params']        = false;
 
             $this->define_signal( self::SIGNAL_HARD_DELETE, $signal_defaults );
-        }
-
-        if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
-        {
-            $signal_defaults = array();
-
-            $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
         }
 
         $this->validate_tables_definition();
@@ -746,6 +854,10 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         $data_arr = array();
         foreach( $table_fields as $field_name => $field_details )
         {
+            if( empty( $field_details['editable'] )
+            and $params['action'] == 'edit' )
+                continue;
+
             if( array_key_exists( $field_name, $params['fields'] ) )
             {
                 $data_arr[$field_name] = self::validate_field_value( $params['fields'][ $field_name ], $field_name, $field_details );
@@ -980,7 +1092,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
      * @param array $constrain_arr Conditional db fields
      * @param array|false $params Parameters in the flow
      *
-     * @return array|false|Generator|null Returns single record as array (first matching conditions), array of records matching conditions or acts as generator
+     * @return array|false|\Generator|null Returns single record as array (first matching conditions), array of records matching conditions or acts as generator
      */
     function get_details_fields( $constrain_arr, $params = false )
     {
@@ -988,6 +1100,9 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
          or !($common_arr = $this->get_details_common( $constrain_arr, $params ))
          or !is_array( $common_arr ) or empty( $common_arr['qid'] ) )
             return false;
+
+        if( !empty( $common_arr['params'] ) )
+            $params = $common_arr['params'];
 
         if( $params['result_type'] == 'single' )
             return db_fetch_assoc( $common_arr['qid'], $params['db_connection'] );
@@ -1265,105 +1380,86 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             return false;
         }
 
-        /** @var PHS_Model_Plugins $plugins_model */
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( $this_instance_id == $plugins_model_id )
         {
             $plugins_model = $this;
 
-            if( !$this->install_tables() )
-                return false;
-
-        } elseif( !($plugins_model = PHS::load_model( 'plugins' )) )
+            $this->install_tables();
+        } else
         {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        $this_version = $this->get_model_version();
-
-        $check_arr = array();
-        $check_arr['instance_id'] = $this_instance_id;
-
-        $check_params = array();
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        if( !($existing_arr = $plugins_model->get_details_fields( $check_arr, $check_params )) )
-        {
-            $fields_arr = array();
-            $fields_arr['instance_id'] = $this_instance_id;
-            $fields_arr['is_core'] = ($this->instance_is_core() ? 1 : 0);
-            $fields_arr['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
-            $fields_arr['version'] = $this_version;
-
-            $insert_arr = array();
-            $insert_arr['fields'] = $fields_arr;
-
-            if( !($plugin_arr = $plugins_model->insert( $insert_arr )) )
+            if( !($plugins_model = PHS::load_model( 'plugins' )) )
             {
-                if( $plugins_model->has_error() )
-                    $this->copy_error( $plugins_model, self::ERR_INSTALL );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
-
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
                 return false;
             }
 
-            // This will only create non-existing tables...
-            if( $this_instance_id != $plugins_model_id
-            and !$this->install_tables() )
-                return false;
+            if( !$plugins_model->check_install_plugins_db() )
+            {
+                if( $plugins_model->has_error() )
+                    $this->copy_error( $plugins_model );
+                else
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing plugins model.' ) );
 
+                return false;
+            }
+        }
+
+        // This will only create non-existing tables...
+        if( $this_instance_id != $plugins_model_id
+        and !$this->install_tables() )
+            return false;
+
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
+        $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
+        $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
+        $plugin_details['version'] = $this->get_model_version();
+
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Error saving plugin details to database.' ) );
+        }
+
+        $plugin_arr = $db_details['new_data'];
+        $old_plugin_arr = (!empty( $db_details['old_data'] )?$db_details['old_data']:false);
+
+        if( empty( $old_plugin_arr ) )
+        {
+            // No details in database before... it should be an install
             $signal_params = array();
-            $signal_params['version'] = $this_version;
+            $signal_params['version'] = $plugin_arr['version'];
 
             $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
         } else
         {
-            // This will only create non-existing tables...
-            if( $this_instance_id != $plugins_model_id
-            and !$this->install_tables() )
-                return false;
-
             $trigger_update_signal = false;
             // Performs any necessary actions when updating model from old version to new version
-            if( version_compare( $existing_arr['version'], $this_version, '<' ) )
+            if( version_compare( $old_plugin_arr['version'], $plugin_arr['version'], '<' ) )
             {
                 // Installed version is bigger than what we already had in database... update...
-                if( !$this->update( $existing_arr['version'], $this_version ) )
+                if( !$this->update( $old_plugin_arr['version'], $plugin_arr['version'] ) )
                     return false;
 
                 $trigger_update_signal = true;
             }
 
-            $fields_arr = array();
-            $fields_arr['is_core'] = ($this->instance_is_core() ? 1 : 0);
-            $fields_arr['version'] = $this_version;
-
-            $edit_arr = array();
-            $edit_arr['fields'] = $fields_arr;
-
-            if( !($plugin_arr = $plugins_model->edit( $existing_arr, $edit_arr )) )
-            {
-                if( $plugins_model->has_error() )
-                    $this->copy_error( $plugins_model, self::ERR_INSTALL );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
-
-                return false;
-            }
-
             if( $trigger_update_signal )
             {
                 $signal_params = array();
-                $signal_params['old_version'] = $existing_arr['version'];
-                $signal_params['new_version'] = $this_version;
+                $signal_params['old_version'] = $old_plugin_arr['version'];
+                $signal_params['new_version'] = $plugin_arr['version'];
 
                 $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
             } else
             {
                 $signal_params = array();
-                $signal_params['version'] = $this_version;
+                $signal_params['version'] = $plugin_arr['version'];
 
                 $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
             }

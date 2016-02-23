@@ -54,6 +54,8 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
     //! Query result details...
     var $last_inserted_id, $affected_rows;
 
+    var $error_state = false;
+
     function __construct( $mysql_settings = false )
     {
         parent::__construct();
@@ -69,14 +71,13 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $this->debug_errors = true;
         $this->use_pconnect = true;
         $this->close_after_query = true;
+        $this->error_state = false;
 
         $this->query_id = false;
         $this->connection_id = null;
 
         $this->last_inserted_id = false;
         $this->affected_rows = 0;
-
-        $this->set_error( self::ERR_OK, 'Class inited' );
     }
 
     function query_id()
@@ -100,6 +101,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             return $this->display_errors;
 
         $this->display_errors = $var;
+        return $this->display_errors;
     }
 
     function die_on_errors( $var = null )
@@ -108,6 +110,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             return $this->die_on_errors;
 
         $this->die_on_errors = $var;
+        return $this->die_on_errors;
     }
 
     function debug_errors( $var = null )
@@ -116,6 +119,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             return $this->debug_errors;
 
         $this->debug_errors = $var;
+        return $this->debug_errors;
     }
 
     function close_after_query( $var = null )
@@ -124,6 +128,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             return $this->close_after_query;
 
         $this->close_after_query = $var;
+        return $this->close_after_query;
     }
 
     function use_pconnect( $var = null )
@@ -132,6 +137,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             return $this->use_pconnect;
 
         $this->use_pconnect = $var;
+        return $this->use_pconnect;
     }
 
     function default_connection( $connection_name = null )
@@ -250,7 +256,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         if( empty( $this->connection_id ) or !is_array( $this->connection_id )
          or empty( $this->connection_id[$connection_name] )
          or $this->my_settings === false
-         or !@is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof mysqli) )
+         or !@is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof \mysqli) )
             return false;
 
         return $this->connection_id[$connection_name];
@@ -291,7 +297,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $this->connection_id[$connection_name] = @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
 
         if( empty( $this->connection_id[$connection_name] )
-         or !is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof mysqli) )
+         or !is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof \mysqli) )
         {
             $this->set_my_error( self::ERR_CONNECT,
                                  'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!=''?' (with password)':'').(!empty( $this->use_pconnect )?' (using permanent)':'').'.',
@@ -447,6 +453,14 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         return $qid;
     }
 
+    /**
+     * Do the query and return query ID
+     *
+     * @param $query
+     * @param bool $connection_name
+     *
+     * @return bool|\mysqli_result
+     */
     public function query( $query, $connection_name = false )
     {
         if( $connection_name === false )
@@ -733,6 +747,36 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             $this->close( $connection_name );
 
         return (!is_array( $fields )?$escape_fields[0]:$escape_fields);
+    }
+
+    // Suppress any errors database driver might throw
+    public function suppress_errors()
+    {
+        if( !empty( $this->error_state ) )
+            return;
+
+        $this->error_state = array(
+            'display_errors' => $this->display_errors,
+            'debug_errors' => $this->debug_errors,
+            'die_on_errors' => $this->die_on_errors,
+        );
+
+        $this->display_errors = false;
+        $this->debug_errors = false;
+        $this->die_on_errors = false;
+    }
+
+    // Restore error handling functions as before suppress_errors() method was called
+    public function restore_errors_state()
+    {
+        if( empty( $this->error_state ) )
+            return;
+
+        $this->display_errors = $this->error_state['display_errors'];
+        $this->debug_errors = $this->error_state['debug_errors'];
+        $this->die_on_errors = $this->error_state['die_on_errors'];
+
+        $this->error_state = false;
     }
 
     function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )

@@ -212,7 +212,7 @@ final class PHS_db extends PHS_Registry
     /**
      * @param string $driver What driver should be instantiated
      *
-     * @return bool|PHS_db_interface Returns new or cached database driver instance
+     * @return bool|\phs\libraries\PHS_db_interface Returns new or cached database driver instance
      */
     public static function get_db_driver_instance( $driver )
     {
@@ -272,7 +272,7 @@ final class PHS_db extends PHS_Registry
     /**
      * On-demand database driver instantiation... best way to use database connections...
      *
-     * @return bool|PHS_db_interface|PHS_Language Returns database driver instance
+     * @return bool|\phs\libraries\PHS_db_interface|\phs\libraries\PHS_Language Returns database driver instance
      */
     public static function db( $connection_name = false )
     {

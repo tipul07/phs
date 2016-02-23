@@ -7,7 +7,14 @@ interface PHS_db_interface
     // Getter and setter for connection settings
     public function connection_settings( $connection_name, $mysql_settings = false );
 
-    // Do the query and return query ID
+    /**
+     * Do the query and return query ID
+     *
+     * @param $query
+     * @param bool $connection_name
+     *
+     * @return bool|\mysqli_result
+     */
     public function query( $query, $connection_name = false );
 
     // Escape strings
@@ -33,4 +40,10 @@ interface PHS_db_interface
 
     // Returns an EDIT query string for table $table_name for $edit_arr data with $where_arr conditions
     public function quick_edit( $table_name, $edit_arr, $connection = false, $params = false );
+
+    // Suppress any errors database driver might throw
+    public function suppress_errors();
+
+    // Restore error handling functions as before suppress_errors() method was called
+    public function restore_errors_state();
 }

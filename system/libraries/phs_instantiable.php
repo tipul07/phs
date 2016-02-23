@@ -189,7 +189,28 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        return $instance_type.':'.$plugin_name.':'.$instance_name;
+        return strtolower( $instance_type.':'.$plugin_name.':'.$instance_name );
+    }
+
+    public static function valid_instance_id( $instance_id )
+    {
+        if( empty( $instance_id )
+         or @strpos( $instance_id, ':' ) === false
+         or !($instance_parts = explode( ':', $instance_id, 3 ))
+         or !is_array( $instance_parts )
+         or empty( $instance_parts[0] ) or empty( $instance_parts[1] ) or empty( $instance_parts[2] )
+         or !self::valid_instance_type( $instance_parts[0] )
+         or ($instance_parts[1] != self::CORE_PLUGIN and $instance_parts[1] != self::safe_escape_plugin_name( $instance_parts[1] )) )
+        {
+            self::st_set_error( self::ERR_INSTANCE_ID, self::_t( 'Invalid instance ID.' ) );
+            return false;
+        }
+
+        return array(
+            'instance_type' => $instance_parts[0],
+            'plugin_name' => $instance_parts[1],
+            'instance_name' => $instance_parts[2],
+        );
     }
 
     final private function set_instance_details( $details_arr )
