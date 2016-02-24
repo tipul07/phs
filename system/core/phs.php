@@ -6,11 +6,13 @@ use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Controller;
+use \phs\libraries\PHS_Hooks;
 
 final class PHS extends PHS_Registry
 {
     const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
-          ERR_ROUTE = 2006, ERR_EXECUTE_ROUTE = 2007, ERR_THEME = 2008, ERR_SCOPE = 2009;
+          ERR_LOAD_SCOPE = 2006,
+          ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010;
 
     const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
           COOKIE_DOMAIN = 'cookie_domain',
@@ -403,23 +405,80 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
+        $action_result = false;
+
         if( !($route_details = self::get_route_details())
          or empty( $route_details[self::ROUTE_CONTROLLER] ) )
         {
             self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Couldn\'t obtain route details.' ) );
-            return false;
         }
 
         /** @var \phs\libraries\PHS_Controller $controller_obj */
-        if( !($controller_obj = self::load_controller( $route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN] )) )
+        elseif( !($controller_obj = self::load_controller( $route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN] )) )
         {
             self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Couldn\'t obtain controller instance.' ) );
-            return false;
         }
 
-        $action_buf = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] );
+        elseif( !($action_result = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] )) )
+        {
+            if( $controller_obj->has_error() )
+                self::st_copy_error( $controller_obj );
+            else
+                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].', $route_details[self::ROUTE_ACTION] ) );
+        }
 
-        return $action_buf;
+        elseif( !($scope_obj = PHS_Scope::get_scope_instance()) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
+        }
+
+        if( self::st_has_error() )
+        {
+            echo self::st_get_error_message();
+            exit;
+        }
+
+        return $scope_obj->generate_response();
+    }
+
+    public static function default_user_db_details_hook_args()
+    {
+        return array(
+            'user_db_data' => false,
+            'session_db_data' => false,
+        );
+    }
+
+    private static function _get_db_user_details( $force = false )
+    {
+        static $hook_result = false;
+
+        if( empty( $force ) and !empty( $hook_result ) )
+            return $hook_result;
+
+        if( !empty( $force ) )
+            $hook_result = self::default_user_db_details_hook_args();
+
+        $hook_result = self::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_result );
+
+        return $hook_result;
+    }
+
+    public static function get_current_user_db_details()
+    {
+        if( !($hook_result = self::_get_db_user_details()) )
+            $hook_result = self::default_user_db_details_hook_args();
+
+        return $hook_result['user_db_data'];
+    }
+
+    public static function get_current_session_db_details()
+    {
+        if( !($hook_result = self::_get_db_user_details()) )
+            $hook_result = self::default_user_db_details_hook_args();
+
+        return $hook_result['session_db_data'];
     }
 
     /**
@@ -539,10 +598,10 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $controller
+     * @param string $action
      * @param string|bool $plugin
      *
-     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded controller
+     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
      */
     public static function load_action( $action, $plugin = false )
     {
@@ -562,6 +621,36 @@ final class PHS extends PHS_Registry
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t obtain instance for action %s from plugin %s .', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $scope
+     * @param string|bool $plugin
+     *
+     * @return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
+     */
+    public static function load_scope( $scope, $plugin = false )
+    {
+        if( !($scope_name = PHS_Instantiable::safe_escape_class_name( $scope )) )
+        {
+            self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t load scope %s from plugin %s.', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Scope_'.ucfirst( strtolower( $scope_name ) );
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        /** @var \phs\PHS_Scope */
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t obtain instance for scope %s from plugin %s .', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
 
@@ -689,7 +778,7 @@ final class PHS extends PHS_Registry
             foreach( $hooks_array as $hook_callback )
             {
                 if( empty( $hook_callback ) or !is_array( $hook_callback )
-                    or empty( $hook_callback['callback'] ) )
+                 or empty( $hook_callback['callback'] ) )
                     continue;
 
                 if( empty( $hook_callback['args'] ) )
@@ -700,7 +789,7 @@ final class PHS extends PHS_Registry
                 $result = @call_user_func( $hook_callback['callback'], $call_hook_args );
 
                 if( !empty( $hook_callback['chained'] )
-                    and is_array( $result ) )
+                and is_array( $result ) )
                     $hook_args = array_merge( $hook_args, $result );
             }
         }

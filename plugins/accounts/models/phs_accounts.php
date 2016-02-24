@@ -236,7 +236,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params ) or !is_array( $params ) )
             return false;
 
-        if( !($accounts_settings = $this->accounts_settings())
+        if( !($accounts_settings = $this->get_plugin_settings())
          or !is_array( $accounts_settings ) )
             $accounts_settings = array();
 
@@ -303,7 +303,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $params['fields']['status_date'] = $now_date;
 
-        if( empty( $params['fields']['cdate'] ) )
+        if( empty( $params['fields']['cdate'] ) or empty_db_date( $params['fields']['cdate'] ) )
             $params['fields']['cdate'] = date( self::DATETIME_DB );
         else
             $params['fields']['cdate'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['cdate'] ) );
@@ -448,26 +448,4 @@ class PHS_Model_Accounts extends PHS_Model
 
         return $return_arr;
     }
-
-    /**
-     * Method which handles receiving signals
-     *
-     * @param \phs\libraries\PHS_Signal_and_slot $sender Class that sent the signal
-     * @param string $signal Signal sent
-     * @param array|bool $signal_params Signal parameters
-     *
-     * @return array Signal response array
-     */
-    //protected function signal_receive( $sender, $signal, $signal_params = false )
-    //{
-    //    $return_arr = self::default_signal_response();
-    //
-    //    if( $signal == self::SIGNAL_INSTALL or $signal == self::SIGNAL_UPDATE )
-    //    {
-    //        $this->install();
-    //    }
-    //
-    //    return $return_arr;
-    //}
-
 }

@@ -89,3 +89,9 @@ define( 'PHS_DEBUG_MODE', true );
 define( 'PHS_DEBUG_THROW_ERRORS', true );
 
 include_once( PHS_PATH.'bootstrap.php' );
+
+use \phs\libraries\PHS_Logger;
+
+// Default loggin settings (change if required in main.php)
+PHS_Logger::logging_enabled( true );
+PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );

@@ -5,6 +5,7 @@ namespace phs\system\core\models;
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_line_params;
+use \phs\libraries\PHS_logger;
 
 class PHS_Model_Plugins extends PHS_Model
 {
@@ -236,6 +237,8 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'edit';
         }
 
+        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
+
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          or empty( $validate_fields['data_arr'] ) )
         {
@@ -248,8 +251,14 @@ class PHS_Model_Plugins extends PHS_Model
         // Try updating settings...
         if( !empty( $new_fields_arr['settings'] )
         and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
-            $new_fields_arr['settings'] =
-                PHS_line_params::to_string( self::validate_array_to_new_array( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
+        {
+            $new_fields_arr['settings'] = PHS_line_params::to_string( self::validate_array_to_new_array( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
+            PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_INFO );
+        }
+
+        // Prevent core plugins to be inactivated...
+        if( !empty( $new_fields_arr['is_core'] ) and !empty( $new_fields_arr['status'] ) )
+            $new_fields_arr['status'] = self::STATUS_ACTIVE;
 
         $details_arr = array();
         $details_arr['fields'] = $new_fields_arr;
@@ -264,8 +273,12 @@ class PHS_Model_Plugins extends PHS_Model
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
+            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_INFO );
+
             return false;
         }
+
+        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
 
         $return_arr = array();
         $return_arr['old_data'] = $existing_arr;
@@ -332,8 +345,8 @@ class PHS_Model_Plugins extends PHS_Model
 
         $params['fields']['status_date'] = $now_date;
 
-        if( empty( $params['fields']['cdate'] ) )
-            $params['fields']['cdate'] = date( self::DATETIME_DB );
+        if( empty( $params['fields']['cdate'] ) or empty_db_date( $params['fields']['cdate'] ) )
+            $params['fields']['cdate'] = $now_date;
         else
             $params['fields']['cdate'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['cdate'] ) );
 
@@ -467,6 +480,13 @@ class PHS_Model_Plugins extends PHS_Model
                     'instance_id' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '255',
+                        'nullable' => true,
+                        'editable' => false,
+                        'index' => true,
+                    ),
+                    'plugin' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '100',
                         'nullable' => true,
                         'editable' => false,
                         'index' => true,

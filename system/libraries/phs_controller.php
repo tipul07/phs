@@ -31,6 +31,13 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     {
         PHS::running_controller( $this );
 
+        if( !($plugin_instance = $this->get_plugin_instance())
+         or !$plugin_instance->plugin_active() )
+        {
+            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active controller.' ) );
+            return false;
+        }
+
         if( $plugin === null )
             $plugin = $this->instance_plugin_name();
 
@@ -46,18 +53,17 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
         $action_obj->set_controller( $this );
 
-        $action_result = $action_obj->run_action();
-
-        var_dump( $action_result );
-
-        if( ($plugin_instance = $this->get_plugin_instance()) )
+        if( !($action_result = $action_obj->run_action()) )
         {
-            var_dump( $plugin_instance->get_plugin_db_settings() );
+            if( $action_obj->has_error() )
+                $this->copy_error( $action_obj );
+            else
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Error executing action [%s].', $action ) );
+
+            return false;
         }
 
-        var_dump( $plugin_instance );
-
-        return $action_result['buffer'];
+        return $action_result;
     }
 
 }

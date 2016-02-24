@@ -7,10 +7,11 @@ define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':
 define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 define( 'PHS_DEFAULT_HTTPS', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 
-    // Root folders
+// Root folders
 define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
 define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
 define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
+define( 'PHS_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
 
 // Second level folders
 define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
@@ -42,6 +43,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_params.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_line_params.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_hooks.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_logger.php' );
 include_once( PHS_CORE_DIR.'phs.php' );
 include_once( PHS_CORE_DIR.'phs_db.php' );
 include_once( PHS_CORE_DIR.'phs_session.php' );
@@ -52,6 +54,12 @@ use \phs\PHS;
 use \phs\PHS_db;
 use \phs\PHS_scope;
 use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Logger;
+
+// Default loggin settings (change if required in main.php)
+PHS_Logger::logging_enabled( true );
+PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
+PHS_Logger::logging_dir( PHS_LOGS_DIR );
 
 // Default scope settings... These are overwritten when runing specific actions
 PHS_Scope::default_scope( PHS_Scope::SCOPE_WEB );

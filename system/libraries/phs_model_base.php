@@ -126,27 +126,16 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return array();
     }
 
+    /**
+     * @return array Array with settings of plugin of current model
+     */
     public function get_plugin_settings()
     {
-        $this->reset_error();
-
         if( !($plugin_obj = $this->get_plugin_instance()) )
-        {
-            $this->set_error( self::ERR_INSTANCE, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
+            return array();
 
-        if( ($plugins_settings = $plugin_obj->get_plugin_settings()) === false )
-        {
-            if( $plugin_obj->has_error() )
-                $this->copy_error( $plugin_obj );
-            else
-                $this->set_error( self::ERR_INSTANCE, self::_t( 'Couldn\'t obtain plugin settings.' ) );
-
-            return false;
-        }
-
-        if( empty( $plugins_settings ) )
+        if( ($plugins_settings = $plugin_obj->get_plugin_db_settings()) === false
+         or empty( $plugins_settings ) or !is_array( $plugins_settings ) )
             $plugins_settings = $plugin_obj->get_default_settings();
 
         return $plugins_settings;
@@ -1380,6 +1369,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             return false;
         }
 
+        PHS_Logger::logf( 'Installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( $this_instance_id == $plugins_model_id )
         {
@@ -1390,6 +1381,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         {
             if( !($plugins_model = PHS::load_model( 'plugins' )) )
             {
+                PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
                 return false;
             }
@@ -1400,6 +1393,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
                     $this->copy_error( $plugins_model );
                 else
                     $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing plugins model.' ) );
+
+                PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
                 return false;
             }
@@ -1412,6 +1407,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['plugin'] = $this->instance_plugin_name();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
@@ -1424,6 +1420,10 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
                 $this->copy_error( $plugins_model );
             else
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Error saving plugin details to database.' ) );
+
+            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
         }
 
         $plugin_arr = $db_details['new_data'];
@@ -1431,26 +1431,40 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         if( empty( $old_plugin_arr ) )
         {
+            PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
             // No details in database before... it should be an install
             $signal_params = array();
             $signal_params['version'] = $plugin_arr['version'];
 
             $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
+
+            PHS_Logger::logf( 'DONE triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         } else
         {
             $trigger_update_signal = false;
             // Performs any necessary actions when updating model from old version to new version
             if( version_compare( $old_plugin_arr['version'], $plugin_arr['version'], '<' ) )
             {
+                PHS_Logger::logf( 'Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
                 // Installed version is bigger than what we already had in database... update...
                 if( !$this->update( $old_plugin_arr['version'], $plugin_arr['version'] ) )
+                {
+                    PHS_Logger::logf( '!!! Update failed ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
+
                     return false;
+                }
+
+                PHS_Logger::logf( 'Update with success ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
                 $trigger_update_signal = true;
             }
 
             if( $trigger_update_signal )
             {
+                PHS_Logger::logf( 'Triggering update signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
                 $signal_params = array();
                 $signal_params['old_version'] = $old_plugin_arr['version'];
                 $signal_params['new_version'] = $plugin_arr['version'];
@@ -1458,12 +1472,18 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
                 $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
             } else
             {
+                PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
                 $signal_params = array();
                 $signal_params['version'] = $plugin_arr['version'];
 
                 $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
             }
+
+            PHS_Logger::logf( 'DONE triggering signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         }
+
+        PHS_Logger::logf( 'DONE installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return $plugin_arr;
     }
@@ -1475,6 +1495,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         if( empty( self::$_definition ) or !is_array( self::$_definition )
          or !($flow_params = $this->fetch_default_flow_params()) )
             return true;
+
+        PHS_Logger::logf( 'Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         foreach( self::$_definition as $table_name => $table_definition )
         {
@@ -1548,10 +1570,14 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
             if( !db_query( $sql, $db_connection ) )
             {
+                PHS_Logger::logf( '!!! Error installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
                 $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s.', $table_name ) );
                 return false;
             }
         }
+
+        PHS_Logger::logf( 'DONE Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }

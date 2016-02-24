@@ -565,7 +565,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if( !@file_exists( $instance_file_path ) )
         {
-            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance file %s from plugin %s.', $instance_details['instance_name'], $instance_details['plugin_name'] ) );
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance file for class %s from plugin %s.', $class_name, $instance_details['plugin_name'] ) );
             return false;
         }
 

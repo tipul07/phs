@@ -49,6 +49,6 @@
 
     //var_dump( $accounts_obj );
 
-    //PHS_session::_s( 'bubu', 12 );
-    //var_dump( PHS_session::_g() );
+    \phs\PHS_session::_s( 'bubu', 12 );
+    var_dump( \phs\PHS_session::_g() );
 

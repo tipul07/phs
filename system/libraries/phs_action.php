@@ -9,7 +9,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 {
     const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
-    const ERR_CONTROLLER_INSTANCE = 30000;
+    const ERR_CONTROLLER_INSTANCE = 30000, ERR_RUN_ACTION = 30001;
 
     /** @var PHS_Controller */
     private $_controller_obj = null;
@@ -69,6 +69,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         return array(
             'buffer' => '',
+            'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'main_template' => '', // if empty, scope template will be used...
             'scope' => PHS_Scope::default_scope(),
         );
@@ -93,6 +94,13 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     final public function run_action()
     {
         PHS::running_action( $this );
+
+        if( !($plugin_instance = $this->get_plugin_instance())
+         or !$plugin_instance->plugin_active() )
+        {
+            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active action.' ) );
+            return false;
+        }
 
         $this->set_action_defaults();
 
@@ -138,12 +146,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, array(
             'action' => $this,
         ) );
-
-        if( ($plugin_instance = $this->get_plugin_instance()) )
-        {
-            var_dump( $plugin_instance->get_plugin_db_settings() );
-            var_dump( $plugin_instance->get_error() );
-        }
 
         return $this->get_action_result();
     }

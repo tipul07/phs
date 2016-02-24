@@ -2,11 +2,17 @@
 
 namespace phs;
 
+use phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Instantiable;
-use \phs\libraries\PHS_params;
 
 abstract class PHS_Scope extends PHS_Instantiable
 {
+    const ERR_ACTION = 20000;
+
+    const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow';
+
+    const SCOPE_VAR_PREFIX = '__scp_pre_';
+
     const SCOPE_WEB = 1, SCOPE_AJAX = 2, SCOPE_API = 3;
 
     private static $SCOPES_ARR = array(
@@ -14,35 +20,24 @@ abstract class PHS_Scope extends PHS_Instantiable
             'title' => 'Web',
             'plugin' => false,
             'class_name' => 'web',
-            'front_template' => 'template_web_main',
-            'admin_template' => 'template_web_admin',
         ),
 
         self::SCOPE_AJAX => array(
             'title' => 'Ajax',
             'plugin' => false,
             'class_name' => 'ajax',
-            'front_template' => 'template_ajax_main',
-            'admin_template' => 'template_ajax_admin',
         ),
 
         self::SCOPE_API => array(
             'title' => 'API',
             'plugin' => false,
             'class_name' => 'api',
-            'front_template' => 'template_api_main',
         ),
     );
 
-    const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow';
+    abstract public function get_scope_type();
 
-    abstract public function get_type();
-
-    //! If there is a specific functionality which should extract parameters from request this is the method which will be called
-    //! before asking scope for variables... (eg. API might send JSON structure for data, or some standard parameters in _GET
-    //! Any scope can use self::_v() method to extract parameters from _GET, _POST, _FILE, etc
-    //! This function will store main parameters in registry
-    abstract public function extract_vars();
+    abstract public function process_action_result( $action_result );
 
     protected function instance_type()
     {
@@ -139,24 +134,57 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    /**
-     * @param string $key Variable name
-     * @param null|string $from (string with order of global arrays eg. 'gpev' check _GET, then _POST, then _ENV, then _SERVER)
-     * @param int $type validation type for PHS_params (used in PHS_params::set_type()
-     * @param bool $extra
-     *
-     * @return bool|null|string
-     */
-    public function _v( $key, $from = null, $type = PHS_params::T_ASIS, $extra = false )
+    public static function spawn_scope_instance( $scope = null )
     {
-        if( ($val = self::get_data( $key )) !== null
-         or $from !== null )
-            return $val;
+        if( $scope === null )
+            $scope = self::current_scope();
 
-        if( is_string( $from ) )
-            return PHS_params::_var( $from, $key, $type, $extra );
+        if( !($scope_details = self::valid_scope( $scope ))
+         or !($scope_instance = PHS::load_scope( $scope_details['class_name'], $scope_details['plugin'] )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_INSTANCE, self::_t( 'Error spawning scope instance.' ) );
 
-        return null;
+            return false;
+        }
+
+        return $scope_instance;
+    }
+
+    public static function get_scope_instance()
+    {
+        static $one_scope = false;
+
+        if( empty( $one_scope ) )
+            $one_scope = self::spawn_scope_instance();
+
+        return $one_scope;
+    }
+
+    public function generate_response( $action_result = false )
+    {
+        /** @var \phs\libraries\PHS_Action $action_obj */
+        if( !($action_obj = PHS::running_action()) )
+            $action_obj = false;
+
+        $default_action_result = PHS_Action::default_action_result();
+
+        if( $action_result === false )
+        {
+            if( empty( $action_obj ) )
+            {
+                $action_result = $default_action_result;
+                $action_result['buffer'] = self::_t( 'Unknown running action.' );
+            } elseif( !($action_result = $action_obj->get_action_result()) )
+            {
+                $action_result = $default_action_result;
+                $action_result['buffer'] = self::_t( 'Couldn\'t obtain action result.' );
+            }
+        }
+
+        $action_result = self::validate_array( $action_result, $default_action_result );
+
+        return $this->process_action_result( $action_result );
     }
 
 }

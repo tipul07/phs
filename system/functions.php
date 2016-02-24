@@ -252,3 +252,8 @@ function parse_db_date( $str )
     else
         return mktime( 0, 0, 0, $date_[1], $date_[2], $date_[0] );
 }
+
+function empty_db_date( $date )
+{
+    return (empty( $date ) or $date == \phs\libraries\PHS_Model::DATETIME_EMPTY or $date == \phs\libraries\PHS_Model::DATE_EMPTY);
+}
