@@ -31,8 +31,9 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     {
         PHS::running_controller( $this );
 
-        if( !($plugin_instance = $this->get_plugin_instance())
-         or !$plugin_instance->plugin_active() )
+        if( !$this->instance_is_core()
+        and (!($plugin_instance = $this->get_plugin_instance())
+                or !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active controller.' ) );
             return false;
@@ -40,6 +41,8 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
         if( $plugin === null )
             $plugin = $this->instance_plugin_name();
+
+        self::st_reset_error();
 
         /** @var \phs\libraries\PHS_Action $action_obj */
         if( !($action_obj = PHS::load_action( $action, $plugin )) )

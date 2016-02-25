@@ -8,7 +8,9 @@ use \phs\libraries\PHS_Action;
 
 class PHS_View extends PHS_Signal_and_slot
 {
-    const ERR_BAD_CONTROLLER = 30000, ERR_BAD_ACTION = 30001, ERR_BAD_TEMPLATE = 30002, ERR_BAD_THEME = 30003, ERR_TEMPLATE_DIRS = 30004;
+    const ERR_BAD_CONTROLLER = 30000, ERR_BAD_ACTION = 30001, ERR_BAD_TEMPLATE = 30002, ERR_BAD_THEME = 30003, ERR_TEMPLATE_DIRS = 30004, ERR_INIT_VIEW = 30005;
+
+    const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
     protected $_template = '';
     protected $_theme = '';
@@ -40,6 +42,47 @@ class PHS_View extends PHS_Signal_and_slot
     function __clone()
     {
         $this->reset_view();
+    }
+
+    public static function init_view( $template, $params = false )//$theme = false, $view_class = false, $plugin = null )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['theme'] ) )
+            $params['theme'] = false;
+        if( empty( $params['view_class'] ) )
+            $params['view_class'] = false;
+        if( empty( $params['plugin'] ) )
+            $params['plugin'] = false;
+        if( empty( $params['as_singleton'] ) )
+            $params['as_singleton'] = false;
+
+        if( empty( $params['action_obj'] ) )
+            $params['action_obj'] = false;
+        if( empty( $params['controller_obj'] ) )
+            $params['controller_obj'] = false;
+
+        if( !($view_obj = PHS::load_view( $params['view_class'], $params['plugin'], $params['as_singleton'] )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error instantiating view class.' ) );
+            return false;
+        }
+
+        if( !$view_obj->set_action( $params['action_obj'] )
+         or !$view_obj->set_controller( $params['controller_obj'] )
+         or !$view_obj->set_theme( $params['theme'] )
+         or !$view_obj->set_template( $template ) )
+        {
+            if( $view_obj->has_error() )
+                self::st_copy_error( $view_obj );
+            else
+                self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error setting up view instance.' ) );
+            return false;
+        }
+
+        return $view_obj;
     }
 
     public function set_controller( $controller_obj )
@@ -74,6 +117,19 @@ class PHS_View extends PHS_Signal_and_slot
     public function get_controller()
     {
         return $this->_controller;
+    }
+
+    /**
+     * @return bool|\phs\libraries\PHS_Action Action that "owns" this view or false if no action
+     */
+    public function get_action()
+    {
+        return $this->_action;
+    }
+
+    public function get_theme()
+    {
+        return $this->_theme;
     }
 
     public function get_template()
@@ -199,10 +255,12 @@ class PHS_View extends PHS_Signal_and_slot
     {
         $subview_obj = clone $this;
 
-        $subview_obj->set_theme( $force_theme );
-        $subview_obj->set_template( $template );
+        if( !empty( $force_theme ) )
+            $subview_obj->set_theme( $force_theme );
+        else
+            $subview_obj->set_theme( $this->get_theme() );
 
-        return $subview_obj->render( $template, $force_theme );
+        return $subview_obj->render( $template );
     }
 
     public function render( $template = false, $force_theme = false )
@@ -228,6 +286,9 @@ class PHS_View extends PHS_Signal_and_slot
         if( !empty( $this->_template_file )
         and @file_exists( $this->_template_file ) )
         {
+            if( !($_VIEW_CONTEXT = self::get_data( self::VIEW_CONTEXT_DATA_KEY )) )
+                $_VIEW_CONTEXT = array();
+
             ob_start();
             include( $this->_template_file );
             $resulting_buf .= ob_get_clean();

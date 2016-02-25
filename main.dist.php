@@ -12,6 +12,9 @@ if( @function_exists( 'mb_internal_encoding' ) )
 // Platform full absolute path
 define( 'PHS_PATH', '/absolute/path/to/root/' );
 
+// Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
+define( 'PHS_DEFAULT_SITE_NAME', 'PoweredByPHS.com' );
+
 // If no domain is defined for current request in config directory system will use PHS_DEFAULT_* values
 define( 'PHS_DEFAULT_DOMAIN', 'domain.com' ); // only domain name (used to set cookies)
 define( 'PHS_DEFAULT_PORT', '' ); // port (if applicable) if using default port don't put anything here

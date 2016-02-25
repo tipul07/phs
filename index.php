@@ -2,10 +2,12 @@
 
     include_once( 'main.php' );
 
+    use \phs\PHS;
+
     //include_once( 'plugins/accounts/controllers/phs_index.php' );
     //include_once( 'system/core/controllers/phs_index.php' );
     //
-    var_dump( phs\PHS::execute_route() );
+    PHS::execute_route();
     //var_dump( phs\plugins\accounts\controllers\PHS_Controller_Index::get_instance() );
     //var_dump( phs\system\core\controllers\PHS_Controller_Index::get_instance() );
     //var_dump( phs\PHS::load_controller( 'index', 'accounts' ) );

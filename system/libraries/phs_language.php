@@ -29,12 +29,28 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @return array Returns array of defined languages
+     */
+    public static function get_defined_languages()
+    {
+        return self::language_container()->get_defined_languages();
+    }
+
+    /**
      * @param string $key Language array key to be returned
      * @return mixed Returns currently selected language details from language array definition
      */
     public static function get_current_language_key( $key )
     {
         return self::language_container()->get_current_language_key( $key );
+    }
+
+    /**
+     * @return string Returns currently selected language
+     */
+    public static function get_default_language()
+    {
+        return self::language_container()->get_default_language();
     }
 
     /**
@@ -52,6 +68,15 @@ class PHS_Language extends PHS_Error
     public static function set_current_language( $lang )
     {
         return self::language_container()->set_current_language( $lang );
+    }
+
+    /**
+     * @param string $lang Language to be set as default
+     * @return string Returns default language
+     */
+    public static function set_default_language( $lang )
+    {
+        return self::language_container()->set_default_language( $lang );
     }
 
     /**
@@ -152,6 +177,11 @@ class PHS_Language_Container extends PHS_Error
         parent::__construct();
     }
 
+    public static function st_get_default_language()
+    {
+        return self::$DEFAULT_LANGUAGE;
+    }
+
     public static function st_get_current_language()
     {
         return self::$CURRENT_LANGUAGE;
@@ -166,6 +196,15 @@ class PHS_Language_Container extends PHS_Error
         return self::$CURRENT_LANGUAGE;
     }
 
+    public static function st_set_default_language( $lang )
+    {
+        if( !self::valid_language( $lang ) )
+            return false;
+
+        self::$DEFAULT_LANGUAGE = $lang;
+        return self::$DEFAULT_LANGUAGE;
+    }
+
     public static function st_get_current_language_key( $key )
     {
         $clang = self::st_get_current_language();
@@ -178,9 +217,29 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFINED_LANGUAGES[$clang][$key];
     }
 
+    /**
+     * Returns defined languages array (defined using self::define_language())
+     *
+     * @return array
+     */
+    public static function st_get_defined_languages()
+    {
+        return self::$DEFINED_LANGUAGES;
+    }
+
     public function get_current_language_key( $key )
     {
         return self::st_get_current_language_key( $key );
+    }
+
+    public function get_defined_languages()
+    {
+        return self::st_get_defined_languages();
+    }
+
+    public function get_default_language()
+    {
+        return self::st_get_default_language();
     }
 
     public function get_current_language()
@@ -191,6 +250,11 @@ class PHS_Language_Container extends PHS_Error
     public function set_current_language( $lang )
     {
         return self::st_set_current_language( $lang );
+    }
+
+    public function set_default_language( $lang )
+    {
+        return self::st_set_default_language( $lang );
     }
 
     static function prepare_lang_index( $lang )
@@ -250,8 +314,11 @@ class PHS_Language_Container extends PHS_Error
     {
         return array(
             'title' => '',
+            'dir' => '',
+            'www' => '',
             'files' => array(),
             'browser_lang' => '',
+            'browser_charset' => '',
             'flag_file' =>'',
         );
     }

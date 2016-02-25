@@ -4,7 +4,7 @@
     use \phs\libraries\PHS_Hooks;
 
     /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-    if( ($accounts_plugin = phs\PHS::load_plugin( 'accounts' )) )
+    if( ($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     {
         PHS::register_hook(
             // $hook_name

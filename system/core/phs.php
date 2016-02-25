@@ -227,6 +227,7 @@ final class PHS extends PHS_Registry
     {
         return array(
             // configuration constants
+            'PHS_SITE_NAME' => 'PHS_DEFAULT_SITE_NAME',
             'PHS_DOMAIN' => 'PHS_DEFAULT_DOMAIN',
             'PHS_PORT' => 'PHS_DEFAULT_PORT',
             'PHS_DOMAIN_PATH' => 'PHS_DEFAULT_DOMAIN_PATH',
@@ -427,10 +428,16 @@ final class PHS extends PHS_Registry
                 self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].', $route_details[self::ROUTE_ACTION] ) );
         }
 
-        elseif( !($scope_obj = PHS_Scope::get_scope_instance()) )
+        else
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
+            if( $action_result['scope'] != PHS_Scope::current_scope() )
+                PHS_Scope::current_scope( $action_result['scope'] );
+
+            if( !($scope_obj = PHS_Scope::get_scope_instance()) )
+            {
+                if( !self::st_has_error() )
+                    self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
+            }
         }
 
         if( self::st_has_error() )

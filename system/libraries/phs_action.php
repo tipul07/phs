@@ -70,7 +70,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return array(
             'buffer' => '',
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
-            'main_template' => '', // if empty, scope template will be used...
+            'page_template' => 'template_main', // if empty, scope template will be used...
+            'page_title' => '', // title of current page
             'scope' => PHS_Scope::default_scope(),
         );
     }
@@ -80,6 +81,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         $this->_action_result = self::default_action_result();
     }
 
+    /**
+     * @return array|null
+     */
     public function get_action_result()
     {
         return $this->_action_result;
@@ -91,12 +95,16 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return $this->_action_result;
     }
 
+    /**
+     * @return array|bool|null
+     */
     final public function run_action()
     {
         PHS::running_action( $this );
 
-        if( !($plugin_instance = $this->get_plugin_instance())
-         or !$plugin_instance->plugin_active() )
+        if( !$this->instance_is_core()
+        and (!($plugin_instance = $this->get_plugin_instance())
+                or !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active action.' ) );
             return false;
@@ -123,6 +131,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, array(
             'action' => $this,
         ) );
+
+        self::st_reset_error();
 
         if( !($action_result = $this->execute()) )
             return false;
