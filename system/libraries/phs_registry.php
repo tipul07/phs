@@ -14,6 +14,11 @@ class PHS_Registry extends PHS_Language
         parent::__construct();
     }
 
+    public static function get_full_data()
+    {
+        return self::$data;
+    }
+
     public static function get_data( $key )
     {
         if( array_key_exists( $key, self::$data ) )

@@ -166,6 +166,40 @@ class PHS_View extends PHS_Signal_and_slot
         return $this->_template_dirs;
     }
 
+    private function _get_file_details( $file_name )
+    {
+        $this->reset_error();
+
+        if( empty( $file_name ) )
+        {
+            $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Please provide a resource file.' ) );
+            return false;
+        }
+
+        if( !($dirs_list = $this->_get_template_directories())
+         or !is_array( $dirs_list ) )
+        {
+            $this->set_error( self::ERR_TEMPLATE_DIRS, self::_t( 'Couldn\'t get includes directories.' ) );
+            return false;
+        }
+
+        @clearstatcache();
+        foreach( $dirs_list as $dir_path => $dir_www )
+        {
+            if( @file_exists( $dir_path.$file_name ) )
+            {
+                return array(
+                    'full_path' => $dir_path.$file_name,
+                    'full_url' => $dir_www.$file_name,
+                    'path' => $dir_path,
+                    'url' => $dir_www,
+                );
+            }
+        }
+
+        return false;
+    }
+
     protected function _get_template_path()
     {
         $this->reset_error();
@@ -179,25 +213,55 @@ class PHS_View extends PHS_Signal_and_slot
             return false;
         }
 
-        if( !($dirs_list = $this->_get_template_directories())
-         or !is_array( $dirs_list ) )
+        if( !($template_details = $this->_get_file_details( $this->_template.'.php' ))
+         or empty( $template_details['full_path'] ) )
         {
-            $this->set_error( self::ERR_TEMPLATE_DIRS, self::_t( 'Couldn\'t get template directories.' ) );
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Template [%s] not found.', $this->_template ) );
             return false;
         }
 
-        @clearstatcache();
-        foreach( $dirs_list as $dir_path => $dir_www )
+        $this->_template_file = $template_details['full_path'];
+        return true;
+    }
+
+    public function get_resource_details( $file )
+    {
+        if( empty( $file )
+         or !self::safe_escape_resource( $file ) )
         {
-            if( @file_exists( $dir_path.$this->_template.'.php' ) )
-            {
-                $this->_template_file = $dir_path.$this->_template.'.php';
-                return true;
-            }
+            $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid resource file.' ) );
+            return false;
         }
 
-        $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Template [%s] not found.', $this->_template ) );
-        return false;
+        if( !($file_details = $this->_get_file_details( $file )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Resource file [%s] not found.', $file ) );
+            return false;
+        }
+
+        return $file_details;
+    }
+
+    public function get_resource_url( $file )
+    {
+        if( empty( $file )
+         or !($resource_details = $this->get_resource_details( $file ))
+         or empty( $resource_details['full_url'] ) )
+            return '#'.$file.'-not-found';
+
+        return $resource_details['full_url'];
+    }
+
+    public function get_resource_path( $file )
+    {
+        if( empty( $file )
+         or !($resource_details = $this->get_resource_details( $file ))
+         or empty( $resource_details['full_path'] ) )
+            return false;
+
+        return $resource_details['full_path'];
     }
 
     public static function safe_escape_template( $template )
