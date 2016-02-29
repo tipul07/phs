@@ -63,6 +63,9 @@ class PHS_View extends PHS_Signal_and_slot
         if( empty( $params['controller_obj'] ) )
             $params['controller_obj'] = false;
 
+        if( empty( $params['template_data'] ) )
+            $params['template_data'] = false;
+
         if( !($view_obj = PHS::load_view( $params['view_class'], $params['plugin'], $params['as_singleton'] )) )
         {
             if( !self::st_has_error() )
@@ -81,6 +84,9 @@ class PHS_View extends PHS_Signal_and_slot
                 self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error setting up view instance.' ) );
             return false;
         }
+
+        if( !empty( $params['template_data'] ) )
+            $view_obj->set_data( self::VIEW_CONTEXT_DATA_KEY, $params['template_data'] );
 
         return $view_obj;
     }
@@ -276,7 +282,7 @@ class PHS_View extends PHS_Signal_and_slot
     public static function safe_escape_resource( $resource )
     {
         if( empty( $resource ) or !is_string( $resource )
-         or preg_match( '@[^a-zA-Z0-9_-\./]@', $resource ) )
+         or preg_match( '@[^a-zA-Z0-9_\-\./]@', $resource ) )
             return false;
 
         $resource = str_replace( '..', '', trim( $resource, '/' ) );
@@ -325,6 +331,15 @@ class PHS_View extends PHS_Signal_and_slot
             $subview_obj->set_theme( $this->get_theme() );
 
         return $subview_obj->render( $template );
+    }
+
+    public function context_var( $key )
+    {
+        if( !($_VIEW_CONTEXT = self::get_data( self::VIEW_CONTEXT_DATA_KEY ))
+         or !isset( $_VIEW_CONTEXT[$key] ) )
+            return false;
+
+        return $_VIEW_CONTEXT[$key];
     }
 
     public function render( $template = false, $force_theme = false )

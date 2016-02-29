@@ -48,6 +48,7 @@ include_once( PHS_CORE_DIR.'phs.php' );
 include_once( PHS_CORE_DIR.'phs_db.php' );
 include_once( PHS_CORE_DIR.'phs_session.php' );
 include_once( PHS_CORE_DIR.'phs_crypt.php' );
+include_once( PHS_CORE_VIEW_DIR.'phs_view.php' );
 include_once( PHS_CORE_DIR.'phs_scope.php' );
 
 use \phs\PHS;
@@ -180,3 +181,4 @@ foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
 
 PHS::trigger_hooks( PHS_Hooks::H_AFTER_BOOTSTRAP );
 
+PHS::set_data( PHS::PHS_BOOTSTRAP_END_TIME, microtime( true ) );

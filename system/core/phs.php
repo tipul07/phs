@@ -19,7 +19,9 @@ final class PHS extends PHS_Registry
 
           ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action',
 
-          CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme';
+          CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme',
+
+          PHS_START_TIME = 'phs_start_time', PHS_BOOTSTRAP_END_TIME = 'phs_bootstrap_end_time', PHS_END_TIME = 'phs_end_time';
 
     const ROUTE_PARAM = '_route',
           ROUTE_DEFAULT_CONTROLLER = 'index',
@@ -30,6 +32,7 @@ final class PHS extends PHS_Registry
     private static $inited = false;
     private static $instance = false;
     private static $hooks = array();
+    private static $_INTERPRET_SCRIPT = 'index';
 
     function __construct()
     {
@@ -47,6 +50,10 @@ final class PHS extends PHS_Registry
             return;
 
         self::reset_registry();
+
+        self::set_data( self::PHS_START_TIME, microtime( true ) );
+        self::set_data( self::PHS_BOOTSTRAP_END_TIME, 0 );
+        self::set_data( self::PHS_END_TIME, 0 );
 
         $cookie_domain = PHS_DEFAULT_DOMAIN;
         $request_full_host = '';
@@ -352,7 +359,10 @@ final class PHS extends PHS_Registry
 
         $plugin = false;
         $rp_count = count( $route_parts );
-        if( $rp_count == 2 or $rp_count == 1 )
+        if( $rp_count == 1 )
+        {
+            $action = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
+        } elseif( $rp_count == 2 )
         {
             $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
             $action = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
@@ -382,6 +392,135 @@ final class PHS extends PHS_Registry
         self::set_data( self::ROUTE_ACTION, $action );
 
         return true;
+    }
+
+    public static function safe_escape_root_script( $script )
+    {
+        if( empty( $script ) or !is_string( $script )
+            or preg_match( '@[^a-zA-Z0-9_\-]@', $script ) )
+            return false;
+
+        return $script;
+    }
+
+    public static function safe_escape_route_parts( $part )
+    {
+        if( empty( $part ) or !is_string( $part )
+         or preg_match( '@[^a-zA-Z0-9_]@', $part ) )
+            return false;
+
+        return $part;
+    }
+
+    /**
+     * Change default route interpret script (default is index). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New interpreter script (default is index). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function interpret_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_INTERPRET_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_INTERPRET_SCRIPT = $script;
+        return self::$_INTERPRET_SCRIPT.'.php';
+    }
+
+    public static function get_interpret_url( $force_https = false )
+    {
+        if( !($base_url = self::get_base_url( $force_https )) )
+            return false;
+
+        if( substr( $base_url, -1 ) != '/' )
+            $base_url .= '/';
+
+        return $base_url.self::interpret_script();
+    }
+
+    public static function current_url()
+    {
+        if( ($plugin = self::get_data( self::ROUTE_PLUGIN )) )
+            $plugin = false;
+        if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) )
+            $controller = false;
+        if( ($action = self::get_data( self::ROUTE_ACTION )) )
+            $action = false;
+
+        @parse_str( $_SERVER['QUERY_STRING'], $query_string );
+
+        if( empty( $query_string ) )
+            $query_string = false;
+
+        return self::url( array( 'p' => $plugin, 'c' => $controller, 'a' => $action ), $query_string );
+    }
+
+    public static function url( $params = false, $args = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $args ) or !is_array( $args ) )
+            $args = array();
+
+        if( empty( $params['force_https'] ) )
+            $params['force_https'] = false;
+        if( empty( $params['p'] ) )
+            $params['p'] = false;
+        if( empty( $params['c'] ) )
+            $params['c'] = false;
+        if( empty( $params['a'] ) )
+            $params['a'] = self::ROUTE_DEFAULT_ACTION;
+
+        if( (!empty( $params['p'] ) and !self::safe_escape_route_parts( $params['p'] ))
+         or (!empty( $params['c'] ) and !self::safe_escape_route_parts( $params['c'] ))
+         or (!empty( $params['a'] ) and !self::safe_escape_route_parts( $params['a'] )) )
+            return '#invalid_path['.
+                   (!empty( $params['p'] )?$params['p']:'').'::'.
+                   (!empty( $params['c'] )?$params['c']:'').'::'.
+                   (!empty( $params['a'] )?$params['a']:'').']';
+
+        if( !empty( $params['c'] ) )
+        {
+            if( empty( $params['p'] ) )
+                $params['p'] = '';
+
+            $route = $params['p'].'/'.$params['c'].'/'.$params['a'];
+        } else
+        {
+            if( empty( $params['p'] ) )
+                $route = $params['a'];
+            else
+                $route = $params['p'].'-'.$params['a'];
+        }
+
+        $new_args = array();
+        $new_args[self::ROUTE_PARAM] = $route;
+
+        if( isset( $args[self::ROUTE_PARAM] ) )
+            unset( $args[self::ROUTE_PARAM] );
+
+        foreach( $args as $key => $val )
+            $new_args[$key] = $val;
+
+        if( !($query_string = @http_build_query( $new_args )) )
+            $query_string = '';
+
+        //$hook_params = array(
+        //  'args' => $new_args,
+        //  'params' => $params,
+        //);
+        //
+        //if( ($hook_result = self::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_params ))
+        //
+        //H_URL_PARAMS
+
+        return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
     }
 
     public static function get_route_details()
@@ -447,6 +586,27 @@ final class PHS extends PHS_Registry
         }
 
         return $scope_obj->generate_response();
+    }
+
+    public static function platform_debug_data()
+    {
+        $now_secs = microtime( true );
+        if( !($start_secs = self::get_data( self::PHS_START_TIME )) )
+            $start_secs = $now_secs;
+        if( !($bootstrap_secs = self::get_data( self::PHS_BOOTSTRAP_END_TIME )) )
+            $bootstrap_secs = $now_secs;
+        if( !($end_secs = self::get_data( self::PHS_END_TIME )) )
+            $end_secs = $now_secs;
+
+        $bootstrap_time = $bootstrap_secs - $start_secs;
+        $running_time = $end_secs - $start_secs;
+
+        $return_arr = array();
+        $return_arr['db_queries_count'] = db_query_count();
+        $return_arr['bootstrap_time'] = $bootstrap_time;
+        $return_arr['running_time'] = $running_time;
+
+        return $return_arr;
     }
 
     public static function default_user_db_details_hook_args()

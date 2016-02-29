@@ -184,6 +184,8 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 
+        PHS::set_data( PHS::PHS_END_TIME, microtime( true ) );
+
         return $this->process_action_result( $action_result );
     }
 

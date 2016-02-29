@@ -13,6 +13,9 @@ class PHS_Hooks extends PHS_Registry
          // Logging hooks
          H_LOG = 'phs_logger',
 
+         // URL hooks
+         H_URL_PARAMS = 'phs_url_params',
+
          // User account hooks
          H_USER_DB_DETAILS = 'phs_user_db_details';
 }

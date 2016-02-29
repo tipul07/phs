@@ -4,12 +4,13 @@ namespace phs\libraries;
 use \phs\PHS;
 use \phs\libraries\PHS_Controller;
 use phs\PHS_Scope;
+use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Signal_and_slot
 {
     const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
-    const ERR_CONTROLLER_INSTANCE = 30000, ERR_RUN_ACTION = 30001;
+    const ERR_CONTROLLER_INSTANCE = 30000, ERR_RUN_ACTION = 30001, ERR_RENDER = 30002;
 
     /** @var PHS_Controller */
     private $_controller_obj = null;
@@ -71,7 +72,16 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'buffer' => '',
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...
+
+            // page related variables
             'page_title' => '', // title of current page
+            'page_description' => '',
+            'page_keywords' => '',
+            // anything that is required in head tag
+            'page_in_header' => '',
+            // anything that is required as attributes to body tag
+            'page_body_extra_tags' => '',
+
             'scope' => PHS_Scope::default_scope(),
         );
     }
@@ -93,6 +103,37 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         $this->_action_result = self::validate_array( $result, self::default_action_result() );
         return $this->_action_result;
+    }
+
+    final public function quick_render_template( $template, $template_data = false )
+    {
+        $view_params = array();
+        $view_params['action_obj'] = $this;
+        $view_params['controller_obj'] = $this->get_controller();
+        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['template_data'] = $template_data;
+
+        if( !($view_obj = PHS_View::init_view( $template, $view_params )) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error();
+
+            return false;
+        }
+
+        $action_result = self::default_action_result();
+
+        if( !($action_result['buffer'] = $view_obj->render()) )
+        {
+            if( $view_obj->has_error() )
+                $this->copy_error( $view_obj );
+            else
+                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $template ) );
+
+            return false;
+        }
+
+        return $action_result;
     }
 
     /**

@@ -129,6 +129,18 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * Translate a specific text in currently selected language. This method receives a variable number of parameters in same way as sprintf works.
+     * @param string $index Language index to be translated
+     * @param string $ch Escaping character
+     *
+     * @return string Translated and escaped string
+     */
+    public static function _te( $index, $ch = '"' )
+    {
+        return str_replace( $ch, ($ch=='\''?'\\\'':'\\"'), self::_t( $index ) );
+    }
+
+    /**
      * Translate a text into a specific language. This method receives a variable number of parameters in same way as sprintf works.
      *
      * @param string $index Language index to be translated
@@ -211,7 +223,7 @@ class PHS_Language_Container extends PHS_Error
         if( empty( $clang )
          or !is_scalar( $key )
          or empty( self::$DEFINED_LANGUAGES[$clang] ) or !is_array( self::$DEFINED_LANGUAGES[$clang] )
-         or !array_key_exists( self::$DEFINED_LANGUAGES[$clang], $key ) )
+         or !array_key_exists( $key, self::$DEFINED_LANGUAGES[$clang] ) )
             return false;
 
         return self::$DEFINED_LANGUAGES[$clang][$key];
