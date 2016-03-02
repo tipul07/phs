@@ -14,9 +14,10 @@ and $notifications_plugin->plugin_active() )
         array( $notifications_plugin, 'get_notifications_hook_args' ),
         // $hook_extra_args = null
         PHS_Hooks::default_notifications_hook_args(),
-        // $chained_hook = false
-        true,
-        // $priority = 10
-        10
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
     );
 }

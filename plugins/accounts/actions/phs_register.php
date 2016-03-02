@@ -17,34 +17,59 @@ class PHS_Action_Register extends PHS_Action
     {
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
-        $pass = PHS_params::_pg( 'pass', PHS_params::T_NOHTML );
-        $do_remember = PHS_params::_pg( 'do_remember', PHS_params::T_INT );
+        $email = PHS_params::_pg( 'email', PHS_params::T_EMAIL );
+        $pass1 = PHS_params::_p( 'pass1', PHS_params::T_ASIS );
+        $pass2 = PHS_params::_p( 'pass2', PHS_params::T_ASIS );
+        $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
         $submit = PHS_params::_p( 'submit' );
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !empty( $submit ) )
         {
-            if( empty( $nick ) or empty( $pass ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Please provide complete mandatory fields.' ) );
-
-            elseif( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+            /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
+            if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
 
-            elseif( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $nick ) ))
-                 or !$accounts_model->check_pass( $account_arr, $pass )
-                 or !$accounts_model->is_active( $account_arr ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Wrong username or password.' ) );
+            elseif( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
+                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load captcha plugin.' ) );
+
+            elseif( $captcha_plugin->plugin_active()
+                and (empty( $vcode )
+                        or !$captcha_plugin->check_captcha_code( $vcode )) )
+                PHS_Notifications::add_error_notice( self::_t( 'Invalid validation code.' ) );
+
+            elseif( $pass1 != $pass2 )
+                PHS_Notifications::add_error_notice( self::_t( 'Passwords mistmatch.' ) );
 
             else
             {
-                PHS_Notifications::add_success_notice( self::_t( 'User should login now...' ) );
+                $insert_arr = array();
+                $insert_arr['nick'] = $nick;
+                $insert_arr['pass'] = $pass1;
+                $insert_arr['email'] = $email;
+                $insert_arr['level'] = $accounts_model::LVL_MEMBER;
+
+                if( !($account_arr = $accounts_model->insert( array( 'fields' => $insert_arr ) )) )
+                {
+                    if( $accounts_model->has_error() )
+                        PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
+                    else
+                        PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t register user. Please try again.' ) );
+                }
+            }
+
+            if( !PHS_Notifications::have_notifications_errors() )
+            {
+                PHS_Notifications::add_success_notice( self::_t( 'User registered...' ) );
             }
         }
 
         $data = array(
             'nick' => $nick,
-            'pass' => $pass,
-            'do_remember' => (!empty( $do_remember )?'checked="checked"':''),
+            'email' => $email,
+            'pass1' => $pass1,
+            'pass2' => $pass2,
+            'vcode' => $vcode,
         );
 
         return $this->quick_render_template( 'register', $data );

@@ -915,12 +915,14 @@ final class PHS extends PHS_Registry
      * @param string $hook_name             Hook name
      * @param callback $hook_callback       Method/Function to be called
      * @param null|array $hook_extra_args   Extra arguments to be passed when hook is fired
-     * @param bool $chained_hook            If true result of hook call will overwrite parameters of next hook callback (can be used as filters)
-     * @param int $priority                 Order in which hooks are fired is given by $priority parameter
+     * @param array|false $extra            Extra details related to current hook:
+     *      chained_hook    If true result of hook call will overwrite parameters of next hook callback (can be used as filters)
+     *      priority        Order in which hooks are fired is given by $priority parameter
+     *      stop_chain      If true will stop hooks execution (used if chained_hook is true)
      *
      * @return bool                     True if hook was added with success or false otherwise
      */
-    public static function register_hook( $hook_name, $hook_callback = null, $hook_extra_args = null, $chained_hook = false, $priority = 10 )
+    public static function register_hook( $hook_name, $hook_callback = null, $hook_extra_args = null, $extra = false )
     {
         self::st_reset_error();
 
@@ -936,12 +938,25 @@ final class PHS extends PHS_Registry
             return false;
         }
 
+        if( empty( $extra ) or !is_array( $extra ) )
+            $extra = array();
+
+        if( empty( $extra['chained_hook'] ) )
+            $extra['chained_hook'] = false;
+        if( empty( $extra['stop_chain'] ) )
+            $extra['stop_chain'] = false;
+        if( !isset( $extra['priority'] ) )
+            $extra['priority'] = 10;
+        else
+            $extra['priority'] = intval( $extra['priority'] );
+
         $hookdata = array();
         $hookdata['callback'] = $hook_callback;
         $hookdata['args'] = $hook_extra_args;
-        $hookdata['chained'] = (!empty( $chained_hook )?true:false);
+        $hookdata['chained'] = (!empty( $extra['chained_hook'] )?true:false);
+        $hookdata['stop_chain'] = (!empty( $extra['stop_chain'] )?true:false);
 
-        self::$hooks[$hook_name][$priority][] = $hookdata;
+        self::$hooks[$hook_name][$extra['priority']][] = $hookdata;
 
         ksort( self::$hooks[$hook_name], SORT_NUMERIC );
 
@@ -985,7 +1000,7 @@ final class PHS extends PHS_Registry
                  or empty( $hook_callback['callback'] ) )
                     continue;
 
-                if( empty( $hook_callback['args'] ) )
+                if( empty( $hook_callback['args'] ) or !is_array( $hook_callback['args'] ) )
                     $hook_callback['args'] = array();
 
                 $call_hook_args = array_merge( $hook_callback['args'], $hook_args );

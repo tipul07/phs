@@ -22,6 +22,11 @@
             </fieldset>
 
             <fieldset>
+                <label for="email"><?php echo $this::_t( 'Email' )?>:</label>
+                <input type="text" id="email" name="email" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" />
+            </fieldset>
+
+            <fieldset>
                 <label for="pass1"><?php echo $this::_t( 'Password' )?>:</label>
                 <input type="password" id="pass1" name="pass1" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" />
             </fieldset>
@@ -34,7 +39,11 @@
             <fieldset>
                 <label for="vcode"><?php echo $this::_t( 'Validation code' )?>*</label>
                 <?php
-                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_DISPLAY, PHS_Hooks::default_captcha_hook_args() ))
+
+                $hook_params = PHS_Hooks::default_captcha_hook_args();
+                $hook_params['extra_img_style'] = 'padding:3px;border:1px solid black;';
+
+                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_DISPLAY, $hook_params ))
                 and is_array( $hook_args )
                 and !empty( $hook_args['captcha_buffer'] ) )
                     echo $hook_args['captcha_buffer'];
@@ -43,15 +52,15 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Login' )?>" />
+                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Register' )?>" />
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this::_t( 'Forgot password' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>"><?php echo $this::_t( 'Already have an account' )?></a>
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this::_t( 'Register an account' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this::_t( 'I just forgot my password' )?></a>
             </fieldset>
 
         </div>

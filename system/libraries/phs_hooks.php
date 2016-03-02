@@ -57,8 +57,10 @@ class PHS_Hooks extends PHS_Registry
             ), // default template
             'font' => 'default.ttf',
             'characters_count' => 5,
-            'default_widht' => 200,
+            'default_width' => 200,
             'default_height' => 50,
+            'extra_img_style' => '',
+            'extra_img_attrs' => '',
             'captcha_buffer' => '',
         );
     }

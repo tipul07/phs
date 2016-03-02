@@ -220,8 +220,8 @@ function make_sure_is_filename( $str )
         return false;
 
     return str_replace(
-                array( '..', '/', '~', '<', '>', '|' ),
-                array( '.',  '',  '',  '',  '',  '' ),
+                array( '..', '/', '\\', '~', '<', '>', '|' ),
+                array( '.',  '',  '',   '',  '',  '',  '' ),
             $str );
 }
 

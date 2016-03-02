@@ -95,7 +95,7 @@ final class PHS_session extends PHS_Registry
         session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN );
         session_name( self::get_data( self::SESS_NAME ) );
 
-        @register_shutdown_function( array( 'PHS_session', 'session_close' ) );
+        @register_shutdown_function( array( '\\phs\\PHS_session', 'session_close' ) );
 
         @session_start();
 

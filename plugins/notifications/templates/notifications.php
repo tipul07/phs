@@ -13,14 +13,14 @@ if( (empty( $display_channels ) or in_array( 'success', $display_channels ))
 and !empty( $notifications_arr['success'] ) and is_array( $notifications_arr['success'] ) )
 {
     ?>
-    <div class="success-box dismissible">
+    <div class="success-box"><div class="dismissible">
         <?php
         foreach( $notifications_arr['success'] as $message )
         {
             echo '<p>'.$message.'</p>';
         }
         ?>
-    </div>
+    </div></div>
     <div class="clearfix"></div>
     <?php
 }
@@ -28,14 +28,14 @@ if( (empty( $display_channels ) or in_array( 'warnings', $display_channels ))
 and !empty( $notifications_arr['warnings'] ) and is_array( $notifications_arr['warnings'] ) )
 {
     ?>
-    <div class="warning-box dismissible">
+    <div class="warning-box"><div class="dismissible">
         <?php
         foreach( $notifications_arr['warnings'] as $message )
         {
             echo '<p>'.$message.'</p>';
         }
         ?>
-    </div>
+        </div></div>
     <div class="clearfix"></div>
     <?php
 }
@@ -47,7 +47,6 @@ and !empty( $notifications_arr['errors'] ) and is_array( $notifications_arr['err
         <?php
         foreach( $notifications_arr['errors'] as $message )
         {
-            echo '<p>'.$message.'</p>';
             echo '<p>'.$message.'</p>';
         }
         ?>

@@ -14,9 +14,10 @@ and $accounts_plugin->plugin_active() )
         array( $accounts_plugin, 'get_current_user_db_details' ),
         // $hook_extra_args = null
         PHS_Hooks::default_user_db_details_hook_args(),
-        // $chained_hook = false
-        true,
-        // $priority = 10
-        10
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
     );
 }

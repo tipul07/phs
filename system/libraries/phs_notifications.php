@@ -60,6 +60,30 @@ class PHS_Notifications extends PHS_Language
         return (!empty( self::$_notifications_arr['success'] )?self::$_notifications_arr['success']:array());
     }
 
+    public static function have_notifications_errors()
+    {
+        if( self::$_notifications_arr === false )
+            self::reset_notifications();
+
+        return (!empty( self::$_notifications_arr['errors'] )?true:false);
+    }
+
+    public static function have_notifications_warnings()
+    {
+        if( self::$_notifications_arr === false )
+            self::reset_notifications();
+
+        return (!empty( self::$_notifications_arr['warnings'] )?true:false);
+    }
+
+    public static function have_notifications_success()
+    {
+        if( self::$_notifications_arr === false )
+            self::reset_notifications();
+
+        return (!empty( self::$_notifications_arr['success'] )?true:false);
+    }
+
     public static function add_error_notice( $msg )
     {
         if( self::$_notifications_arr === false )

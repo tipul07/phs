@@ -9,7 +9,11 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
 {
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
-    const ERR_MODEL = 30000, ERR_INSTANCE = 30001, ERR_INSTALL = 30002;
+    const ERR_MODEL = 30000, ERR_INSTANCE = 30001, ERR_INSTALL = 30002, ERR_LIBRARY = 30003;
+
+    const LIBRARIES_DIR = 'libraries';
+
+    private $_libraries_instances = array();
 
     /**
      * @return array An array of strings which are the models used by this plugin
@@ -63,6 +67,76 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
 
             $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
         }
+    }
+
+    public static function safe_escape_library_name( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+            return false;
+
+        return strtolower( $name );
+    }
+
+    public function get_library_full_path( $library )
+    {
+        $library = self::safe_escape_library_name( $library );
+        if( empty( $library )
+         or !($dir_path = $this->instance_plugin_path())
+         or !@is_dir( $dir_path.self::LIBRARIES_DIR )
+         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php' ) )
+            return false;
+
+        return $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php';
+    }
+
+    public function load_library( $library, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['full_class_name'] ) )
+            $params['full_class_name'] = $library;
+        if( empty( $params['init_params'] ) )
+            $params['init_params'] = false;
+        if( empty( $params['as_singleton'] ) )
+            $params['as_singleton'] = true;
+
+        if( !($library = self::safe_escape_library_name( $library )) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library from plugin [%s]', $this->get_plugin_instance() ) );
+            return false;
+        }
+
+        if( !empty( $params['as_singleton'] )
+        and !empty( $this->_libraries_instances[$library] ) )
+            return $this->_libraries_instances[$library];
+
+        if( !($file_path = $this->get_library_full_path( $library )) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library [%s] from plugin [%s]', $library, $this->get_plugin_instance() ) );
+            return false;
+        }
+
+        ob_start();
+        include_once( $file_path );
+        ob_get_clean();
+
+        if( !@class_exists( $params['full_class_name'], false ) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t instantiate library class for library [%s] from plugin [%s]', $library, $this->get_plugin_instance() ) );
+            return false;
+        }
+
+        if( empty( $params['init_params'] ) )
+            $library_instance = new $params['full_class_name']();
+        else
+            $library_instance = new $params['full_class_name']( $params['init_params'] );
+
+        if( !empty( $params['as_singleton'] ) )
+            $this->_libraries_instances[$library] = $library_instance;
+
+        return $library_instance;
     }
 
     public function plugin_active()

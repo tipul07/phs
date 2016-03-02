@@ -14,6 +14,10 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
     const OUTPUT_JPG = 1, OUTPUT_GIF = 2, OUTPUT_PNG = 3;
 
+    const IMG_QUALITY = 95;
+
+    const FONT_DIR = 'fonts';
+
     /**
      * @return string Returns version of model
      */
@@ -42,9 +46,43 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             ), // default template
             'font' => 'default.ttf',
             'characters_count' => 5,
-            'default_widht' => 200,
+            'image_format' => self::OUTPUT_PNG,
+            'default_width' => 200,
             'default_height' => 50,
         );
+    }
+
+    public function indexes_to_vars()
+    {
+        return array( 'default_width' => 'w', 'default_height' => 'h' );
+    }
+
+    public function vars_to_indexes()
+    {
+        $return_arr = array();
+        foreach( $this->indexes_to_vars() as $index => $var )
+        {
+            $return_arr[$var] = $index;
+        }
+
+        return $return_arr;
+    }
+
+    public function get_font_full_path( $font )
+    {
+        $font = make_sure_is_filename( $font );
+        if( empty( $font )
+         or !($dir_path = $this->instance_plugin_path())
+         or !@is_dir( $dir_path.self::FONT_DIR )
+         or !@file_exists( $dir_path.self::FONT_DIR.'/'.$font ) )
+            return false;
+
+        return $dir_path.self::FONT_DIR.'/'.$font;
+    }
+
+    public function check_captcha_code( $code )
+    {
+        return true;
     }
 
     public function get_captcha_hook_args( $hook_args )
@@ -69,11 +107,12 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         $settings_arr['template']['extra_paths'] = $extra_paths;
 
-        $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_notifications_hook_args() );
+        $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_captcha_hook_args() );
 
         $hook_args['font'] = $settings_arr['font'];
         $hook_args['characters_count'] = $settings_arr['characters_count'];
-        $hook_args['default_widht'] = $settings_arr['default_widht'];
+        $hook_args['image_format'] = $settings_arr['image_format'];
+        $hook_args['default_width'] = $settings_arr['default_width'];
         $hook_args['default_height'] = $settings_arr['default_height'];
         $hook_args['template'] = $settings_arr['template'];
 
@@ -81,7 +120,10 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = $hook_args;
+        $view_params['template_data'] = array(
+            'hook_args' => $hook_args,
+            'settings_arr' => $settings_arr,
+        );
 
         if( !($view_obj = PHS_View::init_view( $settings_arr['template'], $view_params )) )
         {
@@ -91,7 +133,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return false;
         }
 
-        if( !($hook_args['notifications_buffer'] = $view_obj->render()) )
+        if( !($hook_args['captcha_buffer'] = $view_obj->render()) )
         {
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );

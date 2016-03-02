@@ -14,9 +14,10 @@ and $captcha_plugin->plugin_active() )
         array( $captcha_plugin, 'get_captcha_hook_args' ),
         // $hook_extra_args = null
         PHS_Hooks::default_captcha_hook_args(),
-        // $chained_hook = false
-        true,
-        // $priority = 10
-        10
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
     );
 }

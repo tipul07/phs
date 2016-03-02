@@ -740,7 +740,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             if( ($escaped_str = @mysqli_real_escape_string( $this->connection_id[$connection_name], $escape_fields[$key] )) === false )
                  continue;
 
-            $escape_fields[$key] = prepare_data( $escaped_str );
+            $escape_fields[$key] = $escaped_str; // prepare_data( $escaped_str );
         }
 
         if( $connection_opened_now and $this->close_after_query )
