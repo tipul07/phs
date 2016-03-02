@@ -350,13 +350,13 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
 
                 if( empty( $val['raw_field'] ) )
                 {
-                    if( !empty( $params['secure'] ) )
+                    if( !empty( $params['escape'] ) )
                         $field_value = $this->escape( $field_value, $connection_name );
 
                     $field_value = '\''.$field_value.'\'';
                 }
             } else
-                $field_value = '\''.(!empty( $params['secure'] )?$this->escape( $val, $connection_name ):$val).'\'';
+                $field_value = '\''.(!empty( $params['escape'] )?$this->escape( $val, $connection_name ):$val).'\'';
 
             $return .= '`'.$key.'`='.$field_value.', ';
         }
@@ -395,13 +395,13 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
 
                 if( empty( $val['raw_field'] ) )
                 {
-                    if( !empty( $params['secure'] ) )
+                    if( !empty( $params['escape'] ) )
                         $field_value = $this->escape( $field_value, $connection_name );
 
                     $field_value = '\''.$field_value.'\'';
                 }
             } else
-                $field_value = '\''.(!empty( $params['secure'] )?$this->escape( $val, $connection_name ):$val).'\'';
+                $field_value = '\''.(!empty( $params['escape'] )?$this->escape( $val, $connection_name ):$val).'\'';
 
             $return .= '`'.$key.'`='.$field_value.', ';
         }
@@ -740,7 +740,7 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
             if( ($escaped_str = @mysqli_real_escape_string( $this->connection_id[$connection_name], $escape_fields[$key] )) === false )
                  continue;
 
-            $escape_fields[$key] = $escaped_str;
+            $escape_fields[$key] = prepare_data( $escaped_str );
         }
 
         if( $connection_opened_now and $this->close_after_query )

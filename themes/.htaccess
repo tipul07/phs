@@ -5,3 +5,8 @@
     Deny from all
     Allow from 127.0.0.1
 </FilesMatch>
+
+<FilesMatch ".*\.js\.php$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>

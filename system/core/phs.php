@@ -523,6 +523,51 @@ final class PHS extends PHS_Registry
         return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
     }
 
+    public static function relative_url( $url )
+    {
+        // check on "non https" url first
+        if( ($base_url = self::get_base_url( false ))
+        and ($base_len = strlen( $base_url ))
+        and substr( $url, 0, $base_len ) == $base_url )
+            return substr( $url, $base_len );
+
+        // check "https" url
+        if( ($base_url = self::get_base_url( true ))
+        and ($base_len = strlen( $base_url ))
+        and substr( $url, 0, $base_len ) == $base_url )
+            return substr( $url, $base_len );
+
+        return $url;
+    }
+
+    public static function from_relative_url( $url, $force_https = false )
+    {
+        if( ($base_url = self::get_base_url( $force_https ))
+        and ($base_len = strlen( $base_url ))
+        and substr( $url, 0, $base_len ) == $base_url )
+            return $url;
+
+        return $base_url.$url;
+    }
+
+    public static function relative_path( $path )
+    {
+        if( ($base_len = strlen( PHS_PATH ))
+        and substr( $path, 0, $base_len ) == PHS_PATH )
+            return substr( $path, $base_len );
+
+        return $path;
+    }
+
+    public static function from_relative_path( $path )
+    {
+        if( ($base_len = strlen( PHS_PATH ))
+        and substr( $path, 0, $base_len ) == PHS_PATH )
+            return $path;
+
+        return PHS_PATH.$path;
+    }
+
     public static function get_route_details()
     {
         if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) === null )
@@ -609,14 +654,6 @@ final class PHS extends PHS_Registry
         return $return_arr;
     }
 
-    public static function default_user_db_details_hook_args()
-    {
-        return array(
-            'user_db_data' => false,
-            'session_db_data' => false,
-        );
-    }
-
     private static function _get_db_user_details( $force = false )
     {
         static $hook_result = false;
@@ -625,7 +662,7 @@ final class PHS extends PHS_Registry
             return $hook_result;
 
         if( !empty( $force ) )
-            $hook_result = self::default_user_db_details_hook_args();
+            $hook_result = PHS_Hooks::default_user_db_details_hook_args();
 
         $hook_result = self::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_result );
 
@@ -635,7 +672,7 @@ final class PHS extends PHS_Registry
     public static function get_current_user_db_details()
     {
         if( !($hook_result = self::_get_db_user_details()) )
-            $hook_result = self::default_user_db_details_hook_args();
+            $hook_result = PHS_Hooks::default_user_db_details_hook_args();
 
         return $hook_result['user_db_data'];
     }
@@ -643,7 +680,7 @@ final class PHS extends PHS_Registry
     public static function get_current_session_db_details()
     {
         if( !($hook_result = self::_get_db_user_details()) )
-            $hook_result = self::default_user_db_details_hook_args();
+            $hook_result = PHS_Hooks::default_user_db_details_hook_args();
 
         return $hook_result['session_db_data'];
     }

@@ -209,6 +209,10 @@ function db_prefix( $connection = false )
 // END Database related functions
 //
 
+function form_str( $str )
+{
+    return str_replace( '"', '&quot;', $str );
+}
 
 function make_sure_is_filename( $str )
 {
@@ -256,4 +260,9 @@ function parse_db_date( $str )
 function empty_db_date( $date )
 {
     return (empty( $date ) or $date == \phs\libraries\PHS_Model::DATETIME_EMPTY or $date == \phs\libraries\PHS_Model::DATE_EMPTY);
+}
+
+function prepare_data( $str )
+{
+    return str_replace( '\'', '\\\'', str_replace( '\\\'', '\'', $str ) );
 }

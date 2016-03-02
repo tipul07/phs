@@ -11,7 +11,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view',
           INSTANCE_TYPE_SCOPE = 'scope';
 
-    const CORE_PLUGIN = 'core';
+    const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates';
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
@@ -155,6 +155,24 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['plugin_path'];
     }
 
+    final public function instance_plugin_templates_www()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_www()) )
+            return false;
+
+        return $prefix.self::TEMPLATES_DIR.'/';
+    }
+
+    final public function instance_plugin_templates_path()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_path()) )
+            return false;
+
+        return $prefix.self::TEMPLATES_DIR.'/';
+    }
+
     /**
      * @param string $instance_type What kind of instance is this
      * @param string $instance_name Part of class name after predefined prefix (eg. phs_model_ for models, phs_controller_ for controller etc)
@@ -236,6 +254,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             'instance_name' => '',
             'instance_file_name' => '',
             'instance_id' => '',
+            'plugin_paths' => array(),
         );
     }
 
@@ -457,6 +476,23 @@ abstract class PHS_Instantiable extends PHS_Registry
         $return_arr['instance_name'] = ucfirst( strtolower( $return_arr['instance_name'] ) );
         $return_arr['instance_id'] = $instance_id;
         $return_arr['instance_file_name'] = 'phs_'.strtolower( $return_arr['instance_name'] ).'.php';
+        $return_arr['plugin_paths'] = array();
+
+        if( ($instance_types_arr = self::get_instance_types()) )
+        {
+            if( $return_arr['plugin_name'] == self::CORE_PLUGIN )
+                $path_prefix = PHS_CORE_DIR;
+            else
+                $path_prefix = $return_arr['plugin_path'];
+
+            foreach( $instance_types_arr as $type_id => $type_details )
+            {
+                $return_arr['plugin_paths'][$type_id] = $path_prefix.$type_details['dir_name'].($type_details['dir_name']!=''?'/':'');
+            }
+
+            if( $return_arr['plugin_name'] != self::CORE_PLUGIN )
+                $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix.PHS_Instantiable::TEMPLATES_DIR.'/';
+        }
 
         return $return_arr;
     }

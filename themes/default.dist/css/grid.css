@@ -1,0 +1,107 @@
+/*
+1200px grid system ~ Core CSS.
+12 Columns ~ Margin left: 15px ~ Margin right: 15px
+
+Based on the 960.gs grid system - http://960.gs/
+by Nathan Smith
+
+Created by the Grid System Generator - v1.04
+Learn more ~ http://www.gridsystemgenerator.com/
+*/
+
+
+/* =Containers
+----------------------------------------------------------------------------- */
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    width: 1200px;
+}
+
+.container.full{
+    width: 100%;
+    max-width: 100%;
+}
+
+.row:before,
+.row:after {
+    content: " ";
+    /* 1 */
+    display: table;
+    /* 2 */
+}
+
+.row:after {
+    clear: both;
+}
+
+.page-content .row{
+    margin-bottom: 80px;
+    position: relative;
+}
+
+/* =Grid >> Global
+----------------------------------------------------------------------------- */
+.grid_1,
+.grid_2,
+.grid_3,
+.grid_4,
+.grid_5,
+.grid_6,
+.grid_7,
+.grid_8,
+.grid_9,
+.grid_10,
+.grid_11,
+.grid_12 {
+    min-height: 1px;
+    margin-left: 15px;
+    margin-right: 15px;
+    float: left;
+    display: inline;
+}
+
+/* =Grid >> Children (Alpha ~ First, Omega ~ Last)
+----------------------------------------------------------------------------- */
+.alpha {margin-left: 0;}
+.omega {margin-right: 0;}
+
+/* =Grid >> 12 Columns
+----------------------------------------------------------------------------- */
+.grid_1 {width: 70px;}
+.grid_2 {width: 170px;}
+.grid_3 {width: 270px;}
+.grid_4 {width: 370px;}
+.grid_5 {width: 470px;}
+.grid_6 {width: 570px;}
+.grid_7 {width: 670px;}
+.grid_8 {width: 770px;}
+.grid_9 {width: 870px;}
+.grid_10 {width: 970px;}
+.grid_11 {width: 1070px;}
+.grid_12 {width: 1170px;}
+
+
+/* `Clear Floated Elements
+----------------------------------------------------------------------------- */
+.clear {
+	clear: both;
+	display: block;
+	overflow: hidden;
+	visibility: hidden;
+	width: 0;
+	height: 0;
+}
+
+.clearfix:before,
+.clearfix:after {
+	content: "\0020";
+	display: block;
+	overflow: hidden;
+	visibility: hidden;
+	width: 0;
+	height: 0;
+}
+.clearfix:after {
+	clear: both;
+}

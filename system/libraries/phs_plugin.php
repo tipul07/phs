@@ -171,6 +171,7 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['plugin'] = $this->instance_plugin_name();
+        $plugin_details['type'] = $this->instance_type();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;

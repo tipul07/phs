@@ -42,30 +42,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return self::INSTANCE_TYPE_ACTION;
     }
 
-    public function init_view( $template, $theme = false, $view_class = false, $plugin = null )
-    {
-        if( $plugin === null )
-            $plugin = $this->instance_plugin_name();
-
-        if( !($view_obj = PHS::load_view( $view_class, $plugin )) )
-        {
-            $this->copy_static_error();
-            return false;
-        }
-
-        if( !$view_obj->set_action( $this )
-         or !$view_obj->set_controller( $this->get_controller() )
-         or !$view_obj->set_theme( $theme )
-         or !$view_obj->set_template( $template )
-        )
-        {
-            $this->copy_error( $view_obj );
-            return false;
-        }
-
-        return $view_obj;
-    }
-
     static function default_action_result()
     {
         return array(
@@ -107,6 +83,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
     final public function quick_render_template( $template, $template_data = false )
     {
+        $this->reset_error();
+
         $view_params = array();
         $view_params['action_obj'] = $this;
         $view_params['controller_obj'] = $this->get_controller();

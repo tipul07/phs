@@ -81,6 +81,32 @@ class PHS_Registry extends PHS_Language
         return $arr;
     }
 
+    public static function validate_array_recursive( $arr, $default_arr )
+    {
+        if( empty( $default_arr ) or !is_array( $default_arr ) )
+            return false;
+
+        if( empty( $arr ) or !is_array( $arr ) )
+            $arr = array();
+
+        foreach( $default_arr as $key => $val )
+        {
+            if( !array_key_exists( $key, $arr ) )
+                $arr[$key] = $val;
+
+            elseif( is_array( $val ) )
+            {
+                if( !is_array( $arr[$key] ) )
+                    $arr[$key] = array();
+
+                if( !empty( $val ) )
+                    $arr[$key] = self::validate_array_recursive( $arr[$key], $val );
+            }
+        }
+
+        return $arr;
+    }
+
     public static function validate_array_to_new_array( $arr, $default_arr )
     {
         if( empty( $default_arr ) or !is_array( $default_arr ) )

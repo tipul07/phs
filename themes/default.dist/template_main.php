@@ -5,6 +5,7 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Action;
     use \phs\libraries\PHS_Language;
+    use \phs\libraries\PHS_Hooks;
 
     if( !empty( $_VIEW_CONTEXT['action_result'] ) )
         $action_result = $this::validate_array( $_VIEW_CONTEXT['action_result'], PHS_Action::default_action_result() );
@@ -70,17 +71,31 @@
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
+            $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
+            $('.dismissible-close').on( 'click', function( event ){
+                $(this).parent().slideUp();
+            });
+
             $('.submit-protection').on('click', function( event ){
 
                 var form_obj = $(this).parents('form:first');
+                console.log( form_obj );
+                console.log( typeof document.createElement( 'input' ).checkValidity );
+                console.log( form_obj.checkValidity() );
+
+                console.log( 'ok' );
                 if( form_obj
-                    && typeof document.createElement( 'input' ).checkValidity == 'function'
-                    && !form_obj.checkValidity() )
+                 && typeof document.createElement( 'input' ).checkValidity == 'function'
+                 && !form_obj.checkValidity() ) {
+                    console.log( 'canci validity' );
                     return;
+                }
 
                 var msg = $( this ).data( 'protectionTitle' );
                 if( typeof msg == 'undefined' || !msg )
                     msg = '';
+
+                console.log( 'aratam protection' );
 
                 show_submit_protection( msg );
             });
@@ -287,7 +302,16 @@
     <div class="clearfix"></div>
     <!-- END: page_header -->
 
-    <div id="content"><?php echo $action_result['buffer']?></div>
+    <div id="content"><?php
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['notifications_buffer'] ) )
+            echo $hook_args['notifications_buffer'];
+
+        echo $action_result['buffer'];
+
+    ?></div>
     <div class="clearfix" style="margin-bottom: 10px;"></div>
 
     <footer id="footer">

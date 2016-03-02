@@ -97,6 +97,115 @@ class PHS_Model_Accounts extends PHS_Model
         return $settings_arr;
     }
 
+    //
+    //  Level checks
+    //
+    public static function is_developer( $lvl )
+    {
+        return ($lvl == self::LVL_DEVELOPER);
+    }
+
+    public static function is_sadmin( $lvl )
+    {
+        return ($lvl == self::LVL_SUPERADMIN or $lvl == self::LVL_DEVELOPER);
+    }
+
+    public static function is_admin( $lvl, $strict = false )
+    {
+        return ($lvl == self::LVL_ADMIN or (!$strict and ($lvl == self::LVL_SUPERADMIN or $lvl == self::LVL_DEVELOPER)));
+    }
+
+    public static function is_operator( $lvl, $strict = false )
+    {
+        return ($lvl == self::LVL_OPERATOR or (!$strict and self::is_admin( $lvl )));
+    }
+
+    public static function is_member( $lvl, $strict = false )
+    {
+        return ($lvl == self::LVL_MEMBER or (!$strict and self::is_admin( $lvl )));
+    }
+    //
+    //  END Level checks
+    //
+
+    //
+    //  Account level checks
+    //
+    public function acc_is_developer( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !self::is_developer( $user_arr['level'] ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function acc_is_sadmin( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !self::is_sadmin( $user_arr['level'] ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function acc_is_admin( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !self::is_admin( $user_arr['level'] ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function acc_is_operator( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !self::is_operator( $user_arr['level'] ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function acc_is_member( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !self::is_member( $user_arr['level'] ) )
+            return false;
+
+        return $user_arr;
+    }
+    //
+    //  END Account level checks
+    //
+
+    public function is_active( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $user_arr['status'] != self::STATUS_ACTIVE )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function is_inactive( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $user_arr['status'] != self::STATUS_INACTIVE )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function is_deleted( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $user_arr['status'] != self::STATUS_DELETED )
+            return false;
+
+        return $user_arr;
+    }
+
     final public function get_levels()
     {
         static $levels_arr = array();

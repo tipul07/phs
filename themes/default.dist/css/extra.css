@@ -1,0 +1,945 @@
+
+#menu-left-pane, #menu-right-pane { display: none; color: white; background-color: #222222; width: 90%; max-width: 350px; height: 100%; min-height: 100%; z-index: 1000; position: fixed; overflow-y: auto; overflow-x: hidden; }
+#menu-right-pane { right: 0; }
+#menu-left-pane { left: 0; }
+
+.main-menu-pane-close-button { padding: 10px; font-size: 20px; }
+.main-menu-pane-close-button a { color: white; }
+.main-menu-pane-close-button a:hover { text-decoration: none; color: white; }
+
+.menu-pane a, .menu-pane a:hover { text-decoration: none; color: white; }
+.menu-pane ul { list-style: none; margin: 0; padding: 0; display: table; }
+.menu-pane li { color: white; display: block; padding: 0; margin: 10px; line-height: 24px; }
+.menu-pane li span { color: #5f5f5f; }
+.menu-pane li ul { padding: 0; margin: 0; }
+.menu-pane li ul li a, .menu-pane li a { color: white; line-height: 24px; width: 100%; }
+.menu-pane li span { margin: 5px; }
+.menu-pane .menu-pane-form-line { padding-top: 5px; }
+.menu-pane .menu-pane-form-line label { color: white !important; }
+.menu-pane input.wpcf7-text { background-color: white !important; }
+
+a, abbr, acronym, address, applet, article, aside, audio, b, big, blockquote, body, canvas, caption,center, cite, code, dd, del, details, dfn, dialog, div, dl, dt, em, embed, fieldset, figcaption, figure, font, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, html, i, iframe, img, ins, kbd, label, legend, li, mark, menu, meter, nav, object, ol, output, p, pre, progress, q, rp, rt, ruby, s, samp, section, small, span, strike, strong, sub, summary, sup, table, tbody, td, tfoot, th, thead, time, tr, tt, u, ul, var, video, xmp { border: 0; margin: 0; padding: 0;}
+img {color: transparent; font-size: 0; vertical-align: middle; -ms-interpolation-mode: bicubic; max-width: 100%;}
+sub, sup, small {font-size: 75%;}
+sub,sup {line-height: 0; position: relative; vertical-align: baseline;}
+sub {bottom: -0.25em;}
+sup {top: -0.5em;}
+svg {overflow: hidden;}
+.clearfix{clear: both;}
+
+.dialog-submit { color: white !important; text-decoration: none !important; }
+.dialog-submit:hover { color: white !important; text-decoration: none !important; }
+
+.dialog_actions { width: 100%; clear: both; }
+.dialog_action { float: left; margin-right: 5px; }
+
+.wpcf7-select { width: auto !important; }
+
+/*
+body {
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.428571429;
+    color: #333333;
+    background-color: #ffffff;
+}
+*/
+
+/* 6.12. INFORMATING BOXES
+============================================================================= */
+.information-boxes{
+    width: 100%;
+    float: left;
+    cursor: pointer;
+}
+
+.information-boxes .close{
+    width: 20px;
+    height: 20px;
+    display: block;
+    position: absolute;
+    background: url('../images/close.png') no-repeat;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    opacity: 0;
+
+    -webkit-transition: all 0.3s ease 0s;
+    -moz-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    -ms-transition: all 0.3s ease 0s;
+    transition: all 0.3s ease 0s;
+}
+
+.information-boxes:hover .close{
+    opacity: 1;
+}
+
+
+/* INFORMATION BOXES - INFO BOX
+----------------------------------------------------------------------------- */
+.infobox{
+    background: #e0f2ff;
+    border: 1px solid #c1def2;
+    width: 100%;
+    float: left;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.infobox p{
+    background: url('../images/info-box.png') no-repeat 0 center;
+    margin: 10px 30px 10px 10px;
+    padding-left: 25px;
+    color: #61adb0;
+    text-shadow: 0 1px 0 #fff;
+}
+
+/* Infromation boxes - WARNING BOX
+----------------------------------------------------------------------------- */
+.warning-box{
+    background: #f8f6bc;
+    border: 1px solid #e7e48b;
+    width: 99%;
+    margin: 0 auto 10px auto;
+    position: relative;
+}
+
+.warning-box p{
+    background: url('../images/warning-box.png') no-repeat 0 center;
+    margin: 10px 30px 10px 10px;
+    padding-left: 27px;
+    color: #989426;
+    text-shadow: 0 1px 0 #fff;
+}
+
+/* Infromation boxes - SUCCES BOX
+----------------------------------------------------------------------------- */
+.success-box{
+    background: #ebfdd7;
+    border: 1px solid #cef4a4;
+    border-radius: 3px;
+    width: 99%;
+    margin: 0 auto 10px auto;
+    position: relative;
+}
+
+.success-box p{
+    background: url('../images/success-box.png') no-repeat 0 center;
+    margin: 10px 30px 10px 10px;
+    padding-left: 25px;
+    color: #7eb244;
+    text-shadow: 0 1px 0 #fff;
+}
+
+/* Infromation boxes - ERROR BOX
+----------------------------------------------------------------------------- */
+.error-box{
+    background: #fadddd;
+    border: 1px solid #fcc1c1;
+    border-radius: 3px;
+    width: 99%;
+    margin: 0 auto 10px auto;
+    position: relative;
+}
+
+.error-box p{
+    background: url('../images/error-box.png') no-repeat 0 center;
+    margin: 10px 30px 10px 10px;
+    padding-left: 25px;
+    color: #d86d6d;
+    text-shadow: 0 1px 0 #fff;
+}
+
+
+/*  6.18. SERVICES VERTICAL TABS
+----------------------------------------------------------------------------- */
+.tabs.vertical.services-tabs{
+    width: 50%;
+}
+
+.tabs.vertical.services-tabs li{
+    background: none;
+    border: none;
+    margin-bottom: 30px;
+}
+
+.tabs.vertical.services-tabs li.active,
+.tabs.vertical.services-tabs li:first-child{
+    border: none !important;
+}
+
+.tabs.vertical.services-tabs li.active{
+    background: none;
+}
+
+
+.tabs.vertical.services-tabs li a{
+    padding: 0;
+}
+
+.tabs.vertical.services-tabs li.active a{
+    color: #fff !important;
+}
+
+.tabs.vertical.services-tabs li .icon{
+    font-size: 30px;
+    padding: 20px;
+    background: #fff;
+    display: table-cell;
+    float: left;
+
+    border: 1px solid #eee;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+
+    -webkit-transition: all 0.3s ease 0s;
+    -moz-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    -ms-transition: all 0.3s ease 0s;
+    transition: all 0.3s ease 0s;
+}
+
+.tabs.vertical.services-tabs li:hover .icon{
+    color: #fff;
+
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+    -o-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+}
+
+.tabs.vertical.services-tabs li.active:hover .icon{
+    -webkit-transform: none;
+    -moz-transform: none;
+    -o-transform: none;
+    transform: none;
+}
+
+.tabs.vertical.services-tabs li h5{
+    margin-bottom: 3px;
+    padding-left: 92px;
+    padding-top: 12px;
+}
+
+.tabs.vertical.services-tabs p{
+    padding-left: 92px;
+}
+
+.tab-content-wrap.vertical.services-tab-content-wrap{
+    background: none;
+    padding: 0 0 0 30px;
+    width: 50%;
+}
+
+.tab-content-wrap.vertical.services-tab-content-wrap .tab-content{
+    background: none;
+}
+/* 6.23. TABS HORISONTAL
+============================================================================= */
+.tabs{
+    overflow: hidden;
+    float: left;
+}
+
+.tabs i{
+    padding-right: 5px;
+    font-size: 13px;
+}
+
+.tabs li {
+    float: left;
+    border-left: 1px solid #eee;
+    border-top: 1px solid #eee;
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+    line-height: 38px;
+    top: 1px;
+    background-color: #d5d5d5;
+    cursor: pointer;
+}
+
+.tabs li a{
+    color: #6b6b6b;
+    padding: 0px 16px;
+    /*font: 13px 'Raleway', Arial, sans-serif;*/
+    line-height: 38px;
+    padding-top: 2px;
+}
+
+.tabs li.active a {
+    color: black;
+}
+
+.tabs li.active{
+    border-bottom: 1px solid #fff;
+    background-color: #fff;
+    font-weight: bold;
+}
+
+.tabs li:first-child{
+    border-left: none;
+}
+
+.tabs li.active:first-child{
+    border-left: 1px solid #eee;
+}
+
+.tabs li.active:last-child{
+    border-right: 1px solid #eee;
+}
+
+.tab-content-wrap{
+    width: 100%;
+    border: 1px solid #eee;
+    margin-top: -1px;
+    overflow: hidden;
+    float: left;
+    padding: 30px;
+    background-color: #fff;
+
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+/*  6.24. TABS VERTICAL
+============================================================================= */
+*[class*="grid_"].tabs.vertical,
+*[class*="grid_"].tabs.vertical li.active{
+    overflow: visible;
+}
+
+.tabs.vertical{
+    overflow: hidden;
+    float: left;
+    width: 30%;
+}
+
+.tabs.vertical li{
+    float: left;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee;
+    border-left: 1px solid #eee;
+    border-top: none;
+    overflow: hidden;
+    padding: 0;
+    line-height: 42px;
+    width: 100%;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+.tabs.vertical li:first-child{
+    border-top: 1px solid #eee !important;
+}
+
+.tabs.vertical li a{
+    color: #333;
+    padding: 15px;
+    /*font: 13px 'Open Sans', Arial, sans-serif;*/
+    float: left;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabs.vertical li a i{
+    font-size: 16px;
+    padding-right: 15px;
+    position: relative;
+    top: 2px;
+}
+
+.tabs.vertical li.active{
+    border-bottom: 1px solid #eee;
+    border-right: none;
+    border-top: none;
+    background: #fff;
+    position: relative;
+}
+
+.tabs.vertical li.active a{
+    color: #fff;
+}
+
+.tab-content-wrap.vertical{
+    margin-top: 0;
+    overflow: hidden;
+    float: left;
+    border: none;
+    width: 70%;
+    padding: 0;
+}
+
+.tab-content-wrap.vertical .tab-content{
+    padding-left: 30px;
+    background: #fff;
+}
+
+/*  6.3. BUTTONS
+============================================================================= */
+.btn-group{
+    width: 100%;
+    float: left;
+}
+
+.btn-group a.btn-small
+{
+    float: left;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+.btn-group a.btn-medium,
+.btn-group a.btn-big{
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+a:hover.btn-small,
+a:hover.btn-medium,
+a:hover.btn-big {
+    text-decoration: none !important;
+}
+
+.btn-small i {
+    padding-right: 5px;
+}
+
+.btn-medium i,
+.btn-big i{
+    padding-right: 8px;
+}
+
+.btn-small{
+    padding: 4px 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #fff !important;
+    float: left;
+
+    -webkit-transition: all 0.2s ease 0s;
+    -moz-transition: all 0.2s ease 0s;
+    -o-transition: all 0.2s ease 0s;
+    -ms-transition: all 0.2s ease 0s;
+    transition: all 0.2s ease 0s;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.btn-medium{
+    padding: 10px 15px;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #fff !important;
+    float: left;
+
+    -webkit-transition: all 0.2s ease 0s;
+    -moz-transition: all 0.2s ease 0s;
+    -o-transition: all 0.2s ease 0s;
+    -ms-transition: all 0.2s ease 0s;
+    transition: all 0.2s ease 0s;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.btn-big{
+    padding: 15px 18px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #fff !important;
+    float: left;
+
+    -webkit-transition: all 0.2s ease 0s;
+    -moz-transition: all 0.2s ease 0s;
+    -o-transition: all 0.2s ease 0s;
+    -ms-transition: all 0.2s ease 0s;
+    transition: all 0.2s ease 0s;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.btn-small:hover,
+.btn-medium:hover,
+.btn-big:hover{
+    color: #fff !important;
+}
+
+
+
+/* EMPTY BUTTONS
+----------------------------------------------------------------------------- */
+.btn-small.empty,
+.btn-medium.empty,
+.btn-big.empty{
+    background: none;
+    color: #333;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.btn-small.empty:hover,
+.btn-medium.empty:hover,
+.btn-big.empty:hover,
+.btn-small.empty.white,
+.btn-medium.empty.white,
+.btn-big.empty.white{
+    color: #fff !important;
+}
+
+.btn-small.empty.white,
+.btn-medium.empty.white,
+.btn-big.empty.white{
+    border: 1px solid #fff;
+}
+
+
+/* BUTTONS COLORS
+============================================================================= */
+
+/*  Black
+----------------------------------------------------------------------------- */
+.btn-small.black,
+.btn-medium.black,
+.btn-big.black{
+    background: #333;
+}
+
+.btn-small.black:hover,
+.btn-medium.black:hover,
+.btn-big.black:hover{
+    background: #555;
+}
+
+.btn-small.empty.black,
+.btn-medium.empty.black,
+.btn-big.empty.black{
+    border: 1px solid #333;
+    color: #333 !important;
+    background: none;
+}
+
+.btn-small.empty.black:hover,
+.btn-medium.empty.black:hover,
+.btn-big.empty.black:hover{
+    background-color: #333;
+    color: #fff !important;
+}
+
+
+/*  Grey
+----------------------------------------------------------------------------- */
+.btn-small.grey,
+.btn-medium.grey,
+.btn-big.grey{
+    background: #777;
+}
+
+.btn-small.grey:hover,
+.btn-medium.grey:hover,
+.btn-big.grey:hover{
+    background: #888;
+}
+
+.btn-small.empty.grey,
+.btn-medium.empty.grey,
+.btn-big.empty.grey{
+    border: 1px solid #777;
+    color: #777 !important;
+    background: none;
+}
+
+
+.btn-small.empty.grey:hover,
+.btn-medium.empty.grey:hover,
+.btn-big.empty.grey:hover{
+    background-color: #777;
+    color: #fff !important;
+}
+
+
+/*  Silver
+----------------------------------------------------------------------------- */
+.btn-small.silver,
+.btn-medium.silver,
+.btn-big.silver{
+    background: #aaa;
+}
+
+.btn-small.silver:hover,
+.btn-medium.silver:hover,
+.btn-big.silver:hover{
+    background: #bbb;
+}
+
+.btn-small.empty.silver,
+.btn-medium.empty.silver,
+.btn-big.empty.silver{
+    border: 1px solid #aaa;
+    color: #777 !important;
+    background: none;
+}
+
+.btn-small.empty.silver:hover,
+.btn-medium.empty.silver:hover,
+.btn-big.empty.silver:hover{
+    background-color: #aaa;
+    color: #fff !important;
+}
+
+
+/*  Blue
+----------------------------------------------------------------------------- */
+.btn-small.blue,
+.btn-medium.blue,
+.btn-big.blue{
+    background: #2277eb;
+}
+
+.btn-small.blue:hover,
+.btn-medium.blue:hover,
+.btn-big.blue:hover{
+    background: #4E92EF;
+}
+
+.btn-small.empty.blue,
+.btn-medium.empty.blue,
+.btn-big.empty.blue{
+    border: 1px solid #2277eb;
+    color: #2277eb !important;
+    background: none;
+}
+
+.btn-small.empty.blue:hover,
+.btn-medium.empty.blue:hover,
+.btn-big.empty.blue:hover{
+    background-color: #2277eb;
+    color: #fff !important;
+}
+
+
+/*  Red
+----------------------------------------------------------------------------- */
+.btn-small.red,
+.btn-medium.red,
+.btn-big.red{
+    background: #d52b2a;
+}
+
+.btn-small.red:hover,
+.btn-medium.red:hover,
+.btn-big.red:hover{
+    background: #DD5555;
+}
+
+.btn-small.empty.red,
+.btn-medium.empty.red,
+.btn-big.empty.red{
+    border: 1px solid #d52b2a;
+    color: #d52b2a !important;
+    background: none;
+}
+
+.btn-small.empty.red:hover,
+.btn-medium.empty.red:hover,
+.btn-big.empty.red:hover{
+    background-color: #d52b2a;
+    color: #fff !important;
+}
+
+
+/*  Yellow
+----------------------------------------------------------------------------- */
+.btn-small.yellow,
+.btn-medium.yellow,
+.btn-big.yellow{
+    background: #fcc820;
+}
+
+.btn-small.yellow:hover,
+.btn-medium.yellow:hover,
+.btn-big.yellow:hover{
+    background: #FDD34D;
+}
+
+.btn-small.empty.yellow,
+.btn-medium.empty.yellow,
+.btn-big.empty.yellow{
+    border: 1px solid #fcc820;
+    color: #fcc820 !important;
+    background: none;
+}
+
+.btn-small.empty.yellow:hover,
+.btn-medium.empty.yellow:hover,
+.btn-big.empty.yellow:hover{
+    background-color: #fcc820;
+    color: #fff !important;
+}
+
+
+/*  Orange
+----------------------------------------------------------------------------- */
+.btn-small.orange,
+.btn-medium.orange,
+.btn-big.orange{
+    background: #f8806c;
+}
+
+.btn-small.orange:hover,
+.btn-medium.orange:hover,
+.btn-big.orange:hover{
+    background: #F99989;
+}
+
+
+.btn-small.empty.orange,
+.btn-medium.empty.orange,
+.btn-big.empty.orange{
+    border: 1px solid #f8806c;
+    color: #f8806c !important;
+    background: none;
+}
+
+.btn-small.empty.orange:hover,
+.btn-medium.empty.orange:hover,
+.btn-big.empty.orange:hover{
+    background-color: #f8806c;
+    color: #fff !important;
+}
+
+
+/*  Green
+----------------------------------------------------------------------------- */
+.btn-small.green,
+.btn-medium.green,
+.btn-big.green{
+    background: #9ab869;
+}
+
+.btn-small.green:hover,
+.btn-medium.green:hover,
+.btn-big.green:hover{
+    background: #AEC687;
+}
+
+.btn-small.empty.green,
+.btn-medium.empty.green,
+.btn-big.empty.green{
+    border: 1px solid #9ab869;
+    color: #9ab869 !important;
+    background: none;
+}
+
+.btn-small.empty.green:hover,
+.btn-medium.empty.green:hover,
+.btn-big.empty.green:hover{
+    background-color: #9ab869;
+    color: #fff !important;
+}
+
+
+/*  Aqua
+----------------------------------------------------------------------------- */
+.btn-small.aqua,
+.btn-medium.aqua,
+.btn-big.aqua{
+    background: #60cfc8;
+}
+
+.btn-small.aqua:hover,
+.btn-medium.aqua:hover,
+.btn-big.aqua:hover{
+    background: #80D9D3;
+}
+
+.btn-small.empty.aqua,
+.btn-medium.empty.aqua,
+.btn-big.empty.aqua{
+    border: 1px solid #60cfc8;
+    color: #60cfc8 !important;
+    background: none;
+}
+
+.btn-small.empty.aqua:hover,
+.btn-medium.empty.aqua:hover,
+.btn-big.empty.aqua:hover{
+    background-color: #60cfc8;
+    color: #fff !important;
+}
+
+/*  Purple
+----------------------------------------------------------------------------- */
+.btn-small.purple,
+.btn-medium.purple,
+.btn-big.purple{
+    background: #EB247B;
+}
+
+.btn-small.purple:hover,
+.btn-medium.purple:hover,
+.btn-big.purple:hover{
+    background: #80D9D3;
+}
+
+.btn-small.empty.purple,
+.btn-medium.empty.purple,
+.btn-big.empty.purple{
+    border: 1px solid #EB247B;
+    color: #EB247B !important;
+    background: none;
+}
+
+.btn-small.empty.purple:hover,
+.btn-medium.empty.purple:hover,
+.btn-big.empty.purple:hover{
+    background-color: #EB247B;
+    color: #fff !important;
+}
+
+/*  6.7. HEADING CENTERED
+============================================================================= */
+.heading-centered{
+    width: 100%;
+    margin-bottom: -40px;
+}
+
+.heading-centered h1,
+.heading-centered h2,
+.heading-centered h3,
+.heading-centered h4,
+.heading-centered h5,
+.heading-centered h6,
+.heading-centered p{
+    width: 100%;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+
+
+
+/*  6.8. HEADING WITH BORDERS
+============================================================================= */
+.heading-bordered{
+    border-bottom: 1px solid #e8eef6;
+    margin-bottom: 30px;
+    width: 100%;
+    float: left;
+}
+
+.heading-bordered h1,
+.heading-bordered h2,
+.heading-bordered h3,
+.heading-bordered h4,
+.heading-bordered h5,
+.heading-bordered h6{
+    margin-bottom: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #a8b4c3;
+    display: inline-block;
+    margin-bottom: -1px;
+}
+
+/* CONTACT FORM
+------------------------------------------------------------------------------*/
+.wpcf7{
+    float: left;
+    width: 100%;
+}
+
+.wpcf7 fieldset{
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+.wpcf7 label{
+    color: #444;
+    /*font: 13px Arial,sans-serif; */
+    line-height: 18px;
+    margin-bottom: 5px;
+    display: block;
+    width: 100%;
+    float: left;
+}
+
+.line-label {
+    width: inherit !important;
+    /* float: none !important; */
+    display: inline !important;
+    min-width: 150px !important;
+    vertical-align: middle;
+    padding: 3px;
+}
+
+.wpcf7-text{
+    max-width: 100%;
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+.wpcf7-text#portfolio-link{
+    width: 100%;
+}
+
+.wpcf7-textarea{
+    width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.wpcf7-text:focus,
+.wpcf7-textarea:focus{
+    border-color: #aaa;
+}
+
+.wpcf7-submit{
+    border: 0px solid;
+    /*font: 12px 'Open Sans', Arial, sans-serif;*/
+    text-transform: uppercase;
+    line-height: 11px;
+    color: #fff;
+    background-color: #333;
+    padding: 10px 17px;
+    cursor: pointer;
+
+    float: right;
+
+    -webkit-transition: all 0.2s ease 0s;
+    -moz-transition: all 0.2s ease 0s;
+    -o-transition: all 0.2s ease 0s;
+    -ms-transition: all 0.2s ease 0s;
+    transition: all 0.2s ease 0s;
+}
+
+.wpcf7-select{
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    width: 100%;
+    line-height: 29px !important;
+    padding: 8px 8px 8px 10px;
+    /*font: 12px 'Open Sans', Arial, sans-serif;*/
+    color: #666;
+
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}

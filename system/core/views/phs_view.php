@@ -2,6 +2,7 @@
 namespace phs\system\core\views;
 
 use \phs\PHS;
+use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_Signal_and_slot;
 use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Action;
@@ -16,6 +17,8 @@ class PHS_View extends PHS_Signal_and_slot
     protected $_theme = '';
     // Array of directories where we check if template exists
     protected $_template_dirs = array();
+    // Array of directories where we check if template exists (others than the ones we detect)
+    protected $_extra_template_dirs = array();
 
     // Resulting template file
     protected $_template_file = '';
@@ -44,7 +47,73 @@ class PHS_View extends PHS_Signal_and_slot
         $this->reset_view();
     }
 
-    public static function init_view( $template, $params = false )//$theme = false, $view_class = false, $plugin = null )
+    public static function default_template_resource_arr()
+    {
+        return array(
+            'file' => '',
+            'extra_paths' => array(),
+        );
+    }
+
+    public static function validate_template_resource( $template )
+    {
+        if( empty( $template )
+         or (!is_string( $template ) and !is_array( $template )) )
+            return false;
+
+        $template_structure = self::default_template_resource_arr();
+        if( is_string( $template ) )
+            $template_structure['file'] = $template;
+
+        elseif( is_array( $template ) )
+        {
+            if( empty( $template['file'] ) )
+                return false;
+
+            if( empty( $template['extra_paths'] ) or !is_array( $template['extra_paths'] ) )
+                $template['extra_paths'] = array();
+
+            $template_structure['file'] = $template['file'];
+            $template_structure['extra_paths'] = $template['extra_paths'];
+        }
+
+        return $template_structure;
+    }
+
+    public static function quick_render_template( $template, $plugin = false, $template_data = false )
+    {
+        self::st_reset_error();
+
+        $view_params = array();
+        $view_params['action_obj'] = false;
+        $view_params['controller_obj'] = false;
+        $view_params['plugin'] = $plugin;
+        $view_params['template_data'] = $template_data;
+
+        if( !($view_obj = PHS_View::init_view( $template, $view_params )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error initializing view.' ) );
+
+            return false;
+        }
+
+        $action_result = PHS_Action::default_action_result();
+
+        if( !($action_result['buffer'] = $view_obj->render()) )
+        {
+            if( $view_obj->has_error() )
+                self::st_copy_error( $view_obj );
+            else
+                self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
+
+            return false;
+        }
+
+        return $action_result;
+    }
+
+    public static function init_view( $template, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -153,12 +222,27 @@ class PHS_View extends PHS_Signal_and_slot
         return $this->_template_file;
     }
 
+    public function add_extra_template_dir( $dir_path, $dir_www )
+    {
+        if( empty( $dir_path ) )
+            return false;
+
+        $dir_path = rtrim( $dir_path, '/\\' );
+        if( !@is_dir( $dir_path ) or !@is_readable( $dir_path ) )
+            return false;
+
+        $this->_extra_template_dirs[$dir_path.'/'] = $dir_www;
+
+        return true;
+    }
+
     protected function _get_template_directories()
     {
-        $this->_template_dirs = array();
+        // take first dirs custom ones... (if any)
+        $this->_template_dirs = $this->_extra_template_dirs;
 
         if( !empty( $this->_controller ) and !$this->_controller->instance_is_core() )
-            $this->_template_dirs[$this->_controller->instance_plugin_path() . 'templates/'] = $this->_controller->instance_plugin_www() . 'templates/';
+            $this->_template_dirs[$this->_controller->instance_plugin_path() . PHS_Instantiable::TEMPLATES_DIR.'/'] = $this->_controller->instance_plugin_www() . PHS_Instantiable::TEMPLATES_DIR.'/';
 
         if( defined( 'PHS_THEMES_WWW' ) and defined( 'PHS_THEMES_DIR' ) )
         {
@@ -294,13 +378,35 @@ class PHS_View extends PHS_Signal_and_slot
     {
         $this->reset_error();
 
-        if( !self::safe_escape_template( $template ) )
+        if( !($template_structure = self::validate_template_resource( $template )) )
         {
-            $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template name.' ) );
+            $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template structure.' ) );
             return false;
         }
 
-        $this->_template = $template;
+        if( !self::safe_escape_template( $template_structure['file'] ) )
+        {
+            $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template file.' ) );
+            return false;
+        }
+
+        $this->_template = '';
+
+        if( !empty( $template_structure['extra_paths'] ) and is_array( $template_structure['extra_paths'] ) )
+        {
+            $this->_extra_template_dirs = array();
+            foreach( $template_structure['extra_paths'] as $dir_path => $dir_www )
+            {
+                if( !$this->add_extra_template_dir( $dir_path, $dir_www ) )
+                {
+                    $this->_extra_template_dirs = array();
+                    $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template extra directories.' ) );
+                    return false;
+                }
+            }
+        }
+
+        $this->_template = $template_structure['file'];
         return true;
     }
 

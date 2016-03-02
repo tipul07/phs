@@ -16,6 +16,50 @@ class PHS_Hooks extends PHS_Registry
          // URL hooks
          H_URL_PARAMS = 'phs_url_params',
 
+         // Notifications hooks
+         H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
+
+         // Captcha hooks
+         H_CAPTCHA_DISPLAY = 'phs_captcha_display',
+
          // User account hooks
          H_USER_DB_DETAILS = 'phs_user_db_details';
+
+    public static function default_user_db_details_hook_args()
+    {
+        return array(
+            'user_db_data' => false,
+            'session_db_data' => false,
+        );
+    }
+
+    public static function default_notifications_hook_args()
+    {
+        return array(
+            'warnings' => array(),
+            'errors' => array(),
+            'success' => array(),
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+            'display_channels' => array( 'warnings', 'errors', 'success' ),
+            'notifications_buffer' => '',
+        );
+    }
+
+    public static function default_captcha_hook_args()
+    {
+        return array(
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+            'font' => 'default.ttf',
+            'characters_count' => 5,
+            'default_widht' => 200,
+            'default_height' => 50,
+            'captcha_buffer' => '',
+        );
+    }
 }

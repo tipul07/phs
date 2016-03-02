@@ -484,6 +484,13 @@ class PHS_Model_Plugins extends PHS_Model
                         'editable' => false,
                         'index' => true,
                     ),
+                    'type' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '100',
+                        'nullable' => true,
+                        'editable' => false,
+                        'index' => true,
+                    ),
                     'plugin' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '100',

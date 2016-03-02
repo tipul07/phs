@@ -6,7 +6,6 @@
 <!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
     <form id="login_form" name="login_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" method="post" class="wpcf7">
-        {FORM.hidden_fields}
         <input type="hidden" name="foobar" value="1" />
 
 
@@ -16,35 +15,14 @@
                 <h3><?php echo $this::_t( 'Login' )?></h3>
             </section>
 
-            <!-- BEGIN: success_block -->
-            <section class="success-box">
-                <p>{message_text}</p>
-            </section>
-            <div class="clearfix"></div>
-            <!-- END: success_block -->
-
-            <!-- BEGIN: warning_block -->
-            <section class="warning-box">
-                <p>{message_text}</p>
-            </section>
-            <div class="clearfix"></div>
-            <!-- END: warning_block -->
-
-            <!-- BEGIN: error_block -->
-            <section class="error-box">
-                <p>{message_text}</p>
-            </section>
-            <div class="clearfix"></div>
-            <!-- END: error_block -->
-
             <fieldset>
                 <label for="nick"><?php echo $this::_t( 'Username' )?>:</label>
-                <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo $this->context_var( 'nick' )?>" style="width: 260px;" />
+                <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset>
                 <label for="pass"><?php echo $this::_t( 'Password' )?>:</label>
-                <input type="password" id="pass" name="pass" class="wpcf7-text" required="required" value="<?php echo $this->context_var( 'pass' )?>" style="width: 260px;" />
+                <input type="password" id="pass" name="pass" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="fixskin">
@@ -52,7 +30,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_t( 'Login' )?>" />
+                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Login' )?>" />
             </fieldset>
 
             <fieldset>
