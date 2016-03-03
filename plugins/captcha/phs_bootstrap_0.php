@@ -11,9 +11,23 @@ and $captcha_plugin->plugin_active() )
         // $hook_name
         PHS_Hooks::H_CAPTCHA_DISPLAY,
         // $hook_callback = null
-        array( $captcha_plugin, 'get_captcha_hook_args' ),
+        array( $captcha_plugin, 'get_captcha_display_hook_args' ),
         // $hook_extra_args = null
-        PHS_Hooks::default_captcha_hook_args(),
+        PHS_Hooks::default_captcha_display_hook_args(),
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
+    );
+
+    PHS::register_hook(
+        // $hook_name
+        PHS_Hooks::H_CAPTCHA_CHECK,
+        // $hook_callback = null
+        array( $captcha_plugin, 'get_captcha_check_hook_args' ),
+        // $hook_extra_args = null
+        PHS_Hooks::default_captcha_check_hook_args(),
         array(
             'chained_hook' => true,
             'stop_chain' => false,

@@ -101,6 +101,21 @@ class PHS_Error
         return self::get_error_static_instance()->has_error();
     }
 
+    public static function validate_error_arr( $err_arr )
+    {
+        if( empty( $err_arr ) or !is_array( $err_arr ) )
+            $err_arr = array();
+
+        return array_merge( self::default_error_array(), $err_arr );
+    }
+
+    public static function arr_has_error( $err_arr )
+    {
+        $err_arr = self::validate_error_arr( $err_arr );
+
+        return ($err_arr['error_no'] != self::ERR_OK);
+    }
+
     //! Get number of warnings
     /**
      *   Method returns number of warnings warnings (for specified tag or as total)
@@ -314,6 +329,17 @@ class PHS_Error
         self::get_error_static_instance()->reset_error();
     }
 
+    public static function default_error_array()
+    {
+        return array(
+            'error_no' => self::ERR_OK,
+            'error_msg' => '',
+            'error_simple_msg' => '',
+            'error_debug_msg' => '',
+            'display_error' => '',
+        );
+    }
+
     //! Get error details
     /**
      *   Method returns an array with current error code and message.
@@ -322,12 +348,12 @@ class PHS_Error
      **/
     public function get_error()
     {
-        $return_arr = array(
-            'error_no' => $this->error_no,
-            'error_msg' => $this->error_msg,
-            'error_simple_msg' => $this->error_simple_msg,
-            'error_debug_msg' => $this->error_debug_msg,
-        );
+        $return_arr = self::default_error_array();
+
+        $return_arr['error_no'] = $this->error_no;
+        $return_arr['error_msg'] = $this->error_msg;
+        $return_arr['error_simple_msg'] = $this->error_simple_msg;
+        $return_arr['error_debug_msg'] = $this->error_debug_msg;
 
         if( $this->debugging_mode() )
             $return_arr['display_error'] = $this->error_debug_msg;
@@ -429,6 +455,23 @@ class PHS_Error
     public static function st_get_error_message()
     {
         return self::get_error_static_instance()->get_error_message();
+    }
+
+    public static function arr_get_error_code( $err_arr )
+    {
+        $err_arr = self::validate_error_arr( $err_arr );
+
+        return $err_arr['error_no'];
+    }
+
+    public static function arr_get_error_message( $err_arr )
+    {
+        $err_arr = self::validate_error_arr( $err_arr );
+
+        if( self::st_debugging_mode() )
+            return $err_arr['error_debug_msg'];
+
+        return $err_arr['error_simple_msg'];
     }
 
     public static function st_get_error()

@@ -51,7 +51,7 @@ class PHS_Action_Index extends PHS_Action
             exit;
         }
 
-        if( ($cimage_code = PHS_session::_g( 'phs_image_code' )) === null )
+        if( ($cimage_code = PHS_session::_g( $plugin_instance::SESSION_VAR )) === null )
             $cimage_code = '';
 
         $library_params = array();
@@ -77,7 +77,7 @@ class PHS_Action_Index extends PHS_Action
         if( empty( $cimage_code ) )
         {
             $cimage_code = $img_library->get_public_code();
-            PHS_session::_s( 'phs_image_code', $cimage_code );
+            PHS_session::_s( $plugin_instance::SESSION_VAR, $cimage_code );
         }
 
         $img_library->generate_image( $params['default_width'], $params['default_height'], $font_file );

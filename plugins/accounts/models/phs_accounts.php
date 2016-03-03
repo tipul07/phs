@@ -9,7 +9,7 @@ use \phs\PHS_crypt;
 
 class PHS_Model_Accounts extends PHS_Model
 {
-    const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses', HOOK_SETTINGS = 'phs_accounts_settings';
+    const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
 
     const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
 
@@ -73,28 +73,6 @@ class PHS_Model_Accounts extends PHS_Model
     protected function update( $old_version, $new_version )
     {
         return true;
-    }
-
-    public function accounts_settings()
-    {
-        static $settings_arr = array();
-
-        if( !empty( $settings_arr ) )
-            return $settings_arr;
-
-        $settings_arr = array(
-            'email_mandatory' => true,
-            'replace_nick_with_email' => true,
-            'account_requires_activation' => true,
-            'min_password_length' => 6,
-            'pass_salt_length' => 8,
-        );
-
-        if( ($extra_settings_arr = PHS::trigger_hooks( self::HOOK_SETTINGS, array( 'settings_arr' => $settings_arr ) ))
-        and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
-            $settings_arr = array_merge( $settings_arr, $extra_settings_arr['settings_arr'] );
-
-        return $settings_arr;
     }
 
     //
@@ -394,6 +372,42 @@ class PHS_Model_Accounts extends PHS_Model
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid status.' ) );
             return false;
+        }
+
+        if( empty( $params['fields']['pass'] ) and empty( $accounts_settings['generate_pass_if_not_present'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a password.' ) );
+            return false;
+        }
+
+        if( !empty( $params['fields']['pass'] )
+        and !empty( $accounts_settings['min_password_length'] )
+        and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
+            return false;
+        }
+
+        $check_arr = array();
+        $check_arr['nick'] = $params['fields']['nick'];
+
+        if( $this->get_details_fields( $check_arr ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Username already exists in database. Please pick another one.' ) );
+            return false;
+        }
+
+        if( !empty( $params['fields']['email'] )
+        and !empty( $accounts_settings['email_unique'] ) )
+        {
+            $check_arr         = array();
+            $check_arr['email'] = $params['fields']['email'];
+
+            if( $this->get_details_fields( $check_arr ) )
+            {
+                $this->set_error( self::ERR_INSERT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                return false;
+            }
         }
 
         if( empty( $params['user_details'] ) )

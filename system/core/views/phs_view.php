@@ -155,7 +155,7 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         if( !empty( $params['template_data'] ) )
-            $view_obj->set_data( self::VIEW_CONTEXT_DATA_KEY, $params['template_data'] );
+            $view_obj->set_context( self::VIEW_CONTEXT_DATA_KEY, $params['template_data'] );
 
         return $view_obj;
     }
@@ -441,7 +441,7 @@ class PHS_View extends PHS_Signal_and_slot
 
     public function context_var( $key )
     {
-        if( !($_VIEW_CONTEXT = self::get_data( self::VIEW_CONTEXT_DATA_KEY ))
+        if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY ))
          or !isset( $_VIEW_CONTEXT[$key] ) )
             return false;
 
@@ -471,7 +471,7 @@ class PHS_View extends PHS_Signal_and_slot
         if( !empty( $this->_template_file )
         and @file_exists( $this->_template_file ) )
         {
-            if( !($_VIEW_CONTEXT = self::get_data( self::VIEW_CONTEXT_DATA_KEY )) )
+            if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY )) )
                 $_VIEW_CONTEXT = array();
 
             ob_start();

@@ -34,6 +34,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             'email_mandatory' => true,
             'replace_nick_with_email' => true,
             'account_requires_activation' => true,
+            'generate_pass_if_not_present' => true,
+            'email_unique' => true,
             'min_password_length' => 6,
             'pass_salt_length' => 8,
         );

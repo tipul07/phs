@@ -9,6 +9,9 @@ class PHS_Registry extends PHS_Language
 {
     private static $data = array();
 
+    // Array with variables set for current view only. General information will be set using self::set_data()
+    protected $_context = array();
+
     function __construct()
     {
         parent::__construct();
@@ -17,6 +20,38 @@ class PHS_Registry extends PHS_Language
     public static function get_full_data()
     {
         return self::$data;
+    }
+
+    public function get_context( $key )
+    {
+        if( array_key_exists( $key, $this->_context ) )
+            return $this->_context[$key];
+
+        return null;
+    }
+
+    public function set_context( $key, $val = null )
+    {
+        if( $val === null )
+        {
+            if( !is_array( $key ) )
+                return false;
+
+            foreach( $key as $kkey => $kval )
+            {
+                if( !is_scalar( $kkey ) )
+                    continue;
+
+                $this->_context[$kkey] = $kval;
+            }
+        }
+
+        if( !is_scalar( $key ) )
+            return false;
+
+        $this->_context[$key] = $val;
+
+        return true;
     }
 
     public static function get_data( $key )

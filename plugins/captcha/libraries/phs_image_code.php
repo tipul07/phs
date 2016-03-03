@@ -84,7 +84,7 @@ class PHS_image_code extends PHS_Language
         $this->reference_code = $params['reference_code'];
 
         if( empty( $params['param_code'] ) )
-            $this->public_code = $this->generate_public_code();
+            $this->regenerate_public_code();
 
         else
         {
@@ -100,6 +100,11 @@ class PHS_image_code extends PHS_Language
 
         $this->code_timeout = $seconds;
         return $seconds;
+    }
+
+    function regenerate_public_code()
+    {
+        $this->public_code = $this->generate_public_code();
     }
 
     function refresh_public_code()

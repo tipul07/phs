@@ -2,6 +2,7 @@
 
 namespace phs\system\core\models;
 
+use phs\libraries\PHS_Hooks;
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_line_params;
@@ -156,8 +157,14 @@ class PHS_Model_Plugins extends PHS_Model
             self::$plugin_settings[$instance_id] = array();
 
         else
+        {
             // parse settings in database...
             self::$plugin_settings[$instance_id] = PHS_line_params::parse_string( $db_details['settings'] );
+
+            if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, array( 'settings_arr' => self::$plugin_settings[$instance_id] ) ))
+            and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
+                self::$plugin_settings[$instance_id] = self::validate_array_recursive( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
+        }
 
         return self::$plugin_settings[$instance_id];
     }

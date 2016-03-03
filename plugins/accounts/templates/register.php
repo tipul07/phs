@@ -3,6 +3,9 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
+
+    var_dump( $this->context_var( 'vcode' ) );
+    var_dump( form_str( $this->context_var( 'vcode' ) ) );
 ?>
 <!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
@@ -36,20 +39,21 @@
                 <input type="password" id="pass2" name="pass2" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" style="width: 260px;" />
             </fieldset>
 
-            <fieldset>
-                <label for="vcode"><?php echo $this::_t( 'Validation code' )?>*</label>
+            <?php
+            $hook_params = array();
+            $hook_params['extra_img_style'] = 'padding:3px;border:1px solid black;';
+
+            if( ($captcha_buf = PHS_Hooks::trigger_captcha_display( $hook_params )) )
+            {
+                ?>
+                <fieldset>
+                    <label for="vcode"><?php echo $this::_t( 'Validation code' ) ?>*</label>
+                    <?php echo $captcha_buf; ?><br/>[<?php echo form_str( $this->context_var( 'email' ) )?>]
+                    <input type="text" id="vcode" name="vcode" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="width: 160px;" />
+                </fieldset>
                 <?php
-
-                $hook_params = PHS_Hooks::default_captcha_hook_args();
-                $hook_params['extra_img_style'] = 'padding:3px;border:1px solid black;';
-
-                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_DISPLAY, $hook_params ))
-                and is_array( $hook_args )
-                and !empty( $hook_args['captcha_buffer'] ) )
-                    echo $hook_args['captcha_buffer'];
-                ?><br/>
-                <input type="text" id="vcode" name="vcode" class="wpcf7-text" required="required" autocomplete="off" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="width: 160px;" />
-            </fieldset>
+            }
+            ?>
 
             <fieldset>
                 <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Register' )?>" />

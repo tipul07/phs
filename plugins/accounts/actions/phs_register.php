@@ -2,9 +2,11 @@
 
 namespace phs\plugins\accounts\actions;
 
+use phs\libraries\PHS_Error;
 use \phs\PHS;
 use \phs\libraries\PHS_Action;
 use phs\libraries\PHS_params;
+use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Notifications;
 use \phs\system\core\views\PHS_View;
 
@@ -33,10 +35,14 @@ class PHS_Action_Register extends PHS_Action
             elseif( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load captcha plugin.' ) );
 
-            elseif( $captcha_plugin->plugin_active()
-                and (empty( $vcode )
-                        or !$captcha_plugin->check_captcha_code( $vcode )) )
-                PHS_Notifications::add_error_notice( self::_t( 'Invalid validation code.' ) );
+            elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
+                and empty( $hook_result['check_valid'] ) )
+            {
+                if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
+                    PHS_Notifications::add_error_notice( PHS_Error::arr_get_error_message( $hook_result['hook_errors'] ) );
+                else
+                    PHS_Notifications::add_error_notice( self::_t( 'Invalid validation code.' ) );
+            }
 
             elseif( $pass1 != $pass2 )
                 PHS_Notifications::add_error_notice( self::_t( 'Passwords mistmatch.' ) );
