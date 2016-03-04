@@ -2,6 +2,44 @@
 
 use \phs\PHS_db;
 
+function validate_ip( $ip )
+{
+    if( function_exists( 'filter_var' ) and defined( 'FILTER_VALIDATE_IP' ) )
+        return filter_var( $ip, FILTER_VALIDATE_IP );
+
+    if( !($ip_numbers = explode( '.', $ip ))
+     or !is_array( $ip_numbers ) or count( $ip_numbers ) != 4 )
+        return false;
+
+    $parsed_ip = '';
+    foreach( $ip_numbers as $ip_part )
+    {
+        $ip_part = intval( $ip_part );
+        if( $ip_part < 0 or $ip_part > 255 )
+            return false;
+
+        $parsed_ip = ($parsed_ip!=''?'.':'').$ip_part;
+    }
+
+    return $parsed_ip;
+}
+
+function request_ip()
+{
+    $guessed_ip = '';
+    if( !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
+        $guessed_ip = validate_ip( $_SERVER['HTTP_CLIENT_IP'] );
+
+    if( empty( $guessed_ip )
+        and !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) )
+        $guessed_ip = validate_ip( $_SERVER['HTTP_X_FORWARDED_FOR'] );
+
+    if( empty( $guessed_ip ) )
+        $guessed_ip = (!empty( $_SERVER['REMOTE_ADDR'] )?$_SERVER['REMOTE_ADDR']:'');
+
+    return $guessed_ip;
+}
+
 //
 // Database related functions
 //
@@ -223,6 +261,11 @@ function make_sure_is_filename( $str )
                 array( '..', '/', '\\', '~', '<', '>', '|' ),
                 array( '.',  '',  '',   '',  '',  '',  '' ),
             $str );
+}
+
+function seconds_passed( $str )
+{
+    return time() - parse_db_date( $str );
 }
 
 function parse_db_date( $str )

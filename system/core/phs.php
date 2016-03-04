@@ -118,6 +118,38 @@ final class PHS extends PHS_Registry
             'instance' => false ) );
     }
 
+    public static function current_user()
+    {
+        static $cuser = false;
+
+        if( !empty( $cuser ) )
+            return $cuser;
+
+        if( !($hook_args = PHS_Hooks::trigger_current_user())
+         or empty( $hook_args['user_db_data'] ) or !is_array( $hook_args['user_db_data'] ) )
+            return false;
+
+        $cuser = $hook_args['user_db_data'];
+
+        return $cuser;
+    }
+
+    public static function current_user_session()
+    {
+        static $cuser_session = false;
+
+        if( !empty( $cuser_session ) )
+            return $cuser_session;
+
+        if( !($hook_args = PHS_Hooks::trigger_current_user())
+         or empty( $hook_args['session_db_data'] ) or !is_array( $hook_args['session_db_data'] ) )
+            return false;
+
+        $cuser_session = $hook_args['session_db_data'];
+
+        return $cuser_session;
+    }
+
     /**
      * @param PHS_Action $action_obj
      */

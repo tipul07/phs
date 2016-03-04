@@ -134,6 +134,47 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $code_valid;
     }
 
+    public function captcha_regeneration()
+    {
+        $this->reset_error();
+
+        if( !($settings_arr = $this->get_plugin_db_settings()) )
+        {
+            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            return false;
+        }
+
+        $settings_arr = self::validate_array_recursive( $settings_arr, $this->get_default_settings() );
+
+        if( ($cimage_code = PHS_session::_g( self::SESSION_VAR )) === null )
+            $cimage_code = '';
+
+        $library_params = array();
+        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_image_code';
+        $library_params['init_params'] = array(
+            'cnumbers' => $settings_arr['characters_count'],
+            'param_code' => $cimage_code,
+            'img_type' => $settings_arr['image_format'],
+        );
+        $library_params['as_singleton'] = false;
+
+        /** @var \phs\plugins\captcha\libraries\PHS_image_code $img_library */
+        if( !($img_library = $this->load_library( 'phs_image_code', $library_params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error loading image captcha library.' ) );
+
+            return false;
+        }
+
+        $img_library->regenerate_public_code();
+        $cimage_code = $img_library->get_public_code();
+
+        PHS_session::_s( self::SESSION_VAR, $cimage_code );
+
+        return true;
+    }
+
     public function get_captcha_check_hook_args( $hook_args )
     {
         $this->reset_error();
@@ -147,6 +188,21 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         if( $this->has_error() )
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
+
+        return $hook_args;
+    }
+
+    public function captcha_regenerate_hook_args( $hook_args )
+    {
+        $this->reset_error();
+
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_captcha_regeneration_hook_args() );
+
+        if( !$this->captcha_regeneration() )
+        {
+            if( $this->has_error() )
+                $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
+        }
 
         return $hook_args;
     }

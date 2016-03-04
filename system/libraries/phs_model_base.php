@@ -141,48 +141,6 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return $plugins_settings;
     }
 
-    public function get_model_settings()
-    {
-        $this->reset_error();
-
-        if( !($plugins_model_id = self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t obtain plugins model id.' ) );
-            return false;
-        }
-
-        if( !($this_instance_id = $this->instance_id()) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t obtain current model id.' ) );
-            return false;
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( $this_instance_id == $plugins_model_id )
-        {
-            $plugins_model = $this;
-        } else
-        {
-            if( !($plugins_model = PHS::load_model( 'plugins' )) )
-            {
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-                return false;
-            }
-        }
-
-        $check_arr = array();
-        $check_arr['instance_id'] = $this_instance_id;
-
-        $check_params = array();
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        db_supress_errors( $plugins_model->get_db_connection() );
-        if( !($existing_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
-         or empty( $existing_arr['settings'] ) )
-            return false;
-    }
-
     /**
      * @param array|false $params Parameters in the flow
      *
@@ -790,7 +748,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return $value;
     }
 
-    protected function get_empty_data( $params = false )
+    public function get_empty_data( $params = false )
     {
         $this->reset_error();
 

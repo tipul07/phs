@@ -309,6 +309,31 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
+    public function logout_subaccount( $online_data )
+    {
+        if( empty( $online_data )
+         or !($online_arr = $this->data_to_array( $online_data, array( 'table_name' => 'online' ) ))
+         or empty( $online_arr['auid'] ) )
+            return false;
+
+        $edit_arr = array();
+        $edit_arr['fields'] = array();
+        $edit_arr['fields']['uid'] = $online_arr['auid'];
+        $edit_arr['fields']['auid'] = 0;
+
+        return $this->edit( $online_arr, $edit_arr );
+    }
+
+    public function logout( $online_data )
+    {
+        if( empty( $online_data )
+         or !($online_arr = $this->data_to_array( $online_data, array( 'table_name' => 'online' ) ))
+         or empty( $online_arr['id'] ) )
+            return false;
+
+        return $this->hard_delete( $online_arr, array( 'table_name' => 'online' ) );
+    }
+
     /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
@@ -515,6 +540,16 @@ class PHS_Model_Accounts extends PHS_Model
                     'deleted' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
+                    ),
+                    'lastlog' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'index' => false,
+                    ),
+                    'lastip' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'index' => false,
+                        'length' => '50',
+                        'nullable' => true,
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,

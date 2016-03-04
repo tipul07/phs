@@ -66,10 +66,10 @@ class PHS_Scope_Web extends PHS_Scope
 
             $action_result['page_title'] .= ($action_result['page_title']!=''?' - ':'').PHS_SITE_NAME;
 
-            if( !($view_data = $view_obj::get_data( $view_obj::VIEW_CONTEXT_DATA_KEY )) )
+            if( !($view_data = $view_obj->get_context( $view_obj::VIEW_CONTEXT_DATA_KEY )) )
                 $view_data = array();
 
-            $view_obj::set_data( $view_obj::VIEW_CONTEXT_DATA_KEY, self::validate_array( $view_data, array( 'action_result' => $action_result ) ) );
+            $view_obj->set_context( $view_obj::VIEW_CONTEXT_DATA_KEY, self::validate_array( $view_data, array( 'action_result' => $action_result ) ) );
 
             echo $view_obj->render();
         }

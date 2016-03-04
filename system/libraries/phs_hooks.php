@@ -23,7 +23,7 @@ class PHS_Hooks extends PHS_Registry
          H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
          // Captcha hooks
-         H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check',
+         H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
          // User account hooks
          H_USER_DB_DETAILS = 'phs_user_db_details';
@@ -31,8 +31,11 @@ class PHS_Hooks extends PHS_Registry
     public static function default_user_db_details_hook_args()
     {
         return array(
+            'force_check' => false,
             'user_db_data' => false,
             'session_db_data' => false,
+            // How many seconds since session expired (0 - session didn't expired)
+            'session_expired_secs' => 0,
         );
     }
 
@@ -78,6 +81,36 @@ class PHS_Hooks extends PHS_Registry
         );
     }
 
+    public static function default_captcha_regeneration_hook_args()
+    {
+        return array(
+            'hook_errors' => false,
+        );
+    }
+
+    public static function trigger_current_user( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_db_details_hook_args() );
+
+        // If we don't have hooks registered, we don't use captcha
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_args )) === null )
+            return false;
+
+        if( is_array( $hook_args )
+        and !empty( $hook_args['session_expired_secs'] ) )
+        {
+            if( !@headers_sent() )
+            {
+                header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
+                exit;
+            }
+
+            return false;
+        }
+
+        return $hook_args;
+    }
+
     public static function trigger_captcha_display( $hook_args )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_captcha_display_hook_args() );
@@ -101,5 +134,12 @@ class PHS_Hooks extends PHS_Registry
         $hook_args = self::validate_array( array( 'check_code' => $code ), PHS_Hooks::default_captcha_check_hook_args() );
 
         return PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_CHECK, $hook_args );
+    }
+
+    public static function trigger_captcha_regeneration()
+    {
+        $hook_args = self::validate_array( array(), PHS_Hooks::default_captcha_regeneration_hook_args() );
+
+        return PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_REGENERATE, $hook_args );
     }
 }

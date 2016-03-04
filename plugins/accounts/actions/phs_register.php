@@ -25,6 +25,20 @@ class PHS_Action_Register extends PHS_Action
         $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
         $submit = PHS_params::_p( 'submit' );
 
+        $registered = PHS_params::_g( 'registered', PHS_params::T_INT );
+
+        if( !empty( $registered ) )
+        {
+            PHS_Notifications::add_success_notice( self::_t( 'User account registered with success...' ) );
+
+            $data = array(
+                'nick' => $nick,
+                'email' => $email,
+            );
+
+            return $this->quick_render_template( 'register_thankyou', $data );
+        }
+
         if( !empty( $submit ) )
         {
             /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -54,6 +68,7 @@ class PHS_Action_Register extends PHS_Action
                 $insert_arr['pass'] = $pass1;
                 $insert_arr['email'] = $email;
                 $insert_arr['level'] = $accounts_model::LVL_MEMBER;
+                $insert_arr['lastip'] = request_ip();
 
                 if( !($account_arr = $accounts_model->insert( array( 'fields' => $insert_arr ) )) )
                 {
@@ -61,12 +76,21 @@ class PHS_Action_Register extends PHS_Action
                         PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
                     else
                         PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t register user. Please try again.' ) );
-                }
+                } else
+                    PHS_Hooks::trigger_captcha_regeneration();
             }
 
-            if( !PHS_Notifications::have_notifications_errors() )
+            if( !empty( $account_arr )
+            and !PHS_Notifications::have_notifications_errors() )
             {
-                PHS_Notifications::add_success_notice( self::_t( 'User registered...' ) );
+                $action_result = self::default_action_result();
+
+                if( !$accounts_model->is_active( $account_arr ) )
+                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'register' ), array( 'registered' => 1, 'nick' => $nick, 'email' => $email ) );
+                else
+                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'registered' => 1, 'nick' => $nick ) );
+
+                return $action_result;
             }
         }
 

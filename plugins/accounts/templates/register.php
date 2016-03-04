@@ -3,9 +3,6 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
-
-    var_dump( $this->context_var( 'vcode' ) );
-    var_dump( form_str( $this->context_var( 'vcode' ) ) );
 ?>
 <!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
@@ -48,7 +45,7 @@
                 ?>
                 <fieldset>
                     <label for="vcode"><?php echo $this::_t( 'Validation code' ) ?>*</label>
-                    <?php echo $captcha_buf; ?><br/>[<?php echo form_str( $this->context_var( 'email' ) )?>]
+                    <?php echo $captcha_buf; ?><br/>
                     <input type="text" id="vcode" name="vcode" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="width: 160px;" />
                 </fieldset>
                 <?php

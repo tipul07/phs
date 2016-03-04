@@ -36,6 +36,25 @@ final class PHS_session extends PHS_Registry
         return true;
     }
 
+    public static function _d( $key = null )
+    {
+        if( !self::start() )
+            return null;
+
+        if( !($sess_arr = self::get_data( self::SESS_DATA ))
+         or !is_array( $sess_arr ) )
+            $sess_arr = array();
+
+        if( $key === null )
+            $sess_arr = array();
+        elseif( isset( $sess_arr[$key] ) )
+            unset( $sess_arr[$key] );
+
+        self::set_data( self::SESS_DATA, $sess_arr );
+
+        return true;
+    }
+
     public static function _g( $key = null )
     {
         if( !self::start() )

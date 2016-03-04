@@ -2,12 +2,15 @@
 
 namespace phs\plugins\accounts;
 
+use phs\libraries\PHS_Hooks;
 use \phs\PHS;
 use \phs\PHS_session;
 use \phs\libraries\PHS_Plugin;
 
 class PHS_Plugin_Accounts extends PHS_Plugin
 {
+    const ERR_LOGOUT = 40000;
+
     private static $_session_key = 'PHS_sess';
 
     /**
@@ -53,67 +56,125 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return self::$_session_key;
     }
 
-    public function get_current_user_db_details( $hook_args )
+    public function do_logout_subaccount()
     {
-        $hook_args = self::validate_array( $hook_args, PHS::default_user_db_details_hook_args() );
+        $this->reset_error();
 
-        if( !($skey_value = PHS_session::_g( self::session_key() ))
-         or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
+        if( !($db_details = $this->get_current_user_db_details())
+         or empty( $db_details['session_db_data'] ) or !is_array( $db_details['session_db_data'] )
+         or empty( $db_details['session_db_data']['id'] ) or empty( $db_details['session_db_data']['auid'] ) )
+            return true;
 
-         or !($online_db_details = $accounts_model->get_details_fields(
-                array(
-                    'wid' => $skey_value,
-                )
-             ))
-
-        )
-            return $hook_args;
-
-        $hook_args['session_db_data'] = $online_db_details;
-
-        return $hook_args;
-    }
-
-    public function do_login( $user_data )
-    {
-        global $APP_CFG;
-
-        PHS_module::reset_static_error();
-
-        if( !is_array( $params )
-            or (empty( $params['uid'] ) and (empty( $params['user_arr'] ) or !is_array( $params['user_arr'] ) or empty( $params['user_arr']['id'] ))) )
-            return false;
-
-        include_once( $APP_CFG['libdir'].'accounts.inc.php' );
-
-        if( empty( $params['user_arr'] ) )
-            $params['user_arr'] = array();
-        if( empty( $params['uid'] ) )
-            $params['uid'] = 0;
-        if( !empty( $params['uid'] ) )
-            $params['uid'] = intval( $params['uid'] );
-
-        if( empty( $params['user_arr'] )
-            and !($params['user_arr'] = account_class::get_details( $params['uid'] )) )
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            PHS_module::set_static_error( self::ERR_USER_NOT_FOUND, PHS_lang::_t( 'CLSESSION_USER_NOT_FOUND' ) );
+            if( self::st_has_error() )
+                $this->copy_static_error();
             return false;
         }
 
-        session_class::reset_data();
+        if( !($accounts_model->logout_subaccount( $db_details['session_db_data'] )) )
+        {
+            if( $accounts_model->has_error() )
+                $this->copy_error( $accounts_model );
+            else
+                $this->set_error( self::ERR_LOGOUT, self::_t( 'Couldn\'t logout from subaccount.' ) );
 
-        $db_params = array();
-        $db_params['auid'] = (empty( $params['auid'] )?0:intval( $params['auid'] ));
-        $db_params['host'] = (empty( $params['host'] )?'':$params['host']);
-        $db_params['location'] = (empty( $params['location'] )?'':$params['location']);
-        $db_params['return_page'] = (empty( $params['return_page'] )?'':$params['return_page']);
-        $db_params['expire_secs'] = (empty( $params['expire_secs'] )?0:$params['expire_secs']);
+            return false;
+        }
 
-        $ret_val = false;
-        if( ($data_arr = session_class::db_create( $params['user_arr'], $db_params )) )
-            $ret_val = session_class::set_data( $data_arr );
+        return true;
+    }
 
-        return $ret_val;
+    public function do_logout()
+    {
+        $this->reset_error();
+
+        if( !($db_details = $this->get_current_user_db_details())
+         or empty( $db_details['session_db_data'] ) or !is_array( $db_details['session_db_data'] )
+         or empty( $db_details['session_db_data']['id'] ) or empty( $db_details['session_db_data']['uid'] ) )
+            return true;
+
+        if( !empty( $db_details['session_db_data']['auid'] ) )
+            return $this->do_logout_subaccount();
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error();
+            return false;
+        }
+
+        if( !($accounts_model->logout( $db_details['session_db_data'] )) )
+        {
+            if( $accounts_model->has_error() )
+                $this->copy_error( $accounts_model );
+            else
+                $this->set_error( self::ERR_LOGOUT, self::_t( 'Couldn\'t logout from subaccount.' ) );
+
+            return false;
+        }
+
+        return PHS_session::_d( self::session_key() );
+    }
+
+    public function get_current_user_db_details( $hook_args = false )
+    {
+        static $check_result = false;
+
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_db_details_hook_args() );
+
+        if( empty( $hook_args['force_check'] )
+        and !empty( $check_result ) )
+            return $check_result;
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+            return $hook_args;
+
+        if( !($skey_value = PHS_session::_g( self::session_key() ))
+         or !($online_db_details = $accounts_model->get_details_fields(
+                array(
+                    'wid' => $skey_value,
+                ),
+                array(
+                    'table_name' => 'online',
+                )
+             ))
+        )
+        {
+            $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+            $hook_args['user_db_data'] = $accounts_model->get_empty_data();
+
+            return $hook_args;
+        }
+
+        if( empty( $online_db_details['uid'] )
+         or !($user_db_details = $accounts_model->get_details_fields(
+            array(
+                'id' => $online_db_details['uid'],
+            )
+            )) )
+        {
+            $accounts_model->hard_delete( $online_db_details, array( 'table_name' => 'online' ) );
+
+            // session expired?
+            $hook_args['session_expired_secs'] = seconds_passed( $online_db_details['idle'] );
+
+            $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+            $hook_args['user_db_data'] = $accounts_model->get_empty_data();
+
+            return $hook_args;
+        }
+
+
+        $hook_args['session_db_data'] = $online_db_details;
+        $hook_args['user_db_data'] = $user_db_details;
+
+        $check_result = $hook_args;
+
+        return $hook_args;
     }
 
 }
