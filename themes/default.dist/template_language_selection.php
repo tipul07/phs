@@ -1,6 +1,5 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
-    /** @var array $_VIEW_CONTEXT */
 
     use \phs\libraries\PHS_Language;
 

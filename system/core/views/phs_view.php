@@ -55,11 +55,29 @@ class PHS_View extends PHS_Signal_and_slot
         );
     }
 
-    public static function validate_template_resource( $template )
+    public static function validate_template_resource( $template, $params = false )
     {
         if( empty( $template )
          or (!is_string( $template ) and !is_array( $template )) )
             return false;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['theme_relative_dirs'] ) or !is_array( $params['theme_relative_dirs'] ) )
+            $params['theme_relative_dirs'] = array();
+
+        if( !empty( $params['theme'] ) )
+        {
+            if( !($validated_theme = PHS::valid_theme( $params['theme'] )) )
+            {
+                self::st_set_error( self::ERR_BAD_THEME, self::_t( 'Invalid theme passed to template.' ) );
+                return false;
+            }
+
+            $params['theme'] = $validated_theme;
+        } else
+            $params['theme'] = PHS::get_theme();
 
         $template_structure = self::default_template_resource_arr();
         if( is_string( $template ) )
@@ -71,11 +89,35 @@ class PHS_View extends PHS_Signal_and_slot
                 return false;
 
             if( empty( $template['extra_paths'] ) or !is_array( $template['extra_paths'] ) )
-                $template['extra_paths'] = array();
+                $extra_paths = array();
+
+            else
+            {
+                $extra_paths = array();
+                foreach( $template['extra_paths'] as $dir_path => $dir_www )
+                {
+                    $extra_paths[PHS::from_relative_path( $dir_path )] = PHS::from_relative_url( $dir_www );
+                }
+            }
 
             $template_structure['file'] = $template['file'];
-            $template_structure['extra_paths'] = $template['extra_paths'];
+            $template_structure['extra_paths'] = $extra_paths;
         }
+
+        if( !empty( $params['theme_relative_dirs'] ) )
+        {
+            foreach( $params['theme_relative_dirs'] as $theme_dir )
+            {
+                if( ($extra_dirs = self::st_add_extra_theme_dir( $theme_dir, $params['theme'] )) )
+                {
+                    foreach( $extra_dirs as $dir_path => $dir_www )
+                    {
+                        $template_structure['extra_paths'][$dir_path] = $dir_www;
+                    }
+                }
+            }
+        }
+
 
         return $template_structure;
     }
@@ -232,6 +274,45 @@ class PHS_View extends PHS_Signal_and_slot
             return false;
 
         $this->_extra_template_dirs[$dir_path.'/'] = $dir_www;
+
+        return true;
+    }
+
+    public static function st_add_extra_theme_dir( $theme_relative_dir, $theme = false )
+    {
+        if( $theme === false )
+            $theme = PHS::get_theme();
+
+        $theme_relative_dir = rtrim( $theme_relative_dir, '/\\' );
+        if( empty( $theme_relative_dir )
+         or (!empty( $theme ) and !($theme = PHS::valid_theme( $theme ))) )
+            return false;
+
+        $extra_dirs = array();
+        if( defined( 'PHS_THEMES_WWW' ) and defined( 'PHS_THEMES_DIR' ) )
+        {
+            if( !empty( $theme )
+            and @file_exists( PHS_THEMES_DIR . $theme . '/'. $theme_relative_dir )
+            and @is_dir( PHS_THEMES_DIR . $theme . '/'. $theme_relative_dir ) )
+                $extra_dirs[PHS_THEMES_DIR . $theme . '/' . $theme_relative_dir . '/'] = PHS_THEMES_WWW . $theme . '/' . $theme_relative_dir . '/';
+
+            if( ($default_theme = PHS::get_default_theme())
+            and $default_theme != $theme
+            and @file_exists( PHS_THEMES_DIR . $default_theme . '/'. $theme_relative_dir )
+            and @is_dir( PHS_THEMES_DIR . $default_theme . '/'. $theme_relative_dir ) )
+                $extra_dirs[PHS_THEMES_DIR . $default_theme . '/' . $theme_relative_dir . '/'] = PHS_THEMES_WWW . $default_theme . '/' . $theme_relative_dir . '/';
+        }
+
+        return $extra_dirs;
+    }
+
+    public function add_extra_theme_dir( $theme_relative_dir )
+    {
+        if( !($extra_dirs = self::st_add_extra_theme_dir( $theme_relative_dir, $this->get_theme() )) )
+            return false;
+
+        foreach( $extra_dirs as $dir_path => $dir_www )
+            $this->_extra_template_dirs[$dir_path] = $dir_www;
 
         return true;
     }
@@ -471,9 +552,6 @@ class PHS_View extends PHS_Signal_and_slot
         if( !empty( $this->_template_file )
         and @file_exists( $this->_template_file ) )
         {
-            if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY )) )
-                $_VIEW_CONTEXT = array();
-
             ob_start();
             include( $this->_template_file );
             $resulting_buf .= ob_get_clean();

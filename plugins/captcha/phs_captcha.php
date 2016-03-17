@@ -2,9 +2,9 @@
 
 namespace phs\plugins\captcha;
 
-use phs\libraries\PHS_Error;
 use \phs\PHS;
 use \phs\PHS_session;
+use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\system\core\views\PHS_View;
@@ -93,8 +93,6 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return false;
         }
 
-        $settings_arr = self::validate_array_recursive( $settings_arr, $this->get_default_settings() );
-
         if( ($cimage_code = PHS_session::_g( self::SESSION_VAR )) === null )
             $cimage_code = '';
 
@@ -143,8 +141,6 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
             return false;
         }
-
-        $settings_arr = self::validate_array_recursive( $settings_arr, $this->get_default_settings() );
 
         if( ($cimage_code = PHS_session::_g( self::SESSION_VAR )) === null )
             $cimage_code = '';
@@ -223,25 +219,21 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return $hook_args;
         }
 
-        $settings_arr = self::validate_array_recursive( $settings_arr, $this->get_default_settings() );
-
-        $extra_paths = array();
-        if( !empty( $settings_arr['template']['extra_paths'] ) and is_array( $settings_arr['template']['extra_paths'] ) )
+        if( !($captcha_template = PHS_View::validate_template_resource( $settings_arr['template'] )) )
         {
-            foreach( $settings_arr['template']['extra_paths'] as $dir_path => $dir_www )
-            {
-                $extra_paths[PHS::from_relative_path( $dir_path )] = PHS::from_relative_url( $dir_www );
-            }
-        }
+            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating captcha template file.' ) );
 
-        $settings_arr['template']['extra_paths'] = $extra_paths;
+            $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
+
+            return $hook_args;
+        }
 
         $hook_args['font'] = $settings_arr['font'];
         $hook_args['characters_count'] = $settings_arr['characters_count'];
         $hook_args['image_format'] = $settings_arr['image_format'];
         $hook_args['default_width'] = $settings_arr['default_width'];
         $hook_args['default_height'] = $settings_arr['default_height'];
-        $hook_args['template'] = $settings_arr['template'];
+        $hook_args['template'] = $captcha_template;
 
         $view_params = array();
         $view_params['action_obj'] = false;
@@ -252,7 +244,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             'settings_arr' => $settings_arr,
         );
 
-        if( !($view_obj = PHS_View::init_view( $settings_arr['template'], $view_params )) )
+        if( !($view_obj = PHS_View::init_view( $captcha_template, $view_params )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();

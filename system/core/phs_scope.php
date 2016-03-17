@@ -13,13 +13,19 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     const SCOPE_VAR_PREFIX = '__scp_pre_';
 
-    const SCOPE_WEB = 1, SCOPE_AJAX = 2, SCOPE_API = 3;
+    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4;
 
     private static $SCOPES_ARR = array(
         self::SCOPE_WEB => array(
             'title' => 'Web',
             'plugin' => false,
             'class_name' => 'web',
+        ),
+
+        self::SCOPE_BACKGROUND => array(
+            'title' => 'Background',
+            'plugin' => false,
+            'class_name' => 'background',
         ),
 
         self::SCOPE_AJAX => array(

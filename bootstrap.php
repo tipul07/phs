@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0.1' );
+define( 'PHS_VERSION', '1.0.0.2' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -28,6 +28,10 @@ define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
 define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
 define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
+
+// name of directory where email templates are stored (either theme relative or plugin relative)
+// eg. (themes/default/emails or plugins/accounts/templates/emails)
+define( 'PHS_EMAILS_DIRS', 'emails' );
 
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );

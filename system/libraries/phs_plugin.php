@@ -139,6 +139,26 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         return $library_instance;
     }
 
+    public function email_template_resource_from_file( $file )
+    {
+        return array(
+            'file' => $file,
+            'extra_paths' => array(
+                PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
+            )
+        );
+    }
+
+    public function template_resource_from_file( $file )
+    {
+        return array(
+            'file' => $file,
+            'extra_paths' => array(
+                PHS::relative_path( $this->instance_plugin_templates_path() ) => PHS::relative_url( $this->instance_plugin_templates_www() ),
+            )
+        );
+    }
+
     public function plugin_active()
     {
         $this->reset_error();
@@ -182,7 +202,7 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
             return false;
         }
 
-        return $plugin_obj->get_db_settings( $this->instance_id(), $force );
+        return $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings(), $force );
     }
 
     public function check_installation()

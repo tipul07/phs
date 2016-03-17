@@ -2,7 +2,6 @@
 
 namespace phs\plugins\captcha\libraries;
 
-
 use \phs\libraries\PHS_Language;
 
 //! /version 1.53

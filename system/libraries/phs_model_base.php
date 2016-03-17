@@ -327,6 +327,30 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return false;
     }
 
+    public function check_installation()
+    {
+        $this->reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
+        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
+        {
+            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        if( !($db_details = $plugin_obj->get_db_details( $this->instance_id() )) )
+        {
+            $this->reset_error();
+
+            return $this->install();
+        }
+
+        if( version_compare( $db_details['version'], $this->get_model_version(), '!=' ) )
+            return $this->update( $db_details['version'], $this->get_model_version() );
+
+        return true;
+    }
+
     /**
      * This method hard-deletes a record from database. If additional work is required before hard-deleting record, self::HOOK_HARD_DELETE is called before deleting.
      *

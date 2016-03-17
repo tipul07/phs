@@ -1,5 +1,8 @@
 <?php
 
+if( !defined( 'PHS_VERSION' ) )
+    exit;
+
 use \phs\PHS_db;
 
 function validate_ip( $ip )

@@ -19,6 +19,9 @@ class PHS_Hooks extends PHS_Registry
          // URL hooks
          H_URL_PARAMS = 'phs_url_params',
 
+         // Email hooks
+         H_EMAIL_INIT = 'phs_email_init',
+
          // Notifications hooks
          H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
@@ -72,6 +75,43 @@ class PHS_Hooks extends PHS_Registry
         );
     }
 
+    public static function default_init_email_hook_args()
+    {
+        return array(
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+
+            'route' => false,
+            'route_settings' => false,
+
+            'to' => '',
+            'to_name' => '',
+            'from_name' => '',
+            'from_email' => '',
+            'from_noreply' => '',
+            'reply_name' => '',
+            'reply_email' => '',
+            'subject' => '',
+
+            'also_send' => true,
+            'send_as_noreply' => true,
+            'with_priority' => false,
+            'native_mail_function' => false,
+            'custom_headers' => array(),
+            'email_vars' => array(),
+            'internal_vars' => array(),
+
+            'email_html_body' => false,
+            'email_text_body' => false,
+            'full_body' => false,
+
+            'hook_errors' => false,
+            'send_result' => false,
+        );
+    }
+
     public static function default_captcha_check_hook_args()
     {
         return array(
@@ -86,6 +126,27 @@ class PHS_Hooks extends PHS_Registry
         return array(
             'hook_errors' => false,
         );
+    }
+
+    public static function trigger_email( $hook_args )
+    {
+        self::st_reset_error();
+
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_init_email_hook_args() );
+
+        // If we don't have hooks registered, we don't use captcha
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_EMAIL_INIT, $hook_args )) === null )
+            return null;
+
+        if( is_array( $hook_args )
+        and !empty( $hook_args['hook_errors'] )
+        and self::arr_has_error( $hook_args['hook_errors'] ) )
+        {
+            self::st_copy_error_from_array( $hook_args['hook_errors'] );
+            return false;
+        }
+
+        return $hook_args;
     }
 
     public static function trigger_current_user( $hook_args = false )

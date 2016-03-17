@@ -1,16 +1,13 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
-    /** @var array $_VIEW_CONTEXT */
 
     use \phs\PHS;
     use \phs\libraries\PHS_Action;
     use \phs\libraries\PHS_Language;
     use \phs\libraries\PHS_Hooks;
 
-    if( !empty( $_VIEW_CONTEXT['action_result'] ) )
-        $action_result = $this::validate_array( $_VIEW_CONTEXT['action_result'], PHS_Action::default_action_result() );
-    else
-        $action_result = PHS_Action::default_action_result();
+    $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
+
 ?><!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>" lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>">
 <head>

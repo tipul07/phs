@@ -173,6 +173,24 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $prefix.self::TEMPLATES_DIR.'/';
     }
 
+    final public function instance_plugin_email_templates_www()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_www()) )
+            return false;
+
+        return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
+    }
+
+    final public function instance_plugin_email_templates_path()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_path()) )
+            return false;
+
+        return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
+    }
+
     /**
      * @param string $instance_type What kind of instance is this
      * @param string $instance_name Part of class name after predefined prefix (eg. phs_model_ for models, phs_controller_ for controller etc)

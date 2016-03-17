@@ -32,7 +32,9 @@ final class PHS extends PHS_Registry
     private static $inited = false;
     private static $instance = false;
     private static $hooks = array();
+
     private static $_INTERPRET_SCRIPT = 'index';
+    private static $_BACKGROUND_SCRIPT = '_bg';
 
     function __construct()
     {
@@ -365,7 +367,10 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if( empty( $route ) )
-            $route = self::extract_route();
+        {
+            self::st_set_error( self::ERR_ROUTE, self::_t( 'Empty route.' ) );
+            return false;
+        }
 
         $route_parts = array();
         if( !empty( $route ) )
@@ -419,9 +424,42 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        self::set_data( self::ROUTE_PLUGIN, $plugin );
-        self::set_data( self::ROUTE_CONTROLLER, $controller );
-        self::set_data( self::ROUTE_ACTION, $action );
+        return array(
+            'plugin' => $plugin,
+            'controller' => $controller,
+            'action' => $action,
+        );
+    }
+
+    /**
+     * Parse request route. Route is something like:
+     *
+     * {plugin}/{controller}/{action} If controller is part of a plugin
+     * or
+     * {controller}/{action} If controller is a core controller
+     * or
+     * {plugin}-{action} Controller will be 'index'
+     *
+     * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
+     * @return bool Returns true on success or false on error
+     */
+    public static function set_route( $route = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $route ) )
+            $route = self::extract_route();
+
+        if( !($route_parts = self::parse_route( $route )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t parse route.' ) );
+            return false;
+        }
+
+        self::set_data( self::ROUTE_PLUGIN, $route_parts['plugin'] );
+        self::set_data( self::ROUTE_CONTROLLER, $route_parts['controller'] );
+        self::set_data( self::ROUTE_ACTION, $route_parts['action'] );
 
         return true;
     }
@@ -464,6 +502,36 @@ final class PHS extends PHS_Registry
         return self::$_INTERPRET_SCRIPT.'.php';
     }
 
+    /**
+     * Change default route interpret script (default is index). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New interpreter script (default is index). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function background_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_BACKGROUND_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_BACKGROUND_SCRIPT = $script;
+        return self::$_BACKGROUND_SCRIPT.'.php';
+    }
+
+    public static function get_background_path()
+    {
+        return PHS_PATH.self::background_script();
+    }
+
+    public static function get_interpret_path()
+    {
+        return PHS_PATH.self::interpret_script();
+    }
+
     public static function get_interpret_url( $force_https = false )
     {
         if( !($base_url = self::get_base_url( $force_https )) )
@@ -492,6 +560,41 @@ final class PHS extends PHS_Registry
         return self::url( array( 'p' => $plugin, 'c' => $controller, 'a' => $action ), $query_string );
     }
 
+    public static function route_from_parts( $parts = false )
+    {
+        if( empty( $parts ) or !is_array( $parts ) )
+            $parts = array();
+
+        if( empty( $parts['p'] ) )
+            $parts['p'] = false;
+        if( empty( $parts['c'] ) )
+            $parts['c'] = false;
+        if( empty( $parts['a'] ) )
+            $parts['a'] = self::ROUTE_DEFAULT_ACTION;
+
+        if( (!empty( $parts['p'] ) and !self::safe_escape_route_parts( $parts['p'] ))
+         or (!empty( $parts['c'] ) and !self::safe_escape_route_parts( $parts['c'] ))
+         or (!empty( $parts['a'] ) and !self::safe_escape_route_parts( $parts['a'] )) )
+            return false;
+
+        $route = false;
+        if( !empty( $parts['c'] ) )
+        {
+            if( empty( $parts['p'] ) )
+                $parts['p'] = '';
+
+            $route = $parts['p'].'/'.$parts['c'].'/'.$parts['a'];
+        } else
+        {
+            if( empty( $parts['p'] ) )
+                $route = $parts['a'];
+            else
+                $route = $parts['p'].'-'.$parts['a'];
+        }
+
+        return $route;
+    }
+
     public static function url( $params = false, $args = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -509,27 +612,11 @@ final class PHS extends PHS_Registry
         if( empty( $params['a'] ) )
             $params['a'] = self::ROUTE_DEFAULT_ACTION;
 
-        if( (!empty( $params['p'] ) and !self::safe_escape_route_parts( $params['p'] ))
-         or (!empty( $params['c'] ) and !self::safe_escape_route_parts( $params['c'] ))
-         or (!empty( $params['a'] ) and !self::safe_escape_route_parts( $params['a'] )) )
+        if( !($route = self::route_from_parts( $params )) )
             return '#invalid_path['.
                    (!empty( $params['p'] )?$params['p']:'').'::'.
                    (!empty( $params['c'] )?$params['c']:'').'::'.
                    (!empty( $params['a'] )?$params['a']:'').']';
-
-        if( !empty( $params['c'] ) )
-        {
-            if( empty( $params['p'] ) )
-                $params['p'] = '';
-
-            $route = $params['p'].'/'.$params['c'].'/'.$params['a'];
-        } else
-        {
-            if( empty( $params['p'] ) )
-                $route = $params['a'];
-            else
-                $route = $params['p'].'-'.$params['a'];
-        }
 
         $new_args = array();
         $new_args[self::ROUTE_PARAM] = $route;
@@ -604,7 +691,7 @@ final class PHS extends PHS_Registry
     {
         if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) === null )
         {
-            self::parse_route();
+            self::set_route();
 
             if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) === null )
                 return false;

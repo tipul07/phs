@@ -125,7 +125,7 @@ class PHS_Model_Plugins extends PHS_Model
         self::$db_plugins = array();
     }
 
-    public function get_db_settings( $instance_id = null, $force = false )
+    public function get_db_settings( $instance_id = null, $default_settings = false, $force = false )
     {
         $this->reset_error();
 
@@ -160,6 +160,10 @@ class PHS_Model_Plugins extends PHS_Model
         {
             // parse settings in database...
             self::$plugin_settings[$instance_id] = PHS_line_params::parse_string( $db_details['settings'] );
+
+            // Merge database settings with default script settings
+            if( !empty( $default_settings ) )
+                self::$plugin_settings[$instance_id] = self::validate_array_recursive( self::$plugin_settings[$instance_id], $default_settings );
 
             if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, array( 'settings_arr' => self::$plugin_settings[$instance_id] ) ))
             and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )

@@ -3,54 +3,34 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
+    use \phs\libraries\PHS_Hooks;
 
-    //include_once( 'plugins/accounts/controllers/phs_index.php' );
-    //include_once( 'system/core/controllers/phs_index.php' );
-    //
-    PHS::execute_route();
-    //var_dump( phs\plugins\accounts\controllers\PHS_Controller_Index::get_instance() );
-    //var_dump( phs\system\core\controllers\PHS_Controller_Index::get_instance() );
-    //var_dump( phs\PHS::load_controller( 'index', 'accounts' ) );
-    //var_dump( phs\PHS::load_controller( 'index' ) );
-    //var_dump( phs\PHS::st_get_error() );
-
-    exit;
-
-    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = phs\PHS::load_model( 'plugins' )) )
+    if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     {
-        var_dump( phs\PHS::st_get_error() );
+        echo 'accounts inactive';
         exit;
     }
 
-    $plugins_model->add_connection( 'PHS_Model_Accounts', 'accounts', $plugins_model::INSTANCE_TYPE_MODEL );
 
-    var_dump( $plugins_model->force_install() );
-    var_dump( $plugins_model->get_error() );
+    $hook_args = array();
+    $hook_args['template'] = array(
+        'file' => 'registration',
+        'extra_paths' => array(
+            PHS::relative_path( $accounts_plugin->instance_plugin_email_templates_path() ) => PHS::relative_url( $accounts_plugin->instance_plugin_email_templates_www() ),
+        ),
+    );
+    $hook_args['to'] = 'andrei@smart2pay.com';
+    $hook_args['to_name'] = 'Andrei Orghici';
+    $hook_args['subject'] = 'Account Registration';
+    $hook_args['email_vars'] = array(
+        'nick' => 'vasile',
+        'nick1' => 'vasile1',
+        'nick2' => 'vasile2',
+        'nick3' => 'vasile3',
+        'url' => PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => 'vasile' ) ),
+    );
 
-    /** @var PHS_Model_Accounts $accounts_obj */
-    //if( !($accounts_obj = PHS::load_model( 'accounts', 'accounts' ))
-    // or !($plugins_model = PHS::load_model( 'plugins' )) )
-    //{
-    //    var_dump( PHS::st_get_error() );
-    //    exit;
-    //}
-    //
-    //$plugins_model->install();
-    //
-    //var_dump( $accounts_obj->install() );
-    //var_dump( $accounts_obj->instance_details() );
+    var_dump( PHS_Hooks::trigger_email( $hook_args ) );
+    var_dump( PHS::st_get_error() );
 
-    //$fields_arr = array();
-    //$fields_arr['email'] = 'gica@email.com';
-    //
-    //$insert_arr = array();
-    //$insert_arr['fields'] = $fields_arr;
-    //
-    //var_dump( $accounts_obj->insert( $insert_arr ) );
-
-    //var_dump( $accounts_obj );
-
-    \phs\PHS_session::_s( 'bubu', 12 );
-    var_dump( \phs\PHS_session::_g() );
-
+    PHS::execute_route();

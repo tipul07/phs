@@ -41,6 +41,24 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             'email_unique' => true,
             'min_password_length' => 6,
             'pass_salt_length' => 8,
+            'email_registration' => array(
+                'file' => 'registration',
+                'extra_paths' => array(
+                    PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
+                ),
+            ), // registration email
+            'email_forgot_pass' => array(
+                'file' => 'forgot_pass',
+                'extra_paths' => array(
+                    PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
+                ),
+            ), // forgot password email
+            'email_pass_changed' => array(
+                'file' => 'pass_changed',
+                'extra_paths' => array(
+                    PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
+                ),
+            ), // password changed email
         );
     }
 

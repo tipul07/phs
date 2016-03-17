@@ -2,10 +2,11 @@
 
 namespace phs\plugins\notifications;
 
-use phs\libraries\PHS_Hooks;
 use \phs\PHS;
+use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Error;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Notifications extends PHS_Plugin
@@ -53,16 +54,14 @@ class PHS_Plugin_Notifications extends PHS_Plugin
             return false;
         }
 
-        $extra_paths = array();
-        if( !empty( $settings_arr['template']['extra_paths'] ) and is_array( $settings_arr['template']['extra_paths'] ) )
+        if( !($notifications_template = PHS_View::validate_template_resource( $settings_arr['template'] )) )
         {
-            foreach( $settings_arr['template']['extra_paths'] as $dir_path => $dir_www )
-            {
-                $extra_paths[PHS::from_relative_path( $dir_path )] = PHS::from_relative_url( $dir_www );
-            }
-        }
+            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating notifications template file.' ) );
 
-        $settings_arr['template']['extra_paths'] = $extra_paths;
+            $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
+
+            return $hook_args;
+        }
 
         $notifications_arr = PHS_Notifications::get_all_notifications();
 
@@ -73,7 +72,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $hook_args['success'] = $notifications_arr['success'];
 
         $hook_args['display_channels'] = $settings_arr['display_channels'];
-        $hook_args['template'] = $settings_arr['template'];
+        $hook_args['template'] = $notifications_template;
 
         $view_params = array();
         $view_params['action_obj'] = false;
@@ -84,7 +83,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
             'display_channels' => $hook_args['display_channels']
         );
 
-        if( !($view_obj = PHS_View::init_view( $settings_arr['template'], $view_params )) )
+        if( !($view_obj = PHS_View::init_view( $notifications_template, $view_params )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
