@@ -57,11 +57,16 @@ class PHS_Model_Bg_jobs extends PHS_Model
         if( empty( $params ) or !is_array( $params ) )
             return false;
 
-        if( empty( $params['fields']['act'] ) )
+        if( empty( $params['fields']['route'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide an action.' ) );
+            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a route.' ) );
             return false;
         }
+
+        $params['fields']['last_action'] = date( self::DATETIME_DB );
+
+        if( empty( $params['fields']['cdate'] ) or $params['fields']['cdate'] == self::DATETIME_EMPTY )
+            $params['fields']['cdate'] = $params['fields']['last_action'];
 
         return $params;
     }
@@ -95,15 +100,19 @@ class PHS_Model_Bg_jobs extends PHS_Model
                     'pid' => array(
                         'type' => self::FTYPE_INT,
                     ),
-                    'act' => array(
+                    'route' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '20',
+                        'length' => '255',
                         'nullable' => true,
                         'default' => null,
                     ),
                     'params' => array(
                         'type' => self::FTYPE_LONGTEXT,
                         'nullable' => true,
+                    ),
+                    'last_action' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'index' => true,
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,

@@ -5,6 +5,11 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
+    var_dump( \phs\PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'login' ), array( 'nick' => 'vasile', 'pass' => 'gigi' ) ) );
+    var_dump( PHS::st_get_error() );
+
+    exit;
+
     if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     {
         echo 'accounts inactive';

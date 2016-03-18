@@ -55,6 +55,7 @@ include_once( PHS_CORE_DIR.'phs_session.php' );
 include_once( PHS_CORE_DIR.'phs_crypt.php' );
 include_once( PHS_CORE_VIEW_DIR.'phs_view.php' );
 include_once( PHS_CORE_DIR.'phs_scope.php' );
+include_once( PHS_CORE_DIR.'phs_bg_jobs.php' );
 
 use \phs\PHS;
 use \phs\PHS_db;
