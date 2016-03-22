@@ -4,12 +4,24 @@ namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Action;
-use phs\libraries\PHS_params;
-use phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Notifications;
+use \phs\PHS_Scope;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Action_Login extends PHS_Action
 {
+
+    /**
+     * Returns an array of scopes in which action is allowed to run
+     *
+     * @return array If empty array, action is allowed in all scopes...
+     */
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+    }
+
     /**
      * @return array|bool
      */

@@ -6,6 +6,8 @@ use \phs\libraries\PHS_Model;
 
 class PHS_Model_Bg_jobs extends PHS_Model
 {
+    const ERR_DB_JOB = 10000;
+
     /**
      * @return string Returns version of model
      */
@@ -43,6 +45,87 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return true;
     }
 
+    public function get_default_settings()
+    {
+        return array(
+            'minutes_to_stall' => 15,
+        );
+    }
+
+    public function refresh_job( $job_data )
+    {
+        $this->reset_error();
+
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
+            return false;
+        }
+
+        $edit_arr = array();
+        $edit_arr['last_action'] = date( self::DATETIME_DB );
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function job_error_stop( $job_data, $params )
+    {
+        $this->reset_error();
+
+        if( empty( $job_data )
+         or empty( $params ) or !is_array( $params )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $params['last_error'] ) )
+            $params['last_error'] = self::_t( 'Unknown error.' );
+
+        $edit_arr = array();
+        $edit_arr['pid'] = 0;
+        $edit_arr['last_error'] = $params['last_error'];
+        $edit_arr['last_action'] = date( self::DATETIME_DB );
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function job_is_stalling( $job_data )
+    {
+        $this->reset_error();
+
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get background jobs details.' ) );
+            return null;
+        }
+
+        if( !($settings_arr = $this->get_model_settings()) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get background jobs model settings.' ) );
+            return null;
+        }
+
+        if( empty( $job_arr['pid'] )
+         or (!empty( $settings_arr['minutes_to_stall'] ) and floor( parse_db_date( $job_arr['last_action'] ) / 60 ) < $settings_arr['minutes_to_stall']) )
+            return false;
+
+        return true;
+    }
+
+    public function job_is_running( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data ))
+         or empty( $job_arr['pid'] ) )
+            return false;
+
+        return true;
+    }
+
     /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
@@ -63,10 +146,38 @@ class PHS_Model_Bg_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['timed_action'] )
+         or empty_db_date( $params['fields']['timed_action'] ) )
+            $params['fields']['timed_action'] = self::DATETIME_EMPTY;
+
         $params['fields']['last_action'] = date( self::DATETIME_DB );
 
-        if( empty( $params['fields']['cdate'] ) or $params['fields']['cdate'] == self::DATETIME_EMPTY )
+        if( empty( $params['fields']['cdate'] )
+         or empty_db_date( $params['fields']['cdate'] ) )
             $params['fields']['cdate'] = $params['fields']['last_action'];
+
+        return $params;
+    }
+
+    /**
+     * Called first in edit flow.
+     * Parses flow parameters if anything special should be done.
+     * This should do checks on raw parameters received by edit method.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array|false $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    protected function get_edit_prepare_params( $existing_data, $params )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            return false;
+
+        // Update last_action field on any edit's we do...
+        if( empty( $params['fields']['last_action'] )
+         or empty_db_date( $params['fields']['last_action'] ) )
+            $params['fields']['last_action'] = date( self::DATETIME_DB );
 
         return $params;
     }
@@ -110,7 +221,17 @@ class PHS_Model_Bg_jobs extends PHS_Model
                         'type' => self::FTYPE_LONGTEXT,
                         'nullable' => true,
                     ),
+                    'last_error' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                    ),
                     'last_action' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'index' => true,
+                    ),
+                    'timed_action' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                     ),

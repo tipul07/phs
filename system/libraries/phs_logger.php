@@ -139,9 +139,7 @@ class PHS_Logger extends PHS_Registry
 
         $log_file = $logs_dir.$channel;
 
-        if( !empty( $_SERVER['REMOTE_ADDR'] ) )
-            $request_ip = $_SERVER['REMOTE_ADDR'];
-        else
+        if( !($request_ip = request_ip()) )
             $request_ip = '(unknown)';
 
         $log_time = date( 'd-m-Y H:i:s T' );

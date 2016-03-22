@@ -20,6 +20,9 @@ final class PHS_session extends PHS_Registry
 
     public static function init()
     {
+        if( PHS::prevent_session() )
+            return true;
+
         self::reset_registry();
 
         if( defined( 'PHS_SESSION_DIR' ) )
@@ -38,7 +41,8 @@ final class PHS_session extends PHS_Registry
 
     public static function _d( $key = null )
     {
-        if( !self::start() )
+        if( PHS::prevent_session()
+         or !self::start() )
             return null;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
@@ -57,7 +61,8 @@ final class PHS_session extends PHS_Registry
 
     public static function _g( $key = null )
     {
-        if( !self::start() )
+        if( PHS::prevent_session()
+         or !self::start() )
             return null;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
@@ -75,7 +80,8 @@ final class PHS_session extends PHS_Registry
 
     public static function _s( $key, $val )
     {
-        if( !self::start() )
+        if( PHS::prevent_session()
+         or !self::start() )
             return false;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
@@ -91,6 +97,9 @@ final class PHS_session extends PHS_Registry
 
     public static function start()
     {
+        if( PHS::prevent_session() )
+            return false;
+
         if( self::is_started() )
             return true;
 
@@ -127,7 +136,8 @@ final class PHS_session extends PHS_Registry
 
     public static function session_close( $params = false )
     {
-        if( !self::is_started() )
+        if( PHS::prevent_session()
+         or !self::is_started() )
             return true;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
@@ -145,6 +155,9 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_open( $path, $session_name )
     {
+        if( PHS::prevent_session() )
+            return true;
+
         if( !@is_dir( $path ) )
             @mkdir( $path, 0775 );
 
@@ -158,6 +171,9 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_read( $id )
     {
+        if( PHS::prevent_session() )
+            return true;
+
         $sess_file = self::get_data( self::SESS_DIR ).'/sess_'.$id;
         if( !@file_exists( $sess_file )
          or !($ret_val = @file_get_contents( $sess_file )) )
@@ -168,6 +184,9 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_write( $id, $data )
     {
+        if( PHS::prevent_session() )
+            return true;
+
         if( !($fil = @fopen( self::get_data( self::SESS_DIR ).'/sess_'.$id, 'w' )) )
             return false;
 
@@ -180,6 +199,9 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_destroy( $id )
     {
+        if( PHS::prevent_session() )
+            return true;
+
         $file = self::get_data( self::SESS_DIR ).'/sess_'.$id;
         if( @file_exists( $file ) )
             @unlink( $file );
@@ -189,6 +211,9 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_gc( $maxlifetime )
     {
+        if( PHS::prevent_session() )
+            return true;
+
         if( ($file_list = @glob( self::get_data( self::SESS_DIR ).'/sess_*' )) )
         {
             foreach( $file_list as $file )

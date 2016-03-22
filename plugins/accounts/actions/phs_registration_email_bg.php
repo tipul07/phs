@@ -1,0 +1,52 @@
+<?php
+
+namespace phs\plugins\accounts\actions;
+
+use \phs\PHS;
+use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Hooks;
+use \phs\PHS_Scope;
+use \phs\PHS_bg_jobs;
+
+class PHS_Action_Registration_email_bg extends PHS_Action
+{
+    const ERR_UNKNOWN_ACCOUNT = 40000;
+
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_BACKGROUND );
+    }
+
+    public function execute()
+    {
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+         or !is_array( $params )
+         or empty( $params['uid'] )
+         or !($accounts_plugin = PHS::load_plugin( 'accounts' ))
+         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         or !($account_arr = $accounts_model->get_details( $params['uid'] ))
+         or $accounts_model->is_active( $account_arr )
+         or !$accounts_model->is_just_registered( $account_arr ) )
+        {
+            $this->set_error( self::ERR_UNKNOWN_ACCOUNT, self::_t( 'Cannot send registration email to this account.' ) );
+            return false;
+        }
+
+        $hook_args = array();
+        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file( 'registration' );
+        $hook_args['to'] = $account_arr['email'];
+        $hook_args['to_name'] = $account_arr['nick'];
+        $hook_args['subject'] = self::_t( 'Account Activation' );
+        $hook_args['email_vars'] = array(
+            'nick' => $account_arr['nick'],
+            'activation_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'activation' ), array( 'nick' => $account_arr['nick'] ) ),
+            'login_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $account_arr['nick'] ) ),
+        );
+
+        var_dump( PHS_Hooks::trigger_email( $hook_args ) );
+
+        return $this->quick_render_template( 'test' );
+    }
+}

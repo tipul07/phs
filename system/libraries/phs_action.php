@@ -37,6 +37,16 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         ) );
     }
 
+    /**
+     * Returns an array of scopes in which action is allowed to run
+     *
+     * @return array If empty array, action is allowed in all scopes...
+     */
+    public function allowed_scopes()
+    {
+        return array();
+    }
+
     protected function instance_type()
     {
         return self::INSTANCE_TYPE_ACTION;
@@ -132,6 +142,15 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         $this->set_action_defaults();
 
         $default_result = self::default_action_result();
+
+        if( ($allowed_scopes = $this->allowed_scopes())
+        and is_array( $allowed_scopes )
+        and ($current_scope = PHS_Scope::current_scope())
+        and !in_array( $current_scope, $allowed_scopes ) )
+        {
+            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Action not allowed to run in current scope.' ) );
+            return false;
+        }
 
         if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_BEFORE_RUN, array(
                     'controller_obj' => $this->_controller_obj,

@@ -142,6 +142,27 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     }
 
     /**
+     * @return array Array with settings of plugin of current model
+     */
+    public function get_model_settings()
+    {
+        $this->reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
+        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
+        {
+            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        if( !($settings_arr = $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings() ))
+         or !is_array( $settings_arr ) )
+            $this->get_default_settings();
+
+        return $settings_arr;
+    }
+
+    /**
      * @param array|false $params Parameters in the flow
      *
      * @return string What's primary key of the table (override the method if not `id`)
@@ -712,11 +733,17 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             break;
 
             case self::FTYPE_DATE:
-                $value = @date( self::DATE_DB, parse_db_date( $value ) );
+                if( empty_db_date( $value ) )
+                    $value = self::DATE_EMPTY;
+                else
+                    $value = @date( self::DATE_DB, parse_db_date( $value ) );
             break;
 
             case self::FTYPE_DATETIME:
-                $value = @date( self::DATETIME_DB, parse_db_date( $value ) );
+                if( empty_db_date( $value ) )
+                    $value = self::DATETIME_EMPTY;
+                else
+                    $value = @date( self::DATETIME_DB, parse_db_date( $value ) );
             break;
 
             case self::FTYPE_DECIMAL:

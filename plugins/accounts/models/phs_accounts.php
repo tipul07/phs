@@ -6,6 +6,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
 use \phs\PHS_crypt;
+use \phs\PHS_bg_jobs;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -179,6 +180,15 @@ class PHS_Model_Accounts extends PHS_Model
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
          or $user_arr['status'] != self::STATUS_DELETED )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function is_just_registered( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $user_arr['lastlog'] != self::DATETIME_EMPTY )
             return false;
 
         return $user_arr;
@@ -456,7 +466,40 @@ class PHS_Model_Accounts extends PHS_Model
         else
             $params['fields']['cdate'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['cdate'] ) );
 
+        $params['<accounts_settings>'] = $accounts_settings;
+
         return $params;
+    }
+
+    /**
+     * Called right after a successfull insert in database. Some model need more database work after successfully adding records in database or eventually chaining
+     * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
+     * key-values added in database.
+     *
+     * @param array $insert_arr Data array added with success in database
+     * @param array $params Flow parameters
+     *
+     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * Deleted record will be hard-deleted
+     */
+    protected function insert_after( $insert_arr, $params )
+    {
+        if( !empty( $params['<accounts_settings>'] ) and is_array( $params['<accounts_settings>'] )
+        and !empty( $params['<accounts_settings>']['account_requires_activation'] ) )
+        {
+            // send activation email...
+            if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_email_bg' ), array( 'uid' => $insert_arr['id'] ) ) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_INSERT );
+                else
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Error sending activation email. Please try again.' ) );
+
+                return false;
+            }
+        }
+
+        return $insert_arr;
     }
 
     /**

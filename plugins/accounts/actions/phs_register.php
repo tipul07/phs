@@ -9,9 +9,16 @@ use phs\libraries\PHS_params;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Notifications;
 use \phs\system\core\views\PHS_View;
+use \phs\PHS_Scope;
 
 class PHS_Action_Register extends PHS_Action
 {
+
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+    }
+
     /**
      * @return array|bool
      */

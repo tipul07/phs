@@ -2,6 +2,7 @@
 
 namespace phs;
 
+use phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_Action;
@@ -118,6 +119,11 @@ final class PHS extends PHS_Registry
         self::set_data( self::RUNNING_CONTROLLER, array(
             'name' => '',
             'instance' => false ) );
+    }
+
+    public static function prevent_session()
+    {
+        return (defined( 'PHS_PREVENT_SESSION' ) and constant( 'PHS_PREVENT_SESSION' ));
     }
 
     public static function current_user()
@@ -705,9 +711,17 @@ final class PHS extends PHS_Registry
         return $return_arr;
     }
 
-    public static function execute_route()
+    public static function execute_route( $params = false )
     {
         self::st_reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['die_on_error'] ) )
+            $params['die_on_error'] = true;
+        else
+            $params['die_on_error'] = (!empty( $params['die_on_error'] )?true:false);
 
         $action_result = false;
 
@@ -743,11 +757,21 @@ final class PHS extends PHS_Registry
             }
         }
 
-        if( self::st_has_error() )
+        if( !empty( $params['die_on_error'] ) and self::st_has_error() )
         {
-            echo self::st_get_error_message();
+            if( self::st_has_error() )
+                $error_msg = self::st_get_error_message();
+            else
+                $error_msg = self::_t( 'Couldn\'t instantiate scope object.' );
+
+            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
+            echo $error_msg;
+
             exit;
         }
+
+        if( empty( $scope_obj ) )
+            return false;
 
         return $scope_obj->generate_response();
     }

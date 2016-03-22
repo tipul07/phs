@@ -4,6 +4,7 @@ if( !defined( 'PHS_VERSION' ) )
     exit;
 
 use \phs\PHS_db;
+use \phs\libraries\PHS_Model;
 
 function validate_ip( $ip )
 {
@@ -305,7 +306,18 @@ function parse_db_date( $str )
 
 function empty_db_date( $date )
 {
-    return (empty( $date ) or $date == \phs\libraries\PHS_Model::DATETIME_EMPTY or $date == \phs\libraries\PHS_Model::DATE_EMPTY);
+    return (empty( $date ) or $date == PHS_Model::DATETIME_EMPTY or $date == PHS_Model::DATE_EMPTY);
+}
+
+function validate_db_date( $date, $format = false )
+{
+    if( empty_db_date( $date ) )
+        return PHS_Model::DATETIME_EMPTY;
+
+    if( $format === false )
+        $format = PHS_Model::DATETIME_DB;
+
+    return date( $format, parse_db_date( $date ) );
 }
 
 function prepare_data( $str )
