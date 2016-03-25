@@ -55,7 +55,10 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     static function default_action_result()
     {
         return array(
+            // Action "content"
             'buffer' => '',
+            'ajax_result' => false,
+
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...
 
@@ -68,7 +71,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             // anything that is required as attributes to body tag
             'page_body_extra_tags' => '',
 
-            'scope' => PHS_Scope::default_scope(),
+            // false means use current scope
+            'scope' => false,
         );
     }
 

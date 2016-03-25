@@ -27,13 +27,13 @@
             $list_arr = array();
             $list_arr['return_qid'] = false;
             $list_arr['order_by'] = 'brands.name ASC';
-            $list_arr['<linkage_func>'] = 'AND';
+            $list_arr['{linkage_func}'] = 'AND';
 
             $list_arr['fields']['status'] = am_brands_class::STATUS_ACTIVE;
             if( !is_null( $term ) and !empty( $term ) )
-                $list_arr['fields']['<linkage>'] = array(
+                $list_arr['fields']['{linkage}'] = array(
                                 'fields' => array(
-                                                '<linkage_func>' => 'or',
+                                                '{linkage_func}' => 'or',
                                                 'name' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
                                                 'code' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
                                                 )
@@ -70,7 +70,7 @@
             $list_arr = array();
             $list_arr['return_qid'] = false;
             $list_arr['order_by'] = 'assets.serial ASC, assets.type ASC';
-            $list_arr['<linkage_func>'] = 'AND';
+            $list_arr['{linkage_func}'] = 'AND';
 
             $list_arr['fields']['status'] = am_assets_class::STATUS_ACTIVE;
 
@@ -78,9 +78,9 @@
                 $list_arr['fields']['company_id'] = $fcompany;
 
             if( !is_null( $term ) and !empty( $term ) )
-                $list_arr['fields']['<linkage>'] = array(
+                $list_arr['fields']['{linkage}'] = array(
                                 'fields' => array(
-                                                '<linkage_func>' => 'or',
+                                                '{linkage_func}' => 'or',
                                                 'type' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
                                                 'serial' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
                                                 'engine_sn' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
@@ -119,7 +119,7 @@
             $list_arr = array();
             $list_arr['return_qid'] = false;
             $list_arr['order_by'] = 'companies.name ASC';
-            $list_arr['<linkage_func>'] = 'AND';
+            $list_arr['{linkage_func}'] = 'AND';
 
             $list_arr['fields']['status'] = am_companies_class::STATUS_ACTIVE;
 

@@ -6,6 +6,7 @@ use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_Signal_and_slot;
 use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Language;
 
 class PHS_View extends PHS_Signal_and_slot
 {
@@ -52,6 +53,7 @@ class PHS_View extends PHS_Signal_and_slot
         return array(
             'file' => '',
             'extra_paths' => array(),
+            'resource_validated' => false,
         );
     }
 
@@ -96,7 +98,10 @@ class PHS_View extends PHS_Signal_and_slot
                 $extra_paths = array();
                 foreach( $template['extra_paths'] as $dir_path => $dir_www )
                 {
-                    $extra_paths[PHS::from_relative_path( $dir_path )] = PHS::from_relative_url( $dir_www );
+                    $full_path = rtrim( PHS::from_relative_path( $dir_path ), '/\\' );
+                    $full_www = rtrim( PHS::from_relative_url( $dir_www ), '/\\' );
+
+                    $extra_paths[$full_path.'/'] = $full_www.'/';
                 }
             }
 
@@ -118,6 +123,7 @@ class PHS_View extends PHS_Signal_and_slot
             }
         }
 
+        $template_structure['resource_validated'] = true;
 
         return $template_structure;
     }
@@ -132,7 +138,7 @@ class PHS_View extends PHS_Signal_and_slot
         $view_params['plugin'] = $plugin;
         $view_params['template_data'] = $template_data;
 
-        if( !($view_obj = PHS_View::init_view( $template, $view_params )) )
+        if( !($view_obj = self::init_view( $template, $view_params )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error initializing view.' ) );
@@ -273,6 +279,8 @@ class PHS_View extends PHS_Signal_and_slot
         if( !@is_dir( $dir_path ) or !@is_readable( $dir_path ) )
             return false;
 
+        $dir_www = rtrim( $dir_www, '/\\' ).'/';
+
         $this->_extra_template_dirs[$dir_path.'/'] = $dir_www;
 
         return true;
@@ -319,19 +327,62 @@ class PHS_View extends PHS_Signal_and_slot
 
     protected function _get_template_directories()
     {
-        // take first dirs custom ones... (if any)
-        $this->_template_dirs = $this->_extra_template_dirs;
+        $this->_template_dirs = array();
 
-        if( !empty( $this->_controller ) and !$this->_controller->instance_is_core() )
-            $this->_template_dirs[$this->_controller->instance_plugin_path() . PHS_Instantiable::TEMPLATES_DIR.'/'] = $this->_controller->instance_plugin_www() . PHS_Instantiable::TEMPLATES_DIR.'/';
+        $current_language = PHS_Language::get_current_language();
+
+        // take first dirs custom ones... (if any)
+        if( !empty( $this->_extra_template_dirs ) and is_array( $this->_extra_template_dirs ) )
+        {
+            foreach( $this->_extra_template_dirs as $dir_path => $dir_www )
+            {
+                $dir_path = rtrim( $dir_path, '/\\' );
+                $dir_www = rtrim( $dir_www, '/\\' );
+
+                if( @file_exists( $dir_path . '/'.$current_language )
+                and @is_dir( $dir_path . '/'.$current_language ) )
+                    $this->_template_dirs[$dir_path . '/'.$current_language.'/'] = $dir_www . '/'.$current_language.'/';
+
+                $this->_template_dirs[$dir_path . '/'] = $dir_www . '/';
+            }
+        }
+
+        if( !empty( $this->_controller )
+        and !$this->_controller->instance_is_core()
+        and @file_exists( $this->_controller->instance_plugin_path() . '/' . PHS_Instantiable::TEMPLATES_DIR )
+        and @is_dir( $this->_controller->instance_plugin_path() . '/' . PHS_Instantiable::TEMPLATES_DIR ) )
+        {
+            $plugin_path = $this->_controller->instance_plugin_path();
+            $plugin_www = $this->_controller->instance_plugin_www();
+
+            if( @file_exists( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language )
+            and @is_dir( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language ) )
+                $this->_template_dirs[$plugin_path . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language . '/']
+                    = $plugin_www . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language . '/';
+
+            $this->_template_dirs[$plugin_path . PHS_Instantiable::TEMPLATES_DIR . '/'] = $plugin_www . PHS_Instantiable::TEMPLATES_DIR . '/';
+        }
 
         if( defined( 'PHS_THEMES_WWW' ) and defined( 'PHS_THEMES_DIR' ) )
         {
             if( !empty( $this->_theme ) )
+            {
+                if( @file_exists( PHS_THEMES_DIR . $this->_theme . '/' . $current_language )
+                and @is_dir( PHS_THEMES_DIR . $this->_theme . '/' . $current_language ) )
+                    $this->_template_dirs[PHS_THEMES_DIR . $this->_theme . '/' . $current_language . '/'] = PHS_THEMES_WWW . $this->_theme . '/' . $current_language . '/';
+
                 $this->_template_dirs[PHS_THEMES_DIR . $this->_theme . '/'] = PHS_THEMES_WWW . $this->_theme . '/';
+            }
+
             if( ($default_theme = PHS::get_default_theme())
             and $default_theme != $this->_theme )
+            {
+                if( @file_exists( PHS_THEMES_DIR . $default_theme . '/' . $current_language )
+                and @is_dir( PHS_THEMES_DIR . $default_theme . '/' . $current_language ) )
+                    $this->_template_dirs[PHS_THEMES_DIR . $default_theme . '/' . $current_language . '/'] = PHS_THEMES_WWW . $default_theme . '/' . $current_language . '/';
+
                 $this->_template_dirs[PHS_THEMES_DIR . $default_theme . '/'] = PHS_THEMES_WWW . $default_theme . '/';
+            }
         }
 
         return $this->_template_dirs;
@@ -478,12 +529,14 @@ class PHS_View extends PHS_Signal_and_slot
             $this->_extra_template_dirs = array();
             foreach( $template_structure['extra_paths'] as $dir_path => $dir_www )
             {
-                if( !$this->add_extra_template_dir( $dir_path, $dir_www ) )
-                {
-                    $this->_extra_template_dirs = array();
-                    $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template extra directories.' ) );
-                    return false;
-                }
+                $this->add_extra_template_dir( $dir_path, $dir_www );
+
+                //if( !$this->add_extra_template_dir( $dir_path, $dir_www ) )
+                //{
+                //    $this->_extra_template_dirs = array();
+                //    $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template extra directories.' ) );
+                //    return false;
+                //}
             }
         }
 

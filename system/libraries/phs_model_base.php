@@ -60,7 +60,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
           DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
 
-    const T_DETAILS_KEY = '<details>';
+    const T_DETAILS_KEY = '{details}';
 
     protected static $_definition = array();
 
@@ -124,21 +124,6 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     public function get_default_settings()
     {
         return array();
-    }
-
-    /**
-     * @return array Array with settings of plugin of current model
-     */
-    public function get_plugin_settings()
-    {
-        if( !($plugin_obj = $this->get_plugin_instance()) )
-            return array();
-
-        if( ($plugins_settings = $plugin_obj->get_plugin_db_settings()) === false
-         or empty( $plugins_settings ) or !is_array( $plugins_settings ) )
-            $plugins_settings = $plugin_obj->get_default_settings();
-
-        return $plugins_settings;
     }
 
     /**
@@ -886,7 +871,16 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         $params['action'] = 'insert';
 
-        if( !($params = $this->get_insert_prepare_params( $params )) )
+        if( @method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] ) )
+        {
+            if( !($params = call_user_func( array( $this, 'get_insert_prepare_params_' . $params['table_name'] ), $params )) )
+            {
+                if( ! $this->has_error() )
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t parse parameters for database insert.' ) );
+
+                return false;
+            }
+        } elseif( !($params = $this->get_insert_prepare_params( $params )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t parse parameters for database insert.' ) );
@@ -915,13 +909,31 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         $insert_arr[$params['table_index']] = $item_id;
 
         // Set to tell future calls record was just added to database...
-        $insert_arr['<new_in_db>'] = true;
+        $insert_arr['{new_in_db}'] = true;
 
-        if( !($new_insert_arr = $this->insert_after( $insert_arr, $params )) )
+        if( @method_exists( $this, 'insert_after_'.$params['table_name'] ) )
         {
+            if( !($new_insert_arr = call_user_func( array( $this, 'insert_after_' . $params['table_name'] ), $insert_arr, $params )) )
+            {
+                $error_arr = $this->get_error();
+
+                $this->hard_delete( $insert_arr );
+
+                if( self::arr_has_error( $error_arr ) )
+                    $this->copy_error_from_array( $error_arr );
+                elseif( !$this->has_error() )
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database insert.' ) );
+                return false;
+            }
+        } elseif( !($new_insert_arr = $this->insert_after( $insert_arr, $params )) )
+        {
+            $error_arr = $this->get_error();
+            
             $this->hard_delete( $insert_arr );
 
-            if( !$this->has_error() )
+            if( self::arr_has_error( $error_arr ) )
+                $this->copy_error_from_array( $error_arr );
+            elseif( !$this->has_error() )
                 $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database insert.' ) );
             return false;
         }
@@ -1179,12 +1191,12 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             $params['recurring_level'] = 0;
 
         $linkage_func = 'AND';
-        if( !empty( $params['fields']['<linkage_func>'] )
-        and in_array( strtolower( $params['fields']['<linkage_func>'] ), self::linkage_db_functions() ) )
-            $linkage_func = strtoupper( $params['fields']['<linkage_func>'] );
+        if( !empty( $params['fields']['{linkage_func}'] )
+        and in_array( strtolower( $params['fields']['{linkage_func}'] ), self::linkage_db_functions() ) )
+            $linkage_func = strtoupper( $params['fields']['{linkage_func}'] );
 
-        if( isset( $params['fields']['<linkage_func>'] ) )
-            unset( $params['fields']['<linkage_func>'] );
+        if( isset( $params['fields']['{linkage_func}'] ) )
+            unset( $params['fields']['{linkage_func}'] );
 
         foreach( $params['fields'] as $field_name => $field_val )
         {
@@ -1192,7 +1204,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             if( empty( $field_name ) )
                 continue;
 
-            if( $field_name == '<linkage>' )
+            if( $field_name == '{linkage}' )
             {
                 if( empty( $field_val ) or !is_array( $field_val )
                  or empty( $field_val['fields'] ) or !is_array( $field_val['fields'] ) )

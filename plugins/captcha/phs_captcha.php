@@ -41,12 +41,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     public function get_default_settings()
     {
         return array(
-            'template' => array(
-                'file' => 'captcha',
-                'extra_paths' => array(
-                    PHS::relative_path( $this->instance_plugin_templates_path() ) => PHS::relative_url( $this->instance_plugin_templates_www() ),
-                ),
-            ), // default template
+            'template' => $this->template_resource_from_file( 'captcha' ), // default template
             'font' => 'default.ttf',
             'characters_count' => 5,
             'image_format' => self::OUTPUT_PNG,

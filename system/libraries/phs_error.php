@@ -474,6 +474,46 @@ class PHS_Error
         return $err_arr['error_simple_msg'];
     }
 
+    public function stack_all_errors()
+    {
+        return array_merge(
+            $this->stack_error(),
+            self::st_stack_error()
+        );
+    }
+
+    public function stack_error()
+    {
+        return array(
+            'instance_error' => $this->get_error(),
+        );
+    }
+
+    public static function st_stack_error()
+    {
+        return array(
+            'static_error' => self::st_get_error(),
+        );
+    }
+
+    public function restore_errors( $errors_arr )
+    {
+        if( !empty( $errors_arr['instance_error'] )
+        and ($instance_errors = self::validate_error_arr( $errors_arr['instance_error'] )) )
+            $this->copy_error_from_array( $instance_errors );
+
+        if( !empty( $errors_arr['static_error'] )
+        and ($static_errors = self::validate_error_arr( $errors_arr['static_error'] )) )
+            self::st_copy_error_from_array( $static_errors );
+    }
+
+    public static function st_restore_errors( $errors_arr )
+    {
+        if( !empty( $errors_arr['static_error'] )
+        and ($static_errors = self::validate_error_arr( $errors_arr['static_error'] )) )
+            self::st_copy_error_from_array( $static_errors );
+    }
+
     public static function st_get_error()
     {
         return self::get_error_static_instance()->get_error();

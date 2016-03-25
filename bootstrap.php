@@ -49,6 +49,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_line_params.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_hooks.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_logger.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_notifications.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_utils.php' );
 include_once( PHS_CORE_DIR.'phs.php' );
 include_once( PHS_CORE_DIR.'phs_db.php' );
 include_once( PHS_CORE_DIR.'phs_session.php' );

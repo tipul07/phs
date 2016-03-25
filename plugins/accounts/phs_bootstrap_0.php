@@ -7,6 +7,8 @@ use \phs\libraries\PHS_Hooks;
 if( ($accounts_plugin = PHS::load_plugin( 'accounts' ))
 and $accounts_plugin->plugin_active() )
 {
+    $accounts_plugin->resolve_idler_sessions();
+
     PHS::register_hook(
         // $hook_name
         PHS_Hooks::H_USER_DB_DETAILS,
@@ -20,4 +22,5 @@ and $accounts_plugin->plugin_active() )
             'priority' => 10,
         )
     );
+
 }

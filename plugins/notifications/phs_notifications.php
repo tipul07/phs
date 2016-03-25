@@ -33,12 +33,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     public function get_default_settings()
     {
         return array(
-            'template' => array(
-                'file' => 'notifications',
-                'extra_paths' => array(
-                    PHS::relative_path( $this->instance_plugin_templates_path() ) => PHS::relative_url( $this->instance_plugin_templates_www() ),
-                ),
-            ), // default template
+            'template' => $this->template_resource_from_file( 'notifications' ), // default template
             'display_channels' => array( 'warnings', 'errors', 'success' ),
         );
     }

@@ -101,6 +101,21 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $plugin_obj;
     }
 
+    /**
+     * @return array Array with settings of plugin of current model
+     */
+    public function get_plugin_settings()
+    {
+        if( !($plugin_obj = $this->get_plugin_instance()) )
+            return array();
+
+        if( ($plugins_settings = $plugin_obj->get_plugin_db_settings()) === false
+         or empty( $plugins_settings ) or !is_array( $plugins_settings ) )
+            $plugins_settings = $plugin_obj->get_default_settings();
+
+        return $plugins_settings;
+    }
+
     final public function instance_id()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )

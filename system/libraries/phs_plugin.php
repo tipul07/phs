@@ -141,44 +141,22 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
 
     public function email_template_resource_from_file( $file )
     {
-        $return_arr = array(
+        return array(
             'file' => $file,
-            'extra_paths' => array()
+            'extra_paths' => array(
+                PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
+            ),
         );
-
-        if( @file_exists( $this->instance_plugin_email_templates_path().'/'.PHS_Language::get_current_language() )
-        and @is_dir( $this->instance_plugin_email_templates_path().'/'.PHS_Language::get_current_language() ) )
-        {
-            $return_arr['extra_paths'][PHS::relative_path( $this->instance_plugin_email_templates_path().'/'.PHS_Language::get_current_language().'/' )] =
-                PHS::relative_url( $this->instance_plugin_email_templates_www().'/'.PHS_Language::get_current_language().'/' );
-        }
-
-        // Default email templates
-        $return_arr['extra_paths'][PHS::relative_path( $this->instance_plugin_email_templates_path() )] =
-                PHS::relative_url( $this->instance_plugin_email_templates_www() );
-
-        return $return_arr;
     }
 
     public function template_resource_from_file( $file )
     {
-        $return_arr = array(
+        return array(
             'file' => $file,
-            'extra_paths' => array()
+            'extra_paths' => array(
+                PHS::relative_path( $this->instance_plugin_templates_path() ) => PHS::relative_url( $this->instance_plugin_templates_www() ),
+            ),
         );
-
-        if( @file_exists( $this->instance_plugin_templates_path().'/'.PHS_Language::get_current_language() )
-        and @is_dir( $this->instance_plugin_templates_path().'/'.PHS_Language::get_current_language() ) )
-        {
-            $return_arr['extra_paths'][PHS::relative_path( $this->instance_plugin_templates_path().'/'.PHS_Language::get_current_language().'/' )] =
-                PHS::relative_url( $this->instance_plugin_templates_www().'/'.PHS_Language::get_current_language().'/' );
-        }
-
-        // Default email templates
-        $return_arr['extra_paths'][PHS::relative_path( $this->instance_plugin_templates_path() )] =
-            PHS::relative_url( $this->instance_plugin_templates_www() );
-
-        return $return_arr;
     }
 
     public function plugin_active()

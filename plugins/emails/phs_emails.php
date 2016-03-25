@@ -75,12 +75,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     public function get_default_settings()
     {
         return array(
-            'template_main' => array(
-                'file' => 'template_emails',
-                'extra_paths' => array(
-                    PHS::relative_path( $this->instance_plugin_templates_path() ) => PHS::relative_url( $this->instance_plugin_templates_www() ),
-                ),
-            ), // default template
+            'template_main' => $this->template_resource_from_file( 'template_emails' ), // default template
             'email_vars' => array(
                 'site_name' => PHS_SITE_NAME,
                 'from_name' => PHS_SITE_NAME,
@@ -108,7 +103,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     static function valid_smtp_settings( $settings )
     {
         if( empty( $settings ) or !is_array( $settings )
-            or empty( $settings['smtp_host'] ) or empty( $settings['smtp_port'] ) )
+         or empty( $settings['smtp_host'] ) or empty( $settings['smtp_port'] ) )
             return false;
 
         return true;
@@ -443,7 +438,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return false;
         }
 
-        $smtp_library->settings( $hook_args['route_settings'] );
+        $smtp_settings = $hook_args['route_settings'];
+        if( !empty( $smtp_settings['smtp_pass'] ) )
+            $smtp_settings['smtp_pass'] = PHS_crypt::quick_decode( $smtp_settings['smtp_pass'] );
+
+        $smtp_library->settings( $smtp_settings );
 
         $email_settings = array(
             'headers' => $hook_args['internal_vars']['full_headers'],

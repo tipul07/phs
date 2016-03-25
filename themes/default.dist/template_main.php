@@ -301,6 +301,8 @@
 
     <div id="content"><?php
 
+        var_dump( PHS::current_user() );
+
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
         and is_array( $hook_args )
         and !empty( $hook_args['notifications_buffer'] ) )
@@ -315,7 +317,7 @@
         <!-- BEGIN: page_footer -->
         <div id="footer_content">
             <div class="footerlinks">
-                <a href="<?php echo PHS::url( array( 'p' => 'contact' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |
+                <a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |
                 <a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a>
             </div>
             <div class="clearfix"></div>

@@ -149,7 +149,7 @@ class PHS_bg_jobs extends PHS_Registry
 
         PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_DEBUG );
 
-        return @system( $cmd_parts['cmd'] );
+        return (@system( $cmd_parts['cmd'] ) !== false );
     }
 
     public static function get_job_command( $job_data, $extra = false )

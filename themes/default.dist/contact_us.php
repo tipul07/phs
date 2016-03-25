@@ -2,29 +2,17 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
-
-    if( !($remember_me_session_minutes = $this->context_var( 'remember_me_session_minutes' )) )
-        $remember_me_session_minutes = 0;
-
-    if( !($back_page = $this->context_var( 'back_page' )) )
-        $back_page = '';
 ?>
 <!-- BEGIN: main -->
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
-    <form id="login_form" name="login_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" method="post" class="wpcf7">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:700px;max-width:800px;margin: 0 auto;">
+    <form id="contact_form" name="contact_form" action="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
-        <?php
-        if( !empty( $back_page ) )
-        {
-            ?><input type="hidden" name="back_page" value="<?php echo form_str( safe_url( $back_page ) )?>" /><?php
-        }
-        ?>
 
-        <div class="form_container responsive" style="width: 350px;">
+
+        <div class="form_container responsive" style="width: 650px;">
 
             <section class="heading-bordered">
-                <h3><?php echo $this::_t( 'Login' )?></h3>
+                <h3><?php echo $this::_t( 'Contact Us' )?></h3>
             </section>
 
             <fieldset>
@@ -38,10 +26,7 @@
             </fieldset>
 
             <fieldset class="fixskin">
-                <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> />
-                    <strong><?php echo $this::_t( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this::_t( ' (for %s)', PHS_utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
-                <div class="clearfix"></div>
-                <small><?php echo $this::_t( 'Normal sessions will expire in %s.', PHS_utils::parse_period( $this->context_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>
+                <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> /> <strong><?php echo $this::_t( 'Remember Me' )?></strong></label>
             </fieldset>
 
             <fieldset>

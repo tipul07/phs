@@ -126,36 +126,45 @@ final class PHS extends PHS_Registry
         return (defined( 'PHS_PREVENT_SESSION' ) and constant( 'PHS_PREVENT_SESSION' ));
     }
 
-    public static function current_user()
+    public static function user_logged_in( $force = false )
     {
-        static $cuser = false;
-
-        if( !empty( $cuser ) )
-            return $cuser;
-
-        if( !($hook_args = PHS_Hooks::trigger_current_user())
-         or empty( $hook_args['user_db_data'] ) or !is_array( $hook_args['user_db_data'] ) )
-            return false;
-
-        $cuser = $hook_args['user_db_data'];
-
-        return $cuser;
+        return (($cuser_arr = self::current_user( $force )) and !empty( $cuser_arr['id'] ));
     }
 
-    public static function current_user_session()
+    public static function current_user( $force = false )
     {
-        static $cuser_session = false;
+        if( !($hook_args = self::_current_user_trigger( $force ))
+         or empty( $hook_args['user_db_data'] ) or !is_array( $hook_args['user_db_data'] )
+         or empty( $hook_args['user_db_data']['id'] ) )
+            return false;
 
-        if( !empty( $cuser_session ) )
-            return $cuser_session;
+        return $hook_args['user_db_data'];
+    }
 
-        if( !($hook_args = PHS_Hooks::trigger_current_user())
+    public static function current_user_session( $force = false )
+    {
+        if( !($hook_args = self::_current_user_trigger( $force ))
          or empty( $hook_args['session_db_data'] ) or !is_array( $hook_args['session_db_data'] ) )
             return false;
 
-        $cuser_session = $hook_args['session_db_data'];
+        return $hook_args['session_db_data'];
+    }
 
-        return $cuser_session;
+    private static function _current_user_trigger( $force = false )
+    {
+        static $hook_result = false;
+
+        if( !empty( $hook_result )
+        and empty( $force ) )
+            return $hook_result;
+
+        $hook_args = PHS_Hooks::default_user_db_details_hook_args();
+        $hook_args['force_check'] = (!empty( $force )?true:false);
+
+        if( !($hook_result = PHS_Hooks::trigger_current_user( $hook_args )) )
+            $hook_result = false;
+
+        return $hook_result;
     }
 
     /**
@@ -372,11 +381,11 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $route ) )
-        {
-            self::st_set_error( self::ERR_ROUTE, self::_t( 'Empty route.' ) );
-            return false;
-        }
+        //if( empty( $route ) )
+        //{
+        //    self::st_set_error( self::ERR_ROUTE, self::_t( 'Empty route.' ) );
+        //    return false;
+        //}
 
         $route_parts = array();
         if( !empty( $route ) )
@@ -747,7 +756,8 @@ final class PHS extends PHS_Registry
 
         else
         {
-            if( $action_result['scope'] != PHS_Scope::current_scope() )
+            if( !empty( $action_result['scope'] )
+            and $action_result['scope'] != PHS_Scope::current_scope() )
                 PHS_Scope::current_scope( $action_result['scope'] );
 
             if( !($scope_obj = PHS_Scope::get_scope_instance()) )

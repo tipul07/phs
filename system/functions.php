@@ -324,3 +324,8 @@ function prepare_data( $str )
 {
     return str_replace( '\'', '\\\'', str_replace( '\\\'', '\'', $str ) );
 }
+
+function safe_url( $url )
+{
+    return str_replace( array( '?', '&', '#' ), array( '%3F', '%26', '%23' ), $url );
+}

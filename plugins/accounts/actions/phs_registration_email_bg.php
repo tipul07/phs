@@ -10,7 +10,7 @@ use \phs\PHS_bg_jobs;
 
 class PHS_Action_Registration_email_bg extends PHS_Action
 {
-    const ERR_UNKNOWN_ACCOUNT = 40000;
+    const ERR_UNKNOWN_ACCOUNT = 40000, ERR_SEND_EMAIL = 40001;
 
     public function allowed_scopes()
     {
@@ -27,8 +27,7 @@ class PHS_Action_Registration_email_bg extends PHS_Action
          or !($accounts_plugin = PHS::load_plugin( 'accounts' ))
          or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          or !($account_arr = $accounts_model->get_details( $params['uid'] ))
-         or $accounts_model->is_active( $account_arr )
-         or !$accounts_model->is_just_registered( $account_arr ) )
+         or !$accounts_model->needs_activation( $account_arr ) )
         {
             $this->set_error( self::ERR_UNKNOWN_ACCOUNT, self::_t( 'Cannot send registration email to this account.' ) );
             return false;
@@ -41,12 +40,25 @@ class PHS_Action_Registration_email_bg extends PHS_Action
         $hook_args['subject'] = self::_t( 'Account Activation' );
         $hook_args['email_vars'] = array(
             'nick' => $account_arr['nick'],
-            'activation_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'activation' ), array( 'nick' => $account_arr['nick'] ) ),
+            'obfuscated_pass' => $accounts_model->obfuscate_password( $account_arr ),
+            'activation_link' => $accounts_plugin->get_confirmation_link( $account_arr, $accounts_plugin::CONF_REASON_ACTIVATION ),
+            'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
             'login_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $account_arr['nick'] ) ),
         );
 
-        var_dump( PHS_Hooks::trigger_email( $hook_args ) );
+        if( ($hook_results = PHS_Hooks::trigger_email( $hook_args )) === null )
+            return self::default_action_result();
 
-        return $this->quick_render_template( 'test' );
+        if( !$hook_results )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_SEND_EMAIL );
+            else
+                $this->set_error( self::ERR_SEND_EMAIL, self::_t( 'Error_sending registration email to %s.', $account_arr['email'] ) );
+
+            return false;
+        }
+
+        return PHS_Action::default_action_result();
     }
 }

@@ -1,8 +1,6 @@
 <?php
 /** @var \phs\system\core\views\PHS_View $this */
 
-use \phs\PHS;
-use \phs\libraries\PHS_Language;
 use \phs\libraries\PHS_Hooks;
 
 $hook_args = $this::validate_array( $this->context_var( 'hook_args' ), PHS_Hooks::default_init_email_hook_args() );
@@ -10,7 +8,8 @@ $hook_args = $this::validate_array( $this->context_var( 'hook_args' ), PHS_Hooks
 $email_vars = $hook_args['email_vars'];
 if( empty( $email_vars ) or !is_array( $email_vars ) )
     $email_vars = array();
-?>Registration email [<?php var_dump( $email_vars ); ?>]
+
+?>
 Hi <?php echo $email_vars['nick']?>,<br/>
 <br/>
 Welcome to the <?php echo $email_vars['site_name']?> Platform!<br/>
@@ -21,12 +20,12 @@ or copy and paste this link below in your browser:<hr/>
 <hr/>
 Here are your login details:<br/>
 Login: <?php echo $email_vars['nick']?><br/>
-Password: {EMAIL_INFO.user_password}<br/>
+Password: <?php echo $email_vars['obfuscated_pass']?><br/>
+<small>For security reasons we obfuscated your password.</small>
 <hr/>
-Want to look at our quick how-to material? <a href="{EMAIL_LINKS.how_it_works}">How it works</a><br/>
-Any problems? <a href="{EMAIL_LINKS.contact}">Get in touch</a><br/>
-
-We're looking forward to working with you!<br/><br/>
-
+Any problems? <a href="<?php echo $email_vars['contact_us_link']?>">Get in touch</a><br/>
+<br/>
+We're looking forward to working with you!<br/>
+<br/>
 Best wishes,<br/>
-{EMAIL_INFO.site_team_name}
+<?php echo $email_vars['site_name']?> team

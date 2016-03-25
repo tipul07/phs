@@ -34,6 +34,19 @@ class PHS_Action_Register extends PHS_Action
 
         $registered = PHS_params::_g( 'registered', PHS_params::T_INT );
 
+        if( empty( $foobar )
+        and PHS::user_logged_in()
+        and !PHS_Notifications::have_notifications_errors() )
+        {
+            PHS_Notifications::add_success_notice( self::_t( 'Already logged in...' ) );
+
+            $action_result = self::default_action_result();
+
+            $action_result['redirect_to_url'] = PHS::url();
+
+            return $action_result;
+        }
+
         if( !empty( $registered ) )
         {
             PHS_Notifications::add_success_notice( self::_t( 'User account registered with success...' ) );

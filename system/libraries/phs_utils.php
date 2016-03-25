@@ -241,8 +241,8 @@ class PHS_utils extends PHS_Language
             $params['extensions_arr'] = array();
 
         // you don't have to pas <level> as it is used internally
-        if( empty( $params['<level>'] ) )
-            $params['<level>'] = 0;
+        if( empty( $params['{level}'] ) )
+            $params['{level}'] = 0;
 
         if( !empty( $params['extensions_arr'] ) and is_array( $params['extensions_arr'] ) )
         {
@@ -282,7 +282,7 @@ class PHS_utils extends PHS_Language
                 if( @is_dir( $filename ) )
                 {
                     $new_params = $params;
-                    $new_params['<level>']++;
+                    $new_params['{level}']++;
 
                     if( ($dir_found_files = self::get_files_recursive( $filename, $new_params ))
                     and is_array( $dir_found_files ) )
@@ -292,7 +292,7 @@ class PHS_utils extends PHS_Language
         }
 
         // top level...
-        if( empty( $params['<level>'] ) and !empty( $found_files ) )
+        if( empty( $params['{level}'] ) and !empty( $found_files ) )
             $found_files = array_keys( $found_files );
 
         return $found_files;
