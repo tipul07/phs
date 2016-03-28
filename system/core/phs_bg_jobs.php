@@ -3,7 +3,7 @@
 namespace phs;
 
 use \phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_Registry;
 
 //! @version 1.00
 

@@ -337,7 +337,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( !($confirmation_parts = $this->get_confirmation_params( $account_data ))
+        if( !($confirmation_parts = $this->get_confirmation_params( $account_data, $reason ))
          or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
         {
             if( !$this->has_error() )

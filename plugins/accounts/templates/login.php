@@ -38,7 +38,7 @@
             </fieldset>
 
             <fieldset class="fixskin">
-                <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> />
+                <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" class="wpcf7-text" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> />
                     <strong><?php echo $this::_t( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this::_t( ' (for %s)', PHS_utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
                 <div class="clearfix"></div>
                 <small><?php echo $this::_t( 'Normal sessions will expire in %s.', PHS_utils::parse_period( $this->context_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>

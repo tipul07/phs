@@ -3,10 +3,10 @@
 namespace phs\plugins\accounts\models;
 
 use \phs\PHS;
-use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
 use \phs\PHS_crypt;
 use \phs\PHS_bg_jobs;
+use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_params;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -207,6 +207,16 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    public function needs_email_verification( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !empty( $user_arr['email_verified'] )
+         or $this->is_deleted( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
     public function can_login_subaccount( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
@@ -389,6 +399,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
         $edit_arr['expire_date'] = date( self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60 );
+        $edit_arr['location'] = $params['location'];
 
         $edit_params = array();
         $edit_params['table_name'] = 'online';

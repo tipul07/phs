@@ -329,3 +329,8 @@ function safe_url( $url )
 {
     return str_replace( array( '?', '&', '#' ), array( '%3F', '%26', '%23' ), $url );
 }
+
+function from_safe_url( $url )
+{
+    return str_replace( array( '%3F', '%26', '%23' ), array( '?', '&', '#' ), $url );
+}

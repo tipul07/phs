@@ -27,6 +27,10 @@ body { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; font-size: 14p
 .fixskin .jqcheckbox-checkbox, .fixskin .jqcheckbox-radio { float: left; margin: 0 5px; }
 .fixskin label { width: inherit !important; }
 
+.lineform { vertical-align: middle; line-height: 18px; }
+.lineform label { width: 150px !important; word-break: break-all; }
+.lineform_line { margin-left: 150px !important; }
+
 /* Typography */
 h1, h2, h3, h4 { color:#2679B5; margin: 0; font-family: inherit; text-rendering: optimizelegibility; font-weight: lighter; }
 h1, .h1 { font-size: 28px; line-height: 36px; }

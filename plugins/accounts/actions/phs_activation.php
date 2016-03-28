@@ -32,8 +32,6 @@ class PHS_Action_Activation extends PHS_Action
 
         $confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML );
 
-        $submit = PHS_params::_p( 'submit' );
-
         if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param )) )
             PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t interpret confirmation parameter. Please try again.' ) );
 
@@ -42,11 +40,14 @@ class PHS_Action_Activation extends PHS_Action
         and !empty( $confirmation_parts['reason'] )
         and ($confirmation_result = $accounts_plugin->do_confirmation_reason( $confirmation_parts['account_data'], $confirmation_parts['reason'] )) )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'Account activated...' ) );
+            PHS_Notifications::add_success_notice( self::_t( 'Action Confirmed...' ) );
 
             $action_result = self::default_action_result();
 
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'reason' => $confirmation_parts['reason'] ) );
+            if( $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION )
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'reason' => $confirmation_parts['reason'] ) );
+            else
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'reason' => $confirmation_parts['reason'] ) );
 
             return $action_result;
         }
@@ -55,6 +56,6 @@ class PHS_Action_Activation extends PHS_Action
             'nick' => (!empty( $confirmation_parts['account_data'] )?$confirmation_parts['account_data']['nick']:''),
         );
 
-        return $this->quick_render_template( 'login', $data );
+        return $this->quick_render_template( 'activation', $data );
     }
 }

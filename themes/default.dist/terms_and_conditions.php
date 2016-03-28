@@ -1,4 +1,32 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 ?>
-<h1><?php echo $this::_t( 'Terms and Conditions' )?></h1>
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:700px;max-width:1000px;margin: 0 auto;">
+
+    <section class="heading-bordered">
+        <h3><?php echo $this::_t( 'Terms and Conditions' )?></h3>
+    </section>
+
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ut lacinia turpis. Proin feugiat odio tortor, at convallis justo lobortis ut. Maecenas id dolor laoreet, vestibulum nulla quis, egestas odio. Nunc venenatis, velit a scelerisque viverra, dui magna eleifend elit, et pretium elit tellus vestibulum lorem. Nam luctus commodo aliquam. Ut a est eleifend, mollis magna id, sollicitudin massa. Integer consectetur massa at quam eleifend, finibus placerat ipsum convallis. Vivamus gravida vitae ex ut venenatis. Fusce ultrices odio sed cursus porta. Sed a diam eu ante fringilla interdum.</p>
+
+    <p>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed eget turpis purus. Suspendisse potenti. In hac habitasse platea dictumst. Sed vitae purus at risus pulvinar blandit at id nibh. Duis nec pharetra eros. Vestibulum pretium a mi et euismod. Donec euismod vitae libero eget eleifend. Fusce ut nisi quam. Donec massa lectus, lacinia ac nulla sed, sollicitudin maximus augue. Morbi et diam sit amet dui sagittis tincidunt nec id sapien.</p>
+
+    <p>Praesent ornare diam sed porta pretium. Curabitur ipsum ante, vestibulum et mattis ut, faucibus vitae purus. Nulla a odio libero. Mauris mattis in tortor non scelerisque. Integer vitae velit pretium, vulputate ipsum non, tincidunt neque. Maecenas tempor erat leo, eget convallis odio pellentesque id. Pellentesque dui tellus, laoreet id placerat at, iaculis sed nisl. Nullam malesuada sit amet turpis et porta. Donec luctus eget lorem et vehicula.</p>
+
+    <p>Donec ultricies mauris diam, sed volutpat ante ullamcorper et. Nulla facilisi. Cras sed faucibus est. Vivamus a turpis malesuada, molestie quam eu, tincidunt orci. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec non venenatis quam. Nunc quis malesuada velit. Sed faucibus ipsum ante, ut fermentum eros auctor quis. Suspendisse ac vulputate sapien, ut lobortis magna. Cras quis mauris est. Cras a sodales purus, vel hendrerit nunc. Nulla dapibus sapien vel neque hendrerit, nec sagittis lorem vehicula. Curabitur eget porta nunc. Vestibulum tempus arcu sit amet elit aliquam eleifend. Sed sed consequat lorem. Integer ullamcorper vestibulum tellus, fringilla dictum felis eleifend eu.</p>
+
+    <p>Quisque quis ligula neque. Proin ornare nibh sed libero tincidunt, nec convallis risus maximus. Nulla elementum neque at sem sollicitudin, eu eleifend mauris congue. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus ac elementum nisl. Etiam semper lectus et lacus bibendum, ac volutpat nisl eleifend. Etiam sed felis rhoncus, vestibulum eros maximus, convallis est.</p>
+
+    <p>Aliquam sit amet lectus egestas, sodales nunc eu, dapibus nulla. Suspendisse mollis ligula id dignissim auctor. Nam mollis quam vel sapien interdum tincidunt. In tortor ligula, faucibus eget sollicitudin in, pellentesque sed augue. Etiam nec suscipit orci, aliquet placerat neque. Nam sit amet diam ut lectus volutpat tincidunt eget a ligula. Ut lobortis, purus non suscipit pulvinar, enim mauris tempus est, id vulputate justo nunc sit amet metus. Praesent velit nunc, pharetra eu pretium et, suscipit in nunc. Vestibulum id mattis ipsum. Vivamus elementum libero eget leo bibendum, at congue diam varius. In dui eros, pellentesque sed venenatis sit amet, elementum a velit.</p>
+
+    <p>Praesent sapien mauris, tempus sed porttitor sed, tincidunt sodales lectus. Praesent vitae dignissim libero. Integer non ex non tortor faucibus vestibulum. Maecenas vitae sem ex. Suspendisse potenti. Morbi a ante ac tortor congue volutpat eget ac magna. Pellentesque auctor risus eros, eu fringilla nulla dignissim eget. Vestibulum id nisi vulputate, cursus mi lobortis, aliquam nunc. Cras eget dapibus est. Duis cursus sagittis facilisis. Nunc placerat magna nec ante pharetra, eget efficitur quam laoreet. Suspendisse eu odio in metus gravida gravida. Maecenas tortor purus, consequat ac turpis non, rutrum interdum enim. Fusce volutpat orci libero, et tempor justo consequat at. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc non velit ante.</p>
+
+    <p>Sed tristique ex at sodales accumsan. Curabitur vel sem arcu. Nam in diam nisi. Morbi auctor cursus nibh, ut tristique leo posuere ac. Pellentesque consequat non massa sodales fermentum. Maecenas eget lacus semper, hendrerit arcu a, porttitor purus. Vivamus ac neque erat. Etiam commodo lacinia dolor quis ornare. Nam vitae nisl scelerisque, pellentesque mi in, tempor turpis. Phasellus quis neque convallis, consequat sem eu, ultricies velit. In maximus ultricies auctor. Nam convallis lectus a aliquam iaculis. Suspendisse sapien tortor, interdum sed ullamcorper a, congue id augue. Praesent nec purus a risus viverra congue bibendum eu erat. Duis porta dolor at orci volutpat, vel aliquet metus placerat. Curabitur pharetra sapien id molestie facilisis.</p>
+
+    <p>Nullam leo lectus, volutpat eu dolor nec, convallis porttitor odio. Phasellus vel ante aliquet diam hendrerit ullamcorper. Duis convallis orci diam, eget tempus tellus pulvinar a. Vestibulum blandit felis at purus aliquam malesuada. Praesent lacinia diam sed condimentum aliquet. Nulla luctus vel odio fermentum dictum. Integer cursus maximus turpis. Nunc pretium at arcu a ultricies. Vivamus in lacus in ligula sollicitudin dictum non at nulla. In nec efficitur nisl. Ut malesuada, purus tincidunt semper aliquam, ligula mauris euismod mi, a mollis urna lectus ac ligula. Suspendisse fermentum metus a mollis volutpat. Donec tincidunt dui turpis, eget imperdiet dui efficitur in. Ut nulla nisl, feugiat ut elit volutpat, facilisis mollis tellus. Phasellus condimentum nisl vel molestie auctor.</p>
+
+    <p>Etiam pretium auctor tortor, eu lacinia massa sodales nec. Quisque aliquet sodales est in mattis. Sed id neque ligula. Vivamus quam est, tempor at vulputate in, fermentum ac quam. Sed dolor justo, vulputate in mi nec, sollicitudin lobortis arcu. Duis sit amet laoreet orci. Cras nisi mi, lacinia vitae metus vulputate, faucibus suscipit risus. Cras quis auctor diam. Vivamus non fringilla eros. Suspendisse feugiat diam ut magna tincidunt imperdiet.</p>
+
+
+
+</div>

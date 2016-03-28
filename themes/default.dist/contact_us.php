@@ -2,8 +2,8 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
+    use \phs\libraries\PHS_Hooks;
 ?>
-<!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:700px;max-width:800px;margin: 0 auto;">
     <form id="contact_form" name="contact_form" action="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
@@ -16,29 +16,39 @@
             </section>
 
             <fieldset>
-                <label for="nick"><?php echo $this::_t( 'Username' )?>:</label>
-                <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
+                <label for="email"><?php echo $this::_t( 'Email' )?>:</label>
+                <input type="text" id="email" name="email" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 350px;" />
             </fieldset>
 
             <fieldset>
-                <label for="pass"><?php echo $this::_t( 'Password' )?>:</label>
-                <input type="password" id="pass" name="pass" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" />
-            </fieldset>
-
-            <fieldset class="fixskin">
-                <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> /> <strong><?php echo $this::_t( 'Remember Me' )?></strong></label>
+                <label for="subject"><?php echo $this::_t( 'Subject' )?>:</label>
+                <input type="text" id="subject" name="subject" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'subject' ) )?>" style="width: 350px;" />
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Login' )?>" />
+                <label for="body"><?php echo $this::_t( 'Message' )?>:</label>
+                <textarea id="body" name="body" class="wpcf7-text" required="required" style="width: 400px; height: 300px;"><?php echo $this->context_var( 'body' )?></textarea>
             </fieldset>
 
-            <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this::_t( 'Forgot password' )?></a>
-            </fieldset>
+            <?php
+                $hook_params = array();
+                $hook_params['extra_img_style'] = 'padding:3px;border:1px solid black;';
+
+                if( !PHS::user_logged_in()
+                and ($captcha_buf = PHS_Hooks::trigger_captcha_display( $hook_params )) )
+                {
+                    ?>
+                    <fieldset>
+                        <label for="vcode"><?php echo $this::_t( 'Validation code' ) ?>*</label>
+                        <?php echo $captcha_buf; ?><br/>
+                        <input type="text" id="vcode" name="vcode" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="width: 160px;" />
+                    </fieldset>
+                    <?php
+                }
+            ?>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this::_t( 'Register an account' )?></a>
+                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Send Message' )?>" />
             </fieldset>
 
         </div>
@@ -47,4 +57,3 @@
 
 <div class="clearfix"></div>
 <p>&nbsp;</p>
-<!-- END: main -->

@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0.2' );
+define( 'PHS_VERSION', '1.0.0.3' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -60,9 +60,11 @@ include_once( PHS_CORE_DIR.'phs_bg_jobs.php' );
 
 use \phs\PHS;
 use \phs\PHS_db;
-use \phs\PHS_scope;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Language;
 
 // Default loggin settings (change if required in main.php)
 PHS_Logger::logging_enabled( true );
@@ -189,3 +191,11 @@ foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
 PHS::trigger_hooks( PHS_Hooks::H_AFTER_BOOTSTRAP );
 
 PHS::set_data( PHS::PHS_BOOTSTRAP_END_TIME, microtime( true ) );
+
+if( version_compare( PHS_KNOWN_VERSION, PHS_VERSION ) )
+{
+    PHS_Notifications::add_warning_notice( PHS_Language::_t( 'PHS version changed from %s to %s. '.
+                 'Make sure you change main.php file by comparing it with distribution version and in case there are changes recorded, please update your main.php file accordingly. '.
+                 'After you are sure everything is updated, change PHS_KNOWN_VERSION constant in first lines of main.php file to %s.',
+                                                             PHS_KNOWN_VERSION, PHS_VERSION, PHS_VERSION ) );
+}

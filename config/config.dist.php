@@ -3,6 +3,9 @@
 // Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
 define( 'PHS_SITE_NAME', 'PoweredByPHS.com' );
 
+// Where should Contact Us send emails (this email(s) might be shown to users) this can contain comma separated emails
+define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
+
 // Domain name only (eg. www,example.com)
 define( 'PHS_DOMAIN', 'domain.only.com' );
 // port if site is accessible with a port other than 80. If default port used (80) leave empty

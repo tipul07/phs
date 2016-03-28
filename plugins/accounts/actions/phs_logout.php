@@ -42,14 +42,6 @@ class PHS_Action_Logout extends PHS_Action
             return $action_result;
         }
 
-        if( !($plugin_settings = $this->get_plugin_settings()) )
-            $plugin_settings = array();
-
-        if( empty( $plugin_settings['session_expire_minutes_remember'] ) )
-            $plugin_settings['session_expire_minutes_remember'] = 43200; // 30 days
-        if( empty( $plugin_settings['session_expire_minutes_normal'] ) )
-            $plugin_settings['session_expire_minutes_normal'] = 0; // till browser closes
-
         if( $accounts_plugin->do_logout() )
         {
             PHS_Notifications::add_success_notice( self::_t( 'Successfully logged out...' ) );
@@ -66,6 +58,6 @@ class PHS_Action_Logout extends PHS_Action
         else
             PHS_Notifications::add_error_notice( self::_t( 'Error logging out... Please try again.' ) );
 
-        return $this->quick_render_template( 'login', $data );
+        return $this->quick_render_template( 'logout' );
     }
 }

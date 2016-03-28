@@ -2,14 +2,13 @@
 
 namespace phs\plugins\accounts\actions;
 
-use phs\libraries\PHS_Error;
 use \phs\PHS;
-use \phs\libraries\PHS_Action;
-use phs\libraries\PHS_params;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Notifications;
-use \phs\system\core\views\PHS_View;
 use \phs\PHS_Scope;
+use \phs\libraries\PHS_Error;
+use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Register extends PHS_Action
 {

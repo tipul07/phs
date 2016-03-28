@@ -96,7 +96,7 @@ class PHS_Action_Login extends PHS_Action
 
                     $action_result = self::default_action_result();
 
-                    $action_result['redirect_to_url'] = (!empty( $back_page )?$back_page:PHS::url());
+                    $action_result['redirect_to_url'] = (!empty( $back_page )?from_safe_url( $back_page ):PHS::url());
 
                     return $action_result;
                 }

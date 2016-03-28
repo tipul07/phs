@@ -128,7 +128,7 @@ final class PHS extends PHS_Registry
 
     public static function user_logged_in( $force = false )
     {
-        return (($cuser_arr = self::current_user( $force )) and !empty( $cuser_arr['id'] ));
+        return ((($cuser_arr = self::current_user( $force )) and !empty( $cuser_arr['id'] ))?$cuser_arr:false);
     }
 
     public static function current_user( $force = false )
@@ -560,11 +560,13 @@ final class PHS extends PHS_Registry
 
     public static function current_url()
     {
-        if( ($plugin = self::get_data( self::ROUTE_PLUGIN )) )
+        if( !($plugin = self::get_data( self::ROUTE_PLUGIN )) )
             $plugin = false;
-        if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) )
+        if( !($controller = self::get_data( self::ROUTE_CONTROLLER ))
+         or $controller == self::ROUTE_DEFAULT_CONTROLLER )
             $controller = false;
-        if( ($action = self::get_data( self::ROUTE_ACTION )) )
+        if( !($action = self::get_data( self::ROUTE_ACTION ))
+         or $action == self::ROUTE_DEFAULT_ACTION )
             $action = false;
 
         @parse_str( $_SERVER['QUERY_STRING'], $query_string );

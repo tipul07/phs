@@ -5,6 +5,18 @@
     use \phs\libraries\PHS_Action;
     use \phs\libraries\PHS_Language;
     use \phs\libraries\PHS_Hooks;
+    use \phs\libraries\PHS_Notifications;
+    use \phs\plugins\accounts\models\PHS_Model_Accounts;
+
+    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+    if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+    {
+        PHS_Notifications::add_error_notice( $this::_t( 'Couldn\'t load accounts model. Please contact support' ) );
+        $accounts_model = false;
+    }
+
+    if( !($cuser_arr = PHS::user_logged_in()) )
+        $cuser_arr = false;
 
     $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
 
@@ -150,14 +162,9 @@
         <div class="clearfix"></div>
 
         <ul>
-            <!-- BEGIN: guest_pane_menu -->
             <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
-            <li><a href="<?php echo PHS::url( array( 'p' => 'contact' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
-            <!-- END: guest_pane_menu -->
-
-            <!-- BEGIN: user_pane_menu -->
-
-            <!-- END: user_pane_menu -->
+            <li><a href="<?php echo PHS::url( array( 'a' => 'contact' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
+            <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
         </ul>
 
     </div>
@@ -166,55 +173,72 @@
     <div id="menu-right-pane" class="menu-pane">
         <div class="main-menu-pane-close-button" style="float: left; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
-
-        <!-- BEGIN: admin_link -->
-        <li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) )?>"><?php echo $this::_t( 'Admin Menu' )?></a></li>
-        <!-- END: admin_link -->
-
-        <!-- BEGIN: quick_profile -->
-        <li><span><?php echo $this::_t( 'Hello %s', 'user' )?></span></li>
-        <li><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ) )?>"><?php echo $this::_t( 'Edit Profile' )?></a></li>
-        <li><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'logout' ) )?>"><?php echo $this::_t( 'Logout' )?></a></li>
-        <!-- END: quick_profile -->
-
-        <!-- BEGIN: quick_login -->
-        <li><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this::_t( 'Register' )?></a></li>
-        <li><a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' )?><div style="float:right;" class="fa fa-arrow-down"></div></a>
-            <div id="login_popup" style="display: none; padding: 10px;">
-                <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" class="wpcf7">
-                    <div class="menu-pane-form-line">
-                        <label><?php echo $this::_t( 'Username' )?></label>
-                        <input id="nick" class="wpcf7-text" type="text" name="nick" required />
-                    </div>
-                    <div class="menu-pane-form-line">
-                        <label><?php echo $this::_t( 'Password' )?></label>
-                        <input id="pass" class="wpcf7-text" type="password" name="pass" required />
-                    </div>
-                    <div class="menu-pane-form-line">
-                        <div style="float: left;"><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this::_t( 'Forgot Password' )?></a></div>
-                        <div style="float: right; right: 10px;"><input type="submit" value="<?php echo $this::_t( 'Login' )?>" name="submit" /></div>
-                        <div class="clearfix"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="clearfix"></div>
-        </li>
-        <!-- END: quick_login -->
-
-        <!-- BEGIN: pane_manage_users -->
-        <li><span>{LANG: MT_MANAGE_USERS}</span><!-- BEGIN: pane_add_users -->
-            <ul>
-                <li><a href="{PAGE_LINKS.comp_adduser}" onfocus="this.blur();">{LANG: MT_MANAGE_USERS_ADD}</a></li>
-                <li><a href="{PAGE_LINKS.comp_listusers}" onfocus="this.blur();">{LANG: MT_MANAGE_USERS_MAN}</a></li>
-            </ul>
-            <!-- END: pane_add_users -->
-        </li>
-        <!-- END: pane_manage_users -->
-
-        <li><a href="{PAGE_LINKS.contact_page}" onfocus="this.blur();"><?php echo $this::_t( 'Contact Us' )?></a></li>
-
-        <!-- BEGIN: language_selection -->
+        
         <?php
+        if( !empty( $cuser_arr ) )
+        {
+            if( !empty( $accounts_model )
+            and $accounts_model->acc_is_admin( $cuser_arr ) )
+            {
+                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
+            }
+
+            ?>
+            <li><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
+            <li><a href="<?php echo PHS::url( array(
+                                                  'p' => 'accounts',
+                                                  'a' => 'edit_profile'
+                                              ) ) ?>"><?php echo $this::_t( 'Edit Profile' ) ?></a></li>
+            <li><a href="<?php echo PHS::url( array(
+                                                  'p' => 'accounts',
+                                                  'a' => 'logout'
+                                              ) ) ?>"><?php echo $this::_t( 'Logout' ) ?></a></li>
+            <?php
+        } else
+        {
+            ?>
+            <li><a href="<?php echo PHS::url( array(
+                                                  'p' => 'accounts',
+                                                  'a' => 'register'
+                                              ) ) ?>"><?php echo $this::_t( 'Register' ) ?></a></li>
+            <li>
+                <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
+                    <div style="float:right;" class="fa fa-arrow-down"></div>
+                </a>
+                <div id="login_popup" style="display: none; padding: 10px;">
+                    <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
+                                                                                                                             'p' => 'accounts',
+                                                                                                                             'a' => 'login'
+                                                                                                                         ) ) ?>" class="wpcf7">
+                        <div class="menu-pane-form-line">
+                            <label for="mt_nick"><?php echo $this::_t( 'Username' ) ?></label>
+                            <input type="text" id="mt_nick" class="wpcf7-text" name="nick" required />
+                        </div>
+                        <div class="menu-pane-form-line">
+                            <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
+                            <input type="password" id="mt_nick" class="wpcf7-text" name="pass" required />
+                        </div>
+                        <div class="menu-pane-form-line fixskin">
+                            <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
+                            <input type="checkbox" id="mt_do_remember" class="wpcf7-text" name="do_remember" rel="skin_checkbox" value="1" required />
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="menu-pane-form-line">
+                            <div style="float: left;"><a href="<?php echo PHS::url( array(
+                                                                                        'p' => 'accounts',
+                                                                                        'a' => 'forgot'
+                                                                                    ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
+                            </div>
+                            <div style="float: right; right: 10px;">
+                                <input type="submit" name="submit" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="clearfix"></div>
+            </li>
+            <?php
+        }
 
         if( ($defined_languages = PHS_Language::get_defined_languages())
         and count( $defined_languages ) > 1 )
@@ -226,7 +250,6 @@
             ?>
             <li><span><?php echo $this::_t( 'Choose language' )?></span>
                 <ul>
-                <!-- BEGIN: language_item -->
                 <?php
                 foreach( $defined_languages as $lang => $lang_details )
                 {
@@ -242,13 +265,11 @@
                     <?php
                 }
                 ?>
-                <!-- END: language_item -->
                 </ul>
             </li>
             <?php
         }
         ?>
-        <!-- END: language_selection -->
 
     </div>
     <div class="clearfix"></div>
@@ -263,20 +284,27 @@
             <div id="menu">
                 <nav>
                     <ul>
-                        <!-- BEGIN: junk -->
                         <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a></li>
-                        <!-- END: junk -->
 
                         <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Home' )?></a></li>
 
-                        <!-- BEGIN: guest_menu -->
-                        <li><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' )?></a></li>
-                        <li><a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" onfocus="this.blur();"><?php echo $this::_t( 'Login' )?></a></li>
-                        <!-- END: guest_menu -->
-
-                        <!-- BEGIN: user_menu -->
-                        <!-- END: user_menu -->
-
+                        <?php
+                        if( empty( $cuser_arr ) )
+                        {
+                            ?>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                  'p' => 'accounts',
+                                                                  'a' => 'register'
+                                                              ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' ) ?></a>
+                            </li>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                  'p' => 'accounts',
+                                                                  'a' => 'login'
+                                                              ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Login' ) ?></a>
+                            </li>
+                            <?php
+                        }
+                        ?>
                     </ul>
                 </nav>
                 <div id="user_info">
@@ -284,9 +312,16 @@
                         <ul>
                             <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_right_menu_pane()" onfocus="this.blur();" class="fa fa-user main-menu-icon"></a></li>
 
-                            <!-- BEGIN: cart_in_menu -->
-                            <li class="main-menu-placeholder" id="cart-menu-item"><a href="{PAGE_LINKS.cart_page}" class="fa fa-shopping-cart main-menu-icon"><span id="main_cart_count">0</span></a></li>
-                            <!-- END: cart_in_menu -->
+                            <?php
+                            if( false )
+                            {
+                                ?>
+                                <li class="main-menu-placeholder" id="cart-menu-item">
+                                    <a href="{PAGE_LINKS.cart_page}" class="fa fa-shopping-cart main-menu-icon"><span id="main_cart_count">0</span></a>
+                                </li>
+                                <?php
+                            }
+                            ?>
 
                         </ul>
                     </nav>
@@ -300,8 +335,6 @@
     <!-- END: page_header -->
 
     <div id="content"><?php
-
-        var_dump( PHS::current_user() );
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
         and is_array( $hook_args )
@@ -331,7 +364,7 @@
                              ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s';
             }
             ?>
-            <div style="float: right"><?php echo PHS_SITE_NAME?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
+            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
         <!-- END: page_footer -->
     </footer>

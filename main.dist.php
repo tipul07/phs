@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.0.2' );
+define( 'PHS_KNOWN_VERSION', '1.0.0.3' );
 
 @date_default_timezone_set( 'Europe/London' );
 
@@ -14,6 +14,9 @@ define( 'PHS_PATH', '/absolute/path/to/root/' );
 
 // Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
 define( 'PHS_DEFAULT_SITE_NAME', 'PoweredByPHS.com' );
+
+// Where should Contact Us send emails (this email(s) might be shown to users) this can contain comma separated emails
+define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
 
 // If no domain is defined for current request in config directory system will use PHS_DEFAULT_* values
 define( 'PHS_DEFAULT_DOMAIN', 'domain.com' ); // only domain name (used to set cookies)

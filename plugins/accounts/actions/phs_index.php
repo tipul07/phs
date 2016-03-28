@@ -9,6 +9,6 @@ class PHS_Action_Index extends PHS_Action
 {
     public function execute()
     {
-        return $this->quick_render_template( 'test' );
+        return $this->quick_render_template( 'login' );
     }
 }

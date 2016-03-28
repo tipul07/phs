@@ -182,9 +182,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         if( empty( $hook_args['template'] )
-         or !($email_template = PHS_View::validate_template_resource( $hook_args['template'] )) )
+         or !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params )) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating email template file.' ) );
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_TEMPLATE );
+            else
+                $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating email template file.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
