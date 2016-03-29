@@ -113,12 +113,8 @@ final class PHS extends PHS_Registry
         self::set_data( self::CURRENT_THEME, '' );
         self::set_data( self::DEFAULT_THEME, '' );
 
-        self::set_data( self::RUNNING_ACTION, array(
-            'name' => '',
-            'instance' => false ) );
-        self::set_data( self::RUNNING_CONTROLLER, array(
-            'name' => '',
-            'instance' => false ) );
+        self::set_data( self::RUNNING_ACTION, false );
+        self::set_data( self::RUNNING_CONTROLLER, false );
     }
 
     public static function prevent_session()
@@ -745,7 +741,7 @@ final class PHS extends PHS_Registry
         /** @var \phs\libraries\PHS_Controller $controller_obj */
         elseif( !($controller_obj = self::load_controller( $route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN] )) )
         {
-            self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Couldn\'t obtain controller instance.' ) );
+            self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER] ) );
         }
 
         elseif( !($action_result = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] )) )

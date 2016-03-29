@@ -14,8 +14,10 @@ class PHS_Model_Accounts extends PHS_Model
 
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
 
-    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
+    // "Hardcoded" minimum password length (if 'min_password_length' is not found in settings)
+    const DEFAULT_MIN_PASSWORD_LENGTH = 8;
 
+    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
     protected static $STATUSES_ARR = array(
         self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
         self::STATUS_ACTIVE => array( 'title' => 'Active' ),
@@ -25,7 +27,6 @@ class PHS_Model_Accounts extends PHS_Model
 
     const LVL_GUEST = 0, LVL_MEMBER = 1,
           LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
-
     protected static $LEVELS_ARR = array(
         self::LVL_MEMBER => array( 'title' => 'Member' ),
         self::LVL_OPERATOR => array( 'title' => 'Operator' ),
@@ -637,12 +638,34 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['pass'] )
-        and !empty( $accounts_settings['min_password_length'] )
-        and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
+        if( !empty( $params['fields']['pass'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
-            return false;
+            if( !empty( $accounts_settings['min_password_length'] )
+            and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
+            {
+                $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.',
+                                                              $accounts_settings['min_password_length'] ) );
+
+                return false;
+            }
+
+            if( !empty( $accounts_settings['password_regexp'] )
+            and !@preg_match( $accounts_settings['password_regexp'], $params['fields']['pass'] ) )
+            {
+                if( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
+                and !empty( $regexp_parts[1] ) )
+                {
+                    if( empty( $regexp_parts[2] ) )
+                        $regexp_parts[2] = '';
+
+                    $this->set_error( self::ERR_INSERT,
+                                      self::_t( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
+                                                $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
+                } else
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
+
+                return false;
+            }
         }
 
         $check_arr = array();
@@ -667,14 +690,11 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( empty( $params['user_details'] ) )
-            $params['user_details'] = array();
-
         if( empty( $params['fields']['pass'] ) )
-            $params['fields']['pass'] = self::generate_password( (!empty( $accounts_settings['min_password_length'] )?$accounts_settings['min_password_length']+3:8) );
+            $params['fields']['pass'] = self::generate_password( (!empty( $accounts_settings['min_password_length'] )?$accounts_settings['min_password_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
         if( empty( $params['fields']['pass_salt'] ) )
-            $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:8) );
+            $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
         $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
         $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
@@ -689,6 +709,9 @@ class PHS_Model_Accounts extends PHS_Model
             $params['fields']['cdate'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['cdate'] ) );
 
         $params['{accounts_settings}'] = $accounts_settings;
+
+        if( empty( $params['{users_details}'] ) or !is_array( $params['{users_details}'] ) )
+            $params['{users_details}'] = false;
 
         return $params;
     }
@@ -706,6 +729,44 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function insert_after_users( $insert_arr, $params )
     {
+        $insert_arr['{users_details}'] = false;
+
+        if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
+        {
+            if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+            {
+                $this->set_error( self::ERR_INSERT, self::_t( 'Error obtaining account details model instance.' ) );
+                return false;
+            }
+
+            $params['{users_details}']['uid'] = $insert_arr['id'];
+
+            $details_params = array();
+            $details_params['fields'] = $params['{users_details}'];
+
+            if( !($users_details = $accounts_details_model->insert( $details_params )) )
+            {
+                if( $accounts_details_model->has_error() )
+                    $this->copy_error( $accounts_details_model );
+                else
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Error saving account details in database. Please try again.' ) );
+
+                return false;
+            }
+
+            $insert_arr['{users_details}'] = $users_details;
+
+            if( !db_query( 'UPDATE users SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$insert_arr['id'].'\'', self::get_db_connection() ) )
+            {
+                self::st_reset_error();
+
+                $accounts_details_model->hard_delete( $users_details );
+
+                $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t link account details with the account. Please try again.' ) );
+                return false;
+            }
+        }
+        
         if( !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
         and !empty( $params['{accounts_settings}']['account_requires_activation'] ) )
         {
@@ -725,11 +786,224 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
+     * Called first in edit flow.
+     * Parses flow parameters if anything special should be done.
+     * This should do checks on raw parameters received by edit method.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array|false $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    protected function get_edit_prepare_params( $existing_data, $params )
+    {
+        if( !($accounts_settings = $this->get_plugin_settings())
+         or !is_array( $accounts_settings ) )
+            $accounts_settings = array();
+
+        if( isset( $params['fields']['nick'] )
+        and $params['fields']['nick'] != $existing_data['nick'] )
+        {
+            $check_arr = array();
+            $check_arr['nick'] = $params['fields']['nick'];
+            $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+            if( $this->get_details_fields( $check_arr ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Nickname already exists in database. Please pick another one.' ) );
+                return false;
+            }
+        }
+
+        if( !empty( $params['fields']['pass'] ) )
+        {
+            if( !empty( $accounts_settings['min_password_length'] )
+            and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
+            {
+                $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
+                return false;
+            }
+
+            if( !empty( $accounts_settings['password_regexp'] )
+            and !@preg_match( $accounts_settings['password_regexp'], $params['fields']['pass'] ) )
+            {
+                if( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
+                and !empty( $regexp_parts[1] ) )
+                {
+                    if( empty( $regexp_parts[2] ) )
+                        $regexp_parts[2] = '';
+
+                    $this->set_error( self::ERR_INSERT,
+                                      self::_t( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
+                                                $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
+                } else
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
+
+                return false;
+            }
+
+            $params['fields']['pass_salt'] = self::generate_password( (! empty($accounts_settings['pass_salt_length']) ? $accounts_settings['pass_salt_length'] + 3 : 8) );
+            $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
+            $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
+        }
+
+        if( isset( $params['fields']['email'] )
+        and $params['fields']['email'] != $existing_data['email'] )
+        {
+            if( empty( $params['fields']['email'] )
+             or !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Invalid email address.' ) );
+                return false;
+            }
+
+            if( !empty( $accounts_settings['email_unique'] ) )
+            {
+                $check_arr = array();
+                $check_arr['email'] = $params['fields']['email'];
+                $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+                if( $this->get_details_fields( $check_arr ) )
+                {
+                    $this->set_error( self::ERR_EDIT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                    return false;
+                }
+            }
+
+            $params['fields']['email_verified'] = 0;
+        }
+
+        if( isset( $params['fields']['status'] ) )
+        {
+            if( !$this->valid_status( $params['fields']['status'] ) )
+            {
+                $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid status.' ) );
+                return false;
+            }
+
+            $cdate = date( self::DATETIME_DB );
+            $params['fields']['status_date'] = $cdate;
+
+            if( $params['fields']['status'] == self::STATUS_DELETED )
+                $params['fields']['deleted'] = $cdate;
+        }
+
+        if( isset( $params['fields']['level'] )
+        and !$this->valid_level( $params['fields']['level'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid account level.' ) );
+            return false;
+        }
+
+        $params['{accounts_settings}'] = $accounts_settings;
+
+        if( empty( $params['{users_details}'] ) or !is_array( $params['{users_details}'] ) )
+            $params['{users_details}'] = false;
+
+        return $params;
+    }
+
+    /**
+     * Called right after a successfull edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
+     * in database.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
+     * @param array $params Flow parameters
+     *
+     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * Deleted record will be hard-deleted
+     */
+    protected function edit_after( $existing_data, $edit_arr, $params )
+    {
+        if( empty( $existing_data['{users_details}'] ) )
+        {
+            if( !empty( $existing_data['details_id'] ) )
+                $existing_data['{users_details}'] = $existing_data['details_id'];
+            else
+                $existing_data['{users_details}'] = false;
+        }
+
+        if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
+        {
+            if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Error obtaining account details model instance.' ) );
+                return false;
+            }
+
+            $users_details = false;
+            if( !empty( $existing_data['{users_details}'] )
+            and !($users_details = $accounts_details_model->data_to_array( $existing_data['{users_details}'] )) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Error obtaining account details from database.' ) );
+                return false;
+            }
+
+            if( empty( $users_details ) )
+            {
+                $params['{users_details}']['uid'] = $existing_data['id'];
+
+                $details_params = array();
+                $details_params['fields'] = $params['{users_details}'];
+
+                if( !($users_details = $accounts_details_model->insert( $details_params )) )
+                {
+                    if( $accounts_details_model->has_error() )
+                        $this->copy_error( $accounts_details_model );
+                    else
+                        $this->set_error( self::ERR_EDIT, self::_t( 'Error saving account details in database. Please try again.' ) );
+
+                    return false;
+                }
+
+                if( !db_query( 'UPDATE users SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$existing_data['id'].'\'', self::get_db_connection() ) )
+                {
+                    self::st_reset_error();
+
+                    $accounts_details_model->hard_delete( $users_details );
+
+                    $this->set_error( self::ERR_EDIT, self::_t( 'Couldn\'t link account details with the account. Please try again.' ) );
+                    return false;
+                }
+
+                $existing_data['details_id'] = $users_details['id'];
+            } else
+            {
+                $details_params = array();
+                $details_params['fields'] = $params['{users_details}'];
+
+                if( !($users_details = $accounts_details_model->edit( $users_details, $details_params )) )
+                {
+                    if( $accounts_details_model->has_error() )
+                        $this->copy_error( $accounts_details_model );
+                    else
+                        $this->set_error( self::ERR_EDIT, self::_t( 'Error saving account details in database. Please try again.' ) );
+
+                    return false;
+                }
+            }
+
+            $existing_data['{users_details}'] = $users_details;
+        }
+
+        if( !empty( $edit_arr['pass'] )
+        and !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
+        and !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
+        {
+            // send password changed email...
+            PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'pass_changed_email_bg' ), array( 'uid' => $existing_data['id'] ) );
+        }
+
+        return $existing_data;
+    }
+
+    /**
      * @param array|bool $params Parameters in the flow
      *
      * @return array Returns an array with table fields
      */
-    final protected function fields_definition( $params = false )
+    final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
         if( empty( $params ) or !is_array( $params )

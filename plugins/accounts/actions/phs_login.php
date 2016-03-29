@@ -77,7 +77,7 @@ class PHS_Action_Login extends PHS_Action
             if( empty( $nick ) or empty( $pass ) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide complete mandatory fields.' ) );
 
-            elseif( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+            elseif( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
 
             elseif( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $nick ) ))

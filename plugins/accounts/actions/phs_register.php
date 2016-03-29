@@ -62,7 +62,7 @@ class PHS_Action_Register extends PHS_Action
         {
             /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
-            if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+            if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
 
             elseif( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )

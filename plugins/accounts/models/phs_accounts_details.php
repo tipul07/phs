@@ -78,7 +78,7 @@ class PHS_Model_Accounts_details extends PHS_Model
      *
      * @return array Returns an array with table fields
      */
-    final protected function fields_definition( $params = false )
+    final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
         if( empty( $params ) or !is_array( $params )
@@ -98,6 +98,7 @@ class PHS_Model_Accounts_details extends PHS_Model
                     'uid' => array(
                         'type' => self::FTYPE_INT,
                         'index' => true,
+                        'editable' => false,
                     ),
                     'title' => array(
                         'type' => self::FTYPE_VARCHAR,
@@ -130,30 +131,4 @@ class PHS_Model_Accounts_details extends PHS_Model
 
         return $return_arr;
     }
-
-    /**
-     * Method which handles receiving signals
-     *
-     * @param \phs\libraries\PHS_Signal_and_slot $sender Class that sent the signal
-     * @param string $signal Signal sent
-     * @param array|bool $signal_params Signal parameters
-     *
-     * @return array Signal response array
-     */
-    //protected function signal_receive( $sender, $signal, $signal_params = false )
-    //{
-    //    $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
-    //
-    //    switch( $signal )
-    //    {
-    //        case self::SIGNAL_INSTALL:
-    //        case self::SIGNAL_UPDATE:
-    //            if( $sender->instance_id() === self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'accounts', 'accounts' ) )
-    //                $this->install();
-    //        break;
-    //    }
-    //
-    //    return $return_arr;
-    //}
-
 }

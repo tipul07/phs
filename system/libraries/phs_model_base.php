@@ -86,7 +86,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
      *
      * @return array Returns an array with table fields
      */
-    abstract protected function fields_definition( $params = false );
+    abstract public function fields_definition( $params = false );
 
     /**
      * Performs any necessary actions when updating model from $old_version to $new_version

@@ -163,7 +163,7 @@
 
         <ul>
             <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
-            <li><a href="<?php echo PHS::url( array( 'a' => 'contact' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
+            <li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
             <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
         </ul>
 
@@ -189,6 +189,10 @@
                                                   'p' => 'accounts',
                                                   'a' => 'edit_profile'
                                               ) ) ?>"><?php echo $this::_t( 'Edit Profile' ) ?></a></li>
+            <li><a href="<?php echo PHS::url( array(
+                                                  'p' => 'accounts',
+                                                  'a' => 'change_password'
+                                              ) ) ?>"><?php echo $this::_t( 'Change Password' ) ?></a></li>
             <li><a href="<?php echo PHS::url( array(
                                                   'p' => 'accounts',
                                                   'a' => 'logout'

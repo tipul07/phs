@@ -47,8 +47,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             'account_requires_activation' => true,
             'generate_pass_if_not_present' => true,
             'email_unique' => true,
-            'min_password_length' => 6,
+            'min_password_length' => 8,
+            // Make sure password generator method in accounts model follows this rule... (escape char is /)
+            'password_regexp' => '', // password regular expression (leave empty if not wanted)
             'pass_salt_length' => 8,
+            'announce_pass_change' => true,
             'session_expire_minutes_remember' => 2880, // 2 days
             'session_expire_minutes_normal' => 60, // 1 hour
         );

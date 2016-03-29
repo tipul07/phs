@@ -24,8 +24,8 @@ class PHS_Action_Registration_email_bg extends PHS_Action
         if( !($params = PHS_bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['uid'] )
-         or !($accounts_plugin = PHS::load_plugin( 'accounts' ))
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         or !($accounts_plugin = PHS::load_plugin( $this->instance_plugin_name() ))
+         or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
          or !($account_arr = $accounts_model->get_details( $params['uid'] ))
          or !$accounts_model->needs_activation( $account_arr ) )
         {

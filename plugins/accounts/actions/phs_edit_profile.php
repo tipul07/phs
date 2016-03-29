@@ -57,12 +57,23 @@ class PHS_Action_Edit_profile extends PHS_Action
             return $action_result;
         }
 
+        $changes_saved = PHS_params::_g( 'changes_saved', PHS_params::T_NOHTML );
+
+        if( !empty( $changes_saved ) )
+            PHS_Notifications::add_success_notice( self::_t( 'Changes saved to database.' ) );
+
+        if( empty( $current_user['details_id'] )
+         or empty( $accounts_details_model )
+         or !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
+            $user_details = false;
+
         if( !empty( $accounts_plugin )
         and !empty( $reason )
         and ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
             PHS_Notifications::add_success_notice( $reason_success_text );
 
-        if( !($email_needs_verification = $accounts_model->needs_email_verification( $current_user )) )
+        if( empty( $accounts_model )
+         or !($email_needs_verification = $accounts_model->needs_email_verification( $current_user )) )
             $verify_email_link = '#';
         else
             $verify_email_link = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'verify_email' => 1 ) );
@@ -84,6 +95,7 @@ class PHS_Action_Edit_profile extends PHS_Action
             PHS_Notifications::add_success_notice( self::_t( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
 
         if( !empty( $verify_email )
+        and !empty( $accounts_model )
         and $accounts_model->needs_email_verification( $current_user ) )
         {
             if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'verify_email_bg' ), array( 'uid' => $current_user['id'] ) ) )
@@ -101,14 +113,9 @@ class PHS_Action_Edit_profile extends PHS_Action
             }
         }
 
-        $user_details = false;
         if( empty( $foobar ) )
         {
             $email = $current_user['email'];
-
-            if( empty( $current_user['details_id'] )
-             or !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
-                $user_details = false;
 
             if( !empty( $user_details ) )
             {
@@ -120,9 +127,39 @@ class PHS_Action_Edit_profile extends PHS_Action
             }
         }
 
-        if( !empty( $submit ) )
+        if( !empty( $submit )
+        and !empty( $accounts_model ) )
         {
+            $edit_arr = array();
+            $edit_arr['email'] = $email;
 
+            $edit_details_arr = array();
+            $edit_details_arr['title'] = $title;
+            $edit_details_arr['fname'] = $fname;
+            $edit_details_arr['lname'] = $lname;
+            $edit_details_arr['phone'] = $phone;
+            $edit_details_arr['company'] = $company;
+
+            $edit_params_arr = array();
+            $edit_params_arr['fields'] = $edit_arr;
+            $edit_params_arr['{users_details}'] = $edit_details_arr;
+
+            if( ($new_account = $accounts_model->edit( $current_user, $edit_params_arr )) )
+            {
+                PHS_Notifications::add_success_notice( self::_t( 'Changes saved...' ) );
+
+                $action_result = self::default_action_result();
+
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'changes_saved' => 1 ) );
+
+                return $action_result;
+            } else
+            {
+                if( $accounts_model->has_error() )
+                    PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( self::_t( 'Error saving details to database. Please try again.' ) );
+            }
         }
 
         $data = array(

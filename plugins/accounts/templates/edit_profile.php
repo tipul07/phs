@@ -4,7 +4,6 @@
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
 ?>
-<!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:650px;max-width:1000px;margin: 0 auto;">
     <form id="edit_profile_form" name="edit_profile_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
@@ -65,13 +64,9 @@
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'passwd' ) )?>"><?php echo $this::_t( 'Change password' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ) )?>"><?php echo $this::_t( 'Change password' )?></a>
             </fieldset>
 
         </div>
     </form>
 </div>
-
-<div class="clearfix"></div>
-<p>&nbsp;</p>
-<!-- END: main -->

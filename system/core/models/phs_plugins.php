@@ -471,7 +471,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return array Returns an array with table fields
      */
-    final protected function fields_definition( $params = false )
+    final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
         if( empty( $params ) or !is_array( $params )
