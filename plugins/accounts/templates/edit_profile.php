@@ -29,6 +29,7 @@
                 else
                     echo $this::_t( 'Email is %s', '<span style="color: green;">'.$this::_t( 'VERIFIED' ).'</span>.' );
                 ?>
+                </div>
             </fieldset>
 
             <fieldset class="lineform">

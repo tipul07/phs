@@ -6,9 +6,6 @@ namespace phs\libraries;
 
 class PHS_encdec extends PHS_Language
 {
-    //! Functionality error
-    const ERR_FUNCTIONALITY = 2;
-
     // Default crypting keys
     // this array must have max 34 elements!!! and all elements must have same length
     // ONCE YOU START ENCODING STRINGS WITH A SET OF INTERNAL KEYS DON'T CHANGE THEM

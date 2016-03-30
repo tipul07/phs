@@ -9,12 +9,8 @@ namespace phs\libraries;
 
 class PHS_utils extends PHS_Language
 {
-    //! Error related to parameters sent to method
-    const ERR_PARAMS = 1;
-    //! Functionality error
-    const ERR_FUNCTIONALITY = 2;
     //! Error related to directories
-    const ERR_DIRECTORY = 3;
+    const ERR_DIRECTORY = 1;
 
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
 

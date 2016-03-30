@@ -913,8 +913,8 @@ a:hover.btn-big {
 
 .wpcf7-submit{
     border: 0px solid;
-    /*font: 12px 'Open Sans', Arial, sans-serif;*/
-    text-transform: uppercase;
+    /*font: 12px 'Open Sans', Arial, sans-serif;
+    text-transform: uppercase;*/
     line-height: 11px;
     color: #fff;
     background-color: #333;

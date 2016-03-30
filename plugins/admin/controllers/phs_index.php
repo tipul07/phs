@@ -43,6 +43,11 @@ class PHS_Controller_Index extends PHS_Controller
             return $this->execute_foobar_action();
         }
 
-        return parent::execute_action( $action, $plugin );
+        if( !($action_result = parent::execute_action( $action, $plugin )) )
+            return false;
+
+        $action_result['page_template'] = 'template_admin';
+
+        return $action_result;
     }
 }

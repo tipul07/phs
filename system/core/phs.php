@@ -781,7 +781,7 @@ final class PHS extends PHS_Registry
         if( empty( $scope_obj ) )
             return false;
 
-        return $scope_obj->generate_response();
+        return $scope_obj->generate_response( $action_result );
     }
 
     public static function platform_debug_data()

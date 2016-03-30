@@ -10,7 +10,7 @@ use \phs\libraries\PHS_params;
 
 class PHS_Model_Accounts extends PHS_Model
 {
-    const ERR_LOGIN = 10001;
+    const ERR_LOGIN = 10001, ERR_EMAIL = 10002;
 
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
 
@@ -197,12 +197,30 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    public function has_logged_in( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $user_arr['lastlog'] != self::DATETIME_EMPTY )
+            return false;
+
+        return $user_arr;
+    }
+
     public function needs_activation( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
          or !$this->is_just_registered( $user_arr )
          or $this->is_active( $user_arr )
          or $this->is_deleted( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function needs_confirmation_email( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or $this->has_logged_in( $user_arr ) )
             return false;
 
         return $user_arr;
@@ -219,6 +237,24 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     public function can_login_subaccount( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !$this->acc_is_sadmin( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function can_create_accounts( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !$this->acc_is_sadmin( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function can_list_accounts( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
          or !$this->acc_is_sadmin( $user_arr ) )
@@ -364,11 +400,32 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $clear_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] );
+        $clean_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] );
 
-        $obfuscated_pass = substr( $clear_pass, 0, 1 ).str_repeat( '*', strlen( $clear_pass ) - 2 ).substr( $clear_pass, -1 );
+        $obfuscated_pass = substr( $clean_pass, 0, 1 ).str_repeat( '*', strlen( $clean_pass ) - 2 ).substr( $clean_pass, -1 );
 
         return $obfuscated_pass;
+    }
+
+    public function clean_password( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data ))
+         or empty( $account_arr['pass_clear'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( !($clean_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t obtain account password.' ) );
+            return false;
+        }
+
+        return $clean_pass;
     }
 
     public function clear_idler_sessions()
@@ -567,6 +624,34 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->edit( $account_arr, $edit_params );
     }
 
+    public function send_confirmation_email( $account_data, $params = false )
+    {
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_EMAIL, self::_t( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( !$this->needs_confirmation_email( $account_arr ) )
+        {
+            $this->set_error( self::ERR_EMAIL, self::_t( 'This account doesn\'t need a confirmation email anymore. Logged in before.' ) );
+            return false;
+        }
+
+        if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_confirmation_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_EMAIL );
+            else
+                $this->set_error( self::ERR_EMAIL, self::_t( 'Error sending confirmation email. Please try again.' ) );
+
+            return false;
+        }
+
+        return $account_arr;
+    }
+
     /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
@@ -713,6 +798,9 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{users_details}'] ) or !is_array( $params['{users_details}'] ) )
             $params['{users_details}'] = false;
 
+        if( empty( $params['{send_confirmation_email}'] ) )
+            $params['{send_confirmation_email}'] = false;
+
         return $params;
     }
 
@@ -767,8 +855,10 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
         
+        $sent_activation_email = false;
         if( !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
-        and !empty( $params['{accounts_settings}']['account_requires_activation'] ) )
+        and !empty( $params['{accounts_settings}']['account_requires_activation'] )
+        and $this->needs_activation( $insert_arr ) )
         {
             // send activation email...
             if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_email_bg' ), array( 'uid' => $insert_arr['id'] ) ) )
@@ -780,6 +870,15 @@ class PHS_Model_Accounts extends PHS_Model
 
                 return false;
             }
+            $sent_activation_email = true;
+        }
+
+        if( !$sent_activation_email
+        and !empty( $params['{send_confirmation_email}'] ) )
+        {
+            // send confirmation email...
+            if( !$this->send_confirmation_email( $insert_arr ) )
+                return false;
         }
 
         return $insert_arr;

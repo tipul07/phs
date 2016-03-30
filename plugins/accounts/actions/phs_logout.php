@@ -28,7 +28,10 @@ class PHS_Action_Logout extends PHS_Action
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
+        {
             PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            return self::default_action_result();
+        }
 
         if( !($current_user = PHS::current_user())
          or empty( $current_user['id'] ) )

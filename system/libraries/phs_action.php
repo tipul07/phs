@@ -8,9 +8,9 @@ use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Signal_and_slot
 {
-    const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
+    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002;
 
-    const ERR_CONTROLLER_INSTANCE = 30000, ERR_RUN_ACTION = 30001, ERR_RENDER = 30002;
+    const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
     /** @var PHS_Controller */
     private $_controller_obj = null;

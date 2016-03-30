@@ -30,9 +30,16 @@ class PHS_Action_Change_password extends PHS_Action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
+        {
             PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            return self::default_action_result();
+        }
+
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        {
             PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            return self::default_action_result();
+        }
 
         if( !($current_user = PHS::user_logged_in()) )
         {
@@ -72,8 +79,7 @@ class PHS_Action_Change_password extends PHS_Action
 
         $submit = PHS_params::_p( 'submit' );
 
-        if( !empty( $submit )
-        and !empty( $accounts_model ) )
+        if( !empty( $submit ) )
         {
             if( empty( $pass ) or empty( $pass1 ) or empty( $pass2 ) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide mandatory fields.' ) );

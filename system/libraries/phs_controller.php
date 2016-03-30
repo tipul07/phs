@@ -7,7 +7,7 @@ use \phs\libraries\PHS_Hooks;
 
 abstract class PHS_Controller extends PHS_Signal_and_slot
 {
-    const ERR_RUN_ACTION = 30000;
+    const ERR_RUN_ACTION = 40000;
 
     private $_action = false;
 
@@ -101,11 +101,13 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         if( $action_result === false )
             $action_result = PHS_Action::default_action_result();
 
+        $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
+
         $foobar_action_obj->set_controller( $this );
         $foobar_action_obj->run_action();
         $foobar_action_obj->set_action_result( $action_result );
 
-        return self::validate_array( $action_result, PHS_Action::default_action_result() );
+        return $action_result;
     }
 
 }

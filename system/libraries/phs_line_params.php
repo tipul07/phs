@@ -6,11 +6,6 @@ namespace phs\libraries;
 
 class PHS_line_params extends PHS_Language
 {
-    //! All went ok
-    const ERR_OK = 0;
-    //! Wrong parameters sent to class
-    const ERR_PARAMS = 1;
-
     function __construct()
     {
         parent::__construct();

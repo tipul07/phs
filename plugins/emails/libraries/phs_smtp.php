@@ -14,8 +14,8 @@ class PHS_smtp extends PHS_Language
     const CLASS_VERSION = '1.07';
 
     //! /descr Class was initialised succesfully
-    const ERR_OK = 0, ERR_PARAMS = 1, ERR_FUNCTIONALITY = 2, ERR_CONNECT = 3, ERR_AUTHENTICATION = 4, ERR_EMAIL_DETAILS = 5, ERR_NOT_EXPECTED = 6,
-          ERR_FROM = 7, ERR_TO = 8, ERR_DATA = 9, ERR_BODY = 10, ERR_NOOP = 11;
+    const ERR_CONNECT = 1, ERR_AUTHENTICATION = 2, ERR_EMAIL_DETAILS = 3, ERR_NOT_EXPECTED = 4,
+          ERR_FROM = 5, ERR_TO = 6, ERR_DATA = 7, ERR_BODY = 8, ERR_NOOP = 9;
 
     const EOL = "\r\n";
 

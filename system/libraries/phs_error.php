@@ -7,7 +7,7 @@ if( !defined( 'PHS_VERSION' ) )
 
 class PHS_Error
 {
-    const ERR_OK = 0, ERR_PARAMETERS = 10000;
+    const ERR_OK = 0, ERR_PARAMETERS = 10000, ERR_FUNCTIONALITY = 10001;
 
     //! Error code as integer
     /** @var int $error_no */

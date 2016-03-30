@@ -10,8 +10,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
 
-    const ERR_MODEL_FIELDS = 1000, ERR_TABLE_GENERATE = 1001, ERR_INSTALL = 1002,
-          ERR_INSERT = 1003, ERR_EDIT = 1004, ERR_DELETE_BY_INDEX = 1005;
+    const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002,
+          ERR_INSERT = 40003, ERR_EDIT = 40004, ERR_DELETE_BY_INDEX = 40005;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';

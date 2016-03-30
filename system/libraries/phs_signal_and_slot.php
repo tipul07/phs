@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 abstract class PHS_Signal_and_slot extends PHS_Instantiable
 {
-    const ERR_SIGNAL_DEFINITION = 20000, ERR_SIGNAL_CONNECTION = 20001, ERR_SIGNAL_TRIGGER = 20002;
+    const ERR_SIGNAL_DEFINITION = 30000, ERR_SIGNAL_CONNECTION = 30001, ERR_SIGNAL_TRIGGER = 30002;
 
     private static $_signals = array();
     private $_connections = array();

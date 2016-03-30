@@ -11,7 +11,7 @@ use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Captcha extends PHS_Plugin
 {
-    const ERR_TEMPLATE = 40000, ERR_RENDER = 40001, ERR_NOGD = 40002, ERR_IMAGE = 40003, ERR_LIBRARY = 40004;
+    const ERR_TEMPLATE = 1, ERR_RENDER = 2, ERR_NOGD = 3, ERR_IMAGE = 4;
 
     const OUTPUT_JPG = 1, OUTPUT_GIF = 2, OUTPUT_PNG = 3;
 

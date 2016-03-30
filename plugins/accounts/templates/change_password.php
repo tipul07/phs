@@ -29,23 +29,25 @@
                 <div class="lineform_line">
                 <input type="password" id="pass1" name="pass1" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" required="required" /><br/>
                 <small><?php
-                    echo $this::_t( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
 
-                    $pass_regexp = $this->context_var( 'password_regexp' );
-                    if( !empty( $pass_regexp ) )
+                echo $this::_t( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
+
+                $pass_regexp = $this->context_var( 'password_regexp' );
+                if( !empty( $pass_regexp ) )
+                {
+                    echo '<br/>'.$this::_t( 'Password should pass regular expresion: ' );
+
+                    if( ($regexp_parts = explode( '/', $pass_regexp ))
+                    and !empty( $regexp_parts[1] ) )
                     {
-                        echo '<br/>'.$this::_t( 'Password should pass regular expresion: ' );
+                        if( empty($regexp_parts[2]) )
+                            $regexp_parts[2] = '';
 
-                        if( ($regexp_parts = explode( '/', $pass_regexp ))
-                        and !empty( $regexp_parts[1] ) )
-                        {
-                            if( empty($regexp_parts[2]) )
-                                $regexp_parts[2] = '';
-
-                            ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
-                        } else
-                            echo $this::_t( 'Password should pass regular expresion: %s.', $pass_regexp );
-                    }
+                        ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
+                    } else
+                        echo $this::_t( 'Password should pass regular expresion: %s.', $pass_regexp );
+                }
+                        
                 ?></small>
                 </div>
             </fieldset>

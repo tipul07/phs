@@ -164,14 +164,29 @@
         <ul>
             <?php
             if( !empty( $accounts_model )
-            and $accounts_model->acc_is_admin( $cuser_arr ) )
+            and $accounts_model->can_list_accounts( $cuser_arr ) )
             {
-                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
+                ?>
+                <li><?php echo $this::_t( 'Users Management' ) ?>
+                    <ul>
+                        <?php
+                        if( $accounts_model->can_create_accounts( $cuser_arr ) )
+                        {
+                            ?>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                      'a' => 'user_add', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a></li>
+                            <?php
+                        }
+                        ?>
+                        <li><a href="<?php echo PHS::url( array(
+                                                                  'a' => 'users_list', 'p' => 'admin'
+                                                          ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
+                    </ul>
+                </li>
+                <?php
             }
             ?>
-            <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
-            <li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
-            <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
         </ul>
 
     </div>
@@ -186,15 +201,8 @@
         if( !empty( $cuser_arr ) )
         {
             ?>
-            <li><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
+            <li><p><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></p></li>
 
-            <?php
-            if( !empty( $accounts_model )
-            and $accounts_model->acc_is_admin( $cuser_arr ) )
-            {
-                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
-            }
-            ?>
             <li><a href="<?php echo PHS::url( array(
                                                   'p' => 'accounts',
                                                   'a' => 'edit_profile'

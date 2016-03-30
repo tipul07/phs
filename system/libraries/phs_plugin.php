@@ -7,9 +7,9 @@ use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Plugin extends PHS_Signal_and_slot
 {
-    const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
+    const ERR_MODEL = 40000, ERR_INSTALL = 40001, ERR_LIBRARY = 40002;
 
-    const ERR_MODEL = 30000, ERR_INSTANCE = 30001, ERR_INSTALL = 30002, ERR_LIBRARY = 30003;
+    const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
     const LIBRARIES_DIR = 'libraries';
 

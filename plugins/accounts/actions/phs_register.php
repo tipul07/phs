@@ -23,6 +23,20 @@ class PHS_Action_Register extends PHS_Action
      */
     public function execute()
     {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_plugin = $this->get_plugin_instance()) )
+        {
+            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            return self::default_action_result();
+        }
+
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        {
+            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            return self::default_action_result();
+        }
+
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
         $email = PHS_params::_pg( 'email', PHS_params::T_EMAIL );
@@ -34,8 +48,7 @@ class PHS_Action_Register extends PHS_Action
         $registered = PHS_params::_g( 'registered', PHS_params::T_INT );
 
         if( empty( $foobar )
-        and PHS::user_logged_in()
-        and !PHS_Notifications::have_notifications_errors() )
+        and PHS::user_logged_in() )
         {
             PHS_Notifications::add_success_notice( self::_t( 'Already logged in...' ) );
 
@@ -58,14 +71,21 @@ class PHS_Action_Register extends PHS_Action
             return $this->quick_render_template( 'register_thankyou', $data );
         }
 
+        if( !($accounts_settings = $accounts_plugin->get_plugin_settings()) )
+            $accounts_settings = array();
+
+        if( empty( $accounts_settings['min_password_length'] ) )
+        {
+            if( !empty( $accounts_model ) )
+                $accounts_settings['min_password_length'] = $accounts_model::DEFAULT_MIN_PASSWORD_LENGTH;
+            else
+                $accounts_settings['min_password_length'] = 8;
+        }
+
         if( !empty( $submit ) )
         {
-            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
-            if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
-                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
-
-            elseif( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
+            if( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load captcha plugin.' ) );
 
             elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
@@ -119,6 +139,8 @@ class PHS_Action_Register extends PHS_Action
             'pass1' => $pass1,
             'pass2' => $pass2,
             'vcode' => $vcode,
+            'min_password_length' => $accounts_settings['min_password_length'],
+            'password_regexp' => $accounts_settings['password_regexp'],
         );
 
         return $this->quick_render_template( 'register', $data );
