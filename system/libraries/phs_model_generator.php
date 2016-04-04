@@ -8,7 +8,7 @@ abstract class PHS_Model_Core_Generator extends PHS_Model_Core_Base
      * @param array $constrain_arr Conditional db fields
      * @param array|false $params Parameters in the flow
      *
-     * @return Generator|null array of records matching conditions acting as generator
+     * @return \Generator|null array of records matching conditions acting as generator
      */
     function get_details_fields_gen( $constrain_arr, $params = false )
     {

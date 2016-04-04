@@ -3,14 +3,17 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
 use \phs\PHS_Scope;
+use \phs\libraries\PHS_Paginator;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Users_list extends PHS_Action
 {
+    /** @var bool|PHS_Paginator */
+    private $_paginator = false;
+
     /**
      * Returns an array of scopes in which action is allowed to run
      *
@@ -67,6 +70,117 @@ class PHS_Action_Users_list extends PHS_Action
         if( !empty( $account_created ) )
             PHS_Notifications::add_success_notice( self::_t( 'User account created.' ) );
 
-        return $this->quick_render_template( 'users_list' );
+        $flow_params = array(
+            'term_singular' => self::_t( 'user' ),
+            'term_plural' => self::_t( 'users' ),
+        );
+
+        if( !($this->_paginator = new PHS_Paginator( PHS::url( array( 'p' => 'admin', 'a' => 'users_list' ) ), $flow_params )) )
+        {
+            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t instantiate paginator class.' ) );
+            return self::default_action_result();
+        }
+
+        if( !($users_levels = $accounts_model->get_levels_as_key_val()) )
+            $users_levels = array();
+        if( !($users_statuses = $accounts_model->get_statuses_as_key_val()) )
+            $users_statuses = array();
+
+        if( !empty( $users_levels ) )
+            $users_levels = self::merge_array_assoc( array( 0 => self::_t( ' - Choose - ' ) ), $users_levels );
+        if( !empty( $users_statuses ) )
+            $users_statuses = self::merge_array_assoc( array( 0 => self::_t( ' - Choose - ' ) ), $users_statuses );
+
+        $filters_arr = array(
+            array(
+                'display_name' => self::_t( 'Nickname' ),
+                'var_name' => 'fnick',
+                'record_field' => 'nick',
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%s%' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'display_default_as_filter' => false,
+            ),
+            array(
+                'display_name' => self::_t( 'Level' ),
+                'var_name' => 'flevel',
+                'record_field' => 'level',
+                'type' => PHS_params::T_INT,
+                'default' => 0,
+                'display_default_as_filter' => false,
+                'values_arr' => $users_levels,
+            ),
+            array(
+                'display_name' => self::_t( 'Status' ),
+                'var_name' => 'fstatus',
+                'record_field' => 'status',
+                'type' => PHS_params::T_INT,
+                'default' => 0,
+                'display_default_as_filter' => false,
+                'values_arr' => $users_statuses,
+            ),
+        );
+
+        $columns_arr = array(
+            array(
+                'column_title' => self::_t( 'Nickname' ),
+                'record_field' => 'nick',
+            ),
+            array(
+                'column_title' => self::_t( 'Email' ),
+                'record_field' => 'email',
+                'extra_records_style' => 'text-align:center;',
+            ),
+            array(
+                'column_title' => self::_t( 'Status' ),
+                'record_field' => 'status',
+                'display_key_value' => $users_statuses,
+                'extra_records_style' => 'text-align:center;',
+            ),
+            array(
+                'column_title' => self::_t( 'Level' ),
+                'record_field' => 'level',
+                'display_key_value' => $users_levels,
+                'extra_records_style' => 'text-align:center;',
+            ),
+            array(
+                'column_title' => self::_t( 'Last Login' ),
+                'record_field' => 'lastlog',
+                'date_format' => 'd M y H:i',
+                'extra_style' => 'width:100px;',
+                'extra_records_style' => 'text-align:right;',
+            ),
+            array(
+                'column_title' => self::_t( 'Created' ),
+                'default_sort' => 1,
+                'record_field' => 'cdate',
+                'date_format' => 'd M y H:i',
+                'extra_style' => 'width:100px;',
+                'extra_records_style' => 'text-align:right;',
+            ),
+        );
+
+        if( !$this->_paginator->set_columns( $columns_arr )
+         or !$this->_paginator->set_filters( $filters_arr )
+         or !$this->_paginator->set_model( $accounts_model ) )
+        {
+            if( $this->_paginator->has_error() )
+                $error_msg = $this->_paginator->get_error_message();
+            else
+                $error_msg = self::_t( 'Something went wrong while preparing paginator class.' );
+
+            $data = array(
+                'filters' => $error_msg,
+                'listing' => '',
+            );
+        } else
+        {
+            $data = array(
+                'filters' => $this->_paginator->get_filters_buffer(),
+                'listing' => $this->_paginator->get_listing_buffer(),
+            );
+        }
+
+        return $this->quick_render_template( 'users_list', $data );
     }
 }

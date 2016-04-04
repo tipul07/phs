@@ -292,6 +292,18 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         return $params;
     }
 
+    /**
+     * Prepares parameters common to _count and _list methods
+     *
+     * @param array|false $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    public function get_count_list_common_params( $params = false )
+    {
+        return $params;
+    }
+
     static public function get_field_types()
     {
         return self::$FTYPE_ARR;
@@ -536,7 +548,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         if( (($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params ))
                 or ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params )))
         and is_array( $extra_fields_arr ) and !empty( $extra_fields_arr['fields_arr'] ) )
-            $fields_arr = array_merge( $extra_fields_arr['fields_arr'], $fields_arr );
+            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
 
         return $fields_arr;
     }
@@ -805,6 +817,38 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         }
 
         return $data_arr;
+    }
+
+    public function table_field_details( $field, $params = false )
+    {
+        $this->reset_error();
+
+        $table = false;
+        if( strstr( $field, '.' ) !== false )
+            list( $table, $field ) = explode( '.', $field, 2 );
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        $params['table_name'] = $table;
+
+        if( !($params = $this->fetch_default_flow_params( $params )) )
+        {
+            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( !($table_fields = $this->get_definition( $params ))
+         or !is_array( $table_fields ) )
+        {
+            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Invalid table definition.' ) );
+            return false;
+        }
+
+        if( empty( $table_fields[$field] ) or !is_array( $table_fields[$field] ) )
+            return null;
+
+        return $table_fields[$field];
     }
 
     protected function validate_data_for_fields( $params )
@@ -1275,8 +1319,12 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         if( empty( $params['fields'] ) )
             $params['fields'] = array();
+        // Flags are interpretted in child model and alter extra_sql, join_sql and group_by parameters
+        if( empty( $params['flags'] ) or !is_array( $params['flags'] ) )
+            $params['flags'] = array();
 
-        if( ($params = $this->get_count_prepare_params( $params )) === false
+        if( ($params = $this->get_count_list_common_params( $params )) === false
+         or ($params = $this->get_count_prepare_params( $params )) === false
          or ($params = $this->get_query_fields( $params )) === false )
             return 0;
 
@@ -1328,8 +1376,12 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         if( empty( $params['fields'] ) )
             $params['fields'] = array();
+        // Flags are interpretted in child model and alter extra_sql, join_sql and group_by parameters
+        if( empty( $params['flags'] ) or !is_array( $params['flags'] ) )
+            $params['flags'] = array();
 
-        if( ($params = $this->get_list_prepare_params( $params )) === false
+        if( ($params = $this->get_count_list_common_params( $params )) === false
+         or ($params = $this->get_list_prepare_params( $params )) === false
          or ($params = $this->get_query_fields( $params )) === false
          or !($qid = db_query( 'SELECT '.$params['db_fields'].' '.
                               ' FROM `'.$params['table_name'].'` '.
@@ -1360,6 +1412,9 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
         if( !empty( $params['get_query_id'] ) )
             return $common_arr['qid'];
+
+        if( isset( $common_arr['params'] ) )
+            $params = $common_arr['params'];
 
         $ret_arr = array();
         while( ($item_arr = db_fetch_assoc( $common_arr['qid'], $params['db_connection'] )) )

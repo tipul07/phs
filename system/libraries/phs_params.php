@@ -61,6 +61,9 @@ class PHS_params
 
     static function set_type( $val, $type, $extra = false )
     {
+        if( $val === null )
+            return null;
+        
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 

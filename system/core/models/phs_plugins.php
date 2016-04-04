@@ -70,7 +70,7 @@ class PHS_Model_Plugins extends PHS_Model
         $new_statuses_arr = self::$STATUSES_ARR;
         if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
-            $new_statuses_arr = array_merge( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
+            $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
         $statuses_arr = array();
         // Translate and validate statuses...

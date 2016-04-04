@@ -273,7 +273,7 @@ class PHS_Model_Accounts extends PHS_Model
         $new_levels_arr = self::$LEVELS_ARR;
         if( ($extra_levels_arr = PHS::trigger_hooks( self::HOOK_LEVELS, array( 'levels_arr' => self::$LEVELS_ARR ) ))
         and is_array( $extra_levels_arr ) and !empty( $extra_levels_arr['levels_arr'] ) )
-            $new_levels_arr = array_merge( $extra_levels_arr['levels_arr'], $new_levels_arr );
+            $new_levels_arr = self::merge_array_assoc( $extra_levels_arr['levels_arr'], $new_levels_arr );
 
         $levels_arr = array();
         // Translate and validate levels...
@@ -299,6 +299,28 @@ class PHS_Model_Accounts extends PHS_Model
         return $levels_arr;
     }
 
+    final public function get_levels_as_key_val()
+    {
+        static $user_levels_key_val_arr = false;
+
+        if( $user_levels_key_val_arr !== false )
+            return $user_levels_key_val_arr;
+
+        $user_levels_key_val_arr = array();
+        if( ($user_levels = $this->get_levels()) )
+        {
+            foreach( $user_levels as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $user_levels_key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        return $user_levels_key_val_arr;
+    }
+
     public function valid_level( $level )
     {
         $all_levels = $this->get_levels();
@@ -319,7 +341,7 @@ class PHS_Model_Accounts extends PHS_Model
         $new_statuses_arr = self::$STATUSES_ARR;
         if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
-            $new_statuses_arr = array_merge( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
+            $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
         $statuses_arr = array();
         // Translate and validate statuses...
@@ -343,6 +365,28 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $statuses_arr;
+    }
+
+    final public function get_statuses_as_key_val()
+    {
+        static $user_statuses_key_val_arr = false;
+
+        if( $user_statuses_key_val_arr !== false )
+            return $user_statuses_key_val_arr;
+
+        $user_statuses_key_val_arr = array();
+        if( ($user_statuses = $this->get_statuses()) )
+        {
+            foreach( $user_statuses as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $user_statuses_key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        return $user_statuses_key_val_arr;
     }
 
     public function valid_status( $status )
@@ -1095,6 +1139,36 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $existing_data;
+    }
+
+    /**
+     * Prepares parameters common to _count and _list methods
+     *
+     * @param array|false $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    public function get_count_list_common_params( $params = false )
+    {
+        if( !empty( $params['flags'] ) and is_array( $params['flags'] ) )
+        {
+            foreach( $params['flags'] as $flag )
+            {
+                switch( $flag )
+                {
+                    case 'include_account_details':
+                        $params['db_fields'] .= ', users_details.title AS users_details_title, '.
+                                                ' users_details.fname AS users_details_fname, '.
+                                                ' users_details.lname AS users_details_lname, '.
+                                                ' users_details.phone AS users_details_phone, '.
+                                                ' users_details.company AS users_details_company ';
+                        $params['join_sql'] .= ' LEFT JOIN users_details WHERE users_details.id = users.details_id ';
+                    break;
+                }
+            }
+        }
+
+        return $params;
     }
 
     /**

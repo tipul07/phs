@@ -2,8 +2,8 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Controller;
-use phs\PHS_Scope;
 use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Signal_and_slot
@@ -120,7 +120,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
             else
-                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $template ) );
+                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
 
             return false;
         }

@@ -1154,13 +1154,13 @@ final class PHS extends PHS_Registry
                 if( empty( $hook_callback['args'] ) or !is_array( $hook_callback['args'] ) )
                     $hook_callback['args'] = array();
 
-                $call_hook_args = array_merge( $hook_callback['args'], $hook_args );
+                $call_hook_args = self::merge_array_assoc( $hook_callback['args'], $hook_args );
 
                 $result = @call_user_func( $hook_callback['callback'], $call_hook_args );
 
                 if( !empty( $hook_callback['chained'] )
                 and is_array( $result ) )
-                    $hook_args = array_merge( $hook_args, $result );
+                    $hook_args = self::merge_array_assoc( $hook_args, $result );
             }
         }
 

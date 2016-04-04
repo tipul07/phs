@@ -12,14 +12,14 @@ class PHS_Registry extends PHS_Language
     // Array with variables set for current view only. General information will be set using self::set_data()
     protected $_context = array();
 
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     public static function get_full_data()
     {
         return self::$data;
+    }
+
+    public function get_full_context()
+    {
+        return $this->_context;
     }
 
     public function get_context( $key )
@@ -70,7 +70,7 @@ class PHS_Registry extends PHS_Language
         if( empty( $merge ) )
             self::$data = $arr;
         else
-            self::$data = array_merge( self::$data, $arr );
+            self::$data = self::merge_array_assoc( self::$data, $arr );
 
         return true;
     }
@@ -114,6 +114,21 @@ class PHS_Registry extends PHS_Language
         }
 
         return $arr;
+    }
+
+    public static function merge_array_assoc( $arr1, $arr2 )
+    {
+        if( empty( $arr1 ) or !is_array( $arr1 ) )
+            return $arr2;
+        if( empty( $arr2 ) or !is_array( $arr2 ) )
+            return $arr1;
+
+        foreach( $arr2 as $key => $val )
+        {
+            $arr1[$key] = $val;
+        }
+
+        return $arr1;
     }
 
     public static function validate_array_recursive( $arr, $default_arr )

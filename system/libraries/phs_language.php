@@ -10,11 +10,6 @@ class PHS_Language extends PHS_Error
     /** @var PHS_Language_Container $lang_callable_obj */
     private static $lang_callable_obj = false;
 
-    function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Returns language class that handles translation tasks
      *
