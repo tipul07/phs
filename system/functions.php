@@ -267,41 +267,114 @@ function make_sure_is_filename( $str )
             $str );
 }
 
-function seconds_passed( $str )
+function seconds_passed( $str, $params = false )
 {
-    return time() - parse_db_date( $str );
+    return time() - parse_db_date( $str, $params );
 }
 
-function parse_db_date( $str )
+function validate_db_date_array( $date_arr )
 {
-    $str = trim( $str );
-    if( strstr( $str, ' ' ) )
+    if( !is_array( $date_arr ) )
+        return false;
+
+    for( $i = 0; $i < 6; $i++ )
     {
-        $d = explode( ' ', $str );
+        if( !isset( $date_arr[$i] ) )
+            return false;
+    }
+
+    if(
+        $date_arr[1] < 1 or $date_arr[1] > 12
+     or $date_arr[2] < 1 or $date_arr[2] > 31
+     or $date_arr[3] < 0 or $date_arr[3] > 23
+     or $date_arr[4] < 0 or $date_arr[4] > 59
+     or $date_arr[5] < 0 or $date_arr[5] > 59
+        )
+        return false;
+
+    return true;
+}
+
+function is_db_date( $date, $params = false )
+{
+    if( is_string( $date ) )
+        $date = trim( $date );
+
+    if( empty( $date )
+     or !is_string( $date )
+     or strstr( $date, '-' ) === false )
+        return false;
+
+    if( empty( $params ) or !is_array( $params ) )
+        $params = array();
+
+    if( !isset( $params['validate_intervals'] ) )
+        $params['validate_intervals'] = true;
+    else
+        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+
+    if( strstr( $date, ' ' ) )
+    {
+        $d = explode( ' ', $date );
         $date_ = explode( '-', $d[0] );
         $time_ = explode( ':', $d[1] );
     } else
-        $date_ = explode( '-', $str );
+    {
+        $date_ = explode( '-', $date );
+        $time_ = array( 0, 0, 0 );
+    }
 
     for( $i = 0; $i < 3; $i++ )
     {
-        if( !isset( $date_[$i] ) )
-            $date_[$i] = 0;
-        if( isset( $time_ ) and !isset( $time_[$i] ) )
-            $time_[$i] = 0;
+        if( !isset( $date_[$i] )
+         or !isset( $time_[$i] ) )
+            return false;
+
+        $date_[$i] = intval( $date_[$i] );
+        $time_[$i] = intval( $time_[$i] );
     }
 
-    if( !empty( $date_ ) and is_array( $date_ ) )
-        foreach( $date_ as $key => $val )
-            $date_[$key] = intval( $val );
-    if( !empty( $time_ ) and is_array( $time_ ) )
-        foreach( $time_ as $key => $val )
-            $time_[$key] = intval( $val );
+    $result_arr = array_merge( $date_, $time_ );
+    if( !empty( $params['validate_intervals'] )
+    and !validate_db_date_array( $result_arr ) )
+        return false;
 
-    if( isset( $time_ ) )
-        return mktime( $time_[0], $time_[1], $time_[2], $date_[1], $date_[2], $date_[0] );
+    return $result_arr;
+}
+
+function parse_db_date( $date, $params = false )
+{
+    if( empty( $params ) or !is_array( $params ) )
+        $params = array();
+
+    if( !isset( $params['validate_intervals'] ) )
+        $params['validate_intervals'] = true;
     else
-        return mktime( 0, 0, 0, $date_[1], $date_[2], $date_[0] );
+        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+
+    if( is_array( $date ) )
+    {
+        for( $i = 0; $i < 6; $i++ )
+        {
+            if( !isset( $date[$i] ) )
+                return 0;
+
+            $date[$i] = intval( $date[$i] );
+        }
+
+        $date_arr = $date;
+
+        if( !empty( $params['validate_intervals'] )
+        and !validate_db_date_array( $date_arr ) )
+            return 0;
+    } elseif( is_string( $date ) )
+    {
+        if( !($date_arr = is_db_date( $date, $params )) )
+            return 0;
+    } else
+        return 0;
+
+    return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] );
 }
 
 function empty_db_date( $date )
@@ -317,7 +390,7 @@ function validate_db_date( $date, $format = false )
     if( $format === false )
         $format = PHS_Model::DATETIME_DB;
 
-    return date( $format, parse_db_date( $date ) );
+    return @date( $format, parse_db_date( $date ) );
 }
 
 function prepare_data( $str )

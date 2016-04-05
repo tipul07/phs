@@ -17,8 +17,8 @@
 
     if( !($base_url = $paginator_obj->base_url()) )
         $base_url = '#';
-    if( !($full_url = $paginator_obj->get_url_with_filters()) )
-        $full_url = '#';
+    if( !($full_filters_url = $paginator_obj->get_full_url( array( 'include_filters' => false ) )) )
+        $full_filters_url = '#';
 
     if( !($flow_params_arr = $paginator_obj->flow_params()) )
         $flow_params_arr = $paginator_obj->default_flow_params();
@@ -34,7 +34,7 @@
         $scope_arr = array();
 ?>
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:100%;min-width:1000px;margin: 0 auto;">
-    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" action="<?php echo $full_url?>" method="post" class="wpcf7">
+    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" action="<?php echo $full_filters_url?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container responsive">
@@ -115,13 +115,20 @@
                     elseif( !empty( $column_arr['display_callback'] )
                     and @is_callable( $column_arr['display_callback'] ) )
                     {
-                        $cell_callback_params = array();
+                        if( !isset( $record_arr[$column_arr['record_field']] )
+                         or !($field_details = $model_obj->table_field_details( $column_arr['record_field'] ))
+                         or !is_array( $field_details ) )
+                            $field_details = false;
+
+                        $cell_callback_params = $paginator_obj->default_cell_render_call_params();
                         $cell_callback_params['page_index'] = $knti;
                         $cell_callback_params['list_index'] = $offset + $knti;
                         $cell_callback_params['record'] = $record_arr;
                         $cell_callback_params['column'] = $column_arr;
-                        
-                        if( !($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) )
+                        $cell_callback_params['table_field'] = $field_details;
+
+                        if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
+                         or $cell_content === null )
                             $cell_content = '['.$this::_t( 'Render cell call failed.' ).']';
                     }
 
@@ -156,7 +163,12 @@
                         $cell_content = $record_arr[$column_arr['record_field']];
 
                     if( $cell_content === false )
-                        $cell_content = '(???)';
+                    {
+                        if( !empty( $column_arr['invalid_value'] ) )
+                            $cell_content = $column_arr['invalid_value'];
+                        else
+                            $cell_content = '(???)';
+                    }
 
                     ?><td class="<?php echo $column_arr['extra_records_classes']?>" style="<?php echo $column_arr['extra_records_style']?>"><?php echo $cell_content?></td><?php
                 }

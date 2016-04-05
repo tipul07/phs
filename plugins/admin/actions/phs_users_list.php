@@ -96,7 +96,7 @@ class PHS_Action_Users_list extends PHS_Action
                 'display_name' => self::_t( 'Nickname' ),
                 'var_name' => 'fnick',
                 'record_field' => 'nick',
-                'record_check' => array( 'check' => 'LIKE', 'value' => '%%s%' ),
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
                 'display_default_as_filter' => false,
@@ -129,12 +129,14 @@ class PHS_Action_Users_list extends PHS_Action
             array(
                 'column_title' => self::_t( 'Email' ),
                 'record_field' => 'email',
+                'invalid_value' => self::_t( 'N/A' ),
                 'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => self::_t( 'Status' ),
                 'record_field' => 'status',
                 'display_key_value' => $users_statuses,
+                'invalid_value' => self::_t( 'Undefined' ),
                 'extra_records_style' => 'text-align:center;',
             ),
             array(
@@ -146,7 +148,9 @@ class PHS_Action_Users_list extends PHS_Action
             array(
                 'column_title' => self::_t( 'Last Login' ),
                 'record_field' => 'lastlog',
+                'display_callback' => array( $this->_paginator, 'pretty_date' ),
                 'date_format' => 'd M y H:i',
+                'invalid_value' => self::_t( 'Never' ),
                 'extra_style' => 'width:100px;',
                 'extra_records_style' => 'text-align:right;',
             ),
@@ -154,7 +158,9 @@ class PHS_Action_Users_list extends PHS_Action
                 'column_title' => self::_t( 'Created' ),
                 'default_sort' => 1,
                 'record_field' => 'cdate',
+                'display_callback' => array( $this->_paginator, 'pretty_date' ),
                 'date_format' => 'd M y H:i',
+                'invalid_value' => self::_t( 'Invalid' ),
                 'extra_style' => 'width:100px;',
                 'extra_records_style' => 'text-align:right;',
             ),

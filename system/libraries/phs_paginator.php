@@ -43,6 +43,17 @@ class PHS_Paginator extends PHS_Registry
             $this->base_url( $base_url );
     }
 
+    public function default_cell_render_call_params()
+    {
+        return array(
+            'page_index' => 0,
+            'list_index' => 0,
+            'record' => false,
+            'column' => false,
+            'table_field' => false,
+        );
+    }
+
     public function default_flow_params()
     {
         return array(
@@ -146,6 +157,27 @@ class PHS_Paginator extends PHS_Registry
         $this->reset_records();
     }
 
+    public function pretty_date( $params )
+    {
+        if( !($params = self::validate_array( $params, $this->default_cell_render_call_params() ))
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] )
+         or empty( $params['column'] ) or !is_array( $params['column'] )
+         or empty( $params['column']['record_field'] )
+         or empty( $params['record'][$params['column']['record_field']] )
+         or !($date_time = is_db_date( $params['record'][$params['column']['record_field']] )) )
+            return false;
+
+        if( !empty( $params['column']['date_format'] ) )
+            $date_str = @date( $params['column']['date_format'], parse_db_date( $date_time ) );
+        else
+            $date_str = $params['record'][$params['column']['record_field']];
+
+        $seconds_ago = seconds_passed( $date_time );
+
+        return '<span title="'.self::_t( '%s ago', PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+    }
+
     public function base_url( $url = false )
     {
         if( $url === false )
@@ -156,21 +188,59 @@ class PHS_Paginator extends PHS_Registry
         return $this->_base_url;
     }
 
-    public function get_url_with_filters()
+    public function get_full_url( $params = false )
     {
-        $query_string = '';
-        if( !empty( $this->_scope ) )
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['include_pagination_params'] ) )
+            $params['include_pagination_params'] = true;
+        if( !isset( $params['include_filters'] ) )
+            $params['include_filters'] = true;
+
+        if( empty( $params['extra_params'] ) or !is_array( $params['extra_params'] ) )
+            $params['extra_params'] = array();
+
+        if( isset( $params['sort'] ) )
+            $params['sort'] = (!empty( $params['sort'] )?1:0);
+        if( isset( $params['sort_by'] ) )
         {
-            if( !($query_string = @http_build_query( $this->_scope )) )
-                $query_string = '';
+            if( is_string( $params['sort_by'] ) )
+                $params['sort_by'] = trim( $params['sort_by'] );
+            else
+                unset( $params['sort_by'] );
         }
+
+        $query_arr = array();
+        if( !empty( $params['include_filters'] )
+        and !empty( $this->_scope ) )
+            $query_arr = array_merge( $query_arr, $this->_scope );
+
+        if( !empty( $params['include_pagination_params'] )
+        and ($flow_params = $this->flow_params())
+        and ($pagination_params = $this->pagination_params()) )
+        {
+            $add_args = array();
+            $add_args[$flow_params['form_prefix'].$pagination_params['page_var_name']] = $pagination_params['page'];
+            $add_args[$flow_params['form_prefix'].$pagination_params['per_page_var_name']] = $pagination_params['records_per_page'];
+            $add_args[$flow_params['form_prefix'].'sort_by'] = (isset( $params['sort_by'] )?$params['sort_by']:$pagination_params['sort_by']);
+            $add_args[$flow_params['form_prefix'].'sort'] = (isset( $params['sort'] )?$params['sort']:$pagination_params['sort']);
+
+            $query_arr = array_merge( $query_arr, $add_args );
+        }
+
+        if( !empty( $params['extra_params'] ) )
+            $query_arr = array_merge( $query_arr, $params['extra_params'] );
 
         $url = $this->_base_url;
 
         if( strstr( $url, '?' ) === false )
             $url .= '?';
 
-        $url .= $query_string;
+        if( !($query_string = @http_build_query( $query_arr )) )
+            $query_string = '';
+
+        $url .= '&'.$query_string;
 
         return $url;
     }
@@ -209,6 +279,8 @@ class PHS_Paginator extends PHS_Registry
             'display_callback' => false,
             // in case field is a date what format should the date be displayed in?
             'date_format' => '',
+            // What should be displayed if value in column is not something valid
+            'invalid_value' => '',
             'extra_style' => '',
             'extra_classes' => '',
             'extra_records_style' => '',
@@ -440,8 +512,16 @@ class PHS_Paginator extends PHS_Registry
                     }
 
                     if( $sort_by == $column_arr['record_field'] )
+                    {
+                        $sort_by_valid = true;
                         break;
+                    }
                 }
+
+                if( !$sort_by_valid and $default_sort_by !== false )
+                    $sort_by = $default_sort_by;
+                if( $sort === null and $default_sort !== false )
+                    $sort = $default_sort;
             }
 
             if( empty( $sort ) or strtolower( $sort ) == 'asc' )
@@ -545,7 +625,10 @@ class PHS_Paginator extends PHS_Registry
             {
                 if( isset( $filter_arr['record_check']['value'] )
                 and strstr( $filter_arr['record_check']['value'], '%s' ) !== false )
-                    $check_value = @sprintf( $filter_arr['record_check']['value'], $scope_arr[$filter_arr['var_name']] );
+                {
+                    $check_value = $filter_arr['record_check'];
+                    $check_value['value'] = sprintf( $filter_arr['record_check']['value'], $scope_arr[$filter_arr['var_name']] );
+                }
 
                 // more complex linkage...
                 elseif( isset( $filter_arr['record_check']['fields'] )
