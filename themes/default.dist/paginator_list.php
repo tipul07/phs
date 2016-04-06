@@ -58,6 +58,19 @@
             {
                 ?><th class="<?php echo (!empty( $column_arr['sortable'] )?'sortable':'').' '.$column_arr['extra_classes']?>" style="text-align:center;<?php echo $column_arr['extra_style']?>"><?php
 
+                if( ($checkbox_column_name = $paginator_obj->get_checkbox_name_for_column( $column_arr )) )
+                {
+                    $checkbox_name_all = $checkbox_column_name.$paginator_obj::CHECKBOXES_COLUMN_ALL_SUFIX;
+                    $checkbox_checked = false;
+                    if( !empty( $scope_arr ) and is_array( $scope_arr )
+                    and !empty( $scope_arr[$checkbox_name_all] ) )
+                        $checkbox_checked = true;
+
+                    ?><span style="width:100%;">
+                    <span style="float:left;"><input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> /></span>
+                    <?php
+                }
+
                 if( !empty( $column_arr['sortable'] ) )
                 {
                     ?><a href="#"><?php
@@ -68,6 +81,11 @@
                 if( !empty( $column_arr['sortable'] ) )
                 {
                     ?></a><?php
+                }
+
+                if( !empty( $checkbox_column_name ) )
+                {
+                    ?></span><?php
                 }
 
                 ?></th><?php
@@ -112,26 +130,6 @@
                     and empty( $column_arr['display_callback'] ) )
                         $cell_content = '['.$this::_t( 'Bad column setup' ).']';
 
-                    elseif( !empty( $column_arr['display_callback'] )
-                    and @is_callable( $column_arr['display_callback'] ) )
-                    {
-                        if( !isset( $record_arr[$column_arr['record_field']] )
-                         or !($field_details = $model_obj->table_field_details( $column_arr['record_field'] ))
-                         or !is_array( $field_details ) )
-                            $field_details = false;
-
-                        $cell_callback_params = $paginator_obj->default_cell_render_call_params();
-                        $cell_callback_params['page_index'] = $knti;
-                        $cell_callback_params['list_index'] = $offset + $knti;
-                        $cell_callback_params['record'] = $record_arr;
-                        $cell_callback_params['column'] = $column_arr;
-                        $cell_callback_params['table_field'] = $field_details;
-
-                        if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
-                         or $cell_content === null )
-                            $cell_content = '['.$this::_t( 'Render cell call failed.' ).']';
-                    }
-
                     elseif( !empty( $column_arr['display_key_value'] )
                         and is_array( $column_arr['display_key_value'] )
                         and !empty( $column_arr['record_field'] )
@@ -170,6 +168,36 @@
                             $cell_content = '(???)';
                     }
 
+                    if( empty( $column_arr['display_callback'] )
+                    and $paginator_obj->get_checkbox_name_for_column( $column_arr ) )
+                        $column_arr['display_callback'] = array( $paginator_obj, 'display_checkbox_column' );
+
+                    if( !empty( $column_arr['display_callback'] ) )
+                    {
+                        if( !@is_callable( $column_arr['display_callback'] ) )
+                            $cell_content = '[' . $this::_t( 'Cell callback failed.' ) . ']';
+
+                        else
+                        {
+                            if( !isset( $record_arr[$column_arr['record_field']] )
+                             or !($field_details = $model_obj->table_field_details( $column_arr['record_field'] ))
+                             or !is_array( $field_details ) )
+                                $field_details = false;
+
+                            $cell_callback_params                   = $paginator_obj->default_cell_render_call_params();
+                            $cell_callback_params['page_index']     = $knti;
+                            $cell_callback_params['list_index']     = $offset + $knti;
+                            $cell_callback_params['record']         = $record_arr;
+                            $cell_callback_params['column']         = $column_arr;
+                            $cell_callback_params['table_field']    = $field_details;
+                            $cell_callback_params['preset_content'] = $cell_content;
+
+                            if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
+                             or $cell_content === null )
+                                $cell_content = '[' . $this::_t( 'Render cell call failed.' ) . ']';
+                        }
+                    }
+
                     ?><td class="<?php echo $column_arr['extra_records_classes']?>" style="<?php echo $column_arr['extra_records_style']?>"><?php echo $cell_content?></td><?php
                 }
 
@@ -187,4 +215,4 @@
     </div>
     </form>
 </div>
-
+<div class="clearfix"></div>

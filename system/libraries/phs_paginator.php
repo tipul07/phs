@@ -10,6 +10,8 @@ class PHS_Paginator extends PHS_Registry
 
     const DEFAULT_PER_PAGE = 20;
 
+    const CHECKBOXES_COLUMN_ALL_SUFIX = '_all';
+
     private $_filters = array();
     // Variables as provided in post or get
     private $_originals = array();
@@ -51,6 +53,7 @@ class PHS_Paginator extends PHS_Registry
             'record' => false,
             'column' => false,
             'table_field' => false,
+            'preset_content' => '',
         );
     }
 
@@ -178,6 +181,60 @@ class PHS_Paginator extends PHS_Registry
         return '<span title="'.self::_t( '%s ago', PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
     }
 
+    public function get_checkbox_name_for_column( $column_arr )
+    {
+        if( empty( $column_arr ) or !is_array( $column_arr )
+         or empty( $column_arr['checkbox_record_index_key'] ) or !is_array( $column_arr['checkbox_record_index_key'] )
+         or empty( $column_arr['checkbox_record_index_key']['key'] )
+         or !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        if( empty( $column_arr['checkbox_record_index_key']['checkbox_name'] ) )
+            $column_arr['checkbox_record_index_key']['checkbox_name'] = $column_arr['checkbox_record_index_key']['key'];
+
+        return $flow_params_arr['form_prefix'].$column_arr['checkbox_record_index_key']['checkbox_name'].'_chck';
+    }
+
+
+    public function display_checkbox_column( $params )
+    {
+        if( !($params = self::validate_array( $params, $this->default_cell_render_call_params() ))
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] )
+         or empty( $params['column'] ) or !is_array( $params['column'] )
+         or !($checkbox_name = $this->get_checkbox_name_for_column( $params['column'] ))
+         or empty( $params['column']['checkbox_record_index_key'] )
+         or !is_array( $params['column']['checkbox_record_index_key'] )
+         or empty( $params['column']['checkbox_record_index_key']['key'] )
+         or !isset( $params['record'][$params['column']['checkbox_record_index_key']['key']] ) )
+            return false;
+
+        if( !($scope_arr = $this->get_scope()) )
+            $scope_arr = array();
+
+        if( empty( $params['preset_content'] ) )
+            $params['preset_content'] = '';
+
+        $checkbox_value = $params['record'][$params['column']['checkbox_record_index_key']['key']];
+        $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
+
+        $checkbox_checked = false;
+        if( !empty( $scope_arr ) and is_array( $scope_arr ) )
+        {
+            if( !empty( $scope_arr[$checkbox_name_all] )
+             or (!empty( $scope_arr[$checkbox_name] )
+                and is_array( $scope_arr[$checkbox_name] )
+                and in_array( $checkbox_value, $scope_arr[$checkbox_name] )
+                ) )
+                $checkbox_checked = true;
+        }
+
+        return '<label for="'.$checkbox_name.'" style="width:100%">'.
+               '<span style="float:left;"><input type="checkbox" value="'.$checkbox_value.'" name="'.$checkbox_name.'[]" id="'.$checkbox_name.'" class="wpcf7-text" rel="skin_checkbox" '.($checkbox_checked?'checked="checked"':'').' /></span>'.
+               $params['preset_content'].
+               '</label>';
+    }
+
     public function base_url( $url = false )
     {
         if( $url === false )
@@ -270,6 +327,15 @@ class PHS_Paginator extends PHS_Registry
         return array(
             'column_title' => '',
             'record_field' => '',
+
+            // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
+            // 'checkbox_name': string used to form input name, if empty 'key' will be used as 'checkbox_name' ({form_prefix}{checkbox_name}_chck)
+            // 'type': is a PHS_params::T_* which will be used to validate input value
+            'checkbox_record_index_key' => array(
+                'key' => '',
+                'checkbox_name' => '',
+                'type' => PHS_params::T_ASIS,
+            ),
             'sortable' => true,
             // 0 or 1 if default sorting 0 - ascending or 1 - descending
             'default_sort' => false,
@@ -302,7 +368,7 @@ class PHS_Paginator extends PHS_Registry
         $default_column_fields = self::default_column_fields();
         foreach( $columns_arr as $column )
         {
-            if( !($new_column = self::validate_array_to_new_array( $column, $default_column_fields )) )
+            if( !($new_column = self::validate_array_to_new_array_recursive( $column, $default_column_fields )) )
                 continue;
 
             if( empty( $new_column['column_title'] ) )
@@ -332,6 +398,7 @@ class PHS_Paginator extends PHS_Registry
     public static function default_filter_fields()
     {
         return array(
+            'hidden_filter' => false,
             'var_name' => '',
             // Name of field in database model that will have to check this value
             'record_field' => '',
@@ -340,6 +407,8 @@ class PHS_Paginator extends PHS_Registry
             // If 'value' key is passed it should contain a %s placeholder which will be replaced with value from _scope array.
             'record_check' => false,
             'display_name' => '',
+            'display_hint' => '',
+            'display_placeholder' => '',
             'type' => PHS_params::T_ASIS,
             'extra_type' => false,
             'default' => null,
@@ -448,6 +517,10 @@ class PHS_Paginator extends PHS_Registry
         if( !($flow_params_arr = $this->flow_params()) )
             $flow_params_arr = $this->default_flow_params();
 
+        if( !($columns_arr = $this->get_columns())
+         or !is_array( $columns_arr ) )
+            $columns_arr = array();
+
         foreach( $filters_arr as $filter_details )
         {
             if( empty( $filter_details['var_name'] ) or empty( $filter_details['record_field'] ) )
@@ -457,13 +530,50 @@ class PHS_Paginator extends PHS_Registry
 
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
-                $scope_val = PHS_params::set_type( $this->_originals[$filter_details['var_name']],
-                                                                                   $filter_details['type'],
-                                                                                   $filter_details['extra_type'] );
+                // Accept arrays to be passed as comma separated values...
+                if( $filter_details['type'] == PHS_params::T_ARRAY
+                and is_string( $this->_originals[$filter_details['var_name']] ) )
+                {
+                    $value_type = PHS_params::T_ASIS;
+                    if( !empty( $filter_details['extra_type'] ) and is_array( $filter_details['extra_type'] )
+                    and !empty( $filter_details['extra_type']['type'] )
+                    and PHS_params::valid_type( $filter_details['extra_type']['type'] ) )
+                        $value_type = $filter_details['extra_type']['type'];
+
+                    $scope_val = array();
+                    if( ($parts_arr = explode( ',', $this->_originals[$filter_details['var_name']] ))
+                    and is_array( $parts_arr ) )
+                    {
+                        foreach( $parts_arr as $part )
+                        {
+                            $scope_val[] = PHS_params::set_type( $part, $value_type );
+                        }
+                    }
+                } else
+                    $scope_val = PHS_params::set_type( $this->_originals[$filter_details['var_name']],
+                                                       $filter_details['type'],
+                                                       $filter_details['extra_type'] );
 
                 if( $filter_details['default'] !== false
                 and $scope_val != $filter_details['default'] )
                     $this->_scope[$filter_details['var_name']] = $scope_val;
+            }
+        }
+
+        // Extract any checkboxes...
+        if( !empty( $columns_arr ) )
+        {
+            foreach( $columns_arr as $column_arr )
+            {
+                if( !($checkbox_name = $this->get_checkbox_name_for_column( $column_arr )) )
+                    continue;
+
+                $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
+                if( ($checkbox_all_values = PHS_params::_gp( $checkbox_name_all, PHS_params::T_INT )) )
+                    $this->_scope[$checkbox_name_all] = 1;
+
+                if( ($checkbox_array_value = PHS_params::_gp( $checkbox_name, PHS_params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
+                    $this->_scope[$checkbox_name] = $checkbox_array_value;
             }
         }
 
@@ -485,8 +595,7 @@ class PHS_Paginator extends PHS_Registry
             $sort = PHS_params::_gp( $flow_params_arr['form_prefix'] . 'sort', PHS_params::T_INT );
             $sort_by = PHS_params::_gp( $flow_params_arr['form_prefix'] . 'sort_by', PHS_params::T_NOHTML );
 
-            if( ($columns_arr = $this->get_columns())
-            and is_array( $columns_arr ) )
+            if( !empty( $columns_arr ) )
             {
                 $default_sort_by = false;
                 $default_sort = false;
@@ -626,8 +735,13 @@ class PHS_Paginator extends PHS_Registry
                 if( isset( $filter_arr['record_check']['value'] )
                 and strstr( $filter_arr['record_check']['value'], '%s' ) !== false )
                 {
+                    if( is_array( $scope_arr[$filter_arr['var_name']] ) )
+                        $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
+                    else
+                        $final_value = $scope_arr[$filter_arr['var_name']];
+
                     $check_value = $filter_arr['record_check'];
-                    $check_value['value'] = sprintf( $filter_arr['record_check']['value'], $scope_arr[$filter_arr['var_name']] );
+                    $check_value['value'] = sprintf( $filter_arr['record_check']['value'], $final_value );
                 }
 
                 // more complex linkage...
@@ -635,8 +749,13 @@ class PHS_Paginator extends PHS_Registry
                 and ($linkage_params = $model_obj->get_query_fields( $filter_arr['record_check'] ))
                 and !empty( $linkage_params['extra_sql'] ) )
                 {
+                    if( is_array( $scope_arr[$filter_arr['var_name']] ) )
+                        $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
+                    else
+                        $final_value = $scope_arr[$filter_arr['var_name']];
+
                     while( strstr( $linkage_params['extra_sql'], '%s' ) !== false )
-                        $linkage_params['extra_sql'] = @sprintf( $linkage_params['extra_sql'], $scope_arr[$filter_arr['var_name']] );
+                        $linkage_params['extra_sql'] = @sprintf( $linkage_params['extra_sql'], $final_value );
 
                     $list_arr['extra_sql'] .= $linkage_params['extra_sql'];
 

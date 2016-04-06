@@ -43,8 +43,14 @@
             $filters_display_arr = array();
             foreach( $filters_arr as $filter_details )
             {
-                if( empty( $filter_details['var_name'] ) )
+                if( empty( $filter_details['var_name'] )
+                 or !empty( $filter_details['hidden_filter'] ))
                     continue;
+
+                if( !empty( $filter_details['display_placeholder'] ) )
+                    $field_placeholder = $filter_details['display_placeholder'];
+                else
+                    $field_placeholder = '';
 
                 $field_id = $flow_params_arr['form_prefix'].$filter_details['var_name'];
                 $field_name = $field_id;
@@ -54,11 +60,23 @@
                 elseif( $filter_details['default'] !== null )
                     $field_value = $filter_details['default'];
 
+                if( is_array( $field_value ) )
+                    $field_value = implode( ',', $field_value );
+
                 $field_value_display = $field_value;
 
                 ?>
                 <fieldset class="paginator_filter">
-                    <label for="<?php echo $field_id?>"><?php echo $filter_details['display_name']?></label>
+                    <label for="<?php echo $field_id?>"><?php
+
+                        echo $filter_details['display_name'];
+
+                        if( !empty( $filter_details['display_hint'] ) )
+                        {
+                            ?> <i class="fa fa-question-circle" title="<?php echo form_str( $filter_details['display_hint'] )?>"></i><?php
+                        }
+
+                    ?></label>
                     <div class="paginator_input"><?php
 
                     if( !empty( $filter_details['values_arr'] ) and is_array( $filter_details['values_arr'] ) )
@@ -88,7 +106,7 @@
                             break;
 
                             default:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="wpcf7-text <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="wpcf7-text <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" <?php echo (!empty( $field_placeholder )?'placeholder="'.form_str( $field_placeholder ).'"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
                         }
                     }
@@ -126,6 +144,9 @@
 
                 if( $field_value === null )
                     continue;
+
+                if( is_array( $field_value ) )
+                    $field_value = implode( ',', $field_value );
 
                 $filters_str_arr[] = $filter_details['display_name'].': '.$field_value;
             }

@@ -17,6 +17,18 @@ class PHS_params
     {
     }
 
+    static function get_valid_types()
+    {
+        return array(
+            self::T_ASIS, self::T_INT, self::T_FLOAT, self::T_ALPHANUM, self::T_SAFEHTML, self::T_NOHTML, self::T_EMAIL,
+            self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, );
+    }
+
+    static function valid_type( $type )
+    {
+        return in_array( $type, self::get_valid_types() );
+    }
+
     static function check_type( $val, $type, $extra = false )
     {
         switch( $type )

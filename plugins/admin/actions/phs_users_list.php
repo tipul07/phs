@@ -93,7 +93,20 @@ class PHS_Action_Users_list extends PHS_Action
 
         $filters_arr = array(
             array(
+                'display_name' => self::_t( 'IDs' ),
+                'display_hint' => self::_t( 'Comma separated ids' ),
+                'display_placeholder' => self::_t( 'eg. 1,2,3' ),
+                'var_name' => 'fids',
+                'record_field' => 'id',
+                'record_check' => array( 'check' => 'IN', 'value' => '(%s)' ),
+                'type' => PHS_params::T_ARRAY,
+                'extra_type' => array( 'type' => PHS_params::T_INT ),
+                'default' => '',
+                'display_default_as_filter' => false,
+            ),
+            array(
                 'display_name' => self::_t( 'Nickname' ),
+                'display_hint' => self::_t( 'All records containing this value' ),
                 'var_name' => 'fnick',
                 'record_field' => 'nick',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
@@ -122,6 +135,17 @@ class PHS_Action_Users_list extends PHS_Action
         );
 
         $columns_arr = array(
+            array(
+                'column_title' => self::_t( '#' ),
+                'record_field' => 'id',
+                'checkbox_record_index_key' => array(
+                    'key' => 'id',
+                    'type' => PHS_params::T_INT,
+                ),
+                'invalid_value' => self::_t( 'N/A' ),
+                'extra_style' => 'min-width:50px;max-width:80px;',
+                'extra_records_style' => 'text-align:center;',
+            ),
             array(
                 'column_title' => self::_t( 'Nickname' ),
                 'record_field' => 'nick',
@@ -181,6 +205,8 @@ class PHS_Action_Users_list extends PHS_Action
             );
         } else
         {
+            // check actions...
+            
             $data = array(
                 'filters' => $this->_paginator->get_filters_buffer(),
                 'listing' => $this->_paginator->get_listing_buffer(),
