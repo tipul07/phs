@@ -132,7 +132,18 @@ class PHS_Language extends PHS_Error
      */
     public static function _te( $index, $ch = '"' )
     {
-        return str_replace( $ch, ($ch=='\''?'\\\'':'\\"'), self::_t( $index ) );
+        return self::_e( self::_t( $index ), $ch );
+    }
+
+    /**
+     * Escapes ' or " in string parameter (useful when displaying strings in html/javascript strings)
+     *
+     * @param string $str String to be escaped
+     * @param string $ch Escaping character (' or ")
+     */
+    public static function _e( $str, $ch = '"' )
+    {
+        return str_replace( $ch, ($ch=='\''?'\\\'':'\\"'), $str );
     }
 
     /**

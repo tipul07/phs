@@ -25,6 +25,8 @@
     if( !($pagination_arr = $paginator_obj->pagination_params()) )
         $pagination_arr = $paginator_obj->default_pagination_params();
 
+    if( !($filters_arr = $paginator_obj->get_filters()) )
+        $filters_arr = array();
     if( !($columns_arr = $paginator_obj->get_columns()) )
         $columns_arr = array();
     if( !($records_arr = $paginator_obj->get_records()) )
@@ -33,8 +35,8 @@
     if( !($scope_arr = $paginator_obj->get_scope()) )
         $scope_arr = array();
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:100%;min-width:1000px;margin: 0 auto;">
-    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" action="<?php echo $full_filters_url?>" method="post" class="wpcf7">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:900px;margin: 0 auto;">
+    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" action="<?php echo form_str( $full_filters_url )?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container responsive">
@@ -43,10 +45,30 @@
             <h3><?php echo (!empty( $flow_params_arr['listing_title'] )?$flow_params_arr['listing_title']:$this::_t( 'Listing %s %s...', $pagination_arr['total_records'], ($pagination_arr['total_records']==1?$flow_params_arr['term_singular']:$flow_params_arr['term_plural']) ))?></h3>
         </section>
 
+        <?php
+
+        if( !empty( $columns_count )
+        and !empty( $flow_params_arr['before_table_callback'] )
+        and is_callable( $flow_params_arr['before_table_callback'] ) )
+        {
+            $callback_params = $paginator_obj->default_others_render_call_params();
+            $callback_params['columns'] = $columns_arr;
+            $callback_params['filters'] = $filters_arr;
+
+            if( ($cell_content = @call_user_func( $flow_params_arr['before_table_callback'], $callback_params )) === false
+             or $cell_content === null )
+                $cell_content = '[' . $this::_t( 'Render before table call failed.' ) . ']';
+
+            echo $cell_content;
+        }
+
+        ?>
+
         <div>
         <table style="width:100%" class="tgrid">
         <?php
         $columns_count = 0;
+        $checkboxes_update_arr = array();
         if( !empty( $columns_arr ) and is_array( $columns_arr ) )
         {
             $columns_count = count( $columns_arr );
@@ -67,8 +89,13 @@
                         $checkbox_checked = true;
 
                     ?><span style="width:100%;">
-                    <span style="float:left;"><input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> /></span>
+                    <span style="float:left;"><input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> onchange="phs_paginator_update_list_checkboxes( '<?php echo $this::_e( $checkbox_column_name, '\'' )?>', '<?php echo $this::_e( $checkbox_name_all, '\'' )?>' )" /></span>
                     <?php
+
+                    $checkboxes_update_arr[] = array(
+                            'checkbox_name' => $checkbox_column_name,
+                            'checkbox_name_all' => $checkbox_name_all,
+                    );
                 }
 
                 if( !empty( $column_arr['sortable'] ) )
@@ -97,6 +124,29 @@
         }
 
         ?><tbody><?php
+
+        if( !empty( $columns_count )
+        and !empty( $flow_params_arr['table_after_headers_callback'] )
+        and is_callable( $flow_params_arr['table_after_headers_callback'] ) )
+        {
+            ?>
+            <tr>
+                <td colspan="<?php echo $columns_count?>"><?php
+
+                $callback_params = $paginator_obj->default_others_render_call_params();
+                $callback_params['columns'] = $columns_arr;
+                $callback_params['filters'] = $filters_arr;
+
+                if( ($cell_content = @call_user_func( $flow_params_arr['table_after_headers_callback'], $callback_params )) === false
+                 or $cell_content === null )
+                    $cell_content = '[' . $this::_t( 'Render after headers call failed.' ) . ']';
+
+                echo $cell_content;
+
+                ?></td>
+            </tr>
+            <?php
+        }
 
         if( empty( $records_arr ) or !is_array( $records_arr ) )
         {
@@ -207,6 +257,29 @@
             }
         }
 
+        if( !empty( $columns_count )
+        and !empty( $flow_params_arr['table_bofore_footer_callback'] )
+        and is_callable( $flow_params_arr['table_bofore_footer_callback'] ) )
+        {
+            ?>
+            <tr>
+                <td colspan="<?php echo $columns_count?>"><?php
+
+                $callback_params = $paginator_obj->default_others_render_call_params();
+                $callback_params['columns'] = $columns_arr;
+                $callback_params['filters'] = $filters_arr;
+
+                if( ($cell_content = @call_user_func( $flow_params_arr['table_bofore_footer_callback'], $callback_params )) === false
+                 or $cell_content === null )
+                    $cell_content = '[' . $this::_t( 'Render before footer call failed.' ) . ']';
+
+                echo $cell_content;
+
+                ?></td>
+            </tr>
+            <?php
+        }
+
         ?>
         </tbody>
         </table>
@@ -216,3 +289,68 @@
     </form>
 </div>
 <div class="clearfix"></div>
+<?php
+display_js_functionality( $this, $checkboxes_update_arr );
+function display_js_functionality( $this_object, $checkboxes_update_arr = false )
+{
+    /** @var \phs\system\core\views\PHS_View $this_object */
+    static $js_displayed = false;
+
+    if( empty( $js_displayed ) )
+    {
+        $js_displayed = true;
+        ?>
+        <script type="text/javascript">
+        function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
+        {
+            checkbox_all_obj = $( '#' + checkbox_name_all );
+
+            if( !checkbox_all_obj )
+                return;
+
+            var should_be_checked = checkbox_all_obj.is(':checked');
+
+            checkbox_all_obj.closest('form').find('input:checkbox').each(function(){
+                var my_name = $(this).attr('name');
+
+                if( my_name == checkbox_name + '[]' )
+                {
+                    $(this).prop('checked', should_be_checked );
+                }
+            });
+        }
+        </script>
+        <?php
+    }
+
+    if( !empty( $checkboxes_update_arr ) and is_array( $checkboxes_update_arr ) )
+    {
+        ?><script type="text/javascript">
+        <?php
+        foreach( $checkboxes_update_arr as $checkbox_column )
+        {
+            if( !is_array( $checkbox_column ) )
+                continue;
+
+            ?>
+            phs_paginator_update_list_checkboxes( '<?php echo $this_object::_e( $checkbox_column['checkbox_name'], '\'' )?>', '<?php echo $this_object::_e( $checkbox_column['checkbox_name_all'], '\'' )?>' );
+            <?php
+        }
+        ?></script><?php
+    }
+}
+
+if( !empty( $columns_count )
+and !empty( $flow_params_arr['after_table_callback'] )
+and is_callable( $flow_params_arr['after_table_callback'] ) )
+{
+    $callback_params = $paginator_obj->default_others_render_call_params();
+    $callback_params['columns'] = $columns_arr;
+    $callback_params['filters'] = $filters_arr;
+
+    if( ($cell_content = @call_user_func( $flow_params_arr['after_table_callback'], $callback_params )) === false
+     or $cell_content === null )
+        $cell_content = '[' . $this::_t( 'Render after table call failed.' ) . ']';
+
+    echo $cell_content;
+}

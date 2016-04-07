@@ -11,12 +11,15 @@ class PHS_Paginator extends PHS_Registry
     const DEFAULT_PER_PAGE = 20;
 
     const CHECKBOXES_COLUMN_ALL_SUFIX = '_all';
+    const ACTION_PARAM_NAME = 'pag_act', ACTION_PARAMS_PARAM_NAME = 'pag_act_params', ACTION_RESULT_PARAM_NAME = 'pag_act_result';
 
     private $_filters = array();
     // Variables as provided in post or get
     private $_originals = array();
     // Parsed variables extracted from request
     private $_scope = array();
+    // Action request (if any)
+    private $_action = false;
 
     /** @var bool|\phs\libraries\PHS_Model  */
     private $_model = false;
@@ -45,6 +48,14 @@ class PHS_Paginator extends PHS_Registry
             $this->base_url( $base_url );
     }
 
+    public function default_others_render_call_params()
+    {
+        return array(
+            'columns' => array(),
+            'filters' => array(),
+        );
+    }
+
     public function default_cell_render_call_params()
     {
         return array(
@@ -66,6 +77,15 @@ class PHS_Paginator extends PHS_Registry
             'term_plural' => self::_t( 'records' ),
             'listing_title' => self::_t( 'Displaying results...' ),
             'did_query_database' => false,
+
+            // Callbacks to alter display
+            'before_filters_callback' => false,
+            'after_filters_callback' => false,
+            'before_table_callback' => false,
+            'after_table_callback' => false,
+
+            'table_after_headers_callback' => false,
+            'table_bofore_footer_callback' => false,
         );
     }
 
@@ -81,6 +101,15 @@ class PHS_Paginator extends PHS_Registry
             'max_pages' => 0,
             'sort' => 0,
             'sort_by' => '',
+        );
+    }
+
+    public function default_action_params()
+    {
+        return array(
+            'action' => '',
+            'action_params' => '',
+            'action_result' => '',
         );
     }
 
@@ -121,7 +150,12 @@ class PHS_Paginator extends PHS_Registry
     public function flow_params( $params = false )
     {
         if( $params === false )
+        {
+            if( empty( $this->_flow_params_arr ) )
+                $this->_flow_params_arr = $this->default_flow_params();
+
             return $this->_flow_params_arr;
+        }
 
         $this->_flow_params_arr = self::validate_array_recursive( $params, $this->default_flow_params() );
 
@@ -245,6 +279,51 @@ class PHS_Paginator extends PHS_Registry
         return $this->_base_url;
     }
 
+    /**
+     * @param array $action array with 'action' key saying what action should be taken and 'action_params' key action parameters
+     *
+     * @return array|bool Array with parameters to be passed in get for action or false if no action
+     */
+    public function parse_action_parameter( $action )
+    {
+        if( empty( $action )
+         or !($flow_params = $this->flow_params()) )
+            return false;
+
+        $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
+        $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
+        $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
+
+        $action_args = array();
+        $action_args[$action_key] = '';
+        $action_args[$action_params_key] = '';
+        $action_args[$action_result_key] = '';
+
+        if( is_string( $action ) )
+            $action_args[$action_key] = $action;
+
+        elseif( is_array( $action ) )
+        {
+            $action_args[$action_key] = (!empty( $action['action'] )?$action['action']:'');
+            if( !empty( $action['action_params'] ) )
+            {
+                // try sending arrays as parameters (although not recommended)
+                if( !is_string( $action['action_params'] ) )
+                    $action['action_params'] = rawurlencode( @json_encode( $action['action_params'] ) );
+
+                $action_args[$action_params_key] = $action['action_params'];
+            }
+        }
+
+        if( !empty( $action['action_result'] ) )
+            $action_args[$action_result_key] = $action['action_result'];
+
+        if( empty( $action_args[$action_key] ) )
+            return false;
+
+        return $action_args;
+    }
+
     public function get_full_url( $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -257,6 +336,13 @@ class PHS_Paginator extends PHS_Registry
 
         if( empty( $params['extra_params'] ) or !is_array( $params['extra_params'] ) )
             $params['extra_params'] = array();
+
+        if( empty( $params['action'] ) )
+            $params['action'] = false;
+
+        if( !($action_params = $this->parse_action_parameter( $params['action'] ))
+         or !is_array( $action_params ) )
+            $action_params = false;
 
         if( isset( $params['sort'] ) )
             $params['sort'] = (!empty( $params['sort'] )?1:0);
@@ -297,7 +383,17 @@ class PHS_Paginator extends PHS_Registry
         if( !($query_string = @http_build_query( $query_arr )) )
             $query_string = '';
 
-        $url .= '&'.$query_string;
+        // Don't run $action_params through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
+        // eg. action_params might be an id passed as javascript function parameter
+        if( !empty( $action_params ) and is_array( $action_params ) )
+        {
+            foreach( $action_params as $key => $val )
+            {
+                $query_string .= '&'.$key.'='.$val;
+            }
+        }
+
+        $url .= (substr( $query_string, 0, 1 )!='&'?'&':'').$query_string;
 
         return $url;
     }
@@ -412,7 +508,7 @@ class PHS_Paginator extends PHS_Registry
             'type' => PHS_params::T_ASIS,
             'extra_type' => false,
             'default' => null,
-            'display_default_as_filter' => true,
+            'display_default_as_filter' => false,
             'values_arr' => false,
             'extra_style' => '',
             'extra_classes' => '',
@@ -506,7 +602,42 @@ class PHS_Paginator extends PHS_Registry
         return true;
     }
 
-    public function extract_filters_scope()
+    private function extract_action_from_request()
+    {
+        $this->_action = $this->default_action_params();
+
+        if( !($flow_params = $this->flow_params()) )
+            return false;
+
+        $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
+        $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
+        $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
+
+        if( !($action = PHS_params::_gp( $action_key, PHS_params::T_NOHTML )) )
+            return true;
+
+        $this->_action['action'] = $action;
+
+        if( !($action_params = PHS_params::_gp( $action_params_key, PHS_params::T_ASIS )) )
+            $action_params = '';
+        if( !($action_result = PHS_params::_gp( $action_result_key, PHS_params::T_ASIS )) )
+            $action_result = '';
+
+        $this->_action['action_params'] = $action_params;
+        $this->_action['action_result'] = $action_result;
+
+        return true;
+    }
+
+    public function get_current_action()
+    {
+        if( empty( $this->_action ) )
+            $this->extract_action_from_request();
+
+        return $this->_action;
+    }
+
+    private function extract_filters_scope()
     {
         $this->_scope = array();
         $this->_originals = array();

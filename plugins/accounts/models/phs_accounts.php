@@ -245,7 +245,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
-    public function can_create_accounts( $user_data )
+    public function can_manage_accounts( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
          or !$this->acc_is_sadmin( $user_arr ) )

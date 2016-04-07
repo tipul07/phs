@@ -27,8 +27,21 @@
         $originals_arr = array();
 
     $show_filters = (PHS_params::_g( 'show_filters', PHS_params::T_INT )?true:false);
+
+    if( !empty( $flow_params_arr['before_filters_callback'] )
+    and is_callable( $flow_params_arr['before_filters_callback'] ) )
+    {
+        $callback_params = $paginator_obj->default_others_render_call_params();
+        $callback_params['filters'] = $filters_arr;
+
+        if( ($cell_content = @call_user_func( $flow_params_arr['before_filters_callback'], $callback_params )) === false
+         or $cell_content === null )
+            $cell_content = '[' . $this::_t( 'Render before filters call failed.' ) . ']';
+
+        echo $cell_content;
+    }
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:100%;min-width:1000px;margin: 0 auto;">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:900px;margin: 0 auto;">
     <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form" action="<?php echo $full_listing_url?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 
@@ -178,3 +191,17 @@ function toggle_filters_inputs_and_text()
         text_obj.toggle();
 }
 </script>
+<?php
+
+    if( !empty( $flow_params_arr['after_filters_callback'] )
+    and is_callable( $flow_params_arr['after_filters_callback'] ) )
+    {
+        $callback_params = $paginator_obj->default_others_render_call_params();
+        $callback_params['filters'] = $filters_arr;
+
+        if( ($cell_content = @call_user_func( $flow_params_arr['after_filters_callback'], $callback_params )) === false
+         or $cell_content === null )
+            $cell_content = '[' . $this::_t( 'Render after filters call failed.' ) . ']';
+
+        echo $cell_content;
+    }

@@ -56,9 +56,9 @@ class PHS_Action_User_add extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !$accounts_model->can_create_accounts( $current_user ) )
+        if( !$accounts_model->can_manage_accounts( $current_user ) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to create accounts.' ) );
+            PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to manage accounts.' ) );
             return self::default_action_result();
         }
 

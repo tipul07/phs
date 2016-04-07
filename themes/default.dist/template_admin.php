@@ -170,7 +170,7 @@
                 <li><?php echo $this::_t( 'Users Management' ) ?>
                     <ul>
                         <?php
-                        if( $accounts_model->can_create_accounts( $cuser_arr ) )
+                        if( $accounts_model->can_manage_accounts( $cuser_arr ) )
                         {
                             ?>
                             <li><a href="<?php echo PHS::url( array(
