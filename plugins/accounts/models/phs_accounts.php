@@ -668,6 +668,71 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->edit( $account_arr, $edit_params );
     }
 
+    public function activate_account( $account_data, $params = false )
+    {
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_active( $account_arr ) )
+            return $account_arr;
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_ACTIVE;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $account_arr, $edit_params );
+    }
+
+    public function inactivate_account( $account_data, $params = false )
+    {
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_inactive( $account_arr ) )
+            return $account_arr;
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_INACTIVE;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $account_arr, $edit_params );
+    }
+
+    public function delete_account( $account_data, $params = false )
+    {
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_inactive( $account_arr ) )
+            return $account_arr;
+
+        $edit_arr = array();
+        $edit_arr['nick'] = $account_arr['nick'].'_DELETED';
+        $edit_arr['email'] = $account_arr['email'].'_DELETED';
+        $edit_arr['status'] = self::STATUS_DELETED;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $account_arr, $edit_params );
+    }
+
     public function send_confirmation_email( $account_data, $params = false )
     {
         if( empty( $account_data )
@@ -947,14 +1012,19 @@ class PHS_Model_Accounts extends PHS_Model
         if( isset( $params['fields']['nick'] )
         and $params['fields']['nick'] != $existing_data['nick'] )
         {
-            $check_arr = array();
-            $check_arr['nick'] = $params['fields']['nick'];
-            $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
-
-            if( $this->get_details_fields( $check_arr ) )
+            // If we delete the account, just skip checks...
+            if( empty( $params['fields']['status'] )
+             or $params['fields']['status'] != self::STATUS_DELETED )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Nickname already exists in database. Please pick another one.' ) );
-                return false;
+                $check_arr         = array();
+                $check_arr['nick'] = $params['fields']['nick'];
+                $check_arr['id']   = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+                if( $this->get_details_fields( $check_arr ) )
+                {
+                    $this->set_error( self::ERR_EDIT, self::_t( 'Nickname already exists in database. Please pick another one.' ) );
+                    return false;
+                }
             }
         }
 
@@ -993,23 +1063,28 @@ class PHS_Model_Accounts extends PHS_Model
         if( isset( $params['fields']['email'] )
         and $params['fields']['email'] != $existing_data['email'] )
         {
-            if( empty( $params['fields']['email'] )
-             or !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
+            // If we delete the account, just skip checks...
+            if( empty( $params['fields']['status'] )
+             or $params['fields']['status'] != self::STATUS_DELETED )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Invalid email address.' ) );
-                return false;
-            }
-
-            if( !empty( $accounts_settings['email_unique'] ) )
-            {
-                $check_arr = array();
-                $check_arr['email'] = $params['fields']['email'];
-                $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
-
-                if( $this->get_details_fields( $check_arr ) )
+                if( empty( $params['fields']['email'] )
+                 or !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
                 {
-                    $this->set_error( self::ERR_EDIT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                    $this->set_error( self::ERR_EDIT, self::_t( 'Invalid email address.' ) );
                     return false;
+                }
+
+                if( !empty( $accounts_settings['email_unique'] ) )
+                {
+                    $check_arr          = array();
+                    $check_arr['email'] = $params['fields']['email'];
+                    $check_arr['id']    = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+                    if( $this->get_details_fields( $check_arr ) )
+                    {
+                        $this->set_error( self::ERR_EDIT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                        return false;
+                    }
                 }
             }
 

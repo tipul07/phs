@@ -6,13 +6,16 @@ use \phs\system\core\views\PHS_View;
 
 class PHS_Paginator extends PHS_Registry
 {
-    const ERR_FILTERS = 1, ERR_COLUMNS = 2, ERR_MODEL = 3, ERR_RENDER = 4;
+    const ERR_FILTERS = 1, ERR_BULK_ACTIONS = 2, ERR_COLUMNS = 3, ERR_MODEL = 4, ERR_RENDER = 5;
 
     const DEFAULT_PER_PAGE = 20;
 
     const CHECKBOXES_COLUMN_ALL_SUFIX = '_all';
     const ACTION_PARAM_NAME = 'pag_act', ACTION_PARAMS_PARAM_NAME = 'pag_act_params', ACTION_RESULT_PARAM_NAME = 'pag_act_result';
 
+    // Bulk actions array
+    private $_bulk_actions = array();
+    // Filters array
     private $_filters = array();
     // Variables as provided in post or get
     private $_originals = array();
@@ -77,6 +80,9 @@ class PHS_Paginator extends PHS_Registry
             'term_plural' => self::_t( 'records' ),
             'listing_title' => self::_t( 'Displaying results...' ),
             'did_query_database' => false,
+
+            'display_top_bulk_actions' => true,
+            'display_bottom_bulk_actions' => true,
 
             // Callbacks to alter display
             'before_filters_callback' => false,
@@ -228,7 +234,6 @@ class PHS_Paginator extends PHS_Registry
 
         return $flow_params_arr['form_prefix'].$column_arr['checkbox_record_index_key']['checkbox_name'].'_chck';
     }
-
 
     public function display_checkbox_column( $params )
     {
@@ -554,6 +559,64 @@ class PHS_Paginator extends PHS_Registry
     public function get_filters()
     {
         return $this->_filters;
+    }
+
+    public static function default_bulk_actions_fields()
+    {
+        return array(
+            'display_name' => '',
+            'action' => '',
+            'js_callback' => '',
+        );
+    }
+
+    public function set_bulk_actions( $actions_arr )
+    {
+        $this->reset_bulk_actions();
+
+        if( empty( $actions_arr ) or !is_array( $actions_arr ) )
+        {
+            $this->set_error( self::ERR_BULK_ACTIONS, self::_t( 'Bad bulk actions format.' ) );
+            return false;
+        }
+
+        $new_actions = array();
+        $default_actions_fields = self::default_bulk_actions_fields();
+        foreach( $actions_arr as $action )
+        {
+            if( !($new_action = self::validate_array_to_new_array( $action, $default_actions_fields )) )
+                continue;
+
+            if( empty( $new_action['action'] ) or empty( $new_action['js_callback'] ) )
+            {
+                $this->set_error( self::ERR_FILTERS, self::_t( 'No action or js_callback provided for bulk action %s.', (!empty( $new_action['display_name'] )?$new_action['display_name']:'(???)') ) );
+                return false;
+            }
+
+            $new_actions[] = $new_action;
+        }
+
+        $this->_bulk_actions = $new_actions;
+
+        return $this->_bulk_actions;
+    }
+
+    public function get_bulk_action_select_name()
+    {
+        if( !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        return $flow_params_arr['form_prefix'].'bulk_action';
+    }
+
+    public function reset_bulk_actions()
+    {
+        $this->_bulk_actions = array();
+    }
+
+    public function get_bulk_actions()
+    {
+        return $this->_bulk_actions;
     }
 
     public function get_scope()

@@ -25,6 +25,12 @@
     if( !($pagination_arr = $paginator_obj->pagination_params()) )
         $pagination_arr = $paginator_obj->default_pagination_params();
 
+    if( !($bulk_select_name = $paginator_obj->get_bulk_action_select_name()) )
+        $bulk_select_name = '';
+
+    if( !($bulk_actions = $paginator_obj->get_bulk_actions())
+     or !is_array( $bulk_actions ) )
+        $bulk_actions = array();
     if( !($filters_arr = $paginator_obj->get_filters()) )
         $filters_arr = array();
     if( !($columns_arr = $paginator_obj->get_columns()) )
@@ -46,6 +52,78 @@
         </section>
 
         <?php
+            
+        if( !empty( $bulk_actions )
+        and !empty( $bulk_select_name )
+        and (!empty( $flow_params_arr['display_top_bulk_actions'] )
+                or !empty( $flow_params_arr['display_bottom_bulk_actions'] )) )
+        {
+            $json_actions = array();
+            foreach( $bulk_actions as $action )
+            {
+                $json_actions[$action['action']] = $action;
+            }
+
+            // display js functionality for bulk actions
+            ?>
+            <script type="text/javascript">
+            var phs_paginator_bulk_actions = <?php echo @json_encode( $json_actions );?>;
+
+            function submit_bulk_action( area )
+            {
+                if( area != 'top' && area != 'bottom' )
+                    return false;
+
+                var bulk_select_obj = $('#<?php echo $bulk_select_name?>' + area);
+                if( !bulk_select_obj )
+                    return false;
+
+                var bulk_action = bulk_select_obj.val();
+                if( !bulk_action
+                 || !(bulk_action in phs_paginator_bulk_actions) )
+                {
+                    alert( '<?php echo $this::_e( 'Please choose an action first.', '\'' )?>' );
+                    return false;
+                }
+
+                var action_func = false;
+                if( phs_paginator_bulk_actions[bulk_action]['js_callback'] )
+                    action_func = phs_paginator_bulk_actions[bulk_action]['js_callback'];
+
+                if( action_func )
+                    eval( action_func+'()' );
+
+                else
+                {
+                    alert( 'Running [' + phs_paginator_bulk_actions[bulk_action]['action'] + ']' );
+                }
+
+                return false;
+            }
+            </script>
+            <?php
+        }
+
+        if( !empty( $flow_params_arr['display_top_bulk_actions'] )
+        and !empty( $bulk_select_name )
+        and !empty( $bulk_actions ) )
+        {
+            $select_name = $bulk_select_name.'top';
+            ?><div style="margin-bottom:5px;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
+                <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
+                <?php
+                foreach( $bulk_actions as $action_arr )
+                {
+                    ?><option value="<?php echo $action_arr['action']?>"><?php echo $action_arr['display_name']?></option><?php
+                }
+                ?>
+            </select>
+            <button type="button" onclick="this.blur();submit_bulk_action( 'top' )"><?php echo $this::_t( 'Apply' )?></button>
+            </div>
+            <div class="clearfix"></div>
+            <?php
+        }
 
         if( !empty( $columns_count )
         and !empty( $flow_params_arr['before_table_callback'] )
@@ -65,7 +143,7 @@
         ?>
 
         <div>
-        <table style="width:100%" class="tgrid">
+        <table style="width:100%;margin-bottom:5px;" class="tgrid">
         <?php
         $columns_count = 0;
         $checkboxes_update_arr = array();
@@ -279,11 +357,49 @@
             </tr>
             <?php
         }
-
         ?>
         </tbody>
         </table>
         </div>
+
+        <?php
+
+        if( !empty( $columns_count )
+        and !empty( $flow_params_arr['after_table_callback'] )
+        and is_callable( $flow_params_arr['after_table_callback'] ) )
+        {
+            $callback_params = $paginator_obj->default_others_render_call_params();
+            $callback_params['columns'] = $columns_arr;
+            $callback_params['filters'] = $filters_arr;
+
+            if( ($cell_content = @call_user_func( $flow_params_arr['after_table_callback'], $callback_params )) === false
+             or $cell_content === null )
+                $cell_content = '[' . $this::_t( 'Render after table call failed.' ) . ']';
+
+            echo $cell_content;
+        }
+
+        if( !empty( $flow_params_arr['display_top_bulk_actions'] )
+        and !empty( $bulk_select_name )
+        and !empty( $bulk_actions ) )
+        {
+            $select_name = $bulk_select_name.'bottom';
+            ?><div style="margin-bottom:5px;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
+                <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
+                <?php
+                    foreach( $bulk_actions as $action_arr )
+                    {
+                        ?><option value="<?php echo $action_arr['action']?>"><?php echo $action_arr['display_name']?></option><?php
+                    }
+                ?>
+            </select>
+            <button type="button" onclick="this.blur();submit_bulk_action( 'bottom' )"><?php echo $this::_t( 'Apply' )?></button>
+            </div>
+            <div class="clearfix"></div>
+            <?php
+        }
+        ?>
 
     </div>
     </form>
@@ -338,19 +454,4 @@ function display_js_functionality( $this_object, $checkboxes_update_arr = false 
         }
         ?></script><?php
     }
-}
-
-if( !empty( $columns_count )
-and !empty( $flow_params_arr['after_table_callback'] )
-and is_callable( $flow_params_arr['after_table_callback'] ) )
-{
-    $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['columns'] = $columns_arr;
-    $callback_params['filters'] = $filters_arr;
-
-    if( ($cell_content = @call_user_func( $flow_params_arr['after_table_callback'], $callback_params )) === false
-     or $cell_content === null )
-        $cell_content = '[' . $this::_t( 'Render after table call failed.' ) . ']';
-
-    echo $cell_content;
 }

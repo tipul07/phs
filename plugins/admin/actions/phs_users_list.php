@@ -118,6 +118,24 @@ class PHS_Action_Users_list extends PHS_Action
         if( !empty( $users_statuses ) )
             $users_statuses = self::merge_array_assoc( array( 0 => self::_t( ' - Choose - ' ) ), $users_statuses );
 
+        $bulk_actions = array(
+            array(
+                'display_name' => self::_t( 'Inactivate' ),
+                'action' => 'bulk_inactivate',
+                'js_callback' => 'phs_users_list_bulk_inactivate',
+            ),
+            array(
+                'display_name' => self::_t( 'Activate' ),
+                'action' => 'bulk_activate',
+                'js_callback' => 'phs_users_list_bulk_activate',
+            ),
+            array(
+                'display_name' => self::_t( 'Delete' ),
+                'action' => 'bulk_delete',
+                'js_callback' => 'phs_users_list_bulk_delete',
+            ),
+        );
+
         $filters_arr = array(
             array(
                 'display_name' => self::_t( 'IDs' ),
@@ -219,7 +237,8 @@ class PHS_Action_Users_list extends PHS_Action
             ),
         );
 
-        if( !$this->_paginator->set_columns( $columns_arr )
+        if( !$this->_paginator->set_bulk_actions( $bulk_actions )
+         or !$this->_paginator->set_columns( $columns_arr )
          or !$this->_paginator->set_filters( $filters_arr )
          or !$this->_paginator->set_model( $this->_accounts_model ) )
         {
@@ -239,10 +258,24 @@ class PHS_Action_Users_list extends PHS_Action
             and is_array( $current_action )
             and !empty( $current_action['action'] ) )
             {
-                if( !$this->manage_action( $current_action ) )
+                if( !($pagination_action_result = $this->manage_action( $current_action )) )
                 {
                     if( $this->has_error() )
                         PHS_Notifications::add_error_notice( $this->get_error_message() );
+                } elseif( is_array( $pagination_action_result )
+                      and !empty( $pagination_action_result['action'] ) )
+                {
+                    $pagination_action_result = self::validate_array( $pagination_action_result, $this->_paginator->default_action_params() );
+
+                    $url_params = array(
+                        'action' => $pagination_action_result,
+                    );
+
+                    $action_result = self::default_action_result();
+
+                    $action_result['redirect_to_url'] = $this->_paginator->get_full_url( $url_params );
+
+                    return $action_result;
                 }
             }
             
@@ -254,7 +287,14 @@ class PHS_Action_Users_list extends PHS_Action
 
         return $this->quick_render_template( 'users_list', $data );
     }
-    
+
+    /**
+     * Manages actions to be taken for current listing
+     *
+     * @param array $action Action details array
+     *
+     * @return array|bool Returns true if no error or no action taken, false if there was an error while taking action or an action array in case action was taken (with success or not)
+     */
     public function manage_action( $action )
     {
         $this->reset_error();
@@ -265,9 +305,13 @@ class PHS_Action_Users_list extends PHS_Action
                 return false;
         }
 
+        $action_result_params = $this->_paginator->default_action_params();
+
         if( empty( $action ) or !is_array( $action )
          or empty( $action['action'] ) )
-            return true;
+            return $action_result_params;
+
+        $action_result_params['action'] = $action['action'];
 
         switch( $action['action'] )
         {
@@ -285,7 +329,7 @@ class PHS_Action_Users_list extends PHS_Action
                 if( !($current_user = PHS::user_logged_in())
                  or !$this->_accounts_model->can_manage_accounts( $current_user ) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
                     return false;
                 }
 
@@ -295,12 +339,14 @@ class PHS_Action_Users_list extends PHS_Action
                 if( empty( $action['action_params'] )
                  or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'Cannot activate account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot activate account. Account not found.' ) );
                     return false;
                 }
 
-                PHS_Notifications::add_success_notice( 'Activating ['.$account_arr['nick'].'] account' );
-
+                if( !$this->_accounts_model->activate_account( $account_arr ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
             break;
 
             case 'inactivate_account':
@@ -317,7 +363,7 @@ class PHS_Action_Users_list extends PHS_Action
                 if( !($current_user = PHS::user_logged_in())
                  or !$this->_accounts_model->can_manage_accounts( $current_user ) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
                     return false;
                 }
 
@@ -327,12 +373,14 @@ class PHS_Action_Users_list extends PHS_Action
                 if( empty( $action['action_params'] )
                  or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'Cannot inactivate account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot inactivate account. Account not found.' ) );
                     return false;
                 }
 
-                PHS_Notifications::add_success_notice( 'Inactivating ['.$account_arr['nick'].'] account' );
-
+                if( !$this->_accounts_model->inactivate_account( $account_arr ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
            break;
 
             case 'delete_account':
@@ -349,7 +397,7 @@ class PHS_Action_Users_list extends PHS_Action
                 if( !($current_user = PHS::user_logged_in())
                  or !$this->_accounts_model->can_manage_accounts( $current_user ) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
                     return false;
                 }
 
@@ -359,16 +407,18 @@ class PHS_Action_Users_list extends PHS_Action
                 if( empty( $action['action_params'] )
                  or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
                 {
-                    PHS_Notifications::add_error_notice( self::_t( 'Cannot delete account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot delete account. Account not found.' ) );
                     return false;
                 }
 
-                PHS_Notifications::add_success_notice( 'Deleting ['.$account_arr['nick'].'] account' );
-
+                if( !$this->_accounts_model->delete_account( $account_arr ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
             break;
         }
 
-        return true;
+        return $action_result_params;
     }
 
     public function display_actions( $params )
@@ -449,7 +499,8 @@ class PHS_Action_Users_list extends PHS_Action
         }
         function phs_users_list_delete_account( id )
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to delete this account?', '\'' )?>' ) )
+            if( confirm( '<?php echo self::_e( 'Are you sure you want to DELETE this account?', '\'' )?>' + '\n' +
+                         '<?php echo self::_e( 'NOTE: You cannot undo this action!', '\'' )?>' ) )
             {
                 <?php
                 $url_params = array();
@@ -458,6 +509,28 @@ class PHS_Action_Users_list extends PHS_Action
                     'action_params' => '\' + id + \'',
                 )
                 ?>document.location = '<?php echo $this->_paginator->get_full_url( $url_params )?>';
+            }
+        }
+        function phs_users_list_bulk_activate()
+        {
+            if( confirm( '<?php echo self::_e( 'Are you sure you want to activate selected accounts?', '\'' )?>' ) )
+            {
+                alert( 'ok' );
+            }
+        }
+        function phs_users_list_bulk_inactivate()
+        {
+            if( confirm( '<?php echo self::_e( 'Are you sure you want to incativate selected accounts?', '\'' )?>' ) )
+            {
+                alert( 'ok' );
+            }
+        }
+        function phs_users_list_bulk_delete()
+        {
+            if( confirm( '<?php echo self::_e( 'Are you sure you want to DELETE selected accounts?', '\'' )?>' + '\n' +
+                         '<?php echo self::_e( 'NOTE: You cannot undo this action!', '\'' )?>' ) )
+            {
+                alert( 'ok' );
             }
         }
         </script>
