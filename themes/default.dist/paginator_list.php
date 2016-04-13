@@ -17,14 +17,17 @@
 
     if( !($base_url = $paginator_obj->base_url()) )
         $base_url = '#';
-    if( !($full_filters_url = $paginator_obj->get_full_url( array( 'include_filters' => false ) )) )
+    if( !($full_filters_url = $paginator_obj->get_full_url()) ) // array( 'include_filters' => false ) )) )
         $full_filters_url = '#';
 
     if( !($flow_params_arr = $paginator_obj->flow_params()) )
         $flow_params_arr = $paginator_obj->default_flow_params();
+
     if( !($pagination_arr = $paginator_obj->pagination_params()) )
         $pagination_arr = $paginator_obj->default_pagination_params();
 
+    if( !($listing_form_name = $paginator_obj->get_filters_form_name()) )
+        $listing_form_name = $flow_params_arr['form_prefix'].'paginator_list_form';
     if( !($bulk_select_name = $paginator_obj->get_bulk_action_select_name()) )
         $bulk_select_name = '';
 
@@ -40,9 +43,11 @@
 
     if( !($scope_arr = $paginator_obj->get_scope()) )
         $scope_arr = array();
+
+    $per_page_options_arr = array( 20, 50, 100 );
 ?>
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:900px;margin: 0 auto;">
-    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_list_form" action="<?php echo form_str( $full_filters_url )?>" method="post" class="wpcf7">
+    <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container responsive">
@@ -90,40 +95,80 @@
                 if( phs_paginator_bulk_actions[bulk_action]['js_callback'] )
                     action_func = phs_paginator_bulk_actions[bulk_action]['js_callback'];
 
-                if( action_func )
-                    eval( action_func+'()' );
+                if( action_func
+                 && typeof window[action_func] === 'function' )
+                    return eval( action_func+'()' );
 
-                else
-                {
-                    alert( 'Running [' + phs_paginator_bulk_actions[bulk_action]['action'] + ']' );
-                }
-
-                return false;
+                return phs_paginator_default_bulk_action( bulk_action );
             }
             </script>
             <?php
         }
+
+        ?>
+        <div style="margin:0 auto;text-align: center;"><?php
+            echo $this::_t( 'Displaying %s / %s %s, page %s / %s.',
+                           $pagination_arr['listing_records_count'],
+                           $pagination_arr['total_records'],
+                           $flow_params_arr['term_plural'],
+                           $pagination_arr['page'] + 1,
+                           $pagination_arr['max_pages']
+            );
+            ?></div>
+        <div class="clearfix"></div>
+        <?php
 
         if( !empty( $flow_params_arr['display_top_bulk_actions'] )
         and !empty( $bulk_select_name )
         and !empty( $bulk_actions ) )
         {
             $select_name = $bulk_select_name.'top';
-            ?><div style="margin-bottom:5px;">
+            $select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='top')?true:false);
+
+            ?><div style="margin-bottom:5px;float:left;">
             <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                 foreach( $bulk_actions as $action_arr )
                 {
-                    ?><option value="<?php echo $action_arr['action']?>"><?php echo $action_arr['display_name']?></option><?php
+                    $selected_option = '';
+                    if( $select_with_action
+                    and !empty( $flow_params_arr['bulk_action'] )
+                    and $action_arr['action'] == $flow_params_arr['bulk_action'] )
+                        $selected_option = 'selected="selected"';
+
+                    ?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
                 }
                 ?>
             </select>
-            <button type="button" onclick="this.blur();submit_bulk_action( 'top' )"><?php echo $this::_t( 'Apply' )?></button>
+            <input type="submit" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
-            <div class="clearfix"></div>
             <?php
         }
+
+        if( true or $pagination_arr['max_pages'] > 1 )
+        {
+            $per_page_var_name = $flow_params_arr['form_prefix'] . $pagination_arr['per_page_var_name'];
+
+            ?><div style="margin-bottom:5px;float:right;">
+            <?php echo $this::_t( '%s per page', ucfirst( $flow_params_arr['term_plural'] ) )?>
+            <select name="<?php echo $per_page_var_name?>" id="<?php echo $per_page_var_name.'top'?>" class="wpcf7-select" onchange="document.<?php echo $listing_form_name?>.submit()">
+            <?php
+                foreach( $per_page_options_arr as $per_page_option )
+                {
+                    $selected_option = '';
+                    if( $per_page_option == $pagination_arr['records_per_page'] )
+                        $selected_option = 'selected="selected"';
+
+                    ?><option value="<?php echo $per_page_option?>" <?php echo $selected_option?>><?php echo $per_page_option?></option><?php
+                }
+            ?>
+            </select>
+            </div>
+            <?php
+        }
+
+        ?><div class="clearfix"></div><?php
 
         if( !empty( $columns_count )
         and !empty( $flow_params_arr['before_table_callback'] )
@@ -146,7 +191,6 @@
         <table style="width:100%;margin-bottom:5px;" class="tgrid">
         <?php
         $columns_count = 0;
-        $checkboxes_update_arr = array();
         if( !empty( $columns_arr ) and is_array( $columns_arr ) )
         {
             $columns_count = count( $columns_arr );
@@ -154,6 +198,9 @@
             <thead>
             <tr>
             <?php
+            $sort_url = exclude_params( $paginator_obj->get_full_url(), array( $flow_params_arr['form_prefix'].'sort', $flow_params_arr['form_prefix'].'sort_by' ) );
+            $current_sort = $paginator_obj->pagination_params( 'sort' );
+
             foreach( $columns_arr as $column_arr )
             {
                 ?><th class="<?php echo (!empty( $column_arr['sortable'] )?'sortable':'').' '.$column_arr['extra_classes']?>" style="text-align:center;<?php echo $column_arr['extra_style']?>"><?php
@@ -169,16 +216,13 @@
                     ?><span style="width:100%;">
                     <span style="float:left;"><input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> onchange="phs_paginator_update_list_checkboxes( '<?php echo $this::_e( $checkbox_column_name, '\'' )?>', '<?php echo $this::_e( $checkbox_name_all, '\'' )?>' )" /></span>
                     <?php
-
-                    $checkboxes_update_arr[] = array(
-                            'checkbox_name' => $checkbox_column_name,
-                            'checkbox_name_all' => $checkbox_name_all,
-                    );
                 }
 
                 if( !empty( $column_arr['sortable'] ) )
                 {
-                    ?><a href="#"><?php
+                    $column_sort_url = $sort_url.'&'.$flow_params_arr['form_prefix'].'sort='.($current_sort?'0':'1').'&'.$flow_params_arr['form_prefix'].'sort_by='.$column_arr['record_field'];
+
+                    ?><a href="<?php echo $column_sort_url?>"><?php
                 }
 
                 echo $column_arr['column_title'];
@@ -384,17 +428,25 @@
         and !empty( $bulk_actions ) )
         {
             $select_name = $bulk_select_name.'bottom';
-            ?><div style="margin-bottom:5px;">
+            $select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='bottom')?true:false);
+
+            ?><div style="margin-bottom:5px;float:left;">
             <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                     foreach( $bulk_actions as $action_arr )
                     {
-                        ?><option value="<?php echo $action_arr['action']?>"><?php echo $action_arr['display_name']?></option><?php
+                        $selected_option = '';
+                        if( $select_with_action
+                        and !empty( $flow_params_arr['bulk_action'] )
+                        and $action_arr['action'] == $flow_params_arr['bulk_action'] )
+                            $selected_option = 'selected="selected"';
+
+                        ?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
                     }
                 ?>
             </select>
-            <button type="button" onclick="this.blur();submit_bulk_action( 'bottom' )"><?php echo $this::_t( 'Apply' )?></button>
+            <input type="submit" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <div class="clearfix"></div>
             <?php
@@ -406,9 +458,10 @@
 </div>
 <div class="clearfix"></div>
 <?php
-display_js_functionality( $this, $checkboxes_update_arr );
-function display_js_functionality( $this_object, $checkboxes_update_arr = false )
+display_js_functionality( $this, $paginator_obj, $listing_form_name );
+function display_js_functionality( $this_object, $paginator_obj, $listing_form_name )
 {
+    /** @var \phs\libraries\PHS_Paginator $paginator_obj */
     /** @var \phs\system\core\views\PHS_View $this_object */
     static $js_displayed = false;
 
@@ -435,23 +488,87 @@ function display_js_functionality( $this_object, $checkboxes_update_arr = false 
                 }
             });
         }
+
+        function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
+        {
+            checkbox_all_obj = $( '#' + checkbox_id_all );
+            checkbox_obj = $( '#' + checkbox_id );
+
+            if( !checkbox_all_obj || !checkbox_obj )
+                return;
+
+            var should_be_unchecked = !checkbox_obj.is(':checked');
+
+            if( !should_be_unchecked )
+                return;
+
+            checkbox_all_obj.prop('checked', false );
+        }
+
+        function phs_paginator_default_bulk_action( action )
+        {
+            if( !action
+             || !(action in phs_paginator_bulk_actions) )
+            {
+                alert( "<?php echo $this_object::_e( 'Action not defined.', '"' )?>" );
+                return false;
+            }
+
+            var action_display_name = '[Not defined]';
+            if( phs_paginator_bulk_actions[action]['display_name'] != "undefined" )
+                action_display_name = phs_paginator_bulk_actions[action]['display_name'];
+
+            var selected_records = -1;
+            if( phs_paginator_bulk_actions[action]['checkbox_column'] != "undefined"
+             && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]['checkbox_column'] )) )
+                selected_records = checkboxes_list.length;
+
+            var confirm_text = "";
+            if( selected_records == -1 )
+                confirm_text = "<?php echo sprintf( $this_object::_e( 'Are you sure you want to run action %s on selected records?', '"' ), '" + action_display_name + "' )?>";
+            else
+            {
+                if( selected_records <= 0 )
+                {
+                    alert( "<?php echo sprintf( $this_object::_e( 'Please select records for which you want to run action %s first.', '"' ), '" + action_display_name + "' )?>" );
+                    return false;
+                }
+
+                confirm_text = "<?php echo sprintf( $this_object::_e( 'Are you sure you want to run action %s on %s selected records?', '"' ), '" + action_display_name + "', '" + selected_records + "' )?>";
+            }
+
+            return confirm( confirm_text );
+        }
+
+        function phs_paginator_get_checkboxes( column )
+        {
+            var checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf( $paginator_obj->get_checkbox_name_format(), '" + column + "' )?>[]']");
+
+            if( !checkboxes_list && !checkboxes_list.length )
+                return [];
+
+            return checkboxes_list;
+        }
+
+        function phs_paginator_get_checkboxes_checked( column )
+        {
+            var checkboxes_list = phs_paginator_get_checkboxes( column );
+
+            if( !checkboxes_list && !checkboxes_list.length )
+                return [];
+
+            var list_length = checkboxes_list.length;
+
+            var checkboxes_checked = [];
+            for( var i = 0; i < list_length; i++ )
+            {
+                if( $( checkboxes_list[i] ).is(':checked') )
+                    checkboxes_checked.push( checkboxes_list[i] );
+            }
+
+            return checkboxes_checked;
+        }
         </script>
         <?php
-    }
-
-    if( !empty( $checkboxes_update_arr ) and is_array( $checkboxes_update_arr ) )
-    {
-        ?><script type="text/javascript">
-        <?php
-        foreach( $checkboxes_update_arr as $checkbox_column )
-        {
-            if( !is_array( $checkbox_column ) )
-                continue;
-
-            ?>
-            phs_paginator_update_list_checkboxes( '<?php echo $this_object::_e( $checkbox_column['checkbox_name'], '\'' )?>', '<?php echo $this_object::_e( $checkbox_column['checkbox_name_all'], '\'' )?>' );
-            <?php
-        }
-        ?></script><?php
     }
 }

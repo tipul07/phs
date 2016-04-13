@@ -81,6 +81,8 @@ class PHS_Paginator extends PHS_Registry
             'listing_title' => self::_t( 'Displaying results...' ),
             'did_query_database' => false,
 
+            'bulk_action' => '',
+            'bulk_action_area' => '',
             'display_top_bulk_actions' => true,
             'display_bottom_bulk_actions' => true,
 
@@ -104,6 +106,7 @@ class PHS_Paginator extends PHS_Registry
             'page' => 0,
             'offset' => 0,
             'total_records' => -1,
+            'listing_records_count' => 0,
             'max_pages' => 0,
             'sort' => 0,
             'sort_by' => '',
@@ -116,6 +119,7 @@ class PHS_Paginator extends PHS_Registry
             'action' => '',
             'action_params' => '',
             'action_result' => '',
+            'action_redirect_url_params' => false,
         );
     }
 
@@ -221,6 +225,38 @@ class PHS_Paginator extends PHS_Registry
         return '<span title="'.self::_t( '%s ago', PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
     }
 
+    public function get_checkbox_name_format()
+    {
+        if( !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        return $flow_params_arr['form_prefix'].'%s_chck';
+    }
+
+    public function get_all_checkbox_name_format()
+    {
+        if( !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        return $flow_params_arr['form_prefix'].'%s_chck'.self::CHECKBOXES_COLUMN_ALL_SUFIX;
+    }
+
+    public function get_listing_form_name()
+    {
+        if( !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        return $flow_params_arr['form_prefix'].'paginator_list_form';
+    }
+
+    public function get_filters_form_name()
+    {
+        if( !($flow_params_arr = $this->flow_params()) )
+            return '';
+
+        return $flow_params_arr['form_prefix'].'paginator_list_form';
+    }
+
     public function get_checkbox_name_for_column( $column_arr )
     {
         if( empty( $column_arr ) or !is_array( $column_arr )
@@ -232,7 +268,7 @@ class PHS_Paginator extends PHS_Registry
         if( empty( $column_arr['checkbox_record_index_key']['checkbox_name'] ) )
             $column_arr['checkbox_record_index_key']['checkbox_name'] = $column_arr['checkbox_record_index_key']['key'];
 
-        return $flow_params_arr['form_prefix'].$column_arr['checkbox_record_index_key']['checkbox_name'].'_chck';
+        return @sprintf( $this->get_checkbox_name_format(), $column_arr['checkbox_record_index_key']['checkbox_name'] );
     }
 
     public function display_checkbox_column( $params )
@@ -268,10 +304,19 @@ class PHS_Paginator extends PHS_Registry
                 $checkbox_checked = true;
         }
 
-        return '<label for="'.$checkbox_name.'" style="width:100%">'.
-               '<span style="float:left;"><input type="checkbox" value="'.$checkbox_value.'" name="'.$checkbox_name.'[]" id="'.$checkbox_name.'" class="wpcf7-text" rel="skin_checkbox" '.($checkbox_checked?'checked="checked"':'').' /></span>'.
-               $params['preset_content'].
-               '</label>';
+        ob_start();
+        ?>
+        <label for="<?php echo $checkbox_name?>" style="width:100%">
+        <span style="float:left;">
+            <input type="checkbox" value="<?php echo $checkbox_value?>" name="<?php echo $checkbox_name?>[]" id="<?php echo $checkbox_name.'_'.$checkbox_value?>"
+                   class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?>
+                   onchange="phs_paginator_update_list_all_checkbox( '<?php echo $checkbox_name.'_'.$checkbox_value?>', '<?php echo $checkbox_name_all?>' )" />
+        </span>
+        <?php echo $params['preset_content']?>
+        </label>
+        <?php
+
+        return ob_get_clean();
     }
 
     public function base_url( $url = false )
@@ -345,6 +390,9 @@ class PHS_Paginator extends PHS_Registry
         if( empty( $params['action'] ) )
             $params['action'] = false;
 
+        if( !isset( $params['force_scope'] ) or !is_array( $params['force_scope'] ) )
+            $params['force_scope'] = $this->_scope;
+
         if( !($action_params = $this->parse_action_parameter( $params['action'] ))
          or !is_array( $action_params ) )
             $action_params = false;
@@ -361,8 +409,8 @@ class PHS_Paginator extends PHS_Registry
 
         $query_arr = array();
         if( !empty( $params['include_filters'] )
-        and !empty( $this->_scope ) )
-            $query_arr = array_merge( $query_arr, $this->_scope );
+        and !empty( $params['force_scope'] ) )
+            $query_arr = array_merge( $query_arr, $params['force_scope'] );
 
         if( !empty( $params['include_pagination_params'] )
         and ($flow_params = $this->flow_params())
@@ -419,6 +467,8 @@ class PHS_Paginator extends PHS_Registry
 
         if( empty( $records_arr ) or !is_array( $records_arr ) )
             return;
+
+        $this->pagination_params( 'listing_records_count', count( $records_arr ) );
 
         $this->_records_arr = $records_arr;
     }
@@ -567,6 +617,8 @@ class PHS_Paginator extends PHS_Registry
             'display_name' => '',
             'action' => '',
             'js_callback' => '',
+            // name of column which holds the checkboxes that matter for this bulk action ('record_field' key in columns array)
+            'checkbox_column' => '',
         );
     }
 
@@ -672,12 +724,28 @@ class PHS_Paginator extends PHS_Registry
         if( !($flow_params = $this->flow_params()) )
             return false;
 
+        if( !($bulk_select_name = $this->get_bulk_action_select_name()) )
+            $bulk_select_name = '';
+
         $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
         $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
         $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
 
         if( !($action = PHS_params::_gp( $action_key, PHS_params::T_NOHTML )) )
-            return true;
+        {
+            if( ($bulk_action = PHS_params::_gp( $bulk_select_name.'top', PHS_params::T_NOHTML )) )
+            {
+                $this->flow_param( 'bulk_action', $bulk_action );
+                $this->flow_param( 'bulk_action_area', 'top' );
+                $action = $bulk_action;
+            } elseif( ($bulk_action = PHS_params::_gp( $bulk_select_name.'bottom', PHS_params::T_NOHTML )) )
+            {
+                $this->flow_param( 'bulk_action', $bulk_action );
+                $this->flow_param( 'bulk_action_area', 'bottom' );
+                $action = $bulk_action;
+            } else
+                return true;
+        }
 
         $this->_action['action'] = $action;
 
@@ -726,7 +794,8 @@ class PHS_Paginator extends PHS_Registry
             {
                 // Accept arrays to be passed as comma separated values...
                 if( $filter_details['type'] == PHS_params::T_ARRAY
-                and is_string( $this->_originals[$filter_details['var_name']] ) )
+                and is_string( $this->_originals[$filter_details['var_name']] )
+                and $this->_originals[$filter_details['var_name']] != '' )
                 {
                     $value_type = PHS_params::T_ASIS;
                     if( !empty( $filter_details['extra_type'] ) and is_array( $filter_details['extra_type'] )
@@ -766,8 +835,26 @@ class PHS_Paginator extends PHS_Registry
                 if( ($checkbox_all_values = PHS_params::_gp( $checkbox_name_all, PHS_params::T_INT )) )
                     $this->_scope[$checkbox_name_all] = 1;
 
-                if( ($checkbox_array_value = PHS_params::_gp( $checkbox_name, PHS_params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
-                    $this->_scope[$checkbox_name] = $checkbox_array_value;
+                // accept checkboxes to be passed as comma separated values...
+                if( ($checkbox_asis_value = PHS_params::_gp( $checkbox_name, PHS_params::T_ASIS )) !== null )
+                {
+                    if( is_string( $checkbox_asis_value ) )
+                    {
+                        $scope_val = array();
+                        if( ($parts_arr = explode( ',', $checkbox_asis_value ))
+                        and is_array( $parts_arr ) )
+                        {
+                            foreach( $parts_arr as $part )
+                            {
+                                $scope_val[] = PHS_params::set_type( $part, $column_arr['checkbox_record_index_key']['type'] );
+                            }
+                        }
+
+                        $this->_scope[$checkbox_name] = $scope_val;
+                    } elseif( ($checkbox_array_value = PHS_params::set_type( $checkbox_asis_value, PHS_params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
+                        $this->_scope[$checkbox_name] = $checkbox_array_value;
+                }
+
             }
         }
 
@@ -863,7 +950,7 @@ class PHS_Paginator extends PHS_Registry
         $count = intval( $count );
 
         $page = $this->pagination_params( 'page' );
-        $records_per_page = min( 2, $this->pagination_params( 'records_per_page' ) );
+        $records_per_page = max( 2, $this->pagination_params( 'records_per_page' ) );
 
         $max_pages = ceil( $count / $records_per_page );
 
@@ -920,7 +1007,8 @@ class PHS_Paginator extends PHS_Registry
             if( empty( $filter_arr ) or !is_array( $filter_arr )
              or empty( $filter_arr['var_name'] )
              or empty( $filter_arr['record_field'] )
-             or !isset( $scope_arr[$filter_arr['var_name']] ) )
+             or !isset( $scope_arr[$filter_arr['var_name']] )
+             or ($filter_arr['default'] !== false and $scope_arr[$filter_arr['var_name']] == $filter_arr['default']) )
                 continue;
 
             if( !empty( $filter_arr['record_check'] )

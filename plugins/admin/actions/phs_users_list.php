@@ -123,16 +123,19 @@ class PHS_Action_Users_list extends PHS_Action
                 'display_name' => self::_t( 'Inactivate' ),
                 'action' => 'bulk_inactivate',
                 'js_callback' => 'phs_users_list_bulk_inactivate',
+                'checkbox_column' => 'id',
             ),
             array(
                 'display_name' => self::_t( 'Activate' ),
                 'action' => 'bulk_activate',
                 'js_callback' => 'phs_users_list_bulk_activate',
+                'checkbox_column' => 'id',
             ),
             array(
                 'display_name' => self::_t( 'Delete' ),
                 'action' => 'bulk_delete',
                 'js_callback' => 'phs_users_list_bulk_delete',
+                'checkbox_column' => 'id',
             ),
         );
 
@@ -146,7 +149,7 @@ class PHS_Action_Users_list extends PHS_Action
                 'record_check' => array( 'check' => 'IN', 'value' => '(%s)' ),
                 'type' => PHS_params::T_ARRAY,
                 'extra_type' => array( 'type' => PHS_params::T_INT ),
-                'default' => '',
+                'default' => array(),
             ),
             array(
                 'display_name' => self::_t( 'Nickname' ),
@@ -271,6 +274,10 @@ class PHS_Action_Users_list extends PHS_Action
                         'action' => $pagination_action_result,
                     );
 
+                    if( !empty( $pagination_action_result['action_redirect_url_params'] )
+                    and is_array( $pagination_action_result['action_redirect_url_params'] ) )
+                        $url_params = self::merge_array_assoc( $pagination_action_result['action_redirect_url_params'], $url_params );
+
                     $action_result = self::default_action_result();
 
                     $action_result['redirect_to_url'] = $this->_paginator->get_full_url( $url_params );
@@ -315,13 +322,90 @@ class PHS_Action_Users_list extends PHS_Action
 
         switch( $action['action'] )
         {
+            default:
+                PHS_Notifications::add_error_notice( self::_t( 'Unknown action.' ) );
+                return true;
+            break;
+
+            case 'bulk_activate':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( self::_t( 'Required accounts activated with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( self::_t( 'Activating selected accounts failed. Please try again.' ) );
+                    elseif( $action['action_result'] == 'failed_some' )
+                        PHS_Notifications::add_error_notice( self::_t( 'Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !$this->_accounts_model->can_manage_accounts( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    return false;
+                }
+
+                if( !($scope_arr = $this->_paginator->get_scope())
+                 or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
+                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
+                 or empty( $scope_arr[$scope_key] )
+                 or !is_array( $scope_arr[$scope_key] ) )
+                    return true;
+
+                $remaining_ids_arr = array();
+                foreach( $scope_arr[$scope_key] as $account_id )
+                {
+                    //PHS_Notifications::add_success_notice( self::_t( 'Activating account ['.$account_id.']' ) );
+                    if( !$this->_accounts_model->activate_account( $account_id ) )
+                    {
+                        $remaining_ids_arr[] = $account_id;
+                    }
+                }
+
+                if( isset( $scope_arr[$scope_all_key] ) )
+                    unset( $scope_arr[$scope_all_key] );
+
+                if( empty( $remaining_ids_arr ) )
+                {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset( $scope_arr[$scope_key] );
+
+                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                } else
+                {
+                    if( count( $remaining_ids_arr ) != count( $scope_arr[$scope_key] ) )
+                        $action_result_params['action_result'] = 'failed_some';
+                    else
+                        $action_result_params['action_result'] = 'failed';
+
+                    $scope_arr[$scope_key] = implode( ',', $remaining_ids_arr );
+
+                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                }
+            break;
+
+            case 'bulk_inactivate':
+                PHS_Notifications::add_success_notice( self::_t( 'Bulk activating.' ) );
+                return true;
+            break;
+
+            case 'bulk_delete':
+                PHS_Notifications::add_success_notice( self::_t( 'Bulk activating.' ) );
+                return true;
+            break;
+
             case 'activate_account':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
                         PHS_Notifications::add_success_notice( self::_t( 'Account activated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Activating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Activating account failed. Please try again.' ) );
 
                     return true;
                 }
@@ -355,7 +439,7 @@ class PHS_Action_Users_list extends PHS_Action
                     if( $action['action_result'] == 'success' )
                         PHS_Notifications::add_success_notice( self::_t( 'Account inactivated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Inactivating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Inactivating account failed. Please try again.' ) );
 
                     return true;
                 }
@@ -389,7 +473,7 @@ class PHS_Action_Users_list extends PHS_Action
                     if( $action['action_result'] == 'success' )
                         PHS_Notifications::add_success_notice( self::_t( 'Account deleted with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Deleting account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Deleting account failed. Please try again.' ) );
 
                     return true;
                 }
@@ -467,70 +551,117 @@ class PHS_Action_Users_list extends PHS_Action
             return '';
 
         $js_functionality = true;
+        
+        if( !($flow_params_arr = $this->_paginator->flow_params()) )
+            $flow_params_arr = array();
 
         ob_start();
         ?>
         <script type="text/javascript">
         function phs_users_list_activate_account( id )
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to activate this account?', '\'' )?>' ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this account?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
                     'action' => 'activate_account',
-                    'action_params' => '\' + id + \'',
+                    'action_params' => '" + id + "',
                 )
-                ?>document.location = '<?php echo $this->_paginator->get_full_url( $url_params )?>';
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
         function phs_users_list_inactivate_account( id )
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to inactivate this account?', '\'' )?>' ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this account?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
                     'action' => 'inactivate_account',
-                    'action_params' => '\' + id + \'',
+                    'action_params' => '" + id + "',
                 )
-                ?>document.location = '<?php echo $this->_paginator->get_full_url( $url_params )?>';
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
         function phs_users_list_delete_account( id )
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to DELETE this account?', '\'' )?>' + '\n' +
-                         '<?php echo self::_e( 'NOTE: You cannot undo this action!', '\'' )?>' ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this account?', '"' )?>" + "\n" +
+                         "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>' ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
                     'action' => 'delete_account',
-                    'action_params' => '\' + id + \'',
+                    'action_params' => '" + id + "',
                 )
-                ?>document.location = '<?php echo $this->_paginator->get_full_url( $url_params )?>';
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
+
+        function phs_users_list_get_checked_ids_count()
+        {
+            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
+            if( !checkboxes_list || !checkboxes_list.length )
+                return 0;
+
+            return checkboxes_list.length;
+        }
+
         function phs_users_list_bulk_activate()
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to activate selected accounts?', '\'' )?>' ) )
+            var total_checked = phs_users_list_get_checked_ids_count();
+
+            if( !total_checked )
             {
-                alert( 'ok' );
+                alert( "<?php echo self::_e( 'Please select accounts you want to activate first.', '"' )?>" );
+                return false;
+            }
+
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+
+            {
+                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+                if( form_obj )
+                    form_obj.submit();
             }
         }
+
         function phs_users_list_bulk_inactivate()
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to incativate selected accounts?', '\'' )?>' ) )
+            var total_checked = phs_users_list_get_checked_ids_count();
+
+            if( !total_checked )
             {
-                alert( 'ok' );
+                alert( "<?php echo self::_e( 'Please select accounts you want to inactivate first.', '"' )?>" );
+                return false;
+            }
+
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+
+            {
+                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+                if( form_obj )
+                    form_obj.submit();
             }
         }
+
         function phs_users_list_bulk_delete()
         {
-            if( confirm( '<?php echo self::_e( 'Are you sure you want to DELETE selected accounts?', '\'' )?>' + '\n' +
-                         '<?php echo self::_e( 'NOTE: You cannot undo this action!', '\'' )?>' ) )
+            var total_checked = phs_users_list_get_checked_ids_count();
+
+            if( !total_checked )
             {
-                alert( 'ok' );
+                alert( "<?php echo self::_e( 'Please select accounts you want to delete first.', '"' )?>" );
+                return false;
+            }
+
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s accounts?', '"' ), '" + total_checked + "' )?>" + "\n" +
+                         "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
+            {
+                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+                if( form_obj )
+                    form_obj.submit();
             }
         }
         </script>

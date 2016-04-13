@@ -407,3 +407,68 @@ function from_safe_url( $url )
 {
     return str_replace( array( '%3F', '%26', '%23' ), array( '?', '&', '#' ), $url );
 }
+
+function exclude_params( $str, $params )
+{
+    if( empty( $params ) or !is_array( $params ) )
+        return $str;
+
+    $add_quest = false;
+    $anchor = '';
+    $script = '';
+    $param_str = '';
+
+    $anch_arr = explode( '#', $str, 2 );
+    if( isset( $anch_arr[1] ) )
+    {
+        $str = $anch_arr[0];
+        $anchor = '#'.$anch_arr[1];
+    }
+
+    $qmark_pos = strstr( $str, '?' );
+    if( $qmark_pos !== false )
+    {
+        $quest_arr = explode( '?', $str, 2 );
+        $script = $quest_arr[0];
+        $param_str = $quest_arr[1];
+        $add_quest = true;
+    } else
+        $script = $str;
+
+    if( $param_str == '' )
+    {
+        // check if script is a string of parameters
+        $eg_pos = strpos( $script, '=' );
+        $slash_pos = strpos( $script, '/' );
+        if( $slash_pos === false
+        and (substr( $script, 0, 1 ) == '&' or $eg_pos !== false) )
+        {
+            // only params provided to class...
+            $param_str = $script;
+            $script = '';
+        }
+    }
+
+    $params_res = '';
+    if( $param_str != '' )
+    {
+        parse_str( $param_str, $res );
+
+        $new_query_args = array();
+        foreach( $res as $key => $val )
+        {
+            if( in_array( $key, $params ) )
+                continue;
+
+            $new_query_args[$key] = $val;
+        }
+
+        if( !empty( $new_query_args ) )
+            $params_res = http_build_query( $new_query_args );
+    }
+
+    if( empty( $params_res ) and $add_quest )
+        $params_res = '?';
+
+    return $script.$params_res.$anchor;
+}

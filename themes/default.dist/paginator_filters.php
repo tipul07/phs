@@ -19,6 +19,9 @@
     if( !($flow_params_arr = $paginator_obj->flow_params()) )
         $flow_params_arr = $paginator_obj->default_flow_params();
 
+    if( !($filters_form_name = $paginator_obj->get_filters_form_name()) )
+        $filters_form_name = $flow_params_arr['form_prefix'].'paginator_filters_form';
+
     if( !($filters_arr = $paginator_obj->get_filters()) )
         $filters_arr = array();
     if( !($scope_arr = $paginator_obj->get_scope()) )
@@ -42,7 +45,7 @@
     }
 ?>
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:900px;margin: 0 auto;">
-    <form id="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form" name="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form" action="<?php echo $full_listing_url?>" method="post" class="wpcf7">
+    <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 
         <div class="form_container responsive">
@@ -51,7 +54,7 @@
                 <h3><?php echo $this::_t( 'Filters' )?></h3>
             </section>
             
-            <div id="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;">
+            <div id="<?php echo $filters_form_name?>_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;">
             <?php
             $filters_display_arr = array();
             foreach( $filters_arr as $filter_details )
@@ -141,7 +144,7 @@
             </div>
             </div>
 
-            <div id="<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form_text" style="display:<?php echo (!$show_filters?'block':'none')?>;">
+            <div id="<?php echo $filters_form_name?>_text" style="display:<?php echo (!$show_filters?'block':'none')?>;">
             <?php
             $filters_str_arr = array();
             foreach( $filters_arr as $filter_details )
@@ -182,8 +185,8 @@
 <script type="text/javascript">
 function toggle_filters_inputs_and_text()
 {
-    var inputs_obj = $('#<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form_inputs');
-    var text_obj = $('#<?php echo $flow_params_arr['form_prefix']?>paginator_filters_form_text');
+    var inputs_obj = $('#<?php echo $filters_form_name?>_inputs');
+    var text_obj = $('#<?php echo $filters_form_name?>_text');
 
     if( inputs_obj )
         inputs_obj.toggle();

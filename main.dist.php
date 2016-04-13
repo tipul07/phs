@@ -37,8 +37,9 @@ define( 'PHS_DB_CHARSET', 'UTF8' );
 // Default session settings
 define( 'PHS_DEFAULT_SESSION_DIR', PHS_PATH.'sess/' );
 define( 'PHS_DEFAULT_SESSION_NAME', 'PHS_SESS' );
-// 0 to close session when browser closes...
-define( 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME', 0 );
+// 0 to close session when browser closes... This is session lifetime, not how long user will be logged in
+// We can save in session language or other details that should be available for a longer period
+define( 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME', 2678400 ); // 31 days by default
 define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/' );
 // Session starts automatically if it is required a variable.
 // If system gets to the point to start displaying something and this constant is set to true, session will be started before displaying

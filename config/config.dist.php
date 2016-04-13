@@ -64,7 +64,8 @@ define( 'PHS_DB_CONNECTION', PHS_DB_DEFAULT_CONNECTION );
 // Session settings (if not default ones)
 define( 'PHS_SESSION_DIR', PHS_DEFAULT_SESSION_DIR );
 define( 'PHS_SESSION_NAME', PHS_DEFAULT_SESSION_NAME );
-// 0 to close session when browser closes...
+// 0 to close session when browser closes... This is session lifetime, not how long user will be logged in
+// We can save in session language or other details that should be available for a longer period
 define( 'PHS_SESSION_COOKIE_LIFETIME', PHS_DEFAULT_SESSION_COOKIE_LIFETIME );
 define( 'PHS_SESSION_COOKIE_PATH', PHS_DEFAULT_SESSION_COOKIE_PATH );
 // Session starts automatically if it is required a variable.

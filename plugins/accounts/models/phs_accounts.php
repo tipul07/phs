@@ -200,7 +200,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function has_logged_in( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['lastlog'] != self::DATETIME_EMPTY )
+         or $user_arr['lastlog'] == self::DATETIME_EMPTY )
             return false;
 
         return $user_arr;
