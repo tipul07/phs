@@ -108,6 +108,10 @@ class PHS_Paginator extends PHS_Registry
             'total_records' => -1,
             'listing_records_count' => 0,
             'max_pages' => 0,
+            // How many pages to display left of current page before putting ... in left
+            'left_pages_no' => 10,
+            // How many pages to display right of current page before putting ... in right
+            'right_pages_no' => 10,
             'sort' => 0,
             'sort_by' => '',
         );
@@ -211,9 +215,12 @@ class PHS_Paginator extends PHS_Registry
          or empty( $params['record'] ) or !is_array( $params['record'] )
          or empty( $params['column'] ) or !is_array( $params['column'] )
          or empty( $params['column']['record_field'] )
-         or empty( $params['record'][$params['column']['record_field']] )
-         or !($date_time = is_db_date( $params['record'][$params['column']['record_field']] )) )
+         or empty( $params['record'][$params['column']['record_field']] ) )
             return false;
+
+        if( !($date_time = is_db_date( $params['record'][$params['column']['record_field']] ))
+         or empty_db_date( $params['record'][$params['column']['record_field']] ) )
+            return (!empty( $params['column']['invalid_value'] )?$params['column']['invalid_value']:self::_t( 'N/A' ));
 
         if( !empty( $params['column']['date_format'] ) )
             $date_str = @date( $params['column']['date_format'], parse_db_date( $date_time ) );
@@ -376,6 +383,9 @@ class PHS_Paginator extends PHS_Registry
 
     public function get_full_url( $params = false )
     {
+        if( empty( $this->_originals ) )
+            $this->extract_filters_scope();
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
@@ -433,8 +443,8 @@ class PHS_Paginator extends PHS_Registry
         if( strstr( $url, '?' ) === false )
             $url .= '?';
 
-        if( !($query_string = @http_build_query( $query_arr )) )
-            $query_string = '';
+        $query_string = array_to_query_string( $query_arr );
+
 
         // Don't run $action_params through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
         // eg. action_params might be an id passed as javascript function parameter
@@ -788,7 +798,7 @@ class PHS_Paginator extends PHS_Registry
             if( empty( $filter_details['var_name'] ) or empty( $filter_details['record_field'] ) )
                 continue;
 
-            $this->_originals[$filter_details['var_name']] = PHS_params::_gp( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_params::T_ASIS );
+            $this->_originals[$filter_details['var_name']] = PHS_params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_params::T_ASIS );
 
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
@@ -832,11 +842,11 @@ class PHS_Paginator extends PHS_Registry
                     continue;
 
                 $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
-                if( ($checkbox_all_values = PHS_params::_gp( $checkbox_name_all, PHS_params::T_INT )) )
+                if( ($checkbox_all_values = PHS_params::_pg( $checkbox_name_all, PHS_params::T_INT )) )
                     $this->_scope[$checkbox_name_all] = 1;
 
                 // accept checkboxes to be passed as comma separated values...
-                if( ($checkbox_asis_value = PHS_params::_gp( $checkbox_name, PHS_params::T_ASIS )) !== null )
+                if( ($checkbox_asis_value = PHS_params::_pg( $checkbox_name, PHS_params::T_ASIS )) !== null )
                 {
                     if( is_string( $checkbox_asis_value ) )
                     {
@@ -864,17 +874,21 @@ class PHS_Paginator extends PHS_Registry
         {
             if( !empty( $pagination_params['page_var_name'] ) )
             {
-                $page = PHS_params::_gp( $flow_params_arr['form_prefix'] . $pagination_params['page_var_name'], PHS_params::T_INT );
+                $page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['page_var_name'], PHS_params::T_INT );
                 $this->pagination_params( 'page', $page );
             }
             if( !empty( $pagination_params['per_page_var_name'] ) )
             {
-                $per_page = PHS_params::_gp( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'], PHS_params::T_INT );
-                $this->pagination_params( 'records_per_page', $per_page );
+                if( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'top', PHS_params::T_INT )) !== null )
+                    $this->pagination_params( 'records_per_page', $per_page );
+                elseif( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'bottom', PHS_params::T_INT )) !== null )
+                    $this->pagination_params( 'records_per_page', $per_page );
+                elseif( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'], PHS_params::T_INT )) !== null )
+                    $this->pagination_params( 'records_per_page', $per_page );
             }
 
-            $sort = PHS_params::_gp( $flow_params_arr['form_prefix'] . 'sort', PHS_params::T_INT );
-            $sort_by = PHS_params::_gp( $flow_params_arr['form_prefix'] . 'sort_by', PHS_params::T_NOHTML );
+            $sort = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort', PHS_params::T_INT );
+            $sort_by = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort_by', PHS_params::T_NOHTML );
 
             if( !empty( $columns_arr ) )
             {

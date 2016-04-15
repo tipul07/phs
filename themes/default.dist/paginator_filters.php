@@ -44,7 +44,7 @@
         echo $cell_content;
     }
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:900px;margin: 0 auto;">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:97%;margin: 0 auto;">
     <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post" class="wpcf7">
     <input type="hidden" name="foobar" value="1" />
 

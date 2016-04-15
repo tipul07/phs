@@ -305,6 +305,9 @@ function is_db_date( $date, $params = false )
      or strstr( $date, '-' ) === false )
         return false;
 
+    if( empty_db_date( $date ) )
+        return array( 0, 0, 0, 0, 0, 0 );
+
     if( empty( $params ) or !is_array( $params ) )
         $params = array();
 
@@ -408,6 +411,71 @@ function from_safe_url( $url )
     return str_replace( array( '%3F', '%26', '%23' ), array( '?', '&', '#' ), $url );
 }
 
+// this function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required) 
+function array_to_query_string( $arr, $params = false )
+{
+    if( empty( $params ) or !is_array( $params ) )
+        $params = array();
+
+    if( !isset( $params['arg_separator'] ) )
+        $params['arg_separator'] = '&';
+    if( !isset( $params['raw_encode_values'] ) )
+        $params['raw_encode_values'] = true;
+    if( empty( $params['array_name'] ) )
+        $params['array_name'] = '';
+
+    if( empty( $arr ) or !is_array( $arr ) )
+        return '';
+    
+    $return_str = '';
+    foreach( $arr as $key => $val )
+    {
+        $return_str .= ($return_str!=''?'&':'');
+
+        if( is_array( $val ) )
+        {
+            $call_params = $params;
+            $call_params['array_name'] = (!empty( $params['array_name'] )?$params['array_name'].'['.$key.']':$key);
+
+            $return_str .= array_to_query_string( $val, $call_params );
+        } else
+        {
+            if( !empty( $params['raw_encode_values'] ) )
+                $val = rawurlencode( $val );
+
+            if( empty( $params['array_name'] ) )
+                $return_str .= $key.'='.$val;
+            else
+                $return_str .= $params['array_name'].'['.$key.']='.$val;
+        }
+    }
+
+    return $return_str;
+}
+
+function add_url_params( $str, $params )
+{
+    if( empty( $params ) or !is_array( $params ) )
+        return $str;
+
+    $anchor = '';
+
+    $anch_arr = explode( '#', $str, 2 );
+    if( isset( $anch_arr[1] ) )
+    {
+        $str = $anch_arr[0];
+        $anchor = '#'.$anch_arr[1];
+    }
+
+    if( strstr( $str, '?' ) === false )
+        $str .= '?';
+
+    if( ($params_res = array_to_query_string( $params )) )
+        $str .= '&'.$params_res;
+
+    return $str.$anchor;
+}
+
 function exclude_params( $str, $params )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -464,11 +532,11 @@ function exclude_params( $str, $params )
         }
 
         if( !empty( $new_query_args ) )
-            $params_res = http_build_query( $new_query_args );
+            $params_res = array_to_query_string( $new_query_args );
     }
 
-    if( empty( $params_res ) and $add_quest )
-        $params_res = '?';
+    if( $add_quest )
+        $params_res = '?'.$params_res;
 
     return $script.$params_res.$anchor;
 }

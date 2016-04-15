@@ -156,35 +156,49 @@
     </div>
 </div>
 <div id="container">
-    <!-- BEGIN: page_header -->
     <div id="menu-left-pane" class="menu-pane">
         <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
 
         <ul>
             <?php
-            if( !empty( $accounts_model )
-            and $accounts_model->can_list_accounts( $cuser_arr ) )
+            if( !empty( $accounts_model ) )
             {
-                ?>
-                <li><?php echo $this::_t( 'Users Management' ) ?>
-                    <ul>
-                        <?php
-                        if( $accounts_model->can_manage_accounts( $cuser_arr ) )
-                        {
+                if( $accounts_model->can_list_modules( $cuser_arr ) )
+                {
+                    ?>
+                    <li><?php echo $this::_t( 'Modules Management' ) ?>
+                        <ul>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                      'a' => 'modules_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'List Modules' ) ?></a></li>
+                        </ul>
+                    </li>
+                    <?php
+                }
+                if( $accounts_model->can_list_accounts( $cuser_arr ) )
+                {
+                    ?>
+                    <li><?php echo $this::_t( 'Users Management' ) ?>
+                        <ul>
+                            <?php
+                                if( $accounts_model->can_manage_accounts( $cuser_arr ) )
+                                {
+                                    ?>
+                                    <li><a href="<?php echo PHS::url( array(
+                                                                              'a' => 'user_add', 'p' => 'admin'
+                                                                      ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                                    </li>
+                                    <?php
+                                }
                             ?>
                             <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'user_add', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a></li>
-                            <?php
-                        }
-                        ?>
-                        <li><a href="<?php echo PHS::url( array(
-                                                                  'a' => 'users_list', 'p' => 'admin'
-                                                          ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
-                    </ul>
-                </li>
-                <?php
+                                                                      'a' => 'users_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
+                        </ul>
+                    </li>
+                    <?php
+                }
             }
             ?>
         </ul>
@@ -355,7 +369,6 @@
         </div>
     </header>
     <div class="clearfix"></div>
-    <!-- END: page_header -->
 
     <div id="content"><?php
 
@@ -367,10 +380,11 @@
         echo $action_result['buffer'];
 
     ?></div>
+    <div class="clearfix"></div>
+
     <div class="clearfix" style="margin-bottom: 10px;"></div>
 
     <footer id="footer">
-        <!-- BEGIN: page_footer -->
         <div id="footer_content">
             <div class="footerlinks">
                 <a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |
@@ -389,7 +403,6 @@
             ?>
             <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
-        <!-- END: page_footer -->
     </footer>
     <div class="clearfix"></div>
 

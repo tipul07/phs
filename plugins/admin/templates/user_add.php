@@ -12,7 +12,7 @@
 
     $current_user = PHS::user_logged_in();
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:650px;max-width:1000px;margin: 0 auto;">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:100%;max-width:1000px;margin: 0 auto;">
     <form id="add_user_form" name="add_user_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'user_add' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
 
@@ -111,3 +111,4 @@
         </div>
     </form>
 </div>
+<div class="clearfix"></div>

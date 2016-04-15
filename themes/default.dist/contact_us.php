@@ -4,7 +4,7 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:700px;max-width:800px;margin: 0 auto;">
+<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:100%;max-width:800px;margin: 0 auto;">
     <form id="contact_form" name="contact_form" action="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
 

@@ -60,6 +60,28 @@ class PHS_Model_Plugins extends PHS_Model
         return 'plugins';
     }
 
+    final public function get_statuses_as_key_val()
+    {
+        static $plugins_statuses_key_val_arr = false;
+
+        if( $plugins_statuses_key_val_arr !== false )
+            return $plugins_statuses_key_val_arr;
+
+        $plugins_statuses_key_val_arr = array();
+        if( ($plugins_statuses = $this->get_statuses()) )
+        {
+            foreach( $plugins_statuses as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $plugins_statuses_key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        return $plugins_statuses_key_val_arr;
+    }
+
     final public function get_statuses()
     {
         static $statuses_arr = array();
