@@ -369,6 +369,7 @@
                             $cell_callback_params                   = $paginator_obj->default_cell_render_call_params();
                             $cell_callback_params['page_index']     = $knti;
                             $cell_callback_params['list_index']     = $offset + $knti;
+                            $cell_callback_params['columns_count']  = $columns_count;
                             $cell_callback_params['record']         = $record_arr;
                             $cell_callback_params['column']         = $column_arr;
                             $cell_callback_params['table_field']    = $field_details;
@@ -385,13 +386,27 @@
 
                 ?></tr><?php
 
+                if( !empty( $flow_params_arr['after_record_callback'] )
+                and is_callable( $flow_params_arr['after_record_callback'] ) )
+                {
+                    $callback_params                   = $paginator_obj->default_cell_render_call_params();
+                    $callback_params['page_index']     = $knti;
+                    $callback_params['list_index']     = $offset + $knti;
+                    $callback_params['columns_count']  = $columns_count;
+                    $callback_params['record']         = $record_arr;
+
+                    if( ($row_content = @call_user_func( $flow_params_arr['after_record_callback'], $callback_params )) !== false
+                    and $row_content !== null )
+                        echo $row_content;
+                }
+
                 $knti++;
             }
         }
 
         if( !empty( $columns_count )
-        and !empty( $flow_params_arr['table_bofore_footer_callback'] )
-        and is_callable( $flow_params_arr['table_bofore_footer_callback'] ) )
+        and !empty( $flow_params_arr['table_before_footer_callback'] )
+        and is_callable( $flow_params_arr['table_before_footer_callback'] ) )
         {
             ?>
             <tr>
@@ -401,7 +416,7 @@
                 $callback_params['columns'] = $columns_arr;
                 $callback_params['filters'] = $filters_arr;
 
-                if( ($cell_content = @call_user_func( $flow_params_arr['table_bofore_footer_callback'], $callback_params )) === false
+                if( ($cell_content = @call_user_func( $flow_params_arr['table_before_footer_callback'], $callback_params )) === false
                  or $cell_content === null )
                     $cell_content = '[' . $this::_t( 'Render before footer call failed.' ) . ']';
 

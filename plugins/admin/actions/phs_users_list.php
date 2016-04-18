@@ -204,6 +204,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_callback' => array( $this, 'display_actions' ),
                 'extra_style' => 'width:100px;',
                 'extra_records_style' => 'text-align:right;',
+                'sortable' => false,
             ),
         );
 

@@ -46,6 +46,18 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
     }
 
+    // Do any actions required immediately after paginator was instantiated
+    public function we_have_paginator()
+    {
+        return true;
+    }
+
+    // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
+    public function we_initialized_paginator()
+    {
+        return true;
+    }
+
     protected function default_paginator_params()
     {
         return array(
@@ -100,16 +112,22 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !($this->_paginator = new PHS_Paginator( $paginator_params['base_url'], $paginator_params['flow_parameters'] )) )
+        if( !($this->_paginator = new PHS_Paginator( $paginator_params['base_url'], $paginator_params['flow_parameters'] ))
+         or !$this->we_have_paginator() )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t instantiate paginator class.' ) );
+            if( $this->has_error() )
+                PHS_Notifications::add_error_notice( $this->get_error_message() );
+            else
+                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t instantiate paginator class.' ) );
+
             return self::default_action_result();
         }
 
+        $init_went_ok = true;
         if( !$this->_paginator->set_columns( $paginator_params['columns_arr'] )
-         or !$this->_paginator->set_filters( $paginator_params['filters_arr'] )
-         or !$this->_paginator->set_model( $this->_paginator_model )
-         or !$this->_paginator->set_bulk_actions( $paginator_params['bulk_actions'] ) )
+         or (!empty( $paginator_params['filters_arr'] ) and !$this->_paginator->set_filters( $paginator_params['filters_arr'] ))
+         or (!empty( $this->_paginator_model ) and !$this->_paginator->set_model( $this->_paginator_model ))
+         or (!empty( $paginator_params['bulk_actions'] ) and !$this->_paginator->set_bulk_actions( $paginator_params['bulk_actions'] )) )
         {
             if( $this->_paginator->has_error() )
                 $error_msg = $this->_paginator->get_error_message();
@@ -120,12 +138,26 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 'filters' => $error_msg,
                 'listing' => '',
             );
-        } else
+
+            $init_went_ok = false;
+        }
+
+        if( $init_went_ok )
         {
+            if( !$this->we_initialized_paginator() )
+            {
+                if( $this->has_error() )
+                    PHS_Notifications::add_error_notice( $this->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t initialize paginator class.' ) );
+
+                return self::default_action_result();
+            }
+
             // check actions...
             if( ($current_action = $this->_paginator->get_current_action())
-                and is_array( $current_action )
-                    and !empty( $current_action['action'] ) )
+            and is_array( $current_action )
+            and !empty( $current_action['action'] ) )
             {
                 if( !($pagination_action_result = $this->manage_action( $current_action )) )
                 {
@@ -157,6 +189,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 'listing' => $this->_paginator->get_listing_buffer(),
             );
         }
+
+        if( empty( $data ) )
+            $data = array(
+                'filters' => self::_t( 'Something went wrong...' ),
+                'listing' => '',
+            );
 
         return $this->quick_render_template( 'paginator_default_template', $data );
     }

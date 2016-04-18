@@ -30,6 +30,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return '1.0.0';
     }
 
+    /**
+     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
+     */
+    public function get_plugin_details()
+    {
+        return array(
+            'name' => 'Accounts Management',
+            'description' => 'Handles all functionality related to user accounts.',
+        );
+    }
+
     public function get_models()
     {
         return array( 'accounts', 'accounts_details' );
@@ -474,7 +485,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if( empty( $online_db_details['uid'] )
-         or !($user_db_details = $accounts_model->get_details_fields( array( 'id' => $online_db_details['uid'] ) )) )
+         or !($user_db_details = $accounts_model->get_details( $online_db_details['uid'] ))
+         or !$accounts_model->is_active( $user_db_details )
+        )
         {
             $accounts_model->hard_delete( $online_db_details, array( 'table_name' => 'online' ) );
 

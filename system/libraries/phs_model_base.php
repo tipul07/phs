@@ -127,6 +127,20 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     }
 
     /**
+     * @return array|false Return details of model currently in database (after it was installed)
+     */
+    public function get_model_db_details( $force = false )
+    {
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
+        if( !($plugin_obj = PHS::load_model( 'plugins' ))
+         or !($db_details_arr = $plugin_obj->get_db_details( $this->instance_id(), $force ))
+         or !is_array( $db_details_arr ) )
+            return false;
+
+        return $db_details_arr;
+    }
+
+    /**
      * @return array Array with settings of plugin of current model
      */
     public function get_model_settings()

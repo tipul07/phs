@@ -10,7 +10,7 @@ use \phs\libraries\PHS_logger;
 
 class PHS_Model_Plugins extends PHS_Model
 {
-    const ERR_FORCE_INSTALL = 100, ERR_DB_DETAILS = 101;
+    const ERR_FORCE_INSTALL = 100, ERR_DB_DETAILS = 101, ERR_DIR_DETAILS = 102;
 
     const HOOK_STATUSES = 'phs_plugins_statuses';
 
@@ -18,6 +18,9 @@ class PHS_Model_Plugins extends PHS_Model
 
     // Cached database rows
     private static $db_plugins = array();
+
+    // Cached directory rows
+    private static $dir_plugins = array();
 
     // Cached plugin settings
     private static $plugin_settings = array();
@@ -127,6 +130,15 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
+    public function inactive_status( $status )
+    {
+        if( !$this->valid_status( $status )
+         or !in_array( $status, array( self::STATUS_INSTALLED, self::STATUS_INACTIVE ) ) )
+            return false;
+
+        return true;
+    }
+
     public function valid_status( $status )
     {
         $all_statuses = $this->get_statuses();
@@ -193,6 +205,75 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         return self::$plugin_settings[$instance_id];
+    }
+
+    public function cache_all_dir_details( $force = false )
+    {
+        $this->reset_error();
+
+        if( !empty( $force )
+        and !empty( self::$dir_plugins ) )
+            self::$dir_plugins = array();
+
+        if( !empty( self::$dir_plugins ) )
+            return self::$dir_plugins;
+
+        @clearstatcache();
+
+        if( ($dirs_list = @glob( PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR )) === false
+         or !is_array( $dirs_list ) )
+        {
+            $this->set_error( self::ERR_DIR_DETAILS, self::_t( 'Couldn\'t get a list of plugin directories.' ) );
+            return false;
+        }
+
+        /** @var \phs\libraries\PHS_Plugin $plugin_instance */
+        foreach( $dirs_list as $dir_name )
+        {
+            $dir_name = basename( $dir_name );
+            if( !($plugin_instance = PHS::load_plugin( $dir_name )) )
+            {
+                var_dump( self::st_get_error() );
+
+                echo 'canci for ['.$dir_name.']';
+                continue;
+            }
+
+            self::$dir_plugins[$dir_name] = $plugin_instance;
+        }
+
+        return self::$dir_plugins;
+    }
+
+    public function cache_all_db_details( $force = false )
+    {
+        $this->reset_error();
+
+        if( !empty( $force )
+        and !empty( self::$db_plugins ) )
+            self::$db_plugins = array();
+
+        if( !empty( self::$db_plugins ) )
+            return self::$db_plugins;
+
+        $list_arr = array();
+
+        if( !($all_db_plugins = $this->get_list( $list_arr )) )
+        {
+            self::$db_plugins = array();
+            return true;
+        }
+
+        foreach( $all_db_plugins as $db_id => $db_arr )
+        {
+            if( empty( $db_arr['instance_id'] ) )
+                continue;
+
+            self::$db_plugins[$db_arr['instance_id']] = $db_arr;
+        }
+
+
+        return true;
     }
 
     public function get_db_details( $instance_id = null, $force = false )

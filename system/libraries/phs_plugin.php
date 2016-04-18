@@ -14,11 +14,18 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
     const LIBRARIES_DIR = 'libraries';
 
     private $_libraries_instances = array();
+    // Plugin details as defined in default_plugin_details_fields() method
+    private $_plugin_details = array();
 
     /**
      * @return array An array of strings which are the models used by this plugin
      */
     abstract public function get_models();
+
+    /**
+     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
+     */
+    abstract public function get_plugin_details();
 
     /**
      * @return string Returns version of plugin
@@ -409,12 +416,68 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
 
                     return false;
                 }
+                
+                if( !($model_details = $model_obj->get_model_db_details( true ))
+                 or empty( $model_details['version'] ) )
+                    $old_version = '0.0.0';
+                else
+                    $old_version = $model_details['version'];
 
-                $model_obj->update();
+                $model_obj->update( $old_version, $model_obj->get_model_version() );
             }
         }
 
         return true;
+    }
+
+    final protected function default_plugin_details_fields()
+    {
+        return array(
+            'id' => '',
+            'name' => '',
+            'description' => '',
+            'script_version' => '0.0.0',
+            'db_version' => '0.0.0',
+            'update_url' => '',
+            'status' => 0,
+            'is_installed' => false,
+            'is_core' => false,
+            'db_details' => false,
+            'models' => array(),
+            'settings_arr' => array(),
+        );
+    }
+
+    final public function get_plugin_info()
+    {
+        $default_info = $this->default_plugin_details_fields();
+        
+        if( !empty( $this->_plugin_details ) )
+            return $this->_plugin_details;
+
+        $plugin_details = self::validate_array( $this->get_plugin_details(), $default_info );
+
+        $plugin_details['id'] = $this->instance_id();
+
+        if( empty( $plugin_details['name'] ) )
+            $plugin_details['name'] = $this->instance_name();
+
+        $plugin_details['script_version'] = $this->get_plugin_version();
+        $plugin_details['models'] = $this->get_models();
+
+        if( ($db_details = $this->get_plugin_db_details()) )
+        {
+            $plugin_details['db_details'] = $db_details;
+            $plugin_details['is_installed'] = true;
+            $plugin_details['db_version'] = (!empty( $db_details['version'] )?$db_details['version']:'0.0.0');
+            $plugin_details['is_core'] = (!empty( $db_details['is_core'] )?true:false);
+        }
+
+        $plugin_details['settings_arr'] = $this->get_plugin_settings();
+
+        $this->_plugin_details = $plugin_details;
+
+        return $this->_plugin_details;
     }
 
 }

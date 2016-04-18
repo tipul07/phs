@@ -21,6 +21,17 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         return '1.0.0';
     }
 
+    /**
+     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
+     */
+    public function get_plugin_details()
+    {
+        return array(
+            'name' => 'Generic Notifications Banner',
+            'description' => 'This plugin will display notifications buffered using PHS_Notifications class in main template.',
+        );
+    }
+
     public function get_models()
     {
         return array();

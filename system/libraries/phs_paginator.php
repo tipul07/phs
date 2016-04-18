@@ -64,6 +64,7 @@ class PHS_Paginator extends PHS_Registry
         return array(
             'page_index' => 0,
             'list_index' => 0,
+            'columns_count' => 0,
             'record' => false,
             'column' => false,
             'table_field' => false,
@@ -87,13 +88,15 @@ class PHS_Paginator extends PHS_Registry
             'display_bottom_bulk_actions' => true,
 
             // Callbacks to alter display
+            'after_record_callback' => false,
+
             'before_filters_callback' => false,
             'after_filters_callback' => false,
             'before_table_callback' => false,
             'after_table_callback' => false,
 
             'table_after_headers_callback' => false,
-            'table_bofore_footer_callback' => false,
+            'table_before_footer_callback' => false,
         );
     }
 
