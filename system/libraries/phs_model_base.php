@@ -10,14 +10,15 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
 
-    const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002,
-          ERR_INSERT = 40003, ERR_EDIT = 40004, ERR_DELETE_BY_INDEX = 40005;
+    const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UNINSTALL = 40003,
+          ERR_INSERT = 40004, ERR_EDIT = 40005, ERR_DELETE_BY_INDEX = 40006;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
 
     const SIGNAL_INSERT = 'phs_model_insert', SIGNAL_EDIT = 'phs_model_edit', SIGNAL_HARD_DELETE = 'phs_model_hard_delete',
-          SIGNAL_INSTALL = 'phs_model_install', SIGNAL_UPDATE = 'phs_model_update', SIGNAL_FORCE_INSTALL = 'phs_model_force_install';
+          SIGNAL_INSTALL = 'phs_model_install', SIGNAL_UNINSTALL = 'phs_model_uninstall',
+          SIGNAL_UPDATE = 'phs_model_update', SIGNAL_FORCE_INSTALL = 'phs_model_force_install';
 
     const FTYPE_UNKNOWN = 0,
           FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
@@ -62,7 +63,8 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
 
     const T_DETAILS_KEY = '{details}';
 
-    protected static $_definition = array();
+    // Tables definition
+    protected $_definition = array();
 
     private $model_tables_arr = array();
 
@@ -513,10 +515,10 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             return false;
         }
 
-        if( empty( self::$_definition[$params['table_name']] ) )
+        if( empty( $this->_definition[$params['table_name']] ) )
             return false;
 
-        return self::$_definition[$params['table_name']];
+        return $this->_definition[$params['table_name']];
     }
 
     final protected function get_all_table_names()
@@ -598,7 +600,7 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             return false;
         }
 
-        if( !empty( self::$_definition[$params['table_name']] ) )
+        if( !empty( $this->_definition[$params['table_name']] ) )
             return true;
 
         if( !($model_fields = $this->all_fields_definition( $params ))
@@ -608,12 +610,12 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             return false;
         }
 
-        self::$_definition[$params['table_name']] = array();
+        $this->_definition[$params['table_name']] = array();
         foreach( $model_fields as $field_name => $field_arr )
         {
             if( $field_name == self::T_DETAILS_KEY )
             {
-                self::$_definition[$params['table_name']][$field_name] = self::validate_table_details( $field_arr );
+                $this->_definition[$params['table_name']][$field_name] = self::validate_table_details( $field_arr );
                 continue;
             }
 
@@ -644,11 +646,11 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
                 $new_field_arr['default'] = null;
             }
 
-            self::$_definition[$params['table_name']][$field_name] = $new_field_arr;
+            $this->_definition[$params['table_name']][$field_name] = $new_field_arr;
         }
 
-        if( empty( self::$_definition[$params['table_name']][self::T_DETAILS_KEY] ) )
-            self::$_definition[$params['table_name']][self::T_DETAILS_KEY] = self::default_table_details_arr();
+        if( empty( $this->_definition[$params['table_name']][self::T_DETAILS_KEY] ) )
+            $this->_definition[$params['table_name']][self::T_DETAILS_KEY] = self::default_table_details_arr();
 
         return true;
     }
@@ -663,6 +665,11 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
             $signal_defaults['version'] = '';
 
             $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+        }
+
+        if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
+        {
+            $this->define_signal( self::SIGNAL_UNINSTALL );
         }
 
         if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
@@ -1583,13 +1590,13 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     {
         $this->reset_error();
 
-        if( empty( self::$_definition ) or !is_array( self::$_definition )
+        if( empty( $this->_definition ) or !is_array( $this->_definition )
          or !($flow_params = $this->fetch_default_flow_params()) )
             return true;
 
         PHS_Logger::logf( 'Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        foreach( self::$_definition as $table_name => $table_definition )
+        foreach( $this->_definition as $table_name => $table_definition )
         {
             $flow_params['table_name'] = $table_name;
 
@@ -1669,6 +1676,132 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
         }
 
         PHS_Logger::logf( 'DONE Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return true;
+    }
+
+    final public function uninstall()
+    {
+        $this->reset_error();
+
+        if( !($plugins_model_id = self::generate_instance_id( self::INSTANCE_TYPE_MODEL, 'plugins' )) )
+        {
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Couldn\'t obtain plugins model id.' ) );
+            return false;
+        }
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Couldn\'t obtain current model id.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( $this_instance_id == $plugins_model_id )
+        {
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugins model cannot be uninstalled.' ) );
+            return false;
+        }
+
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        db_supress_errors( $plugins_model->get_db_connection() );
+        if( !($db_details = $plugins_model->get_details_fields( $check_arr ))
+         or empty( $db_details['type'] )
+         or $db_details['type'] != self::INSTANCE_TYPE_MODEL )
+        {
+            db_restore_errors_state( $plugins_model->get_db_connection() );
+
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin doesn\'t seem to be installed.' ) );
+
+            return false;
+        }
+
+        db_restore_errors_state( $plugins_model->get_db_connection() );
+
+        PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        $this->signal_trigger( self::SIGNAL_UNINSTALL );
+
+        PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Logger::logf( 'Calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        // First delete tables so in case it fails we can repeat the process...
+        if( !$this->uninstall_tables() )
+            return false;
+
+        PHS_Logger::logf( 'DONE calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( !$plugins_model->hard_delete( $db_details ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error hard-deleting model from database.' ) );
+
+            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        PHS_Logger::logf( 'DONE uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return $db_details;
+    }
+
+    /**
+     * This method will hard-delete tables in database defined by this model.
+     * If you don't want to drop tables when model gets uninstalled overwrite this method with an empty method which returns true.
+     *
+     * @return bool Returns true if all tables were dropped or false on error
+     */
+    public function uninstall_tables()
+    {
+        $this->reset_error();
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition )
+         or !($flow_params = $this->fetch_default_flow_params()) )
+            return true;
+
+        PHS_Logger::logf( 'Uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        foreach( $this->_definition as $table_name => $table_definition )
+        {
+            $flow_params['table_name'] = $table_name;
+
+            $db_connection = $this->get_db_connection( $flow_params );
+            if( !($db_settings = db_settings( $db_connection ))
+             or !is_array( $db_settings ) )
+                continue;
+
+            if( empty( $db_settings['prefix'] ) )
+                $db_settings['prefix'] = '';
+
+            $sql = 'DROP TABLE IF EXISTS `'.$db_settings['prefix'].$table_name.'`;';
+
+            if( !db_query( $sql, $db_connection ) )
+            {
+                PHS_Logger::logf( '!!! Error uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping table %s.', $table_name ) );
+                return false;
+            }
+        }
+
+        PHS_Logger::logf( 'DONE uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }

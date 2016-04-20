@@ -7,6 +7,7 @@ use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Error;
+use \phs\libraries\PHS_params;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Notifications extends PHS_Plugin
@@ -38,14 +39,27 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     }
 
     /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     * @return array
+     * @inheritdoc
      */
-    public function get_default_settings()
+    public function get_settings_structure()
     {
         return array(
-            'template' => $this->template_resource_from_file( 'notifications' ), // default template
-            'display_channels' => array( 'warnings', 'errors', 'success' ),
+            // default template
+            'template' => array(
+                'display_name' => 'Captcha template',
+                'display_hint' => 'What template should be used when displaying captcha image',
+                'type' => PHS_params::T_ASIS,
+                'input_type' => self::INPUT_TYPE_TEMPLATE,
+                'default' => $this->template_resource_from_file( 'notifications' ),
+            ),
+            'display_channels' => array(
+                'display_name' => 'Channels to be rendered',
+                'type' => PHS_params::T_ARRAY,
+                'extra_type' => array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ),
+                'input_type' => self::INPUT_TYPE_ONE_OR_MORE,
+                'default' => array( 'warnings', 'errors', 'success' ),
+                'values_arr' => array( 'warnings' => 'Warnings', 'errors' => 'Errors', 'success' => 'Success messages' ),
+            ),
         );
     }
 

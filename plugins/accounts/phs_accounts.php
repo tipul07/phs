@@ -2,6 +2,7 @@
 
 namespace phs\plugins\accounts;
 
+use phs\libraries\PHS_params;
 use \phs\PHS;
 use \phs\PHS_session;
 use \phs\PHS_crypt;
@@ -47,24 +48,77 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     }
 
     /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     * @return array
+     * @inheritdoc
      */
-    public function get_default_settings()
+    public function get_settings_structure()
     {
         return array(
-            'email_mandatory' => true,
-            'replace_nick_with_email' => true,
-            'account_requires_activation' => true,
-            'generate_pass_if_not_present' => true,
-            'email_unique' => true,
-            'min_password_length' => 8,
+            'email_mandatory' => array(
+                'display_name' => self::_t( 'Email mandatory at registration' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'replace_nick_with_email' => array(
+                'display_name' => self::_t( 'Replace nick with email' ),
+                'display_hint' => self::_t( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'account_requires_activation' => array(
+                'display_name' => self::_t( 'Account requires activation' ),
+                'display_hint' => self::_t( 'Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'generate_pass_if_not_present' => array(
+                'display_name' => self::_t( 'Generate password if not present' ),
+                'display_hint' => self::_t( 'If, by any reasons, password is not present when creating an account autogenerate a password or return error?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'email_unique' => array(
+                'display_name' => self::_t( 'Emails should be unique' ),
+                'display_hint' => self::_t( 'Should account creation fail if same email already exists in database?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'min_password_length' => array(
+                'display_name' => self::_t( 'Minimum password length' ),
+                'type' => PHS_params::T_INT,
+                'default' => 8,
+            ),
             // Make sure password generator method in accounts model follows this rule... (escape char is /)
-            'password_regexp' => '', // password regular expression (leave empty if not wanted)
-            'pass_salt_length' => 8,
-            'announce_pass_change' => true,
-            'session_expire_minutes_remember' => 2880, // 2 days
-            'session_expire_minutes_normal' => 60, // 1 hour
+            // password regular expression (leave empty if not wanted)
+            'password_regexp' => array(
+                'display_name' => self::_t( 'Password reg-exp' ),
+                'display_hint' => self::_t( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.' ),
+                'type' => PHS_params::T_ASIS,
+                'default' => '',
+            ),
+            'pass_salt_length' => array(
+                'display_name' => self::_t( 'Password salt length' ),
+                'display_hint' => self::_t( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
+                'type' => PHS_params::T_INT,
+                'default' => 8,
+            ),
+            'announce_pass_change' => array(
+                'display_name' => self::_t( 'Announce password change' ),
+                'display_hint' => self::_t( 'Should system send an email to account\'s email address when password changes?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => true,
+            ),
+            'session_expire_minutes_remember' => array(
+                'display_name' => self::_t( 'Password lifetime (long) mins' ),
+                'display_hint' => self::_t( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
+                'type' => PHS_params::T_INT,
+                'default' => 2880, // 2 days
+            ),
+            'session_expire_minutes_normal' => array(
+                'display_name' => self::_t( 'Password lifetime (short) mins' ),
+                'display_hint' => self::_t( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
+                'type' => PHS_params::T_INT,
+                'default' => 60, // 1 hour
+            ),
         );
     }
 

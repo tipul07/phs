@@ -2,14 +2,15 @@
 
 namespace phs\plugins\admin\actions;
 
-use phs\libraries\PHS_Model;
 use \phs\PHS;
+use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
+use \phs\libraries\PHS_Instantiable;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
-class PHS_Action_Modules_list extends PHS_Action_Generic_list
+class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 {
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
     private $_accounts_model;
@@ -64,6 +65,9 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
             if( !$this->load_depencies() )
                 return false;
         }
+
+        if( PHS_params::_g( 'unknown_plugin', PHS_params::T_INT ) )
+            PHS_Notifications::add_error_notice( self::_t( 'Plugin ID is invalid or plugin was not found.' ) );
 
         $records_arr = array();
         if( ($dir_entries = $this->_paginator_model->cache_all_dir_details())
@@ -141,25 +145,25 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if( !$this->_accounts_model->can_list_modules( $current_user ) )
+        if( !$this->_accounts_model->can_list_plugins( $current_user ) )
         {
-            $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to list modules.' ) );
+            $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to list plugins.' ) );
             return false;
         }
 
         $this->_paginator_model->cache_all_db_details( true );
 
         $flow_params = array(
-            'term_singular' => self::_t( 'module' ),
-            'term_plural' => self::_t( 'modules' ),
+            'term_singular' => self::_t( 'plugin' ),
+            'term_plural' => self::_t( 'plugins' ),
             'after_record_callback' => array( $this, 'after_record_callback' ),
             'after_table_callback' => array( $this, 'after_table_callback' ),
         );
 
-        if( !($modules_statuses = $this->_paginator_model->get_statuses_as_key_val()) )
-            $modules_statuses = array();
-        if( !empty( $modules_statuses ) )
-            $modules_statuses = self::merge_array_assoc( array( -1 => self::_t( 'N/A' ), 0 => self::_t( ' - Choose - ' ) ), $modules_statuses );
+        if( !($plugins_statuses = $this->_paginator_model->get_statuses_as_key_val()) )
+            $plugins_statuses = array();
+        if( !empty( $plugins_statuses ) )
+            $plugins_statuses = self::merge_array_assoc( array( 0 => self::_t( ' - Choose - ' ), -1 => self::_t( 'Not Installed' ) ), $plugins_statuses );
 
         $filters_arr = array(
             array(
@@ -176,7 +180,7 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
                 'record_field' => 'status',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
-                'values_arr' => $modules_statuses,
+                'values_arr' => $plugins_statuses,
             ),
         );
 
@@ -199,7 +203,7 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
             array(
                 'column_title' => self::_t( 'Status' ),
                 'record_field' => 'status',
-                'display_key_value' => $modules_statuses,
+                'display_key_value' => $plugins_statuses,
                 'invalid_value' => self::_t( 'Undefined' ),
                 'extra_style' => 'vertical-align: middle;',
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',
@@ -236,7 +240,7 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
         );
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'modules_list' ) );
+        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['filters_arr'] = $filters_arr;
         $return_arr['columns_arr'] = $columns_arr;
@@ -276,106 +280,224 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
                 return true;
             break;
 
-            case 'activate_account':
+            case 'install_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Account activated with success.' ) );
+                        PHS_Notifications::add_success_notice( self::_t( 'Plugin installed with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( self::_t( 'Activating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Installing plugin failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_accounts( $current_user ) )
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage plugins.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
-                 
-                if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
+                    $action['action_params'] = trim( $action['action_params'] );
+
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                 or empty( $instance_details['instance_type'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot activate account. Account not found.' ) );
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot install plugin. Invalid module ID.' ) );
                     return false;
                 }
 
-                if( !$this->_accounts_model->activate_account( $account_arr ) )
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                if( !$plugin_obj->install() )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
             break;
 
-            case 'inactivate_account':
+            case 'activate_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Account inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( self::_t( 'Plugin activated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( self::_t( 'Inactivating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Activating plugin failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_accounts( $current_user ) )
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage plugins.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = trim( $action['action_params'] );
 
-                if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                    or empty( $instance_details['instance_type'] )
+                    or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot inactivate account. Account not found.' ) );
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot install plugin. Invalid plugin ID.' ) );
                     return false;
                 }
 
-                if( !$this->_accounts_model->inactivate_account( $account_arr ) )
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                if( !$plugin_obj->activate_plugin() )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
+            break;
+
+            case 'inactivate_plugin':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( self::_t( 'Plugin inactivated with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( self::_t( 'Inactivating plugin failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage plugins.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = trim( $action['action_params'] );
+
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                    or empty( $instance_details['instance_type'] )
+                    or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                {
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot install plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                if( !$plugin_obj->inactivate_plugin() )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
            break;
 
-            case 'delete_account':
+            case 'uninstall_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( self::_t( 'Account deleted with success.' ) );
+                        PHS_Notifications::add_success_notice( self::_t( 'Plugin uninstalled with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( self::_t( 'Deleting account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( self::_t( 'Uninstalling plugin failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_accounts( $current_user ) )
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage plugins.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = trim( $action['action_params'] );
 
-                if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_accounts_model->get_details( $action['action_params'] )) )
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                 or empty( $instance_details['instance_type'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
-                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot delete account. Account not found.' ) );
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot uninstall plugin. Invalid plugin ID.' ) );
                     return false;
                 }
 
-                if( !$this->_accounts_model->delete_account( $account_arr ) )
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                if( !$plugin_obj->uninstall() )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
+           break;
+
+            case 'delete_plugin':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( self::_t( 'Plugin deleted with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( self::_t( 'Deleting plugin failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'You don\'t have rights to manage plugins.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = trim( $action['action_params'] );
+
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                 or empty( $instance_details['instance_type'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                {
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Cannot delete plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, self::_t( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                // if( !$plugin_obj->uninstall() )
+                    $action_result_params['action_result'] = 'failed';
+                // else
+                //     $action_result_params['action_result'] = 'success';
             break;
         }
 
@@ -413,19 +535,21 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
         if( empty( $params['record']['is_installed'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_modules_list_install( '<?php echo $params['record']['id']?>' )"><i class="fa fa-plus-circle action-icons" title="<?php echo self::_t( 'Install module' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_install( '<?php echo $params['record']['id']?>' )"><i class="fa fa-plus-circle action-icons" title="<?php echo self::_t( 'Install plugin' )?>"></i></a>
             <?php
         }
         if( $this->_paginator_model->inactive_status( $params['record']['status'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_modules_list_activate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo self::_t( 'Activate module' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"><i class="fa fa-sign-out action-icons" title="<?php echo self::_t( 'Uninstall plugin' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_activate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo self::_t( 'Activate plugin' )?>"></i></a>
             <?php
         }
         if( $this->_paginator_model->active_status( $params['record']['status'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_modules_list_inactivate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo self::_t( 'Inactivate module' )?>"></i></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo self::_t( 'Plugin Settings' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo self::_t( 'Inactivate plugin' )?>"></i></a>
             <?php
         }
 
@@ -433,7 +557,7 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
         and empty( $params['record']['is_core'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_modules_list_delete( '<?php echo $params['record']['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo self::_t( 'Delete module' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_delete( '<?php echo $params['record']['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo self::_t( 'Delete plugin' )?>"></i></a>
             <?php
         }
 
@@ -460,54 +584,68 @@ class PHS_Action_Modules_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_modules_list_install( id )
+        function phs_plugins_list_install( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to install this module?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to install this plugin?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'install_module',
+                    'action' => 'install_plugin',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_modules_list_activate( id )
+        function phs_plugins_list_uninstall( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this module?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to uninstall this plugin?', '"' )?>" + "\n" +
+                         "<?php echo self::_e( 'NOTE: Plugin settings will be deleted. Some plugins will also delete information stored in database!', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'activate_module',
+                    'action' => 'uninstall_plugin',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_modules_list_inactivate( id )
+        function phs_plugins_list_activate( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this module?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this plugin?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'inactivate_module',
+                    'action' => 'activate_plugin',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_modules_list_delete( id )
+        function phs_plugins_list_inactivate( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this module?', '"' )?>" + "\n" +
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this plugin?', '"' )?>" ) )
+            {
+                <?php
+                $url_params = array();
+                $url_params['action'] = array(
+                    'action' => 'inactivate_plugin',
+                    'action_params' => '" + id + "',
+                )
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
+            }
+        }
+        function phs_plugins_list_delete( id )
+        {
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this plugin?', '"' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'delete_module',
+                    'action' => 'delete_plugin',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";

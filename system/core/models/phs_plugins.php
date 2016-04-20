@@ -232,12 +232,7 @@ class PHS_Model_Plugins extends PHS_Model
         {
             $dir_name = basename( $dir_name );
             if( !($plugin_instance = PHS::load_plugin( $dir_name )) )
-            {
-                var_dump( self::st_get_error() );
-
-                echo 'canci for ['.$dir_name.']';
                 continue;
-            }
 
             self::$dir_plugins[$dir_name] = $plugin_instance;
         }

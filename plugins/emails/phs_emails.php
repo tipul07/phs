@@ -2,6 +2,7 @@
 
 namespace phs\plugins\emails;
 
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_params;
 use \phs\PHS;
 use \phs\PHS_crypt;
@@ -80,20 +81,34 @@ class PHS_Plugin_Emails extends PHS_Plugin
     }
 
     /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     * @return array
+     * @inheritdoc
      */
-    public function get_default_settings()
+    public function get_settings_structure()
     {
         return array(
-            'template_main' => $this->template_resource_from_file( 'template_emails' ), // default template
-            'email_vars' => array(
-                'site_name' => PHS_SITE_NAME,
-                'from_name' => PHS_SITE_NAME,
-                'from_email' => 'office@'.PHS_DOMAIN,
-                'from_noreply' => 'noreply@'.PHS_DOMAIN,
+            // default template
+            'template_main' => array(
+                'display_name' => 'Emails main template',
+                'display_hint' => 'What template should be used when sending emails',
+                'type' => PHS_params::T_ASIS,
+                'input_type' => self::INPUT_TYPE_TEMPLATE,
+                'default' => $this->template_resource_from_file( 'template_emails' ),
             ),
-            'routes' => array( self::DEFAULT_ROUTE => self::get_default_smtp_settings() ),
+            'email_vars' => array(
+                'editable' => false,
+                'default' => array(
+                    'site_name' => PHS_SITE_NAME,
+                    'from_name' => PHS_SITE_NAME,
+                    'from_email' => 'office@'.PHS_DOMAIN,
+                    'from_noreply' => 'noreply@'.PHS_DOMAIN,
+                ),
+            ),
+            'routes' => array(
+                'display_name' => 'Emails routes',
+                'custom_renderer' => array( $this, 'display_settings_routes' ),
+                'custom_save' => array( $this, 'save_settings_routes' ),
+                'default' => array( self::DEFAULT_ROUTE => self::get_default_smtp_settings() ),
+            ),
         );
     }
 
@@ -109,6 +124,20 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'smtp_encryption' => PHS_smtp::ENCRYPTION_NONE,
             'smtp_authentication' => PHS_smtp::AUTH_AUTO_DETECT,
         );
+    }
+
+    public function save_settings_routes()
+    {
+
+    }
+
+    public function display_settings_routes( $params )
+    {
+        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
+
+        ob_start();
+        var_dump( $params['field_value'] );
+        return ob_get_clean();
     }
 
     static function valid_smtp_settings( $settings )
@@ -187,6 +216,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
         {
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating main email template file.' ) );
 
+            PHS_Logger::logf( 'Failed validating main email template file.', PHS_Logger::TYPE_DEBUG );
+
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
             return $hook_args;
@@ -199,6 +230,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->copy_static_error( self::ERR_TEMPLATE );
             else
                 $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating email template file.' ) );
+
+            PHS_Logger::logf( 'Email template error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -213,6 +246,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( empty( $hook_args['route'] )
              or !($route_settings = $this->get_smtp_route_settings( $hook_args['route'] )) )
             {
+                PHS_Logger::logf( 'Invalid SMTP route ['.$hook_args['route'].'].', PHS_Logger::TYPE_DEBUG );
+
                 $this->set_error( self::ERR_TEMPLATE, self::_t( 'Invalid SMTP route.' ) );
 
                 $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
@@ -258,6 +293,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( !$this->has_error() )
                 $this->set_error( self::ERR_TEMPLATE, self::_t( 'Rendering template %s resulted in empty buffer.', ($email_template_obj?$email_template_obj->get_template():'(???)') ) );
 
+            PHS_Logger::logf( 'Email template render error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
+
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
             return $hook_args;
@@ -276,6 +313,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( !$this->has_error() )
                 $this->set_error( self::ERR_TEMPLATE, self::_t( 'Rendering template %s resulted in empty buffer.', ($main_template_obj?$main_template_obj->get_template():'(???)') ) );
 
+            PHS_Logger::logf( 'Email main template render error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
+
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
             return $hook_args;
@@ -289,6 +328,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             {
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_SEND, self::_t( 'Error sending email.' ) );
+
+                PHS_Logger::logf( 'Sending email error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
                 $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 

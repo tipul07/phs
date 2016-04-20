@@ -164,14 +164,14 @@
             <?php
             if( !empty( $accounts_model ) )
             {
-                if( $accounts_model->can_list_modules( $cuser_arr ) )
+                if( $accounts_model->can_list_plugins( $cuser_arr ) )
                 {
                     ?>
-                    <li><?php echo $this::_t( 'Modules Management' ) ?>
+                    <li><?php echo $this::_t( 'Plugins Management' ) ?>
                         <ul>
                             <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'modules_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'List Modules' ) ?></a></li>
+                                                                      'a' => 'plugins_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
                         </ul>
                     </li>
                     <?php

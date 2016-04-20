@@ -22,7 +22,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
-            'name' => 'Administration Module',
+            'name' => 'Administration Plugin',
             'description' => 'Handles all administration actions.',
         );
     }
@@ -30,16 +30,6 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_models()
     {
         return array();
-    }
-
-    /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     * @return array
-     */
-    public function get_default_settings()
-    {
-        return array(
-        );
     }
 
 }

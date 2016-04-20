@@ -446,8 +446,7 @@ class PHS_Paginator extends PHS_Registry
         if( strstr( $url, '?' ) === false )
             $url .= '?';
 
-        $query_string = array_to_query_string( $query_arr );
-
+        $query_string = '';
 
         // Don't run $action_params through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
         // eg. action_params might be an id passed as javascript function parameter
@@ -455,11 +454,16 @@ class PHS_Paginator extends PHS_Registry
         {
             foreach( $action_params as $key => $val )
             {
-                $query_string .= '&'.$key.'='.$val;
+                if( isset( $query_arr[$key] ) )
+                    unset( $query_arr[$key] );
+
+                $query_string .= ($query_string!=''?'&':'').$key.'='.$val;
             }
         }
 
-        $url .= (substr( $query_string, 0, 1 )!='&'?'&':'').$query_string;
+        $query_string .= ($query_string!=''?'&':'').array_to_query_string( $query_arr );
+
+        $url .= '&'.$query_string;
 
         return $url;
     }

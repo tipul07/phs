@@ -11,7 +11,7 @@ use \phs\libraries\PHS_Notifications;
 
 abstract class PHS_Action_Generic_list extends PHS_Action
 {
-    const ERR_DEPENCIES = 1, ERR_ACTION = 2;
+    const ERR_DEPENCIES = 50000, ERR_ACTION = 50001;
 
     /** @var bool|PHS_Paginator */
     protected $_paginator = false;

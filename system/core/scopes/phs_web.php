@@ -28,7 +28,7 @@ class PHS_Scope_Web extends PHS_Scope
         if( !empty( $action_result['redirect_to_url'] )
         and !@headers_sent() )
         {
-            header( 'Location: '.$action_result['redirect_to_url'] );
+            @header( 'Location: '.$action_result['redirect_to_url'] );
             exit;
         }
 

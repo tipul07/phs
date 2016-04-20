@@ -6,12 +6,12 @@ use \phs\libraries\PHS_Language;
 
 /*! \file phs_smtp.php
  *  \brief Contains PHS_smtp class (send emails trough smtp)
- *  \version 1.07
+ *  \version 1.08
  */
 
 class PHS_smtp extends PHS_Language
 {
-    const CLASS_VERSION = '1.07';
+    const CLASS_VERSION = '1.08';
 
     //! /descr Class was initialised succesfully
     const ERR_CONNECT = 1, ERR_AUTHENTICATION = 2, ERR_EMAIL_DETAILS = 3, ERR_NOT_EXPECTED = 4,
@@ -72,6 +72,11 @@ class PHS_smtp extends PHS_Language
         $this->reset_error();
     }
 
+    public function get_authentication_methods()
+    {
+        return self::$AUTHENTICATION_METHODS_ARR;
+    }
+
     public function valid_authentication( $method )
     {
         $method = strtoupper( trim( $method ) );
@@ -79,6 +84,11 @@ class PHS_smtp extends PHS_Language
             return false;
 
         return true;
+    }
+
+    public function get_encryption_types()
+    {
+        return self::$ENCRYPTIONS_ARR;
     }
 
     public function valid_encryption( $item )

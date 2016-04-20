@@ -7,15 +7,22 @@ use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Plugin extends PHS_Signal_and_slot
 {
-    const ERR_MODEL = 40000, ERR_INSTALL = 40001, ERR_LIBRARY = 40002;
+    const ERR_MODEL = 40000, ERR_INSTALL = 40001, ERR_UNINSTALL = 40002, ERR_CHANGES = 40003, ERR_LIBRARY = 40004;
 
-    const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
+    const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
+          SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
     const LIBRARIES_DIR = 'libraries';
+    
+    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more';
 
     private $_libraries_instances = array();
     // Plugin details as defined in default_plugin_details_fields() method
     private $_plugin_details = array();
+    // Validated settings fields structure array
+    private $_settings_structure = array();
+    // Array with default values for settings (key => val) array
+    private $_default_settings = array();
 
     /**
      * @return array An array of strings which are the models used by this plugin
@@ -38,13 +45,97 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
     }
 
     /**
-     * Override this function and return an array with default settings to be saved for current plugin
+     * Override this function and return an array with settings fields definition
      *
      * @return array
      */
-    public function get_default_settings()
+    public function get_settings_structure()
     {
         return array();
+    }
+
+    private function default_settings_field()
+    {
+        return array(
+            // Used to know how to render this field in plugin settings
+            'type' => PHS_params::T_ASIS,
+            // When we validate the input is there extra parameters to send to PHS_params class?
+            'extra_type' => false,
+            // If type key doesn't define well how this field should be rendered in plugin details use this to know how to reneder it
+            // This is a string (empty string means render as default depending on type key)
+            'input_type' => '',
+            // Default value if not present in database
+            'default' => null,
+            'display_name' => '',
+            'display_hint' => '',
+            'display_placeholder' => '',
+            // Should this field be editable?
+            'editable' => true,
+            // An array with key => text to be used in plugin settings (key will be saved as value and text will be displayed to user)
+            'values_arr' => false,
+            // Custom rendering callback function (if available)
+            'custom_renderer' => false,
+            // If we have a custom method which should parse settings form submit...
+            // this function should return value to be used for current field in settings array
+            'custom_save' => false,
+
+            'extra_style' => '',
+            'extra_classes' => '',
+        );
+    }
+
+    public function default_custom_renderer_params()
+    {
+        return array(
+            'plugin_obj' => false,
+            'field_name' => '',
+            'field_details' => false,
+            'form_data' => array(),
+        );
+    }
+
+    public function validate_settings_structure()
+    {
+        if( !empty( $this->_settings_structure ) )
+            return $this->_settings_structure;
+
+        $this->_settings_structure = array();
+
+        // Validate settings structure
+        if( !($settings_structure_arr = $this->get_settings_structure()) )
+            return array();
+
+        $default_settings_field = $this->default_settings_field();
+
+        foreach( $settings_structure_arr as $key => $settings_field )
+        {
+            $settings_field = self::validate_array_recursive( $settings_field, $default_settings_field );
+
+            $this->_settings_structure[$key] = $settings_field;
+        }
+
+        return $this->_settings_structure;
+    }
+
+    /**
+     * @return array
+     */
+    final public function get_default_settings()
+    {
+        if( !empty( $this->_default_settings ) )
+            return $this->_default_settings;
+
+
+        if( empty( $this->_settings_structure ) )
+            $this->validate_settings_structure();
+
+        $this->_default_settings = array();
+        foreach( $this->_settings_structure as $key => $field_arr )
+        {
+            $this->_default_settings[$key] = $field_arr['default'];
+        }
+
+        return $this->_default_settings;
     }
 
     function __construct( $instance_details )
@@ -57,6 +148,11 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
             $signal_defaults['version'] = '';
 
             $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+        }
+
+        if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
+        {
+            $this->define_signal( self::SIGNAL_UNINSTALL );
         }
 
         if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
@@ -236,6 +332,84 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         return true;
     }
 
+    final public function activate_plugin()
+    {
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Couldn\'t obtain current plugin id.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Activating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['status'] = PHS_Model_Plugins::STATUS_ACTIVE;
+
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_CHANGES, self::_t( 'Error activating plugin.' ) );
+
+            return false;
+        }
+
+        return $db_details['new_data'];
+    }
+
+    final public function inactivate_plugin()
+    {
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Couldn\'t obtain current plugin id.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Activating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['status'] = PHS_Model_Plugins::STATUS_INACTIVE;
+
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_CHANGES, self::_t( 'Error inactivating plugin.' ) );
+
+            return false;
+        }
+
+        return $db_details['new_data'];
+    }
+
     final public function install()
     {
         $this->reset_error();
@@ -374,6 +548,95 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         return $plugin_arr;
     }
 
+    final public function uninstall()
+    {
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Couldn\'t obtain current plugin id.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Uninstalling plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        db_supress_errors( $plugins_model->get_db_connection() );
+        if( !($db_details = $plugins_model->get_details_fields( $check_arr ))
+         or empty( $db_details['type'] )
+         or $db_details['type'] != self::INSTANCE_TYPE_PLUGIN )
+        {
+            db_restore_errors_state( $plugins_model->get_db_connection() );
+
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin doesn\'t seem to be installed.' ) );
+
+            return false;
+        }
+
+        db_restore_errors_state( $plugins_model->get_db_connection() );
+
+        if( $plugins_model->active_status( $db_details['status'] ) )
+        {
+            $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin is still active. Please inactivate it first.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        $this->signal_trigger( self::SIGNAL_UNINSTALL );
+
+        PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Logger::logf( 'Uninstalling plugin models ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( ($models_arr = $this->get_models())
+        and is_array( $models_arr ) )
+        {
+            foreach( $models_arr as $model_name )
+            {
+                if( !($model_obj = PHS::load_model( $model_name, $this->instance_plugin_name() )) )
+                {
+                    if( PHS::st_has_error() )
+                        $this->copy_static_error( self::ERR_INSTALL );
+                    else
+                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_name ) );
+
+                    return false;
+                }
+
+                $model_obj->uninstall();
+            }
+        }
+
+        if( !$plugins_model->hard_delete( $db_details ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error hard-deleting plugin from database.' ) );
+
+            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        PHS_Logger::logf( 'DONE uninstalling plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return $db_details;
+    }
+
     /**
      * Performs any necessary custom actions when updating plugin from $old_version to $new_version
      * Overwrite this method to do particular updates.
@@ -430,7 +693,7 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         return true;
     }
 
-    final protected function default_plugin_details_fields()
+    final public function default_plugin_details_fields()
     {
         return array(
             'id' => '',

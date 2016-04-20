@@ -7,6 +7,7 @@ use \phs\PHS_session;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
+use \phs\libraries\PHS_params;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Captcha extends PHS_Plugin
@@ -26,7 +27,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -45,19 +46,58 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return array();
     }
 
-    /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     * @return array
-     */
-    public function get_default_settings()
+    public function get_output_as_key_vals()
     {
         return array(
-            'template' => $this->template_resource_from_file( 'captcha' ), // default template
-            'font' => 'default.ttf',
-            'characters_count' => 5,
-            'image_format' => self::OUTPUT_PNG,
-            'default_width' => 200,
-            'default_height' => 50,
+            self::OUTPUT_JPG => 'PNG',
+            self::OUTPUT_GIF => 'GIF',
+            self::OUTPUT_PNG => 'PNG',
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get_settings_structure()
+    {
+        return array(
+            // default template
+            'template' => array(
+                'display_name' => 'Captcha template',
+                'display_hint' => 'What template should be used when displaying captcha image',
+                'type' => PHS_params::T_ASIS,
+                'input_type' => self::INPUT_TYPE_TEMPLATE,
+                'default' => $this->template_resource_from_file( 'captcha' ),
+            ),
+            'font' => array(
+                'display_name' => 'Font used for captcha',
+                'display_hint' => 'Make sure this file exists in fonts directory in plugin',
+                'type' => PHS_params::T_ASIS,
+                'default' => 'default.ttf',
+            ),
+            'characters_count' => array(
+                'display_name' => 'Captcha caracters',
+                'type' => PHS_params::T_INT,
+                'default' => 5,
+            ),
+            'image_format' => array(
+                'display_name' => 'Captcha output image format',
+                'type' => PHS_params::T_INT,
+                'default' => self::OUTPUT_PNG,
+                'values_arr' => $this->get_output_as_key_vals(),
+            ),
+            'default_width' => array(
+                'display_name' => 'Default captcha width',
+                'display_hint' => 'Width and height of captcha can be overridden in view',
+                'type' => PHS_params::T_INT,
+                'default' => 200,
+            ),
+            'default_height' => array(
+                'display_name' => 'Default captcha height',
+                'display_hint' => 'Width and height of captcha can be overridden in view',
+                'type' => PHS_params::T_INT,
+                'default' => 50,
+            ),
         );
     }
 
