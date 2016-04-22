@@ -5,7 +5,7 @@ namespace phs\libraries;
 use \phs\PHS;
 use \phs\system\core\models\PHS_Model_Plugins;
 
-abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
+abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 {
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
@@ -116,51 +116,6 @@ abstract class PHS_Model_Core_Base extends PHS_Signal_and_slot
     function get_db_connection( $params = false )
     {
         return false;
-    }
-
-    /**
-     * Override this function and return an array with default settings to be saved for current plugin
-     *
-     * @return array
-     */
-    public function get_default_settings()
-    {
-        return array();
-    }
-
-    /**
-     * @return array|false Return details of model currently in database (after it was installed)
-     */
-    public function get_model_db_details( $force = false )
-    {
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' ))
-         or !($db_details_arr = $plugin_obj->get_db_details( $this->instance_id(), $force ))
-         or !is_array( $db_details_arr ) )
-            return false;
-
-        return $db_details_arr;
-    }
-
-    /**
-     * @return array Array with settings of plugin of current model
-     */
-    public function get_model_settings()
-    {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        if( !($settings_arr = $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings() ))
-         or !is_array( $settings_arr ) )
-            $this->get_default_settings();
-
-        return $settings_arr;
     }
 
     /**

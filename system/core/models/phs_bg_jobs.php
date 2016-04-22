@@ -3,6 +3,7 @@
 namespace phs\system\core\models;
 
 use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_params;
 
 class PHS_Model_Bg_jobs extends PHS_Model
 {
@@ -45,10 +46,15 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return true;
     }
 
-    public function get_default_settings()
+    public function get_settings_structure()
     {
         return array(
-            'minutes_to_stall' => 15,
+            'minutes_to_stall' => array(
+                'display_name' => 'Minutes to stall',
+                'display_hint' => 'After how many minutes should we consider a job as stalling',
+                'type' => PHS_params::T_INT,
+                'default' => 15,
+            ),
         );
     }
 
@@ -103,7 +109,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
             return null;
         }
 
-        if( !($settings_arr = $this->get_model_settings()) )
+        if( !($settings_arr = $this->get_db_settings()) )
         {
             $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get background jobs model settings.' ) );
             return null;

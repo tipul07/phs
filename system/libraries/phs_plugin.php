@@ -5,24 +5,18 @@ namespace phs\libraries;
 use phs\PHS;
 use \phs\system\core\models\PHS_Model_Plugins;
 
-abstract class PHS_Plugin extends PHS_Signal_and_slot
+abstract class PHS_Plugin extends PHS_Has_db_settings
 {
-    const ERR_MODEL = 40000, ERR_INSTALL = 40001, ERR_UNINSTALL = 40002, ERR_CHANGES = 40003, ERR_LIBRARY = 40004;
+    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UNINSTALL = 50002, ERR_CHANGES = 50003, ERR_LIBRARY = 50004;
 
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
     const LIBRARIES_DIR = 'libraries';
-    
-    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more';
 
     private $_libraries_instances = array();
     // Plugin details as defined in default_plugin_details_fields() method
     private $_plugin_details = array();
-    // Validated settings fields structure array
-    private $_settings_structure = array();
-    // Array with default values for settings (key => val) array
-    private $_default_settings = array();
 
     /**
      * @return array An array of strings which are the models used by this plugin
@@ -42,100 +36,6 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
     protected function instance_type()
     {
         return self::INSTANCE_TYPE_PLUGIN;
-    }
-
-    /**
-     * Override this function and return an array with settings fields definition
-     *
-     * @return array
-     */
-    public function get_settings_structure()
-    {
-        return array();
-    }
-
-    private function default_settings_field()
-    {
-        return array(
-            // Used to know how to render this field in plugin settings
-            'type' => PHS_params::T_ASIS,
-            // When we validate the input is there extra parameters to send to PHS_params class?
-            'extra_type' => false,
-            // If type key doesn't define well how this field should be rendered in plugin details use this to know how to reneder it
-            // This is a string (empty string means render as default depending on type key)
-            'input_type' => '',
-            // Default value if not present in database
-            'default' => null,
-            'display_name' => '',
-            'display_hint' => '',
-            'display_placeholder' => '',
-            // Should this field be editable?
-            'editable' => true,
-            // An array with key => text to be used in plugin settings (key will be saved as value and text will be displayed to user)
-            'values_arr' => false,
-            // Custom rendering callback function (if available)
-            'custom_renderer' => false,
-            // If we have a custom method which should parse settings form submit...
-            // this function should return value to be used for current field in settings array
-            'custom_save' => false,
-
-            'extra_style' => '',
-            'extra_classes' => '',
-        );
-    }
-
-    public function default_custom_renderer_params()
-    {
-        return array(
-            'plugin_obj' => false,
-            'field_name' => '',
-            'field_details' => false,
-            'form_data' => array(),
-        );
-    }
-
-    public function validate_settings_structure()
-    {
-        if( !empty( $this->_settings_structure ) )
-            return $this->_settings_structure;
-
-        $this->_settings_structure = array();
-
-        // Validate settings structure
-        if( !($settings_structure_arr = $this->get_settings_structure()) )
-            return array();
-
-        $default_settings_field = $this->default_settings_field();
-
-        foreach( $settings_structure_arr as $key => $settings_field )
-        {
-            $settings_field = self::validate_array_recursive( $settings_field, $default_settings_field );
-
-            $this->_settings_structure[$key] = $settings_field;
-        }
-
-        return $this->_settings_structure;
-    }
-
-    /**
-     * @return array
-     */
-    final public function get_default_settings()
-    {
-        if( !empty( $this->_default_settings ) )
-            return $this->_default_settings;
-
-
-        if( empty( $this->_settings_structure ) )
-            $this->validate_settings_structure();
-
-        $this->_default_settings = array();
-        foreach( $this->_settings_structure as $key => $field_arr )
-        {
-            $this->_default_settings[$key] = $field_arr['default'];
-        }
-
-        return $this->_default_settings;
     }
 
     function __construct( $instance_details )
@@ -264,62 +164,12 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
 
     public function plugin_active()
     {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        if( !($db_details = $plugin_obj->get_db_details( $this->instance_id() ))
-         or !$plugin_obj->active_status( $db_details['status'] ) )
-            return false;
-
-        return true;
-    }
-
-    public function get_plugin_db_details( $force = false )
-    {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        return $plugin_obj->get_db_details( $this->instance_id(), $force );
-    }
-
-    public function get_plugin_db_settings( $force = false )
-    {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        return $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings(), $force );
+        return ($this->db_record_active()?true:false);
     }
 
     public function check_installation()
     {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
-            return false;
-        }
-
-        if( !($db_details = $plugin_obj->get_db_details( $this->instance_id() )) )
+        if( !($db_details = $this->get_db_details()) )
         {
             $this->reset_error();
 
@@ -680,7 +530,7 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
                     return false;
                 }
                 
-                if( !($model_details = $model_obj->get_model_db_details( true ))
+                if( !($model_details = $model_obj->get_db_details( true ))
                  or empty( $model_details['version'] ) )
                     $old_version = '0.0.0';
                 else
@@ -728,7 +578,7 @@ abstract class PHS_Plugin extends PHS_Signal_and_slot
         $plugin_details['script_version'] = $this->get_plugin_version();
         $plugin_details['models'] = $this->get_models();
 
-        if( ($db_details = $this->get_plugin_db_details()) )
+        if( ($db_details = $this->get_db_details()) )
         {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;

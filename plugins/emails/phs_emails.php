@@ -156,7 +156,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !empty( $defined_routes ) )
             return $defined_routes;
 
-        if( !($plugin_settings = $this->get_plugin_db_settings())
+        if( !($plugin_settings = $this->get_db_settings())
          or empty( $plugin_settings['routes'] ) or !is_array( $plugin_settings['routes'] ) )
             return array();
 
@@ -199,7 +199,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_init_email_hook_args() );
 
-        if( !($settings_arr = $this->get_plugin_db_settings())
+        if( !($settings_arr = $this->get_db_settings())
          or empty( $settings_arr['template_main'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );

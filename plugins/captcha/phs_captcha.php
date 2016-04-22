@@ -133,7 +133,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( !($settings_arr = $this->get_plugin_db_settings()) )
+        if( !($settings_arr = $this->get_db_settings()) )
         {
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
             return false;
@@ -182,7 +182,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( !($settings_arr = $this->get_plugin_db_settings()) )
+        if( !($settings_arr = $this->get_db_settings()) )
         {
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
             return false;
@@ -255,7 +255,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_captcha_display_hook_args() );
 
-        if( !($settings_arr = $this->get_plugin_db_settings())
+        if( !($settings_arr = $this->get_db_settings())
          or empty( $settings_arr['template'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );

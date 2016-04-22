@@ -271,12 +271,18 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
+    /**
+     * @param string|null $instance_id Instance ID to check in database
+     * @param bool $force True if we should skip caching
+     *
+     * @return array|bool|false Array containing database fields of given instance_id (if available)
+     */
     public function get_db_details( $instance_id = null, $force = false )
     {
         $this->reset_error();
 
         if( $instance_id != null
-            and !self::valid_instance_id( $instance_id ))
+        and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
             return false;

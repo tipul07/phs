@@ -109,7 +109,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( !($plugin_obj = $this->get_plugin_instance()) )
             return array();
 
-        if( ($plugins_settings = $plugin_obj->get_plugin_db_settings()) === false
+        if( ($plugins_settings = $plugin_obj->get_db_settings()) === false
          or empty( $plugins_settings ) or !is_array( $plugins_settings ) )
             $plugins_settings = $plugin_obj->get_default_settings();
 

@@ -13,7 +13,7 @@
     if( !($form_data = $this->context_var( 'form_data' )) )
         $form_data = array();
 
-    if( !($plugin_settings = $plugin_obj->get_plugin_db_settings()) )
+    if( !($plugin_settings = $plugin_obj->get_db_settings()) )
         $plugin_settings = array();
 
     if( !($plugin_info = $plugin_obj->get_plugin_info()) )
