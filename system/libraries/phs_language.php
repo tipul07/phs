@@ -105,6 +105,32 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param $index
+     */
+    public function _pte( $index, $ch = '"' )
+    {
+        return self::_e( $this->_pt( $index ), $ch );
+    }
+
+    /**
+     * @param $index
+     */
+    public function _pt( $index )
+    {
+        /** @var PHS_Plugin $this */
+        if( !($this instanceof PHS_Instantiable)
+         or !($plugin_obj = $this->get_plugin_instance()) )
+            return self::_t( func_get_args() );
+
+        $plugin_obj->include_plugin_language_files();
+
+        if( !($result = @forward_static_call_array( array( '\phs\libraries\PHS_Language', '_t' ), func_get_args() )) )
+            $result = '';
+
+        return $result;
+    }
+
+    /**
      * Translate a specific text in currently selected language. This method receives a variable number of parameters in same way as sprintf works.
      * @param string $index Language index to be translated
      *
@@ -112,8 +138,17 @@ class PHS_Language extends PHS_Error
      */
     public static function _t( $index )
     {
-        $numargs = func_num_args();
-        $arg_list = func_get_args();
+        if( is_array( $index ) )
+        {
+            $arg_list = $index;
+            $numargs = count( $arg_list );
+            if( isset( $arg_list[0] ) )
+                $index = $arg_list[0];
+        } else
+        {
+            $numargs = func_num_args();
+            $arg_list = func_get_args();
+        }
 
         if( $numargs > 1 )
             @array_shift( $arg_list );
@@ -124,7 +159,9 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * Translate a specific text in currently selected language. This method receives a variable number of parameters in same way as sprintf works.
+     * Translate a specific text in currently selected language then escape the resulting string.
+     * This method receives a variable number of parameters in same way as sprintf works.
+     *
      * @param string $index Language index to be translated
      * @param string $ch Escaping character
      *
@@ -147,7 +184,8 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * Translate a text into a specific language. This method receives a variable number of parameters in same way as sprintf works.
+     * Translate a text into a specific language.
+     * This method receives a variable number of parameters in same way as sprintf works.
      *
      * @param string $index Language index to be translated
      * @param string $lang ISO 2 chars (lowercase) language code
@@ -189,6 +227,8 @@ class PHS_Language_Container extends PHS_Error
     private static $DEFINED_LANGUAGES = array();
 
     private static $LANGUAGE_INDEXES = array();
+
+    private static $_LOADED_FILES = array();
 
     function __construct()
     {
@@ -291,12 +331,16 @@ class PHS_Language_Container extends PHS_Error
     function reset_language_indexes( $lang = false )
     {
         if( $lang === false )
+        {
             self::$LANGUAGE_INDEXES = array();
-        else
+            self::$_LOADED_FILES = array();
+        } else
         {
             $lang = self::prepare_lang_index( $lang );
             if( isset( self::$LANGUAGE_INDEXES[$lang] ) )
                 self::$LANGUAGE_INDEXES[$lang] = array();
+            if( isset( self::$_LOADED_FILES[$lang] ) )
+                self::$_LOADED_FILES[$lang] = array();
         }
 
         return $this;
@@ -389,7 +433,7 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function add_language_files( $lang, array $files_arr )
+    public function add_language_files( $lang, array $files_arr, $force_language_reload = false )
     {
         $this->reset_error();
 
@@ -421,7 +465,7 @@ class PHS_Language_Container extends PHS_Error
 
         // if language was already loaded, reload all files to include newly added files
         if( $this->language_loaded( $lang ) )
-            $this->load_language( $lang );
+            $this->load_language( $lang, $force_language_reload );
 
         return true;
     }
@@ -448,7 +492,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool True if loading was with success, false otherwise
      */
-    public function load_language( $lang )
+    public function load_language( $lang, $force = false )
     {
         $this->reset_error();
 
@@ -462,7 +506,7 @@ class PHS_Language_Container extends PHS_Error
 
         foreach( $lang_details['files'] as $file )
         {
-            if( !$this->load_language_file( $file, $lang ) )
+            if( !$this->load_language_file( $file, $lang, $force ) )
                 return false;
         }
 
@@ -477,13 +521,17 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool
      */
-    private function load_language_file( $file, $lang )
+    private function load_language_file( $file, $lang, $force = false )
     {
         if( !($lang = self::valid_language( $lang )) )
         {
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined.' );
             return false;
         }
+
+        if( empty( $force )
+        and !empty( self::$_LOADED_FILES[$lang][$file] ) )
+            return true;
 
         if( !($utf8_file = self::convert_to_utf8( $file )) )
         {
@@ -525,6 +573,11 @@ class PHS_Language_Container extends PHS_Error
         }
 
         @fclose( $fil );
+
+        if( empty( self::$_LOADED_FILES[$lang] ) )
+            self::$_LOADED_FILES[$lang] = array();
+
+        self::$_LOADED_FILES[$lang][$file] = true;
 
        return true;
     }

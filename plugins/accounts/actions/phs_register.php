@@ -27,13 +27,13 @@ class PHS_Action_Register extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
             return self::default_action_result();
         }
 
@@ -50,7 +50,7 @@ class PHS_Action_Register extends PHS_Action
         if( empty( $foobar )
         and PHS::user_logged_in() )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'Already logged in...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Already logged in...' ) );
 
             $action_result = self::default_action_result();
 
@@ -61,7 +61,7 @@ class PHS_Action_Register extends PHS_Action
 
         if( !empty( $registered ) )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'User account registered with success...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'User account registered with success...' ) );
 
             $data = array(
                 'nick' => $nick,
@@ -86,7 +86,7 @@ class PHS_Action_Register extends PHS_Action
         {
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
             if( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
-                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load captcha plugin.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load captcha plugin.' ) );
 
             elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
                 and empty( $hook_result['check_valid'] ) )
@@ -94,11 +94,11 @@ class PHS_Action_Register extends PHS_Action
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
                     PHS_Notifications::add_error_notice( PHS_Error::arr_get_error_message( $hook_result['hook_errors'] ) );
                 else
-                    PHS_Notifications::add_error_notice( self::_t( 'Invalid validation code.' ) );
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Invalid validation code.' ) );
             }
 
             elseif( $pass1 != $pass2 )
-                PHS_Notifications::add_error_notice( self::_t( 'Passwords mistmatch.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Passwords mistmatch.' ) );
 
             else
             {
@@ -114,7 +114,7 @@ class PHS_Action_Register extends PHS_Action
                     if( $accounts_model->has_error() )
                         PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
                     else
-                        PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t register user. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t register user. Please try again.' ) );
                 } else
                     PHS_Hooks::trigger_captcha_regeneration();
             }

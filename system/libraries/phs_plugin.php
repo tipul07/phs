@@ -12,11 +12,13 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
-    const LIBRARIES_DIR = 'libraries';
+    const LIBRARIES_DIR = 'libraries', LANGUAGES_DIR = 'languages';
 
     private $_libraries_instances = array();
     // Plugin details as defined in default_plugin_details_fields() method
     private $_plugin_details = array();
+
+    private $_custom_lang_files_included = false;
 
     /**
      * @return array An array of strings which are the models used by this plugin
@@ -33,7 +35,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
      */
     abstract public function get_plugin_version();
 
-    protected function instance_type()
+    public function instance_type()
     {
         return self::INSTANCE_TYPE_PLUGIN;
     }
@@ -70,6 +72,23 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
             $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
         }
+    }
+
+    public function include_plugin_language_files()
+    {
+        if( $this->_custom_lang_files_included
+         or !($current_language = self::get_current_language()) )
+            return;
+
+        $this->_custom_lang_files_included = true;
+
+        if( !@file_exists( $this->instance_plugin_path().self::LANGUAGES_DIR )
+        and !@is_dir( $this->instance_plugin_path().self::LANGUAGES_DIR ) )
+            return;
+
+        $language_file = $this->instance_plugin_path().self::LANGUAGES_DIR.'/'.$current_language.'.csv';
+        if( @file_exists( $language_file ) )
+            self::add_language_files( $current_language, array( $language_file ) );
     }
 
     public static function safe_escape_library_name( $name )

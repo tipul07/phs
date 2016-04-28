@@ -97,6 +97,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $view_params = array();
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
+        $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = array(
             'notifications' => $notifications_arr,

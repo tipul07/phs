@@ -45,7 +45,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     abstract public function process_action_result( $action_result );
 
-    protected function instance_type()
+    public function instance_type()
     {
         return self::INSTANCE_TYPE_SCOPE;
     }

@@ -29,14 +29,14 @@ class PHS_Action_Logout extends PHS_Action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         if( !($current_user = PHS::current_user())
          or empty( $current_user['id'] ) )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'You logged out from your account...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'You logged out from your account...' ) );
 
             $action_result = self::default_action_result();
 
@@ -47,7 +47,7 @@ class PHS_Action_Logout extends PHS_Action
 
         if( $accounts_plugin->do_logout() )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'Successfully logged out...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Successfully logged out...' ) );
 
             $action_result = self::default_action_result();
 
@@ -59,7 +59,7 @@ class PHS_Action_Logout extends PHS_Action
         if( $accounts_plugin->has_error() )
             PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
         else
-            PHS_Notifications::add_error_notice( self::_t( 'Error logging out... Please try again.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Error logging out... Please try again.' ) );
 
         return $this->quick_render_template( 'logout' );
     }

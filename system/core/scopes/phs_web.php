@@ -42,6 +42,7 @@ class PHS_Scope_Web extends PHS_Scope
         $view_params = array();
         $view_params['action_obj'] = $action_obj;
         $view_params['controller_obj'] = $controller_obj;
+        $view_params['parent_plugin_obj'] = (!empty( $action_obj )?$action_obj->get_plugin_instance():false);
         $view_params['plugin'] = (!empty( $action_obj )?$action_obj->instance_plugin_name():false);
         $view_params['as_singleton'] = false;
 

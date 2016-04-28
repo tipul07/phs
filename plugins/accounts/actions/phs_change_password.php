@@ -31,19 +31,19 @@ class PHS_Action_Change_password extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
             return self::default_action_result();
         }
 
         if( !($current_user = PHS::user_logged_in()) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You should login first...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
             $action_result = self::default_action_result();
 
@@ -70,7 +70,7 @@ class PHS_Action_Change_password extends PHS_Action
         $password_changed = PHS_params::_g( 'password_changed', PHS_params::T_NOHTML );
 
         if( !empty( $password_changed ) )
-            PHS_Notifications::add_success_notice( self::_t( 'Password changed with success.' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
@@ -82,13 +82,13 @@ class PHS_Action_Change_password extends PHS_Action
         if( !empty( $submit ) )
         {
             if( empty( $pass ) or empty( $pass1 ) or empty( $pass2 ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Please provide mandatory fields.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Please provide mandatory fields.' ) );
 
             elseif( !$accounts_model->check_pass( $current_user, $pass ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Wrong current password.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Wrong current password.' ) );
 
             elseif( $pass1 != $pass2 )
-                PHS_Notifications::add_error_notice( self::_t( 'Passwords mismatch.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Passwords mismatch.' ) );
 
             else
             {
@@ -100,7 +100,7 @@ class PHS_Action_Change_password extends PHS_Action
 
                 if( ($new_account = $accounts_model->edit( $current_user, $edit_params_arr )) )
                 {
-                    PHS_Notifications::add_success_notice( self::_t( 'Changes saved...' ) );
+                    PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved...' ) );
 
                     $action_result = self::default_action_result();
 
@@ -112,7 +112,7 @@ class PHS_Action_Change_password extends PHS_Action
                     if( $accounts_model->has_error() )
                         PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
                     else
-                        PHS_Notifications::add_error_notice( self::_t( 'Error changing password. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Error changing password. Please try again.' ) );
                 }
             }
         }

@@ -32,19 +32,19 @@ class PHS_Action_Edit_profile extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
             return self::default_action_result();
         }
 
         if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load account details model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load account details model.' ) );
             return self::default_action_result();
         }
 
@@ -52,7 +52,7 @@ class PHS_Action_Edit_profile extends PHS_Action
 
         if( !($current_user = PHS::user_logged_in()) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You should login first...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
             $action_result = self::default_action_result();
 
@@ -71,7 +71,7 @@ class PHS_Action_Edit_profile extends PHS_Action
         $changes_saved = PHS_params::_g( 'changes_saved', PHS_params::T_NOHTML );
 
         if( !empty( $changes_saved ) )
-            PHS_Notifications::add_success_notice( self::_t( 'Changes saved to database.' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
 
         if( empty( $current_user['details_id'] )
          or !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
@@ -100,17 +100,17 @@ class PHS_Action_Edit_profile extends PHS_Action
         $submit = PHS_params::_p( 'submit' );
 
         if( !empty( $verification_email_sent ) )
-            PHS_Notifications::add_success_notice( self::_t( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
 
         if( !empty( $verify_email )
         and $accounts_model->needs_email_verification( $current_user ) )
         {
             if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'verify_email_bg' ), array( 'uid' => $current_user['id'] ) ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t send verification email. Please try again.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t send verification email. Please try again.' ) );
 
             else
             {
-                PHS_Notifications::add_success_notice( self::_t( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
+                PHS_Notifications::add_success_notice( $this->_pt( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
 
                 $action_result = self::default_action_result();
 
@@ -152,7 +152,7 @@ class PHS_Action_Edit_profile extends PHS_Action
 
             if( ($new_account = $accounts_model->edit( $current_user, $edit_params_arr )) )
             {
-                PHS_Notifications::add_success_notice( self::_t( 'Changes saved...' ) );
+                PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved...' ) );
 
                 $action_result = self::default_action_result();
 
@@ -164,7 +164,7 @@ class PHS_Action_Edit_profile extends PHS_Action
                 if( $accounts_model->has_error() )
                     PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
                 else
-                    PHS_Notifications::add_error_notice( self::_t( 'Error saving details to database. Please try again.' ) );
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
         }
 

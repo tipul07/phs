@@ -6,7 +6,6 @@
     use \phs\libraries\PHS_Hooks;
     use \phs\PHS_crypt;
 
-
     //var_dump( \phs\PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_email_bg' ), array( 'uid' => 1 ) ) );
     //var_dump( PHS::st_get_error() );
     //

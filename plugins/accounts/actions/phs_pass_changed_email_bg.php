@@ -31,7 +31,7 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
          or empty( $accounts_settings['announce_pass_change'] )
          or !($account_arr = $accounts_model->get_details( $params['uid'] )) )
         {
-            $this->set_error( self::ERR_UNKNOWN_ACCOUNT, self::_t( 'Account doesn\'t need password change notification.' ) );
+            $this->set_error( self::ERR_UNKNOWN_ACCOUNT, $this->_pt( 'Account doesn\'t need password change notification.' ) );
             return false;
         }
 
@@ -39,7 +39,7 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
         $hook_args['template'] = $accounts_plugin->email_template_resource_from_file( 'password_changed' );
         $hook_args['to'] = $account_arr['email'];
         $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = self::_t( 'Password changed' );
+        $hook_args['subject'] = $this->_pt( 'Password changed' );
         $hook_args['email_vars'] = array(
             'nick' => $account_arr['nick'],
             'obfuscated_pass' => $accounts_model->obfuscate_password( $account_arr ),
@@ -54,7 +54,7 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_SEND_EMAIL );
             else
-                $this->set_error( self::ERR_SEND_EMAIL, self::_t( 'Error sending password changed message to %s.', $account_arr['email'] ) );
+                $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'Error sending password changed message to %s.', $account_arr['email'] ) );
 
             return false;
         }

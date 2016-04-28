@@ -33,7 +33,7 @@ body { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; font-size: 14p
 .fixskin label { width: inherit !important; }
 
 .lineform, .lineformwide { vertical-align: middle; line-height: 18px; }
-.lineform label { width: 150px !important; }
+.lineform label { width: 150px !important; line-height: 29px !important; }
 .lineformwide label { width: 350px !important; }
 .lineform label, .lineformwide label { word-break: break-all; }
 .lineform_line { margin-left: 150px !important; }

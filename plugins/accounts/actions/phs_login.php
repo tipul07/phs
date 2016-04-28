@@ -39,7 +39,7 @@ class PHS_Action_Login extends PHS_Action
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
 
         if( !empty( $accounts_plugin )
         and !empty( $reason )
@@ -47,13 +47,13 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_success_notice( $reason_success_text );
 
         if( !empty( $registered ) )
-            PHS_Notifications::add_success_notice( self::_t( 'Account registered and active. You can login now.' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Account registered and active. You can login now.' ) );
 
         if( empty( $foobar )
         and PHS::user_logged_in()
         and !PHS_Notifications::have_notifications_errors() )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'Already logged in...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Already logged in...' ) );
 
             $action_result = self::default_action_result();
 
@@ -75,15 +75,15 @@ class PHS_Action_Login extends PHS_Action
         and !PHS_Notifications::have_notifications_errors() )
         {
             if( empty( $nick ) or empty( $pass ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Please provide complete mandatory fields.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Please provide complete mandatory fields.' ) );
 
             elseif( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
-                PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
 
             elseif( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $nick ) ))
                  or !$accounts_model->check_pass( $account_arr, $pass )
                  or !$accounts_model->is_active( $account_arr ) )
-                PHS_Notifications::add_error_notice( self::_t( 'Bad username or password.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Bad username or password.' ) );
 
             else
             {
@@ -92,7 +92,7 @@ class PHS_Action_Login extends PHS_Action
 
                 if( $accounts_plugin->do_login( $account_arr, $login_params ) )
                 {
-                    PHS_Notifications::add_success_notice( self::_t( 'Successfully logged in...' ) );
+                    PHS_Notifications::add_success_notice( $this->_pt( 'Successfully logged in...' ) );
 
                     $action_result = self::default_action_result();
 
@@ -104,7 +104,7 @@ class PHS_Action_Login extends PHS_Action
                 if( $accounts_plugin->has_error() )
                     PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
                 else
-                    PHS_Notifications::add_error_notice( self::_t( 'Error logging in... Please try again.' ) );
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error logging in... Please try again.' ) );
             }
         }
 

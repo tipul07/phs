@@ -29,21 +29,21 @@ class PHS_Action_Activation extends PHS_Action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         $confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML );
 
         if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param )) )
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t interpret confirmation parameter. Please try again.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t interpret confirmation parameter. Please try again.' ) );
 
         if( !PHS_Notifications::have_notifications_errors()
         and !empty( $confirmation_parts['account_data'] )
         and !empty( $confirmation_parts['reason'] )
         and ($confirmation_result = $accounts_plugin->do_confirmation_reason( $confirmation_parts['account_data'], $confirmation_parts['reason'] )) )
         {
-            PHS_Notifications::add_success_notice( self::_t( 'Action Confirmed...' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'Action Confirmed...' ) );
 
             $action_result = self::default_action_result();
 

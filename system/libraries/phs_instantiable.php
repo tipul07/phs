@@ -27,10 +27,13 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     private $instance_details = array();
 
+    /** @var PHS_Plugin|null $_parent_plugin */
+    private $_parent_plugin = null;
+
     /**
      * @return int Should return INSTANCE_TYPE_* constant
      */
-    abstract protected function instance_type();
+    abstract public function instance_type();
 
     static public function get_instance_types()
     {
@@ -79,6 +82,19 @@ abstract class PHS_Instantiable extends PHS_Registry
         $this->set_instance_details( $instance_details );
     }
 
+    final public function parent_plugin( $plugin_obj = false )
+    {
+        if( $plugin_obj === false )
+            return $this->_parent_plugin;
+
+        if( !($plugin_obj instanceof PHS_Plugin) )
+            return false;
+
+        $this->_parent_plugin = $plugin_obj;
+        
+        return $this->_parent_plugin;
+    }
+
     /**
      * Gets plugin instance where current instance is running
      *
@@ -87,6 +103,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function get_plugin_instance()
     {
         $this->reset_error();
+
+        if( !empty( $this->_parent_plugin ) )
+            return $this->_parent_plugin;
 
         if( !($plugin_name = $this->instance_plugin_name())
          or $plugin_name == self::CORE_PLUGIN

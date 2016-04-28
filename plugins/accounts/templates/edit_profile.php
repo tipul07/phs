@@ -11,61 +11,61 @@
         <div class="form_container responsive" style="width: 650px;">
 
             <section class="heading-bordered">
-                <h3><?php echo $this::_t( 'Edit Profile' )?></h3>
+                <h3><?php echo $this->_pt( 'Edit Profile' )?></h3>
             </section>
 
             <fieldset class="lineform">
-                <label for="nick"><?php echo $this::_t( 'Username' )?>:</label>
+                <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
                 <?php echo form_str( $this->context_var( 'nick' ) )?>
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="email"><?php echo $this::_t( 'Email' )?>:</label>
+                <label for="email"><?php echo $this->_pt( 'Email' )?>:</label>
                 <div class="lineform_line">
                 <input type="text" id="email" name="email" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" /><br/>
                 <?php
                 if( !$this->context_var( 'email_verified' ) )
-                    echo $this::_t( 'Email is %s', '<span style="color: red;">'.$this::_t( 'NOT VERIFIED' ).'</span>. <a href="'.$this->context_var( 'verify_email_link' ).'">'.$this::_t( 'Send verification email' ).'</a>' );
+                    echo $this->_pt( 'Email is %s', '<span style="color: red;">'.$this->_pt( 'NOT VERIFIED' ).'</span>. <a href="'.$this->context_var( 'verify_email_link' ).'">'.$this->_pt( 'Send verification email' ).'</a>' );
                 else
-                    echo $this::_t( 'Email is %s', '<span style="color: green;">'.$this::_t( 'VERIFIED' ).'</span>.' );
+                    echo $this->_pt( 'Email is %s', '<span style="color: green;">'.$this->_pt( 'VERIFIED' ).'</span>.' );
                 ?>
                 </div>
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="title"><?php echo $this::_t( 'Title' )?>:</label>
+                <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
                 <div class="lineform_line">
                 <input type="text" id="title" name="title" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="width: 60px;" /><br/>
-                <small><?php echo $this::_t( 'eg. Mr., Ms., Mss., etc' )?></small>
+                <small><?php echo $this->_pt( 'eg. Mr., Ms., Mss., etc' )?></small>
                 </div>
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="fname"><?php echo $this::_t( 'First Name' )?>:</label>
+                <label for="fname"><?php echo $this->_pt( 'First Name' )?>:</label>
                 <input type="text" id="fname" name="fname" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'fname' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="lname"><?php echo $this::_t( 'Last Name' )?>:</label>
+                <label for="lname"><?php echo $this->_pt( 'Last Name' )?>:</label>
                 <input type="text" id="lname" name="lname" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'lname' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="phone"><?php echo $this::_t( 'Phone Number' )?>:</label>
+                <label for="phone"><?php echo $this->_pt( 'Phone Number' )?>:</label>
                 <input type="text" id="phone" name="phone" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'phone' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="company"><?php echo $this::_t( 'Company' )?>:</label>
+                <label for="company"><?php echo $this->_pt( 'Company' )?>:</label>
                 <input type="text" id="company" name="company" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'company' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Save Changes' )?>" />
+                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Save Changes' )?>" />
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ) )?>"><?php echo $this::_t( 'Change password' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ) )?>"><?php echo $this->_pt( 'Change password' )?></a>
             </fieldset>
 
         </div>

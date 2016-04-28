@@ -29,7 +29,7 @@ class PHS_Action_Verify_email_bg extends PHS_Action
          or !($account_arr = $accounts_model->get_details( $params['uid'] ))
          or !$accounts_model->needs_email_verification( $account_arr ) )
         {
-            $this->set_error( self::ERR_UNKNOWN_ACCOUNT, self::_t( 'Account doesn\'t need email verification.' ) );
+            $this->set_error( self::ERR_UNKNOWN_ACCOUNT, $this->_pt( 'Account doesn\'t need email verification.' ) );
             return false;
         }
 
@@ -37,7 +37,7 @@ class PHS_Action_Verify_email_bg extends PHS_Action
         $hook_args['template'] = $accounts_plugin->email_template_resource_from_file( 'verify_email' );
         $hook_args['to'] = $account_arr['email'];
         $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = self::_t( 'Verify Email' );
+        $hook_args['subject'] = $this->_pt( 'Verify Email' );
         $hook_args['email_vars'] = array(
             'nick' => $account_arr['nick'],
             'activation_link' => $accounts_plugin->get_confirmation_link( $account_arr, $accounts_plugin::CONF_REASON_EMAIL ),
@@ -52,7 +52,7 @@ class PHS_Action_Verify_email_bg extends PHS_Action
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_SEND_EMAIL );
             else
-                $this->set_error( self::ERR_SEND_EMAIL, self::_t( 'Error sending verify email message to %s.', $account_arr['email'] ) );
+                $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'Error sending verify email message to %s.', $account_arr['email'] ) );
 
             return false;
         }

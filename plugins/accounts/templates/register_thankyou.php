@@ -10,17 +10,17 @@
     <div class="form_container responsive" style="width: 450px;">
 
         <section class="heading-bordered">
-            <h3><?php echo $this::_t( 'Account registered' )?></h3>
+            <h3><?php echo $this->_pt( 'Account registered' )?></h3>
         </section>
 
         <fieldset>
-            <p><?php echo $this::_t( 'Hello <strong>%s</strong>.', $this->context_var( 'nick' ) );?></p>
-            <p><?php echo $this::_t( 'You successfully registered your account. Before using your account however you have to activate it.' )?></p>
-            <p><?php echo $this::_t( 'We sent you an activation link at <strong>%s</strong>. Please check your email (also looking in spam folder) and click or access the activation link.', $this->context_var( 'email' ) )?></p>
+            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>.', $this->context_var( 'nick' ) );?></p>
+            <p><?php echo $this->_pt( 'You successfully registered your account. Before using your account however you have to activate it.' )?></p>
+            <p><?php echo $this->_pt( 'We sent you an activation link at <strong>%s</strong>. Please check your email (also looking in spam folder) and click or access the activation link.', $this->context_var( 'email' ) )?></p>
         </fieldset>
 
         <fieldset>
-            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this::_t( 'Go to login page' )?></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
         </fieldset>
 
     </div>

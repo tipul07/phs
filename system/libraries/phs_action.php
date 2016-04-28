@@ -47,7 +47,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return array();
     }
 
-    protected function instance_type()
+    public function instance_type()
     {
         return self::INSTANCE_TYPE_ACTION;
     }
@@ -102,6 +102,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         $view_params = array();
         $view_params['action_obj'] = $this;
         $view_params['controller_obj'] = $this->get_controller();
+        $view_params['parent_plugin_obj'] = $this->get_plugin_instance();
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = $template_data;
 

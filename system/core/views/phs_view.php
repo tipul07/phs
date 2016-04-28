@@ -30,7 +30,7 @@ class PHS_View extends PHS_Signal_and_slot
     /** @var PHS_Action|bool */
     protected $_action = false;
 
-    protected function instance_type()
+    public function instance_type()
     {
         return self::INSTANCE_TYPE_VIEW;
     }
@@ -179,6 +179,8 @@ class PHS_View extends PHS_Signal_and_slot
             $params['action_obj'] = false;
         if( empty( $params['controller_obj'] ) )
             $params['controller_obj'] = false;
+        if( empty( $params['parent_plugin_obj'] ) )
+            $params['parent_plugin_obj'] = false;
 
         if( empty( $params['template_data'] ) )
             $params['template_data'] = false;
@@ -193,7 +195,9 @@ class PHS_View extends PHS_Signal_and_slot
         if( !$view_obj->set_action( $params['action_obj'] )
          or !$view_obj->set_controller( $params['controller_obj'] )
          or !$view_obj->set_theme( $params['theme'] )
-         or !$view_obj->set_template( $template ) )
+         or !$view_obj->set_template( $template )
+         or (!empty( $params['parent_plugin_obj'] ) and !$view_obj->parent_plugin( $params['parent_plugin_obj'] ))
+        )
         {
             if( $view_obj->has_error() )
                 self::st_copy_error( $view_obj );

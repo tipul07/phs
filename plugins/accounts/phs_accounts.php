@@ -37,8 +37,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
-            'name' => 'Accounts Management',
-            'description' => 'Handles all functionality related to user accounts.',
+            'name' => self::_t( 'Accounts Management' ),
+            'description' => self::_t( 'Handles all functionality related to user accounts.' ),
         );
     }
 

@@ -24,36 +24,36 @@
         <div class="form_container responsive" style="width: 350px;">
 
             <section class="heading-bordered">
-                <h3><?php echo $this::_t( 'Login' )?></h3>
+                <h3><?php echo $this->_pt( 'Login' )?></h3>
             </section>
 
             <fieldset>
-                <label for="nick"><?php echo $this::_t( 'Username' )?>:</label>
+                <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
                 <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset>
-                <label for="pass"><?php echo $this::_t( 'Password' )?>:</label>
+                <label for="pass"><?php echo $this->_pt( 'Password' )?>:</label>
                 <input type="password" id="pass" name="pass" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="fixskin">
                 <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" class="wpcf7-text" rel="skin_checkbox" <?php echo $this->context_var( 'do_remember' )?> />
-                    <strong><?php echo $this::_t( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this::_t( ' (for %s)', PHS_utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
+                    <strong><?php echo $this->_pt( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this->_pt( ' (for %s)', PHS_utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
                 <div class="clearfix"></div>
-                <small><?php echo $this::_t( 'Normal sessions will expire in %s.', PHS_utils::parse_period( $this->context_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>
+                <small><?php echo $this->_pt( 'Normal sessions will expire in %s.', PHS_utils::parse_period( $this->context_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Login' )?>" />
+                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Login' )?>" />
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this::_t( 'Forgot password' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this->_pt( 'Forgot password' )?></a>
             </fieldset>
 
             <fieldset>
-                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this::_t( 'Register an account' )?></a>
+                <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this->_pt( 'Register an account' )?></a>
             </fieldset>
 
         </div>

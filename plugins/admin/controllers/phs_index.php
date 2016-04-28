@@ -17,13 +17,13 @@ class PHS_Controller_Index extends PHS_Controller
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
-            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Error loading accounts model.' ) );
+            $this->set_error( self::ERR_RUN_ACTION, $this->_pt( 'Error loading accounts model.' ) );
             return false;
         }
 
         if( !($current_user = PHS::user_logged_in()) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You should login first...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
             $action_result = PHS_Action::default_action_result();
 
@@ -38,7 +38,7 @@ class PHS_Controller_Index extends PHS_Controller
 
         if( !$accounts_model->acc_is_admin( $current_user ) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You don\'t have enough rights to access this section...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You don\'t have enough rights to access this section...' ) );
 
             return $this->execute_foobar_action();
         }

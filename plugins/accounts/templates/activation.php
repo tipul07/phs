@@ -9,20 +9,20 @@
     <div class="form_container responsive" style="width: 450px;">
 
         <section class="heading-bordered">
-            <h3><?php echo $this::_t( 'Confirmation action failed' )?></h3>
+            <h3><?php echo $this->_pt( 'Confirmation action failed' )?></h3>
         </section>
 
         <fieldset>
             <?php
             if( !($nick = $this->context_var( 'nick' )) )
-                $nick = $this::_t( 'there' );
+                $nick = $this->_pt( 'there' );
             ?>
-            <p><?php echo $this::_t( 'Hello <strong>%s</strong>.', $nick );?></p>
-            <p><?php echo $this::_t( 'Action required for confirmation failed. This might happen because activation link expired. Please try again.' )?></p>
+            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>.', $nick );?></p>
+            <p><?php echo $this->_pt( 'Action required for confirmation failed. This might happen because activation link expired. Please try again.' )?></p>
         </fieldset>
 
         <fieldset>
-            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this::_t( 'Go to login page' )?></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
         </fieldset>
 
     </div>

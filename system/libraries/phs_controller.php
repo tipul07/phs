@@ -11,7 +11,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
     private $_action = false;
 
-    protected function instance_type()
+    public function instance_type()
     {
         return self::INSTANCE_TYPE_CONTROLLER;
     }

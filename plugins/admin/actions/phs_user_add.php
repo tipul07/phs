@@ -28,7 +28,7 @@ class PHS_Action_User_add extends PHS_Action
     {
         if( !($current_user = PHS::user_logged_in()) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You should login first...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
             $action_result = self::default_action_result();
 
@@ -45,27 +45,27 @@ class PHS_Action_User_add extends PHS_Action
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
          or !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings()) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
             return self::default_action_result();
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
             return self::default_action_result();
         }
 
         if( !$accounts_model->can_manage_accounts( $current_user ) )
         {
-            PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to manage accounts.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
             return self::default_action_result();
         }
 
         $account_created = PHS_params::_g( 'account_created', PHS_params::T_NOHTML );
 
         if( !empty( $account_created ) )
-            PHS_Notifications::add_success_notice( self::_t( 'User account created.' ) );
+            PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_p( 'nick', PHS_params::T_NOHTML );
@@ -109,7 +109,7 @@ class PHS_Action_User_add extends PHS_Action
 
             if( ($new_account = $accounts_model->insert( $insert_params_arr )) )
             {
-                PHS_Notifications::add_success_notice( self::_t( 'User account created...' ) );
+                PHS_Notifications::add_success_notice( $this->_pt( 'User account created...' ) );
 
                 $action_result = self::default_action_result();
 
@@ -121,7 +121,7 @@ class PHS_Action_User_add extends PHS_Action
                 if( $accounts_model->has_error() )
                     PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
                 else
-                    PHS_Notifications::add_error_notice( self::_t( 'Error saving details to database. Please try again.' ) );
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
         }
 

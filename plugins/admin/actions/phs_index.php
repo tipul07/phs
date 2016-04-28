@@ -12,7 +12,7 @@ class PHS_Action_Index extends PHS_Action
     {
         if( !($current_user = PHS::user_logged_in()) )
         {
-            PHS_Notifications::add_warning_notice( self::_t( 'You should login first...' ) );
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
             $action_result = self::default_action_result();
 
@@ -23,7 +23,7 @@ class PHS_Action_Index extends PHS_Action
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-            PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
 
         if( empty( $accounts_model )
          or !($user_level = $accounts_model->valid_level( $current_user['level'] )) )

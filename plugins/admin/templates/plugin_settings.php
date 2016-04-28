@@ -12,6 +12,10 @@
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
     if( !($form_data = $this->context_var( 'form_data' )) )
         $form_data = array();
+    if( !($settings_fields = $this->context_var( 'settings_fields' )) )
+        $settings_fields = array();
+    if( !($modules_with_settings = $this->context_var( 'modules_with_settings' )) )
+        $modules_with_settings = array();
 
     if( !($plugin_settings = $plugin_obj->get_db_settings()) )
         $plugin_settings = array();
@@ -22,7 +26,7 @@
     $current_user = PHS::user_logged_in();
 ?>
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings', array( ) ) )?>" method="post" class="wpcf7">
+    <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $form_data['pid'] ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )
@@ -40,17 +44,58 @@
             ?>
 
             <section class="heading-bordered">
-                <h3><?php echo $plugin_info['name'].' <small>'.$plugin_obj->get_plugin_version().'</small>'?></h3>
+                <h3>
+                    <?php echo $plugin_info['name']?>
+                    <small>
+                    <?php
+                    echo $plugin_obj->get_plugin_version();
+
+                    if( !empty( $plugin_info['models'] )
+                    and is_array( $plugin_info['models'] ) )
+                        echo ' - '.$this->_pt( '%s models', count( $plugin_info['models'] ) );
+                    ?>
+                    </small>
+                </h3>
             </section>
 
             <?php
             if( !empty( $plugin_info['description'] ) )
             {
                 ?><div class="clearfix"></div>
-                <small style="top:-25px;position:relative;"><?php echo $plugin_info['description']?></small><?php
+                <small style="top:-25px;position:relative;"><?php echo $plugin_info['description']?></small>
+                <div class="clearfix"></div><?php
             }
 
-            if( ($settings_fields = $plugin_obj->validate_settings_structure()) )
+            if( !empty( $modules_with_settings ) and is_array( $modules_with_settings ) )
+            {
+                ?>
+                <div class="lineform">
+                    <label for="selected_module"><?php echo $this->_pt( 'Settings for' )?>: </label>
+                    <select name="selected_module" id="selected_module" class="wpcf7-select" onchange="document.plugin_settings_form.submit()">
+                    <option value=""><?php echo $plugin_info['name'].' ('.$plugin_obj->instance_type().')'?></option>
+                    <?php
+                    foreach( $modules_with_settings as $model_id => $model_arr )
+                    {
+                        if( !is_array( $model_arr )
+                         or empty( $model_arr['instance'] ) )
+                            continue;
+
+                        /** @var \phs\libraries\PHS_Model $model_instance */
+                        $model_instance = $model_arr['instance'];
+
+                        ?><option value="<?php echo $model_id?>" <?php echo ($form_data['selected_module']==$model_id?'selected="selected"':'')?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'?></option><?php
+                    }
+                    ?></select>
+                    <input type="submit" id="select_module" name="select_module" class="wpcf7-submit" value="<?php echo $this::_te( '&raquo;' ) ?>" style="float:none;" />
+                </div>
+                <div class="clearfix" style="margin-bottom: 15px;"></div>
+                <?php
+            }
+
+            if( empty( $settings_fields ) or !is_array( $settings_fields ) )
+            {
+                ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt( 'Selected module doesn\'t have any settings..' )?></p><?php
+            } else
             {
                 foreach( $settings_fields as $field_name => $field_details )
                 {
@@ -208,9 +253,6 @@
                     <button type="button" id="cancel" class="wpcf7-submit" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e( $back_page, '\'' )?>';"><?php echo $this::_te( 'Cancel' ) ?></button>
                 </fieldset>
                 <?php
-            } else
-            {
-                ?><p style="text-align: center;"><?php echo $this::_t( 'This plugin doesn\'t have any settings..' )?></p><?php
             }
             ?>
 
