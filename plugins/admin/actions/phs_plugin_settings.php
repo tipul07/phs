@@ -87,6 +87,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
+                $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
             }
         }
 
@@ -95,41 +96,48 @@ class PHS_Action_Plugin_settings extends PHS_Action
             'form_data' => array(),
             'modules_with_settings' => $modules_with_settings,
             'settings_fields' => array(),
+            'db_settings' => array(),
             'plugin_obj' => $this->_plugin_obj,
         );
 
-        if( !($form_data = $this->extract_form_data( $data )) )
-            $form_data = array();
+        $selected_module = PHS_params::_gp( 'selected_module', PHS_params::T_NOHTML );
+        $do_submit = PHS_params::_gp( 'do_submit', PHS_params::T_NOHTML );
 
+        $form_data = array();
+        $form_data['selected_module'] = $selected_module;
+        $form_data['do_submit'] = $do_submit;
+
+        $settings_fields = array();
+        $db_settings = array();
         if( !empty( $form_data['selected_module'] )
-        and !empty( $modules_with_settings[$form_data['selected_module']] )
-        and !empty( $modules_with_settings[$form_data['selected_module']]['settings'] ) )
-            $settings_fields = $modules_with_settings[$form_data['selected_module']]['settings'];
-
-        else
+        and !empty( $modules_with_settings[$form_data['selected_module']] ) )
+        {
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['settings'] ) )
+                $settings_fields = $modules_with_settings[$form_data['selected_module']]['settings'];
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['db_settings'] ) )
+                $db_settings = $modules_with_settings[$form_data['selected_module']]['db_settings'];
+        } else
         {
             $settings_fields = $this->_plugin_obj->validate_settings_structure();
+            $db_settings = $this->_plugin_obj->get_db_settings();
             $form_data['selected_module'] = '';
+        }
+
+        $new_settings_arr = array();
+        foreach( $settings_fields as $field_name => $field_details )
+        {
+            if( empty( $field_details['editable'] ) )
+                continue;
+
+            $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'] );
         }
 
         $form_data['pid'] = $pid;
 
         $data['form_data'] = $form_data;
         $data['settings_fields'] = $settings_fields;
+        $data['db_settings'] = $db_settings;
 
         return $this->quick_render_template( 'plugin_settings', $data );
-    }
-
-    private function extract_form_data( $data )
-    {
-        if( empty( $this->_plugin_obj ) )
-            return false;
-
-        $selected_module = PHS_params::_gp( 'selected_module', PHS_params::T_NOHTML );
-
-        $form_data = array();
-        $form_data['selected_module'] = $selected_module;
-
-        return $form_data;
     }
 }

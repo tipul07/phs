@@ -17,7 +17,7 @@
     if( !($modules_with_settings = $this->context_var( 'modules_with_settings' )) )
         $modules_with_settings = array();
 
-    if( !($plugin_settings = $plugin_obj->get_db_settings()) )
+    if( !($plugin_settings = $this->context_var( 'db_settings' )) )
         $plugin_settings = array();
 
     if( !($plugin_info = $plugin_obj->get_plugin_info()) )
@@ -110,9 +110,9 @@
                     $field_id    = $field_name;
                     $field_name  = $field_id;
                     $field_value = null;
-                    if( isset($form_data[$field_name]) )
+                    if( isset( $form_data[$field_name] ) and $form_data[$field_name] !== null )
                         $field_value = $form_data[$field_name];
-                    if( isset( $plugin_settings[$field_name] ) )
+                    elseif( isset( $plugin_settings[$field_name] ) )
                         $field_value = $plugin_settings[$field_name];
                     elseif( $field_details['default'] !== null )
                         $field_value = $field_details['default'];
@@ -249,8 +249,8 @@
                 ?>
 
                 <fieldset>
-                    <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Save settings' ) ?>"/>
-                    <button type="button" id="cancel" class="wpcf7-submit" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e( $back_page, '\'' )?>';"><?php echo $this::_te( 'Cancel' ) ?></button>
+                    <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Save settings' ) ?>" />
+                    <input type="button" id="cancel" class="wpcf7-submit" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e( $back_page, '\'' )?>';" value="<?php echo $this::_te( 'Cancel' ) ?>" />
                 </fieldset>
                 <?php
             }
