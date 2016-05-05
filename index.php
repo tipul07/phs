@@ -6,6 +6,15 @@
     use \phs\libraries\PHS_Hooks;
     use \phs\PHS_crypt;
 
+    // // ALTER TABLE Employees CHANGE COLUMN empName empName VARCHAR(50) AFTER department;
+    // if( ($qid = db_query( 'SHOW FULL COLUMNS FROM `users`' )) )
+    // {
+    //     while( ($row = mysqli_fetch_assoc( $qid )) )
+    //         var_dump( $row );
+    // }
+    //
+    // exit;
+
     //var_dump( \phs\PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_email_bg' ), array( 'uid' => 1 ) ) );
     //var_dump( PHS::st_get_error() );
     //

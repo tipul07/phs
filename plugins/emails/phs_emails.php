@@ -95,7 +95,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 'default' => $this->template_resource_from_file( 'template_emails' ),
             ),
             'email_vars' => array(
-                'editable' => false,
+                'display_name' => 'Emails variables',
+                'display_hint' => 'These variables will be available in email template',
+                //'editable' => false,
+                'input_type' => self::INPUT_TYPE_KEY_VAL_ARRAY,
                 'default' => array(
                     'site_name' => PHS_SITE_NAME,
                     'from_name' => PHS_SITE_NAME,

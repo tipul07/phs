@@ -44,6 +44,11 @@ final class PHS extends PHS_Registry
         self::init();
     }
 
+    public static function get_core_modules()
+    {
+        return array( 'bg_jobs' );
+    }
+
     /**
      * Check what server receives in request
      */

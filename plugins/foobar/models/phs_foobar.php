@@ -14,7 +14,7 @@ class PHS_Model_Foobar extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -33,19 +33,6 @@ class PHS_Model_Foobar extends PHS_Model
         return 'foobar';
     }
 
-    /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
-    }
-
     public function get_settings_structure()
     {
         return array(
@@ -54,6 +41,20 @@ class PHS_Model_Foobar extends PHS_Model
                 'display_hint' => 'After how many minutes should we consider a job as stalling',
                 'type' => PHS_params::T_INT,
                 'default' => 15,
+            ),
+            'another_foobar_var' => array(
+                'display_name' => 'Just a foobar value',
+                'display_hint' => 'Bla bla...',
+                'type' => PHS_params::T_INT,
+                'default' => 2,
+                'editable' => false,
+            ),
+            'check_update' => array(
+                'display_name' => 'Just a foobar value',
+                'display_hint' => 'Bla bla...',
+                'type' => PHS_params::T_INT,
+                'default' => 2,
+                'editable' => false,
             ),
         );
     }

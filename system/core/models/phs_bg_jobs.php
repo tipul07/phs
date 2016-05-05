@@ -33,19 +33,6 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return 'bg_jobs';
     }
 
-    /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
-    }
-
     public function get_settings_structure()
     {
         return array(

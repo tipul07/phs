@@ -82,7 +82,8 @@ class PHS_params
         if( empty( $extra['trim_before'] ) )
             $extra['trim_before'] = false;
 
-        if( !empty( $extra['trim_before'] ) )
+        if( !empty( $extra['trim_before'] )
+        and is_scalar( $val ) )
             $val = trim( $val );
 
         switch( $type )

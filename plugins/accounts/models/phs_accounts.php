@@ -66,19 +66,6 @@ class PHS_Model_Accounts extends PHS_Model
         return 'users';
     }
 
-    /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
-    }
-
     //
     //  Level checks
     //

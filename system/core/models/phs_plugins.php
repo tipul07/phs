@@ -159,6 +159,46 @@ class PHS_Model_Plugins extends PHS_Model
         self::$db_plugins = array();
     }
 
+    public function save_db_settings( $settings_arr, $instance_id = null )
+    {
+        $this->reset_error();
+
+        if( $instance_id != null
+        and !self::valid_instance_id( $instance_id ))
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
+            return false;
+        }
+
+        if( $instance_id == null
+        and !($instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_INSTANCE, self::_t( 'Unknown instance ID.' ) );
+            return false;
+        }
+
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $instance_id;
+        $plugin_details['settings'] = $settings_arr;
+
+        if( !($db_details = $this->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Error saving settings in database.' ) );
+
+            return false;
+        }
+
+        // clean caches...
+        if( isset( self::$plugin_settings[$instance_id] ) )
+            unset( self::$plugin_settings[$instance_id] );
+        if( isset( self::$db_plugins[$instance_id] ) )
+            unset( self::$db_plugins[$instance_id] );
+
+        return $this->get_db_settings( $instance_id, false, true );
+    }
+
     public function get_db_settings( $instance_id = null, $default_settings = false, $force = false )
     {
         $this->reset_error();
@@ -296,7 +336,7 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         if( !empty( $force )
-            and !empty( self::$db_plugins[$instance_id] ) )
+        and !empty( self::$db_plugins[$instance_id] ) )
             unset( self::$db_plugins[$instance_id] );
 
         if( !empty( self::$db_plugins[$instance_id] ) )
@@ -367,7 +407,7 @@ class PHS_Model_Plugins extends PHS_Model
         if( !empty( $new_fields_arr['settings'] )
         and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
         {
-            $new_fields_arr['settings'] = PHS_line_params::to_string( self::validate_array_to_new_array( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
+            $new_fields_arr['settings'] = PHS_line_params::to_string( self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
             PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_INFO );
         }
 
@@ -386,7 +426,7 @@ class PHS_Model_Plugins extends PHS_Model
         if( empty( $plugin_arr ) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t save plugin details to database.' ) );
+                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
             PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_INFO );
 
@@ -400,19 +440,6 @@ class PHS_Model_Plugins extends PHS_Model
         $return_arr['new_data'] = $plugin_arr;
 
         return $return_arr;
-    }
-
-    /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
     }
 
     /**

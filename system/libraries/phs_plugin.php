@@ -7,7 +7,7 @@ use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Plugin extends PHS_Has_db_settings
 {
-    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UNINSTALL = 50002, ERR_CHANGES = 50003, ERR_LIBRARY = 50004;
+    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005;
 
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
@@ -194,6 +194,8 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
             return $this->install();
         }
+
+        echo '['.$db_details['version'].'='.$this->get_plugin_version().']';
 
         if( version_compare( $db_details['version'], $this->get_plugin_version(), '!=' ) )
             return $this->update( $db_details['version'], $this->get_plugin_version() );
@@ -405,10 +407,21 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                     else
                         $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_name ) );
 
+                    PHS_Logger::logf( 'Error loading plugin model ['.$model_obj->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::logf( $this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+
                     return false;
                 }
 
-                $model_obj->install();
+                if( !$model_obj->install() )
+                {
+                    if( $model_obj->has_error() )
+                        $this->copy_error( $model_obj, self::ERR_INSTALL );
+                    else
+                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_obj->instance_id() ) );
+
+                    return false;
+                }
             }
         }
 
@@ -531,8 +544,36 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
      */
     final protected function update( $old_version, $new_version )
     {
-        if( !$this->custom_update( $old_version, $new_version ) )
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            PHS_Logger::logf( '!!! Couldn\'t obtain plugin instance ID.', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t obtain current plugin id.' ) );
             return false;
+        }
+
+        PHS_Logger::logf( 'Updating plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( !$this->custom_update( $old_version, $new_version ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom update functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in plugin custom update functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
 
         if( ($models_arr = $this->get_models())
         and is_array( $models_arr ) )
@@ -542,9 +583,12 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                 if( !($model_obj = PHS::load_model( $model_name, $this->instance_plugin_name() )) )
                 {
                     if( PHS::st_has_error() )
-                        $this->copy_static_error( self::ERR_INSTALL );
+                        $this->copy_static_error( self::ERR_UPDATE );
                     else
-                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_name ) );
+                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
+
+                    PHS_Logger::logf( 'Error loading plugin model ['.$model_obj->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::logf( $this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
 
                     return false;
                 }
@@ -555,11 +599,36 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                 else
                     $old_version = $model_details['version'];
 
-                $model_obj->update( $old_version, $model_obj->get_model_version() );
+                if( !$model_obj->update( $old_version, $model_obj->get_model_version() ) )
+                {
+                    if( $model_obj->has_error() )
+                        $this->copy_error( $model_obj, self::ERR_UPDATE );
+                    else
+                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model [%s] from plugin [%s]', $model_obj->instance_name(), $this->instance_name() ) );
+
+                    return false;
+                }
             }
         }
 
-        return true;
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['version'] = $this->get_plugin_version();
+
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving plugin details to database.' ) );
+
+            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        return $db_details['new_data'];
     }
 
     final public function default_plugin_details_fields()
@@ -582,12 +651,10 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
     final public function get_plugin_info()
     {
-        $default_info = $this->default_plugin_details_fields();
-        
         if( !empty( $this->_plugin_details ) )
             return $this->_plugin_details;
 
-        $plugin_details = self::validate_array( $this->get_plugin_details(), $default_info );
+        $plugin_details = self::validate_array( $this->get_plugin_details(), $this->default_plugin_details_fields() );
 
         $plugin_details['id'] = $this->instance_id();
 

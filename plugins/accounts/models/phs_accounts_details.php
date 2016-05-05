@@ -38,19 +38,6 @@ class PHS_Model_Accounts_details extends PHS_Model
     }
 
     /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    protected function update( $old_version, $new_version )
-    {
-        return true;
-    }
-
-    /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
      * This should do checks on raw parameters received by insert method.

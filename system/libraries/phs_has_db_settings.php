@@ -8,7 +8,7 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
 {
     const ERR_PLUGINS_MODEL = 40000;
     
-    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more';
+    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array';
 
     // Validated settings fields structure array
     protected $_settings_structure = array();
@@ -52,6 +52,7 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
             'custom_renderer' => false,
             // If we have a custom method which should parse settings form submit...
             // this function should return value to be used for current field in settings array
+            // If method returns null and static error is set, statitc error message will be used to display error
             'custom_save' => false,
 
             'extra_style' => '',
@@ -65,6 +66,20 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
             'plugin_obj' => false,
             'field_name' => '',
             'field_details' => false,
+            'field_value' => null,
+            'form_data' => array(),
+            'editable' => true,
+        );
+    }
+
+    public function default_custom_save_params()
+    {
+        return array(
+            'plugin_obj' => false,
+            'module_instance' => false,
+            'field_name' => '',
+            'field_details' => false,
+            'field_value' => null,
             'form_data' => array(),
         );
     }
@@ -140,6 +155,19 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
         if( !($plugin_obj = PHS::load_model( 'plugins' ))
          or !($db_settings = $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings(), $force ))
+         or !is_array( $db_settings ) )
+            return false;
+
+        $this->_db_settings = $db_settings;
+
+        return $this->_db_settings;
+    }
+
+    public function save_db_settings( $settings_arr )
+    {
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
+        if( !($plugin_obj = PHS::load_model( 'plugins' ))
+         or !($db_settings = $plugin_obj->save_db_settings( $settings_arr, $this->instance_id() ))
          or !is_array( $db_settings ) )
             return false;
 

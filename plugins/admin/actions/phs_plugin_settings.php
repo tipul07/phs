@@ -4,6 +4,7 @@ namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
 use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Instantiable;
@@ -87,6 +88,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
+                $modules_with_settings[$model_id]['default_settings'] = $model_instance->get_default_settings();
                 $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
             }
         }
@@ -107,18 +109,27 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $form_data['selected_module'] = $selected_module;
         $form_data['do_submit'] = $do_submit;
 
+        /** @var \phs\libraries\PHS_Has_db_settings $module_instance */
+        $module_instance = false;
         $settings_fields = array();
+        $default_settings = array();
         $db_settings = array();
         if( !empty( $form_data['selected_module'] )
         and !empty( $modules_with_settings[$form_data['selected_module']] ) )
         {
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['instance'] ) )
+                $module_instance = $modules_with_settings[$form_data['selected_module']]['instance'];
             if( !empty( $modules_with_settings[$form_data['selected_module']]['settings'] ) )
                 $settings_fields = $modules_with_settings[$form_data['selected_module']]['settings'];
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['default_settings'] ) )
+                $default_settings = $modules_with_settings[$form_data['selected_module']]['default_settings'];
             if( !empty( $modules_with_settings[$form_data['selected_module']]['db_settings'] ) )
                 $db_settings = $modules_with_settings[$form_data['selected_module']]['db_settings'];
         } else
         {
+            $module_instance = $this->_plugin_obj;
             $settings_fields = $this->_plugin_obj->validate_settings_structure();
+            $default_settings = $this->_plugin_obj->get_default_settings();
             $db_settings = $this->_plugin_obj->get_db_settings();
             $form_data['selected_module'] = '';
         }
@@ -126,10 +137,84 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $new_settings_arr = array();
         foreach( $settings_fields as $field_name => $field_details )
         {
-            if( empty( $field_details['editable'] ) )
+            if( !empty( $field_details['custom_save'] ) )
                 continue;
 
-            $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'] );
+            if( empty( $field_details['editable'] ) )
+            {
+                if( isset( $db_settings[$field_name] ) )
+                    $new_settings_arr[$field_name] = $db_settings[$field_name];
+                elseif( isset( $default_settings[$field_name] ) )
+                    $new_settings_arr[$field_name] = $default_settings[$field_name];
+                continue;
+            }
+
+            $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
+
+            switch( $field_details['input_type'] )
+            {
+                default:
+                    $new_settings_arr[$field_name] = $form_data[$field_name];
+                break;
+
+                case PHS_Plugin::INPUT_TYPE_TEMPLATE:
+                break;
+
+                case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
+                    $new_settings_arr[$field_name] = $form_data[$field_name];
+                break;
+
+                case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
+                    if( empty( $default_settings[$field_name] ) )
+                        $new_settings_arr[$field_name] = $form_data[$field_name];
+                    else
+                        $new_settings_arr[$field_name] = self::validate_array_to_new_array( $form_data[$field_name], $default_settings[$field_name] );
+                break;
+            }
+        }
+
+        if( !empty( $do_submit ) )
+        {
+            $new_settings_arr = self::validate_array( $new_settings_arr, $db_settings );
+
+            foreach( $settings_fields as $field_name => $field_details )
+            {
+                if( empty( $field_details['custom_save'] )
+                 or !@is_callable( $field_details['custom_save'] ) )
+                    continue;
+
+                $callback_params = $this->_plugin_obj->default_custom_save_params();
+                $callback_params['plugin_obj'] = $this->_plugin_obj;
+                $callback_params['module_instance'] = $module_instance;
+                $callback_params['field_name'] = $field_name;
+                $callback_params['field_details'] = $field_details;
+                $callback_params['field_value'] = (isset( $new_settings_arr[$field_name] )?$new_settings_arr[$field_name]:null);
+                $callback_params['form_data'] = $form_data;
+                
+                // make sure static error is reset
+                self::st_reset_error();
+
+                if( ($save_value = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
+                    $new_settings_arr[$field_name] = $save_value;
+
+                elseif( self::st_has_error() )
+                    PHS_Notifications::add_error_notice( self::st_get_error_message() );
+            }
+
+            if( !PHS_Notifications::have_notifications_errors() )
+            {
+                if( ($new_db_settings = $module_instance->save_db_settings( $new_settings_arr )) )
+                {
+                    $db_settings = $new_db_settings;
+                    PHS_Notifications::add_success_notice( $this->_pt( 'Settings saved in database.' ) );
+                } else
+                {
+                    if( $module_instance->has_error() )
+                        PHS_Notifications::add_error_notice( $module_instance->get_error_message() );
+                    else
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Error saving settings in database. Please try again.' ) );
+                }
+            }
         }
 
         $form_data['pid'] = $pid;

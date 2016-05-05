@@ -10,8 +10,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
     const MODEL_BASE_VERSION = '1.0.0';
 
-    const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UNINSTALL = 40003,
-          ERR_INSERT = 40004, ERR_EDIT = 40005, ERR_DELETE_BY_INDEX = 40006;
+    const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
+          ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
@@ -91,16 +91,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     abstract public function fields_definition( $params = false );
 
     /**
-     * Performs any necessary actions when updating model from $old_version to $new_version
-     *
-     * @param string $old_version Old version of model
-     * @param string $new_version New version of model
-     *
-     * @return bool true on success, false on failure
-     */
-    abstract protected function update( $old_version, $new_version );
-
-    /**
      * @return int Should return INSTANCE_TYPE_* constant
      */
     public function instance_type()
@@ -142,6 +132,21 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         // return default table...
         return $this->get_main_table_name();
+    }
+
+    /**
+     * Performs any necessary custom actions when updating model from $old_version to $new_version
+     * Overwrite this method to do particular updates.
+     * If this function returns false whole update will stop and error set in this method will be used.
+     *
+     * @param string $old_version Old version of plugin
+     * @param string $new_version New version of plugin
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_update( $old_version, $new_version )
+    {
+        return true;
     }
 
     /**
@@ -1759,6 +1764,69 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         PHS_Logger::logf( 'DONE uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
+    }
+
+    /**
+     * Performs any necessary actions when updating model from $old_version to $new_version
+     *
+     * @param string $old_version Old version of model
+     * @param string $new_version New version of model
+     *
+     * @return bool true on success, false on failure
+     */
+    public function update( $old_version, $new_version )
+    {
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            PHS_Logger::logf( '!!! Couldn\'t obtain model instance ID.', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t obtain current plugin id.' ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'Updating model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( !$this->custom_update( $old_version, $new_version ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom update functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in model custom update functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        // !TODO: Check table for differences...
+
+        $plugin_details = array();
+        $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['version'] = $this->get_model_version();
+
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+         or empty( $db_details['new_data'] ) )
+        {
+            if( $plugins_model->has_error() )
+                $this->copy_error( $plugins_model );
+            else
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving model details to database.' ) );
+
+            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        return $db_details['new_data'];
     }
 
     protected function signal_receive( $sender, $signal, $signal_params = false )

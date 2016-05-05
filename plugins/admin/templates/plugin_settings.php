@@ -6,7 +6,7 @@
 
     /** @var \phs\libraries\PHS_Plugin $plugin_obj */
     if( !($plugin_obj = $this->context_var( 'plugin_obj' )) )
-        return $this::_t( 'Plugin ID is invalid or plugin was not found.' );
+        return $this->_pt( 'Plugin ID is invalid or plugin was not found.' );
 
     if( !($back_page = $this->context_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
@@ -39,7 +39,7 @@
             <?php
             if( !empty( $back_page ) )
             {
-                ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this::_t( 'Back' )?></a><?php
+                ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
             }
             ?>
 
@@ -86,7 +86,7 @@
                         ?><option value="<?php echo $model_id?>" <?php echo ($form_data['selected_module']==$model_id?'selected="selected"':'')?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'?></option><?php
                     }
                     ?></select>
-                    <input type="submit" id="select_module" name="select_module" class="wpcf7-submit" value="<?php echo $this::_te( '&raquo;' ) ?>" style="float:none;" />
+                    <input type="submit" id="select_module" name="select_module" class="wpcf7-submit" value="<?php echo $this->_pte( '&raquo;' ) ?>" style="float:none;" />
                 </div>
                 <div class="clearfix" style="margin-bottom: 15px;"></div>
                 <?php
@@ -99,9 +99,6 @@
             {
                 foreach( $settings_fields as $field_name => $field_details )
                 {
-                    if( empty($field_details['editable']) )
-                        continue;
-
                     if( !empty($field_details['display_placeholder']) )
                         $field_placeholder = $field_details['display_placeholder'];
                     else
@@ -119,7 +116,7 @@
 
                     ?>
                     <fieldset class="lineformwide">
-                        <label for="<?php echo $field_id ?>"><strong><?php echo $field_details['display_name']; ?></strong></label>
+                        <label for="<?php echo $field_id ?>"><strong><?php echo $field_details['display_name']; ?></strong><?php echo (empty( $field_details['editable'] )?'<br/><small>'.$this->_pt( '[Non-editable]' ).'</small>':'')?></label>
                         <div class="lineformwide_line"><?php
 
                         if( !empty( $field_details['custom_renderer'] )
@@ -131,10 +128,11 @@
                             $callback_params['field_details'] = $field_details;
                             $callback_params['field_value'] = $field_value;
                             $callback_params['form_data'] = $form_data;
+                            $callback_params['editable'] = (empty( $field_details['editable'] )?false:true);
 
                             if( ($cell_content = @call_user_func( $field_details['custom_renderer'], $callback_params )) === false
                              or $cell_content === null )
-                                $cell_content = '[' . $this::_t( 'Render settings field call failed.' ) . ']';
+                                $cell_content = '[' . $this->_pt( 'Render settings field call failed.' ) . ']';
 
                             echo $cell_content;
 
@@ -142,9 +140,30 @@
                         {
                             switch( $field_details['input_type'] )
                             {
+                                case $plugin_obj::INPUT_TYPE_KEY_VAL_ARRAY:
+
+                                    if( !is_array( $field_value ) )
+                                        echo $this->_pt( 'Not a key-value array...' );
+
+                                    else
+                                    {
+                                        foreach( $field_value as $field_value_key => $field_value_val )
+                                        {
+                                            ?>
+                                            <div style="margin-bottom:15px;">
+                                            <label for="<?php echo $field_id.'_'.$field_value_key?>" style="width:150px !important;"><?php echo $field_value_key?></label>
+                                            <input type="text" id="<?php echo $field_id.'_'.$field_value_key ?>" name="<?php echo $field_name ?>[<?php echo $field_value_key?>]" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value_val )?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="width:250px;<?php echo $field_details['extra_style'] ?>" />
+                                            </div>
+                                            <div class="clearfix"></div>
+                                            <?php
+
+                                        }
+                                    }
+                                break;
+
                                 case $plugin_obj::INPUT_TYPE_TEMPLATE:
 
-                                    echo $this::_t( 'Template file' ).': ';
+                                    echo $this->_pt( 'Template file' ).': ';
                                     if( is_string( $field_value ) )
                                         echo $field_value;
 
@@ -152,12 +171,12 @@
                                         echo $field_value['file'];
 
                                     else
-                                        echo $this::_t( 'N/A' );
+                                        echo $this->_pt( 'N/A' );
 
                                     if( is_array( $field_value )
                                     and !empty( $field_value['extra_paths'] ) and is_array( $field_value['extra_paths'] ) )
                                     {
-                                        echo '<br/>'.$this::_t( 'From paths' ).': ';
+                                        echo '<br/>'.$this->_pt( 'From paths' ).': ';
 
                                         $paths_arr = array();
                                         foreach( $field_value['extra_paths'] as $path_dir => $path_www )
@@ -166,7 +185,7 @@
                                         }
 
                                         if( empty( $paths_arr ) )
-                                            echo $this::_t( 'N/A' );
+                                            echo $this->_pt( 'N/A' );
 
                                         else
                                             echo implode( ', ', $paths_arr );
@@ -176,7 +195,7 @@
                                 case $plugin_obj::INPUT_TYPE_ONE_OR_MORE:
                                     if( empty( $field_details['values_arr'] )
                                      or !is_array( $field_details['values_arr'] ) )
-                                        echo $this::_t( 'Values array should be provided' );
+                                        echo $this->_pt( 'Values array should be provided' );
 
                                     else
                                     {
@@ -191,7 +210,7 @@
 
                                             ?>
                                             <div style="float:left; margin-right:10px;">
-                                            <input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox" <?php echo(!empty($option_checked) ? 'checked="checked"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
+                                            <input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox" <?php echo (!empty($option_checked) ? 'checked="checked"' : '').(empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
                                             <label for="<?php echo $field_id?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text?></label>
                                             </div>
                                             <?php
@@ -205,7 +224,7 @@
                             and is_array( $field_details['values_arr'] ) )
                             {
                                 ?>
-                                <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-select <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>"><?php
+                                <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-select <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>><?php
 
                                 foreach( $field_details['values_arr'] as $key => $val )
                                 {
@@ -220,16 +239,16 @@
                                 {
                                     case PHS_params::T_DATE:
                                         ?>
-                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="datepicker wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="datepicker wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
 
                                     case PHS_params::T_BOOL:
-                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo(!empty($field_value) ? 'checked="checked"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo(!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
 
                                     default:
                                         ?>
-                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
                                 }
                             }
@@ -249,8 +268,8 @@
                 ?>
 
                 <fieldset>
-                    <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Save settings' ) ?>" />
-                    <input type="button" id="cancel" class="wpcf7-submit" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e( $back_page, '\'' )?>';" value="<?php echo $this::_te( 'Cancel' ) ?>" />
+                    <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Save settings' ) ?>" />
+                    <input type="button" id="cancel" class="wpcf7-submit" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e( $back_page, '\'' )?>';" value="<?php echo $this->_pte( 'Cancel' ) ?>" />
                 </fieldset>
                 <?php
             }

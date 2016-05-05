@@ -3,10 +3,14 @@
     if( !defined( 'PHS_VERSION' ) )
         exit;
 
-    $core_models = array( 'bg_jobs' );
+    use \phs\PHS;
 
-    foreach( $core_models as $core_model )
+    if( ($core_models = PHS::get_core_modules())
+    and is_array( $core_models ) )
     {
-        if( ($model_obj = phs\PHS::load_model( $core_model )) )
-            $model_obj->check_installation();
+        foreach( $core_models as $core_model )
+        {
+            if( ($model_obj = PHS::load_model( $core_model )) )
+                $model_obj->check_installation();
+        }
     }
