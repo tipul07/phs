@@ -38,8 +38,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         self::FTYPE_FLOAT => array( 'title' => 'float', 'default_length' => '5,2', 'default_value' => 0, ),
         self::FTYPE_DOUBLE => array( 'title' => 'double', 'default_length' => '5,2', 'default_value' => 0, ),
 
-        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, 'default_value' => self::DATE_EMPTY, ),
-        self::FTYPE_DATETIME => array( 'title' => 'datetime', 'default_length' => 0, 'default_value' => self::DATETIME_EMPTY, ),
+        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATE_EMPTY, ),
+        self::FTYPE_DATETIME => array( 'title' => 'datetime', 'default_length' => 0, 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATETIME_EMPTY, ),
         self::FTYPE_TIMESTAMP => array( 'title' => 'timestamp', 'default_length' => 0, 'default_value' => 0, ),
 
         self::FTYPE_VARCHAR => array( 'title' => 'varchar', 'default_length' => 255, 'default_value' => '', ),
@@ -415,6 +415,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
     static public function default_field_arr()
     {
+        // if 'default_value' is set in field definition that value will be used for 'default' key
         return array(
             'type' => self::FTYPE_UNKNOWN,
             'editable' => true,
@@ -423,6 +424,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             'auto_increment' => false,
             'index' => false,
             'default' => null,
+            'raw_default' => null,
             'nullable' => false,
             'comment' => '',
         );
@@ -599,6 +601,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( $new_field_arr['default'] === null
             and isset( $field_details['default_value'] ) )
                 $new_field_arr['default'] = $field_details['default_value'];
+
+            if( empty( $new_field_arr['raw_default'] )
+            and !empty( $field_details['raw_default'] ) )
+                $new_field_arr['raw_default'] = $field_details['raw_default'];
 
             if( !empty( $new_field_arr['primary'] ) )
             {
@@ -896,19 +902,20 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $params['action'] = 'insert';
 
-        if( @method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] ) )
-        {
-            if( !($params = call_user_func( array( $this, 'get_insert_prepare_params_' . $params['table_name'] ), $params )) )
-            {
-                if( ! $this->has_error() )
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t parse parameters for database insert.' ) );
+        if( (
+                @method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] )
+                and
+                !($params = @call_user_func( array( $this, 'get_insert_prepare_params_' . $params['table_name'] ), $params ))
+            )
 
-                return false;
-            }
-        } elseif( !($params = $this->get_insert_prepare_params( $params )) )
+            or
+
+            !($params = $this->get_insert_prepare_params( $params ))
+        )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t parse parameters for database insert.' ) );
+
             return false;
         }
 
@@ -924,10 +931,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( !($sql = db_quick_insert( $params['table_name'], $insert_arr ))
          or !($item_id = db_query_insert( $sql, $params['db_connection'] )) )
         {
-            $this->insert_failed( $insert_arr, $params );
+            if( @method_exists( $this, 'insert_failed_'.$params['table_name'] ) )
+                @call_user_func( array( $this, 'insert_failed_' . $params['table_name'] ), $insert_arr, $params );
+            else
+                $this->insert_failed( $insert_arr, $params );
 
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSERT, self::_t( 'Failed saving information to database.' ) );
+
             return false;
         }
 
@@ -936,24 +947,19 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         // Set to tell future calls record was just added to database...
         $insert_arr['{new_in_db}'] = true;
 
-        if( @method_exists( $this, 'insert_after_'.$params['table_name'] ) )
-        {
-            if( !($new_insert_arr = call_user_func( array( $this, 'insert_after_' . $params['table_name'] ), $insert_arr, $params )) )
-            {
-                $error_arr = $this->get_error();
+        if( (
+                @method_exists( $this, 'insert_after_'.$params['table_name'] )
+                and
+                !($new_insert_arr = call_user_func( array( $this, 'insert_after_' . $params['table_name'] ), $insert_arr, $params ))
+            )
 
-                $this->hard_delete( $insert_arr );
+            or
 
-                if( self::arr_has_error( $error_arr ) )
-                    $this->copy_error_from_array( $error_arr );
-                elseif( !$this->has_error() )
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database insert.' ) );
-                return false;
-            }
-        } elseif( !($new_insert_arr = $this->insert_after( $insert_arr, $params )) )
+            !($new_insert_arr = $this->insert_after( $insert_arr, $params ))
+        )
         {
             $error_arr = $this->get_error();
-            
+
             $this->hard_delete( $insert_arr );
 
             if( self::arr_has_error( $error_arr ) )
@@ -988,10 +994,20 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $params['action'] = 'edit';
 
-        if( !($params = $this->get_edit_prepare_params( $existing_arr, $params )) )
+        if( (
+                @method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] )
+                and
+                !($params = call_user_func( array( $this, 'get_edit_prepare_params_' . $params['table_name'] ), $existing_arr, $params ))
+            )
+
+            or
+
+            !($params = $this->get_edit_prepare_params( $existing_arr, $params ))
+        )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_EDIT, self::_t( 'Couldn\'t parse parameters for database edit.' ) );
+
             return false;
         }
 
@@ -1009,17 +1025,31 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 or !db_query( $sql.' WHERE `'.$params['table_name'].'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $params['db_connection'] )
             ) )
         {
-            $this->edit_failed( $existing_arr, $edit_arr, $params );
+            if( @method_exists( $this, 'edit_failed_'.$params['table_name'] ) )
+                @call_user_func( array( $this, 'edit_failed_' . $params['table_name'] ), $existing_arr, $edit_arr, $params );
+            else
+                $this->edit_failed( $existing_arr, $edit_arr, $params );
 
             if( !$this->has_error() )
                 $this->set_error( self::ERR_EDIT, self::_t( 'Failed saving information to database.' ) );
+
             return false;
         }
 
-        if( !($new_edit_arr = $this->edit_after( $existing_arr, $edit_arr, $params )) )
+        if( (
+                @method_exists( $this, 'edit_after_'.$params['table_name'] )
+                and
+                !($new_edit_arr = @call_user_func( array( $this, 'edit_after_' . $params['table_name'] ), $existing_arr, $edit_arr, $params ))
+            )
+
+            or
+
+            !($new_edit_arr = $this->edit_after( $existing_arr, $edit_arr, $params ))
+        )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database edit.' ) );
+                $this->set_error( self::ERR_EDIT, self::_t( 'Failed actions after database edit.' ) );
+
             return false;
         }
 
@@ -1605,7 +1635,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
                 if( empty( $field_details['primary'] ) )
                 {
-                    if( $field_details['default'] === null )
+                    if( !empty( $field_details['raw_default'] ) )
+                        $default_value = $field_details['raw_default'];
+                    elseif( $field_details['default'] === null )
                         $default_value = 'NULL';
                     elseif( $field_details['default'] === '' )
                         $default_value = '\'\'';

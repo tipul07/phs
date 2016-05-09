@@ -162,16 +162,30 @@
         <div class="clearfix"></div>
 
         <ul>
-            <?php
-            if( !empty( $accounts_model )
-            and $accounts_model->acc_is_admin( $cuser_arr ) )
-            {
-                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
-            }
-            ?>
+        <?php
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
+        if( !empty( $accounts_model )
+        and $accounts_model->acc_is_admin( $cuser_arr ) )
+        {
+            ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
+        }
+        ?>
             <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
             <li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
             <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
+        <?php
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
+        ?>
         </ul>
 
     </div>
@@ -183,6 +197,12 @@
 
         <ul>
         <?php
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
         if( !empty( $cuser_arr ) )
         {
             ?>
@@ -283,6 +303,11 @@
             </li>
             <?php
         }
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
         ?>
         </ul>
 

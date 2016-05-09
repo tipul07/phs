@@ -2,7 +2,6 @@
 
 namespace phs\libraries;
 
-use \phs\libraries\PHS_Registry;
 use \phs\PHS;
 
 //! This class define all core hooks (for usability)
@@ -29,7 +28,18 @@ class PHS_Hooks extends PHS_Registry
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
          // User account hooks
-         H_USER_DB_DETAILS = 'phs_user_db_details';
+         H_USER_DB_DETAILS = 'phs_user_db_details',
+
+         // Layout triggers
+         H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
+         H_ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
+         H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_admin_template_before_right_menu',
+         H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_admin_template_after_right_menu',
+
+         H_MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
+         H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
+         H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
+         H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu';
 
     public static function default_user_db_details_hook_args()
     {
@@ -39,6 +49,14 @@ class PHS_Hooks extends PHS_Registry
             'session_db_data' => false,
             // How many seconds since session expired (0 - session didn't expired)
             'session_expired_secs' => 0,
+        );
+    }
+
+    public static function default_buffer_hook_args()
+    {
+        return array(
+            'concatenate_buffer' => 'buffer',
+            'buffer' => '',
         );
     }
 

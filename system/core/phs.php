@@ -46,7 +46,7 @@ final class PHS extends PHS_Registry
 
     public static function get_core_modules()
     {
-        return array( 'bg_jobs' );
+        return array( 'bg_jobs', 'roles' );
     }
 
     /**
@@ -1163,9 +1163,25 @@ final class PHS extends PHS_Registry
 
                 $result = @call_user_func( $hook_callback['callback'], $call_hook_args );
 
+                $resulting_buffer = '';
+                if( !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] ) )
+                {
+                    if( isset( $result[$call_hook_args['concatenate_buffer']] ) and is_string( $result[$call_hook_args['concatenate_buffer']] )
+                    and isset( $hook_args[$call_hook_args['concatenate_buffer']] ) and is_string( $hook_args[$call_hook_args['concatenate_buffer']] ) )
+                        $resulting_buffer = $hook_args[$call_hook_args['concatenate_buffer']].$result[$call_hook_args['concatenate_buffer']];
+                }
+
                 if( !empty( $hook_callback['chained'] )
                 and is_array( $result ) )
                     $hook_args = self::merge_array_assoc( $hook_args, $result );
+
+                if( !empty( $resulting_buffer )
+                and !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] )
+                and isset( $hook_args[$call_hook_args['concatenate_buffer']] ) and is_string( $hook_args[$call_hook_args['concatenate_buffer']] ) )
+                {
+                    $hook_args[$call_hook_args['concatenate_buffer']] = $resulting_buffer;
+                    $resulting_buffer = '';
+                }
             }
         }
 

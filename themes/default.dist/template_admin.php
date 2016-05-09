@@ -161,46 +161,57 @@
         <div class="clearfix"></div>
 
         <ul>
-            <?php
-            if( !empty( $accounts_model ) )
+        <?php
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
+        if( !empty( $accounts_model ) )
+        {
+            if( $accounts_model->can_list_plugins( $cuser_arr ) )
             {
-                if( $accounts_model->can_list_plugins( $cuser_arr ) )
-                {
-                    ?>
-                    <li><?php echo $this::_t( 'Plugins Management' ) ?>
-                        <ul>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'plugins_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
-                        </ul>
-                    </li>
-                    <?php
-                }
-                if( $accounts_model->can_list_accounts( $cuser_arr ) )
-                {
-                    ?>
-                    <li><?php echo $this::_t( 'Users Management' ) ?>
-                        <ul>
-                            <?php
-                                if( $accounts_model->can_manage_accounts( $cuser_arr ) )
-                                {
-                                    ?>
-                                    <li><a href="<?php echo PHS::url( array(
-                                                                              'a' => 'user_add', 'p' => 'admin'
-                                                                      ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
-                                    </li>
-                                    <?php
-                                }
-                            ?>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'users_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
-                        </ul>
-                    </li>
-                    <?php
-                }
+                ?>
+                <li><?php echo $this::_t( 'Plugins Management' ) ?>
+                    <ul>
+                        <li><a href="<?php echo PHS::url( array(
+                                                                  'a' => 'plugins_list', 'p' => 'admin'
+                                                          ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
+                    </ul>
+                </li>
+                <?php
             }
-            ?>
+            if( $accounts_model->can_list_accounts( $cuser_arr ) )
+            {
+                ?>
+                <li><?php echo $this::_t( 'Users Management' ) ?>
+                    <ul>
+                        <?php
+                            if( $accounts_model->can_manage_accounts( $cuser_arr ) )
+                            {
+                                ?>
+                                <li><a href="<?php echo PHS::url( array(
+                                                                          'a' => 'user_add', 'p' => 'admin'
+                                                                  ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                                </li>
+                                <?php
+                            }
+                        ?>
+                        <li><a href="<?php echo PHS::url( array(
+                                                                  'a' => 'users_list', 'p' => 'admin'
+                                                          ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
+                    </ul>
+                </li>
+                <?php
+            }
+        }
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
+        ?>
         </ul>
 
     </div>
@@ -212,7 +223,13 @@
 
         <ul>
         <?php
-        if( !empty( $cuser_arr ) )
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+
+            if( !empty( $cuser_arr ) )
         {
             ?>
             <li><p><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></p></li>
@@ -305,6 +322,11 @@
             </li>
             <?php
         }
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
         ?>
         </ul>
 

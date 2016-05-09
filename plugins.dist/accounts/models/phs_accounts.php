@@ -1008,7 +1008,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array Flow parameters array
      */
-    protected function get_edit_prepare_params( $existing_data, $params )
+    protected function get_edit_prepare_params_users( $existing_data, $params )
     {
         if( !($accounts_settings = $this->get_plugin_settings())
          or !is_array( $accounts_settings ) )
@@ -1038,7 +1038,7 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['min_password_length'] )
             and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
             {
-                $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
+                $this->set_error( self::ERR_EDIT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
                 return false;
             }
 
@@ -1051,11 +1051,11 @@ class PHS_Model_Accounts extends PHS_Model
                     if( empty( $regexp_parts[2] ) )
                         $regexp_parts[2] = '';
 
-                    $this->set_error( self::ERR_INSERT,
+                    $this->set_error( self::ERR_EDIT,
                                       self::_t( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
                                                 $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
                 } else
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
+                    $this->set_error( self::ERR_EDIT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
 
                 return false;
             }
@@ -1100,7 +1100,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             if( !$this->valid_status( $params['fields']['status'] ) )
             {
-                $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid status.' ) );
+                $this->set_error( self::ERR_EDIT, self::_t( 'Please provide a valid status.' ) );
                 return false;
             }
 
@@ -1114,7 +1114,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( isset( $params['fields']['level'] )
         and !$this->valid_level( $params['fields']['level'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid account level.' ) );
+            $this->set_error( self::ERR_EDIT, self::_t( 'Please provide a valid account level.' ) );
             return false;
         }
 
@@ -1137,7 +1137,7 @@ class PHS_Model_Accounts extends PHS_Model
      * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
      * Deleted record will be hard-deleted
      */
-    protected function edit_after( $existing_data, $edit_arr, $params )
+    protected function edit_after_users( $existing_data, $edit_arr, $params )
     {
         if( empty( $existing_data['{users_details}'] ) )
         {
