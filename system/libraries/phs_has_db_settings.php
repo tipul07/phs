@@ -74,6 +74,11 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
 
     public function default_custom_save_params()
     {
+        return self::st_default_custom_save_params();
+    }
+
+    static public function st_default_custom_save_params()
+    {
         return array(
             'plugin_obj' => false,
             'module_instance' => false,

@@ -49,10 +49,12 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $pid = PHS_params::_gp( 'pid', PHS_params::T_ASIS );
         $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
 
-        if( !($instance_details = PHS_Instantiable::valid_instance_id( $pid ))
-         or empty( $instance_details['instance_type'] )
-         or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-         or !($this->_plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+        if( $pid != PHS_Instantiable::CORE_PLUGIN
+        and (!($instance_details = PHS_Instantiable::valid_instance_id( $pid ))
+                 or empty( $instance_details['instance_type'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                 or !($this->_plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] ))
+            ) )
         {
             $action_result = self::default_action_result();
 
@@ -69,9 +71,18 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             return $action_result;
         }
-        
+
+        if( $pid == PHS_Instantiable::CORE_PLUGIN )
+        {
+            $this->_plugin_obj = false;
+            $plugin_models_arr = PHS::get_core_modules();
+        } else
+        {
+            $plugin_models_arr = $this->_plugin_obj->get_models();
+        }
+
         $modules_with_settings = array();
-        if( ($plugin_models_arr = $this->_plugin_obj->get_models())
+        if( !empty( $plugin_models_arr )
         and is_array( $plugin_models_arr ) )
         {
             foreach( $plugin_models_arr as $model_name )
@@ -80,7 +91,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $module_details['instance'] = false;
                 $module_details['settings'] = array();
 
-                if( !($model_instance = PHS::load_model( $model_name, $this->_plugin_obj->instance_plugin_name() ))
+                if( !($model_instance = PHS::load_model( $model_name, ($this->_plugin_obj?$this->_plugin_obj->instance_plugin_name():false) ))
                  or !($settings_arr = $model_instance->validate_settings_structure()) )
                     continue;
 
@@ -127,11 +138,15 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $db_settings = $modules_with_settings[$form_data['selected_module']]['db_settings'];
         } else
         {
-            $module_instance = $this->_plugin_obj;
-            $settings_fields = $this->_plugin_obj->validate_settings_structure();
-            $default_settings = $this->_plugin_obj->get_default_settings();
-            $db_settings = $this->_plugin_obj->get_db_settings();
             $form_data['selected_module'] = '';
+            $module_instance = $this->_plugin_obj;
+
+            if( $this->_plugin_obj )
+            {
+                $settings_fields = $this->_plugin_obj->validate_settings_structure();
+                $default_settings = $this->_plugin_obj->get_default_settings();
+                $db_settings = $this->_plugin_obj->get_db_settings();
+            }
         }
 
         $new_settings_arr = array();
@@ -183,7 +198,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                  or !@is_callable( $field_details['custom_save'] ) )
                     continue;
 
-                $callback_params = $this->_plugin_obj->default_custom_save_params();
+                $callback_params = PHS_Plugin::st_default_custom_save_params();
                 $callback_params['plugin_obj'] = $this->_plugin_obj;
                 $callback_params['module_instance'] = $module_instance;
                 $callback_params['field_name'] = $field_name;

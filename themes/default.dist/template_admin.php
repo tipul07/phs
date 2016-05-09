@@ -181,6 +181,29 @@
                 </li>
                 <?php
             }
+            if( $accounts_model->can_list_roles( $cuser_arr ) )
+            {
+                ?>
+                <li><?php echo $this::_t( 'Roles Management' ) ?>
+                    <ul>
+                        <?php
+                            if( $accounts_model->can_manage_roles( $cuser_arr ) )
+                            {
+                                ?>
+                                <li><a href="<?php echo PHS::url( array(
+                                                                          'a' => 'role_add', 'p' => 'admin'
+                                                                  ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
+                                </li>
+                                <?php
+                            }
+                        ?>
+                        <li><a href="<?php echo PHS::url( array(
+                                                                  'a' => 'roles_list', 'p' => 'admin'
+                                                          ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
+                    </ul>
+                </li>
+                <?php
+            }
             if( $accounts_model->can_list_accounts( $cuser_arr ) )
             {
                 ?>

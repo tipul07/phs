@@ -38,7 +38,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         self::FTYPE_FLOAT => array( 'title' => 'float', 'default_length' => '5,2', 'default_value' => 0, ),
         self::FTYPE_DOUBLE => array( 'title' => 'double', 'default_length' => '5,2', 'default_value' => 0, ),
 
-        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATE_EMPTY, ),
+        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, ), // 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATE_EMPTY, ),
         self::FTYPE_DATETIME => array( 'title' => 'datetime', 'default_length' => 0, 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATETIME_EMPTY, ),
         self::FTYPE_TIMESTAMP => array( 'title' => 'timestamp', 'default_length' => 0, 'default_value' => 0, ),
 
@@ -1633,7 +1633,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 if( !empty( $field_details['auto_increment'] ) )
                     $field_str .= ' AUTO_INCREMENT';
 
-                if( empty( $field_details['primary'] ) )
+                if( empty( $field_details['primary'] )
+                and $field_details['type'] != self::FTYPE_DATE )
                 {
                     if( !empty( $field_details['raw_default'] ) )
                         $default_value = $field_details['raw_default'];

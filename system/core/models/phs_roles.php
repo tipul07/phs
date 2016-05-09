@@ -43,6 +43,18 @@ class PHS_Model_Roles extends PHS_Model
     public function get_settings_structure()
     {
         return array(
+            'roles_cache_size' => array(
+                'display_name' => 'Role cache size',
+                'display_hint' => 'How many records to read from roles table. Increase this value if you use more roles.',
+                'type' => PHS_params::T_INT,
+                'default' => 1000,
+            ),
+            'units_cache_size' => array(
+                'display_name' => 'Role units cache size',
+                'display_hint' => 'How many records to read from role units table. Increase this value if you use more role units.',
+                'type' => PHS_params::T_INT,
+                'default' => 1000,
+            ),
         );
     }
 
@@ -107,6 +119,59 @@ class PHS_Model_Roles extends PHS_Model
             return false;
 
         return $all_statuses[$status];
+    }
+
+    public function get_all_role_units()
+    {
+        static $all_role_units = false;
+
+        if( $all_role_units !== false )
+            return $all_role_units;
+
+        if( !($model_settings = $this->get_db_settings()) )
+            $model_settings = array();
+
+        if( empty( $model_settings['units_cache_size'] ) )
+            $model_settings['units_cache_size'] = 1000;
+
+        $all_role_units = array();
+
+        $list_arr = array();
+        $list_arr['table_name'] = 'roles_units';
+        // Raise this limit if you have more units...
+        $list_arr['enregs_no'] = $model_settings['units_cache_size'];
+        $list_arr['order_by'] = 'roles_units.name ASC';
+
+        if( !($all_role_units = $this->get_list( $list_arr )) )
+            $all_role_units = array();
+
+        return $all_role_units;
+    }
+
+    public function get_all_roles()
+    {
+        static $all_roles = false;
+
+        if( $all_roles !== false )
+            return $all_roles;
+
+        if( !($model_settings = $this->get_db_settings()) )
+            $model_settings = array();
+
+        if( empty( $model_settings['roles_cache_size'] ) )
+            $model_settings['roles_cache_size'] = 1000;
+
+        $all_roles = array();
+
+        $list_arr = array();
+        // Raise this limit if you have more units...
+        $list_arr['enregs_no'] = $model_settings['roles_cache_size'];
+        $list_arr['order_by'] = 'roles.name ASC';
+
+        if( !($all_roles = $this->get_list( $list_arr )) )
+            $all_roles = array();
+
+        return $all_roles;
     }
 
     /**

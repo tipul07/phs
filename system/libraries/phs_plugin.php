@@ -649,6 +649,24 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         );
     }
 
+    static public function core_plugin_details_fields()
+    {
+        return array(
+            'id' => PHS_Instantiable::CORE_PLUGIN,
+            'name' => self::_t( 'CORE Framework' ),
+            'description' => self::_t( 'CORE functionality' ),
+            'script_version' => PHS_VERSION,
+            'db_version' => PHS_KNOWN_VERSION,
+            'update_url' => '',
+            'status' => PHS_Model_Plugins::STATUS_ACTIVE,
+            'is_installed' => true,
+            'is_core' => true,
+            'db_details' => false,
+            'models' => PHS::get_core_modules(),
+            'settings_arr' => array(),
+        );
+    }
+
     final public function get_plugin_info()
     {
         if( !empty( $this->_plugin_details ) )

@@ -241,6 +241,24 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    public function can_list_roles( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !$this->acc_is_sadmin( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function can_manage_roles( $user_data )
+    {
+        if( !($user_arr = $this->data_to_array( $user_data ))
+         or !$this->acc_is_sadmin( $user_arr ) )
+            return false;
+
+        return $user_arr;
+    }
+
     public function can_login_subaccount( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))

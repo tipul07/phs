@@ -3,15 +3,20 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_params;
+    use \phs\libraries\PHS_Instantiable;
+    use \phs\libraries\PHS_Plugin;
+
+    if( !($form_data = $this->context_var( 'form_data' )) )
+        $form_data = array();
 
     /** @var \phs\libraries\PHS_Plugin $plugin_obj */
-    if( !($plugin_obj = $this->context_var( 'plugin_obj' )) )
+    $plugin_obj = false;
+    if( (empty( $form_data['pid'] ) or $form_data['pid'] != PHS_Instantiable::CORE_PLUGIN)
+    and !($plugin_obj = $this->context_var( 'plugin_obj' )) )
         return $this->_pt( 'Plugin ID is invalid or plugin was not found.' );
 
     if( !($back_page = $this->context_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
-    if( !($form_data = $this->context_var( 'form_data' )) )
-        $form_data = array();
     if( !($settings_fields = $this->context_var( 'settings_fields' )) )
         $settings_fields = array();
     if( !($modules_with_settings = $this->context_var( 'modules_with_settings' )) )
@@ -20,7 +25,9 @@
     if( !($plugin_settings = $this->context_var( 'db_settings' )) )
         $plugin_settings = array();
 
-    if( !($plugin_info = $plugin_obj->get_plugin_info()) )
+    if( empty( $plugin_obj ) )
+        $plugin_info = PHS_Plugin::core_plugin_details_fields();
+    elseif( !($plugin_info = $plugin_obj->get_plugin_info()) )
         $plugin_info = $plugin_obj->default_plugin_details_fields();
 
     $current_user = PHS::user_logged_in();
@@ -48,7 +55,7 @@
                     <?php echo $plugin_info['name']?>
                     <small>
                     <?php
-                    echo $plugin_obj->get_plugin_version();
+                    echo $plugin_info['script_version']; // $plugin_obj->get_plugin_version();
 
                     if( !empty( $plugin_info['models'] )
                     and is_array( $plugin_info['models'] ) )
@@ -72,7 +79,7 @@
                 <div class="lineform">
                     <label for="selected_module"><?php echo $this->_pt( 'Settings for' )?>: </label>
                     <select name="selected_module" id="selected_module" class="wpcf7-select" onchange="document.plugin_settings_form.submit()">
-                    <option value=""><?php echo $plugin_info['name'].' ('.$plugin_obj->instance_type().')'?></option>
+                    <option value=""><?php echo $plugin_info['name'].(!empty( $plugin_obj )?' ('.$plugin_obj->instance_type().')':'')?></option>
                     <?php
                     foreach( $modules_with_settings as $model_id => $model_arr )
                     {
@@ -94,7 +101,7 @@
 
             if( empty( $settings_fields ) or !is_array( $settings_fields ) )
             {
-                ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt( 'Selected module doesn\'t have any settings..' )?></p><?php
+                ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt( 'Selected module doesn\'t have any settings.' )?></p><?php
             } else
             {
                 foreach( $settings_fields as $field_name => $field_details )

@@ -610,7 +610,12 @@ class PHS_View extends PHS_Signal_and_slot
         and @file_exists( $this->_template_file ) )
         {
             ob_start();
-            include( $this->_template_file );
+            if( !($resulting_buf = include( $this->_template_file )) )
+                $resulting_buf = '';
+
+            if( !is_string( $resulting_buf ) )
+                $resulting_buf = '';
+
             $resulting_buf .= ob_get_clean();
         }
 

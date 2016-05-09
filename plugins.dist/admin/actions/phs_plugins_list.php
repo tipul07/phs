@@ -3,6 +3,7 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
+use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
@@ -70,10 +71,38 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             PHS_Notifications::add_error_notice( $this->_pt( 'Plugin ID is invalid or plugin was not found.' ) );
 
         $records_arr = array();
+
+        if( !($page = $this->_paginator->pagination_params( 'page' )) )
+            $page = 0;
+
+        $count_offset = 0;
+        if( !$page )
+        {
+            $count_offset = 1;
+            // if on first page add core as plugin on first record...
+
+            $core_details = PHS_Plugin::core_plugin_details_fields();
+
+            $record_arr = array();
+            $record_arr['id'] = $core_details['id'];
+            $record_arr['is_installed'] = true;
+            $record_arr['is_core'] = true;
+            $record_arr['name'] = $core_details['name'];
+            $record_arr['description'] = $core_details['description'];
+            $record_arr['version'] = $core_details['db_version'].' / '.$core_details['script_version'];
+            $record_arr['status'] = $core_details['status'];
+            $record_arr['status_date'] = date( PHS_Model::DATETIME_DB, @filemtime( PHS_PATH.'bootstrap.php' ) );
+            $record_arr['cdate'] = $record_arr['status_date'];
+            $record_arr['models'] = ((!empty( $core_details['models'] ) and is_array( $core_details['models'] ))?$core_details['models']:array());
+
+            $records_arr[] = $record_arr;
+        }
+
+
         if( ($dir_entries = $this->_paginator_model->cache_all_dir_details())
         and is_array( $dir_entries ) )
         {
-            $this->_paginator->set_records_count( count( $dir_entries ) );
+            $this->_paginator->set_records_count( count( $dir_entries ) + $count_offset );
 
             $offset = $this->_paginator->pagination_params( 'offset' );
             $records_per_page = $this->_paginator->pagination_params( 'records_per_page' );
@@ -86,8 +115,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
              * @var string $plugin_dir
              * @var \phs\libraries\PHS_Plugin $plugin_instance
              */
-            $knti = -1;
-            $on_this_page = 0;
+            $knti = $count_offset - 1;
+            $on_this_page = $count_offset;
             foreach( $dir_entries as $plugin_dir => $plugin_instance )
             {
                 if( !($plugin_info_arr = $plugin_instance->get_plugin_info()) )
@@ -451,8 +480,15 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !$plugin_obj->uninstall() )
+                {
+                    if( $plugin_obj->has_error() )
+                    {
+                        $this->copy_error( $plugin_obj, self::ERR_ACTION );
+                        return false;
+                    }
+
                     $action_result_params['action_result'] = 'failed';
-                else
+                } else
                     $action_result_params['action_result'] = 'success';
            break;
 
@@ -538,7 +574,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <a href="javascript:void(0)" onclick="phs_plugins_list_install( '<?php echo $params['record']['id']?>' )"><i class="fa fa-plus-circle action-icons" title="<?php echo $this->_pt( 'Install plugin' )?>"></i></a>
             <?php
         }
-        if( $this->_paginator_model->inactive_status( $params['record']['status'] ) )
+        if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        and $this->_paginator_model->inactive_status( $params['record']['status'] ) )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"><i class="fa fa-sign-out action-icons" title="<?php echo $this->_pt( 'Uninstall plugin' )?>"></i></a>
@@ -549,11 +586,17 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         {
             ?>
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
-            <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' )?>"></i></a>
             <?php
+            if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN )
+            {
+                ?>
+                <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' ) ?>"></i></a>
+                <?php
+            }
         }
 
-        if( empty( $params['record']['is_installed'] )
+        if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        and empty( $params['record']['is_installed'] )
         and empty( $params['record']['is_core'] ) )
         {
             ?>
