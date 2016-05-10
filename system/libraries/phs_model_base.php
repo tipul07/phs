@@ -38,8 +38,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         self::FTYPE_FLOAT => array( 'title' => 'float', 'default_length' => '5,2', 'default_value' => 0, ),
         self::FTYPE_DOUBLE => array( 'title' => 'double', 'default_length' => '5,2', 'default_value' => 0, ),
 
-        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, ), // 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATE_EMPTY, ),
-        self::FTYPE_DATETIME => array( 'title' => 'datetime', 'default_length' => 0, 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATETIME_EMPTY, ),
+        self::FTYPE_DATE => array( 'title' => 'date', 'default_length' => null, 'default_value' => null, 'nullable' => true, ), // 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATE_EMPTY, ),
+        self::FTYPE_DATETIME => array( 'title' => 'datetime', 'default_length' => null, 'default_value' => null, 'nullable' => true, ), // 'raw_default' => 'CURRENT_TIMESTAMP' ), // self::DATETIME_EMPTY, ),
         self::FTYPE_TIMESTAMP => array( 'title' => 'timestamp', 'default_length' => 0, 'default_value' => 0, ),
 
         self::FTYPE_VARCHAR => array( 'title' => 'varchar', 'default_length' => 255, 'default_value' => '', ),
@@ -593,6 +593,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( $field_details['default_length'] === null
             and isset( $new_field_arr['length'] ) )
                 $new_field_arr['length'] = null;
+
+            if( isset( $field_details['nullable'] ) )
+                $new_field_arr['nullable'] = (!empty( $field_details['nullable'] )?true:false);
 
             if( !isset( $new_field_arr['length'] )
             and isset( $field_details['default_length'] ) )
@@ -1622,7 +1625,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
                 $field_str .= '`'.$field_name.'` '.$type_details['title'];
                 if( $field_details['length'] !== null
-                and $field_details['length'] !== false )
+                and $field_details['length'] !== false
+                and (!in_array( $field_details['type'], array( self::FTYPE_DATE, self::FTYPE_DATETIME ) )
+                        or $field_details['length'] !== 0
+                    ) )
                     $field_str .= '('.$field_details['length'].')';
 
                 if( !empty( $field_details['nullable'] ) )
