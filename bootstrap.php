@@ -36,6 +36,7 @@ define( 'PHS_EMAILS_DIRS', 'emails' );
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_roles.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );

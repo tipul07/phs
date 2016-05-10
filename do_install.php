@@ -2,8 +2,21 @@
 
     include_once( 'main.php' );
 
+    use \phs\PHS;
+
     if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
-        include_once( PHS_SYSTEM_DIR.'install.php' );
+    {
+        $system_install_result = include_once(PHS_SYSTEM_DIR . 'install.php');
+
+        if( $system_install_result !== true )
+        {
+            echo '<pre>';
+            echo PHS::_t( 'ERROR while running system install script:' );
+            var_dump( $system_install_result );
+            echo '</pre>';
+            exit;
+        }
+    }
 
     // Walk thgrough plugins bootstrap scripts...
     foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )

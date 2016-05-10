@@ -67,23 +67,20 @@ class PHS_Model_Roles extends PHS_Model
 
         $statuses_arr = array();
         // Translate and validate statuses...
-        if( !empty( $new_statuses_arr ) and is_array( $new_statuses_arr ) )
+        foreach( self::$STATUSES_ARR as $status_id => $status_arr )
         {
-            foreach( $new_statuses_arr as $status_id => $status_arr )
-            {
-                $status_id = intval( $status_id );
-                if( empty( $status_id ) )
-                    continue;
+            $status_id = intval( $status_id );
+            if( empty( $status_id ) )
+                continue;
 
-                if( empty( $status_arr['title'] ) )
-                    $status_arr['title'] = self::_t( 'Status %s', $status_id );
-                else
-                    $status_arr['title'] = self::_t( $status_arr['title'] );
+            if( empty( $status_arr['title'] ) )
+                $status_arr['title'] = self::_t( 'Status %s', $status_id );
+            else
+                $status_arr['title'] = self::_t( $status_arr['title'] );
 
-                $statuses_arr[$status_id] = array(
-                    'title' => $status_arr['title']
-                );
-            }
+            $statuses_arr[$status_id] = array(
+                'title' => $status_arr['title']
+            );
         }
 
         return $statuses_arr;
@@ -115,10 +112,22 @@ class PHS_Model_Roles extends PHS_Model
     {
         $all_statuses = $this->get_statuses();
         if( empty( $status )
-         or empty( $all_statuses[$status] ) )
+            or empty( $all_statuses[$status] ) )
             return false;
 
         return $all_statuses[$status];
+    }
+
+    /**
+     * Returns an array of key-values of fields that should edit role unit in case role unit already exists
+     * @return array
+     */
+    public static function get_register_edit_role_unit_fields()
+    {
+        return array(
+            'name' => '',
+            'description' => '',
+        );
     }
 
     public function get_all_role_units()
@@ -141,6 +150,34 @@ class PHS_Model_Roles extends PHS_Model
         // Raise this limit if you have more units...
         $list_arr['enregs_no'] = $model_settings['units_cache_size'];
         $list_arr['order_by'] = 'roles_units.name ASC';
+
+        if( !($all_role_units = $this->get_list( $list_arr )) )
+            $all_role_units = array();
+
+        return $all_role_units;
+    }
+
+    public function get_all_role_units_by_slug()
+    {
+        static $all_role_units = false;
+
+        if( $all_role_units !== false )
+            return $all_role_units;
+
+        if( !($model_settings = $this->get_db_settings()) )
+            $model_settings = array();
+
+        if( empty( $model_settings['units_cache_size'] ) )
+            $model_settings['units_cache_size'] = 1000;
+
+        $all_role_units = array();
+
+        $list_arr = array();
+        $list_arr['table_name'] = 'roles_units';
+        // Raise this limit if you have more units...
+        $list_arr['enregs_no'] = $model_settings['units_cache_size'];
+        $list_arr['order_by'] = 'roles_units.name ASC';
+        $list_arr['arr_index_field'] = 'slug';
 
         if( !($all_role_units = $this->get_list( $list_arr )) )
             $all_role_units = array();
@@ -188,9 +225,29 @@ class PHS_Model_Roles extends PHS_Model
         if( empty( $params ) or !is_array( $params ) )
             return false;
 
+        if( empty( $params['fields']['slug'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a slug for this role.' ) );
+            return false;
+        }
+
         if( empty( $params['fields']['name'] ) )
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a name for this role.' ) );
+            return false;
+        }
+
+        $constrain_arr = array();
+        $constrain_arr['slug'] = $params['fields']['slug'];
+
+        $check_params = array();
+        $check_params['table_name'] = 'roles';
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        if( $this->get_details_fields( $constrain_arr, $check_params ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'There is already a role registered with this slug.' ) );
             return false;
         }
 
@@ -209,7 +266,39 @@ class PHS_Model_Roles extends PHS_Model
          or empty_db_date( $params['fields']['status_date'] ) )
             $params['fields']['status_date'] = $params['fields']['cdate'];
 
+        $params['fields']['predefined'] = (!empty( $params['fields']['predefined'] )?1:0);
+
+        if( empty( $params['{role_units}'] ) or !is_array( $params['{role_units}'] ) )
+            $params['{role_units}'] = false;
+
         return $params;
+    }
+
+    /**
+     * Called right after a successfull insert in database. Some model need more database work after successfully adding records in database or eventually chaining
+     * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
+     * key-values added in database.
+     *
+     * @param array $insert_arr Data array added with success in database
+     * @param array $params Flow parameters
+     *
+     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * Deleted record will be hard-deleted
+     */
+    protected function insert_after_roles( $insert_arr, $params )
+    {
+        if( !empty( $params['{role_units}'] ) and is_array( $params['{role_units}'] ) )
+        {
+            if( !$this->link_role_units_to_roles( $insert_arr, $params['{role_units}'] ) )
+                return false;
+        }
+
+        return $insert_arr;
+    }
+    
+    public function link_role_units_to_roles( $role_arr, $role_units_arr )
+    {
+        return true;
     }
 
     /**
@@ -239,7 +328,60 @@ class PHS_Model_Roles extends PHS_Model
             $params['fields']['status_date'] = $cdate;
         }
 
+        if( isset( $params['fields']['predefined'] ) )
+            $params['fields']['predefined'] = (!empty( $params['fields']['predefined'] )?1:0);
+
+        if( isset( $params['fields']['slug'] ) )
+        {
+            if( empty( $params['fields']['slug'] ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Role slug cannot be empty.' ) );
+                return false;
+            }
+
+            $constrain_arr = array();
+            $constrain_arr['slug'] = $params['fields']['slug'];
+            $constrain_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+            $check_params = array();
+            $check_params['table_name'] = 'roles';
+            $check_params['result_type'] = 'single';
+            $check_params['details'] = 'id';
+
+            if( $this->get_details_fields( $constrain_arr, $check_params ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'There is already a role registered with this slug.' ) );
+
+                return false;
+            }
+        }
+
+        if( empty( $params['{role_units}'] ) or !is_array( $params['{role_units}'] ) )
+            $params['{role_units}'] = false;
+
         return $params;
+    }
+
+    /**
+     * Called right after a successfull edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
+     * in database.
+     *
+     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
+     * @param array $params Flow parameters
+     *
+     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * Deleted record will be hard-deleted
+     */
+    protected function edit_after_roles( $existing_data, $edit_arr, $params )
+    {
+        if( !empty( $params['{role_units}'] ) and is_array( $params['{role_units}'] ) )
+        {
+            if( !$this->link_role_units_to_roles( $existing_data, $params['{role_units}'] ) )
+                return false;
+        }
+
+        return $existing_data;
     }
 
     /**
@@ -265,6 +407,20 @@ class PHS_Model_Roles extends PHS_Model
         if( empty( $params['fields']['name'] ) )
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a name for this role unit.' ) );
+            return false;
+        }
+
+        $constrain_arr = array();
+        $constrain_arr['slug'] = $params['fields']['slug'];
+
+        $check_params = array();
+        $check_params['table_name'] = 'roles_units';
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        if( $this->get_details_fields( $constrain_arr, $check_params ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'There is already a role unit registered with this slug.' ) );
             return false;
         }
 
@@ -311,6 +467,31 @@ class PHS_Model_Roles extends PHS_Model
 
             $cdate = date( self::DATETIME_DB );
             $params['fields']['status_date'] = $cdate;
+        }
+
+        if( isset( $params['fields']['slug'] ) )
+        {
+            if( empty( $params['fields']['slug'] ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Role unit slug cannot be empty.' ) );
+                return false;
+            }
+
+            $constrain_arr = array();
+            $constrain_arr['slug'] = $params['fields']['slug'];
+            $constrain_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+            $check_params = array();
+            $check_params['table_name'] = 'roles_units';
+            $check_params['result_type'] = 'single';
+            $check_params['details'] = 'id';
+
+            if( $this->get_details_fields( $constrain_arr, $check_params ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'There is already a role unit registered with this slug.' ) );
+
+                return false;
+            }
         }
 
         return $params;
@@ -475,6 +656,13 @@ class PHS_Model_Roles extends PHS_Model
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
+                    ),
+                    'slug' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'index' => true,
                     ),
                     'uid' => array(
                         'type' => self::FTYPE_INT,

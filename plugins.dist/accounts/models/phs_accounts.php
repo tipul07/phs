@@ -309,9 +309,9 @@ class PHS_Model_Accounts extends PHS_Model
                     continue;
 
                 if( empty( $level_arr['title'] ) )
-                    $level_arr['title'] = self::_t( 'Level %s', $level_id );
+                    $level_arr['title'] = $this->_pt( 'Level %s', $level_id );
                 else
-                    $level_arr['title'] = self::_t( $level_arr['title'] );
+                    $level_arr['title'] = $this->_pt( $level_arr['title'] );
 
                 $levels_arr[$level_id] = array(
                     'title' => $level_arr['title']
@@ -377,9 +377,9 @@ class PHS_Model_Accounts extends PHS_Model
                     continue;
 
                 if( empty( $status_arr['title'] ) )
-                    $status_arr['title'] = self::_t( 'Status %s', $status_id );
+                    $status_arr['title'] = $this->_pt( 'Status %s', $status_id );
                 else
-                    $status_arr['title'] = self::_t( $status_arr['title'] );
+                    $status_arr['title'] = $this->_pt( $status_arr['title'] );
 
                 $statuses_arr[$status_id] = array(
                     'title' => $status_arr['title']
@@ -463,7 +463,7 @@ class PHS_Model_Accounts extends PHS_Model
          or !($account_arr = $this->data_to_array( $account_data ))
          or empty( $account_arr['pass_clear'] ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -482,13 +482,13 @@ class PHS_Model_Accounts extends PHS_Model
          or !($account_arr = $this->data_to_array( $account_data ))
          or empty( $account_arr['pass_clear'] ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
         if( !($clean_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] )) )
         {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t obtain account password.' ) );
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain account password.' ) );
             return false;
         }
 
@@ -533,7 +533,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($online_arr = $this->edit( $online_arr, $edit_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_INSERT, self::_t( 'Error saving session details to database.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving session details to database.' ) );
 
             return false;
         }
@@ -577,7 +577,7 @@ class PHS_Model_Accounts extends PHS_Model
          or !($account_arr = $this->data_to_array( $account_data ))
          or empty( $account_arr['id'] ) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -600,7 +600,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             if( !$this->can_login_subaccount( $current_user ) )
             {
-                $this->set_error( self::ERR_LOGIN, self::_t( 'Already logged in.' ) );
+                $this->set_error( self::ERR_LOGIN, $this->_pt( 'Already logged in.' ) );
                 return false;
             }
 
@@ -631,7 +631,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($onuser_arr = $this->insert( $insert_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_INSERT, self::_t( 'Error saving session details to database.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving session details to database.' ) );
 
             return false;
         }
@@ -654,7 +654,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
 
             return false;
         }
@@ -677,7 +677,7 @@ class PHS_Model_Accounts extends PHS_Model
          or !($account_arr = $this->data_to_array( $account_data ))
          or !$this->needs_activation( $account_arr ) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
 
             return false;
         }
@@ -696,7 +696,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -717,7 +717,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -738,7 +738,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -761,13 +761,13 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_EMAIL, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_EMAIL, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
         if( !$this->needs_confirmation_email( $account_arr ) )
         {
-            $this->set_error( self::ERR_EMAIL, self::_t( 'This account doesn\'t need a confirmation email anymore. Logged in before.' ) );
+            $this->set_error( self::ERR_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before.' ) );
             return false;
         }
 
@@ -776,7 +776,7 @@ class PHS_Model_Accounts extends PHS_Model
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_EMAIL );
             else
-                $this->set_error( self::ERR_EMAIL, self::_t( 'Error sending confirmation email. Please try again.' ) );
+                $this->set_error( self::ERR_EMAIL, $this->_pt( 'Error sending confirmation email. Please try again.' ) );
 
             return false;
         }
@@ -789,7 +789,7 @@ class PHS_Model_Accounts extends PHS_Model
      * Parses flow parameters if anything special should be done.
      * This should do checks on raw parameters received by insert method.
      *
-     * @param array|false $params Parameters in the flow
+     * @param array $params Parameters in the flow
      *
      * @return array Flow parameters array
      */
@@ -805,14 +805,14 @@ class PHS_Model_Accounts extends PHS_Model
         if( !empty( $accounts_settings['email_mandatory'] )
         and empty( $params['fields']['email'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide an email.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an email.' ) );
             return false;
         }
 
         if( !empty( $params['fields']['email'] )
         and !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid email.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid email.' ) );
             return false;
         }
 
@@ -823,7 +823,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( empty( $params['fields']['nick'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide an username.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an username.' ) );
             return false;
         }
 
@@ -839,19 +839,19 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !$this->valid_level( $params['fields']['level'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid account level.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid account level.' ) );
             return false;
         }
 
         if( !$this->valid_status( $params['fields']['status'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a valid status.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid status.' ) );
             return false;
         }
 
         if( empty( $params['fields']['pass'] ) and empty( $accounts_settings['generate_pass_if_not_present'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a password.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a password.' ) );
             return false;
         }
 
@@ -860,7 +860,7 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['min_password_length'] )
             and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
             {
-                $this->set_error( self::ERR_INSERT, self::_t( 'Password should be at least %s characters.',
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Password should be at least %s characters.',
                                                               $accounts_settings['min_password_length'] ) );
 
                 return false;
@@ -876,10 +876,10 @@ class PHS_Model_Accounts extends PHS_Model
                         $regexp_parts[2] = '';
 
                     $this->set_error( self::ERR_INSERT,
-                                      self::_t( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
+                                      $this->_pt( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
                                                 $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
                 } else
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
 
                 return false;
             }
@@ -890,7 +890,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( $this->get_details_fields( $check_arr ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Username already exists in database. Please pick another one.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Username already exists in database. Please pick another one.' ) );
             return false;
         }
 
@@ -902,7 +902,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             if( $this->get_details_fields( $check_arr ) )
             {
-                $this->set_error( self::ERR_INSERT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Email address exists in database. Please pick another one.' ) );
                 return false;
             }
         }
@@ -955,7 +955,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
             {
-                $this->set_error( self::ERR_INSERT, self::_t( 'Error obtaining account details model instance.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error obtaining account details model instance.' ) );
                 return false;
             }
 
@@ -969,7 +969,7 @@ class PHS_Model_Accounts extends PHS_Model
                 if( $accounts_details_model->has_error() )
                     $this->copy_error( $accounts_details_model );
                 else
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Error saving account details in database. Please try again.' ) );
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
 
                 return false;
             }
@@ -982,7 +982,7 @@ class PHS_Model_Accounts extends PHS_Model
 
                 $accounts_details_model->hard_delete( $users_details );
 
-                $this->set_error( self::ERR_INSERT, self::_t( 'Couldn\'t link account details with the account. Please try again.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t link account details with the account. Please try again.' ) );
                 return false;
             }
         }
@@ -998,7 +998,7 @@ class PHS_Model_Accounts extends PHS_Model
                 if( self::st_has_error() )
                     $this->copy_static_error( self::ERR_INSERT );
                 else
-                    $this->set_error( self::ERR_INSERT, self::_t( 'Error sending activation email. Please try again.' ) );
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error sending activation email. Please try again.' ) );
 
                 return false;
             }
@@ -1045,7 +1045,7 @@ class PHS_Model_Accounts extends PHS_Model
 
                 if( $this->get_details_fields( $check_arr ) )
                 {
-                    $this->set_error( self::ERR_EDIT, self::_t( 'Nickname already exists in database. Please pick another one.' ) );
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Nickname already exists in database. Please pick another one.' ) );
                     return false;
                 }
             }
@@ -1056,7 +1056,7 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['min_password_length'] )
             and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Password should be at least %s characters.', $accounts_settings['min_password_length'] ) );
                 return false;
             }
 
@@ -1070,10 +1070,10 @@ class PHS_Model_Accounts extends PHS_Model
                         $regexp_parts[2] = '';
 
                     $this->set_error( self::ERR_EDIT,
-                                      self::_t( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
+                                      $this->_pt( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
                                                 $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
                 } else
-                    $this->set_error( self::ERR_EDIT, self::_t( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
 
                 return false;
             }
@@ -1093,7 +1093,7 @@ class PHS_Model_Accounts extends PHS_Model
                 if( empty( $params['fields']['email'] )
                  or !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
                 {
-                    $this->set_error( self::ERR_EDIT, self::_t( 'Invalid email address.' ) );
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Invalid email address.' ) );
                     return false;
                 }
 
@@ -1105,7 +1105,7 @@ class PHS_Model_Accounts extends PHS_Model
 
                     if( $this->get_details_fields( $check_arr ) )
                     {
-                        $this->set_error( self::ERR_EDIT, self::_t( 'Email address exists in database. Please pick another one.' ) );
+                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Email address exists in database. Please pick another one.' ) );
                         return false;
                     }
                 }
@@ -1118,7 +1118,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             if( !$this->valid_status( $params['fields']['status'] ) )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Please provide a valid status.' ) );
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide a valid status.' ) );
                 return false;
             }
 
@@ -1132,7 +1132,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( isset( $params['fields']['level'] )
         and !$this->valid_level( $params['fields']['level'] ) )
         {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Please provide a valid account level.' ) );
+            $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide a valid account level.' ) );
             return false;
         }
 
@@ -1169,7 +1169,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Error obtaining account details model instance.' ) );
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Error obtaining account details model instance.' ) );
                 return false;
             }
 
@@ -1177,7 +1177,7 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $existing_data['{users_details}'] )
             and !($users_details = $accounts_details_model->data_to_array( $existing_data['{users_details}'] )) )
             {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Error obtaining account details from database.' ) );
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Error obtaining account details from database.' ) );
                 return false;
             }
 
@@ -1193,7 +1193,7 @@ class PHS_Model_Accounts extends PHS_Model
                     if( $accounts_details_model->has_error() )
                         $this->copy_error( $accounts_details_model );
                     else
-                        $this->set_error( self::ERR_EDIT, self::_t( 'Error saving account details in database. Please try again.' ) );
+                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
 
                     return false;
                 }
@@ -1204,7 +1204,7 @@ class PHS_Model_Accounts extends PHS_Model
 
                     $accounts_details_model->hard_delete( $users_details );
 
-                    $this->set_error( self::ERR_EDIT, self::_t( 'Couldn\'t link account details with the account. Please try again.' ) );
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t link account details with the account. Please try again.' ) );
                     return false;
                 }
 
@@ -1219,7 +1219,7 @@ class PHS_Model_Accounts extends PHS_Model
                     if( $accounts_details_model->has_error() )
                         $this->copy_error( $accounts_details_model );
                     else
-                        $this->set_error( self::ERR_EDIT, self::_t( 'Error saving account details in database. Please try again.' ) );
+                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
 
                     return false;
                 }
