@@ -97,10 +97,15 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
                 $model_id = $model_instance->instance_id();
 
+                if( !($model_db_details = $model_instance->get_db_details()) )
+                    $model_db_details = array();
+
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
                 $modules_with_settings[$model_id]['default_settings'] = $model_instance->get_default_settings();
                 $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
+                $modules_with_settings[$model_id]['db_version'] = (!empty( $model_db_details['version'] )?$model_db_details['version']:'0.0.0');
+                $modules_with_settings[$model_id]['script_version'] = $model_instance->get_model_version();
             }
         }
 
@@ -125,6 +130,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $settings_fields = array();
         $default_settings = array();
         $db_settings = array();
+        $db_version = '0.0.0';
+        $script_version = '0.0.0';
         if( !empty( $form_data['selected_module'] )
         and !empty( $modules_with_settings[$form_data['selected_module']] ) )
         {
@@ -136,6 +143,10 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $default_settings = $modules_with_settings[$form_data['selected_module']]['default_settings'];
             if( !empty( $modules_with_settings[$form_data['selected_module']]['db_settings'] ) )
                 $db_settings = $modules_with_settings[$form_data['selected_module']]['db_settings'];
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['db_version'] ) )
+                $db_version = $modules_with_settings[$form_data['selected_module']]['db_version'];
+            if( !empty( $modules_with_settings[$form_data['selected_module']]['script_version'] ) )
+                $script_version = $modules_with_settings[$form_data['selected_module']]['script_version'];
         } else
         {
             $form_data['selected_module'] = '';
@@ -143,9 +154,14 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             if( $this->_plugin_obj )
             {
+                if( !($plugin_db_details = $this->_plugin_obj->get_db_details()) )
+                    $plugin_db_details = array();
+
                 $settings_fields = $this->_plugin_obj->validate_settings_structure();
                 $default_settings = $this->_plugin_obj->get_default_settings();
                 $db_settings = $this->_plugin_obj->get_db_settings();
+                $db_version = (!empty( $plugin_db_details['version'] )?$plugin_db_details['version']:'0.0.0');
+                $script_version = $this->_plugin_obj->get_plugin_version();
             }
         }
 
@@ -232,11 +248,16 @@ class PHS_Action_Plugin_settings extends PHS_Action
             }
         }
 
+        var_dump( $db_version );
+        var_dump( $script_version );
+
         $form_data['pid'] = $pid;
 
         $data['form_data'] = $form_data;
         $data['settings_fields'] = $settings_fields;
         $data['db_settings'] = $db_settings;
+        $data['db_version'] = $db_version;
+        $data['script_version'] = $script_version;
 
         return $this->quick_render_template( 'plugin_settings', $data );
     }

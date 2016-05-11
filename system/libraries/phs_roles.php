@@ -9,7 +9,7 @@ class PHS_Roles extends PHS_Registry
 {
     const ERR_DEPENDENCIES = 1;
 
-    const ROLE_GUEST = 'phs_guest', ROLE_NORMAL = 'phs_normal', ROLE_ADMIN = 'phs_admin';
+    const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_ADMIN = 'phs_admin';
 
     const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
           ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
@@ -95,7 +95,7 @@ class PHS_Roles extends PHS_Registry
             }
 
             if( !empty( $role_units_arr ) )
-                $role_model->link_role_units_to_roles( $role_arr, $role_units_arr );
+                $role_model->link_role_units_to_role( $role_arr, $role_units_arr );
 
         } else
         {
@@ -107,8 +107,7 @@ class PHS_Roles extends PHS_Registry
             $insert_arr = array();
             $insert_arr['table_name'] = 'roles';
             $insert_arr['fields'] = $params;
-            if( !empty( $role_units_arr ) )
-                $insert_arr['{role_units}'] = $role_units_arr;
+            $insert_arr['{role_units}'] = $role_units_arr;
 
             if( !($role_arr = $role_model->insert( $insert_arr )) )
             {

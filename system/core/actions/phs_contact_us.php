@@ -39,8 +39,7 @@ class PHS_Action_Contact_us extends PHS_Action
         if( !empty( $sent ) )
             PHS_Notifications::add_success_notice( self::_t( 'Your message was succesfully sent. Thank you!' ) );
 
-        if( !($current_user = PHS::current_user())
-         or !PHS::user_logged_in() )
+        if( !($current_user = PHS::user_logged_in()) )
             $current_user = false;
 
         if( !empty( $current_user )

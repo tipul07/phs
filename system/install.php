@@ -16,6 +16,9 @@
         }
     }
 
+    //
+    //  BEGIN Predefined role units array helper
+    //
     $guest_role_units = array(
 
         PHS_Roles::ROLEU_CONTACT_US => array(
@@ -81,9 +84,9 @@
             'description' => 'Role used by non-logged visitors',
             'role_units' => array(),
         ),
-        PHS_Roles::ROLE_NORMAL => array(
-            'name' => 'Normal accounts',
-            'description' => 'Default functionality role (what normal accounts can do)',
+        PHS_Roles::ROLE_MEMBER => array(
+            'name' => 'Member accounts',
+            'description' => 'Default functionality role (what normal members can do)',
             'role_units' => array(),
         ),
         PHS_Roles::ROLE_ADMIN => array(
@@ -92,12 +95,15 @@
             'role_units' => array(),
         ),
     );
+    //
+    //  END Predefined role units array helper
+    //
 
     //
     //  BEGIN Define predefined role units
     //
     $guest_role_slugs = array();
-    $normal_role_slugs = array();
+    $members_role_slugs = array();
     $admin_role_slugs = array();
 
     foreach( $guest_role_units as $role_unit_slug => $role_unit_details )
@@ -123,10 +129,10 @@
         if( !($role_unit = PHS_Roles::register_role_unit( $role_unit_details_arr )) )
             return PHS_Roles::st_get_error();
 
-        $normal_role_slugs[$role_unit['slug']] = true;
+        $members_role_slugs[$role_unit['slug']] = true;
     }
 
-    $admin_role_slugs = array_merge( $guest_role_slugs, $normal_role_slugs );
+    $admin_role_slugs = array_merge( $guest_role_slugs, $members_role_slugs );
 
     foreach( $admin_role_units as $role_unit_slug => $role_unit_details )
     {
@@ -147,25 +153,24 @@
     //
     //  BEGIN Define predefined roles
     //
-    $predefined_roles_arr[PHS_Roles::ROLE_GUEST]['role_units'] = $guest_role_slugs;
-    $predefined_roles_arr[PHS_Roles::ROLE_NORMAL]['role_units'] = $normal_role_slugs;
-    $predefined_roles_arr[PHS_Roles::ROLE_ADMIN]['role_units'] = $admin_role_slugs;
+    $predefined_roles_arr[PHS_Roles::ROLE_GUEST]['role_units'] = array_keys( $guest_role_slugs );
+    $predefined_roles_arr[PHS_Roles::ROLE_MEMBER]['role_units'] = array_keys( $members_role_slugs );
+    $predefined_roles_arr[PHS_Roles::ROLE_ADMIN]['role_units'] = array_keys( $admin_role_slugs );
 
     foreach( $predefined_roles_arr as $role_slug => $role_details )
     {
-        $role_unit_details_arr = array();
-        $role_unit_details_arr['slug'] = $role_slug;
-        $role_unit_details_arr['name'] = $role_details['name'];
-        $role_unit_details_arr['description'] = $role_details['description'];
-        $role_unit_details_arr['predefined'] = 1;
-        $role_unit_details_arr['{role_units}'] = $role_details['role_units'];
+        $role_details_arr = array();
+        $role_details_arr['slug'] = $role_slug;
+        $role_details_arr['name'] = $role_details['name'];
+        $role_details_arr['description'] = $role_details['description'];
+        $role_details_arr['predefined'] = 1;
+        $role_details_arr['{role_units}'] = $role_details['role_units'];
 
-        if( !($role_arr = PHS_Roles::register_role( $role_unit_details_arr )) )
+        if( !($role_arr = PHS_Roles::register_role( $role_details_arr )) )
             return PHS_Roles::st_get_error();
     }
     //
     //  END Define predefined roles
     //
 
-    
     return true;

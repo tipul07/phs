@@ -25,6 +25,11 @@
     if( !($plugin_settings = $this->context_var( 'db_settings' )) )
         $plugin_settings = array();
 
+    if( !($db_version = $this->context_var( 'db_version' )) )
+        $db_version = '0.0.0';
+    if( !($script_version = $this->context_var( 'script_version' )) )
+        $script_version = '0.0.0';
+
     if( empty( $plugin_obj ) )
         $plugin_info = PHS_Plugin::core_plugin_details_fields();
     elseif( !($plugin_info = $plugin_obj->get_plugin_info()) )
@@ -55,7 +60,7 @@
                     <?php echo $plugin_info['name']?>
                     <small>
                     <?php
-                    echo $plugin_info['script_version']; // $plugin_obj->get_plugin_version();
+                    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version']; // $plugin_obj->get_plugin_version();
 
                     if( !empty( $plugin_info['models'] )
                     and is_array( $plugin_info['models'] ) )
@@ -98,6 +103,18 @@
                 <div class="clearfix" style="margin-bottom: 15px;"></div>
                 <?php
             }
+
+            ?><small><?php
+
+                echo $this->_pt( 'Database version' ).': '.$db_version.', ';
+                echo $this->_pt( 'Script version' ).': '.$script_version;
+
+                if( version_compare( $db_version, $script_version, '<' ) )
+                {
+                    echo ' - <span style="color:red;">'.$this->_pt( 'Please upgrade the plugin' ).'</span>';
+                }
+
+            ?></small><?php
 
             if( empty( $settings_fields ) or !is_array( $settings_fields ) )
             {

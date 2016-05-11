@@ -128,6 +128,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr = array();
                 $record_arr['id'] = $plugin_info_arr['id'];
                 $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
+                $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
                 $record_arr['is_core'] = $plugin_info_arr['is_core'];
                 $record_arr['name'] = $plugin_info_arr['name'];
                 $record_arr['description'] = $plugin_info_arr['description'];
@@ -425,7 +426,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
 
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot install plugin. Invalid plugin ID.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate plugin. Invalid plugin ID.' ) );
                     return false;
                 }
 
@@ -439,7 +440,61 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
-           break;
+            break;
+
+            case 'upgrade_plugin':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Plugin upgraded with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Upgrading plugin failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = trim( $action['action_params'] );
+
+                if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
+                 or empty( $instance_details['instance_type'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                {
+                    // reset error set by valid_instance_id()
+                    self::st_reset_error();
+
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot upgrade plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                /** @var \phs\libraries\PHS_Plugin $plugin_obj */
+                if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Couldn\'t instantiate plugin.' ) );
+                    return false;
+                }
+
+                if( ($plugin_info_arr = $plugin_obj->get_plugin_info())
+                and !empty( $plugin_info_arr['is_upgradable'] )
+                and !$plugin_obj->update( $plugin_info_arr['db_version'], $plugin_info_arr['script_version'] ) )
+                {
+                    if( $plugin_obj->has_error() )
+                    {
+                        $this->copy_error( $plugin_obj, self::ERR_ACTION );
+                        return false;
+                    }
+
+                    $action_result_params['action_result'] = 'failed';
+                } else
+                    $action_result_params['action_result'] = 'success';
+            break;
 
             case 'uninstall_plugin':
                 if( !empty( $action['action_result'] ) )
@@ -490,7 +545,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action_result_params['action_result'] = 'failed';
                 } else
                     $action_result_params['action_result'] = 'success';
-           break;
+            break;
 
             case 'delete_plugin':
                 if( !empty( $action['action_result'] ) )
@@ -584,6 +639,12 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
         if( $this->_paginator_model->active_status( $params['record']['status'] ) )
         {
+            if( !empty( $params['record']['is_upgradable'] ) )
+            {
+                ?>
+                <a href="javascript:void(0)" onclick="phs_plugins_list_upgrade( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-arrow-circle-o-up action-icons" title="<?php echo $this->_pt( 'Upgrade plugin' ) ?>"></i></a>
+                <?php
+            }
             ?>
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
             <?php
@@ -675,6 +736,19 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $url_params = array();
                 $url_params['action'] = array(
                     'action' => 'inactivate_plugin',
+                    'action_params' => '" + id + "',
+                )
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
+            }
+        }
+        function phs_plugins_list_upgrade( id )
+        {
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to upgrade this plugin?', '"' )?>" ) )
+            {
+                <?php
+                $url_params = array();
+                $url_params['action'] = array(
+                    'action' => 'upgrade_plugin',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";

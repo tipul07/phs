@@ -11,7 +11,7 @@
         if( $system_install_result !== true )
         {
             echo '<pre>';
-            echo PHS::_t( 'ERROR while running system install script:' );
+            echo PHS::_t( 'ERROR while running system install script [%s]:', 'CORE INSTALL' );
             var_dump( $system_install_result );
             echo '</pre>';
             exit;
@@ -26,7 +26,15 @@
         {
             foreach( $install_scripts as $install_script )
             {
-                include_once( $install_script );
+                $install_result = include_once( $install_script );
+
+                if( $install_result === false )
+                {
+                    echo '<pre>';
+                    echo PHS::_t( 'ERROR while running system install script [%s]:', $install_script );
+                    var_dump( $system_install_result );
+                    echo '</pre>';
+                }
             }
         }
     }

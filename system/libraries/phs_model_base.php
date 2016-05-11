@@ -295,7 +295,40 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $fields_arr[$type];
     }
 
-    public function check_table_exists( $params = false )
+    public function check_table_exists( $params = false, $force = false )
+    {
+        static $tables_arr = false;
+
+        $this->reset_error();
+
+        if( !($params = $this->fetch_default_flow_params( $params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( $tables_arr === false
+        and ($qid = db_query( 'SHOW TABLES', $params['db_connection'] )) )
+        {
+            $tables_arr = array();
+            while( ($table_name = db_fetch_assoc( $qid )) )
+            {
+                if( !is_array( $table_name ) )
+                    continue;
+
+                $table_arr = array_values( $table_name );
+                $tables_arr[] = $table_arr[0];
+            }
+        }
+
+        if( is_array( $tables_arr )
+        and in_array( $params['table_name'], $tables_arr ) )
+            return true;
+
+        return false;
+    }
+
+    public function check_field_exists( $field, $params = false )
     {
         $this->reset_error();
 
@@ -304,6 +337,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
+        
+        if( !$this->check_table_exists( $params ) )
+            return false;
 
         if( ($qid = db_query( 'SHOW TABLES', $params['db_connection'] )) )
         {

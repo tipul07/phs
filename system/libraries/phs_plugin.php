@@ -195,8 +195,6 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return $this->install();
         }
 
-        echo '['.$db_details['version'].'='.$this->get_plugin_version().']';
-
         if( version_compare( $db_details['version'], $this->get_plugin_version(), '!=' ) )
             return $this->update( $db_details['version'], $this->get_plugin_version() );
 
@@ -542,7 +540,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
      *
      * @return bool true on success, false on failure
      */
-    final protected function update( $old_version, $new_version )
+    final public function update( $old_version, $new_version )
     {
         $this->reset_error();
 
@@ -642,6 +640,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             'update_url' => '',
             'status' => 0,
             'is_installed' => false,
+            'is_upgradable' => false,
             'is_core' => false,
             'db_details' => false,
             'models' => array(),
@@ -660,6 +659,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             'update_url' => '',
             'status' => PHS_Model_Plugins::STATUS_ACTIVE,
             'is_installed' => true,
+            'is_upgradable' => false,
             'is_core' => true,
             'db_details' => false,
             'models' => PHS::get_core_modules(),
@@ -687,6 +687,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
             $plugin_details['db_version'] = (!empty( $db_details['version'] )?$db_details['version']:'0.0.0');
+            $plugin_details['is_upgradable'] = ($plugin_details['db_version'] != $plugin_details['script_version']);
             $plugin_details['is_core'] = (!empty( $db_details['is_core'] )?true:false);
         }
 
