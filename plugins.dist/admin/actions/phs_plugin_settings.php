@@ -8,6 +8,7 @@ use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Instantiable;
+use \phs\libraries\PHS_Roles;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {
@@ -40,7 +41,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !$accounts_model->can_manage_plugins( $current_user ) )
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to list plugins.' ) );
             return self::default_action_result();

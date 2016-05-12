@@ -8,6 +8,7 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Roles;
 
 class PHS_Action_User_add extends PHS_Action
 {
@@ -56,7 +57,7 @@ class PHS_Action_User_add extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !$accounts_model->can_manage_accounts( $current_user ) )
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
             return self::default_action_result();

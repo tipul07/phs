@@ -9,6 +9,7 @@ use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Instantiable;
+use \phs\libraries\PHS_Roles;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
 class PHS_Action_Plugins_list extends PHS_Action_Generic_list
@@ -175,7 +176,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if( !$this->_accounts_model->can_list_plugins( $current_user ) )
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_PLUGINS ) )
         {
             $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to list plugins.' ) );
             return false;
@@ -322,7 +323,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -366,7 +367,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -410,7 +411,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -454,7 +455,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -508,7 +509,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -559,7 +560,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_accounts_model->can_manage_plugins( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -681,9 +682,6 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             return '';
 
         $js_functionality = true;
-        
-        if( !($flow_params_arr = $this->_paginator->flow_params()) )
-            $flow_params_arr = array();
 
         ob_start();
         ?>

@@ -61,6 +61,106 @@ class PHS_Model_Roles extends PHS_Model
             ),
         );
     }
+    public function is_active( $role_data )
+    {
+        if( !($role_arr = $this->data_to_array( $role_data ))
+         or $role_arr['status'] != self::STATUS_ACTIVE )
+            return false;
+
+        return $role_arr;
+    }
+
+    public function is_inactive( $role_data )
+    {
+        if( !($role_arr = $this->data_to_array( $role_data ))
+         or $role_arr['status'] != self::STATUS_INACTIVE )
+            return false;
+
+        return $role_arr;
+    }
+
+    public function is_deleted( $role_data )
+    {
+        if( !($role_arr = $this->data_to_array( $role_data ))
+         or $role_arr['status'] != self::STATUS_DELETED )
+            return false;
+
+        return $role_arr;
+    }
+
+    public function is_predefined( $role_data )
+    {
+        if( !($role_arr = $this->data_to_array( $role_data ))
+         or empty( $role_arr['predefined'] ) )
+            return false;
+
+        return $role_arr;
+    }
+
+    public function activate_role( $role_data, $params = false )
+    {
+        if( empty( $role_data )
+         or !($role_arr = $this->data_to_array( $role_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_active( $role_arr ) )
+            return $role_arr;
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_ACTIVE;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $role_arr, $edit_params );
+    }
+
+    public function inactivate_role( $role_data, $params = false )
+    {
+        if( empty( $role_data )
+         or !($role_arr = $this->data_to_array( $role_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_inactive( $role_arr ) )
+            return $role_arr;
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_INACTIVE;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $role_arr, $edit_params );
+    }
+
+    public function delete_role( $role_data, $params = false )
+    {
+        if( empty( $role_data )
+         or !($role_arr = $this->data_to_array( $role_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
+            return false;
+        }
+
+        if( $this->is_deleted( $role_arr ) )
+            return $role_arr;
+
+        $edit_arr = array();
+        $edit_arr['name'] = $role_arr['name'].'_DELETED_'.time();
+        $edit_arr['slug'] = $role_arr['slug'].'_DELETED_'.time();
+        $edit_arr['status'] = self::STATUS_DELETED;
+
+        $edit_params = array();
+        $edit_params['fields'] = $edit_arr;
+
+        return $this->edit( $role_arr, $edit_params );
+    }
 
     private function load_dependencies()
     {
@@ -148,11 +248,12 @@ class PHS_Model_Roles extends PHS_Model
         );
     }
 
-    public function get_all_role_units()
+    public function get_all_role_units( $force = false )
     {
         static $all_role_units = false;
 
-        if( $all_role_units !== false )
+        if( empty( $force )
+        and $all_role_units !== false )
             return $all_role_units;
 
         if( !($model_settings = $this->get_db_settings()) )
@@ -171,6 +272,28 @@ class PHS_Model_Roles extends PHS_Model
 
         if( !($all_role_units = $this->get_list( $list_arr )) )
             $all_role_units = array();
+
+        return $all_role_units;
+    }
+
+    public function get_all_role_units_by_slug( $force = false )
+    {
+        static $all_role_units = false;
+
+        if( empty( $force )
+        and $all_role_units !== false )
+            return $all_role_units;
+
+        $all_role_units = array();
+
+        if( !($role_units_by_id = $this->get_all_role_units( $force ))
+         or !is_array( $role_units_by_id ) )
+            return $all_role_units;
+
+        foreach( $role_units_by_id as $role_unit_id => $role_unit_arr )
+        {
+            $all_role_units[$role_unit_arr['slug']] = $role_unit_arr;
+        }
 
         return $all_role_units;
     }
@@ -203,35 +326,6 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_role_units_by_slug( $force = false )
-    {
-        static $all_role_units = false;
-
-        if( empty( $force )
-        and $all_role_units !== false )
-            return $all_role_units;
-
-        if( !($model_settings = $this->get_db_settings()) )
-            $model_settings = array();
-
-        if( empty( $model_settings['units_cache_size'] ) )
-            $model_settings['units_cache_size'] = 1000;
-
-        $all_role_units = array();
-
-        $list_arr = array();
-        $list_arr['table_name'] = 'roles_units';
-        // Raise this limit if you have more units...
-        $list_arr['enregs_no'] = $model_settings['units_cache_size'];
-        $list_arr['order_by'] = 'roles_units.name ASC';
-        $list_arr['arr_index_field'] = 'slug';
-
-        if( !($all_role_units = $this->get_list( $list_arr )) )
-            $all_role_units = array();
-
-        return $all_role_units;
-    }
-
     public function get_all_roles( $force = false )
     {
         static $all_roles = false;
@@ -255,6 +349,28 @@ class PHS_Model_Roles extends PHS_Model
 
         if( !($all_roles = $this->get_list( $list_arr )) )
             $all_roles = array();
+
+        return $all_roles;
+    }
+
+    public function get_all_roles_by_slug( $force = false )
+    {
+        static $all_roles = false;
+
+        if( empty( $force )
+        and $all_roles !== false )
+            return $all_roles;
+
+        $all_roles = array();
+
+        if( !($roles_by_id = $this->get_all_roles( $force ))
+         or !is_array( $roles_by_id ) )
+            return $all_roles;
+
+        foreach( $roles_by_id as $role_id => $role_arr )
+        {
+            $all_roles[$role_arr['slug']] = $role_arr;
+        }
 
         return $all_roles;
     }
@@ -285,35 +401,6 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         return $return_arr;
-    }
-
-    public function get_all_roles_by_slug( $force = false )
-    {
-        static $all_roles = false;
-
-        if( empty( $force )
-        and $all_roles !== false )
-            return $all_roles;
-
-        if( !($model_settings = $this->get_db_settings()) )
-            $model_settings = array();
-
-        if( empty( $model_settings['roles_cache_size'] ) )
-            $model_settings['roles_cache_size'] = 1000;
-
-        $all_roles = array();
-
-        $list_arr = array();
-        $list_arr['table_name'] = 'roles';
-        // Raise this limit if you have more roles...
-        $list_arr['enregs_no'] = $model_settings['roles_cache_size'];
-        $list_arr['order_by'] = 'roles.name ASC';
-        $list_arr['arr_index_field'] = 'slug';
-
-        if( !($all_roles = $this->get_list( $list_arr )) )
-            $all_roles = array();
-
-        return $all_roles;
     }
 
     /**
@@ -731,17 +818,14 @@ class PHS_Model_Roles extends PHS_Model
         and !$this->load_dependencies() )
             return false;
 
-        if( !is_array( $roles_arr ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'No roles provided to link to account.' ) );
-            return false;
-        }
-
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
             return false;
         }
+
+        if( !is_array( $roles_arr ) )
+            $roles_arr = array( $roles_arr );
 
         if( !isset( $params['append_roles'] ) )
             $params['append_roles'] = true;
@@ -805,6 +889,262 @@ class PHS_Model_Roles extends PHS_Model
         return true;
     }
 
+    /**
+     * Gets role units slugs for provided role. Role can be passed as Id, slug or role array
+     *
+     * @param int|string|array $role_data Id, slug or role array
+     *
+     * @return array|bool False on error or an array of slugs for provided role
+     */
+    public function get_role_role_units_slugs( $role_data )
+    {
+        if( !($ids_arr = $this->roles_list_to_ids( array( $role_data ) ))
+         or !is_array( $ids_arr )
+         or !($role_id = @array_shift( $ids_arr ))
+         or !($qid = db_query( 'SELECT roles_units.slug FROM `roles_units` '.
+                               ' LEFT JOIN roles_units_links ON roles_units_links.role_unit_id = roles_units.id '.
+                               ' WHERE roles_units_links.role_id = \''.intval( $role_id ).'\'', $this->get_db_connection() ))
+         or !@mysqli_num_rows( $qid ) )
+            return array();
+
+        $return_arr = array();
+        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            $return_arr[] = $slug_arr['slug'];
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Tells if a set of roles are assigned to provided account_data. account_data can be a valid user account (id or array) or an empty account array (not logged in user)
+     *
+     * @param array|int $account_data Account id, account array, or an empty account array. If array provided and $accounts_model::ROLES_USER_KEY key is defined it will be used directly
+     * @param array|string $roles_list Single slug or array of ids, slugs or role arrays (can be mixed with ids, slugs or arrays)
+     * @param array|bool $params Functional parameters
+     *
+     * @return array|bool False if logical operation doesn't match list of roles with roles assigned to provided account or an array with account details and matched roles slugs
+     */
+    public function user_has_roles( $account_data, $roles_list, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        $logical_operations = array( 'and', 'or' );
+
+        if( empty( $params['logical_operation'] ) )
+            $params['logical_operation'] = 'and';
+        else
+            $params['logical_operation'] = strtolower( trim( $params['logical_operation'] ) );
+
+        if( !is_array( $roles_list ) )
+            $roles_list = array( $roles_list );
+
+        if( !in_array( $params['logical_operation'], $logical_operations )
+         or (empty( self::$_accounts_model ) and !$this->load_dependencies())
+         or !($all_role_ids = $this->get_all_roles())
+         or !($role_ids = $this->roles_list_to_ids( $roles_list ))
+         or !is_array( $role_ids ) )
+            return false;
+
+        $accounts_model = self::$_accounts_model;
+
+        $account_slugs = array();
+        $account_arr = false;
+        if( is_array( $account_data ) )
+        {
+            $account_arr = $account_data;
+            if( isset( $account_arr[$accounts_model::ROLES_USER_KEY] ) and is_array( $account_arr[$accounts_model::ROLES_USER_KEY] ) )
+                $account_slugs = $account_arr[$accounts_model::ROLES_USER_KEY];
+
+            else
+            {
+                if( !($account_slugs = $this->get_user_roles_slugs( $account_arr )) )
+                    $account_slugs = array();
+
+                $account_arr[$accounts_model::ROLES_USER_KEY] = $account_slugs;
+            }
+        } elseif( is_scalar( $account_data ) )
+        {
+            $account_id = intval( $account_data );
+            if( (string)$account_id !== (string)$account_data
+             or !($account_arr = $accounts_model->get_details( $account_id )) )
+                $account_arr = false;
+
+            else
+            {
+                if( !($account_slugs = $this->get_user_roles_slugs( $account_arr )) )
+                    $account_slugs = array();
+
+                $account_arr[$accounts_model::ROLES_USER_KEY] = $account_slugs;
+            }
+        }
+
+        if( empty( $account_slugs ) or !is_array( $account_slugs )
+         or !($account_role_ids = $this->roles_list_to_ids( $account_slugs ))
+         or !is_array( $account_role_ids ) )
+            return false;
+
+        $matching_slugs_arr = array();
+        foreach( $role_ids as $role_id )
+        {
+            if( empty( $all_role_ids[$role_id] ) // sanity check
+             or empty( $all_role_ids[$role_id]['slug'] )
+             or !in_array( $role_id, $account_role_ids ) )
+            {
+                // If all should match return false when we find one that is not assigned to account
+                if( $params['logical_operation'] == 'and' )
+                    return false;
+
+                continue;
+            }
+
+            $matching_slugs_arr[] = $all_role_ids[$role_id]['slug'];
+        }
+
+        // Nothing matched
+        if( empty( $matching_slugs_arr ) )
+            return false;
+
+        $return_arr = array();
+        $return_arr['account_data'] = $account_arr;
+        $return_arr['matching_slugs'] = $matching_slugs_arr;
+
+        return $return_arr;
+    }
+
+    /**
+     * Tells if a set of role units are assigned to provided account_data. account_data can be a valid user account (id or array) or an empty account array (not logged in user)
+     *
+     * @param array|int $account_data Account id, account array, or an empty account array. If array provided and $accounts_model::ROLE_UNITS_USER_KEY key is defined it will be used directly
+     * @param array|string $role_units_list Single slug or array of ids, slugs or role unit arrays (can be mixed with ids, slugs or arrays)
+     * @param array|bool $params Functional parameters
+     *
+     * @return array|bool False if logical operation doesn't match list of role units with role units assigned to provided account or an array with account details and matched role units slugs
+     */
+    public function user_has_role_units( $account_data, $role_units_list, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        $logical_operations = array( 'and', 'or' );
+
+        if( empty( $params['logical_operation'] ) )
+            $params['logical_operation'] = 'and';
+        else
+            $params['logical_operation'] = strtolower( trim( $params['logical_operation'] ) );
+
+        if( !is_array( $role_units_list ) )
+            $role_units_list = array( $role_units_list );
+
+        if( !in_array( $params['logical_operation'], $logical_operations )
+         or (empty( self::$_accounts_model ) and !$this->load_dependencies())
+         or !($all_role_unit_ids = $this->get_all_role_units())
+         or !($role_unit_ids = $this->role_units_list_to_ids( $role_units_list ))
+         or !is_array( $role_unit_ids ) )
+            return false;
+
+        $accounts_model = self::$_accounts_model;
+
+        $account_slugs = array();
+        $account_arr = false;
+        if( is_array( $account_data ) )
+        {
+            $account_arr = $account_data;
+            if( isset( $account_arr[$accounts_model::ROLE_UNITS_USER_KEY] ) and is_array( $account_arr[$accounts_model::ROLE_UNITS_USER_KEY] ) )
+                $account_slugs = $account_arr[$accounts_model::ROLE_UNITS_USER_KEY];
+
+            else
+            {
+                if( !($account_slugs = $this->get_user_role_units_slugs( $account_arr )) )
+                    $account_slugs = array();
+
+                $account_arr[$accounts_model::ROLE_UNITS_USER_KEY] = $account_slugs;
+            }
+        } elseif( is_scalar( $account_data ) )
+        {
+            $account_id = intval( $account_data );
+            if( (string)$account_id !== (string)$account_data
+             or !($account_arr = $accounts_model->get_details( $account_id )) )
+                $account_arr = false;
+
+            else
+            {
+                if( !($account_slugs = $this->get_user_role_units_slugs( $account_arr )) )
+                    $account_slugs = array();
+
+                $account_arr[$accounts_model::ROLE_UNITS_USER_KEY] = $account_slugs;
+            }
+        }
+
+        if( empty( $account_slugs ) or !is_array( $account_slugs )
+         or !($account_role_unit_ids = $this->role_units_list_to_ids( $account_slugs ))
+         or !is_array( $account_role_unit_ids ) )
+            return false;
+
+        $matching_slugs_arr = array();
+        foreach( $role_unit_ids as $role_unit_id )
+        {
+            if( empty( $all_role_unit_ids[$role_unit_id] ) // sanity check
+             or empty( $all_role_unit_ids[$role_unit_id]['slug'] )
+             or !in_array( $role_unit_id, $account_role_unit_ids ) )
+            {
+                // If all should match return false when we find one that is not assigned to account
+                if( $params['logical_operation'] == 'and' )
+                    return false;
+
+                continue;
+            }
+
+            $matching_slugs_arr[] = $all_role_unit_ids[$role_unit_id]['slug'];
+        }
+
+        // Nothing matched
+        if( empty( $matching_slugs_arr ) )
+            return false;
+
+        $return_arr = array();
+        $return_arr['account_data'] = $account_arr;
+        $return_arr['matching_slugs'] = $matching_slugs_arr;
+
+        return $return_arr;
+    }
+
+    public function get_user_roles_slugs( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
+            return false;
+        }
+
+        if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
+         or !is_array( $role_ids )
+         or !($all_roles = $this->get_all_roles()) )
+            return array();
+
+        $return_arr = array();
+        foreach( $role_ids as $role_id )
+        {
+            if( empty( $all_roles[$role_id] ) )
+                continue;
+
+            $return_arr[] = $all_roles[$role_id]['slug'];
+        }
+
+        return $return_arr;
+    }
+
     public function get_user_role_units_slugs( $account_data )
     {
         $this->reset_error();
@@ -818,6 +1158,22 @@ class PHS_Model_Roles extends PHS_Model
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
             return false;
         }
+
+        if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
+         or !is_array( $role_ids )
+         or !($qid = db_query( 'SELECT roles_units.slug FROM `roles_units` '.
+                               ' LEFT JOIN roles_units_links ON roles_units_links.role_unit_id = roles_units.id '.
+                               ' WHERE roles_units_links.role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection() ))
+         or !@mysqli_num_rows( $qid ) )
+            return array();
+
+        $return_arr = array();
+        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            $return_arr[] = $slug_arr['slug'];
+        }
+
+        return $return_arr;
     }
 
     /**

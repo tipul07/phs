@@ -80,6 +80,7 @@ class PHS_Paginator extends PHS_Registry
             'term_singular' => self::_t( 'record' ),
             'term_plural' => self::_t( 'records' ),
             'listing_title' => self::_t( 'Displaying results...' ),
+            'initial_list_arr' => array(),
             'did_query_database' => false,
 
             'bulk_action' => '',
@@ -1020,7 +1021,10 @@ class PHS_Paginator extends PHS_Registry
          or !is_array( $filters_arr ) )
             $filters_arr = array();
 
-        $list_arr = array();
+        if( !($list_arr = $this->flow_param( 'initial_list_arr' ))
+         or !is_array( $list_arr ) )
+            $list_arr = array();
+        
         $list_arr['extra_sql'] = '';
 
         foreach( $filters_arr as $filter_arr )

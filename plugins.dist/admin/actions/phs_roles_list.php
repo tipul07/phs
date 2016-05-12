@@ -3,12 +3,10 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_Paginator;
-use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
+use \phs\libraries\PHS_Roles;
 
 /** @property \phs\system\core\models\PHS_Model_Roles $_paginator_model */
 class PHS_Action_Roles_list extends PHS_Action_Generic_list
@@ -67,82 +65,69 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return false;
         }
 
-        // if( !$this->_accounts_model->can_list_accounts( $current_user ) )
-        // {
-        //     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to create accounts.' ) );
-        //     return false;
-        // }
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_ROLES ) )
+        {
+            $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to list roles.' ) );
+            return false;
+        }
 
-        $account_created = PHS_params::_g( 'account_created', PHS_params::T_NOHTML );
+        $list_arr = array();
 
-        if( !empty( $account_created ) )
-            PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
+        $roles_model = $this->_paginator_model;
+        $list_arr['fields']['status'] = array( 'check' => '!=' , 'value' => $roles_model::STATUS_DELETED );
 
         $flow_params = array(
-            'term_singular' => $this->_pt( 'user' ),
-            'term_plural' => $this->_pt( 'users' ),
+            'term_singular' => $this->_pt( 'role' ),
+            'term_plural' => $this->_pt( 'roles' ),
+            'initial_list_arr' => $list_arr,
             'after_table_callback' => array( $this, 'after_table_callback' ),
         );
 
-        if( !($users_levels = $this->_paginator_model->get_levels_as_key_val()) )
-            $users_levels = array();
-        if( !($users_statuses = $this->_paginator_model->get_statuses_as_key_val()) )
-            $users_statuses = array();
+        if( PHS_params::_g( 'unknown_role', PHS_params::T_INT ) )
+            PHS_Notifications::add_error_notice( $this->_pt( 'Invalid role or role was not found in database.' ) );
 
-        if( !empty( $users_levels ) )
-            $users_levels = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $users_levels );
-        if( !empty( $users_statuses ) )
-            $users_statuses = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $users_statuses );
+        if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
+            $statuses_arr = array();
 
-        $bulk_actions = array(
-            array(
-                'display_name' => $this->_pt( 'Inactivate' ),
-                'action' => 'bulk_inactivate',
-                'js_callback' => 'phs_users_list_bulk_inactivate',
-                'checkbox_column' => 'id',
-            ),
-            array(
-                'display_name' => $this->_pt( 'Activate' ),
-                'action' => 'bulk_activate',
-                'js_callback' => 'phs_users_list_bulk_activate',
-                'checkbox_column' => 'id',
-            ),
-            array(
-                'display_name' => $this->_pt( 'Delete' ),
-                'action' => 'bulk_delete',
-                'js_callback' => 'phs_users_list_bulk_delete',
-                'checkbox_column' => 'id',
-            ),
-        );
+        if( !empty( $statuses_arr ) )
+            $statuses_arr = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $statuses_arr );
+
+        if( !PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+            $bulk_actions = false;
+
+        else
+        {
+            $bulk_actions = array(
+                array(
+                    'display_name' => $this->_pt( 'Inactivate' ),
+                    'action' => 'bulk_inactivate',
+                    'js_callback' => 'phs_roles_list_bulk_inactivate',
+                    'checkbox_column' => 'id',
+                ),
+                array(
+                    'display_name' => $this->_pt( 'Activate' ),
+                    'action' => 'bulk_activate',
+                    'js_callback' => 'phs_roles_list_bulk_activate',
+                    'checkbox_column' => 'id',
+                ),
+                array(
+                    'display_name' => $this->_pt( 'Delete' ),
+                    'action' => 'bulk_delete',
+                    'js_callback' => 'phs_roles_list_bulk_delete',
+                    'checkbox_column' => 'id',
+                ),
+            );
+        }
 
         $filters_arr = array(
             array(
-                'display_name' => $this->_pt( 'IDs' ),
-                'display_hint' => $this->_pt( 'Comma separated ids' ),
-                'display_placeholder' => $this->_pt( 'eg. 1,2,3' ),
-                'var_name' => 'fids',
-                'record_field' => 'id',
-                'record_check' => array( 'check' => 'IN', 'value' => '(%s)' ),
-                'type' => PHS_params::T_ARRAY,
-                'extra_type' => array( 'type' => PHS_params::T_INT ),
-                'default' => array(),
-            ),
-            array(
-                'display_name' => $this->_pt( 'Nickname' ),
+                'display_name' => $this->_pt( 'Name' ),
                 'display_hint' => $this->_pt( 'All records containing this value' ),
-                'var_name' => 'fnick',
-                'record_field' => 'nick',
+                'var_name' => 'fname',
+                'record_field' => 'name',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
-                'display_name' => $this->_pt( 'Level' ),
-                'var_name' => 'flevel',
-                'record_field' => 'level',
-                'type' => PHS_params::T_INT,
-                'default' => 0,
-                'values_arr' => $users_levels,
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
@@ -150,7 +135,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 'record_field' => 'status',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
-                'values_arr' => $users_statuses,
+                'values_arr' => $statuses_arr,
             ),
         );
 
@@ -158,54 +143,35 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( '#' ),
                 'record_field' => 'id',
-                'checkbox_record_index_key' => array(
-                    'key' => 'id',
-                    'type' => PHS_params::T_INT,
-                ),
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:50px;max-width:80px;',
                 'extra_records_style' => 'text-align:center;',
             ),
             array(
-                'column_title' => $this->_pt( 'Nickname' ),
-                'record_field' => 'nick',
+                'column_title' => $this->_pt( 'Name' ),
+                'record_field' => 'name',
+                'display_callback' => array( $this, 'display_role_name' ),
             ),
             array(
-                'column_title' => $this->_pt( 'Email' ),
-                'record_field' => 'email',
-                'invalid_value' => $this->_pt( 'N/A' ),
+                'column_title' => $this->_pt( 'Slug' ),
+                'record_field' => 'slug',
                 'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'Status' ),
                 'record_field' => 'status',
-                'display_key_value' => $users_statuses,
+                'display_key_value' => $statuses_arr,
                 'invalid_value' => $this->_pt( 'Undefined' ),
                 'extra_records_style' => 'text-align:center;',
-            ),
-            array(
-                'column_title' => $this->_pt( 'Level' ),
-                'record_field' => 'level',
-                'display_key_value' => $users_levels,
-                'extra_records_style' => 'text-align:center;',
-            ),
-            array(
-                'column_title' => $this->_pt( 'Last Login' ),
-                'record_field' => 'lastlog',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
-                'date_format' => 'd M y H:i',
-                'invalid_value' => $this->_pt( 'Never' ),
-                'extra_style' => 'width:100px;',
-                'extra_records_style' => 'text-align:right;',
             ),
             array(
                 'column_title' => $this->_pt( 'Created' ),
                 'default_sort' => 1,
                 'record_field' => 'cdate',
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
-                'date_format' => 'd M y H:i',
+                'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-                'extra_style' => 'width:100px;',
+                'extra_style' => 'width:120px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(
@@ -217,8 +183,16 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             ),
         );
 
+        if( PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+        {
+            $columns_arr[0]['checkbox_record_index_key'] = array(
+                'key' => 'id',
+                'type' => PHS_params::T_INT,
+            );
+        }
+
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'users_list' ) );
+        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'roles_list' ) );
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -263,19 +237,19 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts activated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required roles activated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected accounts failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected roles failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected roles. Roles which failed activation are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -289,11 +263,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $account_id )
+                foreach( $scope_arr[$scope_key] as $role_id )
                 {
-                    if( !$this->_paginator_model->activate_account( $account_id ) )
+                    if( !$this->_paginator_model->activate_role( $role_id ) )
                     {
-                        $remaining_ids_arr[] = $account_id;
+                        $remaining_ids_arr[] = $role_id;
                     }
                 }
 
@@ -324,19 +298,19 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required roles inactivated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected accounts failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected roles failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -350,11 +324,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $account_id )
+                foreach( $scope_arr[$scope_key] as $role_id )
                 {
-                    if( !$this->_paginator_model->inactivate_account( $account_id ) )
+                    if( !$this->_paginator_model->inactivate_role( $role_id ) )
                     {
-                        $remaining_ids_arr[] = $account_id;
+                        $remaining_ids_arr[] = $role_id;
                     }
                 }
 
@@ -385,19 +359,19 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts deleted with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required roles deleted with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting selected accounts failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting selected roles failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -411,11 +385,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $account_id )
+                foreach( $scope_arr[$scope_key] as $role_id )
                 {
-                    if( !$this->_paginator_model->delete_account( $account_id ) )
+                    if( !$this->_paginator_model->delete_role( $role_id ) )
                     {
-                        $remaining_ids_arr[] = $account_id;
+                        $remaining_ids_arr[] = $role_id;
                     }
                 }
 
@@ -442,21 +416,21 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
             break;
 
-            case 'activate_account':
+            case 'activate_role':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Account activated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Role activated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating role failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -464,33 +438,33 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
                  
                 if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($role_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate role. Role not found.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->activate_account( $account_arr ) )
+                if( !$this->_paginator_model->activate_role( $role_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
             break;
 
-            case 'inactivate_account':
+            case 'inactivate_role':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Account inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Role inactivated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating role failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -498,33 +472,33 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
 
                 if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($role_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate role. Role not found.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->inactivate_account( $account_arr ) )
+                if( !$this->_paginator_model->inactivate_role( $role_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
            break;
 
-            case 'delete_account':
+            case 'delete_role':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Account deleted with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Role deleted with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting account failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting role failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !$this->_paginator_model->can_manage_accounts( $current_user ) )
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage roles.' ) );
                     return false;
                 }
 
@@ -532,13 +506,13 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
 
                 if( empty( $action['action_params'] )
-                 or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($role_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete account. Account not found.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete role. Role not found.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->delete_account( $account_arr ) )
+                if( !$this->_paginator_model->delete_role( $role_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
@@ -546,6 +520,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         }
 
         return $action_result_params;
+    }
+
+    public function display_role_name( $params )
+    {
+        if( empty( $params )
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] ) )
+            return false;
+
+        return '<strong>'.$params['preset_content'].'</strong>'.
+               (!empty( $params['record']['description'] )?'<br/><small>'.$params['record']['description'].'</small>':'');
     }
 
     public function display_actions( $params )
@@ -556,30 +541,43 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 return false;
         }
 
+        if( !PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+            return '-';
+
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($account_arr = $this->_paginator_model->data_to_array( $params['record'] )) )
+         or !($role_arr = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
+        $is_inactive = $this->_paginator_model->is_inactive( $role_arr );
+        $is_active = $this->_paginator_model->is_active( $role_arr );
+
         ob_start();
-        if( $this->_paginator_model->is_inactive( $account_arr ) )
+        if( ($is_inactive or $is_active) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_users_list_activate_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate account' )?>"></i></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_edit' ), array( 'rid' => $role_arr['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit role' )?>"></i></a>
             <?php
         }
-        if( $this->_paginator_model->is_active( $account_arr ) )
+        if( $is_inactive )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_users_list_inactivate_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate account' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_roles_list_activate_role( '<?php echo $role_arr['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate role' )?>"></i></a>
+            <?php
+        }
+        if( $is_active )
+        {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_roles_list_inactivate_role( '<?php echo $role_arr['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate role' )?>"></i></a>
             <?php
         }
 
-        if( !$this->_paginator_model->is_deleted( $account_arr ) )
+        if( !$this->_paginator_model->is_deleted( $role_arr )
+        and !$this->_paginator_model->is_predefined( $role_arr ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete account' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_roles_list_delete_role( '<?php echo $role_arr['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete role' )?>"></i></a>
             <?php
         }
 
@@ -594,55 +592,52 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return '';
 
         $js_functionality = true;
-        
-        if( !($flow_params_arr = $this->_paginator->flow_params()) )
-            $flow_params_arr = array();
 
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_users_list_activate_account( id )
+        function phs_roles_list_activate_role( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this account?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this role?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'activate_account',
+                    'action' => 'activate_role',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_users_list_inactivate_account( id )
+        function phs_roles_list_inactivate_role( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this account?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this role?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'inactivate_account',
+                    'action' => 'inactivate_role',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_users_list_delete_account( id )
+        function phs_roles_list_delete_role( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this account?', '"' )?>" + "\n" +
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this role?', '"' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
                 $url_params['action'] = array(
-                    'action' => 'delete_account',
+                    'action' => 'delete_role',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
 
-        function phs_users_list_get_checked_ids_count()
+        function phs_roles_list_get_checked_ids_count()
         {
             var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
             if( !checkboxes_list || !checkboxes_list.length )
@@ -651,17 +646,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return checkboxes_list.length;
         }
 
-        function phs_users_list_bulk_activate()
+        function phs_roles_list_bulk_activate()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
+            var total_checked = phs_roles_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to activate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select roles you want to activate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -670,17 +665,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             }
         }
 
-        function phs_users_list_bulk_inactivate()
+        function phs_roles_list_bulk_inactivate()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
+            var total_checked = phs_roles_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to inactivate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select roles you want to inactivate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -689,17 +684,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             }
         }
 
-        function phs_users_list_bulk_delete()
+        function phs_roles_list_bulk_delete()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
+            var total_checked = phs_roles_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to delete first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select roles you want to delete first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s accounts?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s roles?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");

@@ -3,11 +3,6 @@ namespace phs\libraries;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\libraries\PHS_Paginator;
-use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
-use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_Notifications;
 
 abstract class PHS_Action_Generic_list extends PHS_Action
 {

@@ -6,7 +6,7 @@
     use \phs\libraries\PHS_Language;
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Notifications;
-    use \phs\plugins\accounts\models\PHS_Model_Accounts;
+    use \phs\libraries\PHS_Roles;
 
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
     if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
@@ -169,7 +169,7 @@
 
         if( !empty( $accounts_model ) )
         {
-            if( $accounts_model->can_list_plugins( $cuser_arr ) )
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
             {
                 ?>
                 <li><?php echo $this::_t( 'Plugins Management' ) ?>
@@ -181,13 +181,13 @@
                 </li>
                 <?php
             }
-            if( $accounts_model->can_list_roles( $cuser_arr ) )
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
             {
                 ?>
                 <li><?php echo $this::_t( 'Roles Management' ) ?>
                     <ul>
                         <?php
-                            if( $accounts_model->can_manage_roles( $cuser_arr ) )
+                            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                             {
                                 ?>
                                 <li><a href="<?php echo PHS::url( array(
@@ -204,21 +204,21 @@
                 </li>
                 <?php
             }
-            if( $accounts_model->can_list_accounts( $cuser_arr ) )
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
             {
                 ?>
                 <li><?php echo $this::_t( 'Users Management' ) ?>
                     <ul>
                         <?php
-                            if( $accounts_model->can_manage_accounts( $cuser_arr ) )
-                            {
-                                ?>
-                                <li><a href="<?php echo PHS::url( array(
-                                                                          'a' => 'user_add', 'p' => 'admin'
-                                                                  ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
-                                </li>
-                                <?php
-                            }
+                        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+                        {
+                            ?>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                      'a' => 'user_add', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                            </li>
+                            <?php
+                        }
                         ?>
                         <li><a href="<?php echo PHS::url( array(
                                                                   'a' => 'users_list', 'p' => 'admin'

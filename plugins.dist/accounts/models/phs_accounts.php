@@ -7,10 +7,13 @@ use \phs\PHS_crypt;
 use \phs\PHS_bg_jobs;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Roles;
 
 class PHS_Model_Accounts extends PHS_Model
 {
     const ERR_LOGIN = 10001, ERR_EMAIL = 10002;
+
+    const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
 
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
 
@@ -598,7 +601,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( ($current_user = PHS::current_user())
         and !empty( $current_user['id'] ) )
         {
-            if( !$this->can_login_subaccount( $current_user ) )
+            if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
             {
                 $this->set_error( self::ERR_LOGIN, $this->_pt( 'Already logged in.' ) );
                 return false;
@@ -654,7 +657,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
 
             return false;
         }
@@ -677,7 +680,7 @@ class PHS_Model_Accounts extends PHS_Model
          or !($account_arr = $this->data_to_array( $account_data ))
          or !$this->needs_activation( $account_arr ) )
         {
-            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
 
             return false;
         }
@@ -696,7 +699,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -717,7 +720,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -738,16 +741,16 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown account.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
-        if( $this->is_inactive( $account_arr ) )
+        if( $this->is_deleted( $account_arr ) )
             return $account_arr;
 
         $edit_arr = array();
-        $edit_arr['nick'] = $account_arr['nick'].'_DELETED';
-        $edit_arr['email'] = $account_arr['email'].'_DELETED';
+        $edit_arr['nick'] = $account_arr['nick'].'_DELETED_'.time();
+        $edit_arr['email'] = $account_arr['email'].'_DELETED_'.time();
         $edit_arr['status'] = self::STATUS_DELETED;
 
         $edit_params = array();
@@ -951,6 +954,8 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $insert_arr['{users_details}'] = false;
 
+        $accounts_details_model = false;
+        $users_details = false;
         if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
         {
             if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
@@ -986,7 +991,14 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
         }
-        
+
+        if( $this->acc_is_admin( $insert_arr ) )
+            $roles_arr = array( PHS_Roles::ROLE_ADMIN );
+        else
+            $roles_arr = array( PHS_Roles::ROLE_MEMBER );
+
+        PHS_Roles::link_roles_to_user( $insert_arr, $roles_arr );
+
         $sent_activation_email = false;
         if( !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
         and !empty( $params['{accounts_settings}']['account_requires_activation'] )
@@ -1000,6 +1012,10 @@ class PHS_Model_Accounts extends PHS_Model
                 else
                     $this->set_error( self::ERR_INSERT, $this->_pt( 'Error sending activation email. Please try again.' ) );
 
+                if( !empty( $accounts_details_model )
+                and !empty( $users_details ) )
+                    $accounts_details_model->hard_delete( $users_details );
+
                 return false;
             }
             $sent_activation_email = true;
@@ -1010,7 +1026,13 @@ class PHS_Model_Accounts extends PHS_Model
         {
             // send confirmation email...
             if( !$this->send_confirmation_email( $insert_arr ) )
+            {
+                if( !empty( $accounts_details_model )
+                and !empty( $users_details ) )
+                    $accounts_details_model->hard_delete( $users_details );
+
                 return false;
+            }
         }
 
         return $insert_arr;
