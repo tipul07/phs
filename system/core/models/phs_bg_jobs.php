@@ -141,7 +141,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
 
         if( empty( $params['fields']['timed_action'] )
          or empty_db_date( $params['fields']['timed_action'] ) )
-            $params['fields']['timed_action'] = self::DATETIME_EMPTY;
+            $params['fields']['timed_action'] = null;
 
         $params['fields']['last_action'] = date( self::DATETIME_DB );
 

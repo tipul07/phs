@@ -10,6 +10,7 @@ use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Roles;
 
 class PHS_Action_Contact_us extends PHS_Action
 {
@@ -32,22 +33,28 @@ class PHS_Action_Contact_us extends PHS_Action
         $subject = PHS_params::_pg( 'subject', PHS_params::T_NOHTML );
         $body = PHS_params::_pg( 'body', PHS_params::T_NOHTML );
         $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
-        $submit = PHS_params::_p( 'submit' );
+        $do_submit = PHS_params::_p( 'do_submit' );
 
         $sent = PHS_params::_g( 'sent', PHS_params::T_INT );
 
         if( !empty( $sent ) )
             PHS_Notifications::add_success_notice( self::_t( 'Your message was succesfully sent. Thank you!' ) );
 
-        if( !($current_user = PHS::user_logged_in()) )
+        if( !($user_logged_in = PHS::user_logged_in()) )
+            $user_logged_in = false;
+        if( !($current_user = PHS::current_user()) )
             $current_user = false;
 
-        if( !empty( $current_user )
+        if( !empty( $user_logged_in )
         and empty( $foobar ) )
             $email = $current_user['email'];
 
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_CONTACT_US ) )
+            PHS_Notifications::add_error_notice( self::_t( 'You don\'t have rights to use contact us form.' ) );
+
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !empty( $submit ) )
+        if( !empty( $do_submit )
+        and !PHS_Notifications::have_notifications_errors() )
         {
             $emails_arr = array();
             if( defined( 'PHS_CONTACT_EMAIL' )
@@ -73,17 +80,17 @@ class PHS_Action_Contact_us extends PHS_Action
                 PHS_Notifications::add_error_notice( self::_t( 'No email addresses setup in the platform.' ) );
 
             elseif( empty( $email ) or empty( $subject ) or empty( $body )
-             or (empty( $current_user ) and empty( $vcode )) )
+             or (empty( $user_logged_in ) and empty( $vcode )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide mandatory fields in the form.' ) );
 
             elseif( !PHS_params::check_type( $email, PHS_params::T_EMAIL ) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide a valid email address.' ) );
 
-            elseif( empty( $current_user )
+            elseif( empty( $user_logged_in )
                 and !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Couldn\'t load captcha plugin.' ) );
 
-            elseif( empty( $current_user )
+            elseif( empty( $user_logged_in )
                 and ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
                 and empty( $hook_result['check_valid'] ) )
             {
@@ -103,7 +110,7 @@ class PHS_Action_Contact_us extends PHS_Action
                 $hook_args['from_name'] = self::_t( 'Site Contact' );
                 $hook_args['subject'] = self::_t( 'Contact Us: %s', $subject );
                 $hook_args['email_vars'] = array(
-                    'current_user' => $current_user,
+                    'current_user' => (!empty( $user_logged_in )?$current_user:false),
                     'user_agent' => (!empty( $_SERVER['HTTP_USER_AGENT'] )?$_SERVER['HTTP_USER_AGENT']:self::_t( 'N/A' )),
                     'request_ip' => request_ip(),
                     'subject' => $subject,

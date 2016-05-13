@@ -388,7 +388,7 @@ function empty_db_date( $date )
 function validate_db_date( $date, $format = false )
 {
     if( empty_db_date( $date ) )
-        return PHS_Model::DATETIME_EMPTY;
+        return null;
 
     if( $format === false )
         $format = PHS_Model::DATETIME_DB;

@@ -63,11 +63,6 @@ class PHS_Action_User_add extends PHS_Action
             return self::default_action_result();
         }
 
-        $account_created = PHS_params::_g( 'account_created', PHS_params::T_NOHTML );
-
-        if( !empty( $account_created ) )
-            PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
-
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_p( 'nick', PHS_params::T_NOHTML );
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
@@ -79,14 +74,14 @@ class PHS_Action_User_add extends PHS_Action
         $phone = PHS_params::_p( 'phone', PHS_params::T_NOHTML );
         $company = PHS_params::_p( 'company', PHS_params::T_NOHTML );
 
-        $submit = PHS_params::_p( 'submit' );
+        $do_submit = PHS_params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
         {
             $level = $accounts_model::LVL_MEMBER;
         }
 
-        if( !empty( $submit ) )
+        if( !empty( $do_submit ) )
         {
             $insert_arr = array();
             $insert_arr['nick'] = $nick;
@@ -114,7 +109,7 @@ class PHS_Action_User_add extends PHS_Action
 
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'user_add' ), array( 'account_created' => 1 ) );
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'users_list' ), array( 'account_created' => 1 ) );
 
                 return $action_result;
             } else

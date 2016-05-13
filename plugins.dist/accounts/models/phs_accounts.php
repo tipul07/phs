@@ -8,6 +8,7 @@ use \phs\PHS_bg_jobs;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Roles;
+use \phs\libraries\PHS_Hooks;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -181,7 +182,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_just_registered( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['lastlog'] != self::DATETIME_EMPTY )
+         or empty_db_date( $user_arr['lastlog'] ) )
             return false;
 
         return $user_arr;
@@ -190,7 +191,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function has_logged_in( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['lastlog'] == self::DATETIME_EMPTY )
+         or empty_db_date( $user_arr['lastlog'] ) )
             return false;
 
         return $user_arr;
@@ -280,13 +281,18 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
-    public function can_list_accounts( $user_data )
+    public function can_manage_account( $user_data, $user_to_manage )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
+         or !($user_to_manage_arr = $this->data_to_array( $user_to_manage ))
+         or !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_ROLES )
+         or $user_arr['level'] < $user_to_manage_arr['level'] )
             return false;
 
-        return $user_arr;
+        return array(
+            'user_data' => $user_arr,
+            'user_to_manage' => $user_to_manage_arr,
+        );
     }
 
     final public function get_levels()
@@ -297,7 +303,7 @@ class PHS_Model_Accounts extends PHS_Model
             return $levels_arr;
 
         $new_levels_arr = self::$LEVELS_ARR;
-        if( ($extra_levels_arr = PHS::trigger_hooks( self::HOOK_LEVELS, array( 'levels_arr' => self::$LEVELS_ARR ) ))
+        if( ($extra_levels_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_LEVELS, array( 'levels_arr' => self::$LEVELS_ARR ) ))
         and is_array( $extra_levels_arr ) and !empty( $extra_levels_arr['levels_arr'] ) )
             $new_levels_arr = self::merge_array_assoc( $extra_levels_arr['levels_arr'], $new_levels_arr );
 
@@ -365,7 +371,7 @@ class PHS_Model_Accounts extends PHS_Model
             return $statuses_arr;
 
         $new_statuses_arr = self::$STATUSES_ARR;
-        if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
+        if( ($extra_statuses_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
             $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
@@ -517,6 +523,11 @@ class PHS_Model_Accounts extends PHS_Model
         else
             $params['location'] = trim( $params['location'] );
 
+        if( isset( $params['auid'] ) )
+            $params['auid'] = intval( $params['auid'] );
+        if( isset( $params['uid'] ) )
+            $params['uid'] = intval( $params['uid'] );
+
         if( !($host = request_ip()) )
             $host = '127.0.0.1';
 
@@ -524,6 +535,10 @@ class PHS_Model_Accounts extends PHS_Model
         $cdate = date( self::DATETIME_DB, $now_time );
 
         $edit_arr = array();
+        if( !empty( $params['uid'] ) )
+            $edit_arr['uid'] = $params['uid'];
+        if( !empty( $params['auid'] ) )
+            $edit_arr['auid'] = $params['auid'];
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
         $edit_arr['expire_date'] = date( self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60 );
@@ -552,6 +567,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
 
         $edit_arr = array();
+        $edit_arr['table_name'] = 'online';
         $edit_arr['fields'] = array();
         $edit_arr['fields']['uid'] = $online_arr['auid'];
         $edit_arr['fields']['auid'] = 0;
@@ -598,8 +614,9 @@ class PHS_Model_Accounts extends PHS_Model
             $params['location'] = trim( $params['location'] );
 
         $auid = 0;
-        if( ($current_user = PHS::current_user())
-        and !empty( $current_user['id'] ) )
+        if( ($current_user = PHS::user_logged_in())
+        and ($current_session = PHS::current_user_session())
+        and !empty( $current_session['id'] ) )
         {
             if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
             {
@@ -607,7 +624,20 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
 
-            $auid = $current_user['id'];
+            $new_session_params = array();
+            $new_session_params['uid'] = $account_arr['id'];
+            $new_session_params['auid'] = $current_user['id'];
+            $new_session_params['location'] = $params['location'];
+
+            if( !($onuser_arr = $this->update_current_session( $current_session, $new_session_params )) )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving session details to database.' ) );
+
+                return false;
+            }
+
+            return $onuser_arr;
         }
 
         if( !($host = request_ip()) )
@@ -623,7 +653,7 @@ class PHS_Model_Accounts extends PHS_Model
         $insert_arr['host'] = $host;
         $insert_arr['idle'] = $cdate;
         $insert_arr['connected'] = $cdate;
-        $insert_arr['expire_date'] = (empty( $params['expire_mins'] )?self::DATETIME_EMPTY:date( self::DATETIME_DB, $now_time + $params['expire_mins'] ));
+        $insert_arr['expire_date'] = (empty( $params['expire_mins'] )?null:date( self::DATETIME_DB, $now_time + $params['expire_mins'] ));
         $insert_arr['expire_mins'] = $params['expire_mins'];
         $insert_arr['location'] = $params['location'];
 
@@ -749,8 +779,8 @@ class PHS_Model_Accounts extends PHS_Model
             return $account_arr;
 
         $edit_arr = array();
-        $edit_arr['nick'] = $account_arr['nick'].'_DELETED_'.time();
-        $edit_arr['email'] = $account_arr['email'].'_DELETED_'.time();
+        $edit_arr['nick'] = $account_arr['nick'].'-DELETED-'.time();
+        $edit_arr['email'] = $account_arr['email'].'-DELETED-'.time();
         $edit_arr['status'] = self::STATUS_DELETED;
 
         $edit_params = array();
@@ -993,9 +1023,13 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( $this->acc_is_admin( $insert_arr ) )
-            $roles_arr = array( PHS_Roles::ROLE_ADMIN );
+            $roles_arr = array( PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_ADMIN );
         else
             $roles_arr = array( PHS_Roles::ROLE_MEMBER );
+
+        if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, array( 'roles_arr' => $roles_arr, 'account_data' => $insert_arr ) ))
+        and is_array( $extra_roles_arr ) and !empty( $extra_roles_arr['roles_arr'] ) )
+            $roles_arr = self::merge_array_assoc( $extra_roles_arr['roles_arr'], $roles_arr );
 
         PHS_Roles::link_roles_to_user( $insert_arr, $roles_arr );
 

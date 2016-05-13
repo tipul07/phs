@@ -338,9 +338,12 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $return = '';
         foreach( $insert_arr as $key => $val )
         {
-            if( is_array( $val ) )
+            if( is_null( $val ) )
+                $field_value = 'NULL';
+
+            elseif( is_array( $val ) )
             {
-                if( !isset( $val['value'] ) )
+                if( !array_key_exists( 'value', $val ) )
                     continue;
 
                 if( empty( $val['raw_field'] ) )
@@ -348,7 +351,10 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
 
                 $field_value = $val['value'];
 
-                if( empty( $val['raw_field'] ) )
+                if( is_null( $field_value ) )
+                    $field_value = 'NULL';
+
+                elseif( empty( $val['raw_field'] ) )
                 {
                     if( !empty( $params['escape'] ) )
                         $field_value = $this->escape( $field_value, $connection_name );
@@ -383,9 +389,12 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $return = '';
         foreach( $edit_arr as $key => $val )
         {
-            if( is_array( $val ) )
+            if( is_null( $val ) )
+                $field_value = 'NULL';
+
+            elseif( is_array( $val ) )
             {
-                if( !isset( $val['value'] ) )
+                if( !array_key_exists( 'value', $val ) )
                     continue;
 
                 if( empty( $val['raw_field'] ) )
@@ -393,7 +402,10 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
 
                 $field_value = $val['value'];
 
-                if( empty( $val['raw_field'] ) )
+                if( is_null( $field_value ) )
+                    $field_value = 'NULL';
+
+                elseif( empty( $val['raw_field'] ) )
                 {
                     if( !empty( $params['escape'] ) )
                         $field_value = $this->escape( $field_value, $connection_name );

@@ -6,6 +6,7 @@
     use \phs\libraries\PHS_Language;
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Notifications;
+    use \phs\libraries\PHS_Roles;
     use \phs\plugins\accounts\models\PHS_Model_Accounts;
 
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -15,7 +16,9 @@
         $accounts_model = false;
     }
 
-    if( !($cuser_arr = PHS::user_logged_in()) )
+    if( !($user_logged_in = PHS::user_logged_in()) )
+        $user_logged_in = false;
+    if( !($cuser_arr = PHS::current_user()) )
         $cuser_arr = false;
 
     $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
@@ -88,23 +91,16 @@
             $('.submit-protection').on('click', function( event ){
 
                 var form_obj = $(this).parents('form:first');
-                console.log( form_obj );
-                console.log( typeof document.createElement( 'input' ).checkValidity );
-                console.log( form_obj.checkValidity() );
 
-                console.log( 'ok' );
-                if( form_obj
+                if( form_obj && form_obj[0]
                  && typeof document.createElement( 'input' ).checkValidity == 'function'
-                 && !form_obj.checkValidity() ) {
-                    console.log( 'canci validity' );
+                 && !form_obj[0].checkValidity() ) {
                     return;
                 }
 
                 var msg = $( this ).data( 'protectionTitle' );
                 if( typeof msg == 'undefined' || !msg )
                     msg = '';
-
-                console.log( 'aratam protection' );
 
                 show_submit_protection( msg );
             });
@@ -176,9 +172,14 @@
         }
         ?>
             <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
-            <li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a></li>
+            <?php
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_CONTACT_US ) )
+            {
+                ?><li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) ) ?>"><?php echo $this::_t( 'Contact Us' ) ?></a></li><?php
+            }
+            ?>
             <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
-        <?php
+            <?php
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
         and is_array( $hook_args )
@@ -203,7 +204,7 @@
         and !empty( $hook_args['buffer'] ) )
             echo $hook_args['buffer'];
 
-        if( !empty( $cuser_arr ) )
+        if( !empty( $user_logged_in ) )
         {
             ?>
             <li><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
@@ -230,11 +231,15 @@
             <?php
         } else
         {
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_REGISTER ) )
+            {
+                ?>
+                <li><a href="<?php echo PHS::url( array(
+                                                          'p' => 'accounts', 'a' => 'register'
+                                                  ) ) ?>"><?php echo $this::_t( 'Register' ) ?></a></li>
+                <?php
+            }
             ?>
-            <li><a href="<?php echo PHS::url( array(
-                                                  'p' => 'accounts',
-                                                  'a' => 'register'
-                                              ) ) ?>"><?php echo $this::_t( 'Register' ) ?></a></li>
             <li>
                 <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
                     <div style="float:right;" class="fa fa-arrow-down"></div>
@@ -390,7 +395,12 @@
         <!-- BEGIN: page_footer -->
         <div id="footer_content">
             <div class="footerlinks">
-                <a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |
+                <?php
+                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_CONTACT_US ) )
+                {
+                    ?><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |<?php
+                }
+                ?>
                 <a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a>
             </div>
             <div class="clearfix"></div>

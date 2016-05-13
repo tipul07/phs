@@ -181,11 +181,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( ! ($db_details = $this->get_current_user_db_details()) or empty($db_details['session_db_data']) or ! is_array( $db_details['session_db_data'] ) or empty($db_details['session_db_data']['id']) or empty($db_details['session_db_data']['auid']) )
+        if( !($db_details = $this->get_current_user_db_details())
+         or empty( $db_details['session_db_data'] )
+         or ! is_array( $db_details['session_db_data'] )
+         or empty( $db_details['session_db_data']['id'] )
+         or empty( $db_details['session_db_data']['auid'] ) )
             return true;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( ! ($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
@@ -193,7 +197,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( ! ($accounts_model->session_logout_subaccount( $db_details['session_db_data'] )) )
+        if( !($accounts_model->session_logout_subaccount( $db_details['session_db_data'] )) )
         {
             if( $accounts_model->has_error() )
                 $this->copy_error( $accounts_model );

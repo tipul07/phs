@@ -26,15 +26,7 @@ class PHS_Action_Logout extends PHS_Action
      */
     public function execute()
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = $this->get_plugin_instance()) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
-            return self::default_action_result();
-        }
-
-        if( !($current_user = PHS::current_user())
-         or empty( $current_user['id'] ) )
+        if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_success_notice( $this->_pt( 'You logged out from your account...' ) );
 
@@ -43,6 +35,13 @@ class PHS_Action_Logout extends PHS_Action
             $action_result['redirect_to_url'] = PHS::url();
 
             return $action_result;
+        }
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = $this->get_plugin_instance()) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
+            return self::default_action_result();
         }
 
         if( $accounts_plugin->do_logout() )
@@ -55,6 +54,8 @@ class PHS_Action_Logout extends PHS_Action
 
             return $action_result;
         }
+
+        var_dump( $accounts_plugin->get_error() );
 
         if( $accounts_plugin->has_error() )
             PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );

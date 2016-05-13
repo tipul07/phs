@@ -8,14 +8,7 @@
     use \phs\libraries\PHS_Notifications;
     use \phs\libraries\PHS_Roles;
 
-    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-    if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-    {
-        PHS_Notifications::add_error_notice( $this::_t( 'Couldn\'t load accounts model. Please contact support.' ) );
-        $accounts_model = false;
-    }
-
-    if( !($cuser_arr = PHS::user_logged_in()) )
+    if( !($cuser_arr = PHS::current_user()) )
         $cuser_arr = false;
 
     $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
@@ -88,23 +81,16 @@
             $('.submit-protection').on('click', function( event ){
 
                 var form_obj = $(this).parents('form:first');
-                console.log( form_obj );
-                console.log( typeof document.createElement( 'input' ).checkValidity );
-                console.log( form_obj.checkValidity() );
 
-                console.log( 'ok' );
-                if( form_obj
+                if( form_obj && form_obj[0]
                  && typeof document.createElement( 'input' ).checkValidity == 'function'
-                 && !form_obj.checkValidity() ) {
-                    console.log( 'canci validity' );
+                 && !form_obj[0].checkValidity() ) {
                     return;
                 }
 
                 var msg = $( this ).data( 'protectionTitle' );
                 if( typeof msg == 'undefined' || !msg )
                     msg = '';
-
-                console.log( 'aratam protection' );
 
                 show_submit_protection( msg );
             });
@@ -167,66 +153,63 @@
         and !empty( $hook_args['buffer'] ) )
             echo $hook_args['buffer'];
 
-        if( !empty( $accounts_model ) )
+        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
         {
-            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
-            {
-                ?>
-                <li><?php echo $this::_t( 'Plugins Management' ) ?>
-                    <ul>
-                        <li><a href="<?php echo PHS::url( array(
-                                                                  'a' => 'plugins_list', 'p' => 'admin'
-                                                          ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
-                    </ul>
-                </li>
-                <?php
-            }
-            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
-            {
-                ?>
-                <li><?php echo $this::_t( 'Roles Management' ) ?>
-                    <ul>
-                        <?php
-                            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
-                            {
-                                ?>
-                                <li><a href="<?php echo PHS::url( array(
-                                                                          'a' => 'role_add', 'p' => 'admin'
-                                                                  ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
-                                </li>
-                                <?php
-                            }
-                        ?>
-                        <li><a href="<?php echo PHS::url( array(
-                                                                  'a' => 'roles_list', 'p' => 'admin'
-                                                          ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
-                    </ul>
-                </li>
-                <?php
-            }
-            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
-            {
-                ?>
-                <li><?php echo $this::_t( 'Users Management' ) ?>
-                    <ul>
-                        <?php
-                        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+            ?>
+            <li><?php echo $this::_t( 'Plugins Management' ) ?>
+                <ul>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'a' => 'plugins_list', 'p' => 'admin'
+                                                      ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
+                </ul>
+            </li>
+            <?php
+        }
+        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
+        {
+            ?>
+            <li><?php echo $this::_t( 'Roles Management' ) ?>
+                <ul>
+                    <?php
+                        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
                         {
                             ?>
                             <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'user_add', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                                                                      'a' => 'role_add', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
                             </li>
                             <?php
                         }
+                    ?>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'a' => 'roles_list', 'p' => 'admin'
+                                                      ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
+                </ul>
+            </li>
+            <?php
+        }
+        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
+        {
+            ?>
+            <li><?php echo $this::_t( 'Users Management' ) ?>
+                <ul>
+                    <?php
+                    if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+                    {
                         ?>
                         <li><a href="<?php echo PHS::url( array(
-                                                                  'a' => 'users_list', 'p' => 'admin'
-                                                          ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
-                    </ul>
-                </li>
-                <?php
-            }
+                                                                  'a' => 'user_add', 'p' => 'admin'
+                                                          ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                        </li>
+                        <?php
+                    }
+                    ?>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'a' => 'users_list', 'p' => 'admin'
+                                                      ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
+                </ul>
+            </li>
+            <?php
         }
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))

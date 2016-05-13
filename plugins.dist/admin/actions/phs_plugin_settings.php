@@ -249,9 +249,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
             }
         }
 
-        var_dump( $db_version );
-        var_dump( $script_version );
-
         $form_data['pid'] = $pid;
 
         $data['form_data'] = $form_data;

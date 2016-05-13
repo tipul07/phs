@@ -135,8 +135,7 @@ final class PHS extends PHS_Registry
     public static function current_user( $force = false )
     {
         if( !($hook_args = self::_current_user_trigger( $force ))
-         or empty( $hook_args['user_db_data'] ) or !is_array( $hook_args['user_db_data'] )
-         or empty( $hook_args['user_db_data']['id'] ) )
+         or empty( $hook_args['user_db_data'] ) or !is_array( $hook_args['user_db_data'] ) )
             return false;
 
         return $hook_args['user_db_data'];

@@ -9,6 +9,7 @@ use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Roles;
 
 class PHS_Action_Register extends PHS_Action
 {
@@ -32,6 +33,12 @@ class PHS_Action_Register extends PHS_Action
         }
 
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
+            return self::default_action_result();
+        }
+
+        if( !PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_CONTACT_US ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
             return self::default_action_result();

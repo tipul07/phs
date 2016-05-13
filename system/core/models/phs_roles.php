@@ -152,14 +152,22 @@ class PHS_Model_Roles extends PHS_Model
             return $role_arr;
 
         $edit_arr = array();
-        $edit_arr['name'] = $role_arr['name'].'_DELETED_'.time();
-        $edit_arr['slug'] = $role_arr['slug'].'_DELETED_'.time();
+        $edit_arr['name'] = $role_arr['name'].'-DELETED-'.time();
+        $edit_arr['slug'] = $role_arr['slug'].'-DELETED-'.time();
         $edit_arr['status'] = self::STATUS_DELETED;
 
         $edit_params = array();
         $edit_params['fields'] = $edit_arr;
 
-        return $this->edit( $role_arr, $edit_params );
+        if( !($edit_result = $this->edit( $role_arr, $edit_params )) )
+            return false;
+
+        $this->unlink_all_role_units_from_role( $role_arr );
+        $this->unlink_role_from_all_users( $role_arr );
+        // Reset any error set by unlink_all_role_units_from_role or unlink_role_from_all_users (role was already marked as deleted)
+        $this->reset_error();
+
+        return $edit_result;
     }
 
     private function load_dependencies()
@@ -234,6 +242,24 @@ class PHS_Model_Roles extends PHS_Model
             return false;
 
         return $all_statuses[$status];
+    }
+
+    /**
+     * Try transforming role name to role slug. This is not done automatically by the class just to be sure slug is provided as intended
+     *
+     * @param string $name
+     *
+     * @return string Returns string containing resulting slug
+     */
+    public function transform_name_to_slug( $name )
+    {
+        $name = trim( (string)$name );
+        if( empty( $name ) )
+            return false;
+
+        return str_replace(
+            array( '~', '`', '\'', '"', '<', '>', '?', '/', '!', '@', '#', '$', '%', '^', '&', '*', ')', '(', '+', '=', ';', ':', '{', '}', '\\', '|', '.', '[', ']' ),
+            '_', $name );
     }
 
     /**
@@ -481,7 +507,10 @@ class PHS_Model_Roles extends PHS_Model
     {
         if( !empty( $params['{role_units}'] ) and is_array( $params['{role_units}'] ) )
         {
-            if( !$this->link_role_units_to_role( $insert_arr, $params['{role_units}'] ) )
+            if( empty( $params['{role_units_params}'] ) )
+                $params['{role_units_params}'] = false;
+
+            if( !$this->link_role_units_to_role( $insert_arr, $params['{role_units}'], $params['{role_units_params}'] ) )
                 return false;
         }
 
@@ -623,6 +652,32 @@ class PHS_Model_Roles extends PHS_Model
     }
 
     /**
+     * Un-links all role units from roles.
+     *
+     * @param array|int $role_data Role id or role array
+     *
+     * @return bool True on success, false on fail
+     */
+    public function unlink_all_role_units_from_role( $role_data )
+    {
+        $this->reset_error();
+
+        if( !($role_arr = $this->data_to_array( $role_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Role not found in database.' ) );
+            return false;
+        }
+
+        if( !db_query( 'DELETE FROM roles_units_links WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection() ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink role units from role.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Links role units to roles. We assume role units were already created.
      *
      * @param array|int $role_data Role id or role array
@@ -754,7 +809,7 @@ class PHS_Model_Roles extends PHS_Model
     }
 
     /**
-     * Links roles to accounts. We assume roles were already created.
+     * Un-links roles from one account.
      *
      * @param array|int $account_data Account id or account array
      * @param array $roles_arr Roles passed as slugs, id or role array
@@ -792,6 +847,66 @@ class PHS_Model_Roles extends PHS_Model
         and !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection() ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink roles from account.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Un-links all roles from one account.
+     *
+     * @param array|int $account_data Account id or account array
+     * @param array $roles_arr Roles passed as slugs, id or role array
+     * @param bool|array $params Functionality parameters
+     *
+     * @return bool
+     */
+    public function unlink_all_roles_from_user( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
+            return false;
+        }
+
+        if( !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\'', $this->get_db_connection() ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink roles from account.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Un-links roles from accounts.
+     *
+     * @param array|int $account_data Account id or account array
+     * @param array $roles_arr Roles passed as slugs, id or role array
+     * @param bool|array $params Functionality parameters
+     *
+     * @return bool
+     */
+    public function unlink_role_from_all_users( $role_data )
+    {
+        $this->reset_error();
+
+        if( !($role_arr = $this->data_to_array( $role_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Role not found in database.' ) );
+            return false;
+        }
+
+        if( !db_query( 'DELETE FROM roles_users WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection() ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink role from all accounts.' ) );
             return false;
         }
 
@@ -1252,7 +1367,10 @@ class PHS_Model_Roles extends PHS_Model
     {
         if( is_array( $params['{role_units}'] ) )
         {
-            if( !$this->link_role_units_to_role( $existing_data, $params['{role_units}'] ) )
+            if( empty( $params['{role_units_params}'] ) )
+                $params['{role_units_params}'] = false;
+
+            if( !$this->link_role_units_to_role( $existing_data, $params['{role_units}'], $params['{role_units_params}'] ) )
                 return false;
         }
 

@@ -65,14 +65,20 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $account_created = PHS_params::_g( 'account_created', PHS_params::T_NOHTML );
-
-        if( !empty( $account_created ) )
+        if( PHS_params::_g( 'account_created', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
+        if( PHS_params::_g( 'unknown_account', PHS_params::T_INT ) )
+            PHS_Notifications::add_error_notice( $this->_pt( 'Account not found in database.' ) );
+
+        $list_arr = array();
+
+        $accounts_model = $this->_paginator_model;
+        $list_arr['fields']['status'] = array( 'check' => '!=' , 'value' => $accounts_model::STATUS_DELETED );
 
         $flow_params = array(
             'term_singular' => $this->_pt( 'user' ),
             'term_plural' => $this->_pt( 'users' ),
+            'initial_list_arr' => $list_arr,
             'after_table_callback' => array( $this, 'after_table_callback' ),
         );
 
@@ -85,6 +91,9 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             $users_levels = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $users_levels );
         if( !empty( $users_statuses ) )
             $users_statuses = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $users_statuses );
+
+        if( isset( $users_statuses[$accounts_model::STATUS_DELETED] ) )
+            unset( $users_statuses[$accounts_model::STATUS_DELETED] );
 
         $bulk_actions = array(
             array(
@@ -187,7 +196,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd M y H:i',
                 'invalid_value' => $this->_pt( 'Never' ),
-                'extra_style' => 'width:100px;',
+                'extra_style' => 'width:120px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(
@@ -197,13 +206,13 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd M y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-                'extra_style' => 'width:100px;',
+                'extra_style' => 'width:120px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(
                 'column_title' => $this->_pt( 'Actions' ),
                 'display_callback' => array( $this, 'display_actions' ),
-                'extra_style' => 'width:100px;',
+                'extra_style' => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
                 'sortable' => false,
             ),
@@ -434,6 +443,44 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 }
             break;
 
+            case 'sublogin_account':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Logged in with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Logging in as this account failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to login as this accounts.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = intval( $action['action_params'] );
+                 
+                if( empty( $action['action_params'] )
+                 or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot login as this account. Account not found.' ) );
+                    return false;
+                }
+
+                if( !$this->_paginator_model->login( $account_arr ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                {
+                    // If we logged in with success redirect at main page as we don't know if new logged in user has rights to view this page...
+                    header( 'Location: '.PHS::url() );
+                    exit;
+                }
+            break;
+
             case 'activate_account':
                 if( !empty( $action['action_result'] ) )
                 {
@@ -454,7 +501,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
                 if( !empty( $action['action_params'] ) )
                     $action['action_params'] = intval( $action['action_params'] );
-                 
+
                 if( empty( $action['action_params'] )
                  or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
@@ -548,20 +595,44 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 return false;
         }
 
-        if( empty( $params )
-         or !is_array( $params )
+        $current_user = PHS::user_logged_in();
+
+        if( empty( $current_user )
+         or empty( $params ) or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] )
          or !($account_arr = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
+        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+            return '-';
+
+        $is_inactive = $this->_paginator_model->is_inactive( $account_arr );
+        $is_active = $this->_paginator_model->is_active( $account_arr );
+
         ob_start();
-        if( $this->_paginator_model->is_inactive( $account_arr ) )
+
+        if( PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
+        {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-sign-in action-icons" title="<?php echo $this->_pt( 'Change login to this account' )?>"></i></a>
+            <?php
+        }
+
+        if( ($is_inactive or $is_active)
+        and $this->_paginator_model->can_manage_account( $current_user, $account_arr ) )
+        {
+            ?>
+            <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'user_edit' ), array( 'uid' => $account_arr['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit account' )?>"></i></a>
+            <?php
+        }
+
+        if( $is_inactive )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_users_list_activate_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate account' )?>"></i></a>
             <?php
         }
-        if( $this->_paginator_model->is_active( $account_arr ) )
+        if( $is_active )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_users_list_inactivate_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate account' )?>"></i></a>
@@ -590,6 +661,19 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
+        function phs_users_list_sublogin_account( id )
+        {
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to change login as this account?', '"' )?>" ) )
+            {
+                <?php
+                $url_params = array();
+                $url_params['action'] = array(
+                    'action' => 'sublogin_account',
+                    'action_params' => '" + id + "',
+                )
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
+            }
+        }
         function phs_users_list_activate_account( id )
         {
             if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this account?', '"' )?>" ) )

@@ -28,7 +28,9 @@ class PHS_Hooks extends PHS_Registry
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
          // User account hooks
-         H_USER_DB_DETAILS = 'phs_user_db_details',
+         H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
+         // triggered to get list of roles to assign to new users
+         H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
 
          // Layout triggers
          H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
@@ -40,6 +42,14 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
          H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
          H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu';
+
+    public static function default_user_registration_roles_hook_args()
+    {
+        return array(
+            'roles_arr' => array(),
+            'account_data' => false,
+        );
+    }
 
     public static function default_user_db_details_hook_args()
     {

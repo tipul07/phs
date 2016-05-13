@@ -85,6 +85,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
         if( PHS_params::_g( 'unknown_role', PHS_params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid role or role was not found in database.' ) );
+        if( PHS_params::_g( 'role_added', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Role details saved in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
             $statuses_arr = array();
@@ -92,7 +94,10 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         if( !empty( $statuses_arr ) )
             $statuses_arr = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $statuses_arr );
 
-        if( !PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+        if( isset( $statuses_arr[$roles_model::STATUS_DELETED] ) )
+            unset( $statuses_arr[$roles_model::STATUS_DELETED] );
+
+        if( !PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
             $bulk_actions = false;
 
         else
@@ -183,7 +188,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             ),
         );
 
-        if( PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+        if( PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'id',
@@ -541,7 +546,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 return false;
         }
 
-        if( !PHS_Roles::user_has_role_units( PHS::user_logged_in(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
+        if( !PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_MANAGE_ROLES ) )
             return '-';
 
         if( empty( $params )
@@ -554,7 +559,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         $is_active = $this->_paginator_model->is_active( $role_arr );
 
         ob_start();
-        if( ($is_inactive or $is_active) )
+        if( $is_inactive or $is_active )
         {
             ?>
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_edit' ), array( 'rid' => $role_arr['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit role' )?>"></i></a>

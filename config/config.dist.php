@@ -17,7 +17,7 @@ define( 'PHS_DOMAIN_PATH', '/site/path/' ); // ending in /
 define( 'PHS_THEME', PHS_DEFAULT_THEME );
 
 // Required only if you want to have different crypting parameters
-// !!! BUT ONLY IF DOMIN USES IT'S OWN DATABASE !!!
+// !!! BUT ONLY IF DOMAIN USES IT'S OWN DATABASE !!!
 define( 'PHS_CRYPT_KEY', '@#&*(PHS_cryptencodingKeY!#@)^-=[]{};,./<>?' );
 global $PHS_CRYPT_INTERNAL_KEYS_ARR;
 $PHS_CRYPT_INTERNAL_KEYS_ARR = array(

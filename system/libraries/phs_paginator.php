@@ -219,12 +219,12 @@ class PHS_Paginator extends PHS_Registry
          or empty( $params['record'] ) or !is_array( $params['record'] )
          or empty( $params['column'] ) or !is_array( $params['column'] )
          or empty( $params['column']['record_field'] )
-         or empty( $params['record'][$params['column']['record_field']] ) )
+         or !array_key_exists( $params['column']['record_field'], $params['record'] ) )
             return false;
 
         if( !($date_time = is_db_date( $params['record'][$params['column']['record_field']] ))
          or empty_db_date( $params['record'][$params['column']['record_field']] ) )
-            return (!empty( $params['column']['invalid_value'] )?$params['column']['invalid_value']:self::_t( 'N/A' ));
+            return (!empty($params['column']['invalid_value']) ? $params['column']['invalid_value'] : self::_t( 'N/A' ));
 
         if( !empty( $params['column']['date_format'] ) )
             $date_str = @date( $params['column']['date_format'], parse_db_date( $date_time ) );

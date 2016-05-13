@@ -764,7 +764,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             case self::FTYPE_DATETIME:
                 if( empty_db_date( $value ) )
-                    $value = self::DATETIME_EMPTY;
+                    $value = null;
                 else
                     $value = @date( self::DATETIME_DB, parse_db_date( $value ) );
             break;

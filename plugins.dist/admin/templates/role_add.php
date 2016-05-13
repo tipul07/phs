@@ -8,31 +8,15 @@
         $ru_slugs = array();
     if( !($role_units_by_slug = $this->context_var( 'role_units_by_slug' )) )
         $role_units_by_slug = array();
-
-    if( !($back_page = $this->context_var( 'back_page' )) )
-        $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'roles_list' ) );
 ?>
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="edit_role_form" name="edit_role_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_edit' ), array( 'rid' => $this->context_var( 'rid' ) ) )?>" method="post" class="wpcf7">
+    <form id="add_role_form" name="add_role_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_add' ) )?>" method="post" class="wpcf7">
         <input type="hidden" name="foobar" value="1" />
-        <?php
-        if( !empty( $back_page ) )
-        {
-            ?><input type="hidden" name="back_page" value="<?php echo form_str( safe_url( $back_page ) )?>" /><?php
-        }
-        ?>
 
         <div class="form_container responsive" style="width: 650px;">
 
-            <?php
-            if( !empty( $back_page ) )
-            {
-                ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
-            }
-            ?>
-
             <section class="heading-bordered">
-                <h3><?php echo $this->_pt( 'Edit Role' )?></h3>
+                <h3><?php echo $this->_pt( 'Add Role' )?></h3>
             </section>
 
             <fieldset class="lineform">
@@ -42,7 +26,10 @@
 
             <fieldset class="lineform">
                 <label for="slug"><?php echo $this->_pt( 'Slug' )?>:</label>
-                <?php echo $this->context_var( 'slug' )?>
+                <div class="lineform_line">
+                <input type="text" id="slug" name="slug" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'slug' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
+                <small><?php echo $this->_pt( 'Slug should be unique. Once role is defined you cannot change this slug.' )?></small>
+                </div>
             </fieldset>
 
             <fieldset class="lineform">
@@ -72,7 +59,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Save changes' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Add role' )?>" />
             </fieldset>
 
         </div>

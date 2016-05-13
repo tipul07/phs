@@ -135,8 +135,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr['description'] = $plugin_info_arr['description'];
                 $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
                 $record_arr['status'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status']:-1);
-                $record_arr['status_date'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status_date']:PHS_Model::DATETIME_EMPTY);
-                $record_arr['cdate'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['cdate']:PHS_Model::DATETIME_EMPTY);
+                $record_arr['status_date'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status_date']:null);
+                $record_arr['cdate'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['cdate']:null);
                 $record_arr['models'] = ((!empty( $plugin_info_arr['models'] ) and is_array( $plugin_info_arr['models'] ))?$plugin_info_arr['models']:array());
 
                 if( !empty( $scope_arr['fplugin'] )
