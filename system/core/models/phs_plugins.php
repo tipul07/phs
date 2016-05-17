@@ -159,6 +159,36 @@ class PHS_Model_Plugins extends PHS_Model
         self::$db_plugins = array();
     }
 
+    public function is_active( $plugin_data )
+    {
+        if( empty( $plugin_data )
+         or !($plugin_arr = $this->data_to_array( $plugin_data ))
+         or $plugin_arr['status'] != self::STATUS_ACTIVE )
+            return false;
+
+        return $plugin_arr;
+    }
+
+    public function is_inactive( $plugin_data )
+    {
+        if( empty( $plugin_data )
+         or !($plugin_arr = $this->data_to_array( $plugin_data ))
+         or !$this->inactive_status( $plugin_arr['status'] ) )
+            return false;
+
+        return $plugin_arr;
+    }
+
+    public function is_installed( $plugin_data )
+    {
+        if( empty( $plugin_data )
+         or !($plugin_arr = $this->data_to_array( $plugin_data ))
+         or $plugin_arr['status'] != self::STATUS_INSTALLED )
+            return false;
+
+        return $plugin_arr;
+    }
+
     public function save_db_settings( $settings_arr, $instance_id = null )
     {
         $this->reset_error();

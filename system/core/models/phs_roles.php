@@ -245,21 +245,19 @@ class PHS_Model_Roles extends PHS_Model
     }
 
     /**
-     * Try transforming role name to role slug. This is not done automatically by the class just to be sure slug is provided as intended
+     * Try transforming a string to role or role unit slug.
      *
-     * @param string $name
+     * @param string $str String to be transformed in characters accepted as role slug
      *
      * @return string Returns string containing resulting slug
      */
-    public function transform_name_to_slug( $name )
+    public function transform_string_to_slug( $str )
     {
-        $name = trim( (string)$name );
-        if( empty( $name ) )
-            return false;
+        $str = trim( (string)$str );
+        if( empty( $str ) )
+            return '';
 
-        return str_replace(
-            array( '~', '`', '\'', '"', '<', '>', '?', '/', '!', '@', '#', '$', '%', '^', '&', '*', ')', '(', '+', '=', ';', ':', '{', '}', '\\', '|', '.', '[', ']' ),
-            '_', $name );
+        return str_replace( '__', '_', @preg_replace( '/[^a-zA-Z0-9_]+/', '_', $str ) );
     }
 
     /**
@@ -523,7 +521,8 @@ class PHS_Model_Roles extends PHS_Model
 
         $user_id = intval( $user_id );
         if( empty( $user_id )
-         or !($qid = db_query( 'SELECT * FROM roles_users WHERE user_id = \''.$user_id.'\'', $this->get_db_connection() ))
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+         or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$user_id.'\'', $this->get_db_connection( $flow_params ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 
@@ -542,7 +541,8 @@ class PHS_Model_Roles extends PHS_Model
 
         $role_id = intval( $role_id );
         if( empty( $role_id )
-         or !($qid = db_query( 'SELECT * FROM roles_units_links WHERE role_id = \''.$role_id.'\'', $this->get_db_connection() ))
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_id.'\'', $this->get_db_connection( $flow_params ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 
@@ -668,7 +668,8 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if( !db_query( 'DELETE FROM roles_units_links WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection() ) )
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink role units from role.' ) );
             return false;
@@ -709,7 +710,9 @@ class PHS_Model_Roles extends PHS_Model
             return true;
 
         if( !empty( $role_unit_ids )
-        and !db_query( 'DELETE FROM roles_units_links WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_unit_ids ).')', $this->get_db_connection() ) )
+        and (!($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+             or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_unit_ids ).')', $this->get_db_connection( $flow_params ) )
+            ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink role units from role.' ) );
             return false;
@@ -746,10 +749,16 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid flow parameters.' ) );
+            return false;
+        }
+
         if( !isset( $params['append_role_units'] ) )
             $params['append_role_units'] = true;
 
-        $db_connection = $this->get_db_connection();
+        $db_connection = $this->get_db_connection( $flow_params );
 
         if( empty( $role_units_arr ) )
         {
@@ -757,7 +766,7 @@ class PHS_Model_Roles extends PHS_Model
                 return true;
 
             // Unlink all roles...
-            if( !db_query( 'DELETE FROM roles_units_links WHERE role_id = \''.$role_arr['id'].'\'', $db_connection ) )
+            if( !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_arr['id'].'\'', $db_connection ) )
             {
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking old role units from role.' ) );
                 return false;
@@ -781,7 +790,7 @@ class PHS_Model_Roles extends PHS_Model
 
             foreach( $insert_ids as $role_unit_id )
             {
-                if( !db_query( 'INSERT INTO roles_units_links SET role_id = \''.$role_arr['id'].'\', role_unit_id = \''.$role_unit_id.'\'', $db_connection ) )
+                if( !db_query( 'INSERT INTO `'.$this->get_flow_table_name( $flow_params ).'` SET role_id = \''.$role_arr['id'].'\', role_unit_id = \''.$role_unit_id.'\'', $db_connection ) )
                 {
                     $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error linking all role units to role.' ) );
                     return false;
@@ -797,7 +806,7 @@ class PHS_Model_Roles extends PHS_Model
                 }
 
                 if( !empty( $delete_ids)
-                and !db_query( 'DELETE FROM roles_units_links WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
+                and !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
                 {
                     $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking old role units from role.' ) );
                     return false;
@@ -844,7 +853,9 @@ class PHS_Model_Roles extends PHS_Model
             return true;
 
         if( !empty( $role_ids )
-        and !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection() ) )
+        and (!($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+             or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params ) )
+            ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink roles from account.' ) );
             return false;
@@ -876,7 +887,8 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if( !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\'', $this->get_db_connection() ) )
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+         or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink roles from account.' ) );
             return false;
@@ -904,7 +916,8 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if( !db_query( 'DELETE FROM roles_users WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection() ) )
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+         or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink role from all accounts.' ) );
             return false;
@@ -939,13 +952,19 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid flow parameters.' ) );
+            return false;
+        }
+
         if( !is_array( $roles_arr ) )
             $roles_arr = array( $roles_arr );
 
         if( !isset( $params['append_roles'] ) )
             $params['append_roles'] = true;
 
-        $db_connection = $this->get_db_connection();
+        $db_connection = $this->get_db_connection( $flow_params );
 
         if( empty( $roles_arr ) )
         {
@@ -953,7 +972,7 @@ class PHS_Model_Roles extends PHS_Model
                 return true;
 
             // Unlink all roles...
-            if( !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\'', $db_connection ) )
+            if( !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\'', $db_connection ) )
             {
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking old roles from account.' ) );
                 return false;
@@ -977,7 +996,7 @@ class PHS_Model_Roles extends PHS_Model
 
             foreach( $insert_ids as $role_id )
             {
-                if( !db_query( 'INSERT INTO roles_users SET user_id = \''.$account_arr['id'].'\', role_id = \''.$role_id.'\'', $db_connection ) )
+                if( !db_query( 'INSERT INTO `'.$this->get_flow_table_name( $flow_params ).'` SET user_id = \''.$account_arr['id'].'\', role_id = \''.$role_id.'\'', $db_connection ) )
                 {
                     $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error linking all roles to account.' ) );
                     return false;
@@ -993,7 +1012,7 @@ class PHS_Model_Roles extends PHS_Model
                 }
 
                 if( !empty( $delete_ids )
-                and !db_query( 'DELETE FROM roles_users WHERE user_id = \''.$account_arr['id'].'\' AND role_id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
+                and !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\' AND role_id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
                 {
                     $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking old roles from account.' ) );
                     return false;
@@ -1013,12 +1032,17 @@ class PHS_Model_Roles extends PHS_Model
      */
     public function get_role_role_units_slugs( $role_data )
     {
-        if( !($ids_arr = $this->roles_list_to_ids( array( $role_data ) ))
+        if( !($flow_params_ru = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) ))
+         or !($flow_params_rul = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
+         or !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
+         or !($ids_arr = $this->roles_list_to_ids( array( $role_data ) ))
          or !is_array( $ids_arr )
          or !($role_id = @array_shift( $ids_arr ))
-         or !($qid = db_query( 'SELECT roles_units.slug FROM `roles_units` '.
-                               ' LEFT JOIN roles_units_links ON roles_units_links.role_unit_id = roles_units.id '.
-                               ' WHERE roles_units_links.role_id = \''.intval( $role_id ).'\'', $this->get_db_connection() ))
+         or !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
+                               ' FROM `'.$roles_units_table.'` '.
+                               ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
+                               ' WHERE `'.$roles_units_links_table.'`.role_id = \''.intval( $role_id ).'\'', $this->get_db_connection( $flow_params_ru ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 
@@ -1273,12 +1297,17 @@ class PHS_Model_Roles extends PHS_Model
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
             return false;
         }
-
+        
         if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
          or !is_array( $role_ids )
-         or !($qid = db_query( 'SELECT roles_units.slug FROM `roles_units` '.
-                               ' LEFT JOIN roles_units_links ON roles_units_links.role_unit_id = roles_units.id '.
-                               ' WHERE roles_units_links.role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection() ))
+         or !($flow_params_ru = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) ))
+         or !($flow_params_rul = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
+         or !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
+         or !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
+                               ' FROM `'.$roles_units_table.'` '.
+                               ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
+                               ' WHERE `'.$roles_units_links_table.'`.role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params_ru ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 

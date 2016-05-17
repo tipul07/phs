@@ -97,7 +97,7 @@ class PHS_Action_Edit_profile extends PHS_Action
         $phone = PHS_params::_p( 'phone', PHS_params::T_NOHTML );
         $company = PHS_params::_p( 'company', PHS_params::T_NOHTML );
 
-        $submit = PHS_params::_p( 'submit' );
+        $do_submit = PHS_params::_p( 'do_submit' );
 
         if( !empty( $verification_email_sent ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
@@ -134,7 +134,7 @@ class PHS_Action_Edit_profile extends PHS_Action
             }
         }
 
-        if( !empty( $submit ) )
+        if( !empty( $do_submit ) )
         {
             $edit_arr = array();
             $edit_arr['email'] = $email;

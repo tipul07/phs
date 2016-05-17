@@ -1079,6 +1079,8 @@ class PHS_Paginator extends PHS_Registry
 
         $this->flow_param( 'did_query_database', true );
 
+        $model_flow_params = $model_obj->fetch_default_flow_params( $list_arr );
+
         if( !($records_count = $model_obj->get_count( $list_arr )) )
         {
             // Set count of total records to 0
@@ -1095,7 +1097,7 @@ class PHS_Paginator extends PHS_Registry
         $sort = $this->pagination_params( 'sort' );
         if( ($sort_by = $this->pagination_params( 'sort_by' ))
         and is_string( $sort_by ) )
-            $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_table_name().'`.':'').$sort_by.' '.(empty( $sort )?'ASC':'DESC');
+            $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by.' '.(empty( $sort )?'ASC':'DESC');
 
         if( !($records_arr = $model_obj->get_list( $list_arr )) )
             $records_arr = array();

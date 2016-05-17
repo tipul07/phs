@@ -5,8 +5,28 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
     use \phs\PHS_crypt;
+    use \phs\libraries\PHS_Model;
 
-    // // ALTER TABLE Employees CHANGE COLUMN empName empName VARCHAR(50) AFTER department;
+    // /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_model */
+    // if( !($accounts_model = PHS::load_model( 'accounts_details', 'accounts' )) )
+    // {
+    //     echo 'Error instantiating accounts model.';
+    //     exit;
+    // }
+    //
+    // if( !($result = $accounts_model->check_field_exists( 'id', array( 'table_name' => 'users_details' ) )) )
+    // {
+    //     var_dump( $accounts_model->get_error() );
+    //
+    //     echo 'Users table structure is unknown. Id field not found.';
+    //     exit;
+    // }
+    //
+    // var_dump( $result );
+    //
+    // exit;
+    //
+    // // // ALTER TABLE Employees CHANGE COLUMN empName empName VARCHAR(50) AFTER department;
     // if( ($qid = db_query( 'SHOW FULL COLUMNS FROM `users`' )) )
     // {
     //     while( ($row = mysqli_fetch_assoc( $qid )) )

@@ -9,6 +9,9 @@ class PHS_Hooks extends PHS_Registry
 {
     const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
 
+         // Model hooks
+         H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
+
          // Plugins hooks
          H_PLUGIN_SETTINGS = 'phs_plugin_settings',
 
@@ -41,7 +44,30 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
          H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
          H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
-         H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu';
+         H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu',
+
+         H_MAIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_main_template_before_main_menu',
+         H_MAIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_main_template_after_main_menu',
+         H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
+         H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
+         H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
+         H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
+
+    public static function default_model_validate_data_fields_hook_args()
+    {
+        return array(
+            'flow_params' => false,
+            'table_fields' => array(),
+        );
+    }
+
+    public static function default_model_empty_data_hook_args()
+    {
+        return array(
+            'data_arr' => array(),
+            'flow_params' => false,
+        );
+    }
 
     public static function default_user_registration_roles_hook_args()
     {

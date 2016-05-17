@@ -331,25 +331,63 @@
                     <ul>
                         <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a></li>
 
+                        <?php
+                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
+                        and is_array( $hook_args )
+                        and !empty( $hook_args['buffer'] ) )
+                            echo $hook_args['buffer'];
+                        ?>
+
                         <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Home' )?></a></li>
 
                         <?php
-                        if( empty( $cuser_arr ) )
+                        if( empty( $user_logged_in ) )
                         {
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT, PHS_Hooks::default_buffer_hook_args() ))
+                            and is_array( $hook_args )
+                            and !empty( $hook_args['buffer'] ) )
+                                echo $hook_args['buffer'];
+
+                            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_REGISTER ) )
+                            {
+                                ?>
+                                <li><a href="<?php echo PHS::url( array(
+                                                                          'p' => 'accounts', 'a' => 'register'
+                                                                  ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' ) ?></a>
+                                </li>
+                                <?php
+                            }
                             ?>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                  'p' => 'accounts',
-                                                                  'a' => 'register'
-                                                              ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' ) ?></a>
-                            </li>
                             <li><a href="<?php echo PHS::url( array(
                                                                   'p' => 'accounts',
                                                                   'a' => 'login'
                                                               ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Login' ) ?></a>
                             </li>
                             <?php
+
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT, PHS_Hooks::default_buffer_hook_args() ))
+                            and is_array( $hook_args )
+                            and !empty( $hook_args['buffer'] ) )
+                                echo $hook_args['buffer'];
+                        } else
+                        {
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN, PHS_Hooks::default_buffer_hook_args() ))
+                            and is_array( $hook_args )
+                            and !empty( $hook_args['buffer'] ) )
+                                echo $hook_args['buffer'];
+
+
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN, PHS_Hooks::default_buffer_hook_args() ))
+                            and is_array( $hook_args )
+                            and !empty( $hook_args['buffer'] ) )
+                                echo $hook_args['buffer'];
                         }
-                        ?>
+
+                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
+                        and is_array( $hook_args )
+                        and !empty( $hook_args['buffer'] ) )
+                            echo $hook_args['buffer'];
+                    ?>
                     </ul>
                 </nav>
                 <div id="user_info">

@@ -506,7 +506,11 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function clear_idler_sessions()
     {
-        return (db_query( 'DELETE FROM `online` WHERE expire_date < \''.date( self::DATETIME_DB ).'\'', self::get_db_connection() )?true:false);
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'online' ) ))
+         or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE expire_date < \''.date( self::DATETIME_DB ).'\'', $flow_params['db_connection'] ) )
+            return false;
+
+        return true;
     }
 
     public function update_current_session( $online_data, $params = false )
@@ -1011,7 +1015,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             $insert_arr['{users_details}'] = $users_details;
 
-            if( !db_query( 'UPDATE users SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$insert_arr['id'].'\'', self::get_db_connection() ) )
+            if( !db_query( 'UPDATE `'.$this->get_flow_table_name( $params ).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$insert_arr['id'].'\'', $this->get_db_connection( $params ) ) )
             {
                 self::st_reset_error();
 
@@ -1254,7 +1258,7 @@ class PHS_Model_Accounts extends PHS_Model
                     return false;
                 }
 
-                if( !db_query( 'UPDATE users SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$existing_data['id'].'\'', self::get_db_connection() ) )
+                if( !db_query( 'UPDATE `'.$this->get_flow_table_name( $params ).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$existing_data['id'].'\'', $this->get_db_connection( $params ) ) )
                 {
                     self::st_reset_error();
 

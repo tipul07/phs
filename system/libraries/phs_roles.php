@@ -34,6 +34,36 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
+    public static function transform_string_to_slug( $str )
+    {
+        self::st_reset_error();
+
+        if( !self::load_dependencies() )
+            return false;
+
+        $role_model = self::$_role_model;
+
+        return $role_model->transform_string_to_slug( $str );
+   }
+
+    public static function user_has_role( $account_data, $role_list, $params = false )
+    {
+        self::st_reset_error();
+
+        if( !self::load_dependencies() )
+            return false;
+
+        $role_model = self::$_role_model;
+
+        if( ($return_arr = $role_model->user_has_roles( $account_data, $role_list, $params )) === false )
+        {
+            self::st_copy_error( $role_model );
+            return false;
+        }
+
+        return $return_arr;
+   }
+
     public static function user_has_role_units( $account_data, $role_units_list, $params = false )
     {
         self::st_reset_error();

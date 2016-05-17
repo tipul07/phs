@@ -543,7 +543,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             }
 
             if( $return_arr['plugin_name'] != self::CORE_PLUGIN )
-                $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix.PHS_Instantiable::TEMPLATES_DIR.'/';
+                $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix . self::TEMPLATES_DIR . '/';
         }
 
         return $return_arr;

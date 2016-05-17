@@ -1160,7 +1160,9 @@ final class PHS extends PHS_Registry
 
                 $call_hook_args = self::merge_array_assoc( $hook_callback['args'], $hook_args );
 
-                $result = @call_user_func( $hook_callback['callback'], $call_hook_args );
+                if( ($result = @call_user_func( $hook_callback['callback'], $call_hook_args )) === null
+                 or $result === false )
+                    continue;
 
                 $resulting_buffer = '';
                 if( !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] ) )

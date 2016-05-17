@@ -38,8 +38,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
-            'name' => self::_t( 'Accounts Management' ),
-            'description' => self::_t( 'Handles all functionality related to user accounts.' ),
+            'name' => $this->_pt( 'Accounts Management' ),
+            'description' => $this->_pt( 'Handles all functionality related to user accounts.' ),
         );
     }
 
@@ -55,72 +55,152 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         return array(
             'email_mandatory' => array(
-                'display_name' => self::_t( 'Email mandatory at registration' ),
+                'display_name' => $this->_pt( 'Email mandatory at registration' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'replace_nick_with_email' => array(
-                'display_name' => self::_t( 'Replace nick with email' ),
-                'display_hint' => self::_t( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
+                'display_name' => $this->_pt( 'Replace nick with email' ),
+                'display_hint' => $this->_pt( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'account_requires_activation' => array(
-                'display_name' => self::_t( 'Account requires activation' ),
-                'display_hint' => self::_t( 'Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.' ),
+                'display_name' => $this->_pt( 'Account requires activation' ),
+                'display_hint' => $this->_pt( 'Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'generate_pass_if_not_present' => array(
-                'display_name' => self::_t( 'Generate password if not present' ),
-                'display_hint' => self::_t( 'If, by any reasons, password is not present when creating an account autogenerate a password or return error?' ),
+                'display_name' => $this->_pt( 'Generate password if not present' ),
+                'display_hint' => $this->_pt( 'If, by any reasons, password is not present when creating an account autogenerate a password or return error?' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'email_unique' => array(
-                'display_name' => self::_t( 'Emails should be unique' ),
-                'display_hint' => self::_t( 'Should account creation fail if same email already exists in database?' ),
+                'display_name' => $this->_pt( 'Emails should be unique' ),
+                'display_hint' => $this->_pt( 'Should account creation fail if same email already exists in database?' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'min_password_length' => array(
-                'display_name' => self::_t( 'Minimum password length' ),
+                'display_name' => $this->_pt( 'Minimum password length' ),
                 'type' => PHS_params::T_INT,
                 'default' => 8,
             ),
             // Make sure password generator method in accounts model follows this rule... (escape char is /)
             // password regular expression (leave empty if not wanted)
             'password_regexp' => array(
-                'display_name' => self::_t( 'Password reg-exp' ),
-                'display_hint' => self::_t( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.' ),
+                'display_name' => $this->_pt( 'Password reg-exp' ),
+                'display_hint' => $this->_pt( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.' ),
                 'type' => PHS_params::T_ASIS,
                 'default' => '',
             ),
             'pass_salt_length' => array(
-                'display_name' => self::_t( 'Password salt length' ),
-                'display_hint' => self::_t( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
+                'display_name' => $this->_pt( 'Password salt length' ),
+                'display_hint' => $this->_pt( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
                 'type' => PHS_params::T_INT,
                 'default' => 8,
             ),
             'announce_pass_change' => array(
-                'display_name' => self::_t( 'Announce password change' ),
-                'display_hint' => self::_t( 'Should system send an email to account\'s email address when password changes?' ),
+                'display_name' => $this->_pt( 'Announce password change' ),
+                'display_hint' => $this->_pt( 'Should system send an email to account\'s email address when password changes?' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
             'session_expire_minutes_remember' => array(
-                'display_name' => self::_t( 'Password lifetime (long) mins' ),
-                'display_hint' => self::_t( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
+                'display_name' => $this->_pt( 'Password lifetime (long) mins' ),
+                'display_hint' => $this->_pt( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
                 'type' => PHS_params::T_INT,
                 'default' => 2880, // 2 days
             ),
             'session_expire_minutes_normal' => array(
-                'display_name' => self::_t( 'Password lifetime (short) mins' ),
-                'display_hint' => self::_t( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
+                'display_name' => $this->_pt( 'Password lifetime (short) mins' ),
+                'display_hint' => $this->_pt( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
                 'type' => PHS_params::T_INT,
                 'default' => 60, // 1 hour
             ),
         );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get_roles_definition()
+    {
+        $return_arr = array(
+            PHS_Roles::ROLE_GUEST => array(
+                'name' => $this->_pt( 'Guests' ),
+                'description' => $this->_pt( 'Role used by non-logged visitors' ),
+                'role_units' => array(
+                    PHS_Roles::ROLEU_CONTACT_US => array(
+                        'name' => $this->_pt( 'Contact Us' ),
+                        'description' => $this->_pt( 'Allow user to use contact us form' ),
+                    ),
+                    PHS_Roles::ROLEU_REGISTER => array(
+                        'name' => $this->_pt( 'Register' ),
+                        'description' => $this->_pt( 'Allow user to use registration form' ),
+                    ),
+                ),
+            ),
+
+            PHS_Roles::ROLE_MEMBER => array(
+                'name' => $this->_pt( 'Member accounts' ),
+                'description' => $this->_pt( 'Default functionality role (what normal members can do)' ),
+                'role_units' => array(
+                    PHS_Roles::ROLEU_CONTACT_US => array(
+                        'name' => $this->_pt( 'Contact Us' ),
+                        'description' => $this->_pt( 'Allow user to use contact us form' ),
+                    ),
+                ),
+            ),
+
+            PHS_Roles::ROLE_ADMIN => array(
+                'name' => $this->_pt( 'Admin accounts' ),
+                'description' => $this->_pt( 'Role assigned to admin accounts.' ),
+                'role_units' => array(
+
+                    // Roles...
+                    PHS_Roles::ROLEU_MANAGE_ROLES => array(
+                        'name' => $this->_pt( 'Manage roles' ),
+                        'description' => $this->_pt( 'Allow user to define or edit roles' ),
+                    ),
+                    PHS_Roles::ROLEU_LIST_ROLES => array(
+                        'name' => $this->_pt( 'List roles' ),
+                        'description' => $this->_pt( 'Allow user to view defined roles' ),
+                    ),
+
+                    // Plugins...
+                    PHS_Roles::ROLEU_MANAGE_PLUGINS => array(
+                        'name' => $this->_pt( 'Manage plugins' ),
+                        'description' => $this->_pt( 'Allow user to manage plugins' ),
+                    ),
+                    PHS_Roles::ROLEU_LIST_PLUGINS => array(
+                        'name' => $this->_pt( 'List plugins' ),
+                        'description' => $this->_pt( 'Allow user to list plugins' ),
+                    ),
+
+                    // Accounts...
+                    PHS_Roles::ROLEU_MANAGE_ACCOUNTS => array(
+                        'name' => $this->_pt( 'Manage accounts' ),
+                        'description' => $this->_pt( 'Allow user to manage accounts' ),
+                    ),
+                    PHS_Roles::ROLEU_LIST_ACCOUNTS => array(
+                        'name' => $this->_pt( 'List accounts' ),
+                        'description' => $this->_pt( 'Allow user to list accounts' ),
+                    ),
+                    PHS_Roles::ROLEU_LOGIN_SUBACCOUNT => array(
+                        'name' => $this->_pt( 'Login sub-account' ),
+                        'description' => $this->_pt( 'Allow user to login as other user' ),
+                    ),
+                ),
+            ),
+        );
+
+        $return_arr[PHS_Roles::ROLE_ADMIN]['role_units'] = self::validate_array( $return_arr[PHS_Roles::ROLE_ADMIN]['role_units'],
+            self::validate_array( $return_arr[PHS_Roles::ROLE_MEMBER]['role_units'], $return_arr[PHS_Roles::ROLE_GUEST]['role_units'] ) );
+
+        return $return_arr;
     }
 
     public static function session_key( $key = null )
@@ -202,7 +282,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( $accounts_model->has_error() )
                 $this->copy_error( $accounts_model );
             else
-                $this->set_error( self::ERR_LOGOUT, self::_t( 'Couldn\'t logout from subaccount.' ) );
+                $this->set_error( self::ERR_LOGOUT, $this->_pt( 'Couldn\'t logout from subaccount.' ) );
 
             return false;
         }
@@ -236,14 +316,14 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( $accounts_model->has_error() )
                 $this->copy_error( $accounts_model );
             else
-                $this->set_error( self::ERR_LOGOUT, self::_t( 'Couldn\'t logout from your account. Please retry.' ) );
+                $this->set_error( self::ERR_LOGOUT, $this->_pt( 'Couldn\'t logout from your account. Please retry.' ) );
 
             return false;
         }
 
         if( !PHS_session::_d( self::session_key() ) )
         {
-            $this->set_error( self::ERR_LOGOUT, self::_t( 'Couldn\'t logout from your account. Please retry.' ) );
+            $this->set_error( self::ERR_LOGOUT, $this->_pt( 'Couldn\'t logout from your account. Please retry.' ) );
             return false;
         }
 
@@ -265,7 +345,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( ! ($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Couldn\'t load accounts model.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Couldn\'t load accounts model.' ) );
 
             return false;
         }
@@ -274,7 +354,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
          or !($account_arr = $accounts_model->data_to_array( $account_data ))
          or ! $accounts_model->is_active( $account_arr ) )
         {
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Unknown or inactive account.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown or inactive account.' ) );
 
             return false;
         }
@@ -288,7 +368,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( $accounts_model->has_error() )
                 $this->copy_error( $accounts_model, self::ERR_LOGIN );
             else
-                $this->set_error( self::ERR_LOGIN, self::_t( 'Login failed. Please try again.' ) );
+                $this->set_error( self::ERR_LOGIN, $this->_pt( 'Login failed. Please try again.' ) );
 
             return false;
         }
@@ -297,7 +377,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         {
             $accounts_model->session_logout( $onuser_arr );
 
-            $this->set_error( self::ERR_LOGIN, self::_t( 'Login failed. Please try again.' ) );
+            $this->set_error( self::ERR_LOGIN, $this->_pt( 'Login failed. Please try again.' ) );
 
             return false;
         }
@@ -314,21 +394,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( !$this->valid_confirmation_reason( $reason ) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Invalid confirmation reason.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Invalid confirmation reason.' ) );
             return false;
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Couldn\'t load accounts model.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t load accounts model.' ) );
             return false;
         }
 
         if( empty( $account_data )
          or !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
@@ -383,8 +463,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         // key - value pair of reson name and success message...
         return array(
-            self::CONF_REASON_ACTIVATION => self::_t( 'Your account is now active.' ),
-            self::CONF_REASON_EMAIL => self::_t( 'Your email address is now confirmed.' ),
+            self::CONF_REASON_ACTIVATION => $this->_pt( 'Your account is now active.' ),
+            self::CONF_REASON_EMAIL => $this->_pt( 'Your email address is now confirmed.' ),
         );
     }
 
@@ -406,7 +486,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( !$this->valid_confirmation_reason( $reason ) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Invalid confirmation reason.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Invalid confirmation reason.' ) );
             return false;
         }
 
@@ -414,7 +494,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
          or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Couldn\'t obtain confirmation parameters.' ) );
+                $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t obtain confirmation parameters.' ) );
 
             return false;
         }
@@ -428,41 +508,41 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( !$this->valid_confirmation_reason( $reason ) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Invalid confirmation reason.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Invalid confirmation reason.' ) );
             return false;
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Couldn\'t load accounts model.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t load accounts model.' ) );
             return false;
         }
 
         if( empty( $account_data )
          or !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Unknown account.' ) );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
         switch( $reason )
         {
             default:
-                $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Confirmation reason unknown.' ) );
+                $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Confirmation reason unknown.' ) );
                 return false;
             break;
 
             case self::CONF_REASON_ACTIVATION:
                 if( !$accounts_model->needs_activation( $account_arr ) )
                 {
-                    $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Account doesn\'t require activation.' ) );
+                    $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Account doesn\'t require activation.' ) );
                     return false;
                 }
                 
                 if( !($account_arr = $accounts_model->activate_account_after_registration( $account_arr )) )
                 {
-                    $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Failed activating account. Please try again.' ) );
+                    $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Failed activating account. Please try again.' ) );
                     return false;
                 }
             break;
@@ -472,7 +552,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 {
                     if( !($account_arr = $accounts_model->email_verified( $account_arr )) )
                     {
-                        $this->set_error( self::ERR_CONFIRMATION, self::_t( 'Failed confirming email address. Please try again.' ) );
+                        $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Failed confirming email address. Please try again.' ) );
                         return false;
                     }
                 }

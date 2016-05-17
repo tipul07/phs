@@ -244,9 +244,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'column_title' => $this->_pt( 'Status Date' ),
                 'record_field' => 'status_date',
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
-                'date_format' => 'd M y H:i',
+                'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'N/A' ),
-                'extra_style' => 'vertical-align: middle;width:100px;',
+                'extra_style' => 'vertical-align: middle;width:120px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:right;',
                 'sortable' => false,
             ),
@@ -255,9 +255,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'default_sort' => 1,
                 'record_field' => 'cdate',
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
-                'date_format' => 'd M y H:i',
+                'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Not Installed' ),
-                'extra_style' => 'vertical-align: middle;width:100px;',
+                'extra_style' => 'vertical-align: middle;width:120px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:right;',
                 'sortable' => false,
             ),
@@ -631,14 +631,14 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <?php
         }
         if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
-        and $this->_paginator_model->inactive_status( $params['record']['status'] ) )
+        and $this->_paginator_model->is_inactive( $params['record'] ) )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"><i class="fa fa-sign-out action-icons" title="<?php echo $this->_pt( 'Uninstall plugin' )?>"></i></a>
             <a href="javascript:void(0)" onclick="phs_plugins_list_activate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate plugin' )?>"></i></a>
             <?php
         }
-        if( $this->_paginator_model->active_status( $params['record']['status'] ) )
+        if( $this->_paginator_model->is_active( $params['record'] ) )
         {
             if( !empty( $params['record']['is_upgradable'] ) )
             {

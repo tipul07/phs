@@ -4,10 +4,12 @@ namespace phs\libraries;
 
 use phs\PHS;
 use \phs\system\core\models\PHS_Model_Plugins;
+use \phs\system\core\views\PHS_View;
+use \phs\libraries\PHS_Roles;
 
 abstract class PHS_Plugin extends PHS_Has_db_settings
 {
-    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005;
+    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006;
 
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
@@ -72,6 +74,92 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
             $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
         }
+    }
+
+    /**
+     * If you plugin must define custom roles overwrite this method to provide roles and roles units to be defined
+     *
+     * eg. 
+     * 
+     * return array(
+     *   '{role_slug}' => array(
+     *      'name' => 'Role name',
+     *      'description' => 'Role description...',
+     *      'role_units' => array(
+     *          '{role_unit_slug1}' => array(
+     *              'name' => 'Role unit name',
+     *              'description' => 'Role unit description...',
+     *          ),
+     *          '{role_unit_slug2}' => array(
+     *              'name' => 'Role unit name',
+     *              'description' => 'Role unit description...',
+     *          ),
+     *          ...
+     *      ),
+     *   ),
+     *   ...
+     * );
+     * 
+     * @return array Array of roles definition
+     */
+    public function get_roles_definition()
+    {
+        return array();
+    }
+
+    final public function quick_render_template_for_buffer( $template, $template_data = false )
+    {
+        $this->reset_error();
+
+        $view_params = array();
+        $view_params['action_obj'] = false;
+        $view_params['controller_obj'] = false;
+        $view_params['parent_plugin_obj'] = $this;
+        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['template_data'] = $template_data;
+
+        if( is_string( $template ) )
+            $template = $this->template_resource_from_file( $template );
+            
+        elseif( is_array( $template ) )
+        {
+            if( !($template = PHS_View::validate_template_resource( $template )) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_RENDER );
+                else
+                    $this->set_error( self::ERR_RENDER, $this->_pt( 'Error validating template resource.' ) );
+
+                return false;
+            }
+
+            $path_key = PHS::relative_path( $this->instance_plugin_templates_path() );
+            if( empty( $template['extra_paths'] ) or !is_array( $template['extra_paths'] )
+             or !in_array( $path_key, $template['extra_paths'] ) )
+            {
+                $template['extra_paths'][] = array( $path_key => PHS::relative_url( $this->instance_plugin_templates_www() ) );
+            }
+        }
+
+        if( !($view_obj = PHS_View::init_view( $template, $view_params )) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error();
+
+            return false;
+        }
+
+        if( ($buffer = $view_obj->render()) === false )
+        {
+            if( $view_obj->has_error() )
+                $this->copy_error( $view_obj );
+            else
+                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
+
+            return false;
+        }
+
+        return $buffer;
     }
 
     public function include_plugin_language_files()
@@ -188,6 +276,9 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
     public function check_installation()
     {
+        if( !$this->install_roles() )
+            return false;
+        
         if( !($db_details = $this->get_db_details()) )
         {
             $this->reset_error();
@@ -222,6 +313,51 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        $check_params = array();
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        if( !($plugin_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
+         or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
+        {
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
+            return false;
+        }
+        
+        if( $plugins_model->is_active( $plugin_arr ) )
+            return $plugin_arr;
+
+        $list_arr = array();
+        $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
+
+        if( ($plugins_modules_arr = $plugins_model->get_list( $list_arr ))
+        and is_array( $plugins_modules_arr ) )
+        {
+            $edit_params_arr = array();
+            $edit_params_arr['fields'] = array(
+                'status' => PHS_Model_Plugins::STATUS_ACTIVE,
+            );
+
+            foreach( $plugins_modules_arr as $module_id => $module_arr )
+            {
+                if( $module_arr['status'] == PHS_Model_Plugins::STATUS_ACTIVE )
+                    continue;
+
+                if( !$plugins_model->edit( $module_arr, $edit_params_arr ) )
+                {
+                    if( $plugins_model->has_error() )
+                        $this->copy_error( $plugins_model, self::ERR_CHANGES );
+                    else
+                        $this->set_error( self::ERR_CHANGES, self::_t( 'Error activating %s %s.', $module_arr['type'], $module_arr['instance_id'] ) );
+
+                    return false;
+                }
+            }
+        }
+
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_ACTIVE;
@@ -237,7 +373,9 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
-        return $db_details['new_data'];
+        $plugin_arr = $db_details['new_data'];
+
+        return $plugin_arr;
     }
 
     final public function inactivate_plugin()
@@ -250,7 +388,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
-        PHS_Logger::logf( 'Activating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::logf( 'Inactivating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
 
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( !($plugins_model = PHS::load_model( 'plugins' )) )
@@ -259,6 +397,51 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
             $this->set_error( self::ERR_CHANGES, self::_t( 'Error instantiating plugins model.' ) );
             return false;
+        }
+
+        $check_arr = array();
+        $check_arr['instance_id'] = $this_instance_id;
+
+        $check_params = array();
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        if( !($plugin_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
+         or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
+        {
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
+            return false;
+        }
+
+        if( $plugins_model->is_inactive( $plugin_arr ) )
+            return $plugin_arr;
+
+        $list_arr = array();
+        $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
+
+        if( ($plugins_modules_arr = $plugins_model->get_list( $list_arr ))
+        and is_array( $plugins_modules_arr ) )
+        {
+            $edit_params_arr = array();
+            $edit_params_arr['fields'] = array(
+                'status' => PHS_Model_Plugins::STATUS_INACTIVE,
+            );
+
+            foreach( $plugins_modules_arr as $module_id => $module_arr )
+            {
+                if( $module_arr['status'] == PHS_Model_Plugins::STATUS_INACTIVE )
+                    continue;
+
+                if( !$plugins_model->edit( $module_arr, $edit_params_arr ) )
+                {
+                    if( $plugins_model->has_error() )
+                        $this->copy_error( $plugins_model, self::ERR_CHANGES );
+                    else
+                        $this->set_error( self::ERR_CHANGES, self::_t( 'Error inactivating %s %s.', $module_arr['type'], $module_arr['instance_id'] ) );
+
+                    return false;
+                }
+            }
         }
 
         $plugin_details = array();
@@ -276,9 +459,154 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
-        return $db_details['new_data'];
+        $plugin_arr = $db_details['new_data'];
+
+        return $plugin_arr;
     }
 
+    public static function role_unit_structure()
+    {
+        return array(
+            'name' => '',
+            'description' => '',
+        );
+    }
+
+    public static function role_structure()
+    {
+        return array(
+            'name' => '',
+            'description' => '',
+            'role_units' => array(),
+        );
+    }
+
+    final public function user_has_any_of_defined_role_units()
+    {
+        if( !($role_definition = $this->get_roles_definition())
+         or !is_array( $role_definition ) )
+            return false;
+
+        // Couldn't generate an empty user structure; assume no slugs are assigned
+        if( !($cuser_arr = PHS::current_user()) )
+            return false;
+
+        $role_units_arr = array();
+        foreach( $role_definition as $role_slug => $role_arr )
+        {
+            if( empty( $role_arr['role_units'] ) or !is_array( $role_arr['role_units'] ) )
+                continue;
+
+            foreach( $role_arr['role_units'] as $role_unit_slug => $role_unit_arr )
+            {
+                // if we cannot validate the slug we assume this is not assigned to any role...
+                if( !($role_unit_slug = PHS_Roles::transform_string_to_slug( $role_unit_slug )) )
+                    return false;
+
+                $role_units_arr[$role_unit_slug] = true;
+            }
+        }
+
+        // if plugin defined no role units we assume user has assigned (nothing to be assigned) role unit... :p
+        if( empty( $role_units_arr ) )
+            return true;
+
+        return PHS_Roles::user_has_role_units( $cuser_arr, array_keys( $role_units_arr ), array( 'logical_operation' => 'or' ) );
+    }
+
+    final public function install_roles()
+    {
+        if( !($role_definition = $this->get_roles_definition())
+         or !is_array( $role_definition ) )
+            return true;
+
+        $role_structure = self::role_structure();
+        $role_unit_structure = self::role_unit_structure();
+        $db_roles_arr = array();
+        foreach( $role_definition as $role_slug => $role_arr )
+        {
+            if( !($new_role_slug = PHS_Roles::transform_string_to_slug( $role_slug )) )
+            {
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t get a correct slug for role [%s]', $role_slug ) );
+
+                PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+                return false;
+            }
+
+            $role_slug = $new_role_slug;
+
+            $role_arr = self::validate_array( $role_arr, $role_structure );
+            if( empty( $role_arr['role_units'] ) or !is_array( $role_arr['role_units'] ) )
+                $role_arr['role_units'] = array();
+
+            $role_units_slugs_arr = array();
+            $db_role_units_arr = array();
+            foreach( $role_arr['role_units'] as $role_unit_slug => $role_unit_arr )
+            {
+                if( !($new_role_unit_slug = PHS_Roles::transform_string_to_slug( $role_unit_slug )) )
+                {
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t get a correct slug for role unit [%s]', $role_unit_slug ) );
+
+                    PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+                    return false;
+                }
+
+                $role_unit_slug = $new_role_unit_slug;
+
+                $role_unit_arr = self::validate_array( $role_unit_arr, $role_unit_structure );
+
+                $role_unit_details_arr = array();
+                $role_unit_details_arr['slug'] = $role_unit_slug;
+                $role_unit_details_arr['name'] = $role_unit_arr['name'];
+                $role_unit_details_arr['description'] = $role_unit_arr['description'];
+
+                if( !($role_unit = PHS_Roles::register_role_unit( $role_unit_details_arr )) )
+                {
+                    if( self::st_has_error() )
+                        $this->copy_static_error( self::ERR_INSTALL );
+                    else
+                        $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install role unit [%s]', $role_unit_slug ) );
+
+                    PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+                    return false;
+                }
+
+                $db_role_units_arr[$role_unit['slug']] = $role_unit;
+
+                $role_units_slugs_arr[$role_unit['slug']] = true;
+            }
+
+            $role_details_arr = array();
+            $role_details_arr['slug'] = $role_slug;
+            $role_details_arr['name'] = $role_arr['name'];
+            $role_details_arr['description'] = $role_arr['description'];
+            $role_details_arr['predefined'] = 1;
+            $role_details_arr['{role_units}'] = array_keys( $role_units_slugs_arr );
+
+            if( !($role = PHS_Roles::register_role( $role_details_arr )) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_INSTALL );
+                else
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install role [%s]', $role_slug ) );
+
+                PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+                return false;
+            }
+
+            $db_roles_arr[$role['slug']] = $role;
+            $db_roles_arr[$role['slug']]['{role_units}'] = $db_role_units_arr;
+        }
+
+        PHS_Logger::logf( 'Roles installed for ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return $db_roles_arr;
+    }
+    
     final public function install()
     {
         $this->reset_error();
@@ -312,13 +640,22 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
+        if( !$this->custom_install() )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Plugin custom install functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in plugin custom install functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['plugin'] = $this->instance_plugin_name();
         $plugin_details['type'] = $this->instance_type();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
-        $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
         $plugin_details['version'] = $this->get_plugin_version();
 
         if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
@@ -473,6 +810,16 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
+        if( !$this->custom_uninstall() )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Plugin custom un-install functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in plugin custom un-install functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
         PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         $this->signal_trigger( self::SIGNAL_UNINSTALL );
@@ -491,12 +838,20 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                     if( PHS::st_has_error() )
                         $this->copy_static_error( self::ERR_INSTALL );
                     else
-                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_name ) );
+                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error un-installing model %s.', $model_name ) );
 
                     return false;
                 }
 
-                $model_obj->uninstall();
+                if( !$model_obj->uninstall() )
+                {
+                    if( $model_obj->has_error() )
+                        $this->copy_error( $model_obj );
+                    else
+                        $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error un-installing model %s.', $model_name ) );
+
+                    return false;
+                }
             }
         }
 
@@ -515,6 +870,30 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         PHS_Logger::logf( 'DONE uninstalling plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return $db_details;
+    }
+
+    /**
+     * Performs any necessary custom actions when installing plugin
+     * Overwrite this method to do particular install actions.
+     * If this function returns false whole install will stop and error set in this method will be used.
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_install()
+    {
+        return true;
+    }
+
+    /**
+     * Performs any necessary custom actions when un-installing plugin
+     * Overwrite this method to do particular un-install actions.
+     * If this function returns false whole un-install will stop and error set in this method will be used.
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_uninstall()
+    {
+        return true;
     }
 
     /**
