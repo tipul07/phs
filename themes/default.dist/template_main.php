@@ -64,10 +64,10 @@
 
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/fileuploader.js' )?>"></script>
     <?php
-        if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' )) )
-        {
-            ?><script type="text/javascript" src="<?php echo $jq_datepicker_lang_url?>"></script><?php
-        }
+    if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' )) )
+    {
+        ?><script type="text/javascript" src="<?php echo $jq_datepicker_lang_url?>"></script><?php
+    }
     ?>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jsen.js.php' )?>"></script>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/base.js.php' )?>"></script>
@@ -426,7 +426,7 @@
 
         echo $action_result['buffer'];
 
-    ?></div>
+    ?><div class="clearfix"></div></div>
     <div class="clearfix" style="margin-bottom: 10px;"></div>
 
     <footer id="footer">

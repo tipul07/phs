@@ -1,12 +1,9 @@
 # PHP files will not be called directly...
 
 <FilesMatch ".*\.php$">
-    Order Deny,Allow
-    Deny from all
-    Allow from 127.0.0.1
+    Require all denied
 </FilesMatch>
 
 <FilesMatch ".*\.js\.php$">
-    Order Allow,Deny
-    Allow from all
+    Require all granted
 </FilesMatch>

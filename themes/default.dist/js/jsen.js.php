@@ -4,7 +4,7 @@
 
     include( '../../../main.php' );
 
-    header( "Content-type: text/javascript" );
+    header( 'Content-type: text/javascript' );
 
     use \phs\PHS;
 ?>

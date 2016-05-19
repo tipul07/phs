@@ -100,15 +100,13 @@
 ############################################
 ## By default allow all access
 
-    Order allow,deny
-    Allow from all
+    Require all granted
 
 ###########################################
 ## Deny access to release notes to prevent disclosure of the installed Magento version
 
-    <Files RELEASE_NOTES.txt>
-        order allow,deny
-        deny from all
+    <Files README.md>
+        Require all denied
     </Files>
 
 ############################################

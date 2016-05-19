@@ -107,7 +107,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         return array();
     }
 
-    final public function quick_render_template_for_buffer( $template, $template_data = false )
+    final public function quick_init_view_instance( $template, $template_data = false )
     {
         $this->reset_error();
 
@@ -145,6 +145,21 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
+
+            return false;
+        }
+
+        return $view_obj;
+    }
+
+    final public function quick_render_template_for_buffer( $template, $template_data = false )
+    {
+        $this->reset_error();
+
+        if( !($view_obj = $this->quick_init_view_instance( $template, $template_data )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_RENDER, self::_t( 'Instantiating view from plugin.' ) );
 
             return false;
         }
