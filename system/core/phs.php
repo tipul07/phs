@@ -36,6 +36,7 @@ final class PHS extends PHS_Registry
 
     private static $_INTERPRET_SCRIPT = 'index';
     private static $_BACKGROUND_SCRIPT = '_bg';
+    private static $_AJAX_SCRIPT = '_ajax';
 
     function __construct()
     {
@@ -518,9 +519,9 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * Change default route interpret script (default is index). .php file extension will be added by platform.
+     * Change default background interpret script (default is _bg). .php file extension will be added by platform.
      *
-     * @param bool|string $script New interpreter script (default is index). No extension should be provided (.php will be appended)
+     * @param bool|string $script New background script (default is _bg). No extension should be provided (.php will be appended)
      *
      * @return bool|string
      */
@@ -535,6 +536,26 @@ final class PHS extends PHS_Registry
 
         self::$_BACKGROUND_SCRIPT = $script;
         return self::$_BACKGROUND_SCRIPT.'.php';
+    }
+
+    /**
+     * Change default ajax script (default is _ajax). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New ajax script (default is _ajax). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function ajax_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_AJAX_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_AJAX_SCRIPT = $script;
+        return self::$_AJAX_SCRIPT.'.php';
     }
 
     public static function get_background_path()
@@ -556,6 +577,22 @@ final class PHS extends PHS_Registry
             $base_url .= '/';
 
         return $base_url.self::interpret_script();
+    }
+
+    public static function get_ajax_path()
+    {
+        return PHS_PATH.self::ajax_script();
+    }
+
+    public static function get_ajax_url( $force_https = false )
+    {
+        if( !($base_url = self::get_base_url( $force_https )) )
+            return false;
+
+        if( substr( $base_url, -1 ) != '/' )
+            $base_url .= '/';
+
+        return $base_url.self::ajax_script();
     }
 
     public static function current_url()
@@ -656,7 +693,21 @@ final class PHS extends PHS_Registry
         //
         //H_URL_PARAMS
 
-        return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
+        $current_scope = PHS_Scope::current_scope();
+
+        switch( $current_scope )
+        {
+            default:
+            case PHS_Scope::SCOPE_WEB:
+                return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
+
+            case PHS_Scope::SCOPE_AJAX:
+                return self::get_ajax_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
+
+            case PHS_Scope::SCOPE_BACKGROUND:
+                return '#bg_job';
+            break;
+        }
     }
 
     public static function relative_url( $url )
@@ -989,8 +1040,10 @@ final class PHS extends PHS_Registry
     /**
      * @param string $scope
      * @param string|bool $plugin
-     *
-     * @return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
+     
+      
+*
+*@return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
      */
     public static function load_scope( $scope, $plugin = false )
     {

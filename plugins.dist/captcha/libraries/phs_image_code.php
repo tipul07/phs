@@ -2,11 +2,11 @@
 
 namespace phs\plugins\captcha\libraries;
 
-use \phs\libraries\PHS_Language;
+use \phs\libraries\PHS_Library;
 
 //! /version 1.53
 
-class PHS_image_code extends PHS_Language
+class PHS_image_code extends PHS_Library
 {
     const ERR_NOGD = 1, ERR_NOIMG = 2;
 

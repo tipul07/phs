@@ -117,8 +117,8 @@ class PHS_Language extends PHS_Error
      */
     public function _pt( $index )
     {
-        /** @var PHS_Plugin $this */
-        if( !($this instanceof PHS_Instantiable)
+        /** @var PHS_Plugin|PHS_Library $this */
+        if( (!($this instanceof PHS_Instantiable) and !($this instanceof PHS_Library))
          or !($plugin_obj = $this->get_plugin_instance()) )
             return self::_t( func_get_args() );
 

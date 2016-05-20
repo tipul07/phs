@@ -229,7 +229,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         if( !($library = self::safe_escape_library_name( $library )) )
         {
-            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library from plugin [%s]', $this->get_plugin_instance() ) );
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library from plugin [%s]', $this->instance_plugin_name() ) );
             return false;
         }
 
@@ -239,7 +239,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         if( !($file_path = $this->get_library_full_path( $library )) )
         {
-            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library [%s] from plugin [%s]', $library, $this->get_plugin_instance() ) );
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library [%s] from plugin [%s]', $library, $this->instance_plugin_name() ) );
             return false;
         }
 
@@ -249,14 +249,27 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         if( !@class_exists( $params['full_class_name'], false ) )
         {
-            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t instantiate library class for library [%s] from plugin [%s]', $library, $this->get_plugin_instance() ) );
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t instantiate library class for library [%s] from plugin [%s]', $library, $this->instance_plugin_name() ) );
             return false;
         }
 
+        /** @var \phs\libraries\PHS_Library $library_instance */
         if( empty( $params['init_params'] ) )
             $library_instance = new $params['full_class_name']();
         else
             $library_instance = new $params['full_class_name']( $params['init_params'] );
+
+        if( !($library_instance instanceof PHS_Library) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Library [%s] from plugin [%s] is not a PHS library.', $library, $this->instance_plugin_name() ) );
+            return false;
+        }
+
+        if( !$library_instance->parent_plugin( $this ) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Library [%s] from plugin [%s] couldn\'t set plugin parent.', $library, $this->instance_plugin_name() ) );
+            return false;
+        }
 
         if( !empty( $params['as_singleton'] ) )
             $this->_libraries_instances[$library] = $library_instance;

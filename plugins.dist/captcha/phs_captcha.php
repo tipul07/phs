@@ -75,6 +75,12 @@ class PHS_Plugin_Captcha extends PHS_Plugin
                 'type' => PHS_params::T_ASIS,
                 'default' => 'default.ttf',
             ),
+            'reference_code' => array(
+                'display_name' => 'Captcha private key',
+                'display_hint' => 'This acts as a private key when generating captcha codes. Once you setup plugin don\'t change this.',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '!!Captcha private KEY!!Change this default value to something else!!',
+            ),
             'characters_count' => array(
                 'display_name' => 'Captcha caracters',
                 'type' => PHS_params::T_INT,
@@ -148,6 +154,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             'cnumbers' => $settings_arr['characters_count'],
             'param_code' => $cimage_code,
             'img_type' => $settings_arr['image_format'],
+            'reference_code' => $settings_arr['reference_code'],
         );
         $library_params['as_singleton'] = false;
 

@@ -2,14 +2,14 @@
 
 namespace phs\plugins\emails\libraries;
 
-use \phs\libraries\PHS_Language;
+use \phs\libraries\PHS_Library;
 
 /*! \file phs_smtp.php
  *  \brief Contains PHS_smtp class (send emails trough smtp)
  *  \version 1.08
  */
 
-class PHS_smtp extends PHS_Language
+class PHS_smtp extends PHS_Library
 {
     const CLASS_VERSION = '1.08';
 
