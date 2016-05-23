@@ -14,12 +14,12 @@ and !empty( $notifications_arr['success'] ) and is_array( $notifications_arr['su
 {
     ?>
     <div class="success-box"><div class="dismissible">
-        <?php
-        foreach( $notifications_arr['success'] as $message )
-        {
-            echo '<p>'.$message.'</p>';
-        }
-        ?>
+    <?php
+    foreach( $notifications_arr['success'] as $message )
+    {
+        echo '<p>'.$message.'</p>';
+    }
+    ?>
     </div></div>
     <div class="clearfix"></div>
     <?php
@@ -29,13 +29,13 @@ and !empty( $notifications_arr['warnings'] ) and is_array( $notifications_arr['w
 {
     ?>
     <div class="warning-box"><div class="dismissible">
-        <?php
-        foreach( $notifications_arr['warnings'] as $message )
-        {
-            echo '<p>'.$message.'</p>';
-        }
-        ?>
-        </div></div>
+    <?php
+    foreach( $notifications_arr['warnings'] as $message )
+    {
+        echo '<p>'.$message.'</p>';
+    }
+    ?>
+    </div></div>
     <div class="clearfix"></div>
     <?php
 }
@@ -44,13 +44,18 @@ and !empty( $notifications_arr['errors'] ) and is_array( $notifications_arr['err
 {
     ?>
     <div class="error-box"><div class="dismissible">
-        <?php
-        foreach( $notifications_arr['errors'] as $message )
-        {
-            echo '<p>'.$message.'</p>';
-        }
-        ?>
+    <?php
+    foreach( $notifications_arr['errors'] as $message )
+    {
+        echo '<p>'.$message.'</p>';
+    }
+    ?>
     </div></div>
     <div class="clearfix"></div>
     <?php
 }
+?>
+<div id="phs_ajax_success_box" style="display:none;" class="success-box"><div class="dismissible"></div></div><div class="clearfix"></div>
+<div id="phs_ajax_warning_box" style="display:none;" class="warning-box"><div class="dismissible"></div></div><div class="clearfix"></div>
+<div id="phs_ajax_error_box" style="display:none;" class="error-box"><div class="dismissible"></div></div><div class="clearfix"></div>
+<?php

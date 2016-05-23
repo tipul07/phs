@@ -97,7 +97,11 @@ define( 'PHS_DEBUG_THROW_ERRORS', true );
 
 include_once( PHS_PATH.'bootstrap.php' );
 
+use \phs\PHS_ajax;
 use \phs\libraries\PHS_Logger;
+
+// After how many seconds will an Ajax URL expire (if user stays on page and javascript will request same URL)
+PHS_ajax::checksum_timeout( 86400 );
 
 // Default loggin settings (change if required in main.php)
 PHS_Logger::logging_enabled( true );

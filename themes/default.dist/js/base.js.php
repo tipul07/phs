@@ -15,14 +15,14 @@ function dialog_from_container( container, o )
     if( typeof o == 'undefined' )
         o = {};
     
-    if( JSEN )
+    if( PHS_JSEN )
     {
         var dialog_options = { suffix: 'd_container', source_obj: container, url: null,
             width: 800, height: 600, close_outside_click: false, resizable:true, title: '...' };
             
             var options = $.extend( dialog_options, o );
-            
-            JSEN.createAjaxDialog( options );
+
+        PHS_JSEN.createAjaxDialog( options );
     } else
         alert( '<?php echo PHS_Language::_te( 'Error initializing PHS JS Engine', '\'' );?>' );
 }
@@ -57,31 +57,31 @@ function show_submit_protection( msg )
 
 function close_dialog( suffix )
 {
-    if( JSEN )
+    if( PHS_JSEN )
     {
         if( typeof suffix == "undefined" )
             suffix = "";
 
-        JSEN.closeAjaxDialog( suffix );
+        PHS_JSEN.closeAjaxDialog( suffix );
     }
 }
 
 function dialog_loading( options )
 {
-    if( JSEN )
+    if( PHS_JSEN )
     {
         var o = $.extend( { suffix: '', title: '<?php echo PHS_Language::_te( 'Please wait...', '\'' )?>', parent_tag: 'body',
             message: '<?php echo PHS_Language::_te( 'Loading', '\'' )?>', width: 320, height: 130 }, options );
-        
-        JSEN.createLoadingDialog( o );
+
+        PHS_JSEN.createLoadingDialog( o );
     }
 }
 
 function close_loading( suffix )
 {
-    if( JSEN )
+    if( PHS_JSEN )
     {
-        JSEN.closeLoadingDialog( suffix );
+        PHS_JSEN.closeLoadingDialog( suffix );
     }
 }
 

@@ -147,7 +147,7 @@ class PHS_bg_jobs extends PHS_Registry
         and parse_db_date( $extra['timed_action'] ) > time() )
             return true;
 
-        PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_DEBUG );
+        PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
 
         return (@system( $cmd_parts['cmd'] ) !== false );
     }
@@ -208,7 +208,7 @@ class PHS_bg_jobs extends PHS_Registry
          or !($parts_arr = explode( '::', $input_str, 2 ))
          or empty( $parts_arr[0] ) or empty( $parts_arr[1] ) )
         {
-            PHS_Logger::logf( 'Invalid input', PHS_Logger::TYPE_DEBUG );
+            PHS_Logger::logf( 'Invalid input', PHS_Logger::TYPE_BACKGROUND );
             return false;
         }
 
@@ -224,7 +224,7 @@ class PHS_bg_jobs extends PHS_Registry
          or !($job_arr = $bg_jobs_model->get_details( $job_id ))
          or $decrypted_parts[1] != md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
         {
-            PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_DEBUG );
+            PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_BACKGROUND );
             return false;
         }
 

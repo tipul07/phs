@@ -649,13 +649,16 @@ final class PHS extends PHS_Registry
         return $route;
     }
 
-    public static function url( $params = false, $args = false )
+    public static function url( $params = false, $args = false, $extra = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
+
+        if( empty( $extra ) or !is_array( $extra ) )
+            $extra = array();
 
         if( empty( $params['force_https'] ) )
             $params['force_https'] = false;
@@ -693,9 +696,10 @@ final class PHS extends PHS_Registry
         //
         //H_URL_PARAMS
 
-        $current_scope = PHS_Scope::current_scope();
+        if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
+            $extra['for_scope'] = PHS_Scope::current_scope();
 
-        switch( $current_scope )
+        switch( $extra['for_scope'] )
         {
             default:
             case PHS_Scope::SCOPE_WEB:
@@ -771,6 +775,24 @@ final class PHS extends PHS_Registry
         $return_arr[self::ROUTE_ACTION] = self::get_data( self::ROUTE_ACTION );
 
         return $return_arr;
+    }
+
+    public static function get_route_as_string()
+    {
+        if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) === null )
+        {
+            self::set_route();
+
+            if( ($controller = self::get_data( self::ROUTE_CONTROLLER )) === null )
+                return false;
+        }
+
+        $route_arr = array();
+        $route_arr['p'] = self::get_data( self::ROUTE_PLUGIN );
+        $route_arr['c'] = $controller;
+        $route_arr['a'] = self::get_data( self::ROUTE_ACTION );
+
+        return self::route_from_parts( $route_arr );
     }
 
     public static function execute_route( $params = false )

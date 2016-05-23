@@ -86,6 +86,7 @@
             $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
             $('.dismissible-close').on( 'click', function( event ){
                 $(this).parent().slideUp();
+                $(this).parent().find(".dismissible").html("");
             });
 
             $('.submit-protection').on('click', function( event ){

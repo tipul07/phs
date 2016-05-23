@@ -8,9 +8,9 @@
 
     use \phs\PHS;
 ?>
-if( typeof( JSEN ) != "undefined" || !JSEN )
+if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 {
-    var JSEN =
+    var PHS_JSEN =
     {
         version: 1.20,
 
@@ -19,7 +19,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
 
         default_action_13 : ".def-link",
 
-        dialogs_prefix: "JSENd",
+        dialogs_prefix: "PHS_JSENd",
 
         dialogs_options: [],
 
@@ -45,6 +45,104 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             }
 
             return false;
+        },
+
+        js_messages_hide_all: function()
+        {
+            PHS_JSEN.js_messages_hide( "success" );
+            PHS_JSEN.js_messages_hide( "warning" );
+            PHS_JSEN.js_messages_hide( "error" );
+        },
+
+        js_messages_hide: function( type )
+        {
+            var message_box = $("#phs_ajax_" + type + "_box");
+            if( message_box )
+            {
+                message_box.find( ".dismissible" ).html( "" );
+                message_box.hide();
+            }
+        },
+
+        js_messages: function( messages_arr, type )
+        {
+            if( typeof messages_arr == "undefined" || !messages_arr
+             || typeof messages_arr.length == "undefined" || !messages_arr.length )
+                return;
+
+            var message_box = $("#phs_ajax_" + type + "_box");
+            if( message_box )
+            {
+                for( var i = 0; i < messages_arr.length; i++ )
+                    message_box.find( ".dismissible" ).append( "<p>" + messages_arr[i] + "</p>" );
+                message_box.show();
+            }
+        },
+
+        do_ajax: function( url, o )
+        {
+            var defaults = {
+                cache_response    : false,
+                method            : "GET",
+                url_data          : "",
+                async             : true,
+
+                onfailed          : null,
+                onsuccess         : null
+            };
+
+            var options = $.extend( defaults, o );
+
+            ajax_parameters_obj = {
+                type: options.method,
+                url: url,
+                data: options.url_data,
+                cache: options.cache_response,
+                async: options.async,
+
+                success: function( data, status, ajax_obj )
+                {
+                    if( typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
+                    {
+                        document.location = data.redirect_to_url;
+                        return;
+                    }
+
+                    if( typeof data.status != 'undefined' && data.status )
+                    {
+                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
+                            PHS_JSEN.js_messages( data.status.success_messages, "success" );
+                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
+                            PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
+                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
+                            PHS_JSEN.js_messages( data.status.error_messages, "error" );
+                    }
+
+                    if( typeof data.response == 'undefined' || data.response )
+                        data.response = {};
+
+                    if( options.onsuccess )
+                    {
+                        if( jQuery.isFunction( options.onsuccess ) )
+                            options.onsuccess( data.response );
+                        else if( typeof options.onsuccess == "string" )
+                            eval( options.onsuccess );
+                    }
+                },
+
+                error: function( ajax_obj, status, error_exception ) {
+
+                    if( options.onfailed )
+                    {
+                        if( jQuery.isFunction( options.onfailed ) )
+                            options.onfailed();
+                        else if( typeof options.onfailed == "string" )
+                            eval( options.onfailed );
+                    }
+                }
+            };
+
+            $.ajax( ajax_parameters_obj );
         },
 
         dialogErrorsDivsIds : [],
@@ -78,7 +176,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                 }
             }
 
-            url= urlparts[0]+'?'+pars.join('&');
+            url = urlparts[0]+'?'+pars.join('&');
 
             return url;
         },
@@ -88,13 +186,13 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             if( typeof to_url == "undefined" || to_url == "" )
                 to_url = window.location.href;
 
-            to_url = JSEN.removeURLParameter( to_url, '_JSENr' );
+            to_url = PHS_JSEN.removeURLParameter( to_url, '_PHS_JSENr' );
 
             rand_no = Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000);
             if( to_url.search( '\\?' ) == -1 )
-                to_url = to_url + "?&_JSENr=" + rand_no;
+                to_url = to_url + "?&_PHS_JSENr=" + rand_no;
             else
-                to_url = to_url + "&_JSENr=" + rand_no;
+                to_url = to_url + "&_PHS_JSENr=" + rand_no;
 
             window.location.href = to_url;
         },
@@ -125,8 +223,8 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     if( !appendto_obj )
                         continue;
 
-                    container_div_id = "JSENDiaErr" + this.dialogErrorsDivs;
-                    container_name_id = "#JSENDiaErr" + this.dialogErrorsDivs;
+                    container_div_id = "PHS_JSENDiaErr" + this.dialogErrorsDivs;
+                    container_name_id = "#PHS_JSENDiaErr" + this.dialogErrorsDivs;
                 }
                 else
                 {
@@ -222,9 +320,9 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             if( typeof suffix == "undefined" )
                 suffix = "";
 
-            if( $("#" + JSEN.dialogs_prefix + suffix) )
+            if( $("#" + PHS_JSEN.dialogs_prefix + suffix) )
             {
-                var obj_options = JSEN.dialogOptions( suffix );
+                var obj_options = PHS_JSEN.dialogOptions( suffix );
                 if( obj_options && obj_options.onclose )
                 {
                     if( jQuery.isFunction( obj_options.onclose ) )
@@ -233,7 +331,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                         eval( obj_options.onclose );
                 }
 
-                $("#" + JSEN.dialogs_prefix + suffix).remove();
+                $("#" + PHS_JSEN.dialogs_prefix + suffix).remove();
             }
         },
 
@@ -247,23 +345,23 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                 method            : "GET",
                 url_data          : "",
                 title             : "",
-                cssclass          : ["jsenOverlay"]
+                cssclass          : ["phs_jsenOverlay"]
             };
 
             var options = $.extend( defaults, o );
 
-            if( ( typeof( options.url ) != "undefined" ) && ( options.url ) && $("#" + JSEN.dialogs_prefix + options.suffix) )
+            if( ( typeof( options.url ) != "undefined" ) && ( options.url ) && $("#" + PHS_JSEN.dialogs_prefix + options.suffix) )
             {
                 if( options.title && options.title.length )
                 {
-                    $("#" + JSEN.dialogs_prefix + options.suffix).dialog( "option", "title",  options.title );
-                    JSEN.dialogOptions( options.suffix, 'title', options.title );
+                    $("#" + PHS_JSEN.dialogs_prefix + options.suffix).dialog( "option", "title",  options.title );
+                    PHS_JSEN.dialogOptions( options.suffix, 'title', options.title );
                 }
 
                 if( typeof( options.cssclass ) != "undefined" && options.cssclass )
                 {
-                    $("#" + JSEN.dialogs_prefix + options.suffix).dialog( "option", "dialogClass", options.cssclass );
-                    JSEN.dialogOptions( options.suffix, 'cssclass', options.cssclass );
+                    $("#" + PHS_JSEN.dialogs_prefix + options.suffix).dialog( "option", "dialogClass", options.cssclass );
+                    PHS_JSEN.dialogOptions( options.suffix, 'cssclass', options.cssclass );
                 }
 
                 ajax_parameters_obj = {
@@ -274,11 +372,11 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     async: true,
 
                     success: function( data, status, ajax_obj ) {
-                        $("#" + JSEN.dialogs_prefix + options.suffix).html( data );
+                        $("#" + PHS_JSEN.dialogs_prefix + options.suffix).html( data );
                     },
 
                     error: function( ajax_obj, status, error_exception ) {
-                        $("#" + JSEN.dialogs_prefix + options.suffix).html( "<?php echo PHS::_te( 'Error' )?>" );
+                        $("#" + PHS_JSEN.dialogs_prefix + options.suffix).html( "<?php echo PHS::_te( 'Error' )?>" );
                     }
                 };
 
@@ -305,7 +403,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
 
             var options = $.extend( defaults, o );
 
-            if( !$('#'+ JSEN.dialogs_prefix + options.suffix) )
+            if( !$('#'+ PHS_JSEN.dialogs_prefix + options.suffix) )
                 return false;
 
             if( ( typeof( options.url ) != "undefined" ) && ( options.url ) )
@@ -318,7 +416,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     async: true,
 
                     success: function( html ) {
-                        $("#" + JSEN.dialogs_prefix + options.suffix).html( html );
+                        $("#" + PHS_JSEN.dialogs_prefix + options.suffix).html( html );
 
                         if( options.onsuccess )
                         {
@@ -341,10 +439,10 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     }
                 });
 
-                JSEN.dialogOptions( options.suffix, 'url', options.url );
+                PHS_JSEN.dialogOptions( options.suffix, 'url', options.url );
             }
 
-            JSEN.modifyAjaxDialog( o );
+            PHS_JSEN.modifyAjaxDialog( o );
 
             return true;
         },
@@ -377,15 +475,15 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             if( !options.hasOwnProperty( 'suffix' ) )
                 options['suffix'] = '';
 
-            if( options_to_change && $("#" + JSEN.dialogs_prefix + options.suffix) )
+            if( options_to_change && $("#" + PHS_JSEN.dialogs_prefix + options.suffix) )
             {
                 for( key in options )
                 {
                     if( key == 'suffix' )
                         continue;
 
-                    $('#' + JSEN.dialogs_prefix + options.suffix).dialog( 'option', key, options[key] );
-                    JSEN.dialogOptions( options.suffix, key, options[key] );
+                    $('#' + PHS_JSEN.dialogs_prefix + options.suffix).dialog( 'option', key, options[key] );
+                    PHS_JSEN.dialogOptions( options.suffix, key, options[key] );
                 }
             }
         },
@@ -413,7 +511,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                 parent_tag        : "body",
                 autoshow          : false,
                 opacity           : 0.9,
-                cssclass          : ["jsenOverlay"],
+                cssclass          : ["phs_jsenOverlay"],
                 close_outside_click : true,
                 dialog_show         : "",
 
@@ -425,20 +523,20 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             var options = $.extend( defaults, o );
 
             // Remove Dialog ( if previously created )
-            if( $("#" + JSEN.dialogs_prefix + options.suffix) )
+            if( $("#" + PHS_JSEN.dialogs_prefix + options.suffix) )
             {
-                $("#" + JSEN.dialogs_prefix + options.suffix).remove();
+                $("#" + PHS_JSEN.dialogs_prefix + options.suffix).remove();
             }
 
             // Create Dialog
             if( typeof $(options.parent_tag) == "undefined" )
                 options.parent_tag = "body";
 
-            $(options.parent_tag).append( '<div id="' + JSEN.dialogs_prefix + options.suffix + '"></div>' );
+            $(options.parent_tag).append( '<div id="' + PHS_JSEN.dialogs_prefix + options.suffix + '"></div>' );
 
-            if( $("#" + JSEN.dialogs_prefix + options.suffix) )
+            if( $("#" + PHS_JSEN.dialogs_prefix + options.suffix) )
             {
-                $("#" + JSEN.dialogs_prefix + options.suffix).dialog( {
+                $("#" + PHS_JSEN.dialogs_prefix + options.suffix).dialog( {
                         width: options.width,
                         height: options.height,
                         draggable: options.draggable,
@@ -480,7 +578,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
 
                         success: function( data, textStatus, jqXHR )
                         {
-                            var diag_container = $( "#" + JSEN.dialogs_prefix + options.suffix );
+                            var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
                             if( diag_container )
                             {
                                 diag_container.html( data );
@@ -498,8 +596,8 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
 
                         error: function( err )
                         {
-                            $( "#" + JSEN.dialogs_prefix + options.suffix ).html( "<?php echo PHS::_te( 'Error' )?>" );
-                            $( "#" + JSEN.dialogs_prefix + options.suffix ).dialog( "open" );
+                            $( "#" + PHS_JSEN.dialogs_prefix + options.suffix ).html( "<?php echo PHS::_te( 'Error' )?>" );
+                            $( "#" + PHS_JSEN.dialogs_prefix + options.suffix ).dialog( "open" );
                         }
                     } );
                 } else
@@ -513,8 +611,8 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     else
                         source_container = options.source_obj;
 
-                    $( "#" + JSEN.dialogs_prefix + options.suffix ).html( source_container.html() );
-                    $( "#" + JSEN.dialogs_prefix + options.suffix ).dialog( "open" );
+                    $( "#" + PHS_JSEN.dialogs_prefix + options.suffix ).html( source_container.html() );
+                    $( "#" + PHS_JSEN.dialogs_prefix + options.suffix ).dialog( "open" );
 
                     if( options.onsuccess )
                     {
@@ -528,13 +626,13 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                 if( options.close_outside_click )
                 {
                     $(document).on('click', '.ui-widget-overlay', function() {
-                        if( $("#" + JSEN.dialogs_prefix + options.suffix) )
-                            $("#" + JSEN.dialogs_prefix + options.suffix).dialog("close");
+                        if( $("#" + PHS_JSEN.dialogs_prefix + options.suffix) )
+                            $("#" + PHS_JSEN.dialogs_prefix + options.suffix).dialog("close");
                     });
 
                 }
 
-                $("#" + JSEN.dialogs_prefix + options.suffix).bind('dialogclose', function(event) {
+                $("#" + PHS_JSEN.dialogs_prefix + options.suffix).bind('dialogclose', function(event) {
                     if( options.onclose )
                     {
                         if( jQuery.isFunction( options.onclose ) )
@@ -544,13 +642,13 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                     }
                 });
 
-                JSEN.dialogOptions( options.suffix, options );
+                PHS_JSEN.dialogOptions( options.suffix, options );
             }
 
             if( window.innerHeight < options.height )
             {
                 setTimeout(function() {
-                    $( "#" + JSEN.dialogs_prefix + options.suffix ).parent().css( "top", "30px" );
+                    $( "#" + PHS_JSEN.dialogs_prefix + options.suffix ).parent().css( "top", "30px" );
                 }, 500 );
             }
         },
@@ -559,30 +657,30 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
         dialogOptions : function( suffix, key, val )
         {
             if( typeof key == 'undefined' && typeof val == 'undefined' )
-                return JSEN.dialogs_options[suffix];
+                return PHS_JSEN.dialogs_options[suffix];
 
             if( typeof key == 'string' && typeof val == 'undefined' )
             {
-                if( typeof JSEN.dialogs_options[suffix] != 'undefined' && typeof JSEN.dialogs_options[suffix][key] != 'undefined' )
-                    return JSEN.dialogs_options[suffix][key];
+                if( typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' && typeof PHS_JSEN.dialogs_options[suffix][key] != 'undefined' )
+                    return PHS_JSEN.dialogs_options[suffix][key];
                 else
                     return null;
             }
 
             if( typeof key == 'object' )
             {
-                if( typeof JSEN.dialogs_options[suffix] != 'undefined' )
-                    JSEN.dialogs_options[suffix] = $.extend( JSEN.dialogs_options[suffix], key );
+                if( typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' )
+                    PHS_JSEN.dialogs_options[suffix] = $.extend( PHS_JSEN.dialogs_options[suffix], key );
                 else
-                    JSEN.dialogs_options[suffix] = key;
+                    PHS_JSEN.dialogs_options[suffix] = key;
 
-                return JSEN.dialogs_options[suffix];
+                return PHS_JSEN.dialogs_options[suffix];
             }
 
             if( typeof key == 'string' && typeof val != 'undefined'
-             && typeof JSEN.dialogs_options[suffix] != 'undefined' )
+             && typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' )
             {
-                JSEN.dialogs_options[suffix][key] = val;
+                PHS_JSEN.dialogs_options[suffix][key] = val;
                 return true;
             }
 
@@ -593,7 +691,7 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
         closeLoadingDialog : function( suffix )
         {
             // Remove Dialog ( if previously created )
-            if( $("#jsen_loading" + suffix) ) { $("#jsen_loading" + suffix).remove(); };
+            if( $("#phs_jsen_loading" + suffix) ) { $("#phs_jsen_loading" + suffix).remove(); };
         },
 
         // Create Loading div...
@@ -613,17 +711,17 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
             }, o );
 
             // Remove Dialog ( if previously created )
-            if( $("#jsen_loading" + options.suffix) ) { $("#jsen_loading" + options.suffix).remove(); };
+            if( $("#phs_jsen_loading" + options.suffix) ) { $("#phs_jsen_loading" + options.suffix).remove(); };
 
             // Create Dialog
             if( typeof $(options.parent_tag) == "undefined" )
                 options.parent_tag = "body";
 
-            $(options.parent_tag).append( '<div id="jsen_loading' + options.suffix + '"></div>' );
+            $(options.parent_tag).append( '<div id="phs_jsen_loading' + options.suffix + '"></div>' );
 
-            if( $("#jsen_loading" + options.suffix) )
+            if( $("#phs_jsen_loading" + options.suffix) )
             {
-                $("#jsen_loading" + options.suffix).dialog( {
+                $("#phs_jsen_loading" + options.suffix).dialog( {
                         width: options.width,
                         height: options.height,
                         draggable: options.draggable,
@@ -642,17 +740,17 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                         resizable: false
                        } );
 
-                $("#jsen_loading" + options.suffix).html( options.message + '<div id="loading-animation-pb' + options.suffix + '"></div>' );
+                $("#phs_jsen_loading" + options.suffix).html( options.message + '<div id="loading-animation-pb' + options.suffix + '"></div>' );
 
                 $( "#loading-animation-pb" + options.suffix ).progressbar({ value: false });
 
-                $("#jsen_loading" + options.suffix).dialog( "open" );
-            };
+                $("#phs_jsen_loading" + options.suffix).dialog( "open" );
+            }
         },
 
         keyPressHandler : function()
         {
-            var r = $(JSEN.default_action_13);
+            var r = $(PHS_JSEN.default_action_13);
             if( !r || !r.length )
                 return;
 
@@ -662,10 +760,10 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
                 while( a && a.length && a.attr( "tagName" ) != "FORM" )
                 {
                     a = a.parent()
-                };
+                }
 
                 if( a && a.length )
-                    a.find("input").keypress( function(e){ if( ( e.which && e.which == 13 ) || (e.keyCode && e.keyCode == 13) ) { a.find(JSEN.default_action_13).click(); return false } else { return true } } );
+                    a.find("input").keypress( function(e){ if( ( e.which && e.which == 13 ) || (e.keyCode && e.keyCode == 13) ) { a.find(PHS_JSEN.default_action_13).click(); return false } else { return true } } );
 
             });
         },
@@ -677,5 +775,5 @@ if( typeof( JSEN ) != "undefined" || !JSEN )
         }
 
     };
-};
+}
 

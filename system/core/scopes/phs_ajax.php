@@ -6,6 +6,7 @@ use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Notifications;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Scope_Ajax extends PHS_Scope
@@ -19,17 +20,26 @@ class PHS_Scope_Ajax extends PHS_Scope
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
-        if( !empty( $action_result['redirect_to_url'] )
-        and !@headers_sent() )
-        {
-            @header( 'Location: '.$action_result['redirect_to_url'] );
-            exit;
-        }
-
         if( !isset( $action_result['ajax_result'] ) )
             $action_result['ajax_result'] = false;
 
-        echo @json_encode( $action_result['ajax_result'] );
+        if( !empty( $action_result['ajax_only_result'] ) )
+            $ajax_data = $action_result['ajax_result'];
+
+        else
+        {
+            $ajax_data = array();
+            $ajax_data['status'] = array(
+                'success_messages' => PHS_Notifications::notifications_success(),
+                'warning_messages' => PHS_Notifications::notifications_warnings(),
+                'error_messages' => PHS_Notifications::notifications_errors(),
+            );
+
+            $ajax_data['response'] = $action_result['ajax_result'];
+            $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
+        }
+
+        echo @json_encode( $ajax_data );
 
         return true;
     }
