@@ -853,9 +853,12 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( empty( $params['fields']['nick'] )
-        and !empty( $params['fields']['email'] )
-        and !empty( $accounts_settings['replace_nick_with_email'] ) )
+        if( !empty( $params['fields']['email'] )
+        and (
+                (empty( $params['fields']['nick'] ) and !empty( $accounts_settings['replace_nick_with_email'] ))
+                or
+                !empty( $accounts_settings['no_nickname_only_email'] )
+            ) )
             $params['fields']['nick'] = $params['fields']['email'];
 
         if( empty( $params['fields']['nick'] ) )
@@ -1092,25 +1095,6 @@ class PHS_Model_Accounts extends PHS_Model
          or !is_array( $accounts_settings ) )
             $accounts_settings = array();
 
-        if( isset( $params['fields']['nick'] )
-        and $params['fields']['nick'] != $existing_data['nick'] )
-        {
-            // If we delete the account, just skip checks...
-            if( empty( $params['fields']['status'] )
-             or $params['fields']['status'] != self::STATUS_DELETED )
-            {
-                $check_arr         = array();
-                $check_arr['nick'] = $params['fields']['nick'];
-                $check_arr['id']   = array( 'check' => '!=', 'value' => $existing_data['id'] );
-
-                if( $this->get_details_fields( $check_arr ) )
-                {
-                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Nickname already exists in database. Please pick another one.' ) );
-                    return false;
-                }
-            }
-        }
-
         if( !empty( $params['fields']['pass'] ) )
         {
             if( !empty( $accounts_settings['min_password_length'] )
@@ -1171,7 +1155,30 @@ class PHS_Model_Accounts extends PHS_Model
                 }
             }
 
+            if( (empty( $params['fields']['nick'] ) and !empty( $accounts_settings['replace_nick_with_email'] ))
+             or !empty( $accounts_settings['no_nickname_only_email'] ) )
+                $params['fields']['nick'] = $params['fields']['email'];
+
             $params['fields']['email_verified'] = 0;
+        }
+
+        if( isset( $params['fields']['nick'] )
+        and $params['fields']['nick'] != $existing_data['nick'] )
+        {
+            // If we delete the account, just skip checks...
+            if( empty( $params['fields']['status'] )
+             or $params['fields']['status'] != self::STATUS_DELETED )
+            {
+                $check_arr         = array();
+                $check_arr['nick'] = $params['fields']['nick'];
+                $check_arr['id']   = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+                if( $this->get_details_fields( $check_arr ) )
+                {
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Nickname already exists in database. Please pick another one.' ) );
+                    return false;
+                }
+            }
         }
 
         if( isset( $params['fields']['status'] ) )

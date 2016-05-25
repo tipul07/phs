@@ -7,6 +7,9 @@
     if( !($remember_me_session_minutes = $this->context_var( 'remember_me_session_minutes' )) )
         $remember_me_session_minutes = 0;
 
+    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+        $no_nickname_only_email = false;
+
     if( !($back_page = $this->context_var( 'back_page' )) )
         $back_page = '';
 ?>
@@ -28,12 +31,12 @@
             </section>
 
             <fieldset>
-                <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
+                <label for="nick"><?php echo (empty( $no_nickname_only_email )?$this->_pt( 'Username' ):$this->_pt( 'Email' ))?></label>
                 <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset>
-                <label for="pass"><?php echo $this->_pt( 'Password' )?>:</label>
+                <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
                 <input type="password" id="pass" name="pass" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" />
             </fieldset>
 

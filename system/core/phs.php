@@ -697,20 +697,15 @@ final class PHS extends PHS_Registry
         //H_URL_PARAMS
 
         if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
-            $extra['for_scope'] = PHS_Scope::current_scope();
+            $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
 
         switch( $extra['for_scope'] )
         {
             default:
-            case PHS_Scope::SCOPE_WEB:
                 return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
 
             case PHS_Scope::SCOPE_AJAX:
                 return self::get_ajax_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
-
-            case PHS_Scope::SCOPE_BACKGROUND:
-                return '#bg_job';
-            break;
         }
     }
 

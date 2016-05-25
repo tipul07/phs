@@ -60,9 +60,6 @@ function include_others_init()
     $('.information-boxes .close').on('click', function() {
         $(this).parent().slideUp(300);
     });
-
-    /* ================ PLACEHOLDER PLUGIN ================ */
-    $('input[placeholder], textarea[placeholder]').placeholder();
 }
 
 function include_accordion_init()

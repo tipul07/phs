@@ -1,30 +1,40 @@
-﻿/* Romanian initialisation for the jQuery UI date picker plugin. */
-/* Written by Andy. */
-(function($) {
-	$.datepicker.regional['ro'] = {
-		renderer: $.datepicker.defaultRenderer,
-		monthNames: ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie',
-		'Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
-		monthNamesShort: ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun',
-		'Iul', 'Aug', 'Sep', 'Oct', 'Noi', 'Dec'],
-		dayNames: ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'],
-		dayNamesShort: ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'],
-		dayNamesMin: ['Du','Lu','Ma','Mi','Jo','Vi','Sa'],
-		dateFormat: 'dd/mm/yyyy',
-		firstDay: 1,
-		prevText: '&#x3c;Ant.', prevStatus: '',
-		prevJumpText: '&#x3c;&#x3c;', prevJumpStatus: '',
-		nextText: 'Urm.&#x3e;', nextStatus: '',
-		nextJumpText: '&#x3e;&#x3e;', nextJumpStatus: '',
-		currentText: 'Curent', currentStatus: '',
-		todayText: 'Azi', todayStatus: '',
-		clearText: 'Sterge', clearStatus: '',
-		closeText: 'Gata', closeStatus: '',
-		yearStatus: '', monthStatus: '',
-		weekText: 'Sap', weekStatus: '',
-		dayStatus: 'DD d MM',
-		defaultStatus: '',
-		isRTL: false
-	};
-	$.extend($.datepicker.defaults, $.datepicker.regional['ro']);
-})(jQuery);
+/* Romanian initialisation for the jQuery UI date picker plugin.
+ *
+ * Written by Edmond L. (ll_edmond@walla.com)
+ * and Ionut G. Stan (ionut.g.stan@gmail.com)
+ */
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+
+		// AMD. Register as an anonymous module.
+		define( [ "../widgets/datepicker" ], factory );
+	} else {
+
+		// Browser globals
+		factory( jQuery.datepicker );
+	}
+}( function( datepicker ) {
+
+datepicker.regional.ro = {
+	closeText: "Închide",
+	prevText: "&#xAB; Luna precedentă",
+	nextText: "Luna următoare &#xBB;",
+	currentText: "Azi",
+	monthNames: [ "Ianuarie","Februarie","Martie","Aprilie","Mai","Iunie",
+	"Iulie","August","Septembrie","Octombrie","Noiembrie","Decembrie" ],
+	monthNamesShort: [ "Ian", "Feb", "Mar", "Apr", "Mai", "Iun",
+	"Iul", "Aug", "Sep", "Oct", "Nov", "Dec" ],
+	dayNames: [ "Duminică", "Luni", "Marţi", "Miercuri", "Joi", "Vineri", "Sâmbătă" ],
+	dayNamesShort: [ "Dum", "Lun", "Mar", "Mie", "Joi", "Vin", "Sâm" ],
+	dayNamesMin: [ "Du","Lu","Ma","Mi","Jo","Vi","Sâ" ],
+	weekHeader: "Săpt",
+	dateFormat: "dd.mm.yy",
+	firstDay: 1,
+	isRTL: false,
+	showMonthAfterYear: false,
+	yearSuffix: "" };
+datepicker.setDefaults( datepicker.regional.ro );
+
+return datepicker.regional.ro;
+
+} ) );

@@ -148,6 +148,7 @@ class PHS_Action_Register extends PHS_Action
             'vcode' => $vcode,
             'min_password_length' => $accounts_settings['min_password_length'],
             'password_regexp' => $accounts_settings['password_regexp'],
+            'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
         );
 
         return $this->quick_render_template( 'register', $data );

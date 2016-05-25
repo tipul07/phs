@@ -114,6 +114,7 @@ class PHS_Action_Login extends PHS_Action
             'pass' => $pass,
             'remember_me_session_minutes' => $plugin_settings['session_expire_minutes_remember'],
             'normal_session_minutes' => $plugin_settings['session_expire_minutes_normal'],
+            'no_nickname_only_email' => $plugin_settings['no_nickname_only_email'],
             'do_remember' => (!empty( $do_remember )?'checked="checked"':''),
         );
 

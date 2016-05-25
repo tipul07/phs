@@ -1,23 +1,4 @@
 
-#menu-left-pane, #menu-right-pane { display: none; color: white; background-color: #222222; width: 90%; max-width: 350px; height: 100%; min-height: 100%; z-index: 1000; position: fixed; overflow-y: auto; overflow-x: hidden; }
-#menu-right-pane { right: 0; }
-#menu-left-pane { left: 0; }
-
-.main-menu-pane-close-button { padding: 10px; font-size: 20px; }
-.main-menu-pane-close-button a { color: white; }
-.main-menu-pane-close-button a:hover { text-decoration: none; color: white; }
-
-.menu-pane a, .menu-pane a:hover { text-decoration: none; color: white; }
-.menu-pane ul { list-style: none; margin: 0; padding: 0; display: table; }
-.menu-pane li { color: white; display: block; padding: 0; margin: 10px; line-height: 24px; }
-.menu-pane li span { color: #5f5f5f; }
-.menu-pane li ul { padding: 0; margin: 0; }
-.menu-pane li ul li a, .menu-pane li a { color: white; line-height: 24px; width: 100%; }
-.menu-pane li span { margin: 5px; }
-.menu-pane .menu-pane-form-line { padding-top: 5px; }
-.menu-pane .menu-pane-form-line label { color: white !important; }
-.menu-pane input.wpcf7-text { background-color: white !important; }
-
 a, abbr, acronym, address, applet, article, aside, audio, b, big, blockquote, body, canvas, caption,center, cite, code, dd, del, details, dfn, dialog, div, dl, dt, em, embed, fieldset, figcaption, figure, font, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, html, i, iframe, img, ins, kbd, label, legend, li, mark, menu, meter, nav, object, ol, output, p, pre, progress, q, rp, rt, ruby, s, samp, section, small, span, strike, strong, sub, summary, sup, table, tbody, td, tfoot, th, thead, time, tr, tt, u, ul, var, video, xmp { border: 0; margin: 0; padding: 0;}
 img {color: transparent; font-size: 0; vertical-align: middle; -ms-interpolation-mode: bicubic; max-width: 100%;}
 sub, sup, small {font-size: 75%;}
@@ -25,13 +6,6 @@ sub,sup {line-height: 0; position: relative; vertical-align: baseline;}
 sub {bottom: -0.25em;}
 sup {top: -0.5em;}
 svg {overflow: hidden;}
-.clearfix{clear: both;}
-
-.dialog-submit { color: white !important; text-decoration: none !important; }
-.dialog-submit:hover { color: white !important; text-decoration: none !important; }
-
-.dialog_actions { width: 100%; clear: both; }
-.dialog_action { float: left; margin-right: 5px; }
 
 .wpcf7-select { width: auto !important; }
 
@@ -78,78 +52,6 @@ body {
 
 /* INFORMATION BOXES - INFO BOX
 ----------------------------------------------------------------------------- */
-.infobox{
-    background: #e0f2ff;
-    border: 1px solid #c1def2;
-    width: 100%;
-    float: left;
-    margin-bottom: 10px;
-    position: relative;
-}
-
-.infobox p{
-    background: url('../images/info-box.png') no-repeat 0 center;
-    margin: 10px 30px 10px 10px;
-    padding-left: 25px;
-    color: #61adb0;
-    text-shadow: 0 1px 0 #fff;
-}
-
-/* Infromation boxes - WARNING BOX
------------------------------------------------------------------------------ */
-.warning-box{
-    background: #f8f6bc;
-    border: 1px solid #e7e48b;
-    width: 99%;
-    margin: 0 auto 10px auto;
-    position: relative;
-}
-
-.warning-box p{
-    background: url('../images/warning-box.png') no-repeat 0 center;
-    margin: 10px 30px 10px 10px;
-    padding-left: 27px;
-    color: #989426;
-    text-shadow: 0 1px 0 #fff;
-}
-
-/* Infromation boxes - SUCCES BOX
------------------------------------------------------------------------------ */
-.success-box{
-    background: #ebfdd7;
-    border: 1px solid #cef4a4;
-    border-radius: 3px;
-    width: 99%;
-    margin: 0 auto 10px auto;
-    position: relative;
-}
-
-.success-box p{
-    background: url('../images/success-box.png') no-repeat 0 center;
-    margin: 10px 30px 10px 10px;
-    padding-left: 25px;
-    color: #7eb244;
-    text-shadow: 0 1px 0 #fff;
-}
-
-/* Infromation boxes - ERROR BOX
------------------------------------------------------------------------------ */
-.error-box{
-    background: #fadddd;
-    border: 1px solid #fcc1c1;
-    border-radius: 3px;
-    width: 99%;
-    margin: 0 auto 10px auto;
-    position: relative;
-}
-
-.error-box p{
-    background: url('../images/error-box.png') no-repeat 0 center;
-    margin: 10px 30px 10px 10px;
-    padding-left: 25px;
-    color: #d86d6d;
-    text-shadow: 0 1px 0 #fff;
-}
 
 
 /*  6.18. SERVICES VERTICAL TABS

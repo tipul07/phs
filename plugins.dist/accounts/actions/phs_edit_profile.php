@@ -68,6 +68,9 @@ class PHS_Action_Edit_profile extends PHS_Action
             return $action_result;
         }
 
+        if( !($plugin_settings = $this->get_plugin_settings()) )
+            $plugin_settings = array();
+
         $changes_saved = PHS_params::_g( 'changes_saved', PHS_params::T_NOHTML );
 
         if( !empty( $changes_saved ) )
@@ -178,6 +181,7 @@ class PHS_Action_Edit_profile extends PHS_Action
             'company' => $company,
             'email_verified' => (!empty( $email_needs_verification )?false:true),
             'verify_email_link' => $verify_email_link,
+            'no_nickname_only_email' => $plugin_settings['no_nickname_only_email'],
         );
 
         return $this->quick_render_template( 'edit_profile', $data );

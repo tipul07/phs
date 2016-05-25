@@ -3,6 +3,9 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
+
+    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+        $no_nickname_only_email = false;
 ?>
 <!-- BEGIN: main -->
 <div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
@@ -16,18 +19,25 @@
                 <h3><?php echo $this->_pt( 'Register an account' )?></h3>
             </section>
 
-            <fieldset class="lineform">
-                <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
-                <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
-            </fieldset>
+            <?php
+            if( empty( $no_nickname_only_email ) )
+            {
+                ?>
+                <fieldset class="lineform">
+                    <label for="nick"><?php echo $this->_pt( 'Username' ) ?></label>
+                    <input type="text" id="nick" name="nick" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) ) ?>" style="width: 260px;"/>
+                </fieldset>
+                <?php
+            }
+            ?>
 
             <fieldset class="lineform">
-                <label for="email"><?php echo $this->_pt( 'Email' )?>:</label>
+                <label for="email"><?php echo $this->_pt( 'Email' )?></label>
                 <input type="text" id="email" name="email" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="pass1"><?php echo $this->_pt( 'Password' )?>:</label>
+                <label for="pass1"><?php echo $this->_pt( 'Password' )?></label>
                 <div class="lineform_line">
                 <input type="password" id="pass1" name="pass1" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" /><br/>
                 <small><?php
@@ -55,7 +65,7 @@
             </fieldset>
 
             <fieldset class="lineform">
-                <label for="pass2"><?php echo $this->_pt( 'Confirm password' )?>:</label>
+                <label for="pass2"><?php echo $this->_pt( 'Confirm password' )?></label>
                 <input type="password" id="pass2" name="pass2" class="wpcf7-text" required="required" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" style="width: 260px;" />
             </fieldset>
 

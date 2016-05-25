@@ -29,11 +29,10 @@
 
     <link href="<?php echo $this->get_resource_url( 'images/favicon.png' )?>" rel="shortcut icon" />
 
-    <link href="<?php echo $this->get_resource_url( 'fileuploader.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'jquery-ui.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'jquery-ui.theme.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'jquery.checkbox.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'jquery.multiselect.css' )?>" rel="stylesheet" type="text/css" />
+    <link href="<?php echo $this->get_resource_url( 'chosen.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/grid.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/animate.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/responsive.css' )?>" rel="stylesheet" type="text/css" />
@@ -47,12 +46,10 @@
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery-ui.js' )?>"></script>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.validate.js' )?>"></script>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.checkbox.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.multiselect.js' )?>"></script>
+    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/chosen.jquery.js' )?>"></script>
 
-    <script  src="<?php echo $this->get_resource_url( 'js/jquery.placeholder.min.js' )?>"></script>
     <script  src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
 
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/fileuploader.js' )?>"></script>
     <?php
         if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' )) )
         {
@@ -68,8 +65,8 @@
             $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
             $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
             $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-            $('select[rel="skin_multiple"]').multiselect();
-            $('select[rel="skin_single"]').multiselect({header: false, multiple: false, selectedList: 1 });
+
+            $(".chosen-select").chosen();
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 

@@ -29,7 +29,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -64,6 +64,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 'display_hint' => $this->_pt( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
+            ),
+            'no_nickname_only_email' => array(
+                'display_name' => $this->_pt( 'Use only email, no nickname' ),
+                'display_hint' => $this->_pt( 'Hide nickname complately and use only email as nickname.' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
             ),
             'account_requires_activation' => array(
                 'display_name' => $this->_pt( 'Account requires activation' ),
