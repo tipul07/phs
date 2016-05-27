@@ -33,12 +33,9 @@
     <link href="<?php echo $this->get_resource_url( 'jquery-ui.theme.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'jquery.checkbox.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'chosen.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/grid.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/animate.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/responsive.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'font-awesome/css/font-awesome.min.css' )?>" rel="stylesheet" type="text/css" />
+    <link href="<?php echo $this->get_resource_url( 'css/bootstrap.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/lightbox.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/extra.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/style.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'css/style-colors.css' )?>" rel="stylesheet" type="text/css" />
 
@@ -47,6 +44,7 @@
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.validate.js' )?>"></script>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.checkbox.js' )?>"></script>
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/chosen.jquery.js' )?>"></script>
+    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/bootstrap.js' )?>"></script>
 
     <script  src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
 

@@ -40,7 +40,7 @@ body { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; font-size: 14p
 .lineformwide_line { margin-left: 350px !important; }
 
 fieldset.form-group label { float: left; margin-top: 5px; }
-fieldset.form-group .form-control { margin-left: 150px !important; }
+fieldset.form-group .form-control { display: inline !important; }
 
 .btn-small { font-size: 12px; padding: 3px 6px; }
 

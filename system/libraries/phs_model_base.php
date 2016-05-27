@@ -12,7 +12,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     const MODEL_BASE_VERSION = '1.0.0';
 
     const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
-          ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008;
+          ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
@@ -988,6 +988,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $data_arr = array();
         foreach( $table_fields as $field_name => $field_details )
         {
+            if( $field_name == self::T_DETAILS_KEY )
+                continue;
+            
             if( isset( $field_details['default'] ) )
                 $data_arr[$field_name] = $field_details['default'];
             else

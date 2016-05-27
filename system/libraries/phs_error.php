@@ -474,6 +474,19 @@ class PHS_Error
         return $err_arr['error_simple_msg'];
     }
 
+    public static function arr_merge_error_to_array( $source_error_arr, $error_arr )
+    {
+        $source_error_arr = self::validate_error_arr( $source_error_arr );
+        $error_arr = self::validate_error_arr( $error_arr );
+
+        $source_error_arr['error_msg'] .= ($source_error_arr['error_msg']!=''?"\n\n":'').$error_arr['error_msg'];
+        $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg']!=''?"\n\n":'').$error_arr['error_simple_msg'];
+        $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!=''?"\n\n":'').$error_arr['error_debug_msg'];
+        $source_error_arr['display_error'] .= ($source_error_arr['display_error']!=''?"\n\n":'').$error_arr['display_error'];
+
+        return $source_error_arr;
+    }
+
     public function stack_all_errors()
     {
         return array_merge(

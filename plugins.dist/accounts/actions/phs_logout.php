@@ -55,8 +55,6 @@ class PHS_Action_Logout extends PHS_Action
             return $action_result;
         }
 
-        var_dump( $accounts_plugin->get_error() );
-
         if( $accounts_plugin->has_error() )
             PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
         else
