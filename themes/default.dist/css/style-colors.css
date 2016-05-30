@@ -11,6 +11,7 @@ h1, h2, h3, h4 { color:#eb0e0e; }
 .form_content form { color: #797979; }
 .texterror { color: red; }
 
+/*
 input:focus:not([type='checkbox']), button:focus, a.button:focus, select:focus, textarea:focus
 {
     border-color: #f31010; -webkit-box-shadow: #f31010 0 0 5px 0; -moz-box-shadow: #f31010 0 0 5px 0; box-shadow: #f31010 0 0 5px 0;
@@ -20,6 +21,7 @@ button, a.button, input[type="reset"], input[type="submit"], input[type="button"
 {
     text-shadow: -1px -1px 0 rgba(0,0,0,0.3); color: #FFFFFF; background: #f31010;
 }
+*/
 
 /* Colour  */
 a { color: #f31010; }

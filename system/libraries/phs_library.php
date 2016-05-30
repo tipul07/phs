@@ -3,10 +3,42 @@
 namespace phs\libraries;
 
 //! All plugin libraries should extend this class
-abstract class PHS_Library extends PHS_Language
+abstract class PHS_Library extends PHS_Registry
 {
     /** @var PHS_Plugin|bool $_parent_plugin */
     private $_parent_plugin = false;
+
+    /** @var bool|array $_location_paths */
+    private $_location_paths = false;
+
+    public static function get_library_default_location_paths()
+    {
+        return array(
+            'library_file' => '',
+            'library_path' => '',
+            'library_www' => '',
+        );
+    }
+
+    public function set_library_location_paths( $paths )
+    {
+        $this->_location_paths = self::validate_array( $paths, self::get_library_default_location_paths() );
+
+        $this->_location_paths['library_path'] = rtrim( $this->_location_paths['library_path'], '/' ).'/';
+        $this->_location_paths['library_www'] = rtrim( $this->_location_paths['library_www'], '/' ).'/';
+
+        if( $this->_location_paths['library_path'] == '/' )
+            $this->_location_paths['library_path'] = '';
+        if( $this->_location_paths['library_www'] == '/' )
+            $this->_location_paths['library_www'] = '';
+
+        return $this->_location_paths;
+    }
+
+    public function get_library_location_paths()
+    {
+        return $this->_location_paths;
+    }
 
     final public function parent_plugin( $plugin_obj = false )
     {

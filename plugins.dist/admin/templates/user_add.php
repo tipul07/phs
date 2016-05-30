@@ -105,7 +105,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="wpcf7-submit submit-protection" value="<?php echo $this::_te( 'Create Account' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this::_te( 'Create Account' )?>" />
             </fieldset>
 
         </div>

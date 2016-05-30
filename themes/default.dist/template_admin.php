@@ -126,9 +126,9 @@
             <div id="protection-wrapper" style="position: fixed; display: table; margin: 0px auto; margin-top: 50px; width: 100%">
                 <div style="margin: 0px auto; display: table;">
 
-                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; width:80%; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
+                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; min-width:250px; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
                         <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
-                        <p style="margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait.' )?></p>
+                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' )?></p>
                     </div>
 
                 </div>

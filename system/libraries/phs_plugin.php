@@ -215,6 +215,18 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         return $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php';
     }
 
+    public function get_library_full_www( $library )
+    {
+        $library = self::safe_escape_library_name( $library );
+        if( empty( $library )
+         or !($dir_path = $this->instance_plugin_path())
+         or !@is_dir( $dir_path.self::LIBRARIES_DIR )
+         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php' ) )
+            return false;
+
+        return $this->instance_plugin_www().self::LIBRARIES_DIR.'/'.$library.'.php';
+    }
+
     public function load_library( $library, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -268,6 +280,17 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         if( !$library_instance->parent_plugin( $this ) )
         {
             $this->set_error( self::ERR_LIBRARY, self::_t( 'Library [%s] from plugin [%s] couldn\'t set plugin parent.', $library, $this->instance_plugin_name() ) );
+            return false;
+        }
+        
+        $location_details = $library_instance::get_library_default_location_paths();
+        $location_details['library_file'] = $file_path;
+        $location_details['library_path'] = @dirname( $file_path );
+        $location_details['library_www'] = @dirname( $this->get_library_full_www( $library ) );
+
+        if( !$library_instance->set_library_location_paths( $location_details ) )
+        {
+            $this->set_error( self::ERR_LIBRARY, self::_t( 'Library [%s] from plugin [%s] couldn\'t set location paths.', $library, $this->instance_plugin_name() ) );
             return false;
         }
 

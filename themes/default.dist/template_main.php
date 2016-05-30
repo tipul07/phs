@@ -152,9 +152,9 @@
             <div id="protection-wrapper" style="position: fixed; display: table; margin: 0px auto; margin-top: 50px; width: 100%">
                 <div style="margin: 0px auto; display: table;">
 
-                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; width:80%; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
+                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; min-width:250px; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
                         <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
-                        <p style="margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait.' )?></p>
+                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' )?></p>
                     </div>
 
                 </div>
@@ -255,32 +255,32 @@
                 <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
                     <div style="float:right;" class="fa fa-arrow-down"></div>
                 </a>
-                <div id="login_popup" style="display: none; padding: 10px;">
+                <div id="login_popup" style="display: none; padding: 10px;width:100%;">
                     <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
                                                                                                                              'p' => 'accounts',
                                                                                                                              'a' => 'login'
-                                                                                                                         ) ) ?>" class="wpcf7">
-                        <div class="menu-pane-form-line">
+                                                                                                                         ) ) ?>">
+                        <div class="menu-pane-form-line form-group">
                             <label for="mt_nick"><?php echo $this::_t( 'Username' ) ?></label>
-                            <input type="text" id="mt_nick" class="wpcf7-text" name="nick" required />
+                            <input type="text" id="mt_nick" class="form-control" name="nick" required />
                         </div>
-                        <div class="menu-pane-form-line">
+                        <div class="menu-pane-form-line form-group">
                             <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
-                            <input type="password" id="mt_nick" class="wpcf7-text" name="pass" required />
+                            <input type="password" id="mt_nick" class="form-control" name="pass" required />
                         </div>
                         <div class="menu-pane-form-line fixskin">
                             <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
-                            <input type="checkbox" id="mt_do_remember" class="wpcf7-text" name="do_remember" rel="skin_checkbox" value="1" required />
+                            <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" required />
                             <div class="clearfix"></div>
                         </div>
-                        <div class="menu-pane-form-line">
+                        <div class="menu-pane-form-line form-group" style="width:100%;">
                             <div style="float: left;"><a href="<?php echo PHS::url( array(
                                                                                         'p' => 'accounts',
                                                                                         'a' => 'forgot'
                                                                                     ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
                             </div>
                             <div style="float: right; right: 10px;">
-                                <input type="submit" name="submit" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
+                                <input type="submit" name="submit" class="btn btn-primary btn-medium submit-protection" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
                             <div class="clearfix"></div>
                         </div>
                     </form>

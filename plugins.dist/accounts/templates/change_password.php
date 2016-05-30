@@ -58,7 +58,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="wpcf7-submit submit-protection" value="<?php echo $this->_pte( 'Change password' )?>" />
+                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Change password' )?>" />
             </fieldset>
 
             <fieldset>

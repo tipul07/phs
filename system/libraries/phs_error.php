@@ -165,21 +165,16 @@ class PHS_Error
         return '('.@get_class( $value ).')';
     }
 
-    //! Set error code and error message
+    //! Set error code and error message in an array
     /**
-     *   Set an error code and error message. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
+     *   Set an error code and error message in an array. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
      *
-     *   @param $error_no int Error code
-     *   @param $error_msg string Error message
+     *   @param int $error_no Error code
+     *   @param string $error_msg Error message
+     *   @param string $error_debug_msg Error message
      **/
-    public function set_error( $error_no, $error_msg, $error_debug_msg = '', $params = false )
+    public static function arr_set_error( $error_no, $error_msg, $error_debug_msg = '' )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
-        if( empty( $params['prevent_throwing_errors'] ) )
-            $params['prevent_throwing_errors'] = false;
-
         $backtrace = '';
         if( is_array( ($err_info = debug_backtrace()) ) )
         {
@@ -212,16 +207,48 @@ class PHS_Error
             }
         }
 
-        $this->error_no = $error_no;
-        $this->error_simple_msg = $error_msg;
+        $error_arr = self::default_error_array();
+        $error_arr['error_no'] = $error_no;
+        $error_arr['error_simple_msg'] = $error_msg;
         if( $error_debug_msg != '' )
-            $this->error_debug_msg = $error_debug_msg;
+            $error_arr['error_debug_msg'] = $error_debug_msg;
         else
-            $this->error_debug_msg = $error_msg;
-        $this->error_msg = 'Error: ('.$error_msg.')'."\n".
-                           'Code: ('.$error_no.')'."\n".
-                           'Backtrace:'."\n".
-                           $backtrace;
+            $error_arr['error_debug_msg'] = $error_msg;
+        $error_arr['error_msg'] = 'Error: ('.$error_msg.')'."\n".
+                                  'Code: ('.$error_no.')'."\n".
+                                  'Backtrace:'."\n".
+                                  $backtrace;
+
+        if( self::st_debugging_mode() )
+            $error_arr['display_error'] = $error_arr['error_debug_msg'];
+        else
+            $error_arr['display_error'] = $error_arr['error_simple_msg'];
+
+        return $error_arr;
+    }
+
+    //! Set error code and error message
+    /**
+     *   Set an error code and error message. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
+     *
+     *   @param $error_no int Error code
+     *   @param $error_msg string Error message
+     **/
+    public function set_error( $error_no, $error_msg, $error_debug_msg = '', $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['prevent_throwing_errors'] ) )
+            $params['prevent_throwing_errors'] = false;
+
+        if( !($arr = self::arr_set_error( $error_no, $error_msg, $error_debug_msg )) )
+            $arr = self::default_error_array();
+
+        $this->error_no = $arr['error_no'];
+        $this->error_simple_msg = $arr['error_simple_msg'];
+        $this->error_debug_msg = $arr['error_debug_msg'];
+        $this->error_msg = $arr['error_msg'];
 
         if( empty( $params['prevent_throwing_errors'] )
         and $this->throw_errors() )

@@ -43,6 +43,7 @@ fieldset.form-group label { float: left; margin-top: 5px; }
 fieldset.form-group .form-control { display: inline !important; }
 
 .btn-small { font-size: 12px; padding: 3px 6px; }
+.btn-medium { font-size: 14px; padding: 4px 8px; }
 
 /* Typography */
 h1, h2, h3, h4 { color:#2679B5; margin: 0; font-family: inherit; text-rendering: optimizelegibility; font-weight: lighter; }
@@ -52,19 +53,26 @@ h3, .h3 { font-size: 20px; line-height: 24px; }
 h4, .h4 { font-size: 18px; line-height: 20px; }
 
 p, ol, ul { margin-bottom: 1.5em; font-size: 16px; line-height: 1.5em; }
+/*
 ul,ol { margin: 0 0 1.5em -24px; padding: 0 0 0 24px; }
 li ul, li ol { margin: 0; font-size: 16px; }
+*/
 
+/*
 input:invalid:not([type='checkbox']), button:invalid, a.button:invalid, select:invalid, textarea:invalid
 {
     -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none;
 }
+*/
 
 input:invalid:not([type='checkbox'])
 {
-    background:url("../images/alert.png") right no-repeat; background-origin:content-box;
+    background: url("../images/alert.png") right no-repeat;
+    background-color: #fff;
 }
 
+
+/*
 input:focus:not([type='checkbox']), button:focus, a.button:focus, select:focus, textarea:focus
 {
     border-color: #2283C5; -webkit-box-shadow: #2283C5 0 0 5px 0; -moz-box-shadow: #2283C5 0 0 5px 0; box-shadow: #2283C5 0 0 5px 0;
@@ -81,6 +89,7 @@ button, a.button, input[type="reset"], input[type="submit"], input[type="button"
     border:0 none; -webkit-border-radius: 3px; -moz-border-radius: 3px;border-radius: 3px; padding: 10px; font-weight:bold; text-align: center; display: inline-block;
     text-shadow: -1px -1px 0 rgba(0,0,0,0.3); color: #FFFFFF; background: #2283C5;
 }
+*/
 
 /* Colour  */
 img { border: none; }
@@ -220,7 +229,7 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 .main-menu-pane-close-button a:hover { text-decoration: none; color: white; }
 
 .menu-pane a, .menu-pane a:hover { text-decoration: none; color: white; }
-.menu-pane ul { list-style: none; margin: 0; padding: 0; display: table; }
+.menu-pane ul { list-style: none; margin: 0; padding: 0; display: block; }
 .menu-pane li { color: white; display: block; padding: 0; margin: 10px; line-height: 24px; }
 .menu-pane li span { color: #5f5f5f; }
 .menu-pane li ul { padding: 0; margin: 0; }
@@ -228,7 +237,8 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 .menu-pane li span { margin: 5px; }
 .menu-pane .menu-pane-form-line { padding-top: 5px; }
 .menu-pane .menu-pane-form-line label { color: white !important; }
-.menu-pane input.wpcf7-text { background-color: white !important; }
+
+.jqcheckbox-checkbox span.mark { background-color: transparent !important; }
 
 .arrow { background: url("../images/img_arrow.png") no-repeat scroll center center transparent; display: inline-block; float: right; height: 28px; width: 17px; margin-top: 8px; }
 .arrow-up { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 15px solid #FFF; position: relative; top: -25px; left: 165px; }
