@@ -4,7 +4,7 @@
     if( !($current_user = $this->context_var( 'current_user' )) )
         $current_user = array( 'nick' => $this::_t( 'N/A' ) );
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
+<div style="min-width:600px;max-width:800px;margin: 0 auto;">
 
     <div class="form_container responsive" style="width: 450px;">
 

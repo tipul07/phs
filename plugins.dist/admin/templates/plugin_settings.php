@@ -37,8 +37,8 @@
 
     $current_user = PHS::user_logged_in();
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $form_data['pid'] ) )?>" method="post" class="wpcf7">
+<div style="min-width:100%;max-width:1000px;margin: 0 auto;">
+    <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $form_data['pid'] ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )
@@ -83,7 +83,7 @@
                 ?>
                 <div class="lineform">
                     <label for="selected_module"><?php echo $this->_pt( 'Settings for' )?>: </label>
-                    <select name="selected_module" id="selected_module" class="wpcf7-select" onchange="document.plugin_settings_form.submit()">
+                    <select name="selected_module" id="selected_module" class="chosen-select-nosearch" onchange="document.plugin_settings_form.submit()" style="width:260px;">
                     <option value=""><?php echo $plugin_info['name'].(!empty( $plugin_obj )?' ('.$plugin_obj->instance_type().')':'')?></option>
                     <?php
                     foreach( $modules_with_settings as $model_id => $model_arr )
@@ -98,7 +98,7 @@
                         ?><option value="<?php echo $model_id?>" <?php echo ($form_data['selected_module']==$model_id?'selected="selected"':'')?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'?></option><?php
                     }
                     ?></select>
-                    <input type="submit" id="select_module" name="select_module" class="btn btn-primary" value="<?php echo $this->_pte( '&raquo;' ) ?>" style="float:none;" />
+                    <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small" value="<?php echo $this->_pte( '&raquo;' ) ?>" style="float:none;" />
                 </div>
                 <div class="clearfix" style="margin-bottom: 15px;"></div>
                 <?php
@@ -176,7 +176,7 @@
                                             ?>
                                             <div style="margin-bottom:15px;">
                                             <label for="<?php echo $field_id.'_'.$field_value_key?>" style="width:150px !important;"><?php echo $field_value_key?></label>
-                                            <input type="text" id="<?php echo $field_id.'_'.$field_value_key ?>" name="<?php echo $field_name ?>[<?php echo $field_value_key?>]" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value_val )?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="width:250px;<?php echo $field_details['extra_style'] ?>" />
+                                            <input type="text" id="<?php echo $field_id.'_'.$field_value_key ?>" name="<?php echo $field_name ?>[<?php echo $field_value_key?>]" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value_val )?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="width:250px;<?php echo $field_details['extra_style'] ?>" />
                                             </div>
                                             <div class="clearfix"></div>
                                             <?php
@@ -234,7 +234,7 @@
 
                                             ?>
                                             <div style="float:left; margin-right:10px;">
-                                            <input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox" <?php echo (!empty($option_checked) ? 'checked="checked"' : '').(empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
+                                            <input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" class="<?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox" <?php echo (!empty($option_checked) ? 'checked="checked"' : '').(empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
                                             <label for="<?php echo $field_id?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text?></label>
                                             </div>
                                             <?php
@@ -248,7 +248,7 @@
                             and is_array( $field_details['values_arr'] ) )
                             {
                                 ?>
-                                <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-select <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>><?php
+                                <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="chosen-select <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>><?php
 
                                 foreach( $field_details['values_arr'] as $key => $val )
                                 {
@@ -263,16 +263,16 @@
                                 {
                                     case PHS_params::T_DATE:
                                         ?>
-                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="datepicker wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="datepicker form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
 
                                     case PHS_params::T_BOOL:
-                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo(!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="<?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo(!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
 
                                     default:
                                         ?>
-                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="wpcf7-text <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
                                 }
                             }

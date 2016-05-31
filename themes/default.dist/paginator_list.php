@@ -46,8 +46,8 @@
 
     $per_page_options_arr = array( 20, 50, 100 );
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:97%;margin: 0 auto;">
-    <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post" class="wpcf7">
+<div style="width:97%;min-width:97%;margin: 0 auto;">
+    <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post">
     <input type="hidden" name="foobar" value="1" />
     <input type="submit" id="foobar_submit" name="foobar_submit" value="Just Submit" style="display:none;" />
 
@@ -128,7 +128,7 @@
             $select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='top')?true:false);
 
             ?><div style="margin-bottom:5px;float:left;">
-            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                 foreach( $bulk_actions as $action_arr )
@@ -143,7 +143,7 @@
                 }
                 ?>
             </select>
-            <input type="submit" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <?php
         }
@@ -152,7 +152,7 @@
 
         ?><div style="margin-bottom:5px;float:right;">
         <?php echo $this::_t( '%s per page', ucfirst( $flow_params_arr['term_plural'] ) )?>
-        <select name="<?php echo $per_page_var_name?>top" id="<?php echo $per_page_var_name.'top'?>" class="wpcf7-select" onchange="$('#foobar_submit').click()">
+        <select name="<?php echo $per_page_var_name?>top" id="<?php echo $per_page_var_name.'top'?>" onchange="$('#foobar_submit').click()" class="chosen-select-nosearch" style="width:80px;">
         <?php
             foreach( $per_page_options_arr as $per_page_option )
             {
@@ -215,7 +215,7 @@
 
                     ?><span style="width:100%;">
                     <span style="float:left;">
-                        <input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> onchange="phs_paginator_update_list_checkboxes( '<?php echo $this::_e( $checkbox_column_name, '\'' )?>', '<?php echo $this::_e( $checkbox_name_all, '\'' )?>' )" />
+                        <input type="checkbox" value="1" name="<?php echo $checkbox_name_all?>" id="<?php echo $checkbox_name_all?>" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?> onchange="phs_paginator_update_list_checkboxes( '<?php echo $this::_e( $checkbox_column_name, '\'' )?>', '<?php echo $this::_e( $checkbox_name_all, '\'' )?>' )" />
                     </span>
                     <?php
                 }
@@ -510,7 +510,7 @@
             $select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='bottom')?true:false);
 
             ?><div style="margin-bottom:5px;float:left;">
-            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="wpcf7-select">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                     foreach( $bulk_actions as $action_arr )
@@ -525,7 +525,7 @@
                     }
                 ?>
             </select>
-            <input type="submit" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <div class="clearfix"></div>
             <?php

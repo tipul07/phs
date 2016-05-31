@@ -20,9 +20,12 @@ body { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; font-size: 14p
     background: white url("../images/ui-anim_basic_16x16.gif") right center no-repeat;
 }
 
+/* Hack for chosen dropdowns width 0 bug... */
+.chosen-container.chosen-container-single[style*="width: 0"] { min-width: 150px !important; }
+
 /* Paginator styles */
 .paginator_filter { float:left; max-width: 100%; margin: 0 10px 10px 0 !important; }
-.paginator_filter label { width: 150px !important; word-break: break-all; min-height: 33px; vertical-align: middle; }
+.paginator_filter label { width: 150px !important; word-break: break-all; min-height: 33px; vertical-align: middle; margin: 5px 0; float: left; }
 .paginator_input { min-height: 33px; vertical-align: middle; float: left; }
 
 .mandatory::after { color: red; content: "*"; }

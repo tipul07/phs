@@ -57,13 +57,6 @@ class PHS_Action_User_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if( !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load account details model.' ) );
-            return self::default_action_result();
-        }
-
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
@@ -95,9 +88,8 @@ class PHS_Action_User_edit extends PHS_Action
             return $action_result;
         }
 
-        if( empty( $account_arr['details_id'] )
-         or !($account_details_arr = $accounts_details_model->get_details( $account_arr['details_id'] )) )
-            $account_details_arr = $accounts_details_model->get_empty_data();
+        if( !($account_details_arr = $accounts_model->get_account_details( $account_arr, array( 'populate_with_empty_data' => true ) )) )
+            $account_details_arr = array();
 
         if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Account details saved in database.' ) );
@@ -177,6 +169,7 @@ class PHS_Action_User_edit extends PHS_Action
 
         $data = array(
             'uid' => $account_arr['id'],
+            'back_page' => $back_page,
             'nick' => $nick,
             'pass' => $pass,
             'pass2' => $pass2,

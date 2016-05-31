@@ -320,7 +320,7 @@ class PHS_Paginator extends PHS_Registry
         <label for="<?php echo $checkbox_name?>" style="width:100%">
         <span style="float:left;">
             <input type="checkbox" value="<?php echo $checkbox_value?>" name="<?php echo $checkbox_name?>[]" id="<?php echo $checkbox_name.'_'.$checkbox_value?>"
-                   class="wpcf7-text" rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?>
+                   rel="skin_checkbox" <?php echo ($checkbox_checked?'checked="checked"':'')?>
                    onchange="phs_paginator_update_list_all_checkbox( '<?php echo $checkbox_name.'_'.$checkbox_value?>', '<?php echo $checkbox_name_all?>' )" />
         </span>
         <?php echo $params['preset_content']?>

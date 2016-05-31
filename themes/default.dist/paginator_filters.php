@@ -44,11 +44,11 @@
         echo $cell_content;
     }
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="width:97%;min-width:97%;margin: 0 auto;">
-    <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post" class="wpcf7">
+<div style="width:97%;min-width:97%;margin: 0 auto;">
+    <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post">
     <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive">
+        <div class="form_container">
 
             <section class="heading-bordered">
                 <h3><?php echo $this::_t( 'Filters' )?></h3>
@@ -97,7 +97,7 @@
 
                     if( !empty( $filter_details['values_arr'] ) and is_array( $filter_details['values_arr'] ) )
                     {
-                        ?><select id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="wpcf7-select <?php echo $filter_details['extra_classes']?>" style="<?php echo $filter_details['extra_style']?>"><?php
+                        ?><select id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="chosen-select <?php echo $filter_details['extra_classes']?>" style="<?php echo $filter_details['extra_style']?>"><?php
 
                         foreach( $filter_details['values_arr'] as $key => $val )
                         {
@@ -113,16 +113,16 @@
                         switch( $filter_details['type'] )
                         {
                             case PHS_params::T_DATE:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="datepicker wpcf7-text <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="datepicker form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
                             case PHS_params::T_BOOL:
                                 $field_value_display = (!empty( $field_value )?$this::_t( 'True' ):$this::_t( 'False' ));
-                                ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="wpcf7-text <?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox" <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="<?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox" <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
                             default:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="wpcf7-text <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" <?php echo (!empty( $field_placeholder )?'placeholder="'.form_str( $field_placeholder ).'"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" <?php echo (!empty( $field_placeholder )?'placeholder="'.form_str( $field_placeholder ).'"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
                         }
                     }

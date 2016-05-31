@@ -1,7 +1,7 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:700px;max-width:1000px;margin: 0 auto;">
+<div style="min-width:700px;max-width:1000px;margin: 0 auto;">
 
     <section class="heading-bordered">
         <h3><?php echo $this::_t( 'Terms and Conditions' )?></h3>

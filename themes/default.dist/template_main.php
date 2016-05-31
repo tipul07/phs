@@ -75,7 +75,9 @@
             $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
 
             $(".chosen-select").chosen();
+            $(".chosen-select-nosearch").chosen({disable_search: true});
             $(".ui-button").button();
+            $( document ).tooltip();
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 

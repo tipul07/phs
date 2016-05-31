@@ -70,10 +70,11 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         if( PHS_params::_g( 'unknown_account', PHS_params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Account not found in database.' ) );
 
-        $list_arr = array();
-
         $accounts_model = $this->_paginator_model;
+
+        $list_arr = array();
         $list_arr['fields']['status'] = array( 'check' => '!=' , 'value' => $accounts_model::STATUS_DELETED );
+        $list_arr['flags'] = array( 'include_account_details' );
 
         $flow_params = array(
             'term_singular' => $this->_pt( 'user' ),
@@ -127,6 +128,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'type' => PHS_params::T_ARRAY,
                 'extra_type' => array( 'type' => PHS_params::T_INT ),
                 'default' => array(),
+                'extra_records_style' => 'vertical-align:middle;',
             ),
             array(
                 'display_name' => $this->_pt( 'Nickname' ),
@@ -136,6 +138,17 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
+                'extra_records_style' => 'vertical-align:middle;',
+            ),
+            array(
+                'display_name' => $this->_pt( 'Email' ),
+                'display_hint' => $this->_pt( 'All records containing this value' ),
+                'var_name' => 'femail',
+                'record_field' => 'email',
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'extra_records_style' => 'vertical-align:middle;',
             ),
             array(
                 'display_name' => $this->_pt( 'Level' ),
@@ -144,6 +157,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'type' => PHS_params::T_INT,
                 'default' => 0,
                 'values_arr' => $users_levels,
+                'extra_records_style' => 'vertical-align:middle;',
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
@@ -152,6 +166,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'type' => PHS_params::T_INT,
                 'default' => 0,
                 'values_arr' => $users_statuses,
+                'extra_records_style' => 'vertical-align:middle;',
             ),
         );
 
@@ -170,6 +185,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( 'Nickname' ),
                 'record_field' => 'nick',
+                'display_callback' => array( $this, 'display_nickname' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Email' ),
@@ -196,7 +212,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Never' ),
-                'extra_style' => 'width:120px;',
+                'extra_style' => 'width:130px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(
@@ -206,7 +222,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-                'extra_style' => 'width:120px;',
+                'extra_style' => 'width:130px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(
@@ -585,6 +601,34 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         }
 
         return $action_result_params;
+    }
+
+    public function display_nickname( $params )
+    {
+        if( empty( $params )
+            or !is_array( $params )
+            or empty( $params['record'] ) or !is_array( $params['record'] ) )
+            return false;
+
+        $return_str = '<strong>'.$params['preset_content'].'</strong>';
+
+        $name_str = '';
+        if( !empty( $params['record']['users_details_title'] )
+         or !empty( $params['record']['users_details_fname'] )
+         or !empty( $params['record']['users_details_lname'] ) )
+        {
+            if( !empty( $params['record']['users_details_title'] ) )
+                $name_str .= $params['record']['users_details_title'].' ';
+            if( !empty( $params['record']['users_details_fname'] ) )
+                $name_str .= $params['record']['users_details_fname'].' ';
+            if( !empty( $params['record']['users_details_lname'] ) )
+                $name_str .= $params['record']['users_details_lname'].' ';
+
+            if( $name_str != '' )
+                $name_str = '<br/>'.$name_str;
+        }
+
+        return $return_str.$name_str;
     }
 
     public function display_actions( $params )

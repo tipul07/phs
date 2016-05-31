@@ -227,60 +227,6 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
-    public function can_list_plugins( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
-    public function can_manage_plugins( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
-    public function can_list_roles( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
-    public function can_manage_roles( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
-    public function can_login_subaccount( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
-    public function can_manage_accounts( $user_data )
-    {
-        if( !($user_arr = $this->data_to_array( $user_data ))
-         or !$this->acc_is_sadmin( $user_arr ) )
-            return false;
-
-        return $user_arr;
-    }
-
     public function can_manage_account( $user_data, $user_to_manage )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
@@ -293,6 +239,27 @@ class PHS_Model_Accounts extends PHS_Model
             'user_data' => $user_arr,
             'user_to_manage' => $user_to_manage_arr,
         );
+    }
+
+    public function get_account_details( $account_data, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['populate_with_empty_data'] ) )
+            $params['populate_with_empty_data'] = false;
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+            return false;
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data ))
+         or empty( $account_arr['details_id'] )
+         or !($accounts_details_arr = $accounts_details_model->get_details( $account_arr['details_id'] )) )
+            return (empty( $params['populate_with_empty_data'] )?false:$accounts_details_model->get_empty_data());
+
+        return $accounts_details_arr;
     }
 
     final public function get_levels()
@@ -433,7 +400,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public static function generate_password( $len = 10 )
     {
-        $dict = '!ac5d#befgh9ij1kl2mn*q3(pr)4s_t-6u=vw7xy,8z.'; // all lower letters
+        $dict = '!ac5d#befgh9ij1kl2mn*q3(pr)4s_t-6u=vw7xy,8z.'; // all lower characters
         $dict_len = strlen( $dict );
 
         $ret = '';
@@ -1307,27 +1274,32 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * Prepares parameters common to _count and _list methods
-     *
-     * @param array|false $params Parameters in the flow
-     *
-     * @return array Flow parameters array
+     * @inheritdoc
      */
-    public function get_count_list_common_params( $params = false )
+    protected function get_count_list_common_params( $params = false )
     {
         if( !empty( $params['flags'] ) and is_array( $params['flags'] ) )
         {
+            if( empty( $params['db_fields'] ) )
+                $params['db_fields'] = '';
+
+            $model_table = $this->get_flow_table_name( $params );
             foreach( $params['flags'] as $flag )
             {
                 switch( $flag )
                 {
                     case 'include_account_details':
-                        $params['db_fields'] .= ', users_details.title AS users_details_title, '.
-                                                ' users_details.fname AS users_details_fname, '.
-                                                ' users_details.lname AS users_details_lname, '.
-                                                ' users_details.phone AS users_details_phone, '.
-                                                ' users_details.company AS users_details_company ';
-                        $params['join_sql'] .= ' LEFT JOIN users_details WHERE users_details.id = users.details_id ';
+
+                        if( !($account_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() ))
+                         or !($user_details_table = $account_details_model->get_flow_table_name()) )
+                            continue;
+
+                        $params['db_fields'] .= ', `'.$user_details_table.'`.title AS users_details_title, '.
+                                                ' `'.$user_details_table.'`.fname AS users_details_fname, '.
+                                                ' `'.$user_details_table.'`.lname AS users_details_lname, '.
+                                                ' `'.$user_details_table.'`.phone AS users_details_phone, '.
+                                                ' `'.$user_details_table.'`.company AS users_details_company ';
+                        $params['join_sql'] .= ' LEFT JOIN `'.$user_details_table.'` ON `'.$user_details_table.'`.id = `'.$model_table.'`.details_id ';
                     break;
                 }
             }

@@ -317,7 +317,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      *
      * @return array Flow parameters array
      */
-    public function get_count_list_common_params( $params = false )
+    protected function get_count_list_common_params( $params = false )
     {
         return $params;
     }

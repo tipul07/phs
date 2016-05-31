@@ -4,8 +4,8 @@
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
 ?>
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:650px;max-width:1000px;margin: 0 auto;">
-    <form id="change_password_form" name="change_password_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ) )?>" method="post" class="wpcf7">
+<div style="min-width:650px;max-width:1000px;margin: 0 auto;">
+    <form id="change_password_form" name="change_password_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
         <div class="form_container responsive" style="width: 500px;">
@@ -14,20 +14,20 @@
                 <h3><?php echo $this->_pt( 'Change Password' )?></h3>
             </section>
 
-            <fieldset class="lineform">
+            <fieldset class="form-group">
                 <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
                 <?php echo form_str( $this->context_var( 'nick' ) )?>
             </fieldset>
 
-            <fieldset class="lineform">
+            <fieldset class="form-group">
                 <label for="pass"><?php echo $this->_pt( 'Current Password' )?>:</label>
-                <input type="password" id="pass" name="pass" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" required="required" />
+                <input type="password" id="pass" name="pass" class="form-control" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" required="required" />
             </fieldset>
 
-            <fieldset class="lineform">
+            <fieldset class="form-group">
                 <label for="pass1"><?php echo $this->_pt( 'New Password' )?>:</label>
                 <div class="lineform_line">
-                <input type="password" id="pass1" name="pass1" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" required="required" /><br/>
+                <input type="password" id="pass1" name="pass1" class="form-control" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" required="required" /><br/>
                 <small><?php
 
                 echo $this->_pt( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
@@ -52,9 +52,9 @@
                 </div>
             </fieldset>
 
-            <fieldset class="lineform">
+            <fieldset class="form-group">
                 <label for="pass2"><?php echo $this->_pt( 'Confirm Password' )?>:</label>
-                <input type="password" id="pass2" name="pass2" class="wpcf7-text" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" style="width: 260px;" required="required" />
+                <input type="password" id="pass2" name="pass2" class="form-control" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" style="width: 260px;" required="required" />
             </fieldset>
 
             <fieldset>

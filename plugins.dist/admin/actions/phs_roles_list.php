@@ -71,9 +71,9 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $list_arr = array();
-
         $roles_model = $this->_paginator_model;
+
+        $list_arr = array();
         $list_arr['fields']['status'] = array( 'check' => '!=' , 'value' => $roles_model::STATUS_DELETED );
 
         $flow_params = array(
@@ -176,7 +176,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-                'extra_style' => 'width:120px;',
+                'extra_style' => 'width:130px;',
                 'extra_records_style' => 'text-align:right;',
             ),
             array(

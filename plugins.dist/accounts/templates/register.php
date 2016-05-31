@@ -8,8 +8,8 @@
         $no_nickname_only_email = false;
 ?>
 <!-- BEGIN: main -->
-<div class="triggerAnimation animated fadeInRight" data-animate="fadeInRight" style="min-width:600px;max-width:800px;margin: 0 auto;">
-    <form id="register_form" name="register_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>" method="post" class="wpcf7">
+<div style="min-width:600px;max-width:800px;margin: 0 auto;">
+    <form id="register_form" name="register_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
 

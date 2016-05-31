@@ -65,6 +65,9 @@
             $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
 
             $(".chosen-select").chosen();
+            $(".chosen-select-nosearch").chosen({disable_search: true});
+            $(".ui-button").button();
+            $("*[title]").tooltip();
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
@@ -263,18 +266,18 @@
                     <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
                                                                                                                              'p' => 'accounts',
                                                                                                                              'a' => 'login'
-                                                                                                                         ) ) ?>" class="wpcf7">
+                                                                                                                         ) ) ?>">
                         <div class="menu-pane-form-line">
                             <label for="mt_nick"><?php echo $this::_t( 'Username' ) ?></label>
-                            <input type="text" id="mt_nick" class="wpcf7-text" name="nick" required />
+                            <input type="text" id="mt_nick" class="form-control" name="nick" required />
                         </div>
                         <div class="menu-pane-form-line">
                             <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
-                            <input type="password" id="mt_nick" class="wpcf7-text" name="pass" required />
+                            <input type="password" id="mt_nick" class="form-control" name="pass" required />
                         </div>
                         <div class="menu-pane-form-line fixskin">
                             <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
-                            <input type="checkbox" id="mt_do_remember" class="wpcf7-text" name="do_remember" rel="skin_checkbox" value="1" required />
+                            <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" required />
                             <div class="clearfix"></div>
                         </div>
                         <div class="menu-pane-form-line">
