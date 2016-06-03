@@ -77,7 +77,7 @@
             $(".chosen-select").chosen();
             $(".chosen-select-nosearch").chosen({disable_search: true});
             $(".ui-button").button();
-            $( document ).tooltip();
+            $("*[title]").tooltip();
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
