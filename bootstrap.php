@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0.3' );
+define( 'PHS_VERSION', '1.0.0.4' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -11,7 +11,12 @@ define( 'PHS_DEFAULT_HTTPS', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
 define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
 define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
-define( 'PHS_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+
+// If logging dir is not setup in main.php or config/*, default location is in system/logs/
+define( 'PHS_DEFAULT_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+
+// If uploads dir is not setup in main.php or config/*, default location is in _uploads/
+define( 'PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/' );
 
 // Second level folders
 define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
@@ -63,6 +68,9 @@ include_once( PHS_CORE_VIEW_DIR.'phs_view.php' );
 include_once( PHS_CORE_DIR.'phs_scope.php' );
 include_once( PHS_CORE_DIR.'phs_bg_jobs.php' );
 include_once( PHS_CORE_DIR.'phs_ajax.php' );
+// Used to manage big number of files (initialize repostories in plugin's phs_bootstrap_x.php files)
+// Make sure you create dirtories in uploads dir and you don't initialize a LDAP root directly in uploads dir - unless you know what you'r doing!!!)
+include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 
 use \phs\PHS;
 use \phs\PHS_db;
@@ -72,7 +80,24 @@ use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Language;
 
+// Uploads directory
+if( !defined( 'PHS_UPLOADS_DIR' ) )
+{
+    if( defined( 'PHS_FRAMEWORK_UPLOADS_DIR' ) )
+        define( 'PHS_UPLOADS_DIR', PHS_FRAMEWORK_UPLOADS_DIR );
+    else
+        define( 'PHS_UPLOADS_DIR', PHS_DEFAULT_UPLOADS_DIR );
+}
+
 // Default loggin settings (change if required in main.php)
+if( !defined( 'PHS_LOGS_DIR' ) )
+{
+    if( defined( 'PHS_FRAMEWORK_LOGS_DIR' ) )
+        define( 'PHS_LOGS_DIR', PHS_FRAMEWORK_LOGS_DIR );
+    else
+        define( 'PHS_LOGS_DIR', PHS_DEFAULT_LOGS_DIR );
+}
+
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
 PHS_Logger::logging_dir( PHS_LOGS_DIR );

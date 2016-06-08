@@ -13,7 +13,13 @@ define( 'PHS_PORT', 'site port' );
 // if root URL is accessible with a path appended to domain name. Leave empty if domain points to root of platform
 define( 'PHS_DOMAIN_PATH', '/site/path/' ); // ending in /
 
-// What theme should domain use (don't define anything if default theme should be used
+// Sets uploads dir for current domain configuratrion (if you want to use domain specific location uncomment this line, otherwise PHS_FRAMEWORK_LOGS_DIR in main.php will be used)
+// define( 'PHS_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+
+// Domain logging dir... (if you want to use domain specific location uncomment this line, otherwise PHS_FRAMEWORK_LOGS_DIR in main.php will be used)
+// define( 'PHS_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+
+// What theme should domain use (don't define anything if default theme should be used)
 define( 'PHS_THEME', PHS_DEFAULT_THEME );
 
 // Required only if you want to have different crypting parameters

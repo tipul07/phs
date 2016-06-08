@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.0.3' );
+define( 'PHS_KNOWN_VERSION', '1.0.0.4' );
 
 @date_default_timezone_set( 'Europe/London' );
 
@@ -26,9 +26,9 @@ define( 'PHS_DEFAULT_DOMAIN_PATH', 'url/path/to/root/' ); // tells the path from
 // Default database settings (these settings will be used when creating default database connection)
 define( 'PHS_DB_DRIVER', 'mysqli' );
 define( 'PHS_DB_HOSTNAME', 'localhost' );
-define( 'PHS_DB_USERNAME', 'testdb' );
-define( 'PHS_DB_PASSWORD', 'Fj4EAdeGuSyXJ737' );
-define( 'PHS_DB_DATABASE', 'testdb' );
+define( 'PHS_DB_USERNAME', 'dbuser' );
+define( 'PHS_DB_PASSWORD', 'dbpass' );
+define( 'PHS_DB_DATABASE', 'dbdatabase' );
 define( 'PHS_DB_PREFIX', '' );
 define( 'PHS_DB_PORT', '3306' );
 define( 'PHS_DB_TIMEZONE', date( 'P' ) );
@@ -47,8 +47,16 @@ define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/' );
 define( 'PHS_DEFAULT_SESSION_AUTOSTART', false );
 // END Default session settings
 
+// Default framework logging dir... (you can setup logs dir per domain in config/* files by defining PHS_LOGS_DIR)
+define( 'PHS_FRAMEWORK_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+
+// Default framework uploads dir... (you can setup upload dir per domain in config/* files by defining PHS_UPLOADS_DIR)
+define( 'PHS_FRAMEWORK_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+
+// Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
 define( 'PHS_DEFAULT_THEME', 'default' );
 
+// Default crypting keys...
 define( 'PHS_DEFAULT_CRYPT_KEY', '@#&*(PHS_cryptencodingKeY!#@)^-=[]{};,./<>?' );
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = array(
@@ -103,6 +111,7 @@ use \phs\libraries\PHS_Logger;
 // After how many seconds will an Ajax URL expire (if user stays on page and javascript will request same URL)
 PHS_ajax::checksum_timeout( 86400 );
 
-// Default loggin settings (change if required in main.php)
+// Loggin settings (overwritten from bootstrap.php)
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
+PHS_Logger::logging_dir( PHS_LOGS_DIR );
