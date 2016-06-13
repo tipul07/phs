@@ -62,10 +62,10 @@ class PHS_Scope_Web extends PHS_Scope
                 exit;
             }
 
-            if( empty( $action_result['page_title'] ) )
-                $action_result['page_title'] = '';
+            if( empty( $action_result['page_settings']['page_title'] ) )
+                $action_result['page_settings']['page_title'] = '';
 
-            $action_result['page_title'] .= ($action_result['page_title']!=''?' - ':'').PHS_SITE_NAME;
+            $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title']!=''?' - ':'').PHS_SITE_NAME;
 
             if( !($view_data = $view_obj->get_context( $view_obj::VIEW_CONTEXT_DATA_KEY )) )
                 $view_data = array();

@@ -26,6 +26,8 @@ class PHS_Action_Logout extends PHS_Action
      */
     public function execute()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Logout' ) );
+
         if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_success_notice( $this->_pt( 'You logged out from your account...' ) );

@@ -20,9 +20,9 @@
     <meta name="HandheldFriendly"   content="true" />
     <meta name="MobileOptimized"    content="320">
     <meta name="viewport"       content="user-scalable=no, width=device-width, initial-scale=1.0" />
-    <meta name="title"          content="<?php echo $action_result['page_title']?>" />
-    <meta name="description"    content="<?php echo $action_result['page_description']?>" />
-    <meta name="keywords"       content="<?php echo $action_result['page_keywords']?>" />
+    <meta name="title"          content="<?php echo $action_result['page_settings']['page_title']?>" />
+    <meta name="description"    content="<?php echo $action_result['page_settings']['page_description']?>" />
+    <meta name="keywords"       content="<?php echo $action_result['page_settings']['page_keywords']?>" />
     <meta name="copyright"      content="Copyright <?php echo date( 'Y' ).' - '.PHS_SITE_NAME?>. All Right Reserved." />
     <meta name="author"         content="PHS Framework" />
     <meta name="revisit-after"  content="1 days" />
@@ -117,8 +117,8 @@
         }
     </script>
 
-    <title><?php echo $action_result['page_title']?></title>
-    <?php echo $action_result['page_in_header']?>
+    <title><?php echo $action_result['page_settings']['page_title']?></title>
+    <?php echo $action_result['page_settings']['page_in_header']?>
 </head>
 
 <body <?php echo $action_result['page_body_extra_tags']?>>
@@ -349,7 +349,14 @@
                     <ul>
                         <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a></li>
 
-                        <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Home' )?></a></li>
+                        <?php
+                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
+                        and is_array( $hook_args )
+                        and !empty( $hook_args['buffer'] ) )
+                            echo $hook_args['buffer'];
+                        ?>
+
+                        <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Site Index' )?></a></li>
 
                         <?php
                         if( empty( $cuser_arr ) )
@@ -367,8 +374,13 @@
                             </li>
                             <?php
                         }
+
+                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
+                        and is_array( $hook_args )
+                        and !empty( $hook_args['buffer'] ) )
+                            echo $hook_args['buffer'];
                         ?>
-                    </ul>
+            </ul>
                 </nav>
                 <div id="user_info">
                     <nav>
@@ -380,7 +392,7 @@
                             {
                                 ?>
                                 <li class="main-menu-placeholder" id="cart-menu-item">
-                                    <a href="{PAGE_LINKS.cart_page}" class="fa fa-shopping-cart main-menu-icon"><span id="main_cart_count">0</span></a>
+                                    <a href="#" class="fa fa-shopping-cart main-menu-icon"><span id="main_cart_count">0</span></a>
                                 </li>
                                 <?php
                             }

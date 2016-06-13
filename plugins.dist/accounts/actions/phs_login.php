@@ -26,6 +26,8 @@ class PHS_Action_Login extends PHS_Action
      */
     public function execute()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Login' ) );
+
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
         $pass = PHS_params::_pg( 'pass', PHS_params::T_NOHTML );

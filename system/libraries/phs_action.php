@@ -64,11 +64,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'page_template' => 'template_main', // if empty, scope template will be used...
 
             // page related variables
-            'page_title' => '', // title of current page
-            'page_description' => '',
-            'page_keywords' => '',
-            // anything that is required in head tag
-            'page_in_header' => '',
+            'page_settings' => PHS::get_default_page_settings(),
             // anything that is required as attributes to body tag
             'page_body_extra_tags' => '',
 
@@ -180,6 +176,25 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         if( !($action_result = $this->execute()) )
             return false;
+
+        $action_result = self::validate_array( $action_result, self::default_action_result() );
+
+        if( ($page_settings = self::validate_array( PHS::page_settings(), PHS::get_default_page_settings() )) )
+        {
+            if( empty( $action_result['page_settings'] ) or !is_array( $action_result['page_settings'] ) )
+                $action_result['page_settings'] = $page_settings;
+
+            else
+            {
+                foreach( $page_settings as $key => $val )
+                {
+                    if( !empty( $val )
+                    and (!array_key_exists( $key, $action_result['page_settings'] )
+                            or empty( $action_result['page_settings'][$key] )) )
+                        $action_result['page_settings'][$key] = $val;
+                }
+            }
+        }
 
         $this->set_action_result( $action_result );
 

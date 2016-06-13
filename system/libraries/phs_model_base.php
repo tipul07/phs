@@ -263,8 +263,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
      * @param array $params Flow parameters
      *
-     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
-     * Deleted record will be hard-deleted
+     * @return array|false Returns data array added in database (with changes, if required) or false if functionality failed.
+     * Saved information will not be rolled back.
      */
     protected function edit_after( $existing_data, $edit_arr, $params )
     {
@@ -1242,6 +1242,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        $new_edit_arr = false;
         if( (
                 @method_exists( $this, 'edit_after_'.$params['table_name'] )
                 and
@@ -1258,6 +1259,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             return false;
         }
+
+        if( !empty( $new_edit_arr ) )
+            $edit_arr = $new_edit_arr;
 
         if( !empty( $edit_arr ) )
         {
@@ -1547,6 +1551,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         // Flags are interpretted in child model and alter extra_sql, join_sql and group_by parameters
         if( empty( $params['flags'] ) or !is_array( $params['flags'] ) )
             $params['flags'] = array();
+
+        // Make sure db_fields index is defined as get_count_list_common_params will work with this index (related to listing method)
+        if( empty( $params['db_fields'] ) )
+            $params['db_fields'] = '';
 
         if( ($params = $this->get_count_list_common_params( $params )) === false
          or ($params = $this->get_count_prepare_params( $params )) === false

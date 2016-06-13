@@ -290,18 +290,21 @@ class PHS_Error
             }
         }
 
+        if( $this->debugging_mode() )
+            $warning_msg = $warning."\n".
+                           'Backtrace:'."\n".
+                           $backtrace;
+        else
+            $warning_msg = $warning;
+
         if( !empty( $tag ) )
         {
             if( !isset( $this->warnings_arr[$tag] ) )
                 $this->warnings_arr[$tag] = array();
 
-            $this->warnings_arr[$tag][] = $warning."\n".
-                                      'Backtrace:'."\n".
-                                      $backtrace;
+            $this->warnings_arr[$tag][] = $warning_msg;
         } else
-            $this->warnings_arr[] = $warning."\n".
-                                'Backtrace:'."\n".
-                                $backtrace;
+            $this->warnings_arr[] = $warning_msg;
 
         $this->warnings_no++;
     }

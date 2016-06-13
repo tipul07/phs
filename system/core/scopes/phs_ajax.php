@@ -39,6 +39,7 @@ class PHS_Scope_Ajax extends PHS_Scope
             $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
         }
 
+        header( 'Content-Type: application/json' );
         echo @json_encode( $ajax_data );
 
         return true;

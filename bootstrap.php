@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0.4' );
+define( 'PHS_VERSION', '1.0.0.5' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -80,6 +80,8 @@ use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Language;
 
+// These are special cases as there might be 3 definitions of same constant
+// and framework will take first framework constant, then default constant if domain constant is not defined
 // Uploads directory
 if( !defined( 'PHS_UPLOADS_DIR' ) )
 {

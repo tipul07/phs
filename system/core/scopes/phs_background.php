@@ -25,13 +25,13 @@ class PHS_Scope_Background extends PHS_Scope
             exit;
         }
 
-        if( empty( $action_result['page_title'] ) )
-            $action_result['page_title'] = '';
+        if( empty( $action_result['page_settings']['page_title'] ) )
+            $action_result['page_settings']['page_title'] = '';
         if( empty( $action_result['buffer'] ) )
             $action_result['buffer'] = '';
 
-        if( !empty( $action_result['page_title'] ) or !empty( $action_result['buffer'] ) )
-            PHS_Logger::logf( 'Title ['.$action_result['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_DEBUG );
+        if( !empty( $action_result['page_settings']['page_title'] ) or !empty( $action_result['buffer'] ) )
+            PHS_Logger::logf( 'Title ['.$action_result['page_settings']['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_DEBUG );
         else
             PHS_Logger::logf( 'Action run with success.', PHS_Logger::TYPE_DEBUG );
 

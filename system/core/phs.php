@@ -22,7 +22,10 @@ final class PHS extends PHS_Registry
 
           CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme',
 
-          PHS_START_TIME = 'phs_start_time', PHS_BOOTSTRAP_END_TIME = 'phs_bootstrap_end_time', PHS_END_TIME = 'phs_end_time';
+          PHS_START_TIME = 'phs_start_time', PHS_BOOTSTRAP_END_TIME = 'phs_bootstrap_end_time', PHS_END_TIME = 'phs_end_time',
+
+          // Generic current page settings (saved as array)
+          PHS_PAGE_SETTINGS = 'phs_page_settings';
 
     const ROUTE_PARAM = '_route',
           ROUTE_DEFAULT_CONTROLLER = 'index',
@@ -121,6 +124,62 @@ final class PHS extends PHS_Registry
 
         self::set_data( self::RUNNING_ACTION, false );
         self::set_data( self::RUNNING_CONTROLLER, false );
+
+        self::set_data( self::PHS_PAGE_SETTINGS, false );
+    }
+
+    public static function get_default_page_settings()
+    {
+        return array(
+            'page_title' => '',
+            'page_keywords' => '',
+            'page_description' => '',
+            // anything that is required in head tag
+            'page_in_header' => '',
+        );
+    }
+
+    public static function page_settings( $key = false, $val = null )
+    {
+        if( $key === false )
+            return self::get_data( self::PHS_PAGE_SETTINGS );
+
+        $def_settings = self::get_default_page_settings();
+        $current_settings = self::get_data( self::PHS_PAGE_SETTINGS );
+        if( $val === null )
+        {
+            if( is_array( $key ) )
+            {
+                foreach( $key as $kkey => $kval )
+                {
+                    if( array_key_exists( $kkey, $def_settings ) )
+                        $current_settings[$kkey] = $kval;
+                }
+
+                self::set_data( self::PHS_PAGE_SETTINGS, $current_settings );
+
+                return true;
+            }
+            
+            elseif( is_string( $key )
+            and ($page_settings = self::get_data( self::PHS_PAGE_SETTINGS ))
+            and is_array( $page_settings )
+            and array_key_exists( $key, $page_settings ) )
+                return $page_settings[$key];
+
+            return null;
+        }
+
+        if( array_key_exists( $key, $def_settings ) )
+        {
+            $current_settings[$key] = $val;
+
+            self::set_data( self::PHS_PAGE_SETTINGS, $current_settings );
+            
+            return true;
+        }
+
+        return null;
     }
 
     public static function prevent_session()
@@ -361,11 +420,6 @@ final class PHS extends PHS_Registry
         return $_GET[self::ROUTE_PARAM];
     }
 
-    public static function db_user()
-    {
-
-    }
-
     /**
      * Parse request route. Route is something like:
      *
@@ -381,12 +435,6 @@ final class PHS extends PHS_Registry
     public static function parse_route( $route = false )
     {
         self::st_reset_error();
-
-        //if( empty( $route ) )
-        //{
-        //    self::st_set_error( self::ERR_ROUTE, self::_t( 'Empty route.' ) );
-        //    return false;
-        //}
 
         $route_parts = array();
         if( !empty( $route ) )
@@ -606,7 +654,8 @@ final class PHS extends PHS_Registry
          or $action == self::ROUTE_DEFAULT_ACTION )
             $action = false;
 
-        @parse_str( $_SERVER['QUERY_STRING'], $query_string );
+        if( !empty( $_SERVER['QUERY_STRING'] ) )
+            @parse_str( $_SERVER['QUERY_STRING'], $query_string );
 
         if( empty( $query_string ) )
             $query_string = false;

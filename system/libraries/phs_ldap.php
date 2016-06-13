@@ -128,6 +128,7 @@ class PHS_Ldap extends PHS_Registry
         $default_config['allowed_extentions'] = array();
         $default_config['denied_extentions'] = array();
         $default_config['config_last_save'] = 0;
+        $default_config['checksum'] = '';
 
         return $default_config;
     }
@@ -138,45 +139,16 @@ class PHS_Ldap extends PHS_Registry
         if( empty( $settings ) or !is_array( $settings ) )
             return $def_settings;
 
-        if( empty( $settings['version'] ) )
-            $settings['version'] = $def_settings['version'];
-        else
-            $settings['version'] = intval( $settings['version'] );
+        $settings = self::validate_array( $settings, self::default_settings() );
 
-        if( empty( $settings['name'] ) )
-            $settings['name'] = $def_settings['name'];
-        else
-            $settings['name'] = trim( $settings['name'] );
-
-        if( empty( $settings['root'] ) )
-            $settings['root'] = $def_settings['root'];
-        else
-            $settings['root'] = trim( $settings['root'] );
-
-        if( empty( $settings['dir_length'] ) )
-            $settings['dir_length'] = $def_settings['dir_length'];
-        else
-            $settings['dir_length'] = intval( $settings['dir_length'] );
-
-        if( empty( $settings['depth'] ) )
-            $settings['depth'] = $def_settings['depth'];
-        else
-            $settings['depth'] = intval( $settings['depth'] );
-
-        if( empty( $settings['file_prefix'] ) )
-            $settings['file_prefix'] = $def_settings['file_prefix'];
-        else
-            $settings['file_prefix'] = trim( $settings['file_prefix'] );
-
-        if( empty( $settings['dir_mode'] ) )
-            $settings['dir_mode'] = $def_settings['dir_mode'];
-        else
-            $settings['dir_mode'] = intval( $settings['dir_mode'] );
-
-        if( empty( $settings['file_mode'] ) )
-            $settings['file_mode'] = $def_settings['file_mode'];
-        else
-            $settings['file_mode'] = intval( $settings['file_mode'] );
+        $settings['version'] = intval( $settings['version'] );
+        $settings['name'] = trim( $settings['name'] );
+        $settings['root'] = trim( $settings['root'] );
+        $settings['dir_length'] = intval( $settings['dir_length'] );
+        $settings['depth'] = intval( $settings['depth'] );
+        $settings['file_prefix'] = trim( $settings['file_prefix'] );
+        $settings['dir_mode'] = intval( $settings['dir_mode'] );
+        $settings['file_mode'] = intval( $settings['file_mode'] );
 
         if( empty( $settings['allowed_extentions'] ) or !is_array( $settings['allowed_extentions'] ) )
             $settings['allowed_extentions'] = $def_settings['allowed_extentions'];
@@ -724,14 +696,13 @@ class PHS_Ldap extends PHS_Registry
 
     public static function load_ldap_settings( $root )
     {
-        if( !empty( $root )
-        and substr( $root, -1 ) != '/' )
-            $root .= '/';
-
         if( empty( $root )
          or !($root = @realpath( $root ))
          or !@is_dir( $root ) )
             return false;
+
+        if( substr( $root, -1 ) != '/' )
+            $root .= '/';
 
         $return_arr = array();
 
@@ -746,7 +717,19 @@ class PHS_Ldap extends PHS_Registry
         if( !empty( $existing_config ) )
             $return_arr = PHS_line_params::parse_string( $existing_config );
 
+        $return_arr = self::validate_array( $return_arr, self::default_settings() );
+
         return $return_arr;
+    }
+
+    private function get_settings_checksum( $settings_arr )
+    {
+        $settings_arr = self::validate_array( $settings_arr, self::default_settings() );
+
+        $settings_arr['checksum'] = '';
+        $settings_arr['config_last_save'] = '';
+
+        return md5( @json_encode( $settings_arr ) );
     }
 
     private function _save_ldap_settings()
@@ -754,7 +737,16 @@ class PHS_Ldap extends PHS_Registry
         if( !$this->is_ready() )
             return false;
 
-        $settings = $this->server_settings();
+        $settings = self::validate_array( $this->server_settings(), self::default_settings() );
+
+        $settings_checksum = $this->get_settings_checksum( $settings );
+
+        if( empty( $settings['checksum'] ) )
+            $settings['checksum'] = $settings_checksum;
+
+        elseif( $settings['checksum'] == $settings_checksum )
+            return true;
+
         $config_file = self::_ldap_config_file();
 
         $retries = 5;

@@ -9,7 +9,8 @@ use \phs\libraries\PHS_Roles;
 
 abstract class PHS_Plugin extends PHS_Has_db_settings
 {
-    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006;
+    const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006,
+          ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
 
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
@@ -426,6 +427,21 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         $plugin_arr = $db_details['new_data'];
 
+        if( !$this->custom_activate( $plugin_arr ) )
+        {
+            if( !$this->has_warnings( 'plugin_activation_'.$plugin_arr['plugin'] ) )
+            {
+                if( $this->has_error() )
+                    $warning_msg = $this->get_error_message();
+                else
+                    $warning_msg = self::_t( 'Plugin custom activation functionality failed.' );
+
+                $this->add_warning( $warning_msg, 'plugin_activation_'.$plugin_arr['plugin'] );
+                PHS_Logger::logf( '!!! Error in plugin custom activate functionality. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::logf( $warning_msg, PHS_Logger::TYPE_MAINTENANCE );
+            }
+        }
+
         return $plugin_arr;
     }
 
@@ -466,6 +482,21 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         if( $plugins_model->is_inactive( $plugin_arr ) )
             return $plugin_arr;
+
+        if( !$this->custom_inactivate( $plugin_arr ) )
+        {
+            if( !$this->has_warnings( 'plugin_inactivation_'.$plugin_arr['plugin'] ) )
+            {
+                if( $this->has_error() )
+                    $warning_msg = $this->get_error_message();
+                else
+                    $warning_msg = self::_t( 'Plugin custom inactivation functionality failed.' );
+
+                $this->add_warning( $warning_msg, 'plugin_inactivation_'.$plugin_arr['plugin'] );
+                PHS_Logger::logf( '!!! Error in plugin custom inactivate functionality. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::logf( $warning_msg, PHS_Logger::TYPE_MAINTENANCE );
+            }
+        }
 
         $list_arr = array();
         $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
@@ -943,6 +974,30 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
      * @return bool true on success, false on failure
      */
     protected function custom_uninstall()
+    {
+        return true;
+    }
+
+    /**
+     * Performs any necessary custom actions when activating plugin
+     * Overwrite this method to do particular activation actions.
+     * This method is called after plugin and all models in the plugin are activated so you have full access to all models.
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_activate( $plugin_arr )
+    {
+        return true;
+    }
+
+    /**
+     * Performs any necessary custom actions when inactivating plugin
+     * Overwrite this method to do particular inactivation actions.
+     * This method is called after plugin and all models in the plugin are still activate so you have full access to all models.
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_inactivate( $plugin_arr )
     {
         return true;
     }

@@ -27,6 +27,8 @@ class PHS_Action_Edit_profile extends PHS_Action
      */
     public function execute()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Edit Profile' ) );
+
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */

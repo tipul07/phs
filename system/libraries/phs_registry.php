@@ -89,6 +89,8 @@ class PHS_Registry extends PHS_Language
 
                 self::$data[$kkey] = $kval;
             }
+
+            return true;
         }
 
         if( !is_scalar( $key ) )
