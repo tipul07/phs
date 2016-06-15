@@ -68,7 +68,8 @@
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/base.js.php' )?>"></script>
 
     <script type="text/javascript">
-        $(document).ready(function(){
+        function phs_refresh_input_skins()
+        {
             $('input:checkbox[rel="skin_chck_big"]').checkbox({cls:'jqcheckbox-big', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
             $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
             $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
@@ -78,6 +79,11 @@
             $(".chosen-select-nosearch").chosen({disable_search: true});
             $(".ui-button").button();
             $("*[title]").tooltip();
+        }
+
+        $(document).ready(function(){
+
+            phs_refresh_input_skins();
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
@@ -111,7 +117,6 @@
                 if( form_obj && form_obj[0]
                  && typeof document.createElement( 'input' ).checkValidity == 'function'
                  && form_obj[0].checkValidity() ) {
-                    console.log( 'canci' );
                     return;
                 }
 

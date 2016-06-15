@@ -15,7 +15,7 @@ Hi <?php echo $email_vars['nick']?>,<br/>
 Welcome to the <?php echo $email_vars['site_name']?> Platform!<br/>
 You're almost ready, just confirm your registration by clicking here: <a target="_blank" href="<?php echo $email_vars['activation_link']?>">Confirm Registration</a>
 <br/>
-or copy and paste this link below in your browser:<hr/>
+or copy and paste the link below in your browser:<hr/>
 <?php echo $email_vars['activation_link']?>
 <hr/>
 Here are your login details:<br/>

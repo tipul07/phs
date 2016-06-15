@@ -37,7 +37,6 @@ class PHS_Action_Login extends PHS_Action
         $back_page = PHS_params::_gp( 'back_page', PHS_params::T_NOHTML );
 
         $reason = PHS_params::_g( 'reason', PHS_params::T_NOHTML );
-        $registered = PHS_params::_g( 'registered', PHS_params::T_NOHTML );
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
@@ -48,8 +47,10 @@ class PHS_Action_Login extends PHS_Action
         and ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
             PHS_Notifications::add_success_notice( $reason_success_text );
 
-        if( !empty( $registered ) )
+        if( PHS_params::_g( 'registered', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Account registered and active. You can login now.' ) );
+        if( PHS_params::_g( 'password_changed', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success. You can login now.' ) );
 
         if( empty( $foobar )
         and PHS::user_logged_in()

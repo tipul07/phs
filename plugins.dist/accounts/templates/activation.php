@@ -3,10 +3,9 @@
 
     use \phs\PHS;
 ?>
-<!-- BEGIN: main -->
 <div style="min-width:600px;max-width:800px;margin: 0 auto;">
 
-    <div class="form_container responsive" style="width: 450px;">
+    <div class="form_container" style="width: 450px;">
 
         <section class="heading-bordered">
             <h3><?php echo $this->_pt( 'Confirmation action failed' )?></h3>
@@ -18,7 +17,7 @@
                 $nick = $this->_pt( 'there' );
             ?>
             <p><?php echo $this->_pt( 'Hello <strong>%s</strong>.', $nick );?></p>
-            <p><?php echo $this->_pt( 'Action required for confirmation failed. This might happen because activation link expired. Please try again.' )?></p>
+            <p><?php echo $this->_pt( 'Action required for confirmation failed. This might happen because confirmation link expired. Please try again.' )?></p>
         </fieldset>
 
         <fieldset>
@@ -27,7 +26,3 @@
 
     </div>
 </div>
-
-<div class="clearfix"></div>
-<p>&nbsp;</p>
-<!-- END: main -->

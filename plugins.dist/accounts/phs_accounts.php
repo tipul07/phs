@@ -16,7 +16,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     const PARAM_CONFIRMATION = '_a';
 
-    const CONF_REASON_ACTIVATION = 'activation', CONF_REASON_EMAIL = 'email';
+    const CONF_REASON_ACTIVATION = 'activation', CONF_REASON_EMAIL = 'email', CONF_REASON_FORGOT = 'forgot';
 
     // After how many seconds from last request should we clean up sessions?
     // !!! should be less than 'session_expire_minutes_normal' config value
@@ -391,7 +391,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $onuser_arr;
     }
 
-    public function get_confirmation_params( $account_data, $reason = false )
+    public function get_confirmation_params( $account_data, $reason = false, $params = false )
     {
         $this->reset_error();
 
@@ -418,10 +418,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        $pub_key = microtime( true );
-        $confirmation_param = PHS_crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['link_expire_seconds'] ) )
+            $params['link_expire_seconds'] = 0; // 0 means it doesn't expire
+
+        $link_expire_seconds = 0;
+        if( !empty( $params['link_expire_seconds'] ) )
+            $link_expire_seconds = time() + $params['link_expire_seconds'];
+
+        $pub_key = str_replace( '.', '', microtime( true ) );
+        $confirmation_param = PHS_crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
 
         return array(
+            'expiration_time' => $link_expire_seconds,
             'confirmation_param' => $confirmation_param,
             'pub_key' => $pub_key,
             'account_data' => $account_arr,
@@ -437,7 +448,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
          or !($parts_arr = explode( '::', $param_str, 2 ))
          or empty( $parts_arr[0] ) or empty( $parts_arr[1] ) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, 'Invalid confirmation parameter.' );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Confirmation parameter is invalid or expired.' ) );
             return false;
         }
 
@@ -446,15 +457,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($decrypted_data = PHS_crypt::quick_decode( $crypted_data ))
-         or !($decrypted_parts = explode( '::', $decrypted_data, 3 ))
-         or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] ) or empty( $decrypted_parts[2] )
+         or !($decrypted_parts = explode( '::', $decrypted_data, 4 ))
+         or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] ) or !isset( $decrypted_parts[2] ) or empty( $decrypted_parts[3] )
          or !($account_id = intval( $decrypted_parts[0] ))
          or !$this->valid_confirmation_reason( $decrypted_parts[1] )
+         or (($link_expire_seconds = intval( $decrypted_parts[2] )) and $link_expire_seconds < time())
          or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
          or !($account_arr = $accounts_model->get_details( $account_id ))
-         or $decrypted_parts[2] != md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) )
+         or $decrypted_parts[3] != md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) )
         {
-            $this->set_error( self::ERR_CONFIRMATION, 'Invalid confirmation parameter.' );
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Confirmation parameter is invalid or expired.' ) );
             return false;
         }
 
@@ -471,6 +483,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return array(
             self::CONF_REASON_ACTIVATION => $this->_pt( 'Your account is now active.' ),
             self::CONF_REASON_EMAIL => $this->_pt( 'Your email address is now confirmed.' ),
+            self::CONF_REASON_FORGOT => $this->_pt( 'You can now change your password.' ),
         );
     }
 
@@ -483,7 +496,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $reasons_arr[$reason];
     }
 
-    public function get_confirmation_link( $account_data, $reason = false )
+    public function get_confirmation_link( $account_data, $reason = false, $params = false )
     {
         $this->reset_error();
 
@@ -496,7 +509,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( !($confirmation_parts = $this->get_confirmation_params( $account_data, $reason ))
+        if( !($confirmation_parts = $this->get_confirmation_params( $account_data, $reason, $params ))
          or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
         {
             if( !$this->has_error() )
@@ -532,6 +545,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
+        $redirect_url = false;
         switch( $reason )
         {
             default:
@@ -563,9 +577,29 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     }
                 }
             break;
+
+            case self::CONF_REASON_FORGOT:
+                if( !$accounts_model->is_active( $account_arr ) )
+                {
+                    $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Cannot change password for this account.' ) );
+                    return false;
+                }
+
+                if( !($confirmation_parts = $this->get_confirmation_params( $account_arr, self::CONF_REASON_FORGOT, array( 'link_expire_seconds' => 3600 ) ))
+                 or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
+                {
+                    if( !$this->has_error() )
+                        $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t obtain change password page parameters. Please try again.' ) );
+
+                    return false;
+                }
+
+                $redirect_url = PHS::url( array( 'p' => $this->instance_plugin_name(), 'a' => 'change_password' ), array( self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ) );
+            break;
         }
 
         return array(
+            'redirect_url' => $redirect_url,
             'account_data' => $account_arr,
         );
     }

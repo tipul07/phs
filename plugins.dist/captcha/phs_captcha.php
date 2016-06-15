@@ -154,7 +154,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             'cnumbers' => $settings_arr['characters_count'],
             'param_code' => $cimage_code,
             'img_type' => $settings_arr['image_format'],
-            'reference_code' => $settings_arr['reference_code'],
+            'code_timeout' => 3600,
         );
         $library_params['as_singleton'] = false;
 

@@ -12,13 +12,14 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Hi <?php echo $email_vars['nick']?>,<br/>
 <br/>
-Recently there was a request placed at <?php echo $email_vars['site_name']?> to verify this email address.<br/>
-<br/>
-In order to confirm this email address you can click here: <a target="_blank" href="<?php echo $email_vars['activation_link']?>">Confirm Email Address</a><br/>
+We received a request to reset your account password.<br/>
+In order to change you password please click here: <a target="_blank" href="<?php echo $email_vars['forgot_link']?>">Confirm Registration</a>
 <br/>
 or copy and paste the link below in your browser:<br/>
-<?php echo $email_vars['activation_link']?><br/>
 <br/>
+<?php echo $email_vars['forgot_link']?><br/>
+<br/>
+Did you remember the password? <a href="<?php echo $email_vars['login_link']?>">Login into your account</a><br/>
 Any problems? <a href="<?php echo $email_vars['contact_us_link']?>">Get in touch</a><br/>
 <br/>
 Best wishes,<br/>

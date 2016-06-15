@@ -62,22 +62,29 @@
 
             <fieldset class="form-group">
                 <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
+                <div class="lineform_line">
                 <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->context_var( 'fname' ) )?>" style="width: 260px;" />
+                </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
+                <div class="lineform_line">
                 <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->context_var( 'lname' ) )?>" style="width: 260px;" />
+                </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
+                <div class="lineform_line">
                 <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->context_var( 'phone' ) )?>" style="width: 260px;" />
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="company"><?php echo $this->_pt( 'Company' )?></label>
+                <div class="lineform_line">
                 <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->context_var( 'company' ) )?>" style="width: 260px;" />
+                </div>
             </fieldset>
 
             <fieldset>

@@ -38,7 +38,15 @@ class PHS_Action_Activation extends PHS_Action
         $confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML );
 
         if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param )) )
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t interpret confirmation parameter. Please try again.' ) );
+        {
+            if( $accounts_plugin->has_error() )
+                PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
+            else
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t interpret confirmation parameter. Please try again.' ) );
+        }
+
+        // Reset error for do_confirmation_reason() method call...
+        $accounts_plugin->reset_error();
 
         if( !PHS_Notifications::have_notifications_errors()
         and !empty( $confirmation_parts['account_data'] )
@@ -49,13 +57,21 @@ class PHS_Action_Activation extends PHS_Action
 
             $action_result = self::default_action_result();
 
-            if( $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION )
+            if( !empty( $confirmation_result['redirect_url'] ) )
+                $action_result['redirect_to_url'] = $confirmation_result['redirect_url'];
+
+            elseif( $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION
+             or !PHS::user_logged_in() )
                 $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'reason' => $confirmation_parts['reason'] ) );
+
             else
                 $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'reason' => $confirmation_parts['reason'] ) );
 
             return $action_result;
         }
+
+        if( $accounts_plugin->has_error() )
+            PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
 
         $data = array(
             'nick' => (!empty( $confirmation_parts['account_data'] )?$confirmation_parts['account_data']['nick']:''),
