@@ -15,7 +15,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.20,
+        version: 1.21,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -144,6 +144,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 url_data          : "",
                 data_type         : "html",
                 async             : true,
+                full_buffer       : false,
 
                 onfailed          : null,
                 onsuccess         : null
@@ -161,29 +162,36 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 success: function( data, status, ajax_obj )
                 {
-                    if( typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
+                    result_response = false;
+                    if( !options.full_buffer )
                     {
-                        document.location = data.redirect_to_url;
-                        return;
-                    }
+                        if( typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
+                        {
+                            document.location = data.redirect_to_url;
+                            return;
+                        }
 
-                    if( typeof data.status != 'undefined' && data.status )
-                    {
-                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
-                            PHS_JSEN.js_messages( data.status.success_messages, "success" );
-                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
-                            PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
-                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
-                            PHS_JSEN.js_messages( data.status.error_messages, "error" );
-                    }
+                        if( typeof data.status != 'undefined' && data.status )
+                        {
+                            if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
+                                PHS_JSEN.js_messages( data.status.success_messages, "success" );
+                            if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
+                                PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
+                            if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
+                                PHS_JSEN.js_messages( data.status.error_messages, "error" );
+                        }
 
-                    if( typeof data.response == 'undefined' || !data.response )
-                        data.response = {};
+                        if( typeof data.response == 'undefined' || !data.response )
+                            data.response = {};
+
+                        result_response = data.response;
+                    } else
+                        result_response = data;
 
                     if( options.onsuccess )
                     {
                         if( jQuery.isFunction( options.onsuccess ) )
-                            options.onsuccess( data.response, status, ajax_obj );
+                            options.onsuccess( result_response, status, ajax_obj );
                         else if( typeof options.onsuccess == "string" )
                             eval( options.onsuccess );
                     }
@@ -433,7 +441,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     cache_response: options.cache_response,
                     method: options.method,
                     url_data: options.url_data,
-                    async: true,
+                    full_buffer: true,
 
                     onsuccess: function( response, status, ajax_obj ) {
                         dialog_obj.html( response );
@@ -479,7 +487,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     cache_response: options.cache_response,
                     method: options.method,
                     url_data: options.url_data,
-                    async: true,
+                    full_buffer: true,
 
                     onsuccess: function( response, status, ajax_obj ) {
                         dialog_obj.html( response );
@@ -640,10 +648,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         cache_response: options.cache_response,
                         method: options.method,
                         url_data: options.url_data,
-                        //async: true,
+                        full_buffer: true,
 
                         onsuccess: function( response, status, ajax_obj ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
+
                             if( dialog_obj )
                             {
                                 dialog_obj.html( response );
@@ -661,7 +670,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
-                            dialog_obj.html( "<?php echo PHS_Language::_te( 'Error' )?>" );
+                            dialog_obj.html( "<?php echo PHS_Language::_te( 'Error ontaining dialogue body. Please try again.' )?>" );
                             dialog_obj.dialog( "open" );
                         }
                     };
@@ -694,7 +703,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 {
                     $(document).on('click', '.ui-widget-overlay', function() {
                         if( dialog_obj )
-                            dialog_obj.dialog("close");
+                            dialog_obj.dialog( "close" );
                     });
 
                 }
@@ -707,6 +716,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         else if( typeof options.onclose == "string" )
                             eval( options.onclose );
                     }
+
+                    dialog_obj.dialog('destroy').remove();
+                    dialog_obj = false;
                 });
 
                 PHS_JSEN.dialogOptions( options.suffix, options );

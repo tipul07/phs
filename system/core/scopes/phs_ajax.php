@@ -20,26 +20,36 @@ class PHS_Scope_Ajax extends PHS_Scope
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
+        if( !isset( $action_result['buffer'] ) )
+            $action_result['buffer'] = '';
         if( !isset( $action_result['ajax_result'] ) )
             $action_result['ajax_result'] = false;
 
-        if( !empty( $action_result['ajax_only_result'] ) )
-            $ajax_data = $action_result['ajax_result'];
-
-        else
+        if( $action_result['buffer'] != '' )
         {
-            $ajax_data = array();
-            $ajax_data['status'] = array(
-                'success_messages' => PHS_Notifications::notifications_success(),
-                'warning_messages' => PHS_Notifications::notifications_warnings(),
-                'error_messages' => PHS_Notifications::notifications_errors(),
-            );
+            @header( 'Content-Type: text/html' );
+            echo $action_result['buffer'];
+        } else
+        {
+            if( !empty( $action_result['ajax_only_result'] ) )
+                $ajax_data = $action_result['ajax_result'];
 
-            $ajax_data['response'] = $action_result['ajax_result'];
-            $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
+            else
+            {
+                $ajax_data = array();
+                $ajax_data['status'] = array(
+                    'success_messages' => PHS_Notifications::notifications_success(),
+                    'warning_messages' => PHS_Notifications::notifications_warnings(),
+                    'error_messages' => PHS_Notifications::notifications_errors(),
+                );
+
+                $ajax_data['response'] = $action_result['ajax_result'];
+                $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
+            }
+
         }
 
-        header( 'Content-Type: application/json' );
+        @header( 'Content-Type: application/json' );
         echo @json_encode( $ajax_data );
 
         return true;
