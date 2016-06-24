@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.0.7' );
+define( 'PHS_VERSION', '1.0.0.8' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 

@@ -186,8 +186,6 @@ class PHS_Action_User_edit extends PHS_Action
             'password_regexp' => $accounts_plugin_settings['password_regexp'],
         );
 
-        //var_dump( $data );
-
         return $this->quick_render_template( 'user_edit', $data );
     }
 }

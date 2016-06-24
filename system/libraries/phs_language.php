@@ -5,6 +5,8 @@ namespace phs\libraries;
 if( !defined( 'PHS_VERSION' ) )
     exit;
 
+use \phs\PHS;
+
 class PHS_Language extends PHS_Error
 {
     /** @var PHS_Language_Container $lang_callable_obj */
@@ -120,6 +122,27 @@ class PHS_Language extends PHS_Error
         /** @var PHS_Plugin|PHS_Library $this */
         if( (!($this instanceof PHS_Instantiable) and !($this instanceof PHS_Library))
          or !($plugin_obj = $this->get_plugin_instance()) )
+            return self::_t( func_get_args() );
+
+        $plugin_obj->include_plugin_language_files();
+
+        if( !($result = @forward_static_call_array( array( '\phs\libraries\PHS_Language', '_t' ), func_get_args() )) )
+            $result = '';
+
+        return $result;
+    }
+
+    /**
+     * @param $index
+     */
+    public static function st_pt( $index )
+    {
+        if( !($called_class = get_called_class())
+         or !($clean_class_name = ltrim( $called_class, '\\' ))
+         or strtolower( substr( $clean_class_name, 0, 12 ) ) != 'phs\\plugins\\'
+         or !($parts_arr = explode( '\\', $clean_class_name, 4 ))
+         or empty( $parts_arr[2] )
+         or !($plugin_obj = PHS::load_plugin( $parts_arr[2] )) )
             return self::_t( func_get_args() );
 
         $plugin_obj->include_plugin_language_files();

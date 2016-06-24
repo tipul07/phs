@@ -59,6 +59,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'buffer' => '',
             'ajax_result' => false,
             'ajax_only_result' => false,
+            'custom_headers' => array(), // key - value headers...
 
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...

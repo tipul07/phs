@@ -61,7 +61,6 @@ class PHS_Action_Forgot extends PHS_Action
             elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
                 and empty( $hook_result['check_valid'] ) )
             {
-                var_dump( $hook_result );
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
                     PHS_Notifications::add_error_notice( PHS_Error::arr_get_error_message( $hook_result['hook_errors'] ) );
                 else
