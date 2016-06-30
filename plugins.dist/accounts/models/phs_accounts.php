@@ -2,6 +2,7 @@
 
 namespace phs\plugins\accounts\models;
 
+use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\PHS_crypt;
 use \phs\PHS_bg_jobs;
@@ -182,7 +183,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_just_registered( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or empty_db_date( $user_arr['lastlog'] ) )
+         or !empty_db_date( $user_arr['lastlog'] ) )
             return false;
 
         return $user_arr;

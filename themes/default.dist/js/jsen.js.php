@@ -599,7 +599,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
             if( dialog_obj )
             {
-                dialog_obj.remove();
+                dialog_obj.dialog('destroy').remove();
             }
 
             // Create Dialog

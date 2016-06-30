@@ -3,8 +3,12 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
+
+    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+        $no_nickname_only_email = false;
+
+    $nick = ($no_nickname_only_email?$this->context_var( 'email' ):$this->context_var( 'nick' ));
 ?>
-<!-- BEGIN: main -->
 <div style="min-width:600px;max-width:800px;margin: 0 auto;">
 
     <div class="form_container responsive" style="width: 450px;">
@@ -14,18 +18,14 @@
         </section>
 
         <fieldset>
-            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>.', $this->context_var( 'nick' ) );?></p>
-            <p><?php echo $this->_pt( 'You successfully registered your account. Before using your account however you have to activate it.' )?></p>
-            <p><?php echo $this->_pt( 'We sent you an activation link at <strong>%s</strong>. Please check your email (also looking in spam folder) and click or access the activation link.', $this->context_var( 'email' ) )?></p>
+            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>!', $nick );?></p>
+            <p><?php echo $this->_pt( 'You successfully registered your account. However, before using your account you must activate it.' )?></p>
+            <p><?php echo $this->_pt( 'We sent you an activation link at <strong>%s</strong>. Please check your email (also looking into spam folder) and click or access the activation link.', $this->context_var( 'email' ) )?></p>
         </fieldset>
 
         <fieldset>
-            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $nick ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
         </fieldset>
 
     </div>
 </div>
-
-<div class="clearfix"></div>
-<p>&nbsp;</p>
-<!-- END: main -->

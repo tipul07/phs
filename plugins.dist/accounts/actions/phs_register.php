@@ -62,18 +62,6 @@ class PHS_Action_Register extends PHS_Action
             return $action_result;
         }
 
-        if( !empty( $registered ) )
-        {
-            PHS_Notifications::add_success_notice( $this->_pt( 'User account registered with success...' ) );
-
-            $data = array(
-                'nick' => $nick,
-                'email' => $email,
-            );
-
-            return $this->quick_render_template( 'register_thankyou', $data );
-        }
-
         if( !($accounts_settings = $accounts_plugin->get_plugin_settings()) )
             $accounts_settings = array();
 
@@ -83,6 +71,19 @@ class PHS_Action_Register extends PHS_Action
                 $accounts_settings['min_password_length'] = $accounts_model::DEFAULT_MIN_PASSWORD_LENGTH;
             else
                 $accounts_settings['min_password_length'] = 8;
+        }
+
+        if( !empty( $registered ) )
+        {
+            PHS_Notifications::add_success_notice( $this->_pt( 'User account registered with success...' ) );
+
+            $data = array(
+                'nick' => $nick,
+                'email' => $email,
+                'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
+            );
+
+            return $this->quick_render_template( 'register_thankyou', $data );
         }
 
         if( !empty( $do_submit ) )

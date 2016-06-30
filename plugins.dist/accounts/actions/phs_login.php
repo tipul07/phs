@@ -38,6 +38,9 @@ class PHS_Action_Login extends PHS_Action
 
         $reason = PHS_params::_g( 'reason', PHS_params::T_NOHTML );
 
+        if( ($expired_secs = PHS_params::_g( 'expired_secs', PHS_params::T_INT )) )
+            PHS_Notifications::add_warning_notice( $this->_pt( 'Your session expired. Please login again into your account.' ) );
+
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($accounts_plugin = $this->get_plugin_instance()) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
