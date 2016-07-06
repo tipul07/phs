@@ -959,40 +959,19 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $insert_arr['{users_details}'] = false;
 
-        $accounts_details_model = false;
-        $users_details = false;
+        if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining account details model instance.' ) );
+            return false;
+        }
+
         if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
         {
-            if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+            if( !($insert_arr = $this->update_user_details( $insert_arr, $params['{users_details}'] )) )
             {
-                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error obtaining account details model instance.' ) );
-                return false;
-            }
-
-            $params['{users_details}']['uid'] = $insert_arr['id'];
-
-            $details_params = array();
-            $details_params['fields'] = $params['{users_details}'];
-
-            if( !($users_details = $accounts_details_model->insert( $details_params )) )
-            {
-                if( $accounts_details_model->has_error() )
-                    $this->copy_error( $accounts_details_model );
-                else
+                if( !$this->has_error() )
                     $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
 
-                return false;
-            }
-
-            $insert_arr['{users_details}'] = $users_details;
-
-            if( !db_query( 'UPDATE `'.$this->get_flow_table_name( $params ).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$insert_arr['id'].'\'', $this->get_db_connection( $params ) ) )
-            {
-                self::st_reset_error();
-
-                $accounts_details_model->hard_delete( $users_details );
-
-                $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t link account details with the account. Please try again.' ) );
                 return false;
             }
         }
@@ -1021,9 +1000,8 @@ class PHS_Model_Accounts extends PHS_Model
                 else
                     $this->set_error( self::ERR_INSERT, $this->_pt( 'Error sending activation email. Please try again.' ) );
 
-                if( !empty( $accounts_details_model )
-                and !empty( $users_details ) )
-                    $accounts_details_model->hard_delete( $users_details );
+                if( !empty( $insert_arr['{users_details}'] ) )
+                    $accounts_details_model->hard_delete( $insert_arr['{users_details}'] );
 
                 return false;
             }
@@ -1036,15 +1014,97 @@ class PHS_Model_Accounts extends PHS_Model
             // send confirmation email...
             if( !$this->send_confirmation_email( $insert_arr ) )
             {
-                if( !empty( $accounts_details_model )
-                and !empty( $users_details ) )
-                    $accounts_details_model->hard_delete( $users_details );
+                // Not sure if we must delete account just because we had error while sending confirmation email...
+                if( false )
+                {
+                    if( !empty($insert_arr['{users_details}']) )
+                        $accounts_details_model->hard_delete( $insert_arr['{users_details}'] );
+
+                    return false;
+                }
+            }
+        }
+
+        return $insert_arr;
+    }
+
+    public function update_user_details( $account_data, $user_details_arr )
+    {
+        $this->reset_error();
+
+        if( empty( $user_details_arr ) or !is_array( $user_details_arr ) )
+            return true;
+
+        if( !($flow_params = $this->fetch_default_flow_params()) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Invalid flow parameters while updating user details.' ) );
+            return false;
+        }
+
+        if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining account details model instance.' ) );
+            return false;
+        }
+
+        if( !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid account to update details.' ) );
+            return false;
+        }
+
+        if( empty( $account_arr['details_id'] )
+         or !($users_details = $accounts_details_model->get_details( $account_arr['details_id'] )) )
+            $users_details = false;
+
+        if( empty( $users_details ) )
+        {
+            // no details yet saved...
+            $user_details_arr['uid'] = $account_arr['id'];
+
+            $details_params = array();
+            $details_params['fields'] = $user_details_arr;
+
+            if( !($users_details = $accounts_details_model->insert( $details_params )) )
+            {
+                if( $accounts_details_model->has_error() )
+                    $this->copy_error( $accounts_details_model );
+                else
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
+
+                return false;
+            }
+        } else
+        {
+            $details_params = array();
+            $details_params['fields'] = $user_details_arr;
+
+            if( !($users_details = $accounts_details_model->edit( $users_details, $details_params )) )
+            {
+                if( $accounts_details_model->has_error() )
+                    $this->copy_error( $accounts_details_model );
+                else
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
 
                 return false;
             }
         }
 
-        return $insert_arr;
+        if( empty( $account_arr['details_id'] )
+        and !db_query( 'UPDATE `'.$this->get_flow_table_name( $flow_params ).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$account_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
+        {
+            self::st_reset_error();
+
+            $accounts_details_model->hard_delete( $users_details );
+
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t link account details with the account. Please try again.' ) );
+            return false;
+        }
+
+        $account_arr['details_id'] = $users_details['id'];
+        $account_arr['{users_details}'] = $users_details;
+
+        return $account_arr;
     }
 
     /**
@@ -1192,75 +1252,15 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function edit_after_users( $existing_data, $edit_arr, $params )
     {
-        if( empty( $existing_data['{users_details}'] ) )
-        {
-            if( !empty( $existing_data['details_id'] ) )
-                $existing_data['{users_details}'] = $existing_data['details_id'];
-            else
-                $existing_data['{users_details}'] = false;
-        }
-
         if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
         {
-            if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+            if( !($existing_data = $this->update_user_details( $existing_data, $params['{users_details}'] )) )
             {
-                $this->set_error( self::ERR_EDIT, $this->_pt( 'Error obtaining account details model instance.' ) );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
+
                 return false;
             }
-
-            $users_details = false;
-            if( !empty( $existing_data['{users_details}'] )
-            and !($users_details = $accounts_details_model->data_to_array( $existing_data['{users_details}'] )) )
-            {
-                $this->set_error( self::ERR_EDIT, $this->_pt( 'Error obtaining account details from database.' ) );
-                return false;
-            }
-
-            if( empty( $users_details ) )
-            {
-                $params['{users_details}']['uid'] = $existing_data['id'];
-
-                $details_params = array();
-                $details_params['fields'] = $params['{users_details}'];
-
-                if( !($users_details = $accounts_details_model->insert( $details_params )) )
-                {
-                    if( $accounts_details_model->has_error() )
-                        $this->copy_error( $accounts_details_model );
-                    else
-                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
-
-                    return false;
-                }
-
-                if( !db_query( 'UPDATE `'.$this->get_flow_table_name( $params ).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$existing_data['id'].'\'', $this->get_db_connection( $params ) ) )
-                {
-                    self::st_reset_error();
-
-                    $accounts_details_model->hard_delete( $users_details );
-
-                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t link account details with the account. Please try again.' ) );
-                    return false;
-                }
-
-                $existing_data['details_id'] = $users_details['id'];
-            } else
-            {
-                $details_params = array();
-                $details_params['fields'] = $params['{users_details}'];
-
-                if( !($users_details = $accounts_details_model->edit( $users_details, $details_params )) )
-                {
-                    if( $accounts_details_model->has_error() )
-                        $this->copy_error( $accounts_details_model );
-                    else
-                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
-
-                    return false;
-                }
-            }
-
-            $existing_data['{users_details}'] = $users_details;
         }
 
         if( !empty( $edit_arr['pass'] )
