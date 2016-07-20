@@ -27,7 +27,7 @@ class PHS_Action_Index extends PHS_Action
 
         if( empty( $accounts_model )
          or !($user_level = $accounts_model->valid_level( $current_user['level'] )) )
-            $level_title = self::_t( 'N/A' );
+            $level_title = $this->_pt( 'N/A' );
         else
             $level_title = $user_level['title'];
 

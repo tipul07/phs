@@ -141,7 +141,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         if( !($settings_arr = $this->get_db_settings()) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
             return false;
         }
 
@@ -162,7 +162,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         if( !($img_library = $this->load_library( 'phs_image_code', $library_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error loading image captcha library.' ) );
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading image captcha library.' ) );
 
             return false;
         }
@@ -191,7 +191,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         if( !($settings_arr = $this->get_db_settings()) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
             return false;
         }
 
@@ -211,7 +211,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         if( !($img_library = $this->load_library( 'phs_image_code', $library_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error loading image captcha library.' ) );
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading image captcha library.' ) );
 
             return false;
         }
@@ -265,7 +265,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         if( !($settings_arr = $this->get_db_settings())
          or empty( $settings_arr['template'] ) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -274,7 +274,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         if( !($captcha_template = PHS_View::validate_template_resource( $settings_arr['template'] )) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating captcha template file.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating captcha template file.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -316,7 +316,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
             else
-                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
+                $this->set_error( self::ERR_RENDER, $this->_pt( 'Error rendering template [%s].', $view_obj->get_template() ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 

@@ -133,7 +133,9 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * @param $index
+     * @param string $index Language index
+     *
+     * @return mixed|string
      */
     public static function st_pt( $index )
     {

@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     if( !($current_user = $this->context_var( 'current_user' )) )
-        $current_user = array( 'nick' => $this::_t( 'N/A' ) );
+        $current_user = array( 'nick' => $this->_pt( 'N/A' ) );
 ?>
 <div style="min-width:600px;max-width:800px;margin: 0 auto;">
 

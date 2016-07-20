@@ -1310,9 +1310,7 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * @param array|bool $params Parameters in the flow
-     *
-     * @return array Returns an array with table fields
+     * @inheritdoc
      */
     final public function fields_definition( $params = false )
     {

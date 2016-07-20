@@ -53,7 +53,7 @@ class PHS_Model_Accounts_details extends PHS_Model
 
         if( empty( $params['fields']['uid'] ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide an user account id.' ) );
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an user account id.' ) );
             return false;
         }
 
@@ -61,9 +61,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     }
 
     /**
-     * @param array|bool $params Parameters in the flow
-     *
-     * @return array Returns an array with table fields
+     * @inheritdoc
      */
     final public function fields_definition( $params = false )
     {

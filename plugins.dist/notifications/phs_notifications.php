@@ -70,13 +70,13 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         if( !($settings_arr = $this->get_db_settings())
          or empty( $settings_arr['template'] ) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
             return false;
         }
 
         if( !($notifications_template = PHS_View::validate_template_resource( $settings_arr['template'] )) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating notifications template file.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating notifications template file.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -117,7 +117,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
             else
-                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
+                $this->set_error( self::ERR_RENDER, $this->_pt( 'Error rendering template [%s].', $view_obj->get_template() ) );
 
             return false;
         }

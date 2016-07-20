@@ -16,7 +16,7 @@ class PHS_Action_Index extends PHS_Action
          or !$plugin_instance->plugin_active()
          or !($plugin_settings = $plugin_instance->get_db_settings()) )
         {
-            echo self::_t( 'Couldn\'t obtain plugin settings.' );
+            echo $this->_pt( 'Couldn\'t obtain plugin settings.' );
             exit;
         }
 
@@ -40,14 +40,14 @@ class PHS_Action_Index extends PHS_Action
 
         if( !@function_exists( 'imagecreatetruecolor' ) )
         {
-            echo self::_t( 'Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.' );
+            echo $this->_pt( 'Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.' );
             exit;
         }
 
         if( empty( $params['font'] )
          or !($font_file = $plugin_instance->get_font_full_path( $params['font'] )) )
         {
-            echo self::_t( 'Font couldn\'t be found.' );
+            echo $this->_pt( 'Font couldn\'t be found.' );
             exit;
         }
 
@@ -69,7 +69,7 @@ class PHS_Action_Index extends PHS_Action
             if( $plugin_instance->has_error() )
                 echo $plugin_instance->get_error_message();
             else
-                echo self::_t( 'Error loading image captcha library.' );
+                echo $this->_pt( 'Error loading image captcha library.' );
 
             exit;
         }

@@ -35,7 +35,7 @@ class PHS_image_code extends PHS_Library
 
         if( !@function_exists( 'imagecreatetruecolor' ) )
         {
-            $this->set_error( self::ERR_NOGD, self::_t( 'Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.' ) );
+            $this->set_error( self::ERR_NOGD, $this->_pt( 'Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.' ) );
             return;
         }
 

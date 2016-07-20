@@ -87,9 +87,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     abstract public function get_model_version();
 
     /**
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
-     * @return array Returns an array with table fields
+     * @return array|bool Returns an array with table fields
      */
     abstract public function fields_definition( $params = false );
 

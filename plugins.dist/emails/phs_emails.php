@@ -39,7 +39,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !($smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error loading SMTP library.' ) );
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading SMTP library.' ) );
 
             return false;
         }
@@ -205,7 +205,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !($settings_arr = $this->get_db_settings())
          or empty( $settings_arr['template_main'] ) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Couldn\'t load template from plugin settings.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -217,7 +217,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         if( !($email_main_template = PHS_View::validate_template_resource( $settings_arr['template_main'], $template_params )) )
         {
-            $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating main email template file.' ) );
+            $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating main email template file.' ) );
 
             PHS_Logger::logf( 'Failed validating main email template file.', PHS_Logger::TYPE_DEBUG );
 
@@ -232,7 +232,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_TEMPLATE );
             else
-                $this->set_error( self::ERR_TEMPLATE, self::_t( 'Failed validating email template file.' ) );
+                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating email template file.' ) );
 
             PHS_Logger::logf( 'Email template error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
@@ -251,7 +251,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             {
                 PHS_Logger::logf( 'Invalid SMTP route ['.$hook_args['route'].'].', PHS_Logger::TYPE_DEBUG );
 
-                $this->set_error( self::ERR_TEMPLATE, self::_t( 'Invalid SMTP route.' ) );
+                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Invalid SMTP route.' ) );
 
                 $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -295,7 +295,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->copy_error( $email_template_obj );
 
             if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, self::_t( 'Rendering template %s resulted in empty buffer.', ($email_template_obj?$email_template_obj->get_template():'(???)') ) );
+                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', ($email_template_obj?$email_template_obj->get_template():'(???)') ) );
 
             PHS_Logger::logf( 'Email template render error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
@@ -315,7 +315,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->copy_error( $main_template_obj );
 
             if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, self::_t( 'Rendering template %s resulted in empty buffer.', ($main_template_obj?$main_template_obj->get_template():'(???)') ) );
+                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', ($main_template_obj?$main_template_obj->get_template():'(???)') ) );
 
             PHS_Logger::logf( 'Email main template render error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
@@ -331,7 +331,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( !($new_hook_args = $this->send_email( $hook_args )) )
             {
                 if( !$this->has_error() )
-                    $this->set_error( self::ERR_SEND, self::_t( 'Error sending email.' ) );
+                    $this->set_error( self::ERR_SEND, $this->_pt( 'Error sending email.' ) );
 
                 PHS_Logger::logf( 'Sending email error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 
@@ -355,7 +355,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( empty( $hook_args['to'] )
          or !PHS_params::check_type( $hook_args['to'], PHS_params::T_EMAIL ) )
         {
-            $this->set_error( self::ERR_SEND, self::_t( 'To parameter is not an email.' ) );
+            $this->set_error( self::ERR_SEND, $this->_pt( 'To parameter is not an email.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -364,7 +364,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         if( empty( $hook_args['email_html_body'] ) and empty( $hook_args['email_text_body'] ) )
         {
-            $this->set_error( self::ERR_SEND, self::_t( 'Email body is empty.' ) );
+            $this->set_error( self::ERR_SEND, $this->_pt( 'Email body is empty.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -438,7 +438,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( !($new_hook_args = $this->_send_email_native( $hook_args )) )
             {
                 if( !$this->has_error() )
-                    $this->set_error( self::ERR_SEND, self::_t( 'Error sending email using native function.' ) );
+                    $this->set_error( self::ERR_SEND, $this->_pt( 'Error sending email using native function.' ) );
 
                 $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -451,7 +451,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             if( !($new_hook_args = $this->_send_email_smtp( $hook_args )) )
             {
                 if( !$this->has_error() )
-                    $this->set_error( self::ERR_SEND, self::_t( 'Error sending email using SMTP function.' ) );
+                    $this->set_error( self::ERR_SEND, $this->_pt( 'Error sending email using SMTP function.' ) );
 
                 $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -477,7 +477,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
          or empty( $hook_args['internal_vars']['full_headers'] ) or !is_array( $hook_args['internal_vars']['full_headers'] )
          or empty( $hook_args['internal_vars']['mime_boundary'] ) )
         {
-            $this->set_error( self::ERR_SEND, self::_t( 'Mandatory SMTP parameters not set.' ) );
+            $this->set_error( self::ERR_SEND, $this->_pt( 'Mandatory SMTP parameters not set.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -492,7 +492,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !($smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error loading SMTP library.' ) );
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading SMTP library.' ) );
 
             return false;
         }
@@ -526,7 +526,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->copy_error( $smtp_library );
 
             if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, self::_t( 'Error sending email using SMTP library.' ) );
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error sending email using SMTP library.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
@@ -547,7 +547,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
          or empty( $hook_args['full_body'] )
          or empty( $hook_args['internal_vars']['full_headers'] ) or !is_array( $hook_args['internal_vars']['full_headers'] ) )
         {
-            $this->set_error( self::ERR_SEND, self::_t( 'Mandatory native mail parameters not set.' ) );
+            $this->set_error( self::ERR_SEND, $this->_pt( 'Mandatory native mail parameters not set.' ) );
 
             $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
 
