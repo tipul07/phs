@@ -28,14 +28,14 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=<?php echo PHS_Language::get_current_language_key( 'browser_charset' )?>" />
     <meta name="HandheldFriendly"   content="true" />
-    <meta name="MobileOptimized"    content="320">
-    <meta name="viewport"       content="user-scalable=no, width=device-width, initial-scale=1.0" />
-    <meta name="title"          content="<?php echo $action_result['page_settings']['page_title']?>" />
-    <meta name="description"    content="<?php echo $action_result['page_settings']['page_description']?>" />
-    <meta name="keywords"       content="<?php echo $action_result['page_settings']['page_keywords']?>" />
-    <meta name="copyright"      content="Copyright <?php echo date( 'Y' ).' - '.PHS_SITE_NAME?>. All Right Reserved." />
-    <meta name="author"         content="PHS Framework" />
-    <meta name="revisit-after"  content="1 days" />
+    <meta name="MobileOptimized"    content="320" />
+    <meta name="viewport"           content="user-scalable=no, width=device-width, initial-scale=1.0" />
+    <meta name="title"              content="<?php echo $action_result['page_settings']['page_title']?>" />
+    <meta name="description"        content="<?php echo $action_result['page_settings']['page_description']?>" />
+    <meta name="keywords"           content="<?php echo $action_result['page_settings']['page_keywords']?>" />
+    <meta name="copyright"          content="Copyright <?php echo date( 'Y' ).' - '.PHS_SITE_NAME?>. All Right Reserved." />
+    <meta name="author"             content="PHS Framework" />
+    <meta name="revisit-after"      content="1 days" />
 
     <link href="<?php echo $this->get_resource_url( 'images/favicon.png' )?>" rel="shortcut icon" />
 
@@ -172,7 +172,7 @@
 <div id="container">
     <!-- BEGIN: page_header -->
     <div id="menu-left-pane" class="menu-pane">
-        <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
+        <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
 
         <ul>
@@ -211,7 +211,7 @@
     <div class="clearfix"></div>
 
     <div id="menu-right-pane" class="menu-pane">
-        <div class="main-menu-pane-close-button" style="float: left; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
+        <div class="main-menu-pane-close-button" style="float: left; "><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
 
         <ul>
@@ -272,8 +272,8 @@
                             <input type="text" id="mt_nick" class="form-control" name="nick" required />
                         </div>
                         <div class="menu-pane-form-line form-group">
-                            <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
-                            <input type="password" id="mt_nick" class="form-control" name="pass" required />
+                            <label for="mt_pass"><?php echo $this::_t( 'Password' ) ?></label>
+                            <input type="password" id="mt_pass" class="form-control" name="pass" required />
                         </div>
                         <div class="menu-pane-form-line fixskin">
                             <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>

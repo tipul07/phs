@@ -1115,7 +1115,7 @@ class PHS_Model_Accounts extends PHS_Model
      * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
      * @param array|false $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_edit_prepare_params_users( $existing_data, $params )
     {
@@ -1247,7 +1247,7 @@ class PHS_Model_Accounts extends PHS_Model
      * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
      * @param array $params Flow parameters
      *
-     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * @return array|bool Returns data array added in database (with changes, if required) or false if record should be deleted from database.
      * Deleted record will be hard-deleted
      */
     protected function edit_after_users( $existing_data, $edit_arr, $params )

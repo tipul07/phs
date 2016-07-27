@@ -55,7 +55,7 @@ h2, .h2 { font-size: 24px; line-height: 28px; }
 h3, .h3 { font-size: 20px; line-height: 24px; }
 h4, .h4 { font-size: 18px; line-height: 20px; }
 
-p, ol, ul { margin-bottom: 1.5em; font-size: 16px; line-height: 1.5em; }
+p, ol, ul { margin-bottom: 1em; font-size: 14px; line-height: 1.5em; }
 /*
 ul,ol { margin: 0 0 1.5em -24px; padding: 0 0 0 24px; }
 li ul, li ol { margin: 0; font-size: 16px; }

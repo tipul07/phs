@@ -166,7 +166,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function load_paginator_params()
     {

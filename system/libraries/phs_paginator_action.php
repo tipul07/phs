@@ -20,7 +20,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     abstract public function load_depencies();
 
     /**
-     * @return array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
+     * @return array|bool Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
      */
     abstract public function load_paginator_params();
 

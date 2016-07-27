@@ -55,7 +55,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
+     * @inheritdoc
      */
     public function load_paginator_params()
     {

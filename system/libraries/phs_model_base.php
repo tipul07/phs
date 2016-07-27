@@ -213,7 +213,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
      * @param array|false $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_edit_prepare_params( $existing_data, $params )
     {
@@ -263,7 +263,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
      * @param array $params Flow parameters
      *
-     * @return array|false Returns data array added in database (with changes, if required) or false if functionality failed.
+     * @return array|bool Returns data array added in database (with changes, if required) or false if functionality failed.
      * Saved information will not be rolled back.
      */
     protected function edit_after( $existing_data, $edit_arr, $params )
