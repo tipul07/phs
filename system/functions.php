@@ -262,8 +262,8 @@ function make_sure_is_filename( $str )
         return false;
 
     return str_replace(
-                array( '..', '/', '\\', '~', '<', '>', '|' ),
-                array( '.',  '',  '',   '',  '',  '',  '' ),
+                array( '..', '/', '\\', '~', '<', '>', '|', '`', '*', '&', ),
+                array( '.',  '',  '',   '',  '',  '',  '',  '',  '',  '',  ),
             $str );
 }
 
@@ -539,4 +539,20 @@ function exclude_params( $str, $params )
         $params_res = '?'.$params_res;
 
     return $script.$params_res.$anchor;
+}
+
+function format_filesize( $files )
+{
+    $files = intval( $files );
+
+    if( $files >= 1073741824 )
+        $files = round( $files / 1073741824 * 100 ) / 100 . 'GB';
+    elseif( $files >= 1048576 )
+        $files = round( $files / 1048576 * 100 ) / 100 . 'MB';
+    elseif( $files >= 1024 )
+        $files = round( $files / 1024 * 100 ) / 100 . 'KB';
+    else
+        $files = $files . 'Bytes';
+
+    return $files;
 }

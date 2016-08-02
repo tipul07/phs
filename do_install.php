@@ -4,6 +4,8 @@
 
     use \phs\PHS;
 
+    PHS::st_throw_errors( false );
+
     if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
     {
         $system_install_result = include_once( PHS_SYSTEM_DIR . 'install.php' );

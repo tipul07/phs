@@ -484,6 +484,12 @@ class PHS_Ldap extends PHS_Registry
         else
             $result = @copy( $params['file'], $ldap_details['ldap_full_file_path'] );
 
+        if( $result === false )
+        {
+            $this->set_error( self::ERR_SOURCE, self::_t( 'Error copying resource file to LDAP structure.' ) );
+            return false;
+        }
+
         if( !empty( $params['extra_meta'] ) and is_array( $params['extra_meta'] ) )
         {
             foreach( $params['extra_meta'] as $key => $val )
@@ -496,7 +502,10 @@ class PHS_Ldap extends PHS_Registry
         $ldap_details['ldap_meta_arr']['added'] = date( 'd-m-Y H:i:s' );
 
         if( ($ldap_details['ldap_meta_arr'] = $this->update_meta( $ldap_details )) === false )
+        {
+            @unlink( $ldap_details['ldap_full_file_path'] );
             return false;
+        }
 
         return $ldap_details;
     }
@@ -662,7 +671,7 @@ class PHS_Ldap extends PHS_Registry
     {
         $settings = $this->server_settings();
 
-        if( empty( $identifier ) )
+        if( empty( $identifier ) or !is_string( $identifier ) )
             return false;
 
         if( empty( $settings ) or !is_array( $settings ) )

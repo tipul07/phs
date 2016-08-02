@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.1.3' );
+define( 'PHS_VERSION', '1.0.1.4' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -58,6 +58,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_hooks.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_logger.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_notifications.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_utils.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_file_upload.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_paginator.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_paginator_action.php' );
 include_once( PHS_CORE_DIR.'phs.php' );
