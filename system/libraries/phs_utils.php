@@ -351,28 +351,33 @@ class PHS_utils extends PHS_Language
          or (empty( $params['virtual_file'] ) and (!@file_exists( $file ) or !@is_readable( $file ))) )
             return '';
 
-       $file_mime_type = '';
-       if( empty( $params['virtual_file'] )
-       and @function_exists( 'finfo_open' ) )
-       {
-           $flags = constant( 'FILEINFO_MIME' );
-           if( defined( 'FILEINFO_PRESERVE_ATIME' ) )
-               $flags |= constant( 'FILEINFO_PRESERVE_ATIME' );
+        $file_mime_type = '';
+        if( empty( $params['virtual_file'] )
+        and @function_exists( 'finfo_open' ) )
+        {
+            if( !($flags = constant( 'FILEINFO_MIME' )) )
+                $flags = 0;
 
-           if( !empty( $flags )
-           and ($finfo = @finfo_open( $flags )) )
-           {
-               $file_mime_type = @finfo_file( $finfo, $file );
-               @finfo_close( $finfo );
-           }
-       }
+            if( defined( 'FILEINFO_PRESERVE_ATIME' ) )
+                $flags |= constant( 'FILEINFO_PRESERVE_ATIME' );
 
-       if( empty( $params['virtual_file'] )
-       and empty( $file_mime_type ) )
-           $file_mime_type = trim( @exec( 'file -bi '.@escapeshellarg( $file ) ) );
+            if( !empty( $flags )
+            and ($finfo = @finfo_open( $flags )) )
+            {
+                $file_mime_type = @finfo_file( $finfo, $file );
+                @finfo_close( $finfo );
+            }
+        }
 
-       if( empty( $file_mime_type ) )
-       {
+        if( empty( $params['virtual_file'] )
+        and empty( $file_mime_type ) )
+        {
+            if( ($cmd_buf = @exec( 'file -bi ' . @escapeshellarg( $file ) )) )
+                $file_mime_type = trim( $cmd_buf );
+        }
+
+        if( empty( $file_mime_type ) )
+        {
             $file_ext = '';
             if( ($file_dots_arr = explode( '.', $file )) and is_array( $file_dots_arr ) and count( $file_dots_arr ) > 1 )
                 $file_ext = array_pop( $file_dots_arr );
@@ -381,7 +386,7 @@ class PHS_utils extends PHS_Language
             switch( $file_ext )
             {
                 case 'js' :
-                    $file_mime_type = 'application/x-javascript';
+                   $file_mime_type = 'application/x-javascript';
                 break;
 
                 case 'json' :
@@ -499,9 +504,9 @@ class PHS_utils extends PHS_Language
                     $file_mime_type = 'application/x-shockwave-flash';
                 break;
             }
-       }
+        }
 
-       return $file_mime_type;
+        return $file_mime_type;
     }
 
     public static function mypathinfo( $str )

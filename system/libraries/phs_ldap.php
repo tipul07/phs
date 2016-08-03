@@ -443,7 +443,6 @@ class PHS_Ldap extends PHS_Registry
         else
             $ldap_details = $params['ldap_data'];
 
-
         if( empty( $ldap_details ) or !is_array( $ldap_details )
          or !isset( $ldap_details['ldap_meta_arr']['file_extension'] ) )
         {

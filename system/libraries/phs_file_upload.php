@@ -751,6 +751,7 @@ class PHS_file_upload extends PHS_Registry
         $default_result['version'] = 1;
         $default_result['fullname'] = '';
         $default_result['filename'] = '';
+        $default_result['fileextension'] = '';
         $default_result['location'] = '';
         $default_result['error_no'] = self::ERR_OK;
         $default_result['error_msg'] = '';

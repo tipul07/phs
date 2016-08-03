@@ -9,11 +9,16 @@
     use \phs\libraries\PHS_Roles;
     use \phs\plugins\accounts\models\PHS_Model_Accounts;
 
+    $accounts_plugin_settings = array();
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
     if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
     {
         PHS_Notifications::add_error_notice( $this::_t( 'Couldn\'t load accounts model. Please contact support.' ) );
         $accounts_model = false;
+    } else
+    {
+        if( !($accounts_plugin_settings = $accounts_model->get_plugin_settings()) )
+            $accounts_plugin_settings = array();
     }
 
     if( !($user_logged_in = PHS::user_logged_in()) )
@@ -268,7 +273,7 @@
                                                                                                                              'a' => 'login'
                                                                                                                          ) ) ?>">
                         <div class="menu-pane-form-line form-group">
-                            <label for="mt_nick"><?php echo $this::_t( 'Username' ) ?></label>
+                            <label for="mt_nick"><?php echo (empty( $accounts_plugin_settings['no_nickname_only_email'] )?$this::_t( 'Username' ):$this::_t( 'Email' ))?></label>
                             <input type="text" id="mt_nick" class="form-control" name="nick" required />
                         </div>
                         <div class="menu-pane-form-line form-group">
