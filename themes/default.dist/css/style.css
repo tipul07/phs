@@ -223,6 +223,22 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #menu ul li ul li a { font-size: 14px !important; white-space: nowrap; line-height:36px;}
 #menu ul li ul li ul { position: absolute; top:10px; left:200px; display: none; z-index: 1000; }
 
+#messages-summary-container { display: none; }
+#messages-summary-popup { padding: 0; color: white; background-color: #222222; width: 350px; height: 350px; min-height: 50%; z-index: 1000; position: absolute; overflow-y: auto; overflow-x: hidden; }
+#messages-summary-popup-title { position:fixed; width: 350px; height:30px; padding: 5px; background-color: white; color: black; }
+#messages-summary-popup-title a { padding: 2px !important; text-decoration: underline !important; color: black !important; line-height: 22px !important; display: inline !important; }
+#messages-summary-popup-title a:hover { background-color: transparent !important; }
+#messages-summary-popup-content { margin-top:32px; padding: 10px; }
+#messages-summary-popup .pop_msg_new { font-weight: bold; }
+#messages-summary-popup .pop_msg { width: 100%; border-bottom: 1px solid gray; }
+#messages-summary-popup .pop_msg_title { font-size: 14px; }
+#messages-summary-popup .pop_msg_date { font-size: 12px; }
+#messages-summary-popup .pop_msg_actions { float:right; }
+#messages-summary-popup .pop_msg_actions a { padding: 2px; line-height: 22px; display: inline; }
+#messages-summary-popup .pop_msg_actions a .action-icons { color: white; }
+#messages-summary-popup .pop_msg_actions a:hover { background-color: transparent; }
+#messages-summary-new-count { float: right; height: 14px; line-height: 10px; font-size: 10px !important; background-color: red; border-radius: 20px; padding: 2px 5px; }
+
 #menu-left-pane, #menu-right-pane { display: none; color: white; background-color: #222222; width: 90%; max-width: 350px; height: 100%; min-height: 100%; z-index: 1000; position: fixed; overflow-y: auto; overflow-x: hidden; }
 #menu-right-pane { right: 0; }
 #menu-left-pane { left: 0; }

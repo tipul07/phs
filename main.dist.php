@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.1.5' );
+define( 'PHS_KNOWN_VERSION', '1.0.1.6' );
 
 @date_default_timezone_set( 'Europe/London' );
 
@@ -33,6 +33,37 @@ define( 'PHS_DB_PREFIX', '' );
 define( 'PHS_DB_PORT', '3306' );
 define( 'PHS_DB_TIMEZONE', date( 'P' ) );
 define( 'PHS_DB_CHARSET', 'UTF8' );
+
+// Controlling database library behaviour (if different than default one)
+// if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
+//     define( 'PHS_DB_SILENT_ERRORS', false );
+// if( !defined( 'PHS_DB_DIE_ON_ERROR' ) )
+//     define( 'PHS_DB_DIE_ON_ERROR', true );
+// if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
+//     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
+// if( !defined( 'PHS_DB_USE_PCONNECT' ) )
+//     define( 'PHS_DB_USE_PCONNECT', true );
+
+// Define other specific database settings (if required)
+// $mysql_settings = array();
+// $mysql_settings['driver'] = 'mysqli';
+// $mysql_settings['host'] = '';
+// $mysql_settings['user'] = '';
+// $mysql_settings['password'] = '';
+// $mysql_settings['database'] = '';
+// $mysql_settings['prefix'] = '';
+// $mysql_settings['port'] = '';
+// $mysql_settings['timezone'] = date( 'P' );
+// $mysql_settings['charset'] = 'UTF8';
+// $mysql_settings['driver_settings'] = array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' );
+//
+// define( 'PHS_NEW_CONNECTION', 'db_new_connection' );
+//
+// if( !PHS_db::add_db_connection( PHS_NEW_CONNECTION, $mysql_settings ) )
+// {
+//    PHS_db::st_throw_error();
+//    exit;
+// }
 
 // Default session settings
 define( 'PHS_DEFAULT_SESSION_DIR', PHS_PATH.'sess/' );

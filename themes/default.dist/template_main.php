@@ -28,6 +28,20 @@
 
     $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
 
+    $summary_mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
+    $summary_mail_hook_args['summary_container_id'] = 'messages-summary-container';
+
+    if( !($mail_hook_args = PHS::trigger_hooks( PHS_Hooks::H_MSG_GET_SUMMARY, $summary_mail_hook_args ))
+     or !is_array( $mail_hook_args ) )
+        $mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
+
+    elseif( !empty( $mail_hook_args['hook_errors'] ) and PHS::arr_has_error( $mail_hook_args['hook_errors'] ) )
+    {
+        $error_message = PHS::arr_get_error_message( $mail_hook_args['hook_errors'] );
+        $mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
+        $mail_hook_args['summary_buffer'] = $error_message;
+    }
+
 ?><!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>" lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>">
 <head>
@@ -135,13 +149,24 @@
         {
             $('#login_popup').slideToggle();
         }
+        function open_messages_summary_menu_pane()
+        {
+            close_menu_panes();
+            $('#messages-summary-container' ).fadeToggle();
+        }
+        function close_messages_summary_menu_pane()
+        {
+            $('#messages-summary-container' ).hide();
+        }
         function open_right_menu_pane()
         {
+            close_messages_summary_menu_pane();
             $('#menu-right-pane' ).fadeToggle();
             $('#menu-left-pane' ).hide();
         }
         function open_left_menu_pane()
         {
+            close_messages_summary_menu_pane();
             $('#menu-right-pane' ).hide();
             $('#menu-left-pane' ).fadeToggle();
         }
@@ -416,6 +441,16 @@
                 <div id="user_info">
                     <nav>
                         <ul>
+                            <?php
+                            if( !empty( $mail_hook_args['summary_buffer'] ) )
+                            {
+                            ?>
+                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count">12<?php echo $mail_hook_args['messages_new']?></span></a>
+                                <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']?></div>
+                            </li>
+                            <?php
+                            }
+                            ?>
                             <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_right_menu_pane()" onfocus="this.blur();" class="fa fa-user main-menu-icon"></a></li>
 
                             <?php

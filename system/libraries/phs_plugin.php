@@ -824,7 +824,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                     else
                         $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_name ) );
 
-                    PHS_Logger::logf( 'Error loading plugin model ['.$model_obj->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::logf( 'Error loading plugin model ['.$model_name.']', PHS_Logger::TYPE_MAINTENANCE );
                     PHS_Logger::logf( $this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
 
                     return false;
@@ -876,17 +876,16 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
          or empty( $db_details['type'] )
          or $db_details['type'] != self::INSTANCE_TYPE_PLUGIN )
         {
-            db_restore_errors_state( $plugins_model->get_db_connection() );
+            // Set it to false so models will also get uninstall signal
+            $db_details = false;
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin doesn\'t seem to be installed.' ) );
-
-            return false;
+            PHS_Logger::logf( 'Plugin doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         db_restore_errors_state( $plugins_model->get_db_connection() );
 
-        if( $plugins_model->active_status( $db_details['status'] ) )
+        if( $db_details
+        and $plugins_model->active_status( $db_details['status'] ) )
         {
             $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin is still active. Please inactivate it first.' ) );
             return false;
@@ -937,7 +936,8 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             }
         }
 
-        if( !$plugins_model->hard_delete( $db_details ) )
+        if( $db_details
+        and !$plugins_model->hard_delete( $db_details ) )
         {
             if( $plugins_model->has_error() )
                 $this->copy_error( $plugins_model );

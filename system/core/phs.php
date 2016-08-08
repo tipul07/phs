@@ -1261,7 +1261,7 @@ final class PHS extends PHS_Registry
             return null;
 
         if( empty( $hook_args ) or !is_array( $hook_args ) )
-            $hook_args = array();
+            $hook_args = PHS_Hooks::default_common_hook_args();
 
         foreach( self::$hooks[$hook_name] as $priority => $hooks_array )
         {

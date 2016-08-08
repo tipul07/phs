@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.1.5' );
+define( 'PHS_VERSION', '1.0.1.6' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -145,6 +145,19 @@ $mysql_settings['prefix'] = PHS_DB_PREFIX;
 $mysql_settings['port'] = PHS_DB_PORT;
 $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
 $mysql_settings['charset'] = PHS_DB_CHARSET;
+
+$mysql_settings['driver_settings'] = array();
+if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )
+    $mysql_settings['driver_settings'] = constant( 'PHS_DB_DRIVER_SETTINGS' );
+
+if( !empty( $mysql_settings['driver_settings'] ) )
+{
+    if( is_string( $mysql_settings['driver_settings'] ) )
+        $mysql_settings['driver_settings'] = @json_decode( $mysql_settings['driver_settings'], true );
+}
+
+if( !is_array( $mysql_settings['driver_settings'] ) )
+    $mysql_settings['driver_settings'] = array();
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 

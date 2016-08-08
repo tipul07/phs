@@ -27,6 +27,9 @@ class PHS_Hooks extends PHS_Registry
          // Notifications hooks
          H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
+         // Messages hooks
+         H_MSG_GET_SUMMARY = 'phs_messages_summary',
+
          // Captcha hooks
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
@@ -56,52 +59,75 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
          H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
 
-    public static function default_model_validate_data_fields_hook_args()
+    public static function default_common_hook_args()
     {
         return array(
+            'hook_errors' => self::default_error_array(),
+        );
+    }
+
+    public static function default_model_validate_data_fields_hook_args()
+    {
+        return self::validate_array_recursive( array(
             'flow_params' => false,
             'table_fields' => array(),
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_model_empty_data_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'data_arr' => array(),
             'flow_params' => false,
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_user_registration_roles_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'roles_arr' => array(),
             'account_data' => false,
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_user_db_details_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'force_check' => false,
             'user_db_data' => false,
             'session_db_data' => false,
             // How many seconds since session expired (0 - session didn't expired)
             'session_expired_secs' => 0,
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_buffer_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'concatenate_buffer' => 'buffer',
             'buffer' => '',
-        );
+        ), self::default_common_hook_args() );
+    }
+
+    public static function default_messages_summary_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'messages_new' => 0,
+            'messages_count' => 0,
+            'messages_list' => array(),
+            'list_limit' => 5,
+            'summary_container_id' => '',
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+            'summary_buffer' => '',
+        ), self::default_common_hook_args() );
     }
 
     public static function default_notifications_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'warnings' => array(),
             'errors' => array(),
             'success' => array(),
@@ -111,12 +137,12 @@ class PHS_Hooks extends PHS_Registry
             ), // default template
             'display_channels' => array( 'warnings', 'errors', 'success' ),
             'notifications_buffer' => '',
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_captcha_display_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'template' => array(
                 'file' => '',
                 'extra_paths' => array(),
@@ -127,14 +153,13 @@ class PHS_Hooks extends PHS_Registry
             'default_height' => 50,
             'extra_img_style' => '',
             'extra_img_attrs' => '',
-            'hook_errors' => false,
             'captcha_buffer' => '',
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_init_email_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'template' => array(
                 'file' => '',
                 'extra_paths' => array(),
@@ -164,25 +189,22 @@ class PHS_Hooks extends PHS_Registry
             'email_text_body' => false,
             'full_body' => false,
 
-            'hook_errors' => false,
             'send_result' => false,
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_captcha_check_hook_args()
     {
-        return array(
+        return self::validate_array_recursive( array(
             'check_code' => '',
             'check_valid' => false,
-            'hook_errors' => false,
-        );
+        ), self::default_common_hook_args() );
     }
 
     public static function default_captcha_regeneration_hook_args()
     {
-        return array(
-            'hook_errors' => false,
-        );
+        return self::validate_array_recursive( array(
+        ), self::default_common_hook_args() );
     }
 
     public static function trigger_email( $hook_args )

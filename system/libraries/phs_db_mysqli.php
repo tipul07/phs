@@ -8,11 +8,10 @@ namespace phs\libraries;
 //! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
 define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
 
-//! Create rules to extract information from strings
 /**
  *  MySQL class parser for PHS suite...
  */
-class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
+class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
 {
     //! Cannot connect to server.
     const ERR_CONNECT = 1;
@@ -63,7 +62,6 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $this->my_settings = false;
         $this->my_def_connection = false;
         $this->last_connection_name = false;
-        $this->settings( $mysql_settings );
 
         // Default behaviours
         $this->display_errors = true;
@@ -78,6 +76,8 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
 
         $this->last_inserted_id = false;
         $this->affected_rows = 0;
+
+        $this->settings( $mysql_settings );
     }
 
     function query_id()
@@ -208,6 +208,11 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         $this->my_settings[$connection_name]['user'] = $mysql_settings['user'];
         $this->my_settings[$connection_name]['password'] = $mysql_settings['password'];
 
+        if( !empty( $mysql_settings['driver_settings'] ) and is_array( $mysql_settings['driver_settings'] ) )
+            $this->my_settings[$connection_name]['driver_settings'] = $mysql_settings['driver_settings'];
+        if( empty( $this->my_settings[$connection_name]['driver_settings'] ) )
+            $this->my_settings[$connection_name]['driver_settings'] = array();
+
         if( !empty( $mysql_settings['default'] ) )
             $this->my_def_connection = $connection_name;
 
@@ -318,6 +323,66 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         if( !empty( $conn_settings['timezone'] ) )
         {
             @mysqli_query( $this->connection_id[$connection_name], 'SET time_zone = \''.@mysqli_real_escape_string( $this->connection_id[$connection_name], $conn_settings['timezone'] ).'\'' );
+        }
+
+        if( !empty( $conn_settings['driver_settings'] ) and is_array( $conn_settings['driver_settings'] ) )
+        {
+            $conn_settings['driver_settings'] = self::validate_array_recursive( $conn_settings['driver_settings'], self::get_default_driver_settings() );
+
+            $sql_mode_add_arr = array();
+            $sql_mode_remove_arr = array();
+            if( !empty( $conn_settings['driver_settings']['sql_mode'] ) and is_string( $conn_settings['driver_settings']['sql_mode'] )
+            and ($sql_mode_arr = explode( ',', $conn_settings['driver_settings']['sql_mode'] )) )
+            {
+                foreach( $sql_mode_arr as $mysql_mode_flag )
+                {
+                    $mysql_mode_flag = trim( $mysql_mode_flag );
+                    if( substr( $mysql_mode_flag, 0, 1 ) == '-' )
+                        $sql_mode_remove_arr[substr( $mysql_mode_flag, 1 )] = true;
+
+                    else
+                    {
+                        if( substr( $mysql_mode_flag, 0, 1 ) == '+' )
+                            $mysql_mode_flag = substr( $mysql_mode_flag, 1 );
+
+                        $sql_mode_add_arr[$mysql_mode_flag] = true;
+                    }
+                }
+
+                $new_sql_mode_arr = array();
+                if( (!empty( $sql_mode_remove_arr ) or !empty( $sql_mode_add_arr ))
+                and ($qid = @mysqli_query( $this->connection_id[$connection_name], 'SELECT @@session.sql_mode AS session_sql_mode' ))
+                and ($session_data = @mysqli_fetch_assoc( $qid ))
+                and isset( $session_data['session_sql_mode'] ) )
+                {
+                    if( !empty( $session_data['session_sql_mode'] )
+                    and ($session_sql_mode_arr = explode( ',', $session_data['session_sql_mode'] )) )
+                    {
+                        foreach( $session_sql_mode_arr as $mysql_mode_flag )
+                        {
+                            $mysql_mode_flag = trim( $mysql_mode_flag );
+                            if( empty( $mysql_mode_flag )
+                             or !empty( $sql_mode_remove_arr[$mysql_mode_flag] ) )
+                                continue;
+
+                            $new_sql_mode_arr[] = $mysql_mode_flag;
+                        }
+                    }
+
+                    if( !empty( $sql_mode_add_arr ) )
+                    {
+                        foreach( $sql_mode_add_arr as $mysql_mode_flag => $junk )
+                        {
+                            $new_sql_mode_arr[] = $mysql_mode_flag;
+                        }
+                    }
+                }
+
+                if( !empty( $new_sql_mode_arr ) )
+                {
+                    @mysqli_query( $this->connection_id[$connection_name], 'SET @@session.sql_mode = \''.@mysqli_real_escape_string( $this->connection_id[$connection_name], implode( ',', $new_sql_mode_arr ) ).'\'' );
+                }
+            }
         }
 
         return true;
@@ -689,6 +754,13 @@ class PHS_db_mysqli extends PHS_Language implements PHS_db_interface
         }
 
         return $mysql_str;
+    }
+
+    public static function get_default_driver_settings()
+    {
+        return array(
+            'sql_mode' => '',
+        );
     }
 
     static function stored_query( $qname, $qformat = null )

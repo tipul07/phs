@@ -2052,10 +2052,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         {
             db_restore_errors_state( $plugins_model->get_db_connection() );
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin doesn\'t seem to be installed.' ) );
+            PHS_Logger::logf( 'Model doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
-            return false;
+            return true;
         }
 
         db_restore_errors_state( $plugins_model->get_db_connection() );

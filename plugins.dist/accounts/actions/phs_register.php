@@ -96,7 +96,7 @@ class PHS_Action_Register extends PHS_Action
                 and empty( $hook_result['check_valid'] ) )
             {
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
-                    PHS_Notifications::add_error_notice( PHS_Error::arr_get_error_message( $hook_result['hook_errors'] ) );
+                    PHS_Notifications::add_error_notice( self::arr_get_error_message( $hook_result['hook_errors'] ) );
                 else
                     PHS_Notifications::add_error_notice( $this->_pt( 'Invalid validation code.' ) );
             }

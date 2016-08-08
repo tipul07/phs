@@ -81,22 +81,33 @@ define( 'PHS_SESSION_AUTOSTART', false );
 
 // Define domain specific languages (if required)
 
+// Controlling database library behaviour (if different than default one)
+// if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
+//     define( 'PHS_DB_SILENT_ERRORS', false );
+// if( !defined( 'PHS_DB_DIE_ON_ERROR' ) )
+//     define( 'PHS_DB_DIE_ON_ERROR', true );
+// if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
+//     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
+// if( !defined( 'PHS_DB_USE_PCONNECT' ) )
+//     define( 'PHS_DB_USE_PCONNECT', true );
+
 // Define domain specific database settings (if required)
-//$mysql_settings = array();
-//$mysql_settings['driver'] = 'mysqli';
-//$mysql_settings['host'] = '';
-//$mysql_settings['user'] = '';
-//$mysql_settings['password'] = '';
-//$mysql_settings['database'] = '';
-//$mysql_settings['prefix'] = '';
-//$mysql_settings['port'] = '';
-//$mysql_settings['timezone'] = date( 'P' );
-//$mysql_settings['charset'] = 'UTF8';
+// $mysql_settings = array();
+// $mysql_settings['driver'] = 'mysqli';
+// $mysql_settings['host'] = '';
+// $mysql_settings['user'] = '';
+// $mysql_settings['password'] = '';
+// $mysql_settings['database'] = '';
+// $mysql_settings['prefix'] = '';
+// $mysql_settings['port'] = '';
+// $mysql_settings['timezone'] = date( 'P' );
+// $mysql_settings['charset'] = 'UTF8';
+// $mysql_settings['driver_settings'] = array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' );
 //
-//define( 'PHS_DB_CONNECTION', 'db_domain_default' );
+// define( 'PHS_DB_CONNECTION', 'db_domain_default' );
 //
-//if( !PHS_db::add_db_connection( PHS_DB_DOMAIN_CONNECTION, $mysql_settings ) )
-//{
+// if( !PHS_db::add_db_connection( PHS_DB_DOMAIN_CONNECTION, $mysql_settings ) )
+// {
 //    PHS_db::st_throw_error();
 //    exit;
-//}
+// }
