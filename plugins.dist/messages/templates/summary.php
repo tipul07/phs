@@ -4,6 +4,7 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Roles;
+    use \phs\PHS_ajax;
 
     /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
     /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
@@ -22,10 +23,13 @@
 
     $current_user = PHS::current_user();
 
+    $can_reply_messages = false;
     $compose_url = false;
     $compose_route_arr = array( 'p' => 'messages', 'a' => 'compose' );
     if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_WRITE_MESSAGE ) )
         $compose_url = PHS::url( $compose_route_arr );
+    if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_REPLY_MESSAGE ) )
+        $can_reply_messages = true;
 
 ?><script type="text/javascript">
 function phs_close_messages_summary_popup()
@@ -34,9 +38,16 @@ function phs_close_messages_summary_popup()
 }
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">
-    <a href="javascript:void(0)">Inbox (<?php echo $messages_new?>/<?php echo $messages_count?>)</a>
-    |
-    <a href="javascript:void(0)">Compose</a>
+    <a href="javascript:void(0)">Inbox</a> (<?php echo $messages_new?>/<?php echo $messages_count?>)
+    <?php
+    if( !empty( $compose_url ) )
+    {
+        ?> |
+        <a href="<?php echo $compose_url?>">Compose</a>
+        <?php
+    }
+    ?>
+
     <div style="float:right; margin: 0 15px 0 0; cursor: pointer;" onclick="phs_close_messages_summary_popup()"><i class="fa fa-times-circle"></i></div>
 </div>
 <div id="messages-summary-popup-content">
@@ -46,29 +57,27 @@ function phs_close_messages_summary_popup()
     {
         foreach( $messages_list as $message_id => $full_message_arr )
         {
+            $message_link = PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $full_message_arr['message_user']['id'] ) );
+
             ?><div class="pop_msg <?php echo ($messages_model->is_new( $full_message_arr )?'pop_msg_new':'')?>">
-            <div class="pop_msg_title"><?php echo $full_message_arr['title']?></div>
+            <div class="pop_msg_title"><a href="<?php echo $message_link?>"><?php echo $full_message_arr['message']['subject']?></a></div>
             <div class="pop_msg_date">
-                2016-03-04 12:34
+                <?php echo date( 'Y-M-d H:i', parse_db_date( $full_message_arr['message_user']['cdate'] ) )?>
                 <div class="pop_msg_actions">
-                <a href="javascript:void(0)"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a>
-                <a href="javascript:void(0)"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
+                <?php
+                if( $can_reply_messages
+                and $messages_model->can_reply( $full_message_arr, array( 'account_data' => $current_user ) ) )
+                {
+                    ?> <a href="<?php echo PHS::url( $compose_route_arr, array( 'reply_to' => $full_message_arr['message']['id'] ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a> <?php
+                }
+                ?>
+                <a href="<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'pag_act' => 'do_delete', 'pag_act_params' => $full_message_arr['message']['id'] ) )?>"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
                 </div>
             </div>
             <?php
         }
     }
 ?>
-<div class="pop_msg">
-    <div class="pop_msg_title"><strong>Message title...  fsdsd fsd fsdf asdg sdfgdfsa gsdfgsdf g dfg sdfgsdfgsdfg sdfgs dfgsdfg</strong></div>
-    <div class="pop_msg_date">
-        2016-03-04 12:34
-        <div class="pop_msg_actions">
-        <a href="javascript:void(0)"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a>
-        <a href="javascript:void(0)"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
-        </div>
-    </div>
-</div>
 
 </div>
 </div>

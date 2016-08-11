@@ -36,6 +36,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Roles List' ) );
+
         if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );

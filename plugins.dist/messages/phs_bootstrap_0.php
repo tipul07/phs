@@ -51,20 +51,6 @@ and $messages_plugin->plugin_active() )
 
     PHS::register_hook(
     // $hook_name
-        PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU,
-        // $hook_callback = null
-        array( $messages_plugin, 'trigger_before_left_menu_admin' ),
-        // $hook_extra_args = null
-        PHS_Hooks::default_buffer_hook_args(),
-        array(
-            'chained_hook' => true,
-            'stop_chain' => false,
-            'priority' => 10,
-        )
-    );
-
-    PHS::register_hook(
-    // $hook_name
         PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU,
         // $hook_callback = null
         array( $messages_plugin, 'trigger_after_main_menu_admin' ),

@@ -27,6 +27,8 @@ class PHS_Action_User_edit extends PHS_Action
      */
     public function execute()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Edit User' ) );
+
         if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );

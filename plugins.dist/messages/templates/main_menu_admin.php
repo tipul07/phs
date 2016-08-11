@@ -24,7 +24,6 @@ use \phs\libraries\PHS_Roles;
     {
         ?><li><a href="<?php echo PHS::url( array(
                                                 'p' => 'messages',
-                                                'c' => 'admin',
                                                 'a' => 'inbox'
                                             ) ) ?>" onfocus="this.blur();"><?php echo $this->_pt( 'Inbox' )?></a></li><?php
     }
@@ -32,7 +31,6 @@ use \phs\libraries\PHS_Roles;
     {
         ?><li><a href="<?php echo PHS::url( array(
                                                 'p' => 'messages',
-                                                'c' => 'admin',
                                                 'a' => 'compose'
                                             ) ) ?>" onfocus="this.blur();"><?php echo $this->_pt( 'Compose' )?></a></li><?php
     }

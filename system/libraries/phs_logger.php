@@ -3,6 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 
 //! Class which handles all logging in platform
 class PHS_Logger extends PHS_Registry
@@ -129,6 +130,14 @@ class PHS_Logger extends PHS_Registry
 
             if( empty( $args_arr ) )
                 $args_arr = array();
+        }
+
+        if( $channel == self::TYPE_INFO )
+        {
+            if( ($current_scope = PHS_Scope::current_scope()) == PHS_Scope::SCOPE_BACKGROUND )
+                $channel = self::TYPE_BACKGROUND;
+            elseif( $current_scope == PHS_Scope::SCOPE_AJAX )
+                $channel = self::TYPE_AJAX;
         }
 
         if( !empty( $args_arr ) )

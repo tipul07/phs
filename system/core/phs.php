@@ -430,7 +430,7 @@ final class PHS extends PHS_Registry
      * {plugin}-{action} Controller will be 'index'
      *
      * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
-     * @return bool Returns true on success or false on error
+     * @return bool|array Returns true on success or false on error
      */
     public static function parse_route( $route = false )
     {
@@ -1262,6 +1262,8 @@ final class PHS extends PHS_Registry
 
         if( empty( $hook_args ) or !is_array( $hook_args ) )
             $hook_args = PHS_Hooks::default_common_hook_args();
+        else
+            $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_common_hook_args() );
 
         foreach( self::$hooks[$hook_name] as $priority => $hooks_array )
         {

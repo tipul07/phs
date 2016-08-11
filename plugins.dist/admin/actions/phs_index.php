@@ -10,6 +10,8 @@ class PHS_Action_Index extends PHS_Action
 {
     public function execute()
     {
+        PHS::page_settings( 'page_title', $this->_pt( 'Admin Area' ) );
+
         if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );

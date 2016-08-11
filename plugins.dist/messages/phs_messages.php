@@ -196,13 +196,13 @@ class PHS_Plugin_Messages extends PHS_Plugin
             'description' => 'Allow user to have autocomplete feature when writing messages',
         );
 
-        $return_arr[self::ROLE_MESSAGE_ADMIN] = $return_arr[self::ROLE_MESSAGE_READER];
+        $return_arr[self::ROLE_MESSAGE_ADMIN] = $return_arr[self::ROLE_MESSAGE_ALL];
 
         $return_arr[self::ROLE_MESSAGE_ADMIN]['name'] = 'All messages functionalities';
         $return_arr[self::ROLE_MESSAGE_ADMIN]['description'] = 'Defines role units available for admin accounts';
 
         $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_ALL_DESTINATIONS] = array(
-            'name' => 'All destinations',
+            'name' => 'Write to all destinations',
             'description' => 'Allow user to compose to all destination types',
         );
         $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SEND_ANONYMOUS] = array(
@@ -253,12 +253,15 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_messages_summary_hook_args() );
 
-        $hook_args['messages_new'] = 0;
-        $hook_args['messages_count'] = 0;
+        if( !($hook_args['messages_new'] = $messages_model->get_new_messages_count( $current_user )) )
+            $hook_args['messages_new'] = 0;
+        if( !($hook_args['messages_count'] = $messages_model->get_total_messages_count( $current_user )) )
+            $hook_args['messages_count'] = 0;
+
         $hook_args['list_limit'] = $settings_arr['summary_limit'];
         $hook_args['template'] = $summary_template;
 
-        if( ($hook_args['messages_list'] = $messages_model->get_summary_listing( $hook_args, PHS::current_user() )) === false )
+        if( ($hook_args['messages_list'] = $messages_model->get_summary_listing( $hook_args, $current_user )) === false )
         {
             if( $messages_model->has_error() )
                 $this->copy_error( $messages_model, self::ERR_TEMPLATE );
@@ -315,17 +318,6 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $data = array();
 
         $hook_args['buffer'] = $this->quick_render_template_for_buffer( 'main_menu_member', $data );
-
-        return $hook_args;
-    }
-
-    public function trigger_before_left_menu_admin( $hook_args = false )
-    {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
-
-        $data = array();
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer( 'left_menu_admin', $data );
 
         return $hook_args;
     }

@@ -235,5 +235,62 @@ class PHS_Registry extends PHS_Language
 
         return @array_keys( $return_arr );
     }
+
+    public static function extract_strings_from_comma_separated( $str, $params = false )
+    {
+        if( !is_string( $str ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['trim_parts'] ) )
+            $params['trim_parts'] = true;
+        if( !isset( $params['dump_empty_parts'] ) )
+            $params['dump_empty_parts'] = true;
+
+        $str_arr = explode( ',', $str );
+        $return_arr = array();
+        foreach( $str_arr as $str_part )
+        {
+            if( !empty( $params['trim_parts'] ) )
+                $str_part = trim( $str_part );
+
+            if( !empty( $params['dump_empty_parts'] )
+            and $str_part == '' )
+                continue;
+
+            $return_arr[] = $str_part;
+        }
+
+        return $return_arr;
+    }
+
+    public static function extract_integers_from_comma_separated( $str, $params = false )
+    {
+        if( !is_string( $str ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['dump_empty_parts'] ) )
+            $params['dump_empty_parts'] = true;
+
+        $str_arr = explode( ',', $str );
+        $return_arr = array();
+        foreach( $str_arr as $int_part )
+        {
+            $int_part = intval( trim( $int_part ) );
+
+            if( !empty( $params['dump_empty_parts'] )
+            and empty( $int_part ) )
+                continue;
+
+            $return_arr[] = $int_part;
+        }
+
+        return $return_arr;
+    }
 }
 

@@ -37,6 +37,8 @@ class PHS_Hooks extends PHS_Registry
          H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
          // triggered to get list of roles to assign to new users
          H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
+         // triggered to manage user fields at registration
+         H_USERS_REGISTRATION = 'phs_users_registration',
 
          // Layout triggers
          H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',

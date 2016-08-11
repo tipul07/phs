@@ -121,9 +121,9 @@ table.tgrid tr:nth-child(even){ background-color:#fff; }
 
 /* Page Layout */
 #container { min-height:100%; max-width: 100%; position:relative; }
-#header { width: 100%; background: url("../images/header_bg.png") top left repeat-x; height: 172px; }
+#header { width: 100%; background: url("../images/header_bg.png") top left repeat-x; height: 172px; min-width: 750px; }
 #content { padding: 0 0 70px 0; }
-#footer { width:100%; height: 60px; position:absolute; bottom:0; left:0;  margin: 0 auto 10px; background: url("../images/footer_bg.png") top left repeat-x;}
+#footer { width:100%; min-width: 750px; height: 60px; position:absolute; bottom:0; left:0;  margin: 0 auto 10px; background: url("../images/footer_bg.png") top left repeat-x; }
 
 #header_content, #main_content, #footer_content { max-width: 1440px; margin: 0 auto; }
 #footer_content { padding-top: 10px; }
@@ -224,14 +224,16 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #menu ul li ul li ul { position: absolute; top:10px; left:200px; display: none; z-index: 1000; }
 
 #messages-summary-container { display: none; }
-#messages-summary-popup { padding: 0; color: white; background-color: #222222; width: 350px; height: 350px; min-height: 50%; z-index: 1000; position: absolute; overflow-y: auto; overflow-x: hidden; }
-#messages-summary-popup-title { position:fixed; width: 350px; height:30px; padding: 5px; background-color: white; color: black; }
-#messages-summary-popup-title a { padding: 2px !important; text-decoration: underline !important; color: black !important; line-height: 22px !important; display: inline !important; }
-#messages-summary-popup-title a:hover { background-color: transparent !important; }
-#messages-summary-popup-content { margin-top:32px; padding: 10px; }
-#messages-summary-popup .pop_msg_new { font-weight: bold; }
+#messages-summary-popup { padding: 0; right: 0; color: white; background-color: #222222; width: 350px; height: 350px; min-height: 50%; z-index: 1000; position: absolute; overflow-y: auto; overflow-x: hidden; }
+#messages-summary-popup-title { position:relative; width: 350px; height:30px; padding: 5px; background-color: white; color: black; }
+#messages-summary-popup-title a { padding: 2px !important; text-decoration: none !important; color: black !important; line-height: 22px !important; display: inline !important; }
+#messages-summary-popup-title a:hover { background-color: transparent !important; text-decoration: underline !important; }
+#messages-summary-popup-content { padding: 10px; }
+#messages-summary-popup .pop_msg_new { font-weight: bold !important; }
 #messages-summary-popup .pop_msg { width: 100%; border-bottom: 1px solid gray; }
 #messages-summary-popup .pop_msg_title { font-size: 14px; }
+#messages-summary-popup .pop_msg_title a { padding: 2px; line-height: 22px; display: inline; }
+#messages-summary-popup .pop_msg_title a:hover { background-color: transparent; text-decoration: underline !important; }
 #messages-summary-popup .pop_msg_date { font-size: 12px; }
 #messages-summary-popup .pop_msg_actions { float:right; }
 #messages-summary-popup .pop_msg_actions a { padding: 2px; line-height: 22px; display: inline; }

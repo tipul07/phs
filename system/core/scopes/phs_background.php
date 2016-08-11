@@ -21,7 +21,7 @@ class PHS_Scope_Background extends PHS_Scope
 
         if( !empty( $action_result['redirect_to_url'] ) )
         {
-            PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...', PHS_Logger::TYPE_DEBUG );
+            PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...', PHS_Logger::TYPE_BACKGROUND );
             exit;
         }
 

@@ -100,6 +100,19 @@
             $("*[title]").tooltip();
         }
 
+        function ignore_hidden_required( obj )
+        {
+            var form_obj = $(obj).parents('form:first');
+
+            if( form_obj && form_obj[0]
+             && typeof document.createElement( 'input' ).checkValidity == 'function'
+             && form_obj[0].checkValidity() ) {
+                return;
+            }
+
+            form_obj.find( 'input,textarea,select' ).filter('[required]:hidden').removeAttr('required');
+        }
+
         $(document).ready(function(){
 
             phs_refresh_input_skins();
@@ -113,6 +126,8 @@
             });
 
             $(document).on( 'click', '.submit-protection', function( event ){
+
+                ignore_hidden_required( this );
 
                 var form_obj = $(this).parents('form:first');
 
@@ -445,24 +460,13 @@
                             if( !empty( $mail_hook_args['summary_buffer'] ) )
                             {
                             ?>
-                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count">12<?php echo $mail_hook_args['messages_new']?></span></a>
+                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']?></span></a>
                                 <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']?></div>
                             </li>
                             <?php
                             }
                             ?>
                             <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_right_menu_pane()" onfocus="this.blur();" class="fa fa-user main-menu-icon"></a></li>
-
-                            <?php
-                            if( false )
-                            {
-                                ?>
-                                <li class="main-menu-placeholder" id="cart-menu-item">
-                                    <a href="{PAGE_LINKS.cart_page}" class="fa fa-shopping-cart main-menu-icon"><span id="main_cart_count">0</span></a>
-                                </li>
-                                <?php
-                            }
-                            ?>
 
                         </ul>
                     </nav>

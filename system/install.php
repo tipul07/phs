@@ -36,7 +36,7 @@
         return PHS::st_get_error();
     }
 
-    $priority_plugins = array( 'emails', 'accounts', 'notifications', 'captcha', 'admin' );
+    $priority_plugins = array( 'emails', 'accounts', 'messages', 'notifications', 'captcha', 'admin' );
     $installing_plugins_arr = array();
     foreach( $priority_plugins as $plugin_name )
     {

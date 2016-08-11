@@ -1025,6 +1025,10 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
+        if( ($hook_user_arr = PHS::trigger_hooks( PHS_Hooks::H_USERS_REGISTRATION, array( 'account_data' => $insert_arr ) ))
+        and is_array( $hook_user_arr ) and !empty( $hook_user_arr['account_data'] ) )
+            $insert_arr = $hook_user_arr['account_data'];
+
         return $insert_arr;
     }
 

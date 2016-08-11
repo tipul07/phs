@@ -105,8 +105,10 @@ class PHS_bg_jobs extends PHS_Registry
             return false;
         }
 
+        $current_user = PHS::user_logged_in();
+
         $insert_arr = array();
-        $insert_arr['uid'] = 0;
+        $insert_arr['uid'] = (!empty( $current_user )?$current_user['id']:0);
         $insert_arr['pid'] = 0;
         $insert_arr['route'] = $cleaned_route;
         $insert_arr['params'] = @json_encode( $params );
