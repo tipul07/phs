@@ -91,11 +91,31 @@ class PHS_Plugin_Messages extends PHS_Plugin
         and ($users_flow_params = $accounts_model->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
         and ($users_table_name = $accounts_model->get_flow_table_name( $users_flow_params )) )
         {
-            db_query( 'UPDATE `'.$ud_table_name.'`, `'.$users_table_name.'` '.
-                      ' SET `'.$ud_table_name.'`.`'.self::UD_COLUMN_MSG_HANDLER.'` = `'.$users_table_name.'`.nick '.
-                      ' WHERE `'.$ud_table_name.'`.id = `'.$users_table_name.'`.details_id '.
-                      ' AND `'.$users_table_name.'`.status != \''.$accounts_model::STATUS_DELETED.'\''.
-                      ' AND (`'.$ud_table_name.'`.`'.self::UD_COLUMN_MSG_HANDLER.'` = \'\' OR `'.$ud_table_name.'`.`'.self::UD_COLUMN_MSG_HANDLER.'` = NULL)', $ad_flow_params['db_connection'] );
+            $list_arr = $users_flow_params;
+            $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
+
+            if( ($users_list = $accounts_model->get_list( $list_arr ))
+            and is_array( $users_list ) )
+            {
+                foreach( $users_list as $user_id => $user_arr )
+                {
+                    if( !($user_details = $accounts_model->get_account_details( $user_arr ))
+                     or empty( $user_details[self::UD_COLUMN_MSG_HANDLER] ) )
+                    {
+                        $details_arr = array();
+                        $details_arr[self::UD_COLUMN_MSG_HANDLER] = $user_arr['nick'];
+
+                        $accounts_model->update_user_details( $user_arr, $details_arr );
+                    }
+
+                    if( $accounts_model->acc_is_admin( $user_arr ) )
+                        $roles_arr = array( self::ROLE_MESSAGE_ADMIN );
+                    else
+                        $roles_arr = array( self::ROLE_MESSAGE_WRITER );
+
+                    PHS_Roles::link_roles_to_user( $user_arr, $roles_arr, array( 'append_roles' => true ) );
+                }
+            }
         }
 
         return true;

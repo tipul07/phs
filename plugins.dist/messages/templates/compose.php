@@ -4,8 +4,6 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Roles;
 
-    if( !($current_user = $this->context_var( 'current_user' )) )
-        $current_user = array( 'nick' => $this->_pt( 'N/A' ) );
     if( !($dest_types = $this->context_var( 'dest_types' )) )
         $dest_types = array();
     if( !($user_levels = $this->context_var( 'user_levels' )) )
@@ -30,11 +28,21 @@
 
     if( !($reply_message = $this->context_var( 'reply_message' )) )
         $reply_message = false;
+    if( !($reply_to = $this->context_var( 'reply_to' )) )
+        $reply_to = 0;
+    if( !($reply_to_muid = $this->context_var( 'reply_to_muid' )) )
+        $reply_to_muid = 0;
+
+    $url_args_arr = array();
+    if( !empty( $reply_to ) )
+        $url_args_arr['reply_to'] = $reply_to;
+    if( !empty( $reply_to_muid ) )
+        $url_args_arr['reply_to_muid'] = $reply_to_muid;
 
     $current_user = PHS::current_user();
 
 ?>
-<form id="compose_message_form" name="compose_message_form" action="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'compose' ) )?>" method="post">
+<form id="compose_message_form" name="compose_message_form" action="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), $url_args_arr )?>" method="post">
     <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container" style="min-width: 800px;max-width:850px;">
@@ -139,8 +147,18 @@
             <fieldset class="form-group">
                 <label for="dest_type_handlers"><?php echo $this->_pt( 'Destination' )?></label>
                 <div class="lineform_line">
-                    <input type="text" id="dest_type_handlers" name="dest_type_handlers" class="form-control" value="<?php echo form_str( $this->context_var( 'dest_type_handlers' ) )?>" required="required"
-                           placeholder="<?php echo $this->_pt( 'Comma separated messaging handlers' )?>" style="width: 560px;" />
+                    <?php
+                    if( !empty( $reply_message ) )
+                    {
+                        echo $this->context_var( 'dest_type_handlers' );
+                    } else
+                    {
+                        ?>
+                        <input type="text" id="dest_type_handlers" name="dest_type_handlers" class="form-control" value="<?php echo form_str( $this->context_var( 'dest_type_handlers' ) )?>" required="required"
+                               placeholder="<?php echo $this->_pt( 'Comma separated messaging handlers' )?>" style="width: 560px;" />
+                        <?php
+                    }
+                    ?>
                 </div>
             </fieldset>
             <?php
@@ -150,8 +168,18 @@
         <fieldset class="form-group">
             <label for="subject"><?php echo $this->_pt( 'Subject' )?></label>
             <div class="lineform_line">
-                <input type="text" id="subject" name="subject" class="form-control" value="<?php echo form_str( $this->context_var( 'subject' ) )?>" required="required"
-                       placeholder="<?php echo $this->_pt( 'Message subject...' )?>" style="width: 560px;" />
+                <?php
+                if( !empty( $reply_message ) )
+                {
+                    echo $this->context_var( 'subject' );
+                } else
+                {
+                    ?>
+                    <input type="text" id="subject" name="subject" class="form-control" value="<?php echo form_str( $this->context_var( 'subject' ) )?>" required="required"
+                           placeholder="<?php echo $this->_pt( 'Message subject...' )?>" style="width: 560px;" />
+                    <?php
+                }
+                ?>
             </div>
         </fieldset>
 

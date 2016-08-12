@@ -38,7 +38,7 @@ function phs_close_messages_summary_popup()
 }
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">
-    <a href="javascript:void(0)">Inbox</a> (<?php echo $messages_new?>/<?php echo $messages_count?>)
+    <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>">Inbox</a> (<?php echo $messages_new?>/<?php echo $messages_count?>)
     <?php
     if( !empty( $compose_url ) )
     {
@@ -68,11 +68,12 @@ function phs_close_messages_summary_popup()
                 if( $can_reply_messages
                 and $messages_model->can_reply( $full_message_arr, array( 'account_data' => $current_user ) ) )
                 {
-                    ?> <a href="<?php echo PHS::url( $compose_route_arr, array( 'reply_to' => $full_message_arr['message']['id'] ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a> <?php
+                    ?> <a href="<?php echo PHS::url( $compose_route_arr, array( 'reply_to_muid' => $full_message_arr['message_user']['id'] ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a> <?php
                 }
                 ?>
-                <a href="<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'pag_act' => 'do_delete', 'pag_act_params' => $full_message_arr['message']['id'] ) )?>"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
+                <a href="<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'pag_act' => 'do_delete', 'pag_act_params' => $full_message_arr['message_user']['id'] ) )?>"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
                 </div>
+            </div>
             </div>
             <?php
         }

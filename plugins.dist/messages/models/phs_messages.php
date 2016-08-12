@@ -107,6 +107,25 @@ class PHS_Model_Messages extends PHS_Model
         return true;
     }
 
+    public function get_account_message_handler( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        $accounts_model = self::$_accounts_model;
+        $messages_plugin = self::$_messages_plugin;
+
+        if( empty( $account_data )
+         or !($account_details_arr = $accounts_model->get_account_details( $account_data ))
+         or empty( $account_details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER] ) )
+            return false;
+
+        return $account_details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER];
+    }
+
     public function get_new_messages_count( $account_data )
     {
         $this->reset_error();
@@ -211,7 +230,7 @@ class PHS_Model_Messages extends PHS_Model
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
         $list_arr['join_sql'] = ' LEFT JOIN `'.$m_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$m_table_name.'`.id ';
-        $list_arr['db_fields'] = '`'.$m_table_name.'`.id AS m_id, `'.$m_table_name.'`.*, `'.$mu_table_name.'`.id AS mu_id, `'.$mu_table_name.'`.* ';
+        $list_arr['db_fields'] = 'MAX(`'.$m_table_name.'`.id) AS m_id, `'.$m_table_name.'`.*, MAX(`'.$m_table_name.'`.cdate) AS m_cdate, MAX(`'.$mu_table_name.'`.id) AS mu_id, `'.$mu_table_name.'`.* ';
         $list_arr['enregs_no'] = $hook_args['list_limit'];
         $list_arr['order_by'] = '`'.$m_table_name.'`.sticky ASC, `'.$mu_table_name.'`.cdate DESC';
         $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
@@ -233,6 +252,12 @@ class PHS_Model_Messages extends PHS_Model
             {
                 if( $key == 'id' )
                     continue;
+
+                if( $key == 'm_cdate' )
+                {
+                    $message_arr['cdate'] = $val;
+                    continue;
+                }
 
                 if( $key == 'm_id' or $key == 'mu_id' )
                 {
@@ -855,9 +880,11 @@ class PHS_Model_Messages extends PHS_Model
         $message_fields['subject'] = trim( $params['subject'] );
 
         if( !empty( $reply_message ) )
-            $message_fields['thread_id'] = $reply_message['thread_id'];
+            $message_fields['reply_id'] = $reply_message['message']['id'];
         else
-            $message_fields['thread_id'] = 0; // will be updated with own id...
+            $message_fields['reply_id'] = 0;
+
+        $message_fields['thread_id'] = 0;  // will be updated with own id or reply thread id...
 
         $message_fields['dest_type'] = $params['dest_type'];
         $message_fields['from_uid'] = (!empty( $account_arr )?$account_arr['id']:0);
@@ -1120,20 +1147,35 @@ class PHS_Model_Messages extends PHS_Model
         } else
             $author_handle = $this->_pt( 'System' );
 
-        if( empty( $message_arr['thread_id'] ) )
+        $thread_id = $message_arr['id'];
+        if( !empty( $message_arr['reply_id'] ) )
         {
-            if( !db_query( 'UPDATE `' . $this->get_flow_table_name( $m_flow_params ) . '` '.
-                           ' SET thread_id = \'' . $message_arr['id'] . '\' '.
-                           ' WHERE id = \'' . $message_arr['id'] . '\'', $m_flow_params['db_connection'] ) )
+            if( !($reply_message = $this->get_details( $message_arr['reply_id'], $m_flow_params )) )
             {
                 $this->hard_delete( $message_arr, $m_flow_params );
+                if( !empty( $message_arr['body_id'] ) )
+                    $this->hard_delete( $message_arr['body_id'], $mb_flow_params );
 
-                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error updating message details to database.' ) );
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t find reply message in database.' ) );
                 return false;
             }
 
-            $message_arr['thread_id'] = $message_arr['id'];
+            $thread_id = $reply_message['thread_id'];
         }
+
+        if( !db_query( 'UPDATE `' . $this->get_flow_table_name( $m_flow_params ) . '` '.
+                       ' SET thread_id = \'' . $thread_id . '\' '.
+                       ' WHERE id = \'' . $message_arr['id'] . '\'', $m_flow_params['db_connection'] ) )
+        {
+            $this->hard_delete( $message_arr, $m_flow_params );
+            if( !empty( $message_arr['body_id'] ) )
+                $this->hard_delete( $message_arr['body_id'], $mb_flow_params );
+
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Error updating message details to database.' ) );
+            return false;
+        }
+
+        $message_arr['thread_id'] = $thread_id;
 
         $accounts_list = array();
         switch( $message_arr['dest_type'] )
@@ -1292,10 +1334,11 @@ class PHS_Model_Messages extends PHS_Model
                     $hook_args['template'] = $messages_plugin->email_template_resource_from_file( 'message_author' );
                     $hook_args['to'] = $author_arr['email'];
                     $hook_args['to_name'] = $author_arr['nick'];
-                    $hook_args['subject'] = $this->_pt( 'Internal message sent' );
+                    $hook_args['subject'] = $this->_pt( 'Internal message sent' ).': '.$message_arr['subject'];
                     $hook_args['email_vars'] = array(
                         'author_nick' => $author_arr['nick'],
                         'message_date' => $message_date,
+                        'message_subject' => $message_arr['subject'],
                         'message_link' => PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $mu_details_arr['id'] ) ),
                         'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
                     );
@@ -1348,11 +1391,12 @@ class PHS_Model_Messages extends PHS_Model
                     $hook_args['template'] = $messages_plugin->email_template_resource_from_file( 'message_destination' );
                     $hook_args['to'] = $account_arr['email'];
                     $hook_args['to_name'] = $account_arr['nick'];
-                    $hook_args['subject'] = $this->_pt( 'New internal message' );
+                    $hook_args['subject'] = $this->_pt( 'New internal message' ).': '.$message_arr['subject'];
                     $hook_args['email_vars'] = array(
                         'destination_nick' => $account_arr['nick'],
                         'author_handle' => $author_handle,
                         'message_date' => $message_date,
+                        'message_subject' => $message_arr['subject'],
                         'message_link' => PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $mu_details_arr['id'] ) ),
                         'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
                     );
@@ -1507,6 +1551,12 @@ class PHS_Model_Messages extends PHS_Model
                         'default' => 0,
                         'index' => true,
                         'comment' => 'Id of first message in conversation',
+                    ),
+                    'reply_id' => array(
+                        'type' => self::FTYPE_INT,
+                        'default' => 0,
+                        'index' => true,
+                        'comment' => 'Id of message replying to',
                     ),
                     'body_id' => array(
                         'type' => self::FTYPE_INT,

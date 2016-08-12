@@ -44,7 +44,8 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
-        if( !($messages_model = PHS::load_model( 'messages', 'messages' )) )
+        if( !($messages_model = PHS::load_model( 'messages', 'messages' ))
+         or !($mu_flow_params = $messages_model->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load messages model.' ) );
             return self::default_action_result();
@@ -65,6 +66,7 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         $reply_to = PHS_params::_g( 'reply_to', PHS_params::T_INT );
+        $reply_to_muid = PHS_params::_g( 'reply_to_muid', PHS_params::T_INT );
 
         if( PHS_params::_g( 'message_queued', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Message queued... Server will send it as soon as possible.' ) );
@@ -73,12 +75,21 @@ class PHS_Action_Compose extends PHS_Action
          or !($reply_message = $messages_model->full_data_to_array( $reply_to )) )
             $reply_message = false;
 
+        if( !empty( $reply_to_muid ) and empty( $reply_message ) )
+        {
+            if( !($reply_user_message = $messages_model->data_to_array( $reply_to_muid, $mu_flow_params ))
+             or empty( $reply_user_message['message_id'] )
+             or !($reply_message = $messages_model->full_data_to_array( $reply_user_message['message_id'] )) )
+                $reply_message = false;
+        }
+
         if( !empty( $reply_message )
         and !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_REPLY_MESSAGE )
         and !$messages_model->can_reply( $reply_message, array( 'account_data' => $current_user ) ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Unknown message or you don\'t have rights to reply to this messages.' ) );
-            return self::default_action_result();
+
+            $reply_message = false;
         }
 
         if( empty( $reply_message )
@@ -115,9 +126,34 @@ class PHS_Action_Compose extends PHS_Action
         if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_ALL_DESTINATIONS ) )
             $dest_type = $messages_model::DEST_TYPE_HANDLERS;
 
+        if( !empty( $reply_message ) )
+        {
+            if( empty( $reply_message['message']['from_uid'] )
+             or !($reply_author_handler = $messages_model->get_account_message_handler( $reply_message['message']['from_uid'] )) )
+                PHS_Notifications::add_warning_notice( $this->_pt( 'You cannot reply to this message. Author not reachable.' ) );
+
+            else
+            {
+                $dest_type = $messages_model::DEST_TYPE_HANDLERS;
+                $dest_type_handlers = $reply_author_handler;
+                $subject = $reply_message['message']['subject'];
+
+                $re_str = $this->_pt( 'Re: ' );
+                if( strtolower( substr( $subject, 0, 4 ) ) != strtolower( $re_str ) )
+                    $subject = $re_str.$subject;
+            }
+        }
+
+        if( empty( $foobar ) )
+        {
+            if( empty( $dest_type ) )
+                $dest_type = $messages_model::DEST_TYPE_HANDLERS;
+        }
+
         if( !empty( $do_submit ) )
         {
             $message_params = array();
+            $message_params['reply_message'] = $reply_message;
             $message_params['account_data'] = $current_user;
             $message_params['subject'] = $subject;
             $message_params['body'] = $body;
@@ -148,8 +184,9 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         $data = array(
-            'current_user' => $current_user,
             'reply_message' => $reply_message,
+            'reply_to' => $reply_to,
+            'reply_to_muid' => $reply_to_muid,
 
             'subject' => $subject,
             'dest_type' => $dest_type,

@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.1.7' );
+define( 'PHS_KNOWN_VERSION', '1.0.1.8' );
 
 @date_default_timezone_set( 'Europe/London' );
 

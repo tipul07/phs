@@ -136,7 +136,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user( $account_data, $role_data )
+    public static function link_roles_to_user( $account_data, $role_data, $params = false )
     {
         self::st_reset_error();
 
@@ -145,7 +145,7 @@ class PHS_Roles extends PHS_Registry
 
         $role_model = self::$_role_model;
 
-        if( $role_model->link_roles_to_user( $account_data, $role_data ) === false )
+        if( $role_model->link_roles_to_user( $account_data, $role_data, $params ) === false )
         {
             self::st_copy_error( $role_model );
             return false;
