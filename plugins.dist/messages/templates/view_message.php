@@ -2,6 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
+    use \phs\PHS_ajax;
     use \phs\libraries\PHS_Roles;
 
     /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
@@ -18,6 +19,8 @@
      or !$messages_model::is_full_message_data( $thread_arr ) )
         return $this->_pt( 'Couldn\'t initialize required parameters for current view.' );
 
+    if( !($thread_messages_arr = $this->context_var( 'thread_messages_arr' )) )
+        $thread_messages_arr = array();
     if( !($dest_types = $this->context_var( 'dest_types' )) )
         $dest_types = array();
     if( !($user_levels = $this->context_var( 'user_levels' )) )
@@ -28,6 +31,27 @@
         $roles_units_arr = array();
 
     $current_user = PHS::current_user();
+
+    $messages_before = 0;
+    $messages_after = 0;
+    if( !empty( $thread_messages_arr ) and is_array( $thread_messages_arr ) )
+    {
+        $we_are_before = true;
+        foreach( $thread_messages_arr as $um_id => $um_arr )
+        {
+            if( $message_arr['message']['id'] == $um_arr['message_id'] )
+            {
+                $we_are_before = false;
+                continue;
+            }
+
+            if( $we_are_before )
+                $messages_before++;
+            else
+                $messages_after++;
+        }
+
+    }
 
 ?>
 <form id="view_message_form" name="view_message_form" action="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ) )?>" method="post">
@@ -40,41 +64,98 @@
         </section>
         <div class="clearfix"></div>
 
-        <fieldset class="form-group">
-            <p>On <strong><?php echo date( 'Y-m-d H:i', parse_db_date( $message_arr['message']['cdate'] ) )?></strong>,
-                <strong><?php echo $this->context_var( 'author_handler' )?></strong> wrote to
-            <strong><?php
-            switch( $message_arr['message']['dest_type'] )
-            {
-                case $messages_model::DEST_TYPE_USERS:
-                case $messages_model::DEST_TYPE_HANDLERS:
-                    echo $message_arr['message']['dest_str'];
-                break;
-
-                case $messages_model::DEST_TYPE_LEVEL:
-                    if( !empty( $user_levels[$message_arr['message']['dest_id']] ) )
-                        echo $user_levels[$message_arr['message']['dest_id']];
+        <?php
+        if( !empty( $messages_before ) )
+        {
+            ?>
+            <div id="messages_before">
+            <fieldset class="form-group more_messages_before">
+                <a href="javascript:void(0);" title="<?php echo $this->_pt( 'Load previous messages' )?>" onclick="load_previous_messages()"> ... <?php
+                    if( $messages_before > 1 )
+                        echo $this->_pt( '%s messages', $messages_before );
                     else
-                        echo '['.$this->_pt( 'Unknown user level' ).']';
-                break;
+                        echo $this->_pt( '1 message' );
+                ?> ... </a>
+            </fieldset>
+            </div>
+            <?php
+        }
 
-                case $messages_model::DEST_TYPE_ROLE:
-                    if( !empty( $roles_arr[$message_arr['message']['dest_id']] ) )
-                        echo $roles_arr[$message_arr['message']['dest_id']];
-                    else
-                        echo '['.$this->_pt( 'Unknown role' ).']';
-                break;
+        echo $this->sub_view( 'view_single_message' );
 
-                case $messages_model::DEST_TYPE_ROLE_UNIT:
-                    if( !empty( $roles_units_arr[$message_arr['message']['dest_id']] ) )
-                        echo $roles_units_arr[$message_arr['message']['dest_id']];
+        if( !empty( $messages_after ) )
+        {
+            ?>
+            <div id="messages_after">
+            <fieldset class="form-group more_messages_after">
+                <a href="javascript:void(0);" title="<?php echo $this->_pt( 'Load next messages' )?>" onclick="load_next_messages()"> ... <?php
+                    if( $messages_after > 1 )
+                        echo $this->_pt( '%s messages', $messages_after );
                     else
-                        echo '['.$this->_pt( 'Unknown role unit' ).']';
-                break;
-            }
-            ?></strong>:</p>
-            <?php echo nl2br( str_replace( '  ', ' &nbsp;', $message_arr['message_body']['body'] ) );?>
-        </fieldset>
+                        echo $this->_pt( '1 message' );
+                ?> ... </a>
+            </fieldset>
+            </div>
+            <?php
+        }
+        ?>
 
     </div>
 </form>
+<script type="text/javascript">
+var before_offset = 0;
+var after_offset = 0;
+function load_previous_messages()
+{
+    var html_obj = $("#messages_before");
+    if( !html_obj )
+        return;
+
+    show_submit_protection( "<?php echo $this->_pte( 'Loading previous messages...' )?>" );
+
+    _load_messages( html_obj, 'before', before_offset );
+}
+function load_next_messages()
+{
+    var html_obj = $("#messages_after");
+    if( !html_obj )
+        return;
+
+    show_submit_protection( "<?php echo $this->_pte( 'Loading next messages...' )?>" );
+
+    _load_messages( html_obj, 'after', after_offset );
+}
+function _load_messages( html_container, location, offset )
+{
+    var max_messages = 5;
+    var ajax_params = {
+        cache_response: false,
+        method: 'post',
+        url_data: { muid: '<?php echo $message_arr['message_user']['id']?>', location: location, max_messages: max_messages, offset: offset },
+        data_type: 'json',
+
+        onsuccess: function( response, status, ajax_obj ) {
+            hide_submit_protection();
+
+            if( response )
+            {
+                if( location == "before" )
+                    before_offset += max_messages;
+                else if( location == "after" )
+                    after_offset += max_messages;
+
+                html_container.html( response );
+                phs_refresh_input_skins();
+            }
+        },
+
+        onfailed: function( ajax_obj, status, error_exception ) {
+            hide_submit_protection();
+
+            PHS_JSEN.js_messages( [ "<?php echo $this->_pt( 'Error loading messages. Please retry.' )?>" ], "error" );
+        }
+    };
+
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'append_messages' ) )?>", ajax_params );
+}
+</script>

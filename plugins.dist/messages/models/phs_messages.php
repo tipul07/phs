@@ -107,6 +107,34 @@ class PHS_Model_Messages extends PHS_Model
         return true;
     }
 
+    public function get_relative_account_message_handler( $account_data, $current_user = false )
+    {
+        if( empty( $account_data ) )
+            return $this->_pt( 'System' );
+
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        $accounts_model = self::$_accounts_model;
+        $messages_plugin = self::$_messages_plugin;
+
+        if( empty( $current_user )
+         or !($current_user_arr = $accounts_model->data_to_array( $current_user )))
+            return $this->get_account_message_handler( $account_data );
+
+        if( empty( $account_data )
+         or !($account_arr = $accounts_model->data_to_array( $account_data )))
+            return false;
+
+        if( $current_user_arr['id'] == $account_arr['id'] )
+            return $this->_pt( 'You' );
+
+        return $this->get_account_message_handler( $account_arr );
+    }
+
     public function get_account_message_handler( $account_data )
     {
         $this->reset_error();
@@ -481,6 +509,30 @@ class PHS_Model_Messages extends PHS_Model
         return $full_message_arr;
     }
 
+    public function mark_as_read( $message_user_data )
+    {
+        $this->reset_error();
+
+        if( !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($message_user_arr = $this->data_to_array( $message_user_data, $mu_flow_params ))
+         or empty( $message_user_arr['id'] ) )
+        {
+            $this->reset_error();
+            return false;
+        }
+
+        $edit_fields_arr = array();
+        $edit_fields_arr['is_new'] = 0;
+
+        $edit_arr = $mu_flow_params;
+        $edit_arr['fields'] = $edit_fields_arr;
+
+        if( !($new_message_user_arr = $this->edit( $message_user_arr, $edit_arr )) )
+            return false;
+
+        return $new_message_user_arr;
+    }
+
     public function need_write_finish( $message_data )
     {
         $this->reset_error();
@@ -704,6 +756,27 @@ class PHS_Model_Messages extends PHS_Model
         return $all_importances[$importance];
     }
 
+    public function get_thread_messages_flow( $thread_id, $user_id )
+    {
+        if( empty( $thread_id ) or empty( $user_id )
+         or !($um_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($um_table_name = $this->get_flow_table_name( $um_flow_params )) )
+            return array();
+
+        $list_fields_arr = array();
+        $list_fields_arr['thread_id'] = $thread_id;
+        $list_fields_arr['user_id'] = $user_id;
+
+        $list_arr = $um_flow_params;
+        $list_arr['fields'] = $list_fields_arr;
+        $list_arr['order_by'] = 'cdate ASC';
+
+        if( !($result_list_arr = $this->get_list( $list_arr )) )
+            return array();
+
+        return $result_list_arr;
+    }
+
     public function get_accounts_from_handlers( $dest_handlers )
     {
         $this->reset_error();
@@ -875,6 +948,9 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
+        if( !($author_handle = $this->get_relative_account_message_handler( $account_arr )) )
+            $author_handle = '['.$this->_pt( 'Unknown author' ).']';
+
         $message_fields = array();
 
         $message_fields['subject'] = trim( $params['subject'] );
@@ -888,6 +964,7 @@ class PHS_Model_Messages extends PHS_Model
 
         $message_fields['dest_type'] = $params['dest_type'];
         $message_fields['from_uid'] = (!empty( $account_arr )?$account_arr['id']:0);
+        $message_fields['from_handle'] = $author_handle;
         $message_fields['type'] = $params['type'];
         $message_fields['type_id'] = $params['type_id'];
 
@@ -1137,15 +1214,8 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
-        if( !empty( $author_arr ) )
-        {
-            if( ($author_details = $accounts_model->get_account_details( $author_arr ))
-            and !empty( $author_details[$messages_plugin::UD_COLUMN_MSG_HANDLER] ) )
-                $author_handle = $author_details[$messages_plugin::UD_COLUMN_MSG_HANDLER];
-            else
-                $author_handle = $author_arr['nick'];
-        } else
-            $author_handle = $this->_pt( 'System' );
+        if( !($author_handle = $this->get_relative_account_message_handler( $author_arr )) )
+            $author_handle = '['.$this->_pt( 'Unknown author' ).']';
 
         $thread_id = $message_arr['id'];
         if( !empty( $message_arr['reply_id'] ) )
@@ -1582,6 +1652,13 @@ class PHS_Model_Messages extends PHS_Model
                         'type' => self::FTYPE_INT,
                         'index' => true,
                         'comment' => '0 - system, X - User ID',
+                    ),
+                    'from_handle' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'comment' => 'Handle of author',
                     ),
                     'subject' => array(
                         'type' => self::FTYPE_VARCHAR,

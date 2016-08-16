@@ -15,7 +15,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.21,
+        version: 1.22,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -152,7 +152,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             var options = $.extend( {}, defaults, o );
 
-            ajax_parameters_obj = {
+            var ajax_parameters_obj = {
                 type: options.method,
                 url: url,
                 data: options.url_data,
@@ -162,7 +162,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 success: function( data, status, ajax_obj )
                 {
-                    result_response = false;
+                    var result_response = false;
                     if( !options.full_buffer )
                     {
                         if( typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
@@ -182,7 +182,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         }
 
                         if( typeof data.response == 'undefined' || !data.response )
-                            data.response = {};
+                            data.response = false;
 
                         result_response = data.response;
                     } else

@@ -70,7 +70,7 @@ class PHS_Action_View_message extends PHS_Action
         if( empty( $muid )
          or !($user_message = $messages_model->data_to_array( $muid, $mu_flow_params ))
          or empty( $user_message['message_id'] )
-         or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'] )) )
+         or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load message details.' ) );
 
@@ -95,6 +95,10 @@ class PHS_Action_View_message extends PHS_Action
             return $action_result;
         }
 
+        if( empty( $message_arr['message']['thread_id'] )
+         or !($thread_messages_arr = $messages_model->get_thread_messages_flow( $message_arr['message']['thread_id'], $current_user['id'] )) )
+            $thread_messages_arr = array();
+
         if( !($dest_types = $messages_model->get_dest_types_as_key_val()) )
             $dest_types = array();
         if( !($user_levels = $accounts_model->get_levels_as_key_val()) )
@@ -104,16 +108,15 @@ class PHS_Action_View_message extends PHS_Action
         if( !($roles_units_arr = $roles_model->get_all_role_units()) )
             $roles_units_arr = array();
 
-        if( empty( $message_arr['message']['from_uid'] ) )
-            $author_handler = $this->_pt( 'System' );
-
-        elseif( !($author_handler = $messages_model->get_account_message_handler( $message_arr['message']['from_uid'] )) )
+        if( !($author_handler = $messages_model->get_relative_account_message_handler( $message_arr['message']['from_uid'], $current_user )) )
             $author_handler = '['.$this->_pt( 'Unknown author' ).']';
 
         $data = array(
             'thread_arr' => $thread_arr,
             'message_arr' => $message_arr,
             'author_handler' => $author_handler,
+
+            'thread_messages_arr' => $thread_messages_arr,
 
             'dest_types' => $dest_types,
             'user_levels' => $user_levels,
@@ -126,6 +129,12 @@ class PHS_Action_View_message extends PHS_Action
             'messages_plugin' => $messages_plugin,
         );
 
+        if( !empty( $message_arr['message_user']['is_new'] )
+        and !empty( $message_arr['message_user']['user_id'] )
+        and $current_user['id'] == $message_arr['message_user']['user_id'] )
+        {
+            $messages_model->mark_as_read( $message_arr['message_user'] );
+        }
 
         return $this->quick_render_template( 'view_message', $data );
     }

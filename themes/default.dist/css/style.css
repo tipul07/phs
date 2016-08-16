@@ -241,6 +241,12 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #messages-summary-popup .pop_msg_actions a:hover { background-color: transparent; }
 #messages-summary-new-count { float: right; height: 14px; line-height: 10px; font-size: 10px !important; background-color: red; border-radius: 20px; padding: 2px 5px; }
 
+#view_message_form .more_messages_before { }
+#view_message_form .more_messages_after { border-top: 1px double gray; }
+#view_message_form .message_line { border-top: 1px solid gray; }
+#view_message_form .message_body { padding: 2px; }
+#view_message_form .message_actions { text-align: right; }
+
 #menu-left-pane, #menu-right-pane { display: none; color: white; background-color: #222222; width: 90%; max-width: 350px; height: 100%; min-height: 100%; z-index: 1000; position: fixed; overflow-y: auto; overflow-x: hidden; }
 #menu-right-pane { right: 0; }
 #menu-left-pane { left: 0; }
