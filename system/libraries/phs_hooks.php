@@ -28,7 +28,7 @@ class PHS_Hooks extends PHS_Registry
          H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
          // Messages hooks
-         H_MSG_GET_SUMMARY = 'phs_messages_summary',
+         H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
 
          // Captcha hooks
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
@@ -66,6 +66,13 @@ class PHS_Hooks extends PHS_Registry
         return array(
             'hook_errors' => self::default_error_array(),
         );
+    }
+
+    public static function default_message_types_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'types_arr' => array(),
+        ), self::default_common_hook_args() );
     }
 
     public static function default_model_validate_data_fields_hook_args()

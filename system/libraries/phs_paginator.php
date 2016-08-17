@@ -118,6 +118,7 @@ class PHS_Paginator extends PHS_Registry
             'right_pages_no' => 10,
             'sort' => 0,
             'sort_by' => '',
+            'db_sort_by' => '',
         );
     }
 
@@ -218,18 +219,25 @@ class PHS_Paginator extends PHS_Registry
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] )
          or empty( $params['column'] ) or !is_array( $params['column'] )
-         or empty( $params['column']['record_field'] )
-         or !array_key_exists( $params['column']['record_field'], $params['record'] ) )
+         or (empty( $params['column']['record_field'] ) and empty( $params['column']['record_db_field'] )) )
             return false;
 
-        if( !($date_time = is_db_date( $params['record'][$params['column']['record_field']] ))
-         or empty_db_date( $params['record'][$params['column']['record_field']] ) )
+        if( !empty( $params['column']['record_db_field'] ) )
+            $field_name = $params['column']['record_db_field'];
+        else
+            $field_name = $params['column']['record_field'];
+
+        if( !array_key_exists( $field_name, $params['record'] ) )
+            return false;
+
+        if( !($date_time = is_db_date( $params['record'][$field_name] ))
+         or empty_db_date( $params['record'][$field_name] ) )
             return (!empty($params['column']['invalid_value']) ? $params['column']['invalid_value'] : self::_t( 'N/A' ));
 
         if( !empty( $params['column']['date_format'] ) )
             $date_str = @date( $params['column']['date_format'], parse_db_date( $date_time ) );
         else
-            $date_str = $params['record'][$params['column']['record_field']];
+            $date_str = $params['record'][$field_name];
 
         $seconds_ago = seconds_passed( $date_time );
 
@@ -495,6 +503,9 @@ class PHS_Paginator extends PHS_Registry
     {
         return array(
             'column_title' => '',
+            // 'record_db_field' is record array key (SELECT field AS my_alias...) => 'record_db_field' = 'my_alias'
+            'record_db_field' => '',
+            // 'record_field' is always what we send to database...
             'record_field' => '',
 
             // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
@@ -635,7 +646,7 @@ class PHS_Paginator extends PHS_Registry
             'display_name' => '',
             'action' => '',
             'js_callback' => '',
-            // name of column which holds the checkboxes that matter for this bulk action ('record_field' key in columns array)
+            // name of column which holds the checkboxes that matter for this bulk action ('record_field'/'record_db_field' key in columns array)
             'checkbox_column' => '',
         );
     }
@@ -897,10 +908,12 @@ class PHS_Paginator extends PHS_Registry
 
             $sort = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort', PHS_params::T_INT );
             $sort_by = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort_by', PHS_params::T_NOHTML );
+            $db_sort_by = '';
 
             if( !empty( $columns_arr ) )
             {
                 $default_sort_by = false;
+                $default_db_sort_by = false;
                 $default_sort = false;
                 $sort_by_valid = false;
                 foreach( $columns_arr as $column_arr )
@@ -908,14 +921,21 @@ class PHS_Paginator extends PHS_Registry
                     if( empty( $column_arr['record_field'] ) )
                         continue;
 
+                    if( !empty( $column_arr['record_db_field'] ) )
+                        $field_name = $column_arr['record_db_field'];
+                    else
+                        $field_name = $column_arr['record_field'];
+
                     if( $column_arr['default_sort'] !== false )
                     {
-                        $default_sort_by = $column_arr['record_field'];
+                        $default_sort_by = $field_name;
+                        $default_db_sort_by = $column_arr['record_field'];
                         $default_sort = (!empty($column_arr['default_sort']) ? 1 : 0);
 
                         if( $sort_by === null )
                         {
                             $sort_by = $default_sort_by;
+                            $db_sort_by = $default_db_sort_by;
                             if( $sort === null )
                                 $sort = $default_sort;
 
@@ -923,15 +943,19 @@ class PHS_Paginator extends PHS_Registry
                         }
                     }
 
-                    if( $sort_by == $column_arr['record_field'] )
+                    if( $sort_by == $field_name )
                     {
                         $sort_by_valid = true;
+                        $db_sort_by = $column_arr['record_field'];
                         break;
                     }
                 }
 
                 if( !$sort_by_valid and $default_sort_by !== false )
+                {
                     $sort_by = $default_sort_by;
+                    $db_sort_by = $default_db_sort_by;
+                }
                 if( $sort === null and $default_sort !== false )
                     $sort = $default_sort;
             }
@@ -942,10 +966,14 @@ class PHS_Paginator extends PHS_Registry
                 $sort = 1;
 
             if( empty( $sort_by ) )
+            {
                 $sort_by = '';
+                $db_sort_by = '';
+            }
 
             $this->pagination_params( 'sort', $sort );
             $this->pagination_params( 'sort_by', $sort_by );
+            $this->pagination_params( 'db_sort_by', $db_sort_by );
         }
 
         return true;
@@ -1074,6 +1102,7 @@ class PHS_Paginator extends PHS_Registry
              or empty( $filter_arr['record_check'] ) )
                 $check_value = $scope_arr[$filter_arr['var_name']];
 
+            // 'record_field' is always what we send to database...
             $list_arr['fields'][$filter_arr['record_field']] = $check_value;
         }
 
@@ -1095,9 +1124,17 @@ class PHS_Paginator extends PHS_Registry
         $list_arr['enregs_no'] = $this->pagination_params( 'records_per_page' );
 
         $sort = $this->pagination_params( 'sort' );
-        if( ($sort_by = $this->pagination_params( 'sort_by' ))
+
+        if( ($db_sort_by = $this->pagination_params( 'db_sort_by' ))
+        and is_string( $db_sort_by ) )
+            $list_arr['order_by'] = $db_sort_by;
+
+        elseif( ($sort_by = $this->pagination_params( 'sort_by' ))
         and is_string( $sort_by ) )
-            $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by.' '.(empty( $sort )?'ASC':'DESC');
+            $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by;
+
+        if( !empty( $list_arr['order_by'] ) )
+            $list_arr['order_by'] .= ' '.(empty( $sort )?'ASC':'DESC');
 
         if( !($records_arr = $model_obj->get_list( $list_arr )) )
             $records_arr = array();

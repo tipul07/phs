@@ -1,24 +1,4 @@
 
-a, abbr, acronym, address, applet, article, aside, audio, b, big, blockquote, body, canvas, caption,center, cite, code, dd, del, details, dfn, dialog, div, dl, dt, em, embed, fieldset, figcaption, figure, font, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, html, i, iframe, img, ins, kbd, label, legend, li, mark, menu, meter, nav, object, ol, output, p, pre, progress, q, rp, rt, ruby, s, samp, section, small, span, strike, strong, sub, summary, sup, table, tbody, td, tfoot, th, thead, time, tr, tt, u, ul, var, video, xmp { border: 0; margin: 0; padding: 0;}
-img {color: transparent; font-size: 0; vertical-align: middle; -ms-interpolation-mode: bicubic; max-width: 100%;}
-sub, sup, small {font-size: 75%;}
-sub,sup {line-height: 0; position: relative; vertical-align: baseline;}
-sub {bottom: -0.25em;}
-sup {top: -0.5em;}
-svg {overflow: hidden;}
-
-.wpcf7-select { width: auto !important; }
-
-/*
-body {
-    font-family: "Open Sans", Arial, sans-serif;
-    font-size: 13px;
-    line-height: 1.428571429;
-    color: #333333;
-    background-color: #ffffff;
-}
-*/
-
 /* 6.12. INFORMATING BOXES
 ============================================================================= */
 .information-boxes{
@@ -300,6 +280,12 @@ body {
     margin-right: 10px;
     margin-bottom: 10px;
 }
+a:visited.btn-small,
+a:visited.btn-medium,
+a:visited.btn-big {
+    color: #fff !important;
+}
+
 a:hover.btn-small,
 a:hover.btn-medium,
 a:hover.btn-big {
@@ -320,7 +306,6 @@ a:hover.btn-big {
     font-size: 12px;
     text-transform: uppercase;
     color: #fff !important;
-    float: left;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -338,7 +323,6 @@ a:hover.btn-big {
     font-size: 13px;
     text-transform: uppercase;
     color: #fff !important;
-    float: left;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -356,7 +340,6 @@ a:hover.btn-big {
     font-size: 14px;
     text-transform: uppercase;
     color: #fff !important;
-    float: left;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -707,141 +690,4 @@ a:hover.btn-big {
 .btn-big.empty.purple:hover{
     background-color: #EB247B;
     color: #fff !important;
-}
-
-/*  6.7. HEADING CENTERED
-============================================================================= */
-.heading-centered{
-    width: 100%;
-    margin-bottom: -40px;
-}
-
-.heading-centered h1,
-.heading-centered h2,
-.heading-centered h3,
-.heading-centered h4,
-.heading-centered h5,
-.heading-centered h6,
-.heading-centered p{
-    width: 100%;
-    text-align: center;
-    margin-bottom: 5px;
-}
-
-
-
-
-/*  6.8. HEADING WITH BORDERS
-============================================================================= */
-.heading-bordered{
-    border-bottom: 1px solid #e8eef6;
-    margin-bottom: 30px;
-    width: 100%;
-    float: left;
-}
-
-.heading-bordered h1,
-.heading-bordered h2,
-.heading-bordered h3,
-.heading-bordered h4,
-.heading-bordered h5,
-.heading-bordered h6{
-    margin-bottom: 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #a8b4c3;
-    display: inline-block;
-    margin-bottom: -1px;
-}
-
-/* CONTACT FORM
-------------------------------------------------------------------------------*/
-.wpcf7{
-    float: left;
-    width: 100%;
-}
-
-.wpcf7 fieldset{
-    max-width: 100%;
-    margin-bottom: 20px;
-}
-
-.wpcf7 label{
-    color: #444;
-    /*font: 13px Arial,sans-serif; */
-    line-height: 18px;
-    margin-bottom: 5px;
-    display: block;
-    width: 100%;
-    float: left;
-}
-
-.line-label {
-    width: inherit !important;
-    /* float: none !important; */
-    display: inline !important;
-    min-width: 150px !important;
-    vertical-align: middle;
-    padding: 3px;
-}
-
-.wpcf7-text{
-    max-width: 100%;
-    background: #f6f6f6;
-    border: 1px solid #ddd;
-    padding: 8px 10px;
-
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-}
-
-.wpcf7-text#portfolio-link{
-    width: 100%;
-}
-
-.wpcf7-textarea{
-    width: 100%;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    background: #f6f6f6;
-    border: 1px solid #ddd;
-    padding: 10px;
-}
-
-.wpcf7-text:focus,
-.wpcf7-textarea:focus{
-    border-color: #aaa;
-}
-
-.wpcf7-submit{
-    border: 0px solid;
-    /*font: 12px 'Open Sans', Arial, sans-serif;
-    text-transform: uppercase;*/
-    line-height: 11px;
-    color: #fff;
-    background-color: #333;
-    padding: 10px 17px;
-    cursor: pointer;
-
-    float: right;
-
-    -webkit-transition: all 0.2s ease 0s;
-    -moz-transition: all 0.2s ease 0s;
-    -o-transition: all 0.2s ease 0s;
-    -ms-transition: all 0.2s ease 0s;
-    transition: all 0.2s ease 0s;
-}
-
-.wpcf7-select{
-    background: #f6f6f6;
-    border: 1px solid #ddd;
-    width: 100%;
-    line-height: 29px !important;
-    padding: 8px 8px 8px 10px;
-    /*font: 12px 'Open Sans', Arial, sans-serif;*/
-    color: #666;
-
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
 }

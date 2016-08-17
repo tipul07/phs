@@ -203,6 +203,11 @@
 
             foreach( $columns_arr as $column_arr )
             {
+                if( !empty( $column_arr['record_db_field'] ) )
+                    $field_name = $column_arr['record_db_field'];
+                else
+                    $field_name = $column_arr['record_field'];
+
                 ?><th class="<?php echo (!empty( $column_arr['sortable'] )?'sortable':'').' '.$column_arr['extra_classes']?>" style="text-align:center;<?php echo $column_arr['extra_style']?>"><?php
 
                 if( ($checkbox_column_name = $paginator_obj->get_checkbox_name_for_column( $column_arr )) )
@@ -224,7 +229,7 @@
                 {
                     $column_sort_url = add_url_params( $sort_url, array(
                                                             $flow_params_arr['form_prefix'].'sort' => ($current_sort?'0':'1'),
-                                                            $flow_params_arr['form_prefix'].'sort_by' => $column_arr['record_field']
+                                                            $flow_params_arr['form_prefix'].'sort_by' => $field_name
                     ) );
 
                     ?><a href="<?php echo $column_sort_url?>"><?php
@@ -236,7 +241,7 @@
                 {
                     ?></a><?php
 
-                    if( $current_sort_by == $column_arr['record_field'] )
+                    if( $current_sort_by == $field_name )
                     {
                         ?> <i class="fa fa-caret-<?php echo ($current_sort?'down':'up')?>"></i><?php
                     }
@@ -307,40 +312,49 @@
 
                 foreach( $columns_arr as $column_arr )
                 {
+                    if( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
+                    {
+                        if( !empty( $column_arr['record_db_field'] ) )
+                            $field_name = $column_arr['record_db_field'];
+                        else
+                            $field_name = $column_arr['record_field'];
+                    }
+
                     $cell_content = false;
                     if( empty( $column_arr['record_field'] )
+                    and empty( $column_arr['record_db_field'] )
                     and empty( $column_arr['display_callback'] ) )
                         $cell_content = '['.$this::_t( 'Bad column setup' ).']';
 
                     elseif( !empty( $column_arr['display_key_value'] )
                         and is_array( $column_arr['display_key_value'] )
-                        and !empty( $column_arr['record_field'] )
-                        and isset( $record_arr[$column_arr['record_field']] )
-                        and isset( $column_arr['display_key_value'][$record_arr[$column_arr['record_field']]] ) )
-                        $cell_content = $column_arr['display_key_value'][$record_arr[$column_arr['record_field']]];
+                        and !empty( $field_name )
+                        and isset( $record_arr[$field_name] )
+                        and isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
+                        $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
 
                     elseif( !empty( $model_obj )
-                        and !empty( $column_arr['record_field'] )
-                        and isset( $record_arr[$column_arr['record_field']] )
-                        and ($field_details = $model_obj->table_field_details( $column_arr['record_field'] ))
+                        and !empty( $field_name )
+                        and isset( $record_arr[$field_name] )
+                        and ($field_details = $model_obj->table_field_details( $field_name ))
                         and is_array( $field_details ) )
                     {
                         switch( $field_details['type'] )
                         {
                             case $model_obj::FTYPE_DATETIME:
                             case $model_obj::FTYPE_DATE:
-                                if( empty_db_date( $record_arr[$column_arr['record_field']] ) )
+                                if( empty_db_date( $record_arr[$field_name] ) )
                                     $cell_content = $this::_t( 'N/A' );
                                 elseif( !empty( $column_arr['date_format'] ) )
-                                    $cell_content = @date( $column_arr['date_format'], parse_db_date( $record_arr[$column_arr['record_field']] ) );
+                                    $cell_content = @date( $column_arr['date_format'], parse_db_date( $record_arr[$field_name] ) );
                             break;
                         }
                     }
 
                     if( $cell_content === false
-                    and !empty( $column_arr['record_field'] )
-                    and isset( $record_arr[$column_arr['record_field']] ) )
-                        $cell_content = $record_arr[$column_arr['record_field']];
+                    and !empty( $field_name )
+                    and isset( $record_arr[$field_name] ) )
+                        $cell_content = $record_arr[$field_name];
 
                     if( $cell_content === false )
                     {
@@ -361,8 +375,8 @@
 
                         else
                         {
-                            if( !isset( $record_arr[$column_arr['record_field']] )
-                             or !($field_details = $model_obj->table_field_details( $column_arr['record_field'] ))
+                            if( !isset( $record_arr[$field_name] )
+                             or !($field_details = $model_obj->table_field_details( $field_name ))
                              or !is_array( $field_details ) )
                                 $field_details = false;
 

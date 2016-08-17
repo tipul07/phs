@@ -11,6 +11,9 @@ use \phs\libraries\PHS_Roles;
 /** @property \phs\plugins\messages\models\PHS_Model_Messages $_paginator_model */
 class PHS_Action_Inbox extends PHS_Action_Generic_list
 {
+    /** @var \phs\system\core\models\PHS_Model_Roles $_roles_model */
+    private $_roles_model;
+
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
     private $_accounts_model;
 
@@ -28,6 +31,12 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         if( !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
             $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load accounts model.' ) );
+            return false;
+        }
+
+        if( !($this->_roles_model = PHS::load_model( 'roles' )) )
+        {
+            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load roles model.' ) );
             return false;
         }
 
@@ -114,15 +123,16 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $list_fields_arr = array();
         $list_fields_arr['`'.$mu_table_name.'`.user_id'] = $current_user['id'];
-        $list_fields_arr['`'.$mu_table_name.'`.is_author'] = 0;
+        //$list_fields_arr['`'.$mu_table_name.'`.is_author'] = 0;
 
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
         $list_arr['join_sql'] = ' LEFT JOIN `'.$m_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$m_table_name.'`.id ';
         $list_arr['db_fields'] = 'MAX(`'.$m_table_name.'`.id) AS m_id, `'.$m_table_name.'`.*, MAX(`'.$m_table_name.'`.cdate) AS m_cdate, '.
-                                 ' MAX(`'.$mu_table_name.'`.id) AS mu_id, `'.$mu_table_name.'`.* ';
+                                 ' MAX(`'.$mu_table_name.'`.id) AS mu_id, `'.$mu_table_name.'`.*, COUNT( `'.$mu_table_name.'`.id ) AS m_thread_count ';
         $list_arr['order_by'] = '`'.$m_table_name.'`.sticky ASC, `'.$mu_table_name.'`.cdate DESC';
         $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
+        $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
 
         $flow_params = array(
             'term_singular' => $this->_pt( 'message' ),
@@ -154,9 +164,18 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         $filters_arr = array(
             array(
                 'display_name' => $this->_pt( 'From' ),
-                'display_hint' => $this->_pt( 'Destination nickname contains this value' ),
+                'display_hint' => $this->_pt( 'Author messaging handle contains this value' ),
                 'var_name' => 'ffrom',
-                'record_field' => 'from_handle',
+                'record_field' => '`'.$m_table_name.'`.from_handle',
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ),
+            array(
+                'display_name' => $this->_pt( 'To' ),
+                'display_hint' => $this->_pt( 'Destination messagin handle contains this value' ),
+                'var_name' => 'fto',
+                'record_field' => '`'.$m_table_name.'`.dest_str',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
@@ -165,20 +184,37 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $columns_arr = array(
             array(
+                'column_title' => $this->_pt( '#' ),
+                'record_field' => 'id',
+                'invalid_value' => $this->_pt( 'N/A' ),
+                'extra_style' => 'min-width:50px;max-width:80px;',
+                'extra_records_style' => 'text-align:center;',
+            ),
+            array(
                 'column_title' => $this->_pt( 'From' ),
                 'record_field' => 'from_handle',
                 'invalid_value' => $this->_pt( 'System' ),
+                'display_callback' => array( $this, 'display_from' ),
+            ),
+            array(
+                'column_title' => $this->_pt( 'To' ),
+                'record_field' => 'from_handle',
+                'invalid_value' => $this->_pt( 'System' ),
+                'display_callback' => array( $this, 'display_to' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Subject' ),
                 'record_field' => 'subject',
                 'invalid_value' => $this->_pt( 'N/A' ),
+                'display_callback' => array( $this, 'display_subject' ),
+                'extra_records_style' => 'text-overflow: clip ellipsis;',
             ),
             array(
                 'column_title' => $this->_pt( 'Last reply' ),
                 'default_sort' => 1,
-                'record_field' => 'cdate',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
+                'record_db_field' => 'm_cdate',
+                'record_field' => 'MAX(`messages`.cdate)',
+                'display_callback' => array( $this, 'display_last_reply' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
                 'extra_style' => 'width:130px;',
@@ -277,7 +313,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 $remaining_ids_arr = array();
                 foreach( $scope_arr[$scope_key] as $message_id )
                 {
-                    if( !$this->_paginator_model->act_delete( $message_id ) )
+                    if( !$this->_paginator_model->act_delete_thread( $message_id ) )
                     {
                         $remaining_ids_arr[] = $message_id;
                     }
@@ -328,13 +364,14 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
 
                 if( empty( $action['action_params'] )
-                 or !($message_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($mu_flow_params = $this->_paginator_model->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+                 or !($message_user_arr = $this->_paginator_model->get_details( $action['action_params'], $mu_flow_params )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete address. Address not found in database.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->act_delete( $message_arr ) )
+                if( !$this->_paginator_model->act_delete_thread( $message_user_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
@@ -344,79 +381,119 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_address_title( $params )
+    public function display_subject( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        return '<strong>'.$params['preset_content'].'</strong>';
+        $message_link = PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $params['record']['mu_id'] ) );
+
+        return '<a href="'.$message_link.'">'.$params['record']['subject'].'</a> ['.$params['record']['m_thread_count'].']';
     }
 
-    public function display_address_address( $params )
+    public function display_from( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        $address_str = '';
-        if( !empty( $params['preset_content'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['preset_content'];
-        if( !empty( $params['record']['postcode'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['record']['postcode'];
+        if( ($current_user = PHS::current_user())
+        and $current_user['id'] == $params['record']['from_uid'] )
+            return $this->_pt( 'You' );
 
-        return $address_str;
+        return $params['record']['from_handle'];
     }
 
-    public function display_address_city_state( $params )
+    public function display_to( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        $address_str = '';
-        if( !empty( $params['preset_content'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['preset_content'];
-        if( !empty( $params['record']['state'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['record']['state'];
+        $messages_model = $this->_paginator_model;
+        $accounts_model = $this->_accounts_model;
+        $roles_model = $this->_roles_model;
 
-        return $address_str;
+        switch( $params['record']['dest_type'] )
+        {
+            default:
+                $destination_str = '['.$this->_pt( 'Unknown destination' ).']';
+            break;
+
+            case $messages_model::DEST_TYPE_USERS:
+            case $messages_model::DEST_TYPE_HANDLERS:
+                $destination_str = $params['record']['dest_str'];
+            break;
+
+            case $messages_model::DEST_TYPE_LEVEL:
+                $user_levels = $accounts_model->get_levels_as_key_val();
+
+                if( !empty( $user_levels[$params['record']['dest_id']] ) )
+                    $destination_str = $user_levels[$params['record']['dest_id']];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown user level' ).']';
+            break;
+
+            case $messages_model::DEST_TYPE_ROLE:
+
+                $roles_arr = $roles_model->get_all_roles();
+
+                if( !empty( $roles_arr[$params['record']['dest_id']] ) )
+                    $destination_str = $roles_arr[$params['record']['dest_id']]['name'];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown role' ).']';
+            break;
+
+            case $messages_model::DEST_TYPE_ROLE_UNIT:
+
+                $roles_units_arr = $roles_model->get_all_role_units();
+
+                if( !empty( $roles_units_arr[$params['record']['dest_id']] ) )
+                    $destination_str = $roles_units_arr[$params['record']['dest_id']]['name'];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown role unit' ).']';
+            break;
+        }
+
+        if( !empty( $current_user )
+        and !empty( $params['record']['user_id'] )
+        and $params['record']['user_id'] == $current_user['id']
+        and empty( $params['record']['is_author'] ) )
+        {
+            $destination_str = $this->_pt( 'You (%s)', $destination_str );
+        }
+
+        return $destination_str;
+    }
+
+    public function display_last_reply( $params )
+    {
+        if( empty( $params )
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] ) )
+            return false;
+
+        $params['column']['record_field'] = 'm_cdate';
+
+        return $this->_paginator->pretty_date( $params );
     }
 
     public function display_actions( $params )
     {
-        if( empty( $this->_paginator_model ) )
-        {
-            if( !$this->load_depencies() )
-                return false;
-        }
-
-        $messages_plugin = $this->_messages_plugin;
-
-        if( !($current_user = PHS::current_user()) )
-            $current_user = false;
-
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        $list_message = $params['record'];
-
         ob_start();
         ?>
-        <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $list_message['mu_id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'View thread' )?>"></i></a>
+        <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $params['record']['mu_id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-envelope action-icons" title="<?php echo $this->_pt( 'View thread' )?>"></i></a>
+        <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete message thread' )?>"></i></a>
         <?php
-
-        if( $this->_paginator_model->can_reply( $list_message, array( 'account_data' => $current_user ) ) )
-        {
-            ?>
-            <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'reply_to_muid' => $list_message['mu_id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a>
-            <?php
-        }
 
         return ob_get_clean();
     }
@@ -433,35 +510,9 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_addresses_list_activate( id )
+        function phs_messages_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this address?', '"' )?>" ) )
-            {
-                <?php
-                $url_params = array();
-                $url_params['action'] = array(
-                    'action' => 'do_activate',
-                    'action_params' => '" + id + "',
-                )
-                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
-            }
-        }
-        function phs_addresses_list_inactivate( id )
-        {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this address?', '"' )?>" ) )
-            {
-                <?php
-                $url_params = array();
-                $url_params['action'] = array(
-                    'action' => 'do_inactivate',
-                    'action_params' => '" + id + "',
-                )
-                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
-            }
-        }
-        function phs_addresses_list_delete( id )
-        {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this address?', '"' )?>" + "\n" +
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this message thread?', '"' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
@@ -474,9 +525,9 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             }
         }
 
-        function phs_addresses_list_get_checked_ids_count()
+        function phs_messages_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
+            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'mu_id' );
             if( !checkboxes_list || !checkboxes_list.length )
                 return 0;
 
@@ -485,15 +536,15 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         function phs_messages_list_bulk_delete()
         {
-            var total_checked = phs_addresses_list_get_checked_ids_count();
+            var total_checked = phs_messages_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select addresses you want to delete first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select message threads you want to delete first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s addresses?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s message threads?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");

@@ -1566,8 +1566,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $db_connection = $this->get_db_connection( $params );
 
+        $distinct_str = '';
+        if( $params['count_field'] != '*' )
+            $distinct_str = 'DISTINCT ';
+
         $ret = 0;
-        if( ($qid = db_query( 'SELECT COUNT('.$params['count_field'].') AS total_enregs '.
+        if( ($qid = db_query( 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '.
                               ' FROM `'.$this->get_flow_table_name( $params ).'` '.
                               $params['join_sql'].
                               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').

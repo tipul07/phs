@@ -24,7 +24,7 @@ class PHS_Model_Messages extends PHS_Model
         self::DEST_TYPE_ROLE_UNIT => array( 'title' => 'Role unit' ),
     );
 
-    const TYPE_NORMAL = 1;
+    const TYPE_NORMAL = 'msg_normal';
     protected static $TYPES_ARR = array(
         self::TYPE_NORMAL => array( 'title' => 'Normal' ),
     );
@@ -183,6 +183,7 @@ class PHS_Model_Messages extends PHS_Model
 
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
+        $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
 
         if( !($new_messages_count = $this->get_count( $list_arr )) )
             return 0;
@@ -218,6 +219,7 @@ class PHS_Model_Messages extends PHS_Model
 
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
+        $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
 
         if( !($new_messages_count = $this->get_count( $list_arr )) )
             return 0;
@@ -307,15 +309,17 @@ class PHS_Model_Messages extends PHS_Model
             if( isset( $message_arr['cdate'] ) )
                 $message_user_arr['cdate'] = $message_arr['cdate'];
 
-            $full_message_arr = $full_message_fields;
-            $full_message_arr['message'] = $message_arr;
-            $full_message_arr['message_user'] = $message_user_arr;
-            $full_message_arr['account_data'] = $account_arr;
-            $full_message_arr['message_body'] = array(
-                'id' => $message_arr['body_id'],
-                'message_id' => $message_arr['id'],
-                'body' => $this->_pt( 'Message body not available yet...' )
-            );
+            $full_message_arr = $this->emulate_full_message( $message_user_arr, $message_arr, $account_arr );
+
+            // $full_message_arr = $full_message_fields;
+            // $full_message_arr['message'] = $message_arr;
+            // $full_message_arr['message_user'] = $message_user_arr;
+            // $full_message_arr['account_data'] = $account_arr;
+            // $full_message_arr['message_body'] = array(
+            //     'id' => $message_arr['body_id'],
+            //     'message_id' => $message_arr['id'],
+            //     'body' => $this->_pt( 'Message body not available yet...' )
+            // );
 
             $return_arr[$message_arr['id']] = $full_message_arr;
         }
@@ -343,6 +347,65 @@ class PHS_Model_Messages extends PHS_Model
             return false;
 
         return true;
+    }
+
+    public function emulate_full_message( $message_user_data, $message_data = false, $account_data = false )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        if( !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($m_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
+         or !($mu_table_name = $this->get_flow_table_name( $mu_flow_params ))
+         or !($m_table_name = $this->get_flow_table_name( $m_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error initiating parameters for message emulation.' ) );
+            return false;
+        }
+
+        if( empty( $message_user_data )
+         or !($message_user_arr = $this->data_to_array( $message_user_data, $mu_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t find message details in database.' ) );
+            return false;
+        }
+
+        if( empty( $account_data ) )
+            $account_data = $message_user_arr['user_id'];
+        if( empty( $message_data ) )
+            $message_data = $message_user_arr['message_id'];
+
+        $accounts_model = self::$_accounts_model;
+        $messages_plugin = self::$_messages_plugin;
+
+        if( empty( $message_data )
+         or !($message_arr = $this->data_to_array( $message_data, $m_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load message details from database.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load account details from database.' ) );
+            return false;
+        }
+
+        $return_arr = self::default_full_message_data();
+        $return_arr['message'] = $message_arr;
+        $return_arr['message_user'] = $message_user_arr;
+        $return_arr['account_data'] = $account_data;
+        $return_arr['message_body'] = array(
+            'id' => $message_arr['body_id'],
+            'message_id' => $message_user_arr['message_id'],
+            'body' => $this->_pt( 'Message body not available yet...' ),
+        );
+
+        return $return_arr;
     }
 
     public function full_data_to_array( $full_message_data, $account_data = false )
@@ -640,7 +703,10 @@ class PHS_Model_Messages extends PHS_Model
             return $types_arr;
 
         $new_types_arr = self::$TYPES_ARR;
-        if( ($extra_types_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_LEVELS, array( 'types_arr' => self::$TYPES_ARR ) ))
+        $hook_args = PHS_Hooks::default_message_types_hook_args();
+        $hook_args['types_arr'] = $new_types_arr;
+
+        if( ($extra_types_arr = PHS::trigger_hooks( PHS_Hooks::H_MSG_TYPES, $hook_args ))
         and is_array( $extra_types_arr ) and !empty( $extra_types_arr['types_arr'] ) )
             $new_types_arr = self::merge_array_assoc( $extra_types_arr['types_arr'], $new_types_arr );
 
@@ -650,7 +716,6 @@ class PHS_Model_Messages extends PHS_Model
         {
             foreach( $new_types_arr as $type_id => $type_arr )
             {
-                $type_id = intval( $type_id );
                 if( empty( $type_id ) )
                     continue;
 
@@ -754,6 +819,59 @@ class PHS_Model_Messages extends PHS_Model
             return false;
 
         return $all_importances[$importance];
+    }
+
+    public function check_orphan_thread( $thread_id )
+    {
+        if( !empty( $thread_id ) )
+            $thread_id = intval( $thread_id );
+
+        if( empty( $thread_id )
+         or !($m_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
+         or !($m_table_name = $this->get_flow_table_name( $m_flow_params ))
+         or !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($mu_table_name = $this->get_flow_table_name( $mu_flow_params ))
+         or !($mb_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_body' ) ))
+         or !($mb_table_name = $this->get_flow_table_name( $mb_flow_params )) )
+            return false;
+
+        if( ($qid = db_query( 'SELECT * FROM `'.$m_table_name.'` WHERE thread_id = \''.$thread_id.'\'', $m_flow_params['db_connection'] ))
+        and @mysqli_num_rows( $qid ) )
+        {
+            while( ($message_arr = @mysqli_fetch_assoc( $qid )) )
+            {
+                if( ($tmp_qid = db_query( 'SELECT 1 FROM `'.$mu_table_name.'` WHERE message_id = \''.$message_arr['id'].'\' AND user_id != 0 LIMIT 0, 1', $mu_flow_params['db_connection'] ))
+                and @mysqli_num_rows( $tmp_qid ) )
+                    continue;
+
+                db_query( 'DELETE FROM `'.$m_table_name.'` WHERE id = \''.$message_arr['id'].'\'', $m_flow_params['db_connection'] );
+                db_query( 'DELETE FROM `'.$mu_table_name.'` WHERE message_id = \''.$message_arr['id'].'\'', $mu_flow_params['db_connection'] );
+                db_query( 'DELETE FROM `'.$mb_table_name.'` WHERE message_id = \''.$message_arr['id'].'\'', $mb_flow_params['db_connection'] );
+            }
+        }
+
+        return true;
+    }
+
+    public function act_delete_thread( $message_user_data )
+    {
+        $this->reset_error();
+
+        if( empty( $message_user_data )
+         or !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($mu_table_name = $this->get_flow_table_name( $mu_flow_params ))
+         or !($message_user_arr = $this->data_to_array( $message_user_data, $mu_flow_params ))
+         or empty( $message_user_arr['thread_id'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t find message details in database.' ) );
+            return false;
+        }
+
+        db_query( 'DELETE FROM `'.$mu_table_name.'` WHERE thread_id = \''.$message_user_arr['thread_id'].'\' AND user_id = \''.$message_user_arr['user_id'].'\'', $mu_flow_params['db_connection'] );
+
+        $this->check_orphan_thread( $message_user_arr['thread_id'] );
+
+        return $message_user_arr;
     }
 
     public function get_thread_messages_flow( $thread_id, $user_id )
@@ -1667,8 +1785,10 @@ class PHS_Model_Messages extends PHS_Model
                         'default' => null,
                     ),
                     'type' => array(
-                        'type' => self::FTYPE_TINYINT,
-                        'length' => '2',
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
                         'index' => true,
                         'comment' => 'Normal (can be extended) Link to other data',
                     ),

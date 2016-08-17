@@ -129,13 +129,6 @@ class PHS_Action_View_message extends PHS_Action
             'messages_plugin' => $messages_plugin,
         );
 
-        if( !empty( $message_arr['message_user']['is_new'] )
-        and !empty( $message_arr['message_user']['user_id'] )
-        and $current_user['id'] == $message_arr['message_user']['user_id'] )
-        {
-            $messages_model->mark_as_read( $message_arr['message_user'] );
-        }
-
         return $this->quick_render_template( 'view_message', $data );
     }
 }

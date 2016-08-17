@@ -30,6 +30,14 @@
     if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_REPLY_MESSAGE ) )
         $can_reply_messages = true;
 
+    if( !empty( $message_arr['message_user'] )
+    and !empty( $message_arr['message_user']['is_new'] )
+    and !empty( $message_arr['message_user']['user_id'] )
+    and $current_user['id'] == $message_arr['message_user']['user_id'] )
+    {
+        $messages_model->mark_as_read( $message_arr['message_user'] );
+    }
+
 ?>
 <fieldset class="form-group message_line">
     <?php
@@ -55,14 +63,14 @@
 
         case $messages_model::DEST_TYPE_ROLE:
             if( !empty( $roles_arr[$message_arr['message']['dest_id']] ) )
-                $destination_str = $roles_arr[$message_arr['message']['dest_id']];
+                $destination_str = $roles_arr[$message_arr['message']['dest_id']]['name'];
             else
                 $destination_str = '['.$this->_pt( 'Unknown role' ).']';
         break;
 
         case $messages_model::DEST_TYPE_ROLE_UNIT:
             if( !empty( $roles_units_arr[$message_arr['message']['dest_id']] ) )
-                $destination_str = $roles_units_arr[$message_arr['message']['dest_id']];
+                $destination_str = $roles_units_arr[$message_arr['message']['dest_id']]['name'];
             else
                 $destination_str = '['.$this->_pt( 'Unknown role unit' ).']';
         break;
