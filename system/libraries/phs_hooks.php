@@ -29,6 +29,7 @@ class PHS_Hooks extends PHS_Registry
 
          // Messages hooks
          H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
+         H_MSG_SINGLE_DISPLAY_TYPES_ACTIONS = 'phs_messages_single_types_actions',
 
          // Captcha hooks
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
@@ -72,6 +73,16 @@ class PHS_Hooks extends PHS_Registry
     {
         return self::validate_array_recursive( array(
             'types_arr' => array(),
+        ), self::default_common_hook_args() );
+    }
+
+    public static function default_single_types_actions_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'actions_arr' => array(),
+            'message_data' => false,
+            'destination_str' => '',
+            'author_handle' => '',
         ), self::default_common_hook_args() );
     }
 

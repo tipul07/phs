@@ -15,8 +15,10 @@ class PHS_Model_Messages extends PHS_Model
 {
     const ERR_READ = 10000, ERR_WRITE = 10001;
 
-    const DEST_TYPE_HANDLERS = 1, DEST_TYPE_USERS = 2, DEST_TYPE_LEVEL = 3, DEST_TYPE_ROLE = 4, DEST_TYPE_ROLE_UNIT = 5;
+    const DEST_TYPE_USERS_IDS = 1, DEST_TYPE_HANDLERS = 2, DEST_TYPE_USERS = 3, DEST_TYPE_LEVEL = 4,
+          DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
     protected static $DEST_TYPES_ARR = array(
+        self::DEST_TYPE_USERS_IDS => array( 'title' => 'User IDs' ),
         self::DEST_TYPE_HANDLERS => array( 'title' => 'Handlers list' ),
         self::DEST_TYPE_USERS => array( 'title' => 'User nicknames list' ),
         self::DEST_TYPE_LEVEL => array( 'title' => 'User level' ),
@@ -1099,6 +1101,29 @@ class PHS_Model_Messages extends PHS_Model
         $accounts_count = 0;
         switch( $params['dest_type'] )
         {
+            case self::DEST_TYPE_USERS_IDS:
+                if( empty( $params['dest_type_users_ids'] )
+                 or !($users_parts = self::extract_integers_from_comma_separated( $params['dest_type_users_ids'] )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Users ids list not provided for message destination.' ) );
+                    return false;
+                }
+
+                $list_arr = $users_flow_params;
+                $list_arr['fields']['id'] = array( 'check' => 'IN', 'value' => '('.implode( ',', $users_parts ).')' );
+                $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
+                if( !empty( $account_arr ) )
+                    $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
+
+                if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No users match destination you provided.' ) );
+                    return false;
+                }
+
+                $message_fields['dest_str'] = implode( ', ', $users_parts );
+            break;
+
             case self::DEST_TYPE_USERS:
                 if( empty( $params['dest_type_users'] )
                  or !($users_parts = self::extract_strings_from_comma_separated( $params['dest_type_users'] )) )
@@ -1368,6 +1393,27 @@ class PHS_Model_Messages extends PHS_Model
         $accounts_list = array();
         switch( $message_arr['dest_type'] )
         {
+            case self::DEST_TYPE_USERS_IDS:
+                if( empty( $message_arr['dest_str'] )
+                 or !($users_parts = self::extract_integers_from_comma_separated( $message_arr['dest_str'] )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Users ids list not provided for message destination.' ) );
+                    return false;
+                }
+
+                $list_arr = $users_flow_params;
+                $list_arr['fields']['id'] = array( 'check' => 'IN', 'value' => '('.implode( ',', $users_parts ).')' );
+                $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
+                if( !empty( $author_arr ) )
+                    $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $author_arr['id'] );
+
+                if( !($accounts_list = $accounts_model->get_list( $list_arr )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No users match destination you provided.' ) );
+                    return false;
+                }
+            break;
+
             case self::DEST_TYPE_USERS:
                 if( empty( $message_arr['dest_str'] )
                  or !($users_parts = self::extract_strings_from_comma_separated( $message_arr['dest_str'] )) )
@@ -1512,7 +1558,7 @@ class PHS_Model_Messages extends PHS_Model
 
             if( !($mu_details_arr = $this->insert( $messages_users_arr )) )
             {
-                PHS_Logger::logf( 'Error adding to sent message #'.$message_arr['id'].' for user '.$author_arr['nick'].'.' );
+                PHS_Logger::logf( 'Error inserting sent message #'.$message_arr['id'].' for user '.$author_arr['nick'].' (#'.$author_arr['id'].').' );
             } else
             {
                 if( !empty( $settings_arr['send_emails'] ) )
@@ -1565,7 +1611,7 @@ class PHS_Model_Messages extends PHS_Model
 
             if( !($mu_details_arr = $this->insert( $messages_users_arr )) )
             {
-                PHS_Logger::logf( 'Error sending message #'.$message_arr['id'].' to user '.$account_arr['nick'].'.' );
+                PHS_Logger::logf( 'Error sending message #'.$message_arr['id'].' to user '.$account_arr['nick'].' ('.$account_arr['id'].').' );
 
                 $return_arr['users_not_messaged'][$account_id] = $account_arr;
             } else

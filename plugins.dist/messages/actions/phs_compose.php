@@ -111,6 +111,7 @@ class PHS_Action_Compose extends PHS_Action
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $subject = PHS_params::_p( 'subject', PHS_params::T_NOHTML );
         $dest_type = PHS_params::_p( 'dest_type', PHS_params::T_INT );
+        $dest_type_users_ids = PHS_params::_p( 'dest_type_users_ids', PHS_params::T_NOHTML );
         $dest_type_users = PHS_params::_p( 'dest_type_users', PHS_params::T_NOHTML );
         $dest_type_handlers = PHS_params::_p( 'dest_type_handlers', PHS_params::T_NOHTML );
         $dest_type_level = PHS_params::_p( 'dest_type_level', PHS_params::T_INT );
@@ -120,7 +121,7 @@ class PHS_Action_Compose extends PHS_Action
         $cannot_reply = PHS_params::_p( 'cannot_reply', PHS_params::T_INT );
         $do_submit = PHS_params::_p( 'do_submit' );
 
-        if( !$accounts_model->acc_is_admin( $current_user ) )
+        if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION ) )
             $cannot_reply = 0;
 
         if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_ALL_DESTINATIONS ) )
@@ -158,6 +159,7 @@ class PHS_Action_Compose extends PHS_Action
             $message_params['subject'] = $subject;
             $message_params['body'] = $body;
             $message_params['dest_type'] = $dest_type;
+            $message_params['dest_type_users_ids'] = $dest_type_users_ids;
             $message_params['dest_type_users'] = $dest_type_users;
             $message_params['dest_type_handlers'] = $dest_type_handlers;
             $message_params['dest_type_level'] = $dest_type_level;

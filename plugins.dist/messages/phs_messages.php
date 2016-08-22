@@ -25,7 +25,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
     const ROLEU_READ_MESSAGE = 'phs_messages_read', ROLEU_REPLY_MESSAGE = 'phs_messages_reply', ROLEU_WRITE_MESSAGE = 'phs_messages_write',
           ROLEU_HANDLER_CHANGE = 'phs_messages_handler_change', ROLEU_HANDLER_AUTOCOMPLETE = 'phs_messages_handler_autocomplete',
-          ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous';
+          ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous',
+          ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt';
 
     /**
      * @return string Returns version of model
@@ -224,6 +225,10 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_ALL_DESTINATIONS] = array(
             'name' => 'Write to all destinations',
             'description' => 'Allow user to compose to all destination types',
+        );
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_NO_REPLY_OPTION] = array(
+            'name' => 'No reply option',
+            'description' => 'Allow user to compose messages which cannot be replied',
         );
         $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SEND_ANONYMOUS] = array(
             'name' => 'Send as anonymous',

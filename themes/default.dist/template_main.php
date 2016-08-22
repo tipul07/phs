@@ -161,10 +161,6 @@
     </script>
 
     <script type="text/javascript">
-        function open_login_menu_pane()
-        {
-            $('#login_popup').slideToggle();
-        }
         function open_messages_summary_menu_pane()
         {
             close_menu_panes();
@@ -173,6 +169,10 @@
         function close_messages_summary_menu_pane()
         {
             $('#messages-summary-container' ).hide();
+        }
+        function open_login_menu_pane()
+        {
+            $('#login_popup').slideToggle();
         }
         function open_right_menu_pane()
         {

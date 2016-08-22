@@ -424,6 +424,10 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 $destination_str = '['.$this->_pt( 'Unknown destination' ).']';
             break;
 
+            case $messages_model::DEST_TYPE_USERS_IDS:
+                $destination_str = 'IDs: '.$params['record']['dest_str'];
+            break;
+
             case $messages_model::DEST_TYPE_USERS:
             case $messages_model::DEST_TYPE_HANDLERS:
                 $destination_str = $params['record']['dest_str'];

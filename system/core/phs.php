@@ -654,13 +654,42 @@ final class PHS extends PHS_Registry
          or $action == self::ROUTE_DEFAULT_ACTION )
             $action = false;
 
-        if( !empty( $_SERVER['QUERY_STRING'] ) )
-            @parse_str( $_SERVER['QUERY_STRING'], $query_string );
-
-        if( empty( $query_string ) )
+        if( !($query_string = self::current_page_query_string_as_array()) )
             $query_string = false;
 
         return self::url( array( 'p' => $plugin, 'c' => $controller, 'a' => $action ), $query_string );
+    }
+
+    public static function current_page_query_string_as_array( $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['remove_route_param'] ) )
+            $params['remove_route_param'] = true;
+        if( !isset( $params['exclude_params'] ) or !is_array( $params['exclude_params'] ) )
+            $params['exclude_params'] = array();
+
+        if( !empty( $_SERVER['QUERY_STRING'] ) )
+            @parse_str( $_SERVER['QUERY_STRING'], $query_arr );
+
+        if( empty( $query_arr ) )
+            $query_arr = array();
+
+        if( !empty( $params['remove_route_param'] )
+        and isset( $query_arr[self::ROUTE_PARAM] ) )
+            unset( $query_arr[self::ROUTE_PARAM] );
+
+        if( !empty( $params['exclude_params'] ) )
+        {
+            foreach( $params['exclude_params'] as $param_name )
+            {
+                if( isset( $query_arr[$param_name] ) )
+                    unset( $query_arr[$param_name] );
+            }
+        }
+
+        return $query_arr;
     }
 
     public static function route_from_parts( $parts = false )
@@ -718,6 +747,9 @@ final class PHS extends PHS_Registry
         if( empty( $params['a'] ) )
             $params['a'] = self::ROUTE_DEFAULT_ACTION;
 
+        if( empty( $extra['raw_params'] ) )
+            $extra['raw_params'] = false;
+
         if( !($route = self::route_from_parts( $params )) )
             return '#invalid_path['.
                    (!empty( $params['p'] )?$params['p']:'').'::'.
@@ -735,6 +767,14 @@ final class PHS extends PHS_Registry
 
         if( !($query_string = @http_build_query( $new_args )) )
             $query_string = '';
+
+        if( !empty( $extra['raw_params'] ) and is_array( $extra['raw_params'] ) )
+        {
+            // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
+            // eg. $extra['raw_params'] might be an id passed as javascript function parameter
+            if( ($raw_query = array_to_query_string( $extra['raw_params'], array( 'raw_encode_values' => false ) )) )
+                $query_string .= ($query_string!=''?'&':'').$raw_query;
+        }
 
         //$hook_params = array(
         //  'args' => $new_args,
@@ -819,6 +859,18 @@ final class PHS extends PHS_Registry
         $return_arr[self::ROUTE_ACTION] = self::get_data( self::ROUTE_ACTION );
 
         return $return_arr;
+    }
+
+    public static function get_route_details_for_url()
+    {
+        if( !($route_arr = self::get_route_details()) )
+            return false;
+
+        return array(
+            'p' => $route_arr[self::ROUTE_PLUGIN],
+            'c' => $route_arr[self::ROUTE_CONTROLLER],
+            'a' => $route_arr[self::ROUTE_ACTION],
+        );
     }
 
     public static function get_route_as_string()

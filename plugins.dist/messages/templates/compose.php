@@ -72,6 +72,15 @@
             </div>
         </fieldset>
 
+        <fieldset class="form-group" id="dest_type_users_ids_container" data-s2p-source="dest_type"
+                  data-s2p-show-dest_type="<?php echo $messages_model::DEST_TYPE_USERS_IDS?>" data-s2p-hide-dest_type="*">
+            <label for="dest_type_users_ids"><?php echo $dest_types[$messages_model::DEST_TYPE_USERS_IDS]?></label>
+            <div class="lineform_line">
+                <input type="text" id="dest_type_users_ids" name="dest_type_users_ids" class="form-control" value="<?php echo form_str( $this->context_var( 'dest_type_users_ids' ) )?>" required="required"
+                       placeholder="<?php echo $this->_pt( 'Comma separated user ids' )?>" style="width: 560px;" />
+            </div>
+        </fieldset>
+
         <fieldset class="form-group" id="dest_type_users_container" data-s2p-source="dest_type"
                   data-s2p-show-dest_type="<?php echo $messages_model::DEST_TYPE_USERS?>" data-s2p-hide-dest_type="*">
             <label for="dest_type_users"><?php echo $dest_types[$messages_model::DEST_TYPE_USERS]?></label>
@@ -184,7 +193,7 @@
         </fieldset>
 
         <?php
-        if( $accounts_model->acc_is_admin( $current_user ) )
+        if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION ) )
         {
         ?>
         <fieldset class="form-group">
