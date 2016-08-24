@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.29
+ *  \version 1.30
  */
 
 class PHS_utils extends PHS_Language
@@ -159,7 +159,7 @@ class PHS_utils extends PHS_Language
     {
         self::st_reset_error();
 
-        if( !isset( $segments ) or $segments == '' )
+        if( !isset( $segments ) or $segments === '' )
         {
             self::st_set_error( self::ERR_DIRECTORY, self::_t( 'Cannot create empty directory.' ) );
             return false;
@@ -180,7 +180,7 @@ class PHS_utils extends PHS_Language
         if( @file_exists( $segments_quick ) and @is_dir( $segments_quick ) )
             return true;
 
-        $segments_path = $params['root'];
+        $segments_path = (string)$params['root'];
         if( substr( $segments_path, -1 ) == '/' )
             $segments_path = substr( $segments_path, 0, -1 );
 
@@ -347,7 +347,8 @@ class PHS_utils extends PHS_Language
         if( empty( $params['virtual_file'] ) )
             $params['virtual_file'] = false;
 
-        if( $file === ''
+        $file = (string)$file;
+        if( $file == ''
          or (empty( $params['virtual_file'] ) and (!@file_exists( $file ) or !@is_readable( $file ))) )
             return '';
 
@@ -1105,7 +1106,7 @@ class PHS_utils extends PHS_Language
                         continue;
                     }
 
-                    if( $attr_key == '#' )
+                    if( $attr_key === '#' )
                     {
                         if( is_array( $attr_val ) )
                             $content_str = self::array_to_xml( $attr_val, $new_params );
@@ -1157,7 +1158,7 @@ class PHS_utils extends PHS_Language
         if( empty( $params['convert_flags'] ) )
             $params['convert_flags'] = false;
 
-        if( !is_string( $string ) or $string === '' )
+        if( !is_string( $string ) or $string == '' )
             return '';
 
         if( $params['convert_flags'] == false )

@@ -15,8 +15,9 @@
     //     exit;
     // }
     //
-    // var_dump( $ldap_obj->server_settings() );
-    // var_dump( $ldap_obj->identifier_details( 'companies/3/company_pdf' ) );
+    // // var_dump( $ldap_obj->server_settings() );
+    // var_dump( $ldap_obj->identifier_details( 'companies/2/passport_copy/11' ) );
+    // exit;
 
     // $ldap_add_arr = array();
     // $ldap_add_arr['ldap_from'] = 'companies/2/company_pdf';
