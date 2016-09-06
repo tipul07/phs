@@ -1347,7 +1347,7 @@ final class PHS extends PHS_Registry
 
                 if( !empty( $hook_callback['chained'] )
                 and is_array( $result ) )
-                    $hook_args = self::merge_array_assoc( $hook_args, $result );
+                    $hook_args = self::merge_array_assoc_recursive( $hook_args, $result );
 
                 if( !empty( $resulting_buffer )
                 and !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] )

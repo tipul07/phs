@@ -133,6 +133,26 @@ class PHS_Registry extends PHS_Language
         return $arr1;
     }
 
+    public static function merge_array_assoc_recursive( $arr1, $arr2 )
+    {
+        if( empty( $arr1 ) or !is_array( $arr1 ) )
+            return $arr2;
+        if( empty( $arr2 ) or !is_array( $arr2 ) )
+            return $arr1;
+
+        foreach( $arr2 as $key => $val )
+        {
+            if( !array_key_exists( $key, $arr1 )
+             or !is_array( $val ) )
+                $arr1[$key] = $val;
+
+            else
+                $arr1[$key] = self::merge_array_assoc_recursive( $arr1[$key], $val );
+        }
+
+        return $arr1;
+    }
+
     public static function validate_array_recursive( $arr, $default_arr )
     {
         if( empty( $default_arr ) or !is_array( $default_arr ) )

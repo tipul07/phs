@@ -1524,9 +1524,9 @@ class PHS_Model_Roles extends PHS_Model
      * Parses flow parameters if anything special should be done.
      * This should do checks on raw parameters received by insert method.
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_insert_prepare_params_roles_units_links( $params )
     {

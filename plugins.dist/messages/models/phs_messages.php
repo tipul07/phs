@@ -313,16 +313,6 @@ class PHS_Model_Messages extends PHS_Model
 
             $full_message_arr = $this->emulate_full_message( $message_user_arr, $message_arr, $account_arr );
 
-            // $full_message_arr = $full_message_fields;
-            // $full_message_arr['message'] = $message_arr;
-            // $full_message_arr['message_user'] = $message_user_arr;
-            // $full_message_arr['account_data'] = $account_arr;
-            // $full_message_arr['message_body'] = array(
-            //     'id' => $message_arr['body_id'],
-            //     'message_id' => $message_arr['id'],
-            //     'body' => $this->_pt( 'Message body not available yet...' )
-            // );
-
             $return_arr[$message_arr['id']] = $full_message_arr;
         }
 
