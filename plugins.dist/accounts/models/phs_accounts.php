@@ -1267,6 +1267,21 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
+        if( !empty( $params['{account_roles}'] ) and is_array( $params['{account_roles}'] ) )
+        {
+            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            if( !($roles_model = PHS::load_model( 'roles' ))
+             or !$roles_model->link_roles_to_user( $existing_data, $params['{account_roles}'], array( 'append_roles' => false ) ) )
+            {
+                if( $roles_model->has_error() )
+                    $this->copy_error( $roles_model, self::ERR_EDIT );
+                else
+                    $roles_model->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account roles in database. Please try again.' ) );
+
+                return false;
+            }
+        }
+
         if( !empty( $edit_arr['pass'] )
         and !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
         and !empty( $params['{accounts_settings}']['announce_pass_change'] ) )

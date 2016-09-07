@@ -61,6 +61,7 @@ class PHS_Model_Roles extends PHS_Model
             ),
         );
     }
+
     public function is_active( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
@@ -434,7 +435,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @param array|false $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_insert_prepare_params_roles( $params )
     {

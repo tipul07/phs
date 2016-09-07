@@ -1,6 +1,6 @@
 <?php
 
-// /version 1.20
+// /version 1.23
 
     include( '../../../main.php' );
 
@@ -15,7 +15,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.22,
+        version: 1.23,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -393,16 +393,17 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + suffix);
             if( dialog_obj )
             {
-                var obj_options = PHS_JSEN.dialogOptions( suffix );
-                if( obj_options && obj_options.onclose )
-                {
-                    if( jQuery.isFunction( obj_options.onclose ) )
-                        obj_options.onclose();
-                    else if( typeof obj_options.onclose == "string" )
-                        eval( obj_options.onclose );
-                }
-
-                dialog_obj.remove();
+                //var obj_options = PHS_JSEN.dialogOptions( suffix );
+                //if( obj_options && obj_options.onclose )
+                //{
+                //    if( jQuery.isFunction( obj_options.onclose ) )
+                //        obj_options.onclose();
+                //    else if( typeof obj_options.onclose == "string" )
+                //        eval( obj_options.onclose );
+                //}
+                //
+                //dialog_obj.remove();
+                dialog_obj.dialog( "close" );
             }
         },
 
@@ -577,6 +578,10 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 url_data          : "",
                 // Content from where html() will be used
                 source_obj        : null,
+                // If true source_obj will be appended (preserving DOM objects)
+                source_not_cloned : false,
+                // Tells where to put source_obj DOM object once dialog will get destroyed (if source_not_cloned is true)
+                source_parent     : null,
 
                 draggable         : true,
                 resizable         : false,
@@ -683,11 +688,21 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 {
                     var source_container = null;
                     if( typeof( options.source_obj ) == "string" )
-                        source_container = $('#'+options.source_obj);
-                    else
+                    {
+                        source_container = $( '#' + options.source_obj );
+                        options.source_obj = source_container;
+                    } else
                         source_container = options.source_obj;
 
-                    dialog_obj.html( source_container.html() );
+                    if( !options.source_parent )
+                        options.source_parent = source_container.parent();
+
+                    if( options.source_not_cloned )
+                        dialog_obj.append( source_container );
+                    else
+                        dialog_obj.html( source_container.html() );
+
+
                     dialog_obj.dialog( "open" );
 
                     if( options.onsuccess )
@@ -716,6 +731,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         else if( typeof options.onclose == "string" )
                             eval( options.onclose );
                     }
+
+                    if( options.source_not_cloned && options.source_obj && options.source_parent )
+                        options.source_parent.append( options.source_obj );
 
                     dialog_obj.dialog('destroy').remove();
                     dialog_obj = false;

@@ -59,6 +59,13 @@ class PHS_Action_User_edit extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+        if( !($roles_model = PHS::load_model( 'roles' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load roles model.' ) );
+            return self::default_action_result();
+        }
+
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
@@ -90,6 +97,11 @@ class PHS_Action_User_edit extends PHS_Action
             return $action_result;
         }
 
+        if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
+            $roles_by_slug = array();
+        if( !($account_roles = $roles_model->get_user_roles_slugs( $account_arr )) )
+            $account_roles = array();
+
         if( !($account_details_arr = $accounts_model->get_account_details( $account_arr, array( 'populate_with_empty_data' => true ) )) )
             $account_details_arr = array();
 
@@ -102,6 +114,7 @@ class PHS_Action_User_edit extends PHS_Action
         $pass2 = PHS_params::_p( 'pass2', PHS_params::T_ASIS );
         $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
         $level = PHS_params::_p( 'level', PHS_params::T_INT );
+        $account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
         $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
         $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );
@@ -148,6 +161,7 @@ class PHS_Action_User_edit extends PHS_Action
                 $edit_params_arr = array();
                 $edit_params_arr['fields'] = $edit_arr;
                 $edit_params_arr['{users_details}'] = $edit_details_arr;
+                $edit_params_arr['{account_roles}'] = $account_roles_slugs;
                 $edit_params_arr['{send_confirmation_email}'] = true;
 
                 if( ($new_account = $accounts_model->edit( $account_arr, $edit_params_arr )) )
@@ -182,10 +196,15 @@ class PHS_Action_User_edit extends PHS_Action
             'lname' => $lname,
             'phone' => $phone,
             'company' => $company,
+            'account_roles' => $account_roles,
+
             'accounts_plugin_settings' => $accounts_plugin_settings,
             'user_levels' => $accounts_model->get_levels(),
             'min_password_length' => $accounts_plugin_settings['min_password_length'],
             'password_regexp' => $accounts_plugin_settings['password_regexp'],
+
+            'roles_by_slug' => $roles_by_slug,
+            'roles_model' => $roles_model,
         );
 
         return $this->quick_render_template( 'user_edit', $data );
