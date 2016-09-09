@@ -38,13 +38,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     }
 
     /**
-     * Called first in insert flow.
-     * Parses flow parameters if anything special should be done.
-     * This should do checks on raw parameters received by insert method.
-     *
-     * @param array|false $params Parameters in the flow
-     *
-     * @return array Flow parameters array
+     * @inheritdoc
      */
     protected function get_insert_prepare_params( $params )
     {

@@ -198,7 +198,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      *
      * @param array|false $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_insert_prepare_params( $params )
     {

@@ -473,13 +473,7 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
-     * Called first in insert flow.
-     * Parses flow parameters if anything special should be done.
-     * This should do checks on raw parameters received by insert method.
-     *
-     * @param array|false $params Parameters in the flow
-     *
-     * @return array Flow parameters array
+     * @inheritdoc
      */
     protected function get_insert_prepare_params( $params )
     {
@@ -526,14 +520,7 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
-     * Called first in edit flow.
-     * Parses flow parameters if anything special should be done.
-     * This should do checks on raw parameters received by edit method.
-     *
-     * @param array $existing_arr Array with existing data
-     * @param array|false $params Parameters in the flow
-     *
-     * @return array Flow parameters array
+     * @inheritdoc
      */
     protected function get_edit_prepare_params( $existing_arr, $params )
     {

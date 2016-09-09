@@ -135,6 +135,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $plugins_settings;
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_id()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -144,6 +147,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['instance_id'];
     }
 
+    /**
+     * @return bool
+     */
     final public function instance_is_core()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -153,6 +159,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return ($this->instance_details['plugin_name']==self::CORE_PLUGIN);
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_name()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -162,6 +171,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['instance_name'];
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_name()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -171,6 +183,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['plugin_name'];
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_www()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -180,6 +195,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['plugin_www'];
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_path()
     {
         if( empty( $this->instance_details ) or !is_array( $this->instance_details )
@@ -189,6 +207,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $this->instance_details['plugin_path'];
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_templates_www()
     {
         if( $this->instance_is_core()
@@ -198,6 +219,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $prefix.self::TEMPLATES_DIR.'/';
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_templates_path()
     {
         if( $this->instance_is_core()
@@ -207,6 +231,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $prefix.self::TEMPLATES_DIR.'/';
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_email_templates_www()
     {
         if( $this->instance_is_core()
@@ -216,6 +243,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
     }
 
+    /**
+     * @return bool|string
+     */
     final public function instance_plugin_email_templates_path()
     {
         if( $this->instance_is_core()
@@ -262,6 +292,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return strtolower( $instance_type.':'.$plugin_name.':'.$instance_name );
     }
 
+    /**
+     * @return bool|array
+     */
     public static function valid_instance_id( $instance_id )
     {
         if( empty( $instance_id )
