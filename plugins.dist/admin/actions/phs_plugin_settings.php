@@ -121,6 +121,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             'plugin_obj' => $this->_plugin_obj,
         );
 
+        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $selected_module = PHS_params::_gp( 'selected_module', PHS_params::T_NOHTML );
         $do_submit = PHS_params::_gp( 'do_submit', PHS_params::T_NOHTML );
 
@@ -185,7 +186,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
 
-            if( $field_details['type'] == PHS_params::T_BOOL )
+            if( !empty( $foobar )
+            and $field_details['type'] == PHS_params::T_BOOL )
                 $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
 
             switch( $field_details['input_type'] )

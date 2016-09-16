@@ -14,6 +14,7 @@ class PHS_Logger extends PHS_Registry
           TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
     private static $_logging = true;
+    private static $_custom_channels = array();
     private static $_channels = array();
     private static $_logs_dir = false;
     private static $_request_identifier = false;
@@ -46,14 +47,25 @@ class PHS_Logger extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $channel Channel name (basically this is the log file name). It should end in .log or have no extension.
+     *
+     * @return bool true on success, false on error
+     */
     public static function define_channel( $channel )
     {
-        if( !is_string( $channel )
-         or !PHS::safe_escape_root_script( $channel ) )
+        if( empty( $channel ) or !is_string( $channel ) )
             return false;
 
-        $channel .= '.log';
+        if( strtolower( substr( $channel, -4 ) ) == '.log' )
+            $check_channel = substr( $channel, 0, -4 );
+        else
+            $check_channel = $channel;
 
+        if( !PHS::safe_escape_root_script( $check_channel ) )
+            return false;
+
+        self::$_custom_channels[$channel] = 1;
         self::$_channels[$channel] = 1;
 
         return true;
@@ -110,7 +122,7 @@ class PHS_Logger extends PHS_Registry
             }
         }
 
-        self::$_channels = array();
+        self::$_channels = self::$_custom_channels;
         foreach( $types_arr as $type )
         {
             if( !self::valid_type( $type ) )

@@ -267,7 +267,7 @@
                                     break;
 
                                     case PHS_params::T_BOOL:
-                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="<?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo(!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                                        ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="<?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo (!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
 
                                     default:

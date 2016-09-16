@@ -3,9 +3,10 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\libraries\PHS_Hooks;
     use \phs\PHS_crypt;
+    use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Model;
+    use \phs\libraries\PHS_Logger;
 
     //if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     //{

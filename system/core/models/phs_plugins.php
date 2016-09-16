@@ -258,7 +258,7 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
 
         if( empty( $db_details['settings'] ) )
-            self::$plugin_settings[$instance_id] = array();
+            self::$plugin_settings[$instance_id] = (!empty( $default_settings )?$default_settings:array());
 
         else
         {
@@ -434,10 +434,13 @@ class PHS_Model_Plugins extends PHS_Model
 
         $new_fields_arr = $validate_fields['data_arr'];
         // Try updating settings...
-        if( !empty( $new_fields_arr['settings'] )
-        and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
+        if( !empty( $new_fields_arr['settings'] ) )
         {
-            $new_fields_arr['settings'] = PHS_line_params::to_string( self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) ) );
+            if( !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
+                $new_fields_arr['settings'] = self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) );
+
+            $new_fields_arr['settings'] = PHS_line_params::to_string( $new_fields_arr['settings'] );
+
             PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_INFO );
         }
 
