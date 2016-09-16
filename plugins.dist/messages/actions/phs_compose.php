@@ -109,16 +109,16 @@ class PHS_Action_Compose extends PHS_Action
             $roles_units_arr = array();
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $subject = PHS_params::_p( 'subject', PHS_params::T_NOHTML );
-        $dest_type = PHS_params::_p( 'dest_type', PHS_params::T_INT );
-        $dest_type_users_ids = PHS_params::_p( 'dest_type_users_ids', PHS_params::T_NOHTML );
-        $dest_type_users = PHS_params::_p( 'dest_type_users', PHS_params::T_NOHTML );
-        $dest_type_handlers = PHS_params::_p( 'dest_type_handlers', PHS_params::T_NOHTML );
-        $dest_type_level = PHS_params::_p( 'dest_type_level', PHS_params::T_INT );
-        $dest_type_role = PHS_params::_p( 'dest_type_role', PHS_params::T_INT );
-        $dest_type_role_unit = PHS_params::_p( 'dest_type_role_unit', PHS_params::T_INT );
-        $body = PHS_params::_p( 'body', PHS_params::T_NOHTML );
-        $cannot_reply = PHS_params::_p( 'cannot_reply', PHS_params::T_INT );
+        $subject = PHS_params::_pg( 'subject', PHS_params::T_NOHTML );
+        $dest_type = PHS_params::_pg( 'dest_type', PHS_params::T_INT );
+        $dest_type_users_ids = PHS_params::_pg( 'dest_type_users_ids', PHS_params::T_NOHTML );
+        $dest_type_users = PHS_params::_pg( 'dest_type_users', PHS_params::T_NOHTML );
+        $dest_type_handlers = PHS_params::_pg( 'dest_type_handlers', PHS_params::T_NOHTML );
+        $dest_type_level = PHS_params::_pg( 'dest_type_level', PHS_params::T_INT );
+        $dest_type_role = PHS_params::_pg( 'dest_type_role', PHS_params::T_INT );
+        $dest_type_role_unit = PHS_params::_pg( 'dest_type_role_unit', PHS_params::T_INT );
+        $body = PHS_params::_pg( 'body', PHS_params::T_NOHTML );
+        $cannot_reply = PHS_params::_pg( 'cannot_reply', PHS_params::T_INT );
         $do_submit = PHS_params::_p( 'do_submit' );
 
         if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION ) )

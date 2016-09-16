@@ -1,6 +1,6 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.1.13' );
+define( 'PHS_VERSION', '1.0.1.14' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
@@ -70,7 +70,8 @@ include_once( PHS_CORE_DIR.'phs_scope.php' );
 include_once( PHS_CORE_DIR.'phs_bg_jobs.php' );
 include_once( PHS_CORE_DIR.'phs_ajax.php' );
 // Used to manage big number of files (initialize repostories in plugin's phs_bootstrap_x.php files)
-// Make sure you create dirtories in uploads dir and you don't initialize a LDAP root directly in uploads dir - unless you know what you'r doing!!!)
+// Make sure you create repositories' directories in uploads dir and you don't initialize a LDAP repository directly in uploads dir - unless you know what you'r doing!!!)
+// eg. if uploads dfirectory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
 include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 
 use \phs\PHS;
@@ -100,6 +101,10 @@ if( !defined( 'PHS_LOGS_DIR' ) )
     else
         define( 'PHS_LOGS_DIR', PHS_DEFAULT_LOGS_DIR );
 }
+
+// Site build version
+if( !defined( 'PHS_SITEBUILD_VERSION' ) )
+    define( 'PHS_SITEBUILD_VERSION', PHS_VERSION );
 
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );

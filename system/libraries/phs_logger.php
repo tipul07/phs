@@ -8,7 +8,8 @@ use \phs\PHS_Scope;
 //! Class which handles all logging in platform
 class PHS_Logger extends PHS_Registry
 {
-    const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log', TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log',
+    const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
+          TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log',
           // this constants are used only to tell log_channels() method it should log redefined sets of channels
           TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
@@ -41,6 +42,19 @@ class PHS_Logger extends PHS_Registry
         if( empty( self::$_channels ) or !is_array( self::$_channels )
          or empty( self::$_channels[$channel] ) )
             return false;
+
+        return true;
+    }
+
+    public static function define_channel( $channel )
+    {
+        if( !is_string( $channel )
+         or !PHS::safe_escape_root_script( $channel ) )
+            return false;
+
+        $channel .= '.log';
+
+        self::$_channels[$channel] = 1;
 
         return true;
     }

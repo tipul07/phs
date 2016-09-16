@@ -136,6 +136,7 @@ final class PHS extends PHS_Registry
             'page_description' => '',
             // anything that is required in head tag
             'page_in_header' => '',
+            'page_only_buffer' => false,
         );
     }
 
@@ -531,7 +532,7 @@ final class PHS extends PHS_Registry
     public static function safe_escape_root_script( $script )
     {
         if( empty( $script ) or !is_string( $script )
-            or preg_match( '@[^a-zA-Z0-9_\-]@', $script ) )
+         or preg_match( '@[^a-zA-Z0-9_\-]@', $script ) )
             return false;
 
         return $script;

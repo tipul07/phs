@@ -198,6 +198,10 @@
 </head>
 
 <body <?php echo $action_result['page_body_extra_tags']?>>
+<?php
+if( empty( $action_result['page_settings']['page_only_buffer'] ) )
+{
+?>
 <div id="main_submit_protection" style="display: none; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 10000;">
     <div style="position: relative; width: 100%; height: 100%;">
         <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background: #333; opacity: 0.5; filter:alpha(opacity=50)"></div>
@@ -481,6 +485,7 @@
     <!-- END: page_header -->
 
     <div id="content"><?php
+}
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
         and is_array( $hook_args )
@@ -489,6 +494,8 @@
 
         echo $action_result['buffer'];
 
+if( empty( $action_result['page_settings']['page_only_buffer'] ) )
+{
     ?><div class="clearfix"></div></div>
     <div class="clearfix" style="margin-bottom: 10px;"></div>
 
@@ -515,7 +522,7 @@
                              ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s';
             }
             ?>
-            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
+            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
         <!-- END: page_footer -->
     </footer>
@@ -523,6 +530,9 @@
 
 </div>
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/lightbox.js' )?>"></script>
+<?php
+}
+?>
 </body>
 </html>
 

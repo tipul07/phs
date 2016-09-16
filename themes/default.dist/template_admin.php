@@ -164,6 +164,10 @@
 </head>
 
 <body <?php echo $action_result['page_body_extra_tags']?>>
+<?php
+if( empty( $action_result['page_settings']['page_only_buffer'] ) )
+    {
+?>
 <div id="main_submit_protection" style="display: none; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 10000;">
     <div style="position: relative; width: 100%; height: 100%;">
         <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background: #333; opacity: 0.5; filter:alpha(opacity=50)"></div>
@@ -172,8 +176,8 @@
                 <div style="margin: 0px auto; display: table;">
 
                     <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; min-width:250px; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
-                        <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
-                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' )?></p>
+                        <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' ) ?>"></div>
+                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' ) ?></p>
                     </div>
 
                 </div>
@@ -183,197 +187,198 @@
 </div>
 <div id="container">
     <div id="menu-left-pane" class="menu-pane">
-        <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
+        <div class="main-menu-pane-close-button" style="float: right; ">
+            <a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a>
+        </div>
         <div class="clearfix"></div>
 
         <ul>
-        <?php
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['buffer'] ) )
-            echo $hook_args['buffer'];
-
-        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
-        {
-            ?>
-            <li><?php echo $this::_t( 'Plugins Management' ) ?>
-                <ul>
-                    <li><a href="<?php echo PHS::url( array(
-                                                              'a' => 'plugins_list', 'p' => 'admin'
-                                                      ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
-                </ul>
-            </li>
             <?php
-        }
-        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
-        {
-            ?>
-            <li><?php echo $this::_t( 'Roles Management' ) ?>
-                <ul>
+                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU,
+                                                      PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                )
+                    echo $hook_args['buffer'];
+
+                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
+                {
+                    ?>
+                    <li><?php echo $this::_t( 'Plugins Management' ) ?>
+                        <ul>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                      'a' => 'plugins_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
+                        </ul>
+                    </li>
                     <?php
-                        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
-                        {
+                }
+                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
+                {
+                    ?>
+                    <li><?php echo $this::_t( 'Roles Management' ) ?>
+                        <ul>
+                            <?php
+                                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
+                                {
+                                    ?>
+                                    <li><a href="<?php echo PHS::url( array(
+                                                                              'a' => 'role_add', 'p' => 'admin'
+                                                                      ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
+                                    </li>
+                                    <?php
+                                }
                             ?>
                             <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'role_add', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
-                            </li>
-                            <?php
-                        }
-                    ?>
-                    <li><a href="<?php echo PHS::url( array(
-                                                              'a' => 'roles_list', 'p' => 'admin'
-                                                      ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
-                </ul>
-            </li>
-            <?php
-        }
-        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
-        {
-            ?>
-            <li><?php echo $this::_t( 'Users Management' ) ?>
-                <ul>
+                                                                      'a' => 'roles_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
+                        </ul>
+                    </li>
                     <?php
-                    if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
-                    {
-                        ?>
-                        <li><a href="<?php echo PHS::url( array(
-                                                                  'a' => 'user_add', 'p' => 'admin'
-                                                          ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
-                        </li>
-                        <?php
-                    }
+                }
+                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
+                {
                     ?>
-                    <li><a href="<?php echo PHS::url( array(
-                                                              'a' => 'users_list', 'p' => 'admin'
-                                                      ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
-                </ul>
-            </li>
-            <?php
-        }
+                    <li><?php echo $this::_t( 'Users Management' ) ?>
+                        <ul>
+                            <?php
+                                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+                                {
+                                    ?>
+                                    <li><a href="<?php echo PHS::url( array(
+                                                                              'a' => 'user_add', 'p' => 'admin'
+                                                                      ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                                    </li>
+                                    <?php
+                                }
+                            ?>
+                            <li><a href="<?php echo PHS::url( array(
+                                                                      'a' => 'users_list', 'p' => 'admin'
+                                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
+                        </ul>
+                    </li>
+                    <?php
+                }
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['buffer'] ) )
-            echo $hook_args['buffer'];
+                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
+                                                      PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                )
+                    echo $hook_args['buffer'];
 
-        ?>
+            ?>
         </ul>
 
     </div>
     <div class="clearfix"></div>
 
     <div id="menu-right-pane" class="menu-pane">
-        <div class="main-menu-pane-close-button" style="float: left; "><a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
+        <div class="main-menu-pane-close-button" style="float: left; ">
+            <a href="javascript:void()" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a>
+        </div>
         <div class="clearfix"></div>
 
         <ul>
-        <?php
-
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['buffer'] ) )
-            echo $hook_args['buffer'];
-
-            if( !empty( $cuser_arr ) )
-        {
-            ?>
-            <li><p><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></p></li>
-
-            <li><a href="<?php echo PHS::url( array(
-                                                  'p' => 'accounts',
-                                                  'a' => 'edit_profile'
-                                              ) ) ?>"><?php echo $this::_t( 'Edit Profile' ) ?></a></li>
-            <li><a href="<?php echo PHS::url( array(
-                                                  'p' => 'accounts',
-                                                  'a' => 'change_password'
-                                              ) ) ?>"><?php echo $this::_t( 'Change Password' ) ?></a></li>
-            <li><a href="<?php echo PHS::url( array(
-                                                  'p' => 'accounts',
-                                                  'a' => 'logout'
-                                              ) ) ?>"><?php echo $this::_t( 'Logout' ) ?></a></li>
             <?php
-        } else
-        {
-            ?>
-            <li><a href="<?php echo PHS::url( array(
-                                                  'p' => 'accounts',
-                                                  'a' => 'register'
-                                              ) ) ?>"><?php echo $this::_t( 'Register' ) ?></a></li>
-            <li>
-                <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
-                    <div style="float:right;" class="fa fa-arrow-down"></div>
-                </a>
-                <div id="login_popup" style="display: none; padding: 10px;">
-                    <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
-                                                                                                                             'p' => 'accounts',
-                                                                                                                             'a' => 'login'
-                                                                                                                         ) ) ?>">
-                        <div class="menu-pane-form-line">
-                            <label for="mt_nick"><?php echo (empty( $accounts_plugin_settings['no_nickname_only_email'] )?$this::_t( 'Username' ):$this::_t( 'Email' ))?></label>
-                            <input type="text" id="mt_nick" class="form-control" name="nick" required />
-                        </div>
-                        <div class="menu-pane-form-line">
-                            <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
-                            <input type="password" id="mt_nick" class="form-control" name="pass" required />
-                        </div>
-                        <div class="menu-pane-form-line fixskin">
-                            <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
-                            <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" required />
-                            <div class="clearfix"></div>
-                        </div>
-                        <div class="menu-pane-form-line">
-                            <div style="float: left;"><a href="<?php echo PHS::url( array(
-                                                                                        'p' => 'accounts',
-                                                                                        'a' => 'forgot'
-                                                                                    ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
-                            </div>
-                            <div style="float: right; right: 10px;">
-                                <input type="submit" name="submit" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
-                            <div class="clearfix"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="clearfix"></div>
-            </li>
-            <?php
-        }
 
-        if( ($defined_languages = PHS_Language::get_defined_languages())
-        and count( $defined_languages ) > 1 )
-        {
-            if( !($current_language = PHS_Language::get_current_language())
-             or empty( $defined_languages[$current_language] ) )
-                $current_language = PHS_Language::get_default_language();
+                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU,
+                                                      PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                )
+                    echo $hook_args['buffer'];
 
-            ?>
-            <li><span><?php echo $this::_t( 'Choose language' )?></span>
-                <ul>
-                <?php
-                foreach( $defined_languages as $lang => $lang_details )
+                if( !empty($cuser_arr) )
                 {
-                    $language_flag = '';
-                    if( !empty( $lang_details['flag_file'] ) and !empty( $lang_details['dir'] ) and !empty( $lang_details['www'] )
-                    and @file_exists( $lang_details['dir'].$lang_details['flag_file'] ) )
-                        $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
-
-                    $language_link = 'javascript:alert( "In work..." )';
-
                     ?>
-                    <li><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
+                    <li><p><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></p></li>
+
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'p' => 'accounts', 'a' => 'edit_profile'
+                                                      ) ) ?>"><?php echo $this::_t( 'Edit Profile' ) ?></a></li>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'p' => 'accounts', 'a' => 'change_password'
+                                                      ) ) ?>"><?php echo $this::_t( 'Change Password' ) ?></a></li>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'p' => 'accounts', 'a' => 'logout'
+                                                      ) ) ?>"><?php echo $this::_t( 'Logout' ) ?></a></li>
                     <?php
                 }
-                ?>
-                </ul>
-            </li>
-            <?php
-        }
+                else
+                {
+                    ?>
+                    <li><a href="<?php echo PHS::url( array(
+                                                              'p' => 'accounts', 'a' => 'register'
+                                                      ) ) ?>"><?php echo $this::_t( 'Register' ) ?></a></li>
+                    <li>
+                        <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
+                            <div style="float:right;" class="fa fa-arrow-down"></div>
+                        </a>
+                        <div id="login_popup" style="display: none; padding: 10px;">
+                            <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
+                                                                                                                                         'p' => 'accounts',
+                                                                                                                                         'a' => 'login'
+                                                                                                                                 ) ) ?>">
+                                <div class="menu-pane-form-line">
+                                    <label for="mt_nick"><?php echo(empty($accounts_plugin_settings['no_nickname_only_email']) ? $this::_t( 'Username' ) : $this::_t( 'Email' )) ?></label>
+                                    <input type="text" id="mt_nick" class="form-control" name="nick" required/>
+                                </div>
+                                <div class="menu-pane-form-line">
+                                    <label for="mt_nick"><?php echo $this::_t( 'Password' ) ?></label>
+                                    <input type="password" id="mt_nick" class="form-control" name="pass" required/>
+                                </div>
+                                <div class="menu-pane-form-line fixskin">
+                                    <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
+                                    <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" required/>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="menu-pane-form-line">
+                                    <div style="float: left;"><a href="<?php echo PHS::url( array(
+                                                                                                    'p' => 'accounts',
+                                                                                                    'a' => 'forgot'
+                                                                                            ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
+                                    </div>
+                                    <div style="float: right; right: 10px;">
+                                        <input type="submit" name="submit" value="<?php echo $this::_t( 'Login' ) ?>"/>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="clearfix"></div>
+                    </li>
+                    <?php
+                }
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['buffer'] ) )
-            echo $hook_args['buffer'];
-        ?>
+                if( ($defined_languages = PHS_Language::get_defined_languages()) and count( $defined_languages ) > 1 )
+                {
+                    if( !($current_language = PHS_Language::get_current_language()) or empty($defined_languages[$current_language]) )
+                        $current_language = PHS_Language::get_default_language();
+
+                    ?>
+                    <li><span><?php echo $this::_t( 'Choose language' ) ?></span>
+                        <ul>
+                            <?php
+                                foreach( $defined_languages as $lang => $lang_details )
+                                {
+                                    $language_flag = '';
+                                    if( !empty($lang_details['flag_file']) and !empty($lang_details['dir']) and !empty($lang_details['www']) and @file_exists( $lang_details['dir'] . $lang_details['flag_file'] ) )
+                                        $language_flag = '<span style="margin: 0 5px;"><img src="' . $lang_details['www'] . $lang_details['flag_file'] . '" /></span> ';
+
+                                    $language_link = 'javascript:alert( "In work..." )';
+
+                                    ?>
+                                    <li>
+                                        <a href="<?php echo $language_link ?>"><?php echo $language_flag . $lang_details['title'] ?></a>
+                                    </li>
+                                    <?php
+                                }
+                            ?>
+                        </ul>
+                    </li>
+                    <?php
+                }
+
+                if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU,
+                                                      PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                )
+                    echo $hook_args['buffer'];
+            ?>
         </ul>
 
     </div>
@@ -382,62 +387,67 @@
     <header id="header">
         <div id="header_content">
             <div id="logo">
-                <a href="<?php echo PHS::url()?>"><img src="<?php echo $this->get_resource_url( 'images/logo.png' )?>" alt="<?php echo PHS_SITE_NAME?>" title="<?php echo PHS_SITE_NAME?>" /></a>
+                <a href="<?php echo PHS::url() ?>"><img src="<?php echo $this->get_resource_url( 'images/logo.png' ) ?>" alt="<?php echo PHS_SITE_NAME ?>" title="<?php echo PHS_SITE_NAME ?>"/></a>
                 <div class="clearfix"></div>
             </div>
 
             <div id="menu">
                 <nav>
                     <ul>
-                        <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a></li>
+                        <li class="main-menu-placeholder">
+                            <a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a>
+                        </li>
 
                         <?php
-                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
-                        and is_array( $hook_args )
-                        and !empty( $hook_args['buffer'] ) )
-                            echo $hook_args['buffer'];
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU,
+                                                                  PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                            )
+                                echo $hook_args['buffer'];
                         ?>
 
-                        <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Site Index' )?></a></li>
+                        <li>
+                            <a href="<?php echo PHS::url() ?>" onfocus="this.blur();"><?php echo $this::_t( 'Site Index' ) ?></a>
+                        </li>
 
                         <?php
-                        if( empty( $cuser_arr ) )
-                        {
-                            ?>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                  'p' => 'accounts',
-                                                                  'a' => 'register'
-                                                              ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' ) ?></a>
-                            </li>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                  'p' => 'accounts',
-                                                                  'a' => 'login'
-                                                              ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Login' ) ?></a>
-                            </li>
-                            <?php
-                        }
+                            if( empty($cuser_arr) )
+                            {
+                                ?>
+                                <li><a href="<?php echo PHS::url( array(
+                                                                          'p' => 'accounts', 'a' => 'register'
+                                                                  ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Register' ) ?></a>
+                                </li>
+                                <li><a href="<?php echo PHS::url( array(
+                                                                          'p' => 'accounts', 'a' => 'login'
+                                                                  ) ) ?>" onfocus="this.blur();"><?php echo $this::_t( 'Login' ) ?></a>
+                                </li>
+                                <?php
+                            }
 
-                        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU, PHS_Hooks::default_buffer_hook_args() ))
-                        and is_array( $hook_args )
-                        and !empty( $hook_args['buffer'] ) )
-                            echo $hook_args['buffer'];
+                            if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU,
+                                                                  PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
+                            )
+                                echo $hook_args['buffer'];
                         ?>
-            </ul>
+                    </ul>
                 </nav>
                 <div id="user_info">
                     <nav>
                         <ul>
                             <?php
-                            if( !empty( $mail_hook_args['summary_buffer'] ) )
-                            {
+                                if( !empty($mail_hook_args['summary_buffer']) )
+                                {
+                                    ?>
+                                    <li class="main-menu-placeholder">
+                                        <a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new'] ?></span></a>
+                                        <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer'] ?></div>
+                                    </li>
+                                    <?php
+                                }
                             ?>
-                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']?></span></a>
-                                <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']?></div>
+                            <li class="main-menu-placeholder">
+                                <a href="javascript:void(0)" onclick="open_right_menu_pane()" onfocus="this.blur();" class="fa fa-user main-menu-icon"></a>
                             </li>
-                            <?php
-                            }
-                            ?>
-                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_right_menu_pane()" onfocus="this.blur();" class="fa fa-user main-menu-icon"></a></li>
 
                         </ul>
                     </nav>
@@ -450,6 +460,7 @@
     <div class="clearfix"></div>
 
     <div id="content"><?php
+}
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
         and is_array( $hook_args )
@@ -458,6 +469,9 @@
 
         echo $action_result['buffer'];
 
+
+if( empty( $action_result['page_settings']['page_only_buffer'] ) )
+{
     ?><div class="clearfix"></div></div>
     <div class="clearfix"></div>
 
@@ -480,13 +494,16 @@
                              ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s';
             }
             ?>
-            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
+            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
     </footer>
     <div class="clearfix"></div>
 
 </div>
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/lightbox.js' )?>"></script>
+<?php
+}
+?>
 </body>
 </html>
 
