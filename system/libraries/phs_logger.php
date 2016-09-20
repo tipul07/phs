@@ -201,6 +201,7 @@ class PHS_Logger extends PHS_Registry
         if( $stop_logging )
             return true;
 
+        @clearstatcache();
         if( !($log_size = @filesize( $log_file )) )
             $log_size = 0;
 

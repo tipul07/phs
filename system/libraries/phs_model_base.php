@@ -902,8 +902,13 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             case self::FTYPE_SMALLINT:
             case self::FTYPE_MEDIUMINT:
             case self::FTYPE_INT:
-            case self::FTYPE_BIGINT:
                 $value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr );
+            break;
+
+            case self::FTYPE_BIGINT:
+                $value = trim( $value );
+                if( @function_exists( 'bcmul' ) )
+                    $value = bcmul( $value, 1, 0 );
             break;
 
             case self::FTYPE_DATE:
@@ -1114,7 +1119,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             or
 
-            !($params = $this->get_insert_prepare_params( $params ))
+            (
+                !@method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] )
+                and
+                !($params = $this->get_insert_prepare_params( $params ))
+            )
         )
         {
             if( !$this->has_error() )
@@ -1151,15 +1160,21 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         // Set to tell future calls record was just added to database...
         $insert_arr['{new_in_db}'] = true;
 
+        $insert_after_exists = (@method_exists( $this, 'insert_after_'.$params['table_name'] )?true:false);
+
         if( (
-                @method_exists( $this, 'insert_after_'.$params['table_name'] )
+                $insert_after_exists
                 and
-                !($new_insert_arr = call_user_func( array( $this, 'insert_after_' . $params['table_name'] ), $insert_arr, $params ))
+                !($new_insert_arr = @call_user_func( array( $this, 'insert_after_' . $params['table_name'] ), $insert_arr, $params ))
             )
 
             or
 
-            !($new_insert_arr = $this->insert_after( $insert_arr, $params ))
+            (
+                !$insert_after_exists
+                and
+                !($new_insert_arr = $this->insert_after( $insert_arr, $params ))
+            )
         )
         {
             $error_arr = $this->get_error();
@@ -1206,7 +1221,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             or
 
-            !($params = $this->get_edit_prepare_params( $existing_arr, $params ))
+            (
+                !@method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] )
+                and
+                !($params = $this->get_edit_prepare_params( $existing_arr, $params ))
+            )
         )
         {
             if( !$this->has_error() )
@@ -1242,16 +1261,27 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        $new_edit_arr = false;
+        if( !empty( $edit_arr ) )
+        {
+            foreach( $edit_arr as $key => $val )
+                $existing_arr[$key] = $val;
+        }
+
+        $edit_after_exists = (@method_exists( $this, 'edit_after_'.$params['table_name'] )?true:false);
+
         if( (
-                @method_exists( $this, 'edit_after_'.$params['table_name'] )
+                $edit_after_exists
                 and
-                !($new_edit_arr = @call_user_func( array( $this, 'edit_after_' . $params['table_name'] ), $existing_arr, $edit_arr, $params ))
+                !($new_existing_arr = @call_user_func( array( $this, 'edit_after_' . $params['table_name'] ), $existing_arr, $edit_arr, $params ))
             )
 
             or
 
-            !($new_edit_arr = $this->edit_after( $existing_arr, $edit_arr, $params ))
+            (
+                !$edit_after_exists
+                and
+                !($new_existing_arr = $this->edit_after( $existing_arr, $edit_arr, $params ))
+            )
         )
         {
             if( !$this->has_error() )
@@ -1260,14 +1290,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        if( !empty( $new_edit_arr ) )
-            $edit_arr = $new_edit_arr;
-
-        if( !empty( $edit_arr ) )
-        {
-            foreach( $edit_arr as $key => $val )
-                $existing_arr[$key] = $val;
-        }
+        $existing_arr = $new_existing_arr;
 
         return $existing_arr;
     }

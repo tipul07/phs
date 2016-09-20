@@ -3,8 +3,25 @@
 if( !defined( 'PHS_VERSION' ) )
     exit;
 
+if( !defined( 'DATETIME_T_EMPTY' ) )
+    define( 'DATETIME_T_EMPTY', '0000-00-00T00:00:00' );
+if( !defined( 'DATETIME_T_FORMAT' ) )
+    define( 'DATETIME_T_FORMAT', 'Y-m-d\TH:i:s' );
+
 use \phs\PHS_db;
 use \phs\libraries\PHS_Model;
+
+
+function generate_guid()
+{
+    return sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+                    mt_rand(0, 65535), mt_rand(0, 65535),
+                    mt_rand(0, 65535),
+                    mt_rand(16384, 20479),
+                    mt_rand(32768, 49151),
+                    mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)
+    );
+}
 
 function validate_ip( $ip )
 {
@@ -293,6 +310,125 @@ function validate_db_date_array( $date_arr )
         return false;
 
     return true;
+}
+
+function empty_t_date( $date )
+{
+    return (empty( $date ) or $date == DATETIME_T_EMPTY or $date == PHS_Model::DATE_EMPTY);
+}
+
+function is_t_date( $date, $params = false )
+{
+    if( is_string( $date ) )
+        $date = trim( $date );
+
+    if( empty( $date )
+     or !is_string( $date )
+     or strstr( $date, 'T' ) === false )
+        return false;
+
+    if( empty_t_date( $date ) )
+        return array( 0, 0, 0, 0, 0, 0 );
+
+    if( empty( $params ) or !is_array( $params ) )
+        $params = array();
+
+    if( !isset( $params['validate_intervals'] ) )
+        $params['validate_intervals'] = true;
+    else
+        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+
+    if( strstr( $date, 'T' ) )
+    {
+        $d = explode( 'T', $date );
+        $date_ = explode( '-', $d[0] );
+        $time_ = explode( ':', $d[1], 3 );
+    } else
+    {
+        $date_ = explode( '-', $date );
+        $time_ = array( 0, 0, 0 );
+    }
+
+    for( $i = 0; $i < 3; $i++ )
+    {
+        if( !isset( $date_[$i] )
+         or !isset( $time_[$i] ) )
+            return false;
+
+        if( $i == 2
+        and !empty( $time_[$i] ) )
+        {
+            // try removing any timezone at the end of format...
+            $time_[$i] = substr( $time_[$i], 0, 2 );
+        }
+
+        $date_[$i] = intval( $date_[$i] );
+        $time_[$i] = intval( $time_[$i] );
+    }
+
+    $result_arr = array_merge( $date_, $time_ );
+    if( !empty( $params['validate_intervals'] )
+    and !validate_db_date_array( $result_arr ) )
+        return false;
+
+    return $result_arr;
+}
+
+function parse_t_date( $date, $params = false )
+{
+    if( empty( $params ) or !is_array( $params ) )
+        $params = array();
+
+    if( !isset( $params['offset_seconds'] ) and !isset( $params['offset_hours'] ) )
+        $params['offset_seconds'] = 0;
+
+    else
+    {
+        // offset in seconds...
+        if( isset( $params['offset_seconds'] ) )
+            $params['offset_seconds'] = intval( $params['offset_seconds'] );
+
+        else
+        {
+            // offset in hours...
+            if( empty( $params['offset_hours'] ) )
+                $params['offset_seconds'] = 0;
+
+            else
+                $params['offset_seconds'] = intval( $params['offset_hours'] ) * 3600;
+        }
+
+        $params['offset_seconds'] = @date( 'Z' ) - $params['offset_seconds'];
+    }
+
+    if( !isset( $params['validate_intervals'] ) )
+        $params['validate_intervals'] = true;
+    else
+        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+
+    if( is_array( $date ) )
+    {
+        for( $i = 0; $i < 6; $i++ )
+        {
+            if( !isset( $date[$i] ) )
+                return 0;
+
+            $date[$i] = intval( $date[$i] );
+        }
+
+        $date_arr = $date;
+
+        if( !empty( $params['validate_intervals'] )
+        and !validate_db_date_array( $date_arr ) )
+            return 0;
+    } elseif( is_string( $date ) )
+    {
+        if( !($date_arr = is_t_date( $date, $params )) )
+            return 0;
+    } else
+        return 0;
+
+    return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] ) + $params['offset_seconds'];
 }
 
 function is_db_date( $date, $params = false )
