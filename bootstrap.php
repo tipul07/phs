@@ -1,11 +1,12 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.1.17' );
+define( 'PHS_VERSION', '1.0.1.18' );
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
+define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
 define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
-define( 'PHS_DEFAULT_HTTPS', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
+define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
 
 // Root folders
 define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
@@ -202,9 +203,10 @@ include_once( PHS_SYSTEM_DIR.'database_init.php' );
 //
 
 define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!=''?':':'').PHS_PORT.'/'.PHS_DOMAIN_PATH );
+define( 'PHS_FULL_SSL_PATH_WWW', PHS_DOMAIN.(PHS_SSL_PORT!=''?':':'').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH );
 
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
-define( 'PHS_HTTPS', 'http://'.PHS_FULL_PATH_WWW );
+define( 'PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW );
 
 if( !($base_url = PHS::get_base_url()) )
     $base_url = '/';

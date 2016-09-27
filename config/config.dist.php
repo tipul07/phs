@@ -10,6 +10,8 @@ define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
 define( 'PHS_DOMAIN', 'domain.only.com' );
 // port if site is accessible with a port other than 80. If default port used (80) leave empty
 define( 'PHS_PORT', 'site port' );
+// https port if site is accessible with a port other than 443. If default port used (443) leave empty
+define( 'PHS_SSL_PORT', 'https site port' );
 // if root URL is accessible with a path appended to domain name. Leave empty if domain points to root of platform
 define( 'PHS_DOMAIN_PATH', '/site/path/' ); // ending in /
 

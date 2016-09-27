@@ -347,6 +347,7 @@ final class PHS extends PHS_Registry
             'PHS_SITE_NAME' => 'PHS_DEFAULT_SITE_NAME',
             'PHS_DOMAIN' => 'PHS_DEFAULT_DOMAIN',
             'PHS_PORT' => 'PHS_DEFAULT_PORT',
+            'PHS_SSL_PORT' => 'PHS_DEFAULT_SSL_PORT',
             'PHS_DOMAIN_PATH' => 'PHS_DEFAULT_DOMAIN_PATH',
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',

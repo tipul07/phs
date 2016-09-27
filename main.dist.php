@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.1.17' );
+define( 'PHS_KNOWN_VERSION', '1.0.1.18' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -24,6 +24,7 @@ define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
 // If no domain is defined for current request in config directory system will use PHS_DEFAULT_* values
 define( 'PHS_DEFAULT_DOMAIN', 'domain.com' ); // only domain name (used to set cookies)
 define( 'PHS_DEFAULT_PORT', '' ); // port (if applicable) if using default port don't put anything here
+define( 'PHS_DEFAULT_SSL_PORT', '' ); // https port (if applicable) if using default port don't put anything here
 define( 'PHS_DEFAULT_DOMAIN_PATH', 'url/path/to/root/' ); // tells the path from domain to get to root URL of the platform
 
 // Default database settings (these settings will be used when creating default database connection)
