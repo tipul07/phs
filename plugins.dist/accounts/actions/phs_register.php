@@ -89,10 +89,14 @@ class PHS_Action_Register extends PHS_Action
         if( !empty( $do_submit ) )
         {
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
+            /*
             if( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load captcha plugin.' ) );
 
-            elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
+            else
+            */
+
+            if( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
                 and empty( $hook_result['check_valid'] ) )
             {
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )

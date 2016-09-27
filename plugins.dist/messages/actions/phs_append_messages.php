@@ -153,12 +153,12 @@ class PHS_Action_Append_messages extends PHS_Action
                 if( !($message_arr = $messages_model->full_data_to_array( $render_message_id, $current_user )) )
                     continue;
 
-                if( !($author_handler = $messages_model->get_relative_account_message_handler( $message_arr['message']['from_uid'], $current_user )) )
-                    $author_handler = '['.$this->_pt( 'Unknown author' ).']';
+                if( !($author_handle = $messages_model->get_relative_account_message_handler( $message_arr['message']['from_uid'], $current_user )) )
+                    $author_handle = '['.$this->_pt( 'Unknown author' ).']';
 
                 $data = array(
                     'message_arr' => $message_arr,
-                    'author_handler' => $author_handler,
+                    'author_handle' => $author_handle,
 
                     'thread_messages_arr' => $thread_messages_arr,
 

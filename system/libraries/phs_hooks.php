@@ -40,6 +40,10 @@ class PHS_Hooks extends PHS_Registry
          H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
          // triggered to manage user fields at registration
          H_USERS_REGISTRATION = 'phs_users_registration',
+         // triggered before user details get updated (used to change user details fields)
+         H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
+         // triggered after user details are updated
+         H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
 
          // Layout triggers
          H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
@@ -99,6 +103,26 @@ class PHS_Hooks extends PHS_Registry
         return self::validate_array_recursive( array(
             'data_arr' => array(),
             'flow_params' => false,
+        ), self::default_common_hook_args() );
+    }
+
+    // Default hook parameters sent for hooks related to user account
+    public static function default_user_account_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'account_data' => false,
+            'account_details_data' => false,
+        ), self::default_common_hook_args() );
+    }
+
+    // Default hook parameters sent for hooks related to user account (including insert/edit parameters)
+    public static function default_user_account_fields_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'account_data' => false,
+            'account_details_data' => false,
+            'account_fields' => false,
+            'account_details_fields' => false,
         ), self::default_common_hook_args() );
     }
 

@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.1.16' );
+define( 'PHS_KNOWN_VERSION', '1.0.1.17' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -36,6 +36,7 @@ define( 'PHS_DB_PREFIX', '' );
 define( 'PHS_DB_PORT', '3306' );
 define( 'PHS_DB_TIMEZONE', date( 'P' ) );
 define( 'PHS_DB_CHARSET', 'UTF8' );
+define( 'PHS_DB_DRIVER_SETTINGS', @json_encode( array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' ) ) );
 
 // Controlling database library behaviour (if different than default one)
 // if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
@@ -82,13 +83,14 @@ define( 'PHS_DEFAULT_SESSION_AUTOSTART', false );
 // END Default session settings
 
 // Default framework logging dir... (you can setup logs dir per domain in config/* files by defining PHS_LOGS_DIR)
-define( 'PHS_FRAMEWORK_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+define( 'PHS_FRAMEWORK_LOGS_DIR', PHS_PATH.'system/logs/' );
 
 // Default framework uploads dir... (you can setup upload dir per domain in config/* files by defining PHS_UPLOADS_DIR)
 define( 'PHS_FRAMEWORK_UPLOADS_DIR', PHS_PATH.'_uploads/' );
 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
 define( 'PHS_DEFAULT_THEME', 'default' );
+define( 'PHS_THEME', 'default' );
 
 // Default crypting keys...
 define( 'PHS_DEFAULT_CRYPT_KEY', '@#&*(PHS_cryptencodingKeY!#@)^-=[]{};,./<>?' );

@@ -410,4 +410,59 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         return $hook_args;
     }
+
+    public function trigger_user_details_fields( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_account_fields_hook_args() );
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( empty( $hook_args['account_data'] )
+         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         or !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+            return $hook_args;
+
+        $account_details_arr = false;
+        if( empty( $hook_args['account_details_data'] ) )
+            $hook_args['account_details_data'] = false;
+        elseif( !($account_details_arr = $accounts_details_model->data_to_array( $hook_args['account_details_data'] )) )
+            return $hook_args;
+
+        if( empty( $hook_args['account_details_fields'] ) or !is_array( $hook_args['account_details_fields'] ) )
+            $hook_args['account_details_fields'] = array();
+
+        if( empty( $account_details_arr ) or !is_array( $account_details_arr )
+         or empty( $account_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
+            $hook_args['account_details_fields'][self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
+
+        return $hook_args;
+    }
+
+    public function trigger_user_registration( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_account_hook_args() );
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( empty( $hook_args['account_data'] )
+         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         or !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+            return $hook_args;
+
+        if( empty( $hook_args['account_details_data'] ) or !is_array( $hook_args['account_details_data'] )
+         or empty( $hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER] ) )
+        {
+            if( empty( $hook_args['account_details_data'] ) or !is_array( $hook_args['account_details_data'] ) )
+                $hook_args['account_details_data'] = array();
+
+            if( !($updated_account_arr = $accounts_model->update_user_details( $account_arr, $hook_args['account_details_data'] )) )
+                return $hook_args;
+
+            $hook_args['account_data'] = $updated_account_arr;
+            if( !empty( $updated_account_arr['{users_details}'] ) )
+                $hook_args['account_details_data'] = $updated_account_arr['{users_details}'];
+        }
+
+        return $hook_args;
+    }
 }

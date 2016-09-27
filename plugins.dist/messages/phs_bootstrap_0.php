@@ -90,4 +90,32 @@ and $messages_plugin->plugin_active() )
             'priority' => 10,
         )
     );
+
+    PHS::register_hook(
+    // $hook_name
+        PHS_Hooks::H_USERS_DETAILS_FIELDS,
+        // $hook_callback = null
+        array( $messages_plugin, 'trigger_user_details_fields' ),
+        // $hook_extra_args = null
+        PHS_Hooks::default_user_account_fields_hook_args(),
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
+    );
+
+    PHS::register_hook(
+    // $hook_name
+        PHS_Hooks::H_USERS_REGISTRATION,
+        // $hook_callback = null
+        array( $messages_plugin, 'trigger_user_registration' ),
+        // $hook_extra_args = null
+        PHS_Hooks::default_user_account_hook_args(),
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 10,
+        )
+    );
 }

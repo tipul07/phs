@@ -796,7 +796,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @param array $params Parameters in the flow
      *
-     * @return array Flow parameters array
+     * @return array|bool Flow parameters array
      */
     protected function get_insert_prepare_params_users( $params )
     {
@@ -981,7 +981,11 @@ class PHS_Model_Accounts extends PHS_Model
         else
             $roles_arr = array( PHS_Roles::ROLE_MEMBER );
 
-        if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, array( 'roles_arr' => $roles_arr, 'account_data' => $insert_arr ) ))
+        $hook_args = PHS_Hooks::default_user_registration_roles_hook_args();
+        $hook_args['roles_arr'] = $roles_arr;
+        $hook_args['account_data'] = $insert_arr;
+
+        if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, $hook_args ))
         and is_array( $extra_roles_arr ) and !empty( $extra_roles_arr['roles_arr'] ) )
             $roles_arr = self::merge_array_assoc( $extra_roles_arr['roles_arr'], $roles_arr );
 
@@ -1017,7 +1021,7 @@ class PHS_Model_Accounts extends PHS_Model
                 // Not sure if we must delete account just because we had error while sending confirmation email...
                 if( false )
                 {
-                    if( !empty($insert_arr['{users_details}']) )
+                    if( !empty( $insert_arr['{users_details}'] ) )
                         $accounts_details_model->hard_delete( $insert_arr['{users_details}'] );
 
                     return false;
@@ -1025,9 +1029,13 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( ($hook_user_arr = PHS::trigger_hooks( PHS_Hooks::H_USERS_REGISTRATION, array( 'account_data' => $insert_arr ) ))
-        and is_array( $hook_user_arr ) and !empty( $hook_user_arr['account_data'] ) )
-            $insert_arr = $hook_user_arr['account_data'];
+        $hook_args = PHS_Hooks::default_user_account_hook_args();
+        $hook_args['account_data'] = $insert_arr;
+        $hook_args['account_details_data'] = $insert_arr['{users_details}'];
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_REGISTRATION, $hook_args ))
+        and is_array( $hook_args ) and !empty( $hook_args['account_data'] ) )
+            $insert_arr = $hook_args['account_data'];
 
         return $insert_arr;
     }
@@ -1035,9 +1043,6 @@ class PHS_Model_Accounts extends PHS_Model
     public function update_user_details( $account_data, $user_details_arr )
     {
         $this->reset_error();
-
-        if( empty( $user_details_arr ) or !is_array( $user_details_arr ) )
-            return true;
 
         if( !($flow_params = $this->fetch_default_flow_params()) )
         {
@@ -1060,6 +1065,18 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $account_arr['details_id'] )
          or !($users_details = $accounts_details_model->get_details( $account_arr['details_id'] )) )
             $users_details = false;
+
+        $hook_args = PHS_Hooks::default_user_account_fields_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['account_details_data'] = $users_details;
+        $hook_args['account_details_fields'] = $user_details_arr;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_DETAILS_FIELDS, $hook_args ))
+        and is_array( $hook_args ) and !empty( $hook_args['account_details_fields'] ) )
+            $user_details_arr = $hook_args['account_details_fields'];
+
+        if( empty( $user_details_arr ) or !is_array( $user_details_arr ) )
+            return true;
 
         if( empty( $users_details ) )
         {
@@ -1107,6 +1124,14 @@ class PHS_Model_Accounts extends PHS_Model
 
         $account_arr['details_id'] = $users_details['id'];
         $account_arr['{users_details}'] = $users_details;
+
+        $hook_args = PHS_Hooks::default_user_account_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['account_details_data'] = $users_details;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_DETAILS_UPDATED, $hook_args ))
+        and is_array( $hook_args ) and !empty( $hook_args['account_data'] ) )
+            $account_arr = $hook_args['account_data'];
 
         return $account_arr;
     }
