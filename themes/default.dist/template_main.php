@@ -319,15 +319,15 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                                                                                                                          ) ) ?>">
                         <div class="menu-pane-form-line form-group">
                             <label for="mt_nick"><?php echo (empty( $accounts_plugin_settings['no_nickname_only_email'] )?$this::_t( 'Username' ):$this::_t( 'Email' ))?></label>
-                            <input type="text" id="mt_nick" class="form-control" name="nick" required />
+                            <input type="text" id="mt_nick" class="form-control" name="nick" required="required" />
                         </div>
                         <div class="menu-pane-form-line form-group">
                             <label for="mt_pass"><?php echo $this::_t( 'Password' ) ?></label>
-                            <input type="password" id="mt_pass" class="form-control" name="pass" required />
+                            <input type="password" id="mt_pass" class="form-control" name="pass" required="required" />
                         </div>
                         <div class="menu-pane-form-line fixskin">
                             <label for="mt_do_remember"><?php echo $this::_t( 'Remember Me' ) ?></label>
-                            <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" required />
+                            <input type="checkbox" id="mt_do_remember" name="do_remember" rel="skin_checkbox" value="1" />
                             <div class="clearfix"></div>
                         </div>
                         <div class="menu-pane-form-line form-group" style="width:100%;">
