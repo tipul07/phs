@@ -172,6 +172,7 @@ class PHS_Error
      *   @param int $error_no Error code
      *   @param string $error_msg Error message
      *   @param string $error_debug_msg Error message
+     * @return array
      **/
     public static function arr_set_error( $error_no, $error_msg, $error_debug_msg = '' )
     {

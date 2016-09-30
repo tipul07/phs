@@ -169,9 +169,10 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, array(
-            'action' => $this,
-        ) );
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['action'] = $this;
+
+        PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args );
 
         self::st_reset_error();
 
@@ -213,9 +214,10 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, array(
-            'action' => $this,
-        ) );
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['action'] = $this;
+
+        PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args );
 
         return $this->get_action_result();
     }

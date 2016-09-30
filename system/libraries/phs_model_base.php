@@ -1497,7 +1497,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         foreach( $params['fields'] as $field_name => $field_val )
         {
             $field_name = trim( $field_name );
-            if( empty( $field_name ) )
+            if( empty( $field_name ) and $field_name !== '0' )
                 continue;
 
             if( $field_name == '{linkage}' )
@@ -1520,7 +1520,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 continue;
             }
 
-            if( strstr( $field_name, '.' ) === false )
+            if( !is_numeric( $field_name )
+            and strstr( $field_name, '.' ) === false )
                 $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
 
             if( !is_array( $field_val ) )
@@ -1529,6 +1530,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                     $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_name.' = \''.db_escape( $field_val, $db_connection ).'\' ';
             } else
             {
+                if( !isset( $field_val['raw'] ) )
+                    $field_val['raw'] = false;
                 if( empty( $field_val['field'] ) )
                     $field_val['field'] = $field_name;
                 if( empty( $field_val['check'] ) )
@@ -1536,7 +1539,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 if( !isset( $field_val['value'] ) )
                     $field_val['value'] = false;
 
-                if( $field_val['value'] !== false )
+                if( !empty( $field_val['raw'] ) )
+                    $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').$field_val['raw'];
+
+                elseif( $field_val['value'] !== false )
                 {
                     $field_val['check'] = trim( $field_val['check'] );
                     if( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )

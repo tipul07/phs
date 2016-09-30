@@ -179,17 +179,18 @@ class PHS_Logger extends PHS_Registry
 
         $log_time = date( 'd-m-Y H:i:s T' );
 
+        $hook_args = self::validate_array( array(
+            'stop_logging' => false,
+            'log_file' => $log_file,
+            'log_time' => $log_time,
+            'request_identifier' => self::$_request_identifier,
+            'request_ip' => $request_ip,
+            'str' => $str,
+        ), PHS_Hooks::default_common_hook_args() );
+
         $stop_logging = false;
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_LOG, array(
-                'stop_logging' => false,
-                'log_file' => $log_file,
-                'log_time' => $log_time,
-                'request_identifier' => self::$_request_identifier,
-                'request_ip' => $request_ip,
-                'str' => $str,
-            ) ))
-            and is_array( $hook_args )
-        )
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_LOG, $hook_args ))
+        and is_array( $hook_args ) )
         {
             $stop_logging = (!empty( $hook_args['stop_logging'] )?true:false);
             if( !empty( $hook_args['request_ip'] ) )

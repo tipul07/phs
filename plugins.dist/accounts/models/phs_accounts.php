@@ -271,7 +271,10 @@ class PHS_Model_Accounts extends PHS_Model
             return $levels_arr;
 
         $new_levels_arr = self::$LEVELS_ARR;
-        if( ($extra_levels_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_LEVELS, array( 'levels_arr' => self::$LEVELS_ARR ) ))
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['levels_arr'] = self::$LEVELS_ARR;
+
+        if( ($extra_levels_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_LEVELS, $hook_args ))
         and is_array( $extra_levels_arr ) and !empty( $extra_levels_arr['levels_arr'] ) )
             $new_levels_arr = self::merge_array_assoc( $extra_levels_arr['levels_arr'], $new_levels_arr );
 
@@ -338,8 +341,11 @@ class PHS_Model_Accounts extends PHS_Model
         if( !empty( $statuses_arr ) )
             return $statuses_arr;
 
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['statuses_arr'] = self::$STATUSES_ARR;
+
         $new_statuses_arr = self::$STATUSES_ARR;
-        if( ($extra_statuses_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
+        if( ($extra_statuses_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_STATUSES, $hook_args ))
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
             $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
@@ -401,6 +407,15 @@ class PHS_Model_Accounts extends PHS_Model
 
     public static function generate_password( $len = 10 )
     {
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['length'] = $len;
+        // encoded password here...
+        $hook_args['generated_pass'] = false;
+
+        if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_GENERATE_PASS, $hook_args ))
+        and is_array( $new_hook_args ) and !empty( $new_hook_args['generated_pass'] ) )
+            return $new_hook_args['generated_pass'];
+
         $dict = '!ac5d#befgh9ij1kl2mn*q3(pr)4s_t-6u=vw7xy,8z.'; // all lower characters
         $dict_len = strlen( $dict );
 
@@ -419,6 +434,16 @@ class PHS_Model_Accounts extends PHS_Model
 
     public static function encode_pass( $pass, $salt )
     {
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['pass'] = $pass;
+        $hook_args['salt'] = $salt;
+        // encoded password here...
+        $hook_args['encoded_pass'] = false;
+
+        if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_ENCODE_PASS, $hook_args ))
+        and is_array( $new_hook_args ) and !empty( $new_hook_args['encoded_pass'] ) )
+            return $new_hook_args['encoded_pass'];
+
         return md5( $salt.'_'.$pass );
     }
 
@@ -1323,21 +1348,26 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function get_count_list_common_params( $params = false )
     {
+        $model_table = $this->get_flow_table_name( $params );
+
         if( !empty( $params['flags'] ) and is_array( $params['flags'] ) )
         {
             if( empty( $params['db_fields'] ) )
                 $params['db_fields'] = '';
 
-            $model_table = $this->get_flow_table_name( $params );
             foreach( $params['flags'] as $flag )
             {
                 switch( $flag )
                 {
                     case 'include_account_details':
 
+                        $old_error_arr = PHS::st_stack_error();
                         if( !($account_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() ))
                          or !($user_details_table = $account_details_model->get_flow_table_name()) )
+                        {
+                            PHS::st_restore_errors( $old_error_arr );
                             continue;
+                        }
 
                         $params['db_fields'] .= ', `'.$user_details_table.'`.title AS users_details_title, '.
                                                 ' `'.$user_details_table.'`.fname AS users_details_fname, '.
@@ -1346,6 +1376,89 @@ class PHS_Model_Accounts extends PHS_Model
                                                 ' `'.$user_details_table.'`.company AS users_details_company ';
                         $params['join_sql'] .= ' LEFT JOIN `'.$user_details_table.'` ON `'.$user_details_table.'`.id = `'.$model_table.'`.details_id ';
                     break;
+                }
+            }
+        }
+
+        if( empty( $params['one_of_role_unit'] ) or !is_array( $params['one_of_role_unit'] ) )
+            $params['one_of_role_unit'] = false;
+        if( empty( $params['one_of_role'] ) or !is_array( $params['one_of_role'] ) )
+            $params['one_of_role'] = false;
+
+        if( empty( $params['all_role_units'] ) or !is_array( $params['all_role_units'] ) )
+            $params['all_role_units'] = false;
+        if( empty( $params['all_roles'] ) or !is_array( $params['all_roles'] ) )
+            $params['all_roles'] = false;
+
+        if( !empty( $params['one_of_role_unit'] )
+         or !empty( $params['all_role_units'] )
+         or !empty( $params['one_of_role'] )
+         or !empty( $params['all_roles'] ) )
+        {
+            $old_error_arr = PHS::st_stack_error();
+            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            if( !($roles_model = PHS::load_model( 'roles' ))
+             or !($roles_users_flow = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+             or !($roles_users_table = $roles_model->get_flow_table_name( $roles_users_flow ))
+            )
+                PHS::st_restore_errors( $old_error_arr );
+
+            else
+            {
+                if( !empty( $params['one_of_role_unit'] ) and is_array( $params['one_of_role_unit'] ) )
+                {
+                    if( ($one_of_role = $roles_model->get_roles_ids_for_roles_units_list( $params['one_of_role_unit'] ))
+                    and is_array( $one_of_role ) )
+                    {
+                        if( empty( $params['one_of_role'] ) or !is_array( $params['one_of_role'] ) )
+                            $params['one_of_role'] = $one_of_role;
+
+                        else
+                            $params['one_of_role'] = array_merge( $params['one_of_role'], $one_of_role );
+                    }
+                }
+
+                if( !empty( $params['all_role_units'] ) and is_array( $params['all_role_units'] ) )
+                {
+                    if( ($all_roles = $roles_model->get_roles_ids_for_roles_units_list( $params['all_role_units'] ))
+                    and is_array( $all_roles ) )
+                    {
+                        if( empty( $params['all_roles'] ) or !is_array( $params['all_roles'] ) )
+                            $params['all_roles'] = $all_roles;
+
+                        else
+                            $params['all_roles'] = array_merge( $params['all_roles'], $all_roles );
+                    }
+                }
+
+                $roles_users_joined = false;
+                if( !empty( $params['one_of_role'] )
+                and ($one_of_role_ids = $roles_model->roles_list_to_ids( $params['one_of_role'] ))
+                and is_array( $one_of_role_ids ))
+                {
+                    if( empty( $roles_users_joined ) )
+                        $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
+
+                    $roles_users_joined = true;
+
+                    $params['fields'][] = array(
+                        'raw' => 'EXISTS (SELECT 1 FROM `'.$roles_users_table.'` '.
+                                    ' WHERE `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id AND `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $one_of_role_ids ).'))',
+                    );
+                }
+
+                if( !empty( $params['all_roles'] )
+                and ($all_roles_ids = $roles_model->roles_list_to_ids( $params['all_roles'] ))
+                and is_array( $all_roles_ids ))
+                {
+                    if( empty( $roles_users_joined ) )
+                        $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
+
+                    $roles_users_joined = true;
+
+                    $params['fields'][] = array(
+                        'raw' => '(`'.$roles_users_table.'`.user_id = `'.$model_table.'`.id AND `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $all_roles_ids ).'))',
+                    );
                 }
             }
         }

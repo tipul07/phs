@@ -8,6 +8,15 @@
     use \phs\libraries\PHS_Model;
     use \phs\libraries\PHS_Logger;
 
+    // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Companies $companies_model */
+    // $companies_model = PHS::load_model( 'companies', 's2p_companies' );
+    //
+    //
+    // var_dump( $companies_model->request_activation( 1, 1 ) );
+    // var_dump( $companies_model->seconds_till_activation_request( 1 ) );
+    // var_dump( $companies_model->get_error() );
+    // exit;
+
     //if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     //{
     //    echo 'accounts inactive';

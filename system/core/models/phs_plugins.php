@@ -93,7 +93,10 @@ class PHS_Model_Plugins extends PHS_Model
             return $statuses_arr;
 
         $new_statuses_arr = self::$STATUSES_ARR;
-        if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, array( 'statuses_arr' => self::$STATUSES_ARR ) ))
+        $hook_args = PHS_Hooks::default_common_hook_args();
+        $hook_args['statuses_arr'] = self::$STATUSES_ARR;
+
+        if( ($extra_statuses_arr = PHS::trigger_hooks( self::HOOK_STATUSES, $hook_args ))
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
             $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
@@ -269,7 +272,10 @@ class PHS_Model_Plugins extends PHS_Model
             if( !empty( $default_settings ) )
                 self::$plugin_settings[$instance_id] = self::validate_array_recursive( self::$plugin_settings[$instance_id], $default_settings );
 
-            if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, array( 'settings_arr' => self::$plugin_settings[$instance_id] ) ))
+            $hook_args = PHS_Hooks::default_common_hook_args();
+            $hook_args['settings_arr'] = self::$plugin_settings[$instance_id];
+
+            if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, $hook_args ))
             and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
                 self::$plugin_settings[$instance_id] = self::validate_array_recursive( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
         }

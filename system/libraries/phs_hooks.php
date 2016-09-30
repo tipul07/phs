@@ -21,6 +21,9 @@ class PHS_Hooks extends PHS_Registry
          // URL hooks
          H_URL_PARAMS = 'phs_url_params',
 
+         // Location / Scripts hooks
+         H_PAGE_INDEX = 'phs_page_index',
+
          // Email hooks
          H_EMAIL_INIT = 'phs_email_init',
 
@@ -44,6 +47,12 @@ class PHS_Hooks extends PHS_Registry
          H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
          // triggered after user details are updated
          H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
+         // triggered when encoding user passwords
+         H_USERS_ENCODE_PASS = 'phs_users_encode_pass',
+         // triggered when generating user passwords
+         H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
+         // triggered after user logs in successfully
+         H_USERS_AFTER_LOGIN = 'phs_users_after_login',
 
          // Layout triggers
          H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
@@ -71,6 +80,17 @@ class PHS_Hooks extends PHS_Registry
         return array(
             'hook_errors' => self::default_error_array(),
         );
+    }
+
+    public static function default_page_location_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'action_result' => false,
+            'page_template' => false,
+            'page_template_args' => false,
+            'new_page_template' => false,
+            'new_page_template_args' => false,
+        ), self::default_common_hook_args() );
     }
 
     public static function default_message_types_hook_args()

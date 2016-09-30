@@ -3,10 +3,11 @@
 namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
-use \phs\PHS_Scope;
 
 class PHS_Action_Login extends PHS_Action
 {
@@ -59,6 +60,12 @@ class PHS_Action_Login extends PHS_Action
         and PHS::user_logged_in()
         and !PHS_Notifications::have_notifications_errors() )
         {
+            $hook_args = PHS_Hooks::default_page_location_hook_args();
+
+            if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
+            and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+                return $new_hook_args['action_result'];
+
             PHS_Notifications::add_success_notice( $this->_pt( 'Already logged in...' ) );
 
             $action_result = self::default_action_result();
@@ -98,6 +105,12 @@ class PHS_Action_Login extends PHS_Action
 
                 if( $accounts_plugin->do_login( $account_arr, $login_params ) )
                 {
+                    $hook_args = PHS_Hooks::default_page_location_hook_args();
+
+                    if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
+                    and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+                        return $new_hook_args['action_result'];
+
                     PHS_Notifications::add_success_notice( $this->_pt( 'Successfully logged in...' ) );
 
                     $action_result = self::default_action_result();
