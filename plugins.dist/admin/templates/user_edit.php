@@ -67,7 +67,7 @@
             <label for="level"><?php echo $this->_pt( 'Roles' )?></label>
             <div class="lineform_line">
             <div id="account_current_roles"></div>
-            <a href="javascript:void(0)" onclick="open_roles_dialogue()">Change roles</a>
+            <a href="javascript:void(0)" onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
             </div>
         </fieldset>
 

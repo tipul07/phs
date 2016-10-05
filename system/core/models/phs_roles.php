@@ -536,6 +536,29 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
+    public function get_roles_ids_for_roles_units_list_grouped( $role_units_arr )
+    {
+        if( empty( $role_units_arr ) or !is_array( $role_units_arr )
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !($role_units_ids = $this->role_units_list_to_ids( $role_units_arr ))
+         or !is_array( $role_units_ids )
+         or !($qid = db_query( 'SELECT role_id, role_unit_id FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE role_unit_id IN ('.@implode( ',', $role_units_ids ).')', $flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
+            return array();
+
+        $return_arr = array();
+        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( empty( $return_arr[$link_arr['role_unit_id']] ) )
+                $return_arr[$link_arr['role_unit_id']] = array();
+
+            $return_arr[$link_arr['role_unit_id']][] = $link_arr['role_id'];
+        }
+
+        return $return_arr;
+    }
+
     public function get_role_ids_for_user( $user_id )
     {
         $this->reset_error();
