@@ -14,6 +14,8 @@ class PHS_View extends PHS_Signal_and_slot
 
     const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
+    const THEMES_PLUGINS_TEMPLATES_DIR = 'plugins';
+
     protected $_template = '';
     protected $_theme = '';
     // Array of directories where we check if template exists
@@ -334,6 +336,49 @@ class PHS_View extends PHS_Signal_and_slot
         $this->_template_dirs = array();
 
         $current_language = PHS_Language::get_current_language();
+
+        if( defined( 'PHS_THEMES_WWW' ) and defined( 'PHS_THEMES_DIR' ) )
+        {
+            // Check if current theme overrides plugin template
+            $plugins_check_arr = array( $this->_action, $this->_controller, $this->parent_plugin(), $this->get_plugin_instance() );
+            foreach( $plugins_check_arr as $instance_obj )
+            {
+                if( empty( $instance_obj )
+                 or !is_object( $instance_obj )
+                 or !($instance_obj instanceof PHS_Instantiable)
+                 or $instance_obj->instance_is_core() )
+                    continue;
+
+                $plugin_name = $instance_obj->instance_plugin_name();
+
+                if( !empty( $this->_theme )
+                and @file_exists( PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name )
+                and @is_dir( PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name ) )
+                {
+                    if( @file_exists( PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language )
+                    and @is_dir( PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language ) )
+                        $this->_template_dirs[PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/']
+                            = PHS_THEMES_WWW . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/';
+
+                    $this->_template_dirs[PHS_THEMES_DIR . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/']
+                            = PHS_THEMES_WWW . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/';
+                }
+
+                if( ($default_theme = PHS::get_default_theme())
+                and $default_theme != $this->_theme
+                and @file_exists( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name )
+                and @is_dir( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name ) )
+                {
+                    if( @file_exists( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language )
+                    and @is_dir( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language ) )
+                        $this->_template_dirs[PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/']
+                            = PHS_THEMES_WWW . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/';
+
+                    $this->_template_dirs[PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/']
+                            = PHS_THEMES_WWW . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/';
+                }
+            }
+        }
 
         // take first dirs custom ones... (if any)
         if( !empty( $this->_extra_template_dirs ) and is_array( $this->_extra_template_dirs ) )
