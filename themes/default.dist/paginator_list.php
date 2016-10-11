@@ -364,10 +364,6 @@
                             $cell_content = '(???)';
                     }
 
-                    if( empty( $column_arr['display_callback'] )
-                    and $paginator_obj->get_checkbox_name_for_column( $column_arr ) )
-                        $column_arr['display_callback'] = array( $paginator_obj, 'display_checkbox_column' );
-
                     if( !empty( $column_arr['display_callback'] ) )
                     {
                         if( !@is_callable( $column_arr['display_callback'] ) )
@@ -388,11 +384,37 @@
                             $cell_callback_params['column']         = $column_arr;
                             $cell_callback_params['table_field']    = $field_details;
                             $cell_callback_params['preset_content'] = $cell_content;
+                            $cell_callback_params['model_obj']      = $model_obj;
 
                             if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
                              or $cell_content === null )
                                 $cell_content = '[' . $this::_t( 'Render cell call failed.' ) . ']';
                         }
+                    }
+
+                    // Allow display_callback parameter on checkbox fields...
+                    $checkbox_callback = array( $paginator_obj, 'display_checkbox_column' );
+                    if( $paginator_obj->get_checkbox_name_for_column( $column_arr )
+                    and is_callable( $checkbox_callback ) )
+                    {
+                        if( !isset( $record_arr[$field_name] )
+                         or !($field_details = $model_obj->table_field_details( $field_name ))
+                         or !is_array( $field_details ) )
+                            $field_details = false;
+
+                        $cell_callback_params                   = $paginator_obj->default_cell_render_call_params();
+                        $cell_callback_params['page_index']     = $knti;
+                        $cell_callback_params['list_index']     = $offset + $knti;
+                        $cell_callback_params['columns_count']  = $columns_count;
+                        $cell_callback_params['record']         = $record_arr;
+                        $cell_callback_params['column']         = $column_arr;
+                        $cell_callback_params['table_field']    = $field_details;
+                        $cell_callback_params['preset_content'] = $cell_content;
+                        $cell_callback_params['model_obj']      = $model_obj;
+
+                        if( ($checkbox_content = @call_user_func( $checkbox_callback, $cell_callback_params )) !== false
+                        and $checkbox_content !== null and is_string( $checkbox_content ) )
+                            $cell_content = $checkbox_content;
                     }
 
                     ?><td class="<?php echo $column_arr['extra_records_classes']?>" style="<?php echo $column_arr['extra_records_style']?>"><?php echo $cell_content?></td><?php

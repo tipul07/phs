@@ -36,6 +36,32 @@ function phs_close_messages_summary_popup()
 {
     $("#<?php echo (!empty( $summary_container_id )?$summary_container_id:'messages-summary-popup')?>").hide();
 }
+function phs_messages_summary_delete_message( id )
+{
+    var ajax_params = {
+        cache_response: false,
+        method: 'post',
+        url_data: { pag_act_params: id, pag_act: 'do_delete' },
+        data_type: 'json',
+
+        onsuccess: function( response, status, ajax_obj ) {
+            hide_submit_protection();
+
+            if( $("#pop_msg_" + id) )
+                $("#pop_msg_" + id).hide();
+
+            PHS_JSEN.js_messages( [ "<?php echo $this->_pt( 'Message deleted with success.' )?>" ], "success" );
+        },
+
+        onfailed: function( ajax_obj, status, error_exception ) {
+            hide_submit_protection();
+
+            PHS_JSEN.js_messages( [ "<?php echo $this->_pt( 'Error deleting message. Please retry.' )?>" ], "error" );
+        }
+    };
+
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ) )?>", ajax_params );
+}
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">
     <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>">Inbox</a> (<?php echo $messages_new?>/<?php echo $messages_count?>)
@@ -59,7 +85,7 @@ function phs_close_messages_summary_popup()
         {
             $message_link = PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $full_message_arr['message_user']['id'] ) );
 
-            ?><div class="pop_msg <?php echo ($messages_model->is_new( $full_message_arr )?'pop_msg_new':'')?>">
+            ?><div class="pop_msg <?php echo ($messages_model->is_new( $full_message_arr )?'pop_msg_new':'')?>" id="pop_msg_<?php echo $full_message_arr['message_user']['id']?>">
             <div class="pop_msg_title"><a href="<?php echo $message_link?>"><?php echo $full_message_arr['message']['subject']?></a></div>
             <div class="pop_msg_date">
                 <?php echo date( 'Y-M-d H:i', parse_db_date( $full_message_arr['message_user']['cdate'] ) )?>
@@ -71,7 +97,7 @@ function phs_close_messages_summary_popup()
                     ?> <a href="<?php echo PHS::url( $compose_route_arr, array( 'reply_to_muid' => $full_message_arr['message_user']['id'] ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a> <?php
                 }
                 ?>
-                <a href="<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'pag_act' => 'do_delete', 'pag_act_params' => $full_message_arr['message_user']['id'] ) )?>"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
+                <a href="javascript:void(0)" onclick="phs_messages_summary_delete_message('<?php echo $full_message_arr['message_user']['id']?>')"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
                 </div>
             </div>
             </div>

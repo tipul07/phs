@@ -123,7 +123,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $list_fields_arr = array();
         $list_fields_arr['`'.$mu_table_name.'`.user_id'] = $current_user['id'];
-        //$list_fields_arr['`'.$mu_table_name.'`.is_author'] = 0;
+        // $list_fields_arr['`'.$mu_table_name.'`.is_author'] = 0;
 
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
@@ -189,6 +189,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:50px;max-width:80px;',
                 'extra_records_style' => 'text-align:center;',
+                'display_callback' => array( $this, 'display_hide_id' ),
             ),
             array(
                 'column_title' => $this->_pt( 'From' ),
@@ -379,6 +380,11 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         }
 
         return $action_result_params;
+    }
+
+    public function display_hide_id( $params )
+    {
+        return '';
     }
 
     public function display_subject( $params )

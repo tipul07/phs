@@ -1213,8 +1213,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $params['action'] = 'edit';
 
+        $edit_prepare_params_exists = (@method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] )?true:false);
+
         if( (
-                @method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] )
+                $edit_prepare_params_exists
                 and
                 !($params = call_user_func( array( $this, 'get_edit_prepare_params_' . $params['table_name'] ), $existing_arr, $params ))
             )
@@ -1222,7 +1224,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             or
 
             (
-                !@method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] )
+                !$edit_prepare_params_exists
                 and
                 !($params = $this->get_edit_prepare_params( $existing_arr, $params ))
             )

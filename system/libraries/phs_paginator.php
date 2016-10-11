@@ -69,6 +69,7 @@ class PHS_Paginator extends PHS_Registry
             'column' => false,
             'table_field' => false,
             'preset_content' => '',
+            'model_obj' => false,
         );
     }
 
@@ -1125,15 +1126,25 @@ class PHS_Paginator extends PHS_Registry
 
         $sort = $this->pagination_params( 'sort' );
 
+        $sort_type_added = false;
         if( ($db_sort_by = $this->pagination_params( 'db_sort_by' ))
         and is_string( $db_sort_by ) )
+        {
+            if( strstr( $db_sort_by, '%s' ) !== false )
+            {
+                $db_sort_by = str_replace( '%s', (empty($sort) ? 'ASC' : 'DESC'), $db_sort_by );
+                $sort_type_added = true;
+            }
+
             $list_arr['order_by'] = $db_sort_by;
+        }
 
         elseif( ($sort_by = $this->pagination_params( 'sort_by' ))
         and is_string( $sort_by ) )
             $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by;
 
-        if( !empty( $list_arr['order_by'] ) )
+        if( !empty( $list_arr['order_by'] )
+        and empty( $sort_type_added ) )
             $list_arr['order_by'] .= ' '.(empty( $sort )?'ASC':'DESC');
 
         if( !($records_arr = $model_obj->get_list( $list_arr )) )
