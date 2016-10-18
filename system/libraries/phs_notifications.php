@@ -84,6 +84,11 @@ class PHS_Notifications extends PHS_Language
         return (!empty( self::$_notifications_arr['success'] )?true:false);
     }
 
+    public static function have_any_notifications()
+    {
+        return (self::have_notifications_success() or self::have_notifications_warnings() or self::have_notifications_errors());
+    }
+
     public static function add_error_notice( $msg )
     {
         if( self::$_notifications_arr === false )

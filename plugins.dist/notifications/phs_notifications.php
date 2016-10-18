@@ -100,6 +100,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = array(
+            'output_ajax_placeholders' => $hook_args['output_ajax_placeholders'],
             'notifications' => $notifications_arr,
             'display_channels' => $hook_args['display_channels']
         );

@@ -200,6 +200,7 @@ class PHS_Hooks extends PHS_Registry
                 'extra_paths' => array(),
             ), // default template
             'display_channels' => array( 'warnings', 'errors', 'success' ),
+            'output_ajax_placeholders' => true,
             'notifications_buffer' => '',
         ), self::default_common_hook_args() );
     }

@@ -1,12 +1,13 @@
 <?php
 
-// /version 1.23
+// /version 1.25
 
     include( '../../../main.php' );
 
     header( 'Content-type: text/javascript' );
 
     use \phs\PHS;
+    use \phs\PHS_ajax;
     use \phs\libraries\PHS_Language;
 ?>
 if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
@@ -15,7 +16,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.23,
+        version: 1.25,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -152,9 +153,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             var options = $.extend( {}, defaults, o );
 
+            var fb_new_url = PHS_JSEN.addURLParameter( url, '<?php echo PHS_ajax::PARAM_FB_KEY?>', (options.full_buffer?1:0) );
+
             var ajax_parameters_obj = {
                 type: options.method,
-                url: url,
+                url: fb_new_url,
                 data: options.url_data,
                 dataType: options.data_type,
                 cache: options.cache_response,
@@ -165,22 +168,6 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     var result_response = false;
                     if( !options.full_buffer )
                     {
-                        if( typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
-                        {
-                            document.location = data.redirect_to_url;
-                            return;
-                        }
-
-                        if( typeof data.status != 'undefined' && data.status )
-                        {
-                            if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
-                                PHS_JSEN.js_messages( data.status.success_messages, "success" );
-                            if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
-                                PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
-                            if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
-                                PHS_JSEN.js_messages( data.status.error_messages, "error" );
-                        }
-
                         if( typeof data.response == 'undefined' || !data.response )
                             data.response = false;
 
@@ -190,10 +177,31 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                     if( options.onsuccess )
                     {
+                        var onsuccess_result = null;
                         if( jQuery.isFunction( options.onsuccess ) )
-                            options.onsuccess( result_response, status, ajax_obj );
+                            onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
                         else if( typeof options.onsuccess == "string" )
-                            eval( options.onsuccess );
+                            onsuccess_result = eval( options.onsuccess );
+
+                        if( typeof onsuccess_result == "object"
+                         && onsuccess_result )
+                            data = onsuccess_result;
+                    }
+
+                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
+                    {
+                        document.location = data.redirect_to_url;
+                        return;
+                    }
+
+                    if( data && typeof data.status != 'undefined' && data.status )
+                    {
+                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
+                            PHS_JSEN.js_messages( data.status.success_messages, "success" );
+                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
+                            PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
+                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
+                            PHS_JSEN.js_messages( data.status.error_messages, "error" );
                     }
                 },
 
@@ -216,6 +224,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         dialogErrorsDivs : 0,
         dialogErrorsClose : function ()
         {
+            var container_obj = null;
             for( var i = 0; i < this.dialogErrorsDivsIds.length; i++ )
             {
                 container_obj = $(this.dialogErrorsDivsIds[i]);
@@ -233,18 +242,54 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 return url;
 
             var prefix = encodeURIComponent( parameter ) + '=';
-            var pars = urlparts[1].split( /[&;]/g );
+            var parts = urlparts[1].split( /[&;]/g );
 
             //reverse iteration as may be destructive
-            for ( var i = pars.length; i-- > 0;) {
+            for ( var i = parts.length; i-- > 0;) {
                 //idiom for string.startsWith
-                if ( pars[i].lastIndexOf( prefix, 0 ) !== -1 )
+                if ( parts[i].lastIndexOf( prefix, 0 ) !== -1 )
                 {
-                    pars.splice(i, 1);
+                    parts.splice(i, 1);
                 }
             }
 
-            url = urlparts[0]+'?'+pars.join('&');
+            url = urlparts[0]+'?'+parts.join('&');
+
+            return url;
+        },
+
+        addURLParameter: function ( url, key, value )
+        {
+            var urlparts= url.split( "?" );
+            key = encodeURI( key );
+            value = encodeURI( value );
+
+            if( urlparts.length < 2 )
+                return url + "?" + key + "=" + value;
+
+            var parts = urlparts[1].split( "&" );
+
+            var i = parts.length;
+            var x;
+
+            while( i-- )
+            {
+                x = parts[i].split( "=" );
+
+                if( x[0] == key )
+                {
+                    x[1] = value;
+                    parts[i] = x.join( "=" );
+                    break;
+                }
+            }
+
+            if( i < 0 )
+            {
+                parts[parts.length] = [key,value].join("=");
+            }
+
+            url = urlparts[0]+"?"+parts.join("&");
 
             return url;
         },

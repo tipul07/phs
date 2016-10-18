@@ -13,7 +13,7 @@ class PHS_ajax extends PHS_Registry
 {
     const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004;
 
-    const PARAM_PUB_KEY = '_apk', PARAM_CHECK_SUM = '_achks';
+    const PARAM_PUB_KEY = '_apk', PARAM_FB_KEY = '_phs_ajax_fb', PARAM_CHECK_SUM = '_achks';
 
     const TIME_OFFSET = 1460000000;
 

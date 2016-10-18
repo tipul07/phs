@@ -8,6 +8,8 @@
         $notifications_arr = PHS_Hooks::default_notifications_hook_args();
     if( !($display_channels = $this->context_var( 'display_channels' )) )
         $display_channels = array();
+    if( !($output_ajax_placeholders = $this->context_var( 'output_ajax_placeholders' )) )
+        $output_ajax_placeholders = false;
 
 if( (empty( $display_channels ) or in_array( 'success', $display_channels ))
 and !empty( $notifications_arr['success'] ) and is_array( $notifications_arr['success'] ) )
@@ -54,8 +56,12 @@ and !empty( $notifications_arr['errors'] ) and is_array( $notifications_arr['err
     <div class="clearfix"></div>
     <?php
 }
+
+if( $output_ajax_placeholders )
+{
 ?>
 <div id="phs_ajax_success_box" style="display:none;" class="success-box"><div class="dismissible"></div></div><div class="clearfix"></div>
 <div id="phs_ajax_warning_box" style="display:none;" class="warning-box"><div class="dismissible"></div></div><div class="clearfix"></div>
 <div id="phs_ajax_error_box" style="display:none;" class="error-box"><div class="dismissible"></div></div><div class="clearfix"></div>
 <?php
+}

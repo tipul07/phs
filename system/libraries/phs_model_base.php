@@ -878,9 +878,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $params;
     }
 
-    static function validate_field_value( $value, $field_name, $field_details )
+    static function validate_field_value( $value, $field_name, $field_details, $params = false )
     {
         self::st_reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
 
         if( empty( $field_name ) )
             $field_name = self::_t( 'N/A' );
@@ -1141,6 +1144,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         $insert_arr = $validation_arr['data_arr'];
+
         if( !($sql = db_quick_insert( $this->get_flow_table_name( $params ), $insert_arr ))
          or !($item_id = db_query_insert( $sql, $this->get_db_connection( $params ) )) )
         {

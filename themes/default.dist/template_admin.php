@@ -92,8 +92,8 @@
             $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
             $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
 
-            $(".chosen-select").chosen();
-            $(".chosen-select-nosearch").chosen({disable_search: true});
+            $(".chosen-select").chosen( { disable_search_threshold: 7 } );
+            $(".chosen-select-nosearch").chosen( { disable_search: true } );
             $(".ui-button").button();
             $("*[title]").tooltip();
         }
