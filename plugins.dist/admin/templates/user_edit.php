@@ -233,9 +233,6 @@ function update_selected_roles()
             selected_roles.push( role_title );
     });
 
-    console.log( 'Updating with' );
-    console.log( selected_roles );
-
     if( selected_roles.length )
         roles_container_obj.html( selected_roles.join( ', ' ) + '.' );
     else

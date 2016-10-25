@@ -1626,8 +1626,7 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_INT,
                     ),
                     'location' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                     ),
                 );

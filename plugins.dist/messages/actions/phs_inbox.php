@@ -91,7 +91,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
      */
     public function load_paginator_params()
     {
-        PHS::page_settings( 'page_title', $this->_pt( 'Company Addresses List' ) );
+        PHS::page_settings( 'page_title', $this->_pt( 'Inbox' ) );
 
         if( !($current_user = PHS::user_logged_in()) )
         {
@@ -128,8 +128,10 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         $list_arr = $mu_flow_params;
         $list_arr['fields'] = $list_fields_arr;
         $list_arr['join_sql'] = ' LEFT JOIN `'.$m_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$m_table_name.'`.id ';
+        // !!!! m_id should be first field for $m_table_name records and mu_id should be first field for $mu_table_name table
+        // !!!! these fields tells system when to create new arrays in results for each table !!!!
         $list_arr['db_fields'] = 'MAX(`'.$m_table_name.'`.id) AS m_id, `'.$m_table_name.'`.*, MAX(`'.$m_table_name.'`.cdate) AS m_cdate, '.
-                                 ' MAX(`'.$mu_table_name.'`.id) AS mu_id, `'.$mu_table_name.'`.*, COUNT( `'.$mu_table_name.'`.id ) AS m_thread_count ';
+                                 ' MAX(`'.$mu_table_name.'`.id) AS mu_id, MAX(`'.$mu_table_name.'`.is_new) AS mu_is_new, `'.$mu_table_name.'`.*, COUNT( `'.$mu_table_name.'`.id ) AS m_thread_count ';
         $list_arr['order_by'] = '`'.$m_table_name.'`.sticky ASC, `'.$mu_table_name.'`.cdate DESC';
         $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
         $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
@@ -396,7 +398,13 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $message_link = PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $params['record']['mu_id'] ) );
 
-        return '<a href="'.$message_link.'">'.$params['record']['subject'].'</a> ['.$params['record']['m_thread_count'].']';
+        $extra_str = '';
+        if( !empty( $params['record']['mu_is_new'] ) )
+        {
+            $extra_str = '<i class="fa fa-asterisk" aria-hidden="true"></i> ';
+        }
+
+        return $extra_str.'<a href="'.$message_link.'">'.$params['record']['subject'].'</a> ['.$params['record']['m_thread_count'].']';
     }
 
     public function display_from( $params )

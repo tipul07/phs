@@ -188,7 +188,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                             data = onsuccess_result;
                     }
 
-                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url )
+                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length )
                     {
                         document.location = data.redirect_to_url;
                         return;
@@ -196,11 +196,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                     if( data && typeof data.status != 'undefined' && data.status )
                     {
-                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages )
+                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
                             PHS_JSEN.js_messages( data.status.success_messages, "success" );
-                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages )
+                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
                             PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
-                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages )
+                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages.length )
                             PHS_JSEN.js_messages( data.status.error_messages, "error" );
                     }
                 },

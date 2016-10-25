@@ -2,14 +2,13 @@
 
 namespace phs\plugins\messages\models;
 
-use phs\libraries\PHS_Logger;
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\PHS_bg_jobs;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
-use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Logger;
 
 class PHS_Model_Messages extends PHS_Model
 {
@@ -1282,14 +1281,35 @@ class PHS_Model_Messages extends PHS_Model
 
         $message_arr['body_id'] = $message_body_arr['id'];
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ), array( 'mid' => $message_arr['id'] ) ) )
-        {
-            if( self::st_has_error() )
-                $error_msg = self::st_get_error_message();
-            else
-                $error_msg = $this->_pt( 'Error sending forgot password email. Please try again.' );
 
-            PHS_Notifications::add_error_notice( $error_msg );
+        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
+        {
+            // We already work in a background script...
+            if( !$this->write_message_finish_bg( $message_arr ) )
+            {
+                $this->hard_delete( $message_arr, $m_flow_params );
+                $this->hard_delete( $message_body_arr, $mb_flow_params );
+
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error finishing additional work required for message #%s.', $message_arr['id'] ) );
+
+                return false;
+            }
+        } else
+        {
+            if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ), array( 'mid' => $message_arr['id'] ) ) )
+            {
+                $this->hard_delete( $message_arr, $m_flow_params );
+                $this->hard_delete( $message_body_arr, $mb_flow_params );
+
+                if( self::st_has_error() )
+                    $error_msg = self::st_get_error_message();
+                else
+                    $error_msg = $this->_pt( 'Error completing message flow. Please try again.' );
+
+                $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
+                return false;
+            }
         }
 
         return array(

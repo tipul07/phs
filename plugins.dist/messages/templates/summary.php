@@ -84,9 +84,15 @@ function phs_messages_summary_delete_message( id )
         foreach( $messages_list as $message_id => $full_message_arr )
         {
             $message_link = PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $full_message_arr['message_user']['id'] ) );
+            $message_is_new = $messages_model->is_new( $full_message_arr );
 
-            ?><div class="pop_msg <?php echo ($messages_model->is_new( $full_message_arr )?'pop_msg_new':'')?>" id="pop_msg_<?php echo $full_message_arr['message_user']['id']?>">
-            <div class="pop_msg_title"><a href="<?php echo $message_link?>"><?php echo $full_message_arr['message']['subject']?></a></div>
+            ?><div class="pop_msg <?php echo ($message_is_new?'pop_msg_new':'')?>" id="pop_msg_<?php echo $full_message_arr['message_user']['id']?>">
+            <div class="pop_msg_title"><?php
+                if( $message_is_new )
+                {
+                    ?><i class="fa fa-asterisk" aria-hidden="true"></i> <?php
+                }
+                ?><a href="<?php echo $message_link?>"><?php echo $full_message_arr['message']['subject']?></a></div>
             <div class="pop_msg_date">
                 <?php echo date( 'Y-M-d H:i', parse_db_date( $full_message_arr['message_user']['cdate'] ) )?>
                 <div class="pop_msg_actions">
