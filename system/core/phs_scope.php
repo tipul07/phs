@@ -192,20 +192,26 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = $this->process_action_result( $action_result );
 
-        if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] )
-        and !@headers_sent() )
+        $action_result = self::validate_array( $action_result, $default_action_result );
+
+        if( !@headers_sent() )
         {
-            foreach( $action_result['custom_headers'] as $key => $val )
+            if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             {
-                if( empty( $key ) )
-                    continue;
+                foreach( $action_result['custom_headers'] as $key => $val )
+                {
+                    if( empty( $key ) )
+                        continue;
 
-                $header_str = $key;
-                if( !is_null( $val ) )
-                    $header_str .= ': '.$val;
+                    $header_str = $key;
+                    if( !is_null( $val ) )
+                        $header_str .= ': '.$val;
 
-                @header( $header_str );
+                    @header( $header_str );
+                }
             }
+
+            @header( 'X-Powered-By: PHS-'.PHS_VERSION );
         }
 
         PHS::set_data( PHS::PHS_END_TIME, microtime( true ) );

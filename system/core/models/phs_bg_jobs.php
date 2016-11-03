@@ -200,8 +200,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
                         'nullable' => true,
                     ),
                     'last_error' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                         'default' => null,
                     ),

@@ -63,12 +63,13 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
     public function default_custom_renderer_params()
     {
         return array(
-            'plugin_obj' => false,
+            'field_id' => '',
             'field_name' => '',
             'field_details' => false,
             'field_value' => null,
             'form_data' => array(),
             'editable' => true,
+            'plugin_obj' => false,
         );
     }
 

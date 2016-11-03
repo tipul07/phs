@@ -38,10 +38,7 @@ class PHS_Scope_Background extends PHS_Scope
         }
 
         if( !empty( $action_result['redirect_to_url'] ) )
-        {
             PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...', PHS_Logger::TYPE_BACKGROUND );
-            exit;
-        }
 
         if( !empty( $action_result['page_settings']['page_title'] ) or !empty( $action_result['buffer'] ) )
             PHS_Logger::logf( 'Title ['.$action_result['page_settings']['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_BACKGROUND );

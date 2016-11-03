@@ -147,12 +147,13 @@
                         and is_callable( $field_details['custom_renderer'] ) )
                         {
                             $callback_params = $plugin_obj->default_custom_renderer_params();
-                            $callback_params['plugin_obj'] = $plugin_obj;
+                            $callback_params['field_id'] = $field_id;
                             $callback_params['field_name'] = $field_name;
                             $callback_params['field_details'] = $field_details;
                             $callback_params['field_value'] = $field_value;
                             $callback_params['form_data'] = $form_data;
                             $callback_params['editable'] = (empty( $field_details['editable'] )?false:true);
+                            $callback_params['plugin_obj'] = $plugin_obj;
 
                             if( ($cell_content = @call_user_func( $field_details['custom_renderer'], $callback_params )) === false
                              or $cell_content === null )

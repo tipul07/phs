@@ -38,6 +38,7 @@ function phs_close_messages_summary_popup()
 }
 function phs_messages_summary_delete_message( id )
 {
+    PHS_JSEN.js_messages_hide_all();
     var ajax_params = {
         cache_response: false,
         method: 'post',

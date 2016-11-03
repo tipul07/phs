@@ -46,6 +46,27 @@ class PHS_Scope_Web extends PHS_Scope
         $view_params['plugin'] = (!empty( $action_obj )?$action_obj->instance_plugin_name():false);
         $view_params['as_singleton'] = false;
 
+        // send custom headers as we will echo page content here...
+        if( !@headers_sent() )
+        {
+            if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+            {
+                foreach( $action_result['custom_headers'] as $key => $val )
+                {
+                    if( empty( $key ) )
+                        continue;
+
+                    $header_str = $key;
+                    if( !is_null( $val ) )
+                        $header_str .= ': '.$val;
+
+                    @header( $header_str );
+                }
+            }
+
+            @header( 'X-Powered-By: PHS-'.PHS_VERSION );
+        }
+
         if( empty( $action_obj )
          or empty( $action_result['page_template'] ) )
             echo $action_result['buffer'];

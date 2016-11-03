@@ -114,12 +114,12 @@ class PHS_params
 
                 if( $val != '' )
                 {
-                    if( function_exists( 'bcmul' ) )
+                    if( @function_exists( 'bcmul' ) )
                     {
-                        $val = bcmul( $val, 1, $extra['digits'] );
+                        $val = @bcmul( $val, 1, $extra['digits'] );
                     } else
                     {
-                        $val = number_format( $val, $extra['digits'], '.', '' );
+                        $val = @number_format( $val, $extra['digits'], '.', '' );
                     }
 
                     if( strstr( $val, '.' ) !== false )
