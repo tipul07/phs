@@ -109,6 +109,14 @@
         Require all denied
     </Files>
 
+    <Files "_bg.php">
+        Require all denied
+    </Files>
+
+    <Files "_agent.php">
+        Require all denied
+    </Files>
+
 ############################################
 ## If running in cluster environment, uncomment this
 ## http://developer.yahoo.com/performance/rules.html#etags
