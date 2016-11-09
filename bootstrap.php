@@ -1,6 +1,17 @@
 <?php
 
-define( 'PHS_VERSION', '1.0.1.26' );
+    define( 'PHS_VERSION', '1.0.1.28' );
+
+global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
+
+if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) or !constant( 'PHS_DEFAULT_CRYPT_KEY' )
+ or empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR )
+ or !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+{
+    PHS_Notifications::add_warning_notice( PHS_Language::_t( 'You should generate first your crypting keys and update main.php <em>PHS_DEFAULT_CRYPT_KEY</em> constant '.
+                     ' and <em>$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR</em> array variable using <em>_new_crypt_keys.php</em> script.' ) );
+    exit;
+}
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
@@ -69,6 +80,7 @@ include_once( PHS_CORE_DIR.'phs_crypt.php' );
 include_once( PHS_CORE_VIEW_DIR.'phs_view.php' );
 include_once( PHS_CORE_DIR.'phs_scope.php' );
 include_once( PHS_CORE_DIR.'phs_bg_jobs.php' );
+include_once( PHS_CORE_DIR.'phs_agent.php' );
 include_once( PHS_CORE_DIR.'phs_ajax.php' );
 // Used to manage big number of files (initialize repostories in plugin's phs_bootstrap_x.php files)
 // Make sure you create repositories' directories in uploads dir and you don't initialize a LDAP repository directly in uploads dir - unless you know what you'r doing!!!)

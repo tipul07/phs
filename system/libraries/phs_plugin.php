@@ -1147,7 +1147,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             'is_upgradable' => false,
             'is_core' => true,
             'db_details' => false,
-            'models' => PHS::get_core_modules(),
+            'models' => PHS::get_core_models(),
             'settings_arr' => array(),
         );
     }

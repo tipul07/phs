@@ -788,6 +788,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function send_confirmation_email( $account_data, $params = false )
     {
+        $this->reset_error();
+
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {

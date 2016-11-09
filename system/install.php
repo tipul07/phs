@@ -5,13 +5,21 @@
 
     use \phs\PHS;
 
-    if( ($core_models = PHS::get_core_modules())
+    if( ($core_models = PHS::get_core_models())
     and is_array( $core_models ) )
     {
         foreach( $core_models as $core_model )
         {
             if( ($model_obj = PHS::load_model( $core_model )) )
                 $model_obj->check_installation();
+
+            else
+            {
+                if( !PHS::st_has_error() )
+                    PHS::st_set_error( -1, PHS::_t( 'Error instantiating core model [%s].', $core_model ) );
+
+                return PHS::st_get_error();
+            }
         }
     }
 
@@ -22,7 +30,6 @@
             PHS::st_set_error( -1, PHS::_t( 'Error instantiating plugins model.' ) );
 
         return PHS::st_get_error();
-
     }
 
     if( ($plugins_arr = $plugins_model->cache_all_dir_details()) === false

@@ -78,7 +78,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         if( $pid == PHS_Instantiable::CORE_PLUGIN )
         {
             $this->_plugin_obj = false;
-            $plugin_models_arr = PHS::get_core_modules();
+            $plugin_models_arr = PHS::get_core_models();
         } else
         {
             $plugin_models_arr = $this->_plugin_obj->get_models();

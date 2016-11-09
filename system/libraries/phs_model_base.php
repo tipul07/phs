@@ -1325,20 +1325,18 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $check_params['result_type'] = 'single';
         $check_params['details'] = '*';
         if( !($existing_arr = $this->get_details_fields( $constrain_arr, $params )) )
-        {
-            if( !array_key_exists( $params['table_index'], $existing_arr ) )
-            {
-                $this->set_error( self::ERR_EDIT, self::_t( 'Exiting record not found in database.' ) );
-                return false;
-            }
-
             return $this->insert( $params );
+
+        if( !array_key_exists( $params['table_index'], $existing_arr ) )
+        {
+            $this->set_error( self::ERR_EDIT, self::_t( 'Record doesn\'t have table index as key in result.' ) );
+            return false;
         }
 
         if( !($new_edit_arr = $this->insert_or_edit_editing( $existing_arr, $constrain_arr, $params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions after database edit.' ) );
+                $this->set_error( self::ERR_INSERT, self::_t( 'Failed actions before database edit.' ) );
             return false;
         }
 
@@ -1544,14 +1542,18 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                     $field_val['check'] = '=';
                 if( !isset( $field_val['value'] ) )
                     $field_val['value'] = false;
+                if( !isset( $field_val['raw_value'] ) )
+                    $field_val['raw_value'] = false;
 
                 if( !empty( $field_val['raw'] ) )
                     $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').$field_val['raw'];
 
-                elseif( $field_val['value'] !== false )
+                elseif( $field_val['value'] !== false or $field_val['raw_value'] !== false )
                 {
                     $field_val['check'] = trim( $field_val['check'] );
-                    if( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )
+                    if( $field_val['raw_value'] !== false )
+                        $check_value = $field_val['raw_value'];
+                    elseif( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )
                         $check_value = $field_val['value'];
                     else
                         $check_value = '\''.db_escape( $field_val['value'], $db_connection ).'\'';

@@ -163,10 +163,19 @@ class PHS_Logger extends PHS_Registry
 
         if( $channel == self::TYPE_INFO )
         {
-            if( ($current_scope = PHS_Scope::current_scope()) == PHS_Scope::SCOPE_BACKGROUND )
-                $channel = self::TYPE_BACKGROUND;
-            elseif( $current_scope == PHS_Scope::SCOPE_AJAX )
-                $channel = self::TYPE_AJAX;
+            $current_scope = PHS_Scope::current_scope();
+            switch( $current_scope )
+            {
+                case PHS_Scope::SCOPE_BACKGROUND:
+                    $channel = self::TYPE_BACKGROUND;
+                break;
+                case PHS_Scope::SCOPE_AJAX:
+                    $channel = self::TYPE_AJAX;
+                break;
+                case PHS_Scope::SCOPE_AGENT:
+                    $channel = self::TYPE_AGENT;
+                break;
+            }
         }
 
         if( !empty( $args_arr ) )

@@ -24,9 +24,10 @@
 
     if( !($parsed_input = PHS_bg_jobs::bg_validate_input( $input ))
      or empty( $parsed_input['job_data'] ) )
+    {
+        PHS_Logger::logf( 'INVALID job input.', PHS_Logger::TYPE_BACKGROUND );
         exit;
-
-    PHS_Logger::logf( 'Input is valid', PHS_Logger::TYPE_BACKGROUND );
+    }
 
     $job_arr = $parsed_input['job_data'];
 

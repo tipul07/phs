@@ -2,10 +2,13 @@
 
 namespace phs\system\core\models;
 
+use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_params;
 
-class PHS_Model_Bg_jobs extends PHS_Model
+class PHS_Model_Agent_jobs extends PHS_Model
 {
     const ERR_DB_JOB = 10000;
 
@@ -22,7 +25,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'bg_jobs' );
+        return array( 'bg_agent' );
     }
 
     /**
@@ -30,7 +33,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
      */
     function get_main_table_name()
     {
-        return 'bg_jobs';
+        return 'bg_agent';
     }
 
     public function get_settings_structure()
@@ -38,11 +41,32 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return array(
             'minutes_to_stall' => array(
                 'display_name' => 'Minutes to stall',
-                'display_hint' => 'After how many minutes should we consider a job as stalling',
+                'display_hint' => 'After how many minutes should we consider agent as stalling',
                 'type' => PHS_params::T_INT,
                 'default' => 15,
             ),
         );
+    }
+
+    public function start_job( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job details not found in database.' ) );
+            return false;
+        }
+
+        if( !($pid = @getmypid()) )
+            $pid = -1;
+
+        $edit_arr = array();
+        $edit_arr['is_running'] = date( self::DATETIME_DB );
+        $edit_arr['pid'] = $pid;
+
+        PHS_Logger::logf( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']' );
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
 
     public function refresh_job( $job_data )
@@ -56,6 +80,8 @@ class PHS_Model_Bg_jobs extends PHS_Model
             return false;
         }
 
+        $cdate = date( self::DATETIME_DB );
+
         $edit_arr = array();
         if( empty( $job_arr['pid'] ) )
         {
@@ -65,30 +91,46 @@ class PHS_Model_Bg_jobs extends PHS_Model
             $edit_arr['pid'] = $pid;
         }
 
-        $edit_arr['last_action'] = date( self::DATETIME_DB );
+        if( empty( $job_arr['is_running'] )
+         or empty_db_date( $job_arr['is_running'] ) )
+            $edit_arr['is_running'] = $cdate;
+
+        $edit_arr['last_action'] = $cdate;
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
 
-    public function job_error_stop( $job_data, $params )
+    public function stop_job( $job_data, $params = false )
     {
         $this->reset_error();
 
         if( empty( $job_data )
-         or empty( $params ) or !is_array( $params )
          or !($job_arr = $this->data_to_array( $job_data )) )
         {
             $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
             return false;
         }
 
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
         if( empty( $params['last_error'] ) )
-            $params['last_error'] = self::_t( 'Unknown error.' );
+            $params['last_error'] = '';
+
+        if( empty( $job_arr['is_running'] ) )
+            $next_time = time();
+        else
+            $next_time = parse_db_date( $job_arr['is_running'] );
+
+        if( !empty( $job_arr['timed_seconds'] ) )
+            $next_time += intval( $job_arr['timed_seconds'] );
 
         $edit_arr = array();
         $edit_arr['pid'] = 0;
         $edit_arr['last_error'] = $params['last_error'];
+        $edit_arr['is_running'] = null;
         $edit_arr['last_action'] = date( self::DATETIME_DB );
+        $edit_arr['timed_action'] = date( self::DATETIME_DB, $next_time );
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
@@ -116,13 +158,13 @@ class PHS_Model_Bg_jobs extends PHS_Model
         if( empty( $job_data )
          or !($job_arr = $this->data_to_array( $job_data )) )
         {
-            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get background jobs details.' ) );
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get agent jobs details.' ) );
             return null;
         }
 
         if( !($settings_arr = $this->get_db_settings()) )
         {
-            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get background jobs model settings.' ) );
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get agent jobs model settings.' ) );
             return null;
         }
 
@@ -137,7 +179,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
     {
         if( empty( $job_data )
          or !($job_arr = $this->data_to_array( $job_data ))
-         or empty( $job_arr['pid'] ) )
+         or empty_db_date( $job_arr['is_running'] ) )
             return false;
 
         return true;
@@ -146,26 +188,36 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    protected function get_insert_prepare_params( $params )
+    protected function get_insert_prepare_params_bg_agent( $params )
     {
         if( empty( $params ) or !is_array( $params ) )
             return false;
 
-        if( empty( $params['fields']['route'] ) )
+        self::st_reset_error();
+
+        if( empty( $params['fields']['route'] )
+         or !PHS::route_exists( $params['fields']['route'], array( 'action_accepts_scopes' => PHS_Scope::SCOPE_AGENT ) ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a route.' ) );
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_INSERT );
+            else
+                $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a route.' ) );
             return false;
         }
 
-        if( empty( $params['fields']['timed_action'] )
-         or empty_db_date( $params['fields']['timed_action'] ) )
-            $params['fields']['timed_action'] = null;
+        if( empty( $params['fields']['run_async'] ) )
+            $params['fields']['run_async'] = 0;
+        else
+            $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
 
-        $params['fields']['last_action'] = date( self::DATETIME_DB );
+        if( empty( $params['fields']['timed_seconds'] ) )
+            $params['fields']['timed_seconds'] = 0;
+        else
+            $params['fields']['timed_seconds'] = intval( $params['fields']['timed_seconds'] );
 
-        if( empty( $params['fields']['cdate'] )
-         or empty_db_date( $params['fields']['cdate'] ) )
-            $params['fields']['cdate'] = $params['fields']['last_action'];
+        $params['fields']['cdate'] = date( self::DATETIME_DB );
+
+        $params['fields']['timed_action'] = date( self::DATETIME_DB, time() + $params['fields']['timed_seconds'] );
 
         return $params;
     }
@@ -173,15 +225,29 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    protected function get_edit_prepare_params( $existing_data, $params )
+    protected function get_edit_prepare_params_bg_agent( $existing_data, $params )
     {
         if( empty( $params ) or !is_array( $params ) )
             return false;
 
+        $cdate = date( self::DATETIME_DB );
+
+        if( isset( $params['fields']['run_async'] ) )
+            $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
+
+        if( isset( $params['fields']['is_running'] ) )
+        {
+            if( empty( $params['fields']['is_running'] )
+             or empty_db_date( $params['fields']['is_running'] ) )
+                $params['fields']['is_running'] = null;
+            else
+                $params['fields']['is_running'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['is_running'] ) );
+        }
+
         // Update last_action field on any edit's we do...
         if( empty( $params['fields']['last_action'] )
          or empty_db_date( $params['fields']['last_action'] ) )
-            $params['fields']['last_action'] = date( self::DATETIME_DB );
+            $params['fields']['last_action'] = $cdate;
 
         return $params;
     }
@@ -199,16 +265,12 @@ class PHS_Model_Bg_jobs extends PHS_Model
         $return_arr = array();
         switch( $params['table_name'] )
         {
-            case 'bg_jobs':
+            case 'bg_agent':
                 $return_arr = array(
                     'id' => array(
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'uid' => array(
-                        'type' => self::FTYPE_INT,
-                        'index' => true,
                     ),
                     'pid' => array(
                         'type' => self::FTYPE_INT,
@@ -228,13 +290,28 @@ class PHS_Model_Bg_jobs extends PHS_Model
                         'nullable' => true,
                         'default' => null,
                     ),
+                    'is_running' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'comment' => 'Is route currently running',
+                    ),
+                    'run_async' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => '255',
+                        'default' => 1,
+                        'comment' => 'Run this job asynchronous',
+                    ),
                     'last_action' => array(
                         'type' => self::FTYPE_DATETIME,
-                        'index' => true,
+                        'comment' => 'Last time action said is alive',
+                    ),
+                    'timed_seconds' => array(
+                        'type' => self::FTYPE_INT,
+                        'comment' => 'Once how many seconds should route run',
                     ),
                     'timed_action' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
+                        'comment' => 'Next time action should run',
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,

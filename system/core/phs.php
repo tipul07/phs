@@ -39,6 +39,7 @@ final class PHS extends PHS_Registry
 
     private static $_INTERPRET_SCRIPT = 'index';
     private static $_BACKGROUND_SCRIPT = '_bg';
+    private static $_AGENT_SCRIPT = '_agent_bg';
     private static $_AJAX_SCRIPT = '_ajax';
 
     function __construct()
@@ -48,9 +49,9 @@ final class PHS extends PHS_Registry
         self::init();
     }
 
-    public static function get_core_modules()
+    public static function get_core_models()
     {
-        return array( 'bg_jobs', 'roles' );
+        return array( 'bg_jobs', 'agent_jobs', 'roles' );
     }
 
     /**
@@ -229,7 +230,8 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param PHS_Action $action_obj
+     * @param null|PHS_Action $action_obj
+     * @return bool|PHS_Action
      */
     public static function running_action( PHS_Action $action_obj = null )
     {
@@ -243,7 +245,8 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param PHS_Controller $action_obj
+     * @param null|PHS_Controller $controller_obj
+     * @return bool|PHS_Controller
      */
     public static function running_controller( PHS_Controller $controller_obj = null )
     {
@@ -497,6 +500,123 @@ final class PHS extends PHS_Registry
         );
     }
 
+    public static function route_exists( $route, $params = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['action_accepts_scopes'] ) )
+            $params['action_accepts_scopes'] = false;
+
+        elseif( !is_array( $params['action_accepts_scopes'] ) )
+        {
+            if( !PHS_Scope::valid_scope( $params['action_accepts_scopes'] ) )
+            {
+                if( !self::st_has_error() )
+                    self::st_set_error( self::ERR_ROUTE, self::_t( 'Invalid scopes provided for action of the route.' ) );
+                return false;
+            }
+
+            $params['action_accepts_scopes'] = array( $params['action_accepts_scopes'] );
+        } else
+        {
+            $action_accepts_scopes_arr = array();
+            foreach( $params['action_accepts_scopes'] as $scope )
+            {
+                if( !PHS_Scope::valid_scope( $scope ) )
+                {
+                    if( !self::st_has_error() )
+                        self::st_set_error( self::ERR_ROUTE, self::_t( 'Invalid scopes provided for action of the route.' ) );
+                    return false;
+                }
+
+                $action_accepts_scopes_arr[] = $scope;
+            }
+
+            $params['action_accepts_scopes'] = $action_accepts_scopes_arr;
+        }
+
+
+        $route_parts = false;
+        if( is_string( $route )
+        and !($route_parts = self::parse_route( $route )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t parse route.' ) );
+            return false;
+        }
+
+        if( is_array( $route ) )
+            $route_parts = $route;
+
+        if( empty( $route_parts ) or !is_array( $route_parts ) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
+
+            return false;
+        }
+
+        if( !isset( $route_parts['plugin'] ) )
+            $route_parts['plugin'] = false;
+        if( !isset( $route_parts['controller'] ) )
+            $route_parts['controller'] = false;
+        if( !isset( $route_parts['action'] ) )
+            $route_parts['action'] = false;
+
+        /** @var bool|\phs\libraries\PHS_Plugin $plugin_obj */
+        $plugin_obj = false;
+        if( !empty( $route_parts['plugin'] )
+        and !($plugin_obj = self::load_plugin( $route_parts['plugin'] )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate plugin from route.' ) );
+            return false;
+        }
+
+        /** @var bool|\phs\libraries\PHS_Controller $controller_obj */
+        $controller_obj = false;
+        if( !empty( $route_parts['controller'] )
+        and !($controller_obj = self::load_controller( $route_parts['controller'], $plugin_obj )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate controller from route.' ) );
+            return false;
+        }
+
+        /** @var bool|\phs\libraries\PHS_Action $action_obj */
+        $action_obj = false;
+        if( empty( $route_parts['action'] )
+         or !($action_obj = self::load_action( $route_parts['action'], $plugin_obj )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate action from route.' ) );
+            return false;
+        }
+
+        if( !empty( $params['action_accepts_scopes'] )
+        and ($action_scopes = $action_obj->allowed_scopes())
+        and is_array( $action_scopes ) )
+        {
+            foreach( $params['action_accepts_scopes'] as $scope )
+            {
+                if( !in_array( $scope, $action_scopes ) )
+                {
+                    $scope_title = '(???)';
+                    if( ($scope_details = PHS_Scope::valid_scope( $scope )) )
+                        $scope_title = $scope_details['title'];
+
+                    self::st_set_error( self::ERR_ROUTE, self::_t( 'Action %s is not ment to run in scope %s.', $route_parts['action'], $scope_title ) );
+                    return false;
+                }
+            }
+        }
+
+        return $route_parts;
+    }
+
     /**
      * Parse request route. Route is something like:
      *
@@ -589,6 +709,26 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * Change default agent interpret script (default is _agent). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New agent script (default is _agent). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function agent_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_AGENT_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_AGENT_SCRIPT = $script;
+        return self::$_AGENT_SCRIPT.'.php';
+    }
+
+    /**
      * Change default ajax script (default is _ajax). .php file extension will be added by platform.
      *
      * @param bool|string $script New ajax script (default is _ajax). No extension should be provided (.php will be appended)
@@ -611,6 +751,11 @@ final class PHS extends PHS_Registry
     public static function get_background_path()
     {
         return PHS_PATH.self::background_script();
+    }
+
+    public static function get_agent_path()
+    {
+        return PHS_PATH.self::agent_script();
     }
 
     public static function get_interpret_path()
@@ -1190,13 +1335,18 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $plugin_name
-     * @param string|bool $plugin
+     * @param string $plugin_name Plugin name to be loaded
      *
      * @return false|\phs\libraries\PHS_Plugin Returns false on error or an instance of loaded plugin
      */
     public static function load_plugin( $plugin_name )
     {
+        if( !is_string( $plugin_name ) )
+        {
+            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Plugin name is not a string.' ) );
+            return false;
+        }
+
         if( $plugin_name == PHS_Instantiable::CORE_PLUGIN )
             $plugin_name = false;
 

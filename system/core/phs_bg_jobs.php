@@ -32,8 +32,65 @@ class PHS_bg_jobs extends PHS_Registry
         return $job_params_arr;
     }
 
+    public static function get_stalling_minutes()
+    {
+        static $stalling_minutes = false;
+
+        if( $stalling_minutes !== false )
+            return $stalling_minutes;
+
+        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        if( !($bg_jobs_model = PHS::load_model( 'bg_jobs' ))
+         or !($stalling_minutes = $bg_jobs_model->get_stalling_minutes()) )
+            $stalling_minutes = 0;
+
+        return $stalling_minutes;
+    }
+
+    public static function refresh_current_job( $extra = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $extra ) or !is_array( $extra ) )
+            $extra = array();
+
+        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        if( !empty( $extra['bg_jobs_model'] ) )
+            $bg_jobs_model = $extra['bg_jobs_model'];
+        else
+            $bg_jobs_model = PHS::load_model( 'bg_jobs' );
+
+        if( empty( $bg_jobs_model )
+         or !($job_data = self::current_job_data())
+         or !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
+        {
+            if( $bg_jobs_model->has_error() )
+                self::st_copy_error( $bg_jobs_model );
+
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t get background job details.' ) );
+
+            return false;
+        }
+
+        if( !($new_job = $bg_jobs_model->refresh_job( $job_arr )) )
+        {
+            if( $bg_jobs_model->has_error() )
+                self::st_copy_error( $bg_jobs_model );
+
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t refresh background job details.' ) );
+
+            return false;
+        }
+
+        return $new_job;
+   }
+
     public static function run( $route, $params = false, $extra = false )
     {
+        // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
+        // launching script will die...
         self::st_reset_error();
 
         $route_parts = false;

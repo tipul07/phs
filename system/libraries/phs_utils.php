@@ -960,14 +960,14 @@ class PHS_utils extends PHS_Language
         if( !empty( $params['userpass'] ) )
             @curl_setopt( $ch, CURLOPT_USERPWD, $params['userpass']['user'].':'.$params['userpass']['pass'] );
 
-        $response = @curl_exec( $ch );
+        $curl_response = @curl_exec( $ch );
 
         $return_params = $params;
         if( isset( $return_params['userpass']['pass'] ) )
             $return_params['userpass']['pass'] = '(undisclosed_pass)';
 
         $response = array(
-            'response' => $response,
+            'response' => $curl_response,
             'request_details' => @curl_getinfo( $ch ),
             'request_error_msg' => @curl_error( $ch ),
             'request_error_no' => @curl_errno( $ch ),

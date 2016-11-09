@@ -2,6 +2,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 
@@ -22,6 +23,16 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     }
 
     /**
+     * Returns an array of scopes in which controller is allowed to run
+     *
+     * @return array If empty array, controller is allowed in all scopes...
+     */
+    public function allowed_scopes()
+    {
+        return array();
+    }
+
+    /**
      * @param string $action Action to be loaded and executed
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
      *
@@ -36,6 +47,15 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
                 or !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active controller.' ) );
+            return false;
+        }
+
+        if( ($allowed_scopes = $this->allowed_scopes())
+        and is_array( $allowed_scopes )
+        and ($current_scope = PHS_Scope::current_scope())
+        and !in_array( $current_scope, $allowed_scopes ) )
+        {
+            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Controller not allowed to run in current scope.' ) );
             return false;
         }
 

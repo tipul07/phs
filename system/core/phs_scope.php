@@ -13,7 +13,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     const SCOPE_VAR_PREFIX = '__scp_pre_';
 
-    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4;
+    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5;
 
     private static $SCOPES_ARR = array(
         self::SCOPE_WEB => array(
@@ -38,6 +38,12 @@ abstract class PHS_Scope extends PHS_Instantiable
             'title' => 'API',
             'plugin' => false,
             'class_name' => 'api',
+        ),
+
+        self::SCOPE_AGENT => array(
+            'title' => 'Agent',
+            'plugin' => false,
+            'class_name' => 'agent',
         ),
     );
 
@@ -194,7 +200,8 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 
-        if( !@headers_sent() )
+        if( !in_array( self::current_scope(), array( self::SCOPE_BACKGROUND, self::SCOPE_BACKGROUND ) )
+        and !@headers_sent() )
         {
             if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             {

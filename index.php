@@ -8,6 +8,15 @@
     use \phs\libraries\PHS_Model;
     use \phs\libraries\PHS_Logger;
 
+    // /** @var \phs\plugins\s2p_mirakl\PHS_Plugin_S2p_mirakl $plugin_obj */
+    // /** @var \phs\plugins\s2p_mirakl\libraries\S2P_Mirakl $mirakl_library */
+    // $plugin_obj = PHS::load_plugin( 's2p_mirakl' );
+    // $mirakl_library = $plugin_obj->get_mirakl_instance();
+    //
+    // var_dump( $mirakl_library->import_mirakl_shops() );
+    // var_dump( $mirakl_library->get_error() );
+    // exit;
+
     // /** @var \phs\plugins\s2p_libraries\PHS_Plugin_S2p_libraries $library_obj */
     // $library_obj = PHS::load_plugin( 's2p_libraries' );
     // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Companies $companies_obj */
