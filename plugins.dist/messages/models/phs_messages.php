@@ -1281,23 +1281,22 @@ class PHS_Model_Messages extends PHS_Model
 
         $message_arr['body_id'] = $message_body_arr['id'];
 
-
-        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
-        {
-            // We already work in a background script...
-            if( !$this->write_message_finish_bg( $message_arr ) )
-            {
-                $this->hard_delete( $message_arr, $m_flow_params );
-                $this->hard_delete( $message_body_arr, $mb_flow_params );
-
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error finishing additional work required for message #%s.', $message_arr['id'] ) );
-
-                return false;
-            }
-        } else
-        {
-            if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ), array( 'mid' => $message_arr['id'] ) ) )
+        // if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
+        // {
+        //     // We already work in a background script...
+        //     if( !$this->write_message_finish_bg( $message_arr ) )
+        //     {
+        //         $this->hard_delete( $message_arr, $m_flow_params );
+        //         $this->hard_delete( $message_body_arr, $mb_flow_params );
+        //
+        //         if( !$this->has_error() )
+        //             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error finishing additional work required for message #%s.', $message_arr['id'] ) );
+        //
+        //         return false;
+        //     }
+        // } else
+        // {
+            if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ), array( 'mid' => $message_arr['id'] ), array( 'same_thread_if_bg' => true ) ) )
             {
                 $this->hard_delete( $message_arr, $m_flow_params );
                 $this->hard_delete( $message_body_arr, $mb_flow_params );
@@ -1310,7 +1309,7 @@ class PHS_Model_Messages extends PHS_Model
                 $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
                 return false;
             }
-        }
+        // }
 
         return array(
             'message' => $message_arr,

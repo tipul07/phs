@@ -66,6 +66,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
     protected function custom_install()
     {
+        $this->reset_error();
+
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
@@ -75,12 +77,13 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return false;
         }
 
-        $flow_params = array( 'table_name' => 'users_details', 'after_column' => 'id' );
+        $flow_params = array( 'table_name' => 'users_details' );
         if( !$accounts_details_model->check_column_exists( self::UD_COLUMN_MSG_HANDLER, $flow_params ) )
         {
             $field_arr = self::get_msg_handler_field_definition();
 
-            if( !($result = $accounts_details_model->alter_table_add_column( self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params )) )
+            $column_params = array( 'after_column' => 'id' );
+            if( !($result = $accounts_details_model->alter_table_add_column( self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params )) )
             {
                 $this->set_error( self::ERR_INSTALL, $this->_pt( 'Error altering user_details table.' ) );
                 return false;
@@ -118,6 +121,10 @@ class PHS_Plugin_Messages extends PHS_Plugin
                 }
             }
         }
+
+        // Reset any errors
+        $this->reset_error();
+        self::st_reset_error();
 
         return true;
     }

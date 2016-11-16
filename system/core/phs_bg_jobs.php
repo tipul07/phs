@@ -2,6 +2,7 @@
 
 namespace phs;
 
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
 
@@ -150,6 +151,11 @@ class PHS_bg_jobs extends PHS_Registry
         else
             $extra['timed_action'] = validate_db_date( $extra['timed_action'] );
 
+        if( empty( $extra['same_thread_if_bg'] ) )
+            $extra['same_thread_if_bg'] = false;
+        else
+            $extra['same_thread_if_bg'] = (!empty( $extra['same_thread_if_bg'] )?true:false);
+
         if( !is_array( $params ) )
             $params = array();
 
@@ -197,8 +203,6 @@ class PHS_bg_jobs extends PHS_Registry
             return false;
         }
 
-        self::current_job_data( $job_arr );
-
         if( !empty( $extra['return_command'] ) )
             return $cmd_parts['cmd'];
 
@@ -207,6 +211,33 @@ class PHS_bg_jobs extends PHS_Registry
             return true;
 
         PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
+
+        if( !empty( $extra['same_thread_if_bg'] )
+        and PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
+        {
+            $original_debug_data = PHS::platform_debug_data();
+
+            // We are in background scope... just execute the route
+            $run_job_extra = array();
+            $run_job_extra['bg_jobs_model'] = $bg_jobs_model;
+
+            $job_start_time = microtime( true );
+
+            if( !($run_result = self::bg_run_job( $job_arr, $run_job_extra )) )
+            {
+                PHS_Logger::logf( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
+
+                if( self::st_has_error() )
+                    PHS_Logger::logf( 'Job error: ['.self::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND );
+            } elseif( ($debug_data = PHS::platform_debug_data()) )
+            {
+                PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.($original_debug_data['db_queries_count']-$debug_data['db_queries_count']).' queries, '.
+                                  ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
+                                  ' running: '.number_format( ($job_start_time-microtime( true )), 6, '.', '' ).'s', PHS_Logger::TYPE_BACKGROUND );
+            }
+
+            return true;
+        }
 
         return (@system( $cmd_parts['cmd'] ) !== false );
     }

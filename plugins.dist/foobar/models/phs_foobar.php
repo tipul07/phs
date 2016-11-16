@@ -14,7 +14,7 @@ class PHS_Model_Foobar extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -74,14 +74,17 @@ class PHS_Model_Foobar extends PHS_Model
         {
             case 'foobar':
                 $return_arr = array(
+                    self::T_DETAILS_KEY => array(
+                        'engine' => 'InnoDB',
+                        'charset' => 'utf8',
+                        'collate' => 'utf8_general_ci',
+                        'comment' => 'A foobar model',
+                    ),
+
                     'id' => array(
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'uid' => array(
-                        'type' => self::FTYPE_INT,
-                        'index' => true,
                     ),
                     'pid' => array(
                         'type' => self::FTYPE_INT,
@@ -102,7 +105,7 @@ class PHS_Model_Foobar extends PHS_Model
                         'nullable' => true,
                         'default' => null,
                     ),
-                    'last_action' => array(
+                    'last_action2' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                     ),

@@ -12,7 +12,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     const MODEL_BASE_VERSION = '1.0.0';
 
     const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
-          ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009;
+          ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
@@ -337,18 +337,54 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $fields_arr[$type];
     }
 
-    public function check_table_exists( $params = false, $force = false )
+    private function parse_mysql_table_details( $table_name, $flow_params = false )
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( empty( $table_name ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Please provide table name.' ) );
+            return false;
+        }
+
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        $table_details = self::default_table_details_arr();
+        if( ($qid = db_query( 'SHOW TABLE STATUS WHERE Name = \''.$table_name.'\'', $this->get_db_connection( $flow_params ) ))
+        and ($result_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( !empty( $result_arr['Engine'] ) )
+                $table_details['engine'] = $result_arr['Engine'];
+            if( !empty( $result_arr['Comment'] ) )
+                $table_details['comment'] = $result_arr['Comment'];
+            if( !empty( $result_arr['Collation'] ) )
+            {
+                $table_details['collate'] = $result_arr['Collation'];
+                if( ($collate_parts = explode( '_', $table_details['collate'] )) )
+                    $table_details['charset'] = $collate_parts[0];
+            }
+        }
+
+        return $table_details;
+    }
+
+    public function check_table_exists( $flow_params = false, $force = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
 
         if( (self::$tables_arr === false or !empty( $force ))
-        and ($qid = db_query( 'SHOW TABLES', $this->get_db_connection( $params ) )) )
+        and ($qid = db_query( 'SHOW TABLES', $this->get_db_connection( $flow_params ) )) )
         {
             self::$tables_arr = array();
             while( ($table_name = db_fetch_assoc( $qid )) )
@@ -358,11 +394,13 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
                 $table_arr = array_values( $table_name );
                 self::$tables_arr[$table_arr[0]] = array();
+
+                self::$tables_arr[$table_arr[0]][self::T_DETAILS_KEY] = $this->parse_mysql_table_details( $table_arr[0] );
             }
         }
 
         if( is_array( self::$tables_arr )
-        and array_key_exists( $params['table_name'], self::$tables_arr ) )
+        and array_key_exists( $flow_table_name, self::$tables_arr ) )
             return true;
 
         return false;
@@ -393,29 +431,36 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $return_arr['type'] = self::FTYPE_UNKNOWN;
         $return_arr['length'] = null;
 
+        $mysql_type = '';
         $mysql_length = '';
-        if( preg_match( '@([a-z]+)([\(\s*[0-9,\s]+\s*\)]*)@i', $type, $matches ) )
-        {
-            if( !empty( $matches[1] )
-            and ($field_types = self::get_field_types())
-            and is_array( $field_types ) )
-            {
-                $mysql_type = strtolower( trim( $matches[1] ) );
-                foreach( $field_types as $field_type => $field_arr )
-                {
-                    if( empty( $field_arr['title'] ) )
-                        continue;
+        if( !preg_match( '@([a-z]+)([\(\s*[0-9,\s]+\s*\)]*)@i', $type, $matches ) )
+            $mysql_type = $type;
 
-                    if( $field_arr['title'] == $mysql_type )
-                    {
-                        $return_arr['type'] = $field_type;
-                        break;
-                    }
-                }
-            }
+        else
+        {
+            if( !empty( $matches[1] ) )
+                $mysql_type = strtolower( trim( $matches[1] ) );
 
             if( !empty( $matches[2] ) )
                 $mysql_length = trim( $matches[2], ' ()' );
+        }
+
+        if( !empty( $mysql_type )
+        and ($field_types = self::get_field_types())
+        and is_array( $field_types ) )
+        {
+            $mysql_type = strtolower( trim( $mysql_type ) );
+            foreach( $field_types as $field_type => $field_arr )
+            {
+                if( empty( $field_arr['title'] ) )
+                    continue;
+
+                if( $field_arr['title'] == $mysql_type )
+                {
+                    $return_arr['type'] = $field_type;
+                    break;
+                }
+            }
         }
 
         if( !($field_arr = self::valid_field_type( $return_arr['type'] )) )
@@ -466,27 +511,34 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $model_field_arr;
     }
 
-    public function check_column_exists( $field, $params = false )
+    public function get_table_columns_as_definition( $flow_params = false, $force = false )
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
-        
-        if( !$this->check_table_exists( $params ) )
+
+        if( !$this->check_table_exists( $flow_params, $force ) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Table %s doesn\'t exist.', $params['table_name'] ) );
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Table %s doesn\'t exist.', $flow_table_name ) );
             return false;
         }
-        
-        if( empty( self::$tables_arr[$params['table_name']] ) or !is_array( self::$tables_arr[$params['table_name']] ) )
-            self::$tables_arr[$params['table_name']] = array();
 
-        if( ($qid = db_query( 'SHOW FULL COLUMNS FROM `'.$this->get_flow_table_name( $params ).'`', $this->get_db_connection( $params ) )) )
+        // sane check...
+        if( empty( self::$tables_arr[$flow_table_name] ) or !is_array( self::$tables_arr[$flow_table_name] ) )
+            self::$tables_arr[$flow_table_name] = array();
+
+        if( empty( $force )
+        and !empty( self::$tables_arr[$flow_table_name] ) and is_array( self::$tables_arr[$flow_table_name] )
+        and count( self::$tables_arr[$flow_table_name] ) > 1 )
+            return self::$tables_arr[$flow_table_name];
+
+        if( ($qid = db_query( 'SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
         {
             while( ($field_arr = db_fetch_assoc( $qid )) )
             {
@@ -494,15 +546,36 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                  or empty( $field_arr['Field'] ) )
                     continue;
 
-                self::$tables_arr[$params['table_name']][$field_arr['Field']] = $this->parse_mysql_field_result( $field_arr );
+                self::$tables_arr[$flow_table_name][$field_arr['Field']] = $this->parse_mysql_field_result( $field_arr );
             }
         }
 
-        if( !empty( self::$tables_arr[$params['table_name']] ) and is_array( self::$tables_arr[$params['table_name']] )
-        and array_key_exists( $field, self::$tables_arr[$params['table_name']] ) )
-            return self::$tables_arr[$params['table_name']][$field];
+        return self::$tables_arr[$flow_table_name];
+    }
 
-        return false;
+    public function check_column_exists( $field, $flow_params = false, $force = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+        
+        if( !($table_definition = $this->get_table_columns_as_definition( $flow_params, $force ))
+         or !is_array( $table_definition ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t get definition for table %s.', $flow_table_name ) );
+            return false;
+        }
+        
+        if( !array_key_exists( $field, $table_definition ) )
+            return false;
+
+        return $table_definition[$field];
     }
 
     public function check_installation()
@@ -613,6 +686,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             'raw_default' => null,
             'nullable' => false,
             'comment' => '',
+            // in case we renamed the field from something else we add old name here...
+            // we add all old names here so in case we update structure from an old version it would still recognise field names
+            // update will check if current database structures field names in this array and if any match will rename old field with current definition
+            // eg. old_names = array( 'old_field1', 'old_field2' ) =>
+            //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
+            'old_names' => array(),
         );
     }
 
@@ -621,8 +700,51 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return array(
             'engine' => 'InnoDB',
             'charset' => 'utf8',
+            'collate' => 'utf8_general_ci',
             'comment' => '',
         );
+    }
+
+    public static function fields_changed( $field1_arr, $field2_arr )
+    {
+        if( !($field1_arr = self::validate_field( $field1_arr ))
+         or !($field2_arr = self::validate_field( $field2_arr )) )
+            return true;
+
+        if( intval( $field1_arr['type'] ) != intval( $field2_arr['type'] )
+         // for lengths with comma
+         or str_replace( ' ', '', $field1_arr['length'] ) != str_replace( ' ', '', $field2_arr['length'] )
+         or $field1_arr['primary'] != $field1_arr['primary']
+         or $field1_arr['auto_increment'] != $field1_arr['auto_increment']
+         or $field1_arr['index'] != $field1_arr['index']
+         or $field1_arr['default'] !== $field1_arr['default']
+         or $field1_arr['nullable'] !== $field1_arr['nullable']
+         or trim( $field1_arr['comment'] ) !== trim( $field1_arr['comment'] )
+        )
+            return true;
+
+        return false;
+    }
+
+    public static function table_details_changed( $details1_arr, $details2_arr )
+    {
+        $default_table_details = self::default_table_details_arr();
+
+        if( !($details1_arr = self::validate_array( $details1_arr, $default_table_details ))
+         or !($details2_arr = self::validate_array( $details2_arr, $default_table_details )) )
+            return array_keys( $default_table_details );
+
+        $keys_changed = array();
+        if( strtolower( trim( $details1_arr['engine'] ) ) != strtolower( trim( $details2_arr['engine'] ) ) )
+            $keys_changed['engine'] = $details2_arr['engine'];
+        if( strtolower( trim( $details1_arr['charset'] ) ) != strtolower( trim( $details2_arr['charset'] ) ) )
+            $keys_changed['charset'] = $details2_arr['charset'];
+        if( strtolower( trim( $details1_arr['collate'] ) ) != strtolower( trim( $details2_arr['collate'] ) ) )
+            $keys_changed['collate'] = $details2_arr['collate'];
+        if( trim( $details1_arr['comment'] ) != trim( $details2_arr['comment'] ) )
+            $keys_changed['comment'] = $details2_arr['comment'];
+
+        return (!empty( $keys_changed )?$keys_changed:false);
     }
 
     public static function validate_field( $field_arr )
@@ -631,11 +753,16 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $field_arr = array();
 
         $def_values = self::default_field_arr();
+        $new_field_arr = array();
         foreach( $def_values as $key => $val )
         {
             if( !array_key_exists( $key, $field_arr ) )
-                $field_arr[$key] = $val;
+                $new_field_arr[$key] = $val;
+            else
+                $new_field_arr[$key] = $field_arr[$key];
         }
+
+        $field_arr = $new_field_arr;
 
         if( empty( $field_arr['type'] )
          or !($field_details = self::valid_field_type( $field_arr['type'] )) )
@@ -1850,7 +1977,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * Returns an array containing mysql and keys string statement for a table field named $field_name and a structure provided in $field_arr
      *
      * @param string $field_name Name of mysql field
-     * @param array $field_arr Field details array
+     * @param array $field_details Field details array
      *
      * @return bool|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
      */
@@ -1912,82 +2039,210 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         );
     }
 
-    final public function alter_table_add_column( $field_name, $field_details, $params = false )
+    final public function alter_table_add_column( $field_name, $field_details, $flow_params = false, $params = false )
     {
+        $this->reset_error();
+
         $field_details = self::validate_array( $field_details, self::default_field_arr() );
 
         if( empty( $field_name )
          or $field_name == self::T_DETAILS_KEY
-         or !($params = $this->fetch_default_flow_params( $params ))
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          or empty( $field_details ) or !is_array( $field_details )
          or !($field_details = self::validate_field( $field_details ))
          or !($mysql_field_arr = $this->get_mysql_field_definition( $field_name, $field_details ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
          or empty( $mysql_field_arr['field_str'] ) )
         {
+            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
         }
 
-        if( $this->check_column_exists( $field_name, $params ) )
+        if( $this->check_column_exists( $field_name, $flow_params ) )
         {
+            PHS_Logger::logf( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+
             $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] already exists.', $field_name ) );
             return false;
         }
 
-        if( empty( $params['after_column'] ) )
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['after_column'] ) or strtolower( trim( $params['after_column'] ) ) == '`first`' )
             $params['after_column'] = ' FIRST';
 
         else
         {
-            if( !$this->check_column_exists( $params['after_column'], $params ) )
+            if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
             {
-                $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table statement is invalid.', $params['after_column'] ) );
+                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table statement doesn\'t exist.', $params['after_column'] ) );
                 return false;
             }
 
             $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
         }
 
-        $db_connection = $this->get_db_connection( $params );
+        $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $params ).'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
+        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
         {
+            PHS_Logger::logf( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add column [%s].', $field_name ) );
             return false;
         }
 
         if( !empty( $mysql_field_arr['keys_str'] ) )
         {
-            if( !db_query( 'ALTER TABLE `' . $this->get_flow_table_name( $params ) . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+            if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
             {
+                PHS_Logger::logf( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
                 return false;
             }
         }
 
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
+
         return true;
     }
 
-    final public function alter_table_drop_column( $field_name, $params = false )
+    final public function alter_table_change_column( $field_name, $field_details, $old_field = false, $flow_params = false, $params = false )
     {
+        $this->reset_error();
+
+        $field_details = self::validate_array( $field_details, self::default_field_arr() );
+
         if( empty( $field_name )
          or $field_name == self::T_DETAILS_KEY
-         or !($params = $this->fetch_default_flow_params( $params )) )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         or empty( $field_details ) or !is_array( $field_details )
+         or !($field_details = self::validate_field( $field_details ))
+         or !($mysql_field_arr = $this->get_mysql_field_definition( $field_name, $field_details ))
+         or empty( $mysql_field_arr['field_str'] ) )
+        {
+            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        $old_field_name = false;
+        $old_field_details = false;
+        if( !empty( $old_field ) and is_array( $old_field )
+        and !empty( $old_field['name'] )
+        and !empty( $old_field['definition'] ) and is_array( $old_field['definition'] )
+        and ($old_field_details = self::validate_field( $old_field['definition'] )) )
+            $old_field_name = $old_field['name'];
+
+        if( empty( $old_field_name ) )
+            $db_old_field_name = $field_name;
+        else
+            $db_old_field_name = $old_field_name;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['alter_indexes'] ) )
+            $params['alter_indexes'] = true;
+        else
+            $params['alter_indexes'] = (!empty( $params['alter_indexes'] )?true:false);
+
+        if( empty( $params['after_column'] ) )
+            $params['after_column'] = '';
+
+        elseif( strtolower( trim( $params['after_column'] ) ) == '`first`' )
+            $params['after_column'] = ' FIRST';
+
+        else
+        {
+            if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
+            {
+                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table (change) statement doesn\'t exist in table structure.', $params['after_column'] ) );
+                return false;
+            }
+
+            $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
+        }
+
+        $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
+        if( !db_query( $sql, $db_connection ) )
+        {
+            PHS_Logger::logf( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to change column [%s].', $field_name ) );
+            return false;
+        }
+
+        if( !empty( $params['alter_indexes'] )
+        and !empty( $old_field_name )
+        and !empty( $old_field_details ) and is_array( $old_field_details )
+        and empty( $old_field_details['primary'] ) and !empty( $old_field_details['index'] ) )
+        {
+            if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`', $db_connection ) )
+            {
+                PHS_Logger::logf( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
+                return false;
+            }
+        }
+
+        if( !empty( $params['alter_indexes'] )
+        and !empty( $mysql_field_arr['keys_str'] ) )
+        {
+            if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+            {
+                PHS_Logger::logf( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
+                return false;
+            }
+        }
+
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
+
+        return true;
+    }
+
+    final public function alter_table_drop_column( $field_name, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $field_name )
+         or $field_name == self::T_DETAILS_KEY
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
             return false;
         }
 
-        if( !$this->check_column_exists( $field_name, $params ) )
+        if( !$this->check_column_exists( $field_name, $flow_params ) )
             return true;
 
-        $db_connection = $this->get_db_connection( $params );
+        $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $params ).'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
+        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $flow_params ).'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
             return false;
         }
+
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
 
         return true;
     }
@@ -1996,56 +2251,361 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     {
         $this->reset_error();
 
-        if( empty( $this->_definition ) or !is_array( $this->_definition )
-         or !($flow_params = $this->fetch_default_flow_params()) )
+        if( !($model_id = $this->instance_id()) )
+            return false;
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition ) )
             return true;
 
-        PHS_Logger::logf( 'Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::logf( 'Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         foreach( $this->_definition as $table_name => $table_definition )
         {
-            $flow_params['table_name'] = $table_name;
-
-            $db_connection = $this->get_db_connection( $flow_params );
-            $full_table_name = $this->get_flow_table_name( $flow_params );
-            if( empty( $full_table_name ) )
-                continue;
-
-            if( empty( $table_definition[self::T_DETAILS_KEY] ) )
-                $table_details = self::default_table_details_arr();
-            else
-                $table_details = $table_definition[self::T_DETAILS_KEY];
-
-            $sql = 'CREATE TABLE IF NOT EXISTS `'.$full_table_name.'` ( '."\n";
-            $all_fields_str = '';
-            $keys_str = '';
-            foreach( $table_definition as $field_name => $field_details )
+            if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => $table_name ) ))
+             or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
             {
-                if( !($field_definition = $this->get_mysql_field_definition( $field_name, $field_details ))
-                 or !is_array( $field_definition ) or empty( $field_definition['field_str'] ) )
-                    continue;
-
-                $all_fields_str .= ($all_fields_str!=''?', '."\n":'').$field_definition['field_str'];
-
-                if( !empty( $field_definition['keys_str'] ) )
-                    $keys_str .= ($keys_str!=''?',':'').$field_definition['keys_str'];
+                PHS_Logger::logf( 'Couldn\'t get flow parameters for table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                continue;
             }
 
-            $sql .= $all_fields_str.(!empty( $keys_str )?', '."\n":'').$keys_str.(!empty( $keys_str )?"\n":'').
-                    ') ENGINE='.$table_details['engine'].
-                    ' DEFAULT CHARSET='.$table_details['charset'].
-                    (!empty( $table_details['comment'] )?' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'':'').';';
-
-            if( !db_query( $sql, $db_connection ) )
+            if( !$this->install_table( $flow_params ) )
             {
-                PHS_Logger::logf( '!!! Error installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                if( !$this->has_error() )
+                    PHS_Logger::logf( 'Couldn\'t generate table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            }
+        }
 
-                $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s.', $table_name ) );
+        // Reset any errors related to generating tables...
+        $this->reset_error();
+
+        PHS_Logger::logf( 'DONE Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return true;
+    }
+
+    final protected function install_table( $flow_params )
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id()) )
+            return false;
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or empty( $flow_params['table_name'] )
+         or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
+            return false;
+        }
+
+        $table_name = $flow_params['table_name'];
+
+        PHS_Logger::logf( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( empty( $this->_definition[$table_name] ) )
+        {
+            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
+            return false;
+        }
+
+        $table_definition = $this->_definition[$table_name];
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        if( empty( $table_definition[self::T_DETAILS_KEY] ) )
+            $table_details = self::default_table_details_arr();
+        else
+            $table_details = $table_definition[self::T_DETAILS_KEY];
+
+        $sql = 'CREATE TABLE IF NOT EXISTS `'.$full_table_name.'` ( '."\n";
+        $all_fields_str = '';
+        $keys_str = '';
+        foreach( $table_definition as $field_name => $field_details )
+        {
+            if( !($field_definition = $this->get_mysql_field_definition( $field_name, $field_details ))
+             or !is_array( $field_definition ) or empty( $field_definition['field_str'] ) )
+                continue;
+
+            $all_fields_str .= ($all_fields_str!=''?', '."\n":'').$field_definition['field_str'];
+
+            if( !empty( $field_definition['keys_str'] ) )
+                $keys_str .= ($keys_str!=''?',':'').$field_definition['keys_str'];
+        }
+
+        $sql .= $all_fields_str.(!empty( $keys_str )?', '."\n":'').$keys_str.(!empty( $keys_str )?"\n":'').
+                ') ENGINE='.$table_details['engine'].
+                ' DEFAULT CHARSET='.$table_details['charset'].
+                (!empty( $table_details['collate'] )?' COLLATE '.$table_details['collate']:'').
+                (!empty( $table_details['comment'] )?' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'':'').';';
+
+        if( !db_query( $sql, $db_connection ) )
+        {
+            PHS_Logger::logf( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s for model %s.', $full_table_name, $this->instance_id() ) );
+            return false;
+        }
+
+        PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return true;
+    }
+
+    final public function update_tables()
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id()) )
+            return false;
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition ) )
+            return true;
+
+        PHS_Logger::logf( 'Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        foreach( $this->_definition as $table_name => $table_definition )
+        {
+            if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => $table_name ) ))
+             or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+            {
+                PHS_Logger::logf( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                continue;
+            }
+
+            if( !$this->update_table( $flow_params ) )
+            {
+                if( !$this->has_error() )
+                {
+                    $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t update table %s, model %s.', $full_table_name, $model_id ) );
+                    PHS_Logger::logf( 'Couldn\'t update table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
+                }
+
+                PHS_Logger::logf( 'FAILED Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
                 return false;
             }
         }
 
-        PHS_Logger::logf( 'DONE Installing tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        // Reset any errors related to generating tables...
+        $this->reset_error();
+
+        PHS_Logger::logf( 'DONE Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return true;
+    }
+
+    final protected function update_table( $flow_params )
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id()) )
+            return false;
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or empty( $flow_params['table_name'] )
+         or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
+            return false;
+        }
+
+        $table_name = $flow_params['table_name'];
+
+        PHS_Logger::logf( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        if( empty( $this->_definition[$table_name] ) )
+        {
+            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
+            return false;
+        }
+
+        $table_definition = $this->_definition[$table_name];
+        $db_table_definition = $this->get_table_columns_as_definition( $flow_params );
+
+        // extracting old names so we get quick field definition from old names...
+        $old_field_names_arr = array();
+        $found_old_field_names_arr = array();
+        foreach( $table_definition as $field_name => $field_definition )
+        {
+            if( empty( $field_definition['old_names'] ) or !is_array( $field_definition['old_names'] ) )
+                continue;
+
+            foreach( $field_definition['old_names'] as $old_field_name )
+            {
+                if( !empty( $found_old_field_names_arr[$old_field_name] ) )
+                {
+                    PHS_Logger::logf( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+                    $this->set_error( self::ERR_UPDATE_TABLE,
+                                      self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
+                    return false;
+                }
+
+                // Check if in current table structure we have this old name...
+                if( empty( $db_table_definition[$old_field_name] ) )
+                    continue;
+
+                $found_old_field_names_arr[$old_field_name] = true;
+                $old_field_names_arr[$field_name] = $old_field_name;
+            }
+        }
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        if( empty( $table_definition[self::T_DETAILS_KEY] ) )
+            $table_details = self::default_table_details_arr();
+        else
+            $table_details = $table_definition[self::T_DETAILS_KEY];
+
+        if( empty( $db_table_details[self::T_DETAILS_KEY] ) )
+            $db_table_details = self::default_table_details_arr();
+        else
+            $db_table_details = $table_definition[self::T_DETAILS_KEY];
+
+        if( ($changed_values = self::table_details_changed( $db_table_details, $table_details )) )
+        {
+            $sql = 'ALTER TABLE `'.$full_table_name.'`';
+            if( !empty( $changed_values['engine'] ) )
+                $sql .= ' ENGINE='.$changed_values['engine'];
+
+            if( !empty( $changed_values['charset'] ) or !empty( $changed_values['collate'] ) )
+            {
+                $sql .= ' DEFAULT CHARSET=';
+                if( !empty( $changed_values['charset'] ) )
+                    $sql .= $changed_values['charset'];
+                else
+                    $sql .= $table_details['charset'];
+
+                $sql .= ' COLLATE ';
+                if( !empty( $changed_values['collate'] ) )
+                    $sql .= $changed_values['collate'];
+                else
+                    $sql .= $table_details['collate'];
+            }
+
+            if( !empty( $changed_values['comment'] ) )
+                $sql .= ' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'';
+
+            // ALTER TABLE `table_name` ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci COMMENT "New comment"
+            if( !db_query( $sql, $db_connection ) )
+            {
+                PHS_Logger::logf( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+                $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error updating table properties %s for model %s.', $table_name, $this->instance_id() ) );
+                return false;
+            }
+        }
+
+        $after_field = '`first`';
+        $fields_found_in_old_structure = array();
+        // First we add or remove missing fields
+        foreach( $table_definition as $field_name => $field_definition )
+        {
+            if( $field_name == self::T_DETAILS_KEY )
+                continue;
+
+            $field_extra_params = array();
+            $field_extra_params['after_column'] = $after_field;
+
+            $after_field = $field_name;
+
+            if( empty( $db_table_definition[$field_name] ) )
+            {
+                // Field doesn't existin in db structure...
+                // Check if we must rename it...
+                if( !empty( $old_field_names_arr[$field_name] ) )
+                {
+                    $fields_found_in_old_structure[$old_field_names_arr[$field_name]] = true;
+
+                    // Yep we rename it...
+                    $old_field = array();
+                    $old_field['name'] = $old_field_names_arr[$field_name];
+                    $old_field['definition'] = $db_table_definition[$old_field_names_arr[$field_name]];
+
+                    if( !$this->alter_table_change_column( $field_name, $field_definition, $old_field, $flow_params, $field_extra_params ) )
+                    {
+                        if( !$this->has_error() )
+                        {
+                            PHS_Logger::logf( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+
+                            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error changing column %s, table %s, model %s.', $old_field_names_arr[$field_name], $full_table_name, $model_id ) );
+                        }
+
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                // Didn't find old fields to rename... Just add it...
+                if( !$this->alter_table_add_column( $field_name, $field_definition, $flow_params, $field_extra_params ) )
+                {
+                    if( !$this->has_error() )
+                    {
+                        PHS_Logger::logf( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+
+                        $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                    }
+
+                    return false;
+                }
+
+                continue;
+            }
+
+            $fields_found_in_old_structure[$field_name] = true;
+
+            $alter_params = $field_extra_params;
+            $alter_params['alter_indexes'] = false;
+
+            // Call alter table anyway as position might change...
+            if( !$this->alter_table_change_column( $field_name, $field_definition, false, $flow_params, $alter_params ) )
+            {
+                if( !$this->has_error() )
+                {
+                    PHS_Logger::logf( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+
+                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                }
+
+                return false;
+            }
+        }
+
+        // Delete fields which we didn't find in new structure
+        foreach( $db_table_definition as $field_name => $junk )
+        {
+            if( $field_name == self::T_DETAILS_KEY
+             or !empty( $fields_found_in_old_structure[$field_name] ) )
+                continue;
+
+            if( !$this->alter_table_drop_column( $field_name, $flow_params ) )
+            {
+                if( !$this->has_error() )
+                {
+                    PHS_Logger::logf( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+
+                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error dropping column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                }
+
+                return false;
+            }
+        }
+
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
+
+        PHS_Logger::logf( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -2213,7 +2773,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        // !TODO: Check table for differences...
+        // This will only create non-existing tables...
+        if( !$this->update_tables() )
+            return false;
 
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
