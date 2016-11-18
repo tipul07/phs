@@ -4,7 +4,10 @@
 
     use \phs\PHS;
 
-    PHS::st_throw_errors( false );
+    PHS::st_throw_errors( true );
+
+    echo '<pre style="background-color:black;color:white;padding: 5px;border:1px solid gray;">'."\n\n";
+    echo 'Installing core plugins, models, etc...'."\n";
 
     if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
     {
@@ -12,13 +15,16 @@
 
         if( $system_install_result !== true )
         {
-            echo '<pre>';
             echo PHS::_t( 'ERROR while running system install script [%s]:', 'CORE INSTALL' );
             var_dump( $system_install_result );
             echo '</pre>';
             exit;
         }
     }
+
+    echo 'DONE Installing core plugins, models, etc.'."\n\n";
+
+    echo 'Installing custom plugins, models, etc...'."\n";
 
     // Walk thgrough plugins install scripts (if any special install functionality is required)...
     foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
@@ -32,11 +38,12 @@
 
                 if( $install_result !== null )
                 {
-                    echo '<pre>';
                     echo PHS::_t( 'ERROR while running system install script [%s]:', $install_script );
                     var_dump( $install_result );
-                    echo '</pre>';
                 }
             }
         }
     }
+
+    echo 'DONE Installing custom plugins, models, etc.'."\n\n";
+    echo "\n".'</pre>';

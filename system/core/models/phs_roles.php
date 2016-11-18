@@ -113,7 +113,7 @@ class PHS_Model_Roles extends PHS_Model
         $edit_arr = array();
         $edit_arr['status'] = self::STATUS_ACTIVE;
 
-        $edit_params = array();
+        $edit_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $role_arr, $edit_params );
@@ -134,7 +134,7 @@ class PHS_Model_Roles extends PHS_Model
         $edit_arr = array();
         $edit_arr['status'] = self::STATUS_INACTIVE;
 
-        $edit_params = array();
+        $edit_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $role_arr, $edit_params );

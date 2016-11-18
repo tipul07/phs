@@ -185,14 +185,11 @@ class PHS_Roles extends PHS_Registry
         $constrain_arr = array();
         $constrain_arr['slug'] = $params['slug'];
 
-        $check_params = array();
-        $check_params['table_name'] = 'roles';
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
+        $check_params = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
 
         if( ($role_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
-            $edit_arr = array();
+            $edit_fields_arr = array();
             $check_fields = $role_model::get_register_edit_role_unit_fields();
             
             foreach( $check_fields as $key => $def_val )
@@ -200,14 +197,13 @@ class PHS_Roles extends PHS_Registry
                 if( array_key_exists( $key, $role_arr )
                 and array_key_exists( $key, $params )
                 and (string)$role_arr[$key] !== (string)$params[$key] )
-                    $edit_arr[$key] = $params[$key];
+                    $edit_fields_arr[$key] = $params[$key];
             }
 
-            if( !empty( $edit_arr ) )
+            if( !empty( $edit_fields_arr ) )
             {
-                $edit_params_arr = array();
-                $edit_params_arr['table_name'] = 'roles';
-                $edit_params_arr['fields'] = $edit_arr;
+                $edit_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
+                $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
                 if( ($new_existing_arr = $role_model->edit( $role_arr, $edit_arr )) )
@@ -224,8 +220,7 @@ class PHS_Roles extends PHS_Registry
 
             $params['status'] = $role_model::STATUS_ACTIVE;
 
-            $insert_arr = array();
-            $insert_arr['table_name'] = 'roles';
+            $insert_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
             $insert_arr['fields'] = $params;
             $insert_arr['{role_units}'] = $role_units_arr;
 
@@ -274,7 +269,7 @@ class PHS_Roles extends PHS_Registry
 
         if( ($role_unit_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
-            $edit_arr = array();
+            $edit_fields_arr = array();
             $check_fields = $role_model::get_register_edit_role_unit_fields();
 
             foreach( $check_fields as $key => $def_val )
@@ -282,14 +277,13 @@ class PHS_Roles extends PHS_Registry
                 if( array_key_exists( $key, $role_unit_arr )
                 and array_key_exists( $key, $params )
                 and (string)$role_unit_arr[$key] !== (string)$params[$key] )
-                    $edit_arr[$key] = $params[$key];
+                    $edit_fields_arr[$key] = $params[$key];
             }
 
-            if( !empty( $edit_arr ) )
+            if( !empty( $edit_fields_arr ) )
             {
-                $edit_params_arr = array();
-                $edit_params_arr['table_name'] = 'roles_units';
-                $edit_params_arr['fields'] = $edit_arr;
+                $edit_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) );
+                $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
                 if( ($new_existing_arr = $role_model->edit( $role_unit_arr, $edit_arr )) )
@@ -302,8 +296,7 @@ class PHS_Roles extends PHS_Registry
 
             $params['status'] = $role_model::STATUS_ACTIVE;
 
-            $insert_arr = array();
-            $insert_arr['table_name'] = 'roles_units';
+            $insert_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) );
             $insert_arr['fields'] = $params;
 
             if( !($role_unit_arr = $role_model->insert( $insert_arr )) )

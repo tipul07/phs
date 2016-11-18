@@ -1521,7 +1521,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
     /**
      * @param array $constrain_arr Conditional db fields
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array|false|\Generator|null Returns single record as array (first matching conditions), array of records matching conditions or acts as generator
      */
@@ -2416,6 +2416,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
             return false;
         }
+
+        if( !$this->check_table_exists( $flow_params ) )
+            return $this->install_table( $flow_params );
 
         $table_name = $flow_params['table_name'];
 

@@ -375,6 +375,9 @@ class PHS_Model_Plugins extends PHS_Model
         and !empty( self::$db_plugins[$instance_id] ) )
             unset( self::$db_plugins[$instance_id] );
 
+        // Cache all plugin details at once instead of caching one at a time...
+        $this->cache_all_db_details( $force );
+
         if( !empty( self::$db_plugins[$instance_id] ) )
             return self::$db_plugins[$instance_id];
 
