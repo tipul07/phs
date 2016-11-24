@@ -40,6 +40,14 @@ class PHS_Model_Accounts_details extends PHS_Model
     /**
      * @inheritdoc
      */
+    public function dynamic_table_structure()
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function get_insert_prepare_params( $params )
     {
         if( empty( $params ) or !is_array( $params ) )

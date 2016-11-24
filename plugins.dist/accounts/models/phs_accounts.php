@@ -183,7 +183,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_just_registered( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or !empty_db_date( $user_arr['lastlog'] ) )
+         or (!empty( $user_arr['lastlog'] ) and !empty_db_date( $user_arr['lastlog'] )) )
             return false;
 
         return $user_arr;
@@ -192,7 +192,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function has_logged_in( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or empty_db_date( $user_arr['lastlog'] ) )
+         or empty( $user_arr['lastlog'] ) or empty_db_date( $user_arr['lastlog'] ) )
             return false;
 
         return $user_arr;

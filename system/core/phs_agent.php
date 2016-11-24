@@ -32,30 +32,65 @@ class PHS_Agent extends PHS_Registry
         return $job_params_arr;
     }
 
-    public function remove_job( $job_data )
+    public static function remove_job_handler( $handler )
     {
-        $this->reset_error();
+        self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
         {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
+        if( empty( $handler ) )
+        {
+            self::st_set_error( self::ERR_JOB_DB, self::_t( 'Please provide a job handler.' ) );
+            return false;
+        }
+
+        if( !($existing_job = $agent_jobs_model->get_details_fields( array( 'handler' => $handler ) )) )
+            return true;
+
+        $remove_params = array();
+        $remove_params['agent_jobs_model'] = $agent_jobs_model;
+
+        return self::remove_job( $existing_job, $remove_params );
+    }
+
+    public static function remove_job( $job_data, $params = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( empty( $params['agent_jobs_model'] ) )
+            $agent_jobs_model = false;
+        else
+            $agent_jobs_model = $params['agent_jobs_model'];
+
+        if( empty( $agent_jobs_model )
+        and !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
             return false;
         }
 
         if( empty( $job_data )
          or !($job_arr = $agent_jobs_model->data_to_array( $job_data )) )
         {
-            $this->set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t load agent job details from database.' ) );
+            self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t load agent job details from database.' ) );
             return false;
         }
 
         if( !$agent_jobs_model->hard_delete( $job_arr ) )
         {
             if( $agent_jobs_model->has_error() )
-                $this->copy_error( $agent_jobs_model, self::ERR_JOB_DB );
+                self::st_copy_error( $agent_jobs_model, self::ERR_JOB_DB );
             else
-                $this->set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t delete agent job from database.' ) );
+                self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t delete agent job from database.' ) );
 
             return false;
         }
@@ -63,11 +98,17 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    public function add_job( $route, $once_every_seconds, $params = false, $extra = false )
+    public static function add_job( $handler, $route, $once_every_seconds, $params = false, $extra = false )
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
+
+        if( empty( $handler ) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide a handler for this agent job.' ) );
+            return false;
+        }
 
         $once_every_seconds = intval( $once_every_seconds );
 
@@ -75,10 +116,8 @@ class PHS_Agent extends PHS_Registry
         if( is_string( $route )
         and !($route_parts = PHS::parse_route( $route )) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_PARAMETERS );
-            else
-                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid route for agent job.' ) );
 
             return false;
         }
@@ -88,10 +127,8 @@ class PHS_Agent extends PHS_Registry
 
         if( empty( $route_parts ) or !is_array( $route_parts ) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_PARAMETERS );
-            else
-                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid route for agent job.' ) );
 
             return false;
         }
@@ -111,10 +148,8 @@ class PHS_Agent extends PHS_Registry
                                         )
              )) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_PARAMETERS );
-            else
-                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid route for agent job.' ) );
 
             return false;
         }
@@ -128,25 +163,47 @@ class PHS_Agent extends PHS_Registry
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
             return false;
         }
 
-        $insert_arr = array();
-        $insert_arr['pid'] = 0;
-        $insert_arr['route'] = $cleaned_route;
-        $insert_arr['params'] = @json_encode( $params );
-        $insert_arr['timed_seconds'] = $once_every_seconds;
-
-        if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))
-         or empty( $job_arr['id'] ) )
+        if( ($existing_job = $agent_jobs_model->get_details_fields( array( 'handler' => $handler ) )) )
         {
-            if( $agent_jobs_model->has_error() )
-                self::st_copy_error( $agent_jobs_model );
-            else
-                self::st_set_error( self::ERR_DB_INSERT, self::_t( 'Couldn\'t save agent job details in database. Please try again.' ) );
+            // At this point it doesn't matter if job is currently running as fields edited won't affect running flow of tasks...
+            $edit_arr = array();
+            $edit_arr['handler'] = $handler;
+            $edit_arr['route'] = $cleaned_route;
+            $edit_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
+            $edit_arr['timed_seconds'] = $once_every_seconds;
 
-            return false;
+            if( !($job_arr = $agent_jobs_model->edit( $existing_job, array( 'fields' => $edit_arr ) )) )
+            {
+                if( $agent_jobs_model->has_error() )
+                    self::st_copy_error( $agent_jobs_model );
+                else
+                    self::st_set_error( self::ERR_DB_INSERT, self::_t( 'Couldn\'t save agent job details in database. Please try again.' ) );
+
+                return false;
+            }
+        } else
+        {
+            $insert_arr = array();
+            $insert_arr['handler'] = $handler;
+            $insert_arr['pid'] = 0;
+            $insert_arr['route'] = $cleaned_route;
+            $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
+            $insert_arr['timed_seconds'] = $once_every_seconds;
+
+            if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))
+             or empty( $job_arr['id'] ) )
+            {
+                if( $agent_jobs_model->has_error() )
+                    self::st_copy_error( $agent_jobs_model );
+                else
+                    self::st_set_error( self::ERR_DB_INSERT, self::_t( 'Couldn\'t save agent job details in database. Please try again.' ) );
+
+                return false;
+            }
         }
 
         return $job_arr;

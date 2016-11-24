@@ -226,12 +226,12 @@ class PHS_Logger extends PHS_Registry
 
         if( empty( $log_size ) )
         {
-            fputs( $fil, "          Date         |    Identifier   |      IP         |  Log\n" );
-            fputs( $fil, "-----------------------+-----------------+-----------------+---------------------------------------------------\n" );
+            fputs( $fil, "          Date          |    Identifier   |      IP         |  Log\n" );
+            fputs( $fil, "------------------------+-----------------+-----------------+---------------------------------------------------\n" );
         }
 
-        @fputs( $fil, $log_time . ' | ' .
-                      (! empty(self::$_request_identifier) ? str_pad( self::$_request_identifier, 15, ' ', STR_PAD_LEFT ) . ' | ' : '') .
+        @fputs( $fil, str_pad( $log_time, 23, ' ', STR_PAD_LEFT ) . ' | ' .
+                      (!empty(self::$_request_identifier) ? str_pad( self::$_request_identifier, 15, ' ', STR_PAD_LEFT ) . ' | ' : '') .
                       str_pad( $request_ip, 15, ' ', STR_PAD_LEFT ) . ' | ' .
                       $str . "\n" );
 

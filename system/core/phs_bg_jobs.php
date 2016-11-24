@@ -174,7 +174,7 @@ class PHS_bg_jobs extends PHS_Registry
         $insert_arr['uid'] = (!empty( $current_user )?$current_user['id']:0);
         $insert_arr['pid'] = 0;
         $insert_arr['route'] = $cleaned_route;
-        $insert_arr['params'] = @json_encode( $params );
+        $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
         $insert_arr['timed_action'] = $extra['timed_action'];
 
         if( !($job_arr = $bg_jobs_model->insert( array( 'fields' => $insert_arr ) ))
@@ -211,6 +211,9 @@ class PHS_bg_jobs extends PHS_Registry
             return true;
 
         PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
+
+        if( PHS::st_debugging_mode() )
+            PHS_Logger::logf( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND );
 
         if( !empty( $extra['same_thread_if_bg'] )
         and PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )

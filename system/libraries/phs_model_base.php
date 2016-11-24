@@ -4,7 +4,6 @@ namespace phs\libraries;
 
 use \phs\PHS;
 use \phs\system\core\models\PHS_Model_Plugins;
-use \phs\libraries\PHS_Hooks;
 
 abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 {
@@ -92,6 +91,17 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @return array|bool Returns an array with table fields
      */
     abstract public function fields_definition( $params = false );
+
+    /**
+     * A dynamic table structure means that table fields can be altered by plugins, so system will call update method each time an install check
+     * is done. In this case model version is not checked and update will be called anyway to alter fields depending on plugins asking fields changes.
+     *
+     * @return bool Returns true if table structure is dynamically created, false if static
+     */
+    public function dynamic_table_structure()
+    {
+        return false;
+    }
 
     /**
      * @return int Should return INSTANCE_TYPE_* constant
@@ -596,7 +606,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return $this->install();
         }
 
-        if( version_compare( $db_details['version'], $this->get_model_version(), '!=' ) )
+        if( $this->dynamic_table_structure()
+         or version_compare( $db_details['version'], $this->get_model_version(), '!=' ) )
             return $this->update( $db_details['version'], $this->get_model_version() );
 
         return true;
@@ -606,7 +617,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * This method hard-deletes a record from database. If additional work is required before hard-deleting record, self::HOOK_HARD_DELETE is called before deleting.
      *
      * @param array|int $existing_data Array with full database fields or index id
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return bool Returns true or false depending on hard delete success
      */
@@ -847,49 +858,69 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $tables_arr;
     }
 
-    final private function all_fields_definition( $params )
+    final static function default_table_fields_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'model_id' => '',
+            'flow_params' => array(),
+            'fields_arr' => array(),
+        ), PHS_Hooks::default_common_hook_args() );
+    }
+
+    final private function all_fields_definition( $flow_params )
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
         {
             $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
 
-        $fields_arr = $this->fields_definition( $params );
+        $fields_arr = $this->fields_definition( $flow_params );
         $instance_id = $this->instance_id();
+        $plugin_instance_id = false;
+        if( ($plugin_obj = $this->get_plugin_instance()) )
+            $plugin_instance_id = $plugin_obj->instance_id();
 
-        $hook_params = array();
+        $hook_params = self::default_table_fields_hook_args();
         $hook_params['model_id'] = $instance_id;
-        $hook_params['params'] = $params;
+        $hook_params['flow_params'] = $flow_params;
         $hook_params['fields_arr'] = $fields_arr;
 
-        if( (($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params ))
-                or ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params )))
+        if( (
+                // Check plugin hook
+                (!empty( $plugin_instance_id )
+                    and ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params ))
+                )
+                or
+                // Check model hook
+                ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params ))
+                or
+                // Check generic hook
+                ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params ))
+            )
         and is_array( $extra_fields_arr ) and !empty( $extra_fields_arr['fields_arr'] ) )
             $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
 
         return $fields_arr;
     }
 
-    private function validate_tables_definition( $params = false )
+    private function validate_tables_definition()
     {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
         if( !($all_tables_arr = $this->get_all_table_names())
          or !is_array( $all_tables_arr ) )
             return false;
 
         foreach( $all_tables_arr as $table_name )
         {
-            $params['table_name'] = $table_name;
+            if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => $table_name ) )) )
+            {
+                $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Couldn\'t fetch flow parameters for table %s.', $table_name ) );
+                return false;
+            }
 
-            if( !$this->validate_definition( $params ) )
+            if( !$this->validate_definition( $flow_params ) )
                 return false;
         }
 
@@ -1286,6 +1317,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        $db_insert_arr = $this->get_empty_data();
+        foreach( $insert_arr as $key => $val )
+            $db_insert_arr[$key] = $val;
+
+        $insert_arr = $db_insert_arr;
+
         $insert_arr[$params['table_index']] = $item_id;
 
         // Set to tell future calls record was just added to database...
@@ -1613,7 +1650,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( empty( $params['extra_sql'] ) )
             $params['extra_sql'] = '';
 
-        // Params used for <linkage> parameter (recurring)...
+        // Params used for {linkage} parameter (recurring)...
         if( empty( $params['recurring_level'] ) )
             $params['recurring_level'] = 0;
 

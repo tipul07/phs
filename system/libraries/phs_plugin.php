@@ -341,6 +341,30 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         if( version_compare( $db_details['version'], $this->get_plugin_version(), '!=' ) )
             return $this->update( $db_details['version'], $this->get_plugin_version() );
 
+        // Check if plugin has dynamic structure models
+        elseif( ($models_arr = $this->get_models())
+        and is_array( $models_arr ) )
+        {
+            foreach( $models_arr as $model_name )
+            {
+                if( !($model_obj = PHS::load_model( $model_name, $this->instance_plugin_name() )) )
+                {
+                    if( PHS::st_has_error() )
+                        $this->copy_static_error( self::ERR_UPDATE );
+                    else
+                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
+
+                    PHS_Logger::logf( 'Error loading plugin model ['.$model_obj->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::logf( $this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+
+                    return false;
+                }
+
+                if( $model_obj->dynamic_table_structure() )
+                    return $this->update( $db_details['version'], $this->get_plugin_version() );
+            }
+        }
+
         return true;
     }
 

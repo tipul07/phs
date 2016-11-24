@@ -682,19 +682,23 @@ abstract class PHS_Instantiable extends PHS_Registry
          or empty( $instance_details['instance_id'] ) )
             return false;
 
-        $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
-
-        if( !@file_exists( $instance_file_path ) )
+        if( !@class_exists( $instance_details['instance_full_class'], false ) )
         {
-            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance file for class %s from plugin %s.', $class_name, $instance_details['plugin_name'] ) );
-            return false;
+            $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
+
+            if( !@file_exists( $instance_file_path ) )
+            {
+                self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t load instance file for class %s from plugin %s.', $class_name, $instance_details['plugin_name'] ) );
+                return false;
+            }
+
+            ob_start();
+            include_once( $instance_file_path );
+            ob_end_clean();
         }
 
-        ob_start();
-        include_once( $instance_file_path );
-        ob_end_clean();
 
-        if( !class_exists( $instance_details['instance_full_class'], false ) )
+        if( !@class_exists( $instance_details['instance_full_class'], false ) )
         {
             self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Class %s not defined in %s file.', $instance_details['instance_full_class'], $instance_details['instance_file_name'] ) );
             return false;

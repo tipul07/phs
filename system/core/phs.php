@@ -581,7 +581,7 @@ final class PHS extends PHS_Registry
         /** @var bool|\phs\libraries\PHS_Controller $controller_obj */
         $controller_obj = false;
         if( !empty( $route_parts['controller'] )
-        and !($controller_obj = self::load_controller( $route_parts['controller'], $plugin_obj )) )
+        and !($controller_obj = self::load_controller( $route_parts['controller'], $plugin_obj->instance_plugin_name() )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate controller from route.' ) );
@@ -591,7 +591,7 @@ final class PHS extends PHS_Registry
         /** @var bool|\phs\libraries\PHS_Action $action_obj */
         $action_obj = false;
         if( empty( $route_parts['action'] )
-         or !($action_obj = self::load_action( $route_parts['action'], $plugin_obj )) )
+         or !($action_obj = self::load_action( $route_parts['action'], $plugin_obj->instance_plugin_name() )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate action from route.' ) );
@@ -1395,7 +1395,7 @@ final class PHS extends PHS_Registry
      * @param string $hook_name             Hook name
      * @param callback $hook_callback       Method/Function to be called
      * @param null|array $hook_extra_args   Extra arguments to be passed when hook is fired
-     * @param array|false $extra            Extra details related to current hook:
+     * @param array|bool $extra             Extra details related to current hook:
      *      chained_hook    If true result of hook call will overwrite parameters of next hook callback (can be used as filters)
      *      priority        Order in which hooks are fired is given by $priority parameter
      *      stop_chain      If true will stop hooks execution (used if chained_hook is true)

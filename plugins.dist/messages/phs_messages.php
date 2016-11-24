@@ -365,34 +365,25 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
-    public function trigger_model_empty_data( $hook_args = false )
+    public function trigger_model_table_fields( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_model_empty_data_hook_args() );
+        $hook_args = self::validate_array( $hook_args, PHS_Model::default_table_fields_hook_args() );
 
         if( empty( $hook_args['flow_params'] ) or !is_array( $hook_args['flow_params'] )
-         or empty( $hook_args['flow_params']['table_name'] )
-         or $hook_args['flow_params']['table_name'] != 'users_details' )
+         or empty( $hook_args['flow_params']['table_name'] ) )
             return false;
 
-        $hook_args['data_arr'] = array(
-            self::UD_COLUMN_MSG_HANDLER => '',
-        );
+        switch( $hook_args['flow_params']['table_name'] )
+        {
+            default:
+                return false;
 
-        return $hook_args;
-    }
-
-    public function trigger_model_validate_data_fields( $hook_args = false )
-    {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_model_empty_data_hook_args() );
-
-        if( empty( $hook_args['flow_params'] ) or !is_array( $hook_args['flow_params'] )
-         or empty( $hook_args['flow_params']['table_name'] )
-         or $hook_args['flow_params']['table_name'] != 'users_details' )
-            return false;
-
-        $hook_args['table_fields'] = array(
-            self::UD_COLUMN_MSG_HANDLER => self::get_msg_handler_field_definition(),
-        );
+            case 'users_details':
+                $hook_args['fields_arr'] = array(
+                    self::UD_COLUMN_MSG_HANDLER => self::get_msg_handler_field_definition(),
+                );
+            break;
+        }
 
         return $hook_args;
     }

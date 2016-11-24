@@ -47,3 +47,12 @@
 
     echo 'DONE Installing custom plugins, models, etc.'."\n\n";
     echo "\n".'</pre>';
+
+    if( ($debug_data = PHS::platform_debug_data()) )
+    {
+        echo ' </br><small>'.$debug_data['db_queries_count'].' queries, '.
+             ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
+             ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s'.
+             '</small>';
+    }
+

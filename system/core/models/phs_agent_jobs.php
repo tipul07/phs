@@ -17,7 +17,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -205,6 +205,18 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['handler'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a handler for this task.' ) );
+            return false;
+        }
+
+        if( $this->get_details_fields( array( 'handler' => $params['fields']['handler'] ) ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Handler already defined in database.' ) );
+            return false;
+        }
+
         if( empty( $params['fields']['run_async'] ) )
             $params['fields']['run_async'] = 0;
         else
@@ -231,6 +243,17 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
 
         $cdate = date( self::DATETIME_DB );
+
+        $check_arr = array();
+        $check_arr['handler'] = $params['fields']['handler'];
+        $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+        if( !empty( $params['fields']['handler'] )
+        and $this->get_details_fields( $check_arr ) )
+        {
+            $this->set_error( self::ERR_INSERT, self::_t( 'Handler already defined in database.' ) );
+            return false;
+        }
 
         if( isset( $params['fields']['run_async'] ) )
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
@@ -271,6 +294,14 @@ class PHS_Model_Agent_jobs extends PHS_Model
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
+                    ),
+                    'handler' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'index' => true,
+                        'comment' => 'String which will help identify task',
                     ),
                     'pid' => array(
                         'type' => self::FTYPE_INT,
