@@ -2818,6 +2818,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
+        $plugin_details['plugin'] = $this->instance_plugin_name();
+        $plugin_details['type'] = $this->instance_type();
+        $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['version'] = $this->get_model_version();
 
         if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
