@@ -866,6 +866,16 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             }
         }
 
+        if( !$this->custom_install_finish() )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSTALL, self::_t( 'Finishing plugin installation failed. Please uninstall, then re-install the plugin.' ) );
+
+            PHS_Logger::logf( '!!! Error in plugin custom install finish functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
         PHS_Logger::logf( 'DONE installing plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return $plugin_arr;
@@ -986,6 +996,18 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
      * @return bool true on success, false on failure
      */
     protected function custom_install()
+    {
+        return true;
+    }
+
+    /**
+     * Performs any necessary custom actions right after installing plugin with success
+     * Overwrite this method to do particular install finishing actions.
+     * If this function returns false whole install will stop and error set in this method will be used.
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_install_finish()
     {
         return true;
     }
