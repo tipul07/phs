@@ -27,14 +27,21 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         parent::__construct( $instance_details );
 
-        $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
-            'action_obj' => $this,
-            'controller_obj' => $this->_controller_obj,
-        ) );
-        $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
-            'action_obj' => $this,
-            'controller_obj' => $this->_controller_obj,
-        ) );
+        if( !$this->signal_defined( self::SIGNAL_ACTION_BEFORE_RUN ) )
+        {
+            $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
+                'action_obj' => $this,
+                'controller_obj' => $this->_controller_obj,
+            ) );
+        }
+
+        if( !$this->signal_defined( self::SIGNAL_ACTION_AFTER_RUN ) )
+        {
+            $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
+                'action_obj' => $this,
+                'controller_obj' => $this->_controller_obj,
+            ) );
+        }
     }
 
     /**
