@@ -65,6 +65,9 @@ class PHS_Error
         if( $this->error_no == self::ERR_OK )
             return false;
 
+        echo 'Full backtrace:'."\n".
+             $this->debug_call_backtrace();
+
         if( $this->debugging_mode() )
             throw new \Exception( $this->error_debug_msg.":\n".$this->error_msg, $this->error_no );
         else
@@ -120,7 +123,7 @@ class PHS_Error
     /**
      *   Method returns number of warnings warnings (for specified tag or as total)
      *
-     *   @param $tag string Check if we have warnings for provided tag (false by default)
+     *   @param string|bool $tag Check if we have warnings for provided tag (false by default)
      *   @return int Return warnings number (for specified tag or as total)
      **/
     public function has_warnings( $tag = false )
@@ -232,8 +235,10 @@ class PHS_Error
     /**
      *   Set an error code and error message. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
      *
-     *   @param $error_no int Error code
-     *   @param $error_msg string Error message
+     *   @param int $error_no Error code
+     *   @param string $error_msg Error message
+     *   @param string $error_debug_msg Debugging error message
+     *   @param bool|array $params Extra parameters
      **/
     public function set_error( $error_no, $error_msg, $error_debug_msg = '', $params = false )
     {
@@ -265,8 +270,8 @@ class PHS_Error
     /**
      *   Add a warning message for a speficied tag or as general warning. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
      *
-     *   @param $warning string Warning message
-     *   @param $tag string Add warning for a specific tag (default false). If this is not provided warning will be added as general warning.
+     *   @param string $warning string Warning message
+     *   @param bool|string $tag string Add warning for a specific tag (default false). If this is not provided warning will be added as general warning.
      **/
     public function add_warning( $warning, $tag = false )
     {
@@ -317,9 +322,10 @@ class PHS_Error
 
     //! Remove warnings
     /**
-     *   Remove warning messages for a speficied tag or all warnings.
+     * Remove warning messages for a speficied tag or all warnings.
      *
-     *   @param $tag string Remove warnings of specific tag or all warnings. (default false)
+     * @param bool|string $tag string Remove warnings of specific tag or all warnings. (default false)
+     * @return int
      **/
     public function reset_warnings( $tag = false )
     {
