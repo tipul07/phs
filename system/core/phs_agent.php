@@ -157,6 +157,11 @@ class PHS_Agent extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        if( !isset( $extra['run_async'] ) )
+            $extra['run_async'] = true;
+        else
+            $extra['run_async'] = (!empty( $extra['run_async'] )?true:false);
+
         if( !is_array( $params ) )
             $params = array();
 
@@ -175,6 +180,7 @@ class PHS_Agent extends PHS_Registry
             $edit_arr['route'] = $cleaned_route;
             $edit_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $edit_arr['timed_seconds'] = $once_every_seconds;
+            $edit_arr['run_async'] = ($extra['run_async']?1:0);
 
             if( !($job_arr = $agent_jobs_model->edit( $existing_job, array( 'fields' => $edit_arr ) )) )
             {
@@ -193,6 +199,7 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['route'] = $cleaned_route;
             $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $insert_arr['timed_seconds'] = $once_every_seconds;
+            $insert_arr['run_async'] = ($extra['run_async']?1:0);
 
             if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))
              or empty( $job_arr['id'] ) )

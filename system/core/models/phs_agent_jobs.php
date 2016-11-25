@@ -217,8 +217,8 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
         }
 
-        if( empty( $params['fields']['run_async'] ) )
-            $params['fields']['run_async'] = 0;
+        if( !isset( $params['fields']['run_async'] ) )
+            $params['fields']['run_async'] = 1;
         else
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
 

@@ -670,7 +670,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $db_connection = $this->get_db_connection( $params['db_connection'] );
 
-        // TODO: Move all queries to a higher level so we can have database connections with different drivers...
         $result = false;
         if( db_query( 'DELETE FROM `'.$this->get_flow_table_name( $params ).'` WHERE `'.$params['table_index'].'` = \''.db_escape( $existing_arr[$params['table_index']], $db_connection ).'\'', $db_connection ) )
             $result = true;

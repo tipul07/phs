@@ -9,15 +9,18 @@
     use \phs\libraries\PHS_Logger;
 
 
-    /** @var \phs\plugins\s2p_companies\models\PHS_Model_Flags $flags_model */
-
+    // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Flags $flags_model */
+    // /** @var \phs\plugins\s2p_mirakl\PHS_Plugin_S2p_mirakl $mirakl_plugin */
+    //
     // $flags_model = PHS::load_model( 'flags', 's2p_companies' );
+    // $mirakl_plugin = PHS::load_plugin( 's2p_mirakl' );
     //
     // $company_flags = array();
-    // $company_flags[$flags_model::F_COMPANY_SETUP_END] = 1;
+    // $company_flags[$mirakl_plugin::F_MIRAKL_SHOP_ID] = 2007;
+    // $company_flags[$flags_model::F_CONTRACT_SIGNED] = 1;
     // $company_flags[$flags_model::F_COMPANY_APPROVED] = 1;
     //
-    // var_dump( $flags_model->update_company_flags( 6, $company_flags ) );
+    // var_dump( $flags_model->update_company_flags( 7, $company_flags ) );
     // var_dump( $flags_model->get_error() );
     // exit;
 
