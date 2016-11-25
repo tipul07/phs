@@ -107,7 +107,9 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * @param $index
+     * @param string $index Language index
+     * @param string $ch What to escape (quote or double quote)
+     * @return string
      */
     public function _pte( $index, $ch = '"' )
     {
@@ -115,7 +117,8 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * @param $index
+     * @param string $index Language index
+     * @return string
      */
     public function _pt( $index )
     {
@@ -202,6 +205,7 @@ class PHS_Language extends PHS_Error
      *
      * @param string $str String to be escaped
      * @param string $ch Escaping character (' or ")
+     * @return string
      */
     public static function _e( $str, $ch = '"' )
     {
@@ -514,6 +518,7 @@ class PHS_Language_Container extends PHS_Error
      * Loads provided CSV files in 'files' index of language definition array for language $lang
      *
      * @param string $lang ISO 2 chars (lowercase) language code
+     * @param bool $force Force loading laguange files
      *
      * @return bool True if loading was with success, false otherwise
      */
@@ -542,6 +547,7 @@ class PHS_Language_Container extends PHS_Error
      * Loads a specific CSV file for language $lang. This file is provided in 'files' index of language definition array for provided language
      *
      * @param string $file
+     * @param bool $force Force loading laguange files
      * @param string $lang
      *
      * @return bool

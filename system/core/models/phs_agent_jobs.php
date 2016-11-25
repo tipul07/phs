@@ -17,7 +17,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -185,6 +185,16 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return true;
     }
 
+    public function job_is_active( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data ))
+         or empty( $job_arr['active'] ) )
+            return false;
+
+        return true;
+    }
+
     /**
      * @inheritdoc
      */
@@ -222,6 +232,11 @@ class PHS_Model_Agent_jobs extends PHS_Model
         else
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
 
+        if( !isset( $params['fields']['active'] ) )
+            $params['fields']['active'] = 1;
+        else
+            $params['fields']['active'] = (!empty( $params['fields']['active'] )?1:0);
+
         if( empty( $params['fields']['timed_seconds'] ) )
             $params['fields']['timed_seconds'] = 0;
         else
@@ -257,6 +272,9 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
         if( isset( $params['fields']['run_async'] ) )
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
+
+        if( isset( $params['fields']['active'] ) )
+            $params['fields']['active'] = (!empty( $params['fields']['active'] )?1:0);
 
         if( isset( $params['fields']['is_running'] ) )
         {
@@ -327,7 +345,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
                     ),
                     'run_async' => array(
                         'type' => self::FTYPE_TINYINT,
-                        'length' => '255',
+                        'length' => '2',
                         'default' => 1,
                         'comment' => 'Run this job asynchronous',
                     ),
@@ -343,6 +361,12 @@ class PHS_Model_Agent_jobs extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                         'comment' => 'Next time action should run',
+                    ),
+                    'active' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => '2',
+                        'default' => 1,
+                        'comment' => 'Is this job still active',
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,

@@ -162,6 +162,11 @@ class PHS_Agent extends PHS_Registry
         else
             $extra['run_async'] = (!empty( $extra['run_async'] )?true:false);
 
+        if( !isset( $extra['active'] ) )
+            $extra['active'] = 1;
+        else
+            $extra['active'] = (!empty( $extra['active'] )?1:0);
+
         if( !is_array( $params ) )
             $params = array();
 
@@ -200,6 +205,7 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $insert_arr['timed_seconds'] = $once_every_seconds;
             $insert_arr['run_async'] = ($extra['run_async']?1:0);
+            $insert_arr['active'] = $extra['active'];
 
             if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))
              or empty( $job_arr['id'] ) )
@@ -239,6 +245,16 @@ class PHS_Agent extends PHS_Registry
 
         if( empty( $extra['return_command'] ) )
             $extra['return_command'] = false;
+        if( empty( $extra['force_run'] ) )
+            $extra['force_run'] = false;
+        else
+            $extra['force_run'] = true;
+
+        if( !$agent_jobs_model->job_is_active( $job_arr ) )
+        {
+            $this->set_error( self::ERR_RUN_JOB, self::_t( 'Agent job not active.' ) );
+            return false;
+        }
 
         $cmd_extra = array();
         $cmd_extra['async_task'] = ($job_arr['run_async']?true:false);
@@ -334,6 +350,7 @@ class PHS_Agent extends PHS_Registry
         $list_arr = $agent_jobs_model->fetch_default_flow_params();
         $list_arr['fields']['is_running'] = array( 'check' => 'IS', 'raw_value' => 'NULL' );
         $list_arr['fields']['timed_action'] = array( 'check' => '<=', 'value' => date( $agent_jobs_model::DATETIME_DB ) );
+        $list_arr['fields']['active'] = 1;
         $list_arr['order_by'] = 'run_async DESC';
 
         if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false
