@@ -8,6 +8,12 @@
     use \phs\libraries\PHS_Model;
     use \phs\libraries\PHS_Logger;
 
+    // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Companies $model_obj */
+    // $model_obj = PHS::load_model( 'companies', 's2p_companies' );
+    //
+    // var_dump( $model_obj->new_company_setup_bg( 7, array( 'force' => true ) ) );
+    // var_dump( $model_obj->get_error() );
+    // exit;
 
     // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Flags $flags_model */
     // /** @var \phs\plugins\s2p_mirakl\PHS_Plugin_S2p_mirakl $mirakl_plugin */
@@ -25,6 +31,15 @@
     // exit;
 
 
+    // /** @var \phs\plugins\s2p_ibs\PHS_Plugin_S2p_ibs $plugin_obj */
+    // /** @var \phs\plugins\s2p_ibs\libraries\S2P_Ibs $ibs_library */
+    // $plugin_obj = PHS::load_plugin( 's2p_ibs' );
+    // $ibs_library = $plugin_obj->get_ibs_instance();
+    //
+    // var_dump( $ibs_library->sync_company( 10, array( 'gp_site_id' => '32094' ) ) );
+    // var_dump( $ibs_library->get_error() );
+    // exit;
+
     // /** @var \phs\plugins\s2p_gp\PHS_Plugin_S2p_gp $plugin_obj */
     // /** @var \phs\plugins\s2p_gp\libraries\S2P_Gp $gp_library */
     // $plugin_obj = PHS::load_plugin( 's2p_gp' );
@@ -39,7 +54,7 @@
     // $plugin_obj = PHS::load_plugin( 's2p_mirakl' );
     // $mirakl_library = $plugin_obj->get_mirakl_instance();
     //
-    // var_dump( $mirakl_library->import_mirakl_shop( 7 ) );
+    // var_dump( $mirakl_library->import_mirakl_shop( 8 ) );
     // var_dump( $mirakl_library->get_error() );
     // exit;
 

@@ -7,8 +7,28 @@
     PHS::st_throw_errors( true );
 
     echo '<pre style="background-color:black;color:white;padding: 5px;border:1px solid gray;">'."\n\n";
-    echo 'Installing core plugins, models, etc...'."\n";
 
+    echo 'Checking plugins module installation... ';
+
+    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+    if( !($plugins_model = PHS::load_model( 'plugins' )) )
+    {
+        echo PHS::_t( 'ERROR Instantiating plugins model:' )."\n";
+        var_dump( PHS::st_get_error() );
+        echo '</pre>';
+        exit;
+    }
+
+    if( !$plugins_model->check_install_plugins_db() )
+    {
+        echo PHS::_t( 'ERROR checking plugins model install:' )."\n";
+        var_dump( $plugins_model->get_error() );
+        echo '</pre>';
+        exit;
+    }
+    echo PHS::_t( 'DONE' )."\n\n";
+
+    echo 'Installing core plugins, models, etc...'."\n";
     if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
     {
         $system_install_result = include_once( PHS_SYSTEM_DIR . 'install.php' );
