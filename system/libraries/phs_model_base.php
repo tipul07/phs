@@ -2387,6 +2387,9 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        // Re-cache table structure...
+        $this->get_table_columns_as_definition( $flow_params, true );
+
         PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;

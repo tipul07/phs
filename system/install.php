@@ -1,6 +1,7 @@
 <?php
 
-    if( !defined( 'PHS_VERSION' ) )
+    if( !defined( 'PHS_VERSION' )
+     or !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
         exit;
 
     use \phs\PHS;
