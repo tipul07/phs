@@ -241,6 +241,30 @@ include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.php' );
 
+//
+// Check if we are in install flow...
+//
+if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
+{
+    echo 'Checking plugins module installation... ';
+
+    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+    if( !($plugins_model = PHS::load_model( 'plugins' )) )
+    {
+        echo PHS::_t( 'ERROR Instantiating plugins model:' )."\n";
+        var_dump( PHS::st_get_error() );
+        exit;
+    }
+
+    if( !$plugins_model->check_install_plugins_db() )
+    {
+        echo PHS::_t( 'ERROR checking plugins model install:' )."\n";
+        var_dump( $plugins_model->get_error() );
+        exit;
+    }
+    echo PHS::_t( 'DONE' )."\n\n";
+}
+
 // Walk thgrough plugins bootstrap scripts...
 foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
 {
