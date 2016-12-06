@@ -489,6 +489,12 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                     return false;
                 }
 
+                if( !$this->_paginator_model->is_active( $account_arr ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Account not active. Activate account first.' ) );
+                    return false;
+                }
+
                 if( !$this->_paginator_model->login( $account_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
@@ -657,7 +663,8 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
         ob_start();
 
-        if( PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
+        if( PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_LOGIN_SUBACCOUNT )
+        and $this->_paginator_model->is_active( $account_arr ) )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']?>' )"><i class="fa fa-sign-in action-icons" title="<?php echo $this->_pt( 'Change login to this account' )?>"></i></a>

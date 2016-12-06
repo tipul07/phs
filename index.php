@@ -36,7 +36,7 @@
     // $plugin_obj = PHS::load_plugin( 's2p_ibs' );
     // $ibs_library = $plugin_obj->get_ibs_instance();
     //
-    // var_dump( $ibs_library->sync_company( 10, array( 'gp_site_id' => '32094' ) ) );
+    // var_dump( $ibs_library->sync_company( 14, array( 'gp_site_id' => '33200' ) ) );
     // var_dump( $ibs_library->get_error() );
     // exit;
 
@@ -45,7 +45,7 @@
     // $plugin_obj = PHS::load_plugin( 's2p_gp' );
     // $gp_library = $plugin_obj->get_gp_instance();
     //
-    // var_dump( $gp_library->create_site_for_company( 10, array( 'force_sync' => true ) ) );
+    // var_dump( $gp_library->sync_gp_db_site( 3, array( 'force_sync' => true ) ) );
     // var_dump( $gp_library->get_error() );
     // exit;
 
@@ -54,7 +54,7 @@
     // $plugin_obj = PHS::load_plugin( 's2p_mirakl' );
     // $mirakl_library = $plugin_obj->get_mirakl_instance();
     //
-    // var_dump( $mirakl_library->import_mirakl_shop( 8 ) );
+    // var_dump( $mirakl_library->import_mirakl_shop( 36 ) );
     // var_dump( $mirakl_library->get_error() );
     // exit;
 

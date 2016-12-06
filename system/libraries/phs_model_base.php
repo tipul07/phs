@@ -1430,12 +1430,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        if( !empty( $edit_arr ) )
-        {
-            foreach( $edit_arr as $key => $val )
-                $existing_arr[$key] = $val;
-        }
-
         $edit_after_exists = (@method_exists( $this, 'edit_after_'.$params['table_name'] )?true:false);
 
         if( (
@@ -1460,6 +1454,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         $existing_arr = $new_existing_arr;
+
+        if( !empty( $edit_arr ) )
+        {
+            foreach( $edit_arr as $key => $val )
+                $existing_arr[$key] = $val;
+        }
 
         return $existing_arr;
     }
