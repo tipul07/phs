@@ -665,6 +665,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
                 $role_unit_details_arr = array();
                 $role_unit_details_arr['slug'] = $role_unit_slug;
+                $role_unit_details_arr['plugin'] = $this->instance_plugin_name();
                 $role_unit_details_arr['name'] = $role_unit_arr['name'];
                 $role_unit_details_arr['description'] = $role_unit_arr['description'];
 
@@ -687,6 +688,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
             $role_details_arr = array();
             $role_details_arr['slug'] = $role_slug;
+            $role_details_arr['plugin'] = $this->instance_plugin_name();
             $role_details_arr['name'] = $role_arr['name'];
             $role_details_arr['description'] = $role_arr['description'];
             $role_details_arr['predefined'] = 1;

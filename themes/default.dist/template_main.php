@@ -164,7 +164,7 @@
         function open_messages_summary_menu_pane()
         {
             close_menu_panes();
-            $('#messages-summary-container' ).fadeToggle();
+            $('#messages-summary-container' ).stop().fadeToggle();
         }
         function close_messages_summary_menu_pane()
         {

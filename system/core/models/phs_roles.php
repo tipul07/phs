@@ -25,7 +25,7 @@ class PHS_Model_Roles extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -1728,6 +1728,13 @@ class PHS_Model_Roles extends PHS_Model
                         'default' => null,
                         'index' => true,
                     ),
+                    'plugin' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'index' => true,
+                    ),
                     'uid' => array(
                         'type' => self::FTYPE_INT,
                         'index' => true,
@@ -1772,6 +1779,13 @@ class PHS_Model_Roles extends PHS_Model
                         'auto_increment' => true,
                     ),
                     'slug' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'index' => true,
+                    ),
+                    'plugin' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '255',
                         'nullable' => true,

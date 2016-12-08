@@ -200,6 +200,13 @@ class PHS_Roles extends PHS_Registry
                     $edit_fields_arr[$key] = $params[$key];
             }
 
+            if( empty( $role_arr['plugin'] )
+            and !empty( $params['plugin'] ) )
+                $edit_fields_arr['plugin'] = $params['plugin'];
+
+            if( $role_model->is_deleted( $role_arr ) )
+                $edit_fields_arr['status'] = $role_model::STATUS_ACTIVE;
+
             if( !empty( $edit_fields_arr ) )
             {
                 $edit_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
@@ -279,6 +286,13 @@ class PHS_Roles extends PHS_Registry
                 and (string)$role_unit_arr[$key] !== (string)$params[$key] )
                     $edit_fields_arr[$key] = $params[$key];
             }
+
+            if( empty( $role_unit_arr['plugin'] )
+            and !empty( $params['plugin'] ) )
+                $edit_fields_arr['plugin'] = $params['plugin'];
+
+            if( $role_model->is_deleted( $role_unit_arr ) )
+                $edit_fields_arr['status'] = $role_model::STATUS_ACTIVE;
 
             if( !empty( $edit_fields_arr ) )
             {
