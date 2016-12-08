@@ -86,7 +86,39 @@ class PHS_Action_Register extends PHS_Action
             return $this->quick_render_template( 'register_thankyou', $data );
         }
 
-        if( !empty( $do_submit ) )
+        $template = 'register';
+        $template_data = array(
+            'nick' => $nick,
+            'email' => $email,
+            'pass1' => $pass1,
+            'pass2' => $pass2,
+            'vcode' => $vcode,
+
+            // We pass it here so hook result can stop execution
+            'do_submit' => $do_submit,
+
+            'min_password_length' => $accounts_settings['min_password_length'],
+            'password_regexp' => $accounts_settings['password_regexp'],
+            'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
+        );
+
+        $hook_args = PHS_Hooks::default_page_location_hook_args();
+        $hook_args['page_template'] = $template;
+        $hook_args['page_template_args'] = $template_data;
+
+        if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGE_REGISTER, $hook_args ))
+        and is_array( $new_hook_args ) )
+        {
+            if( !empty( $new_hook_args['action_result'] ) and is_array( $new_hook_args['action_result'] ) )
+                return self::validate_array( $new_hook_args['action_result'], PHS_Action::default_action_result() );
+
+            if( !empty( $new_hook_args['new_page_template'] ) )
+                $template = $new_hook_args['new_page_template'];
+            if( isset( $new_hook_args['new_page_template_args'] ) and $new_hook_args['new_page_template_args'] !== false )
+                $template_data = $new_hook_args['new_page_template_args'];
+        }
+
+        if( !empty( $template_data['do_submit'] ) )
         {
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
             /*
@@ -96,7 +128,7 @@ class PHS_Action_Register extends PHS_Action
             else
             */
 
-            if( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
+            if( ($hook_result = PHS_Hooks::trigger_captcha_check( $template_data['vcode'] )) !== null
                 and empty( $hook_result['check_valid'] ) )
             {
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
@@ -105,15 +137,15 @@ class PHS_Action_Register extends PHS_Action
                     PHS_Notifications::add_error_notice( $this->_pt( 'Invalid validation code.' ) );
             }
 
-            elseif( $pass1 != $pass2 )
+            elseif( $template_data['pass1'] != $template_data['pass2'] )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Passwords mistmatch.' ) );
 
             else
             {
                 $insert_arr = array();
-                $insert_arr['nick'] = $nick;
-                $insert_arr['pass'] = $pass1;
-                $insert_arr['email'] = $email;
+                $insert_arr['nick'] = $template_data['nick'];
+                $insert_arr['pass'] = $template_data['pass1'];
+                $insert_arr['email'] = $template_data['email'];
                 $insert_arr['level'] = $accounts_model::LVL_MEMBER;
                 $insert_arr['lastip'] = request_ip();
 
@@ -141,17 +173,6 @@ class PHS_Action_Register extends PHS_Action
             }
         }
 
-        $data = array(
-            'nick' => $nick,
-            'email' => $email,
-            'pass1' => $pass1,
-            'pass2' => $pass2,
-            'vcode' => $vcode,
-            'min_password_length' => $accounts_settings['min_password_length'],
-            'password_regexp' => $accounts_settings['password_regexp'],
-            'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
-        );
-
-        return $this->quick_render_template( 'register', $data );
+        return $this->quick_render_template( $template, $template_data );
     }
 }

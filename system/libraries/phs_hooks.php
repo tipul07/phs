@@ -22,7 +22,7 @@ class PHS_Hooks extends PHS_Registry
          H_URL_PARAMS = 'phs_url_params',
 
          // Location / Scripts hooks
-         H_PAGE_INDEX = 'phs_page_index',
+         H_PAGE_INDEX = 'phs_page_index', H_PAGE_REGISTER = 'phs_page_register',
 
          // Email hooks
          H_EMAIL_INIT = 'phs_email_init',
