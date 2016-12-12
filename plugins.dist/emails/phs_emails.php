@@ -2,8 +2,6 @@
 
 namespace phs\plugins\emails;
 
-use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_params;
 use \phs\PHS;
 use \phs\PHS_crypt;
 use \phs\libraries\PHS_Hooks;
@@ -11,6 +9,8 @@ use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Error;
 use \phs\system\core\views\PHS_View;
 use \phs\plugins\emails\libraries\PHS_smtp;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_params;
 
 class PHS_Plugin_Emails extends PHS_Plugin
 {
@@ -18,7 +18,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     const DEFAULT_ROUTE = 'default';
 
+    const UNCHANGED_SMTP_PASS = '**********';
+
     public static $MAIL_AUTH_KEY = 'XMailAuth';
+
+    /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+    private $smtp_library = false;
 
     function __construct( $instance_details )
     {
@@ -36,10 +41,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $library_params['as_singleton'] = false;
 
         /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
-        if( !($smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
+        if( !($this->smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading SMTP library.' ) );
+
+            $this->smtp_library = false;
 
             return false;
         }
@@ -97,7 +104,6 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'email_vars' => array(
                 'display_name' => 'Emails variables',
                 'display_hint' => 'These variables will be available in email template',
-                //'editable' => false,
                 'input_type' => self::INPUT_TYPE_KEY_VAL_ARRAY,
                 'default' => array(
                     'site_name' => PHS_SITE_NAME,
@@ -129,18 +135,86 @@ class PHS_Plugin_Emails extends PHS_Plugin
         );
     }
 
-    public function save_settings_routes()
+    public function save_settings_routes( $params )
     {
+        if( empty( $params ) or !is_array( $params ) )
+            return null;
 
+        $params = self::merge_array_assoc( self::st_default_custom_save_params(), $params );
+
+        if( empty( $params['field_name'] )
+         or empty( $params['form_data'] ) or !is_array( $params['form_data'] )
+         or !in_array( $params['field_name'], array( 'routes' ) ) )
+            return null;
+
+        if( !array_key_exists( 'field_value', $params )
+         or $params['field_value'] === null )
+            $old_values = null;
+        else
+            $old_values = $params['field_value'];
+
+        $return_data = null;
+        if( $params['field_name'] == 'routes' )
+        {
+            if( empty( $params['form_data']['routes'] ) or !is_array( $params['form_data']['routes'] ) )
+                return null;
+
+            if( $old_values === null
+             or !is_array( $old_values ) )
+                $old_values = array();
+
+            $default_smtp_settings = self::get_default_smtp_settings();
+            $return_data = array();
+            foreach( $params['form_data']['routes'] as $route_name => $route_arr )
+            {
+                $route_arr = self::merge_array_assoc( $default_smtp_settings, $route_arr );
+
+                // Check if we have a password change
+                if( !empty( $old_values )
+                and !empty( $old_values[$route_name] ) and is_array( $old_values[$route_name] ) )
+                {
+                    if( !empty( $old_values[$route_name]['smtp_pass'] )
+                    and ($decrypted_pass = PHS_crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
+                    and $route_arr['smtp_pass'] == self::UNCHANGED_SMTP_PASS )
+                        $route_arr['smtp_pass'] = $decrypted_pass;
+                }
+
+                $route_arr['smtp_pass'] = PHS_crypt::quick_encode( $route_arr['smtp_pass'] );
+
+                $return_data[$route_name] = $route_arr;
+            }
+        }
+
+        return $return_data;
     }
 
     public function display_settings_routes( $params )
     {
         $params = self::validate_array( $params, $this->default_custom_renderer_params() );
 
-        ob_start();
-        var_dump( $params['field_value'] );
-        return ob_get_clean();
+        $default_smtp_settings = self::get_default_smtp_settings();
+
+        if( empty( $params['field_value'] ) or !is_array( $params['field_value'] ) )
+            $routes_arr = array( self::DEFAULT_ROUTE => $default_smtp_settings );
+        else
+            $routes_arr = $params['field_value'];
+
+        if( empty( $routes_arr[self::DEFAULT_ROUTE] ) or !is_array( $routes_arr[self::DEFAULT_ROUTE] ) )
+            $routes_arr[self::DEFAULT_ROUTE] = $default_smtp_settings;
+
+        $email_routes = array();
+        foreach( $routes_arr as $route_name => $route_arr )
+        {
+            $route_arr = self::merge_array_assoc( $default_smtp_settings, $route_arr );
+
+            $email_routes[$route_name] = $route_arr;
+        }
+
+        $data_arr = array();
+        $data_arr['email_routes'] = $email_routes;
+        $data_arr['smtp_library'] = $this->smtp_library;
+
+        return $this->quick_render_template_for_buffer( 'routes_settings', $data_arr );
     }
 
     static function valid_smtp_settings( $settings )

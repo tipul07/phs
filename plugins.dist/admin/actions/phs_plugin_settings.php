@@ -172,9 +172,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $new_settings_arr = array();
         foreach( $settings_fields as $field_name => $field_details )
         {
-            if( !empty( $field_details['custom_save'] ) )
-                continue;
-
             if( empty( $field_details['editable'] ) )
             {
                 if( isset( $db_settings[$field_name] ) )
@@ -189,6 +186,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
             if( !empty( $foobar )
             and $field_details['type'] == PHS_params::T_BOOL )
                 $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
+
+            if( !empty( $field_details['custom_save'] ) )
+                continue;
 
             switch( $field_details['input_type'] )
             {
