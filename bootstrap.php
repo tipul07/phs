@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.34' );
+    define( 'PHS_VERSION', '1.0.1.35' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -58,6 +58,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_roles.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );

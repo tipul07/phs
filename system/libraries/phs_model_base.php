@@ -592,14 +592,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     {
         $this->reset_error();
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+        if( !$this->_load_plugins_instance() )
             return false;
-        }
 
-        if( !($db_details = $plugin_obj->get_db_details( $this->instance_id() )) )
+        if( !($db_details = $this->_plugins_instance->get_plugins_db_details( $this->instance_id() )) )
         {
             $this->reset_error();
 
@@ -1899,13 +1895,17 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $this->install_tables();
         } else
         {
-            if( !($plugins_model = PHS::load_model( 'plugins' )) )
+            if( !$this->_load_plugins_instance() )
             {
                 PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+
                 return false;
             }
+
+            $plugins_model = $this->_plugins_instance;
 
             if( !$plugins_model->check_install_plugins_db() )
             {
@@ -2670,14 +2670,13 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( $this_instance_id == $plugins_model_id )
         {
             $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugins model cannot be uninstalled.' ) );
             return false;
         }
 
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -2688,19 +2687,19 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $check_arr = array();
         $check_arr['instance_id'] = $this_instance_id;
 
-        db_supress_errors( $plugins_model->get_db_connection() );
-        if( !($db_details = $plugins_model->get_details_fields( $check_arr ))
+        db_supress_errors( $this->_plugins_instance->get_db_connection() );
+        if( !($db_details = $this->_plugins_instance->get_details_fields( $check_arr ))
          or empty( $db_details['type'] )
          or $db_details['type'] != self::INSTANCE_TYPE_MODEL )
         {
-            db_restore_errors_state( $plugins_model->get_db_connection() );
+            db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
 
             PHS_Logger::logf( 'Model doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             return true;
         }
 
-        db_restore_errors_state( $plugins_model->get_db_connection() );
+        db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
 
         PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -2716,10 +2715,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'DONE calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        if( !$plugins_model->hard_delete( $db_details ) )
+        if( !$this->_plugins_instance->hard_delete( $db_details ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error hard-deleting model from database.' ) );
 
@@ -2806,12 +2805,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
             return false;
         }
 
@@ -2826,11 +2825,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['version'] = $this->get_model_version();
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
          or empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving model details to database.' ) );
 

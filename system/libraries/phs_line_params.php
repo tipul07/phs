@@ -6,11 +6,11 @@ namespace phs\libraries;
 
 class PHS_line_params extends PHS_Language
 {
-    function __construct()
-    {
-        parent::__construct();
-    }
-
+    /**
+     * @param array|string|bool|null|int|float $val Value to be converted to string
+     *
+     * @return bool|string String converted value
+     */
     static public function value_to_string( $val )
     {
         if( is_object( $val ) or is_resource( $val ) )
@@ -34,6 +34,11 @@ class PHS_line_params extends PHS_Language
         return false;
     }
 
+    /**
+     * @param string $str Value (from key-value pair) to be converted
+     *
+     * @return bool|int|float|null|string Converted value
+     */
     static public function string_to_value( $str )
     {
         if( !is_string( $str ) )
@@ -63,37 +68,12 @@ class PHS_line_params extends PHS_Language
         return $str;
     }
 
-    static public function to_string( $lines_data )
-    {
-        if( empty( $lines_data ) or !is_array( $lines_data ) )
-            return '';
-
-        $lines_str = '';
-        $first_line = true;
-        foreach( $lines_data as $key => $val )
-        {
-            if( !$first_line )
-                $lines_str .= "\r\n";
-
-            $first_line = false;
-
-            // In normal cases there cannot be '=' char in key so we interpret that value should just be passed as-it-is
-            if( substr( $key, 0, 1 ) == '=' )
-            {
-                $lines_str .= $val;
-                continue;
-            }
-
-            // Don't save if error converting to string
-            if( ($line_val = self::value_to_string( $val )) === false )
-                continue;
-
-            $lines_str .= $key.'='.$line_val;
-        }
-
-        return $lines_str;
-    }
-
+    /**
+     * @param string $line_str Line to be parsed
+     * @param int $comment_no Internal counter to know what line of comment is this string (if comment)
+     *
+     * @return array|bool
+     */
     static public function parse_string_line( $line_str, $comment_no = 0 )
     {
         if( !is_string( $line_str ) )
@@ -140,6 +120,47 @@ class PHS_line_params extends PHS_Language
         return $return_arr;
     }
 
+    /**
+     * @param array $lines_data Parsed line parameters
+     *
+     * @return string String representing converted array of line parameters
+     */
+    static public function to_string( $lines_data )
+    {
+        if( empty( $lines_data ) or !is_array( $lines_data ) )
+            return '';
+
+        $lines_str = '';
+        $first_line = true;
+        foreach( $lines_data as $key => $val )
+        {
+            if( !$first_line )
+                $lines_str .= "\r\n";
+
+            $first_line = false;
+
+            // In normal cases there cannot be '=' char in key so we interpret that value should just be passed as-it-is
+            if( substr( $key, 0, 1 ) == '=' )
+            {
+                $lines_str .= $val;
+                continue;
+            }
+
+            // Don't save if error converting to string
+            if( ($line_val = self::value_to_string( $val )) === false )
+                continue;
+
+            $lines_str .= $key.'='.$line_val;
+        }
+
+        return $lines_str;
+    }
+
+    /**
+     * @param array|string $string String to be parsed or a parsed array
+     *
+     * @return array Parse line parameters in an array
+     */
     static public function parse_string( $string )
     {
         if( empty( $string )
@@ -167,6 +188,12 @@ class PHS_line_params extends PHS_Language
         return $return_arr;
     }
 
+    /**
+     * @param array|string $current_data Current line parameters
+     * @param array|string $append_data Appending line parameters
+     *
+     * @return array Merged array from parsed parameters
+     */
     static public function update_line_params( $current_data, $append_data )
     {
         if( empty( $append_data ) or (!is_array( $append_data ) and !is_string( $append_data )) )

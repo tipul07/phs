@@ -7,7 +7,7 @@ use \phs\system\core\models\PHS_Model_Plugins;
 use \phs\system\core\views\PHS_View;
 use \phs\libraries\PHS_Roles;
 
-abstract class PHS_Plugin extends PHS_Has_db_settings
+abstract class PHS_Plugin extends PHS_Has_db_registry
 {
     const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006,
           ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
@@ -380,8 +380,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Activating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -396,20 +395,20 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $check_params['result_type'] = 'single';
         $check_params['details'] = '*';
 
-        if( !($plugin_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
+        if( !($plugin_arr = $this->_plugins_instance->get_details_fields( $check_arr, $check_params ))
          or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
         {
             $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
             return false;
         }
         
-        if( $plugins_model->is_active( $plugin_arr ) )
+        if( $this->_plugins_instance->is_active( $plugin_arr ) )
             return $plugin_arr;
 
         $list_arr = array();
         $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
 
-        if( ($plugins_modules_arr = $plugins_model->get_list( $list_arr ))
+        if( ($plugins_modules_arr = $this->_plugins_instance->get_list( $list_arr ))
         and is_array( $plugins_modules_arr ) )
         {
             $edit_params_arr = array();
@@ -422,10 +421,10 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                 if( $module_arr['status'] == PHS_Model_Plugins::STATUS_ACTIVE )
                     continue;
 
-                if( !$plugins_model->edit( $module_arr, $edit_params_arr ) )
+                if( !$this->_plugins_instance->edit( $module_arr, $edit_params_arr ) )
                 {
-                    if( $plugins_model->has_error() )
-                        $this->copy_error( $plugins_model, self::ERR_CHANGES );
+                    if( $this->_plugins_instance->has_error() )
+                        $this->copy_error( $this->_plugins_instance, self::ERR_CHANGES );
                     else
                         $this->set_error( self::ERR_CHANGES, self::_t( 'Error activating %s %s.', $module_arr['type'], $module_arr['instance_id'] ) );
 
@@ -438,11 +437,11 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_ACTIVE;
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
          or empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_CHANGES, self::_t( 'Error activating plugin.' ) );
 
@@ -481,8 +480,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Inactivating plugin [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. [' . $this->instance_id() . ']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -497,14 +495,14 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $check_params['result_type'] = 'single';
         $check_params['details'] = '*';
 
-        if( !($plugin_arr = $plugins_model->get_details_fields( $check_arr, $check_params ))
+        if( !($plugin_arr = $this->_plugins_instance->get_details_fields( $check_arr, $check_params ))
          or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
         {
             $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
             return false;
         }
 
-        if( $plugins_model->is_inactive( $plugin_arr ) )
+        if( $this->_plugins_instance->is_inactive( $plugin_arr ) )
             return $plugin_arr;
 
         if( !$this->custom_inactivate( $plugin_arr ) )
@@ -525,7 +523,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $list_arr = array();
         $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
 
-        if( ($plugins_modules_arr = $plugins_model->get_list( $list_arr ))
+        if( ($plugins_modules_arr = $this->_plugins_instance->get_list( $list_arr ))
         and is_array( $plugins_modules_arr ) )
         {
             $edit_params_arr = array();
@@ -538,10 +536,10 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
                 if( $module_arr['status'] == PHS_Model_Plugins::STATUS_INACTIVE )
                     continue;
 
-                if( !$plugins_model->edit( $module_arr, $edit_params_arr ) )
+                if( !$this->_plugins_instance->edit( $module_arr, $edit_params_arr ) )
                 {
-                    if( $plugins_model->has_error() )
-                        $this->copy_error( $plugins_model, self::ERR_CHANGES );
+                    if( $this->_plugins_instance->has_error() )
+                        $this->copy_error( $this->_plugins_instance, self::ERR_CHANGES );
                     else
                         $this->set_error( self::ERR_CHANGES, self::_t( 'Error inactivating %s %s.', $module_arr['type'], $module_arr['instance_id'] ) );
 
@@ -554,11 +552,11 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INACTIVE;
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
          or empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_CHANGES, self::_t( 'Error inactivating plugin.' ) );
 
@@ -727,8 +725,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Installing plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -736,10 +733,10 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
-        if( !$plugins_model->check_install_plugins_db() )
+        if( !$this->_plugins_instance->check_install_plugins_db() )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing plugins model.' ) );
 
@@ -766,11 +763,11 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
         $plugin_details['version'] = $this->get_plugin_version();
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
          or empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Error saving plugin details to database.' ) );
 
@@ -895,8 +892,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Uninstalling plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -907,8 +903,8 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $check_arr = array();
         $check_arr['instance_id'] = $this_instance_id;
 
-        db_supress_errors( $plugins_model->get_db_connection() );
-        if( !($db_details = $plugins_model->get_details_fields( $check_arr ))
+        db_supress_errors( $this->_plugins_instance->get_db_connection() );
+        if( !($db_details = $this->_plugins_instance->get_details_fields( $check_arr ))
          or empty( $db_details['type'] )
          or $db_details['type'] != self::INSTANCE_TYPE_PLUGIN )
         {
@@ -918,10 +914,10 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             PHS_Logger::logf( 'Plugin doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
-        db_restore_errors_state( $plugins_model->get_db_connection() );
+        db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
 
         if( $db_details
-        and $plugins_model->active_status( $db_details['status'] ) )
+        and $this->_plugins_instance->active_status( $db_details['status'] ) )
         {
             $this->set_error( self::ERR_UNINSTALL, self::_t( 'Plugin is still active. Please inactivate it first.' ) );
             return false;
@@ -972,11 +968,15 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             }
         }
 
+        // Logging and error is set in method...
+        // we don't stop all uninstall process because of registry failure...
+        $this->delete_db_registry();
+
         if( $db_details
-        and !$plugins_model->hard_delete( $db_details ) )
+        and !$this->_plugins_instance->hard_delete( $db_details ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error hard-deleting plugin from database.' ) );
 
@@ -1097,8 +1097,7 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
             return false;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        if( !$this->_load_plugins_instance() )
         {
             PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -1146,11 +1145,11 @@ abstract class PHS_Plugin extends PHS_Has_db_settings
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['version'] = $this->get_plugin_version();
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
          or empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
+            if( $this->_plugins_instance->has_error() )
+                $this->copy_error( $this->_plugins_instance );
             else
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving plugin details to database.' ) );
 

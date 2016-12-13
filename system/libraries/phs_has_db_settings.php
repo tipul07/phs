@@ -19,6 +19,29 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
     // Database settings field parsed as array
     protected $_db_settings = array();
 
+    /** @var bool|\phs\system\core\models\PHS_Model_Plugins $_plugins_instance */
+    protected $_plugins_instance = false;
+
+    /**
+     * @return bool true on success, false on failure
+     */
+    protected function _load_plugins_instance()
+    {
+        $this->reset_error();
+
+        if( $this->_plugins_instance )
+            return true;
+
+        if( !($this->_plugins_instance = PHS::load_model( 'plugins' )) )
+        {
+            $this->set_error( self::ERR_PLUGINS_MODEL, self::_t( 'Couldn\'t load plugins model.' ) );
+            $this->_plugins_instance = false;
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Override this function and return an array with settings fields definition
      *
@@ -135,16 +158,17 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
     }
 
     /**
-     * @return array|bool|false|\Generator|mixed|null
+     * @param bool $force Forces reading details from database (ignoring cached value)
+     *
+     * @return array|bool
      */
     public function get_db_details( $force = false )
     {
         if( !empty( $this->_db_details ) )
             return $this->_db_details;
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' ))
-         or !($db_details = $plugin_obj->get_db_details( $this->instance_id(), $force ))
+        if( !$this->_load_plugins_instance()
+         or !($db_details = $this->_plugins_instance->get_plugins_db_details( $this->instance_id(), $force ))
          or !is_array( $db_details ) )
             return false;
 
@@ -153,14 +177,18 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         return $this->_db_details;
     }
 
+    /**
+     * @param bool $force Forces reading details from database (ignoring cached value)
+     *
+     * @return array|bool Settings saved in database for current instance
+     */
     public function get_db_settings( $force = false )
     {
         if( !empty( $this->_db_settings ) )
             return $this->_db_settings;
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' ))
-         or !($db_settings = $plugin_obj->get_db_settings( $this->instance_id(), $this->get_default_settings(), $force ))
+        if( !$this->_load_plugins_instance()
+         or !($db_settings = $this->_plugins_instance->get_plugins_db_settings( $this->instance_id(), $this->get_default_settings(), $force ))
          or !is_array( $db_settings ) )
             return false;
 
@@ -171,13 +199,15 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
 
     public function save_db_settings( $settings_arr )
     {
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($plugin_obj = PHS::load_model( 'plugins' ))
-         or !($db_settings = $plugin_obj->save_db_settings( $settings_arr, $this->instance_id() ))
+        if( !$this->_load_plugins_instance()
+         or !($db_settings = $this->_plugins_instance->save_plugins_db_settings( $settings_arr, $this->instance_id() ))
          or !is_array( $db_settings ) )
             return false;
 
         $this->_db_settings = $db_settings;
+
+        // invalidate cached data...
+        $this->_db_details = false;
 
         return $this->_db_settings;
     }
@@ -185,9 +215,9 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
     public function db_record_active()
     {
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if( !($db_details = $this->get_db_details())
-         or !($plugin_obj = PHS::load_model( 'plugins' ))
-         or !$plugin_obj->active_status( $db_details['status'] ) )
+        if( !$this->_load_plugins_instance()
+         or !($db_details = $this->get_db_details())
+         or !$this->_plugins_instance->active_status( $db_details['status'] ) )
             return false;
 
         return $db_details;
