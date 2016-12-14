@@ -141,6 +141,21 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         PHS::running_action( $this );
 
+        $action_body_classes = '';
+        if( ($route_as_string = PHS::get_route_as_string()) )
+            $action_body_classes .= str_replace( array( '/', '-' ), '_', $route_as_string );
+        if( ($route_as_array = PHS::get_route_details()) )
+        {
+            $route_parts = array();
+            foreach( $route_as_array as $part_type => $part_value )
+                $route_parts[$part_value] = true;
+
+            $action_body_classes .= ' '.implode( ' ', array_keys( $route_parts ) );
+        }
+
+        if( !empty( $action_body_classes ) )
+            PHS::page_body_class( $action_body_classes );
+
         if( !$this->instance_is_core()
         and (!($plugin_instance = $this->get_plugin_instance())
                 or !$plugin_instance->plugin_active()) )

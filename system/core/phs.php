@@ -139,6 +139,7 @@ final class PHS extends PHS_Registry
             'page_description' => '',
             // anything that is required in head tag
             'page_in_header' => '',
+            'page_body_class' => '',
             'page_only_buffer' => false,
         );
     }
@@ -184,6 +185,18 @@ final class PHS extends PHS_Registry
         }
 
         return null;
+    }
+
+    public static function page_body_class( $css_class, $append = true )
+    {
+        if( !empty( $append ) )
+        {
+            if( !($existing_body_classes = self::page_settings( 'page_body_class' )) )
+                $existing_body_classes = '';
+        } else
+            $existing_body_classes = '';
+
+        return self::page_settings( 'page_body_class', trim( $existing_body_classes.' '.ltrim( $css_class ) ) );
     }
 
     public static function prevent_session()

@@ -77,6 +77,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      */
     public function execute()
     {
+        PHS::page_body_class( 'phs_paginator_action' );
+
         if( ($action_result = $this->should_stop_execution()) )
         {
             $action_result = self::validate_array( $action_result, self::default_action_result() );
@@ -180,6 +182,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             }
 
             $data = array(
+                'paginator_params' => $paginator_params,
                 'filters' => $this->_paginator->get_filters_buffer(),
                 'listing' => $this->_paginator->get_listing_buffer(),
             );
@@ -187,6 +190,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         if( empty( $data ) )
             $data = array(
+                'paginator_params' => array(),
                 'filters' => self::_t( 'Something went wrong...' ),
                 'listing' => '',
             );

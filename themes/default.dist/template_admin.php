@@ -163,7 +163,7 @@
     <?php echo $action_result['page_settings']['page_in_header']?>
 </head>
 
-<body <?php echo $action_result['page_body_extra_tags']?>>
+<body<?php echo (($page_body_class = PHS::page_settings( 'page_body_class' ))?' class="'.$page_body_class.'" ':'').$action_result['page_body_extra_tags']?>>
 <?php
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     {

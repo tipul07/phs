@@ -54,7 +54,9 @@
     // $plugin_obj = PHS::load_plugin( 's2p_mirakl' );
     // $mirakl_library = $plugin_obj->get_mirakl_instance();
     //
-    // var_dump( $mirakl_library->import_mirakl_shop( 36 ) );
+    // // var_dump( $mirakl_library->import_mirakl_shop( 36 ) );
+    // var_dump( $mirakl_library->sync_mirakl_sites() );
+    //
     // var_dump( $mirakl_library->get_error() );
     // exit;
 
