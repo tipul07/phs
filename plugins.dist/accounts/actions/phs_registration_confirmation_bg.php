@@ -24,8 +24,8 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
         if( !($params = PHS_bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['uid'] )
-         or !($accounts_plugin = PHS::load_plugin( $this->instance_plugin_name() ))
-         or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
+         or !($accounts_plugin = PHS::load_plugin( 'accounts' ))
+         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          or !($account_arr = $accounts_model->get_details( $params['uid'] )) )
         {
             $this->set_error( self::ERR_UNKNOWN_ACCOUNT, $this->_pt( 'Cannot send registration confirmation to this account.' ) );

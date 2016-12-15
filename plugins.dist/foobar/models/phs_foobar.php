@@ -14,7 +14,7 @@ class PHS_Model_Foobar extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -105,7 +105,7 @@ class PHS_Model_Foobar extends PHS_Model
                         'nullable' => true,
                         'default' => null,
                     ),
-                    'last_action2' => array(
+                    'last_action' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                     ),

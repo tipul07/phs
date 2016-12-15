@@ -1161,6 +1161,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
+        PHS_Logger::logf( 'DONE Updating plugin ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
         return $db_details['new_data'];
     }
 

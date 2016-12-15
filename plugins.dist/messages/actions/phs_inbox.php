@@ -141,6 +141,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             'term_plural' => $this->_pt( 'messages' ),
             'initial_list_arr' => $list_arr,
             'after_table_callback' => array( $this, 'after_table_callback' ),
+            'listing_title' => $this->_pt( 'Inbox' ),
         );
 
         if( PHS_params::_g( 'unknown_message', PHS_params::T_INT ) )
@@ -186,31 +187,36 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $columns_arr = array(
             array(
-                'column_title' => $this->_pt( '#' ),
+                'column_title' => ' ',
                 'record_field' => 'id',
                 'invalid_value' => $this->_pt( 'N/A' ),
-                'extra_style' => 'min-width:50px;max-width:80px;',
-                'extra_records_style' => 'text-align:center;',
                 'display_callback' => array( $this, 'display_hide_id' ),
+                'extra_style' => 'width:20px;',
+                'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'From' ),
                 'record_field' => 'from_handle',
                 'invalid_value' => $this->_pt( 'System' ),
                 'display_callback' => array( $this, 'display_from' ),
+                'extra_classes' => 'inbox_from_th',
+                'extra_records_classes' => 'inbox_from',
             ),
             array(
                 'column_title' => $this->_pt( 'To' ),
                 'record_field' => 'from_handle',
                 'invalid_value' => $this->_pt( 'System' ),
                 'display_callback' => array( $this, 'display_to' ),
+                'extra_classes' => 'inbox_to_th',
+                'extra_records_classes' => 'inbox_to',
             ),
             array(
                 'column_title' => $this->_pt( 'Subject' ),
                 'record_field' => 'subject',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'display_callback' => array( $this, 'display_subject' ),
-                'extra_records_style' => 'text-overflow: clip ellipsis;',
+                'extra_classes' => 'inbox_subject_th',
+                'extra_records_classes' => 'inbox_subject',
             ),
             array(
                 'column_title' => $this->_pt( 'Last reply' ),
@@ -220,15 +226,16 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'display_callback' => array( $this, 'display_last_reply' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-                'extra_style' => 'width:130px;',
-                'extra_records_style' => 'text-align:right;',
+                'extra_classes' => 'date_th',
+                'extra_records_classes' => 'date',
             ),
             array(
                 'column_title' => $this->_pt( 'Actions' ),
                 'display_callback' => array( $this, 'display_actions' ),
-                'extra_style' => 'width:150px;',
-                'extra_records_style' => 'text-align:right;',
                 'sortable' => false,
+                'extra_style' => 'width:100px;',
+                'extra_classes' => 'actions_th',
+                'extra_records_classes' => 'actions',
             )
         );
 
@@ -404,7 +411,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             $extra_str = '<i class="fa fa-asterisk" aria-hidden="true"></i> ';
         }
 
-        return $extra_str.'<a href="'.$message_link.'">'.$params['record']['subject'].'</a> ['.$params['record']['m_thread_count'].']';
+        return $extra_str.'<a href="'.$message_link.'">'.$params['record']['subject'].'</a> <span>['.$params['record']['m_thread_count'].']</span>';
     }
 
     public function display_from( $params )
@@ -510,7 +517,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         ob_start();
         ?>
         <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $params['record']['mu_id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-envelope action-icons" title="<?php echo $this->_pt( 'View thread' )?>"></i></a>
-        <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete message thread' )?>"></i></a>
+        <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete message thread' )?>"></i></a>
         <?php
 
         return ob_get_clean();

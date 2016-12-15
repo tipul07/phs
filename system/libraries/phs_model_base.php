@@ -2838,6 +2838,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        PHS_Logger::logf( 'DONE Updating model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
         return $db_details['new_data'];
     }
 

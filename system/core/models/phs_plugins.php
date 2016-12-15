@@ -537,7 +537,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $db_details;
     }
 
-    public function update_db_details( $fields_arr )
+    public function update_db_details( $fields_arr, $update_params = false )
     {
         if( empty( $fields_arr ) or !is_array( $fields_arr )
          or empty( $fields_arr['instance_id'] )
@@ -547,6 +547,14 @@ class PHS_Model_Plugins extends PHS_Model
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown instance database details.' ) );
             return false;
         }
+
+        if( empty( $update_params ) or !is_array( $update_params ) )
+            $update_params = array();
+
+        if( empty( $update_params['skip_merging_old_settings'] ) )
+            $update_params['skip_merging_old_settings'] = false;
+        else
+            $update_params['skip_merging_old_settings'] = true;
 
         $check_arr = array();
         $check_arr['instance_id'] = $fields_arr['instance_id'];
@@ -562,7 +570,7 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'edit';
         }
 
-        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
+        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          or empty( $validate_fields['data_arr'] ) )
@@ -576,12 +584,13 @@ class PHS_Model_Plugins extends PHS_Model
         // Try updating settings...
         if( !empty( $new_fields_arr['settings'] ) )
         {
-            if( !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
+            if( empty( $update_params['skip_merging_old_settings'] )
+            and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
                 $new_fields_arr['settings'] = self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) );
 
             $new_fields_arr['settings'] = PHS_line_params::to_string( $new_fields_arr['settings'] );
 
-            PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_INFO );
+            PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         // Prevent core plugins to be inactivated...
@@ -601,12 +610,12 @@ class PHS_Model_Plugins extends PHS_Model
             if( !$this->has_error() )
                 $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
-            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_INFO );
+            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
+        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         self::$db_plugins[$fields_arr['instance_id']] = $plugin_arr;
 
