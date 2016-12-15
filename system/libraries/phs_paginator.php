@@ -96,6 +96,7 @@ class PHS_Paginator extends PHS_Registry
             'after_filters_callback' => false,
             'before_table_callback' => false,
             'after_table_callback' => false,
+            'after_full_list_callback' => false,
 
             'table_after_headers_callback' => false,
             'table_before_footer_callback' => false,
@@ -349,6 +350,22 @@ class PHS_Paginator extends PHS_Registry
         return $this->_base_url;
     }
 
+    public function get_action_parameter_names()
+    {
+        if( !($flow_params = $this->flow_params()) )
+            return false;
+
+        $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
+        $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
+        $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
+
+        return array(
+            'action' => $action_key,
+            'action_params' => $action_params_key,
+            'action_result' => $action_result_key,
+        );
+    }
+
     /**
      * @param array $action array with 'action' key saying what action should be taken and 'action_params' key action parameters
      *
@@ -357,17 +374,17 @@ class PHS_Paginator extends PHS_Registry
     public function parse_action_parameter( $action )
     {
         if( empty( $action )
-         or !($flow_params = $this->flow_params()) )
+         or !($action_parameter_names = $this->get_action_parameter_names()) )
             return false;
 
-        $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
-        $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
-        $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
+        $action_key = $action_parameter_names['action'];
+        $action_params_key = $action_parameter_names['action_params'];
+        $action_result_key = $action_parameter_names['action_result'];
 
         $action_args = array();
         $action_args[$action_key] = '';
-        $action_args[$action_params_key] = '';
-        $action_args[$action_result_key] = '';
+        $action_args[$action_params_key] = null;
+        $action_args[$action_result_key] = null;
 
         if( is_string( $action ) )
             $action_args[$action_key] = $action;
@@ -379,7 +396,7 @@ class PHS_Paginator extends PHS_Registry
             {
                 // try sending arrays as parameters (although not recommended)
                 if( !is_string( $action['action_params'] ) )
-                    $action['action_params'] = rawurlencode( @json_encode( $action['action_params'] ) );
+                    $action['action_params'] = urlencode( @json_encode( $action['action_params'] ) );
 
                 $action_args[$action_params_key] = $action['action_params'];
             }
@@ -404,6 +421,8 @@ class PHS_Paginator extends PHS_Registry
 
         if( !isset( $params['include_pagination_params'] ) )
             $params['include_pagination_params'] = true;
+        if( !isset( $params['include_action_params'] ) )
+            $params['include_action_params'] = true;
         if( !isset( $params['include_filters'] ) )
             $params['include_filters'] = true;
 
@@ -416,7 +435,8 @@ class PHS_Paginator extends PHS_Registry
         if( !isset( $params['force_scope'] ) or !is_array( $params['force_scope'] ) )
             $params['force_scope'] = $this->_scope;
 
-        if( !($action_params = $this->parse_action_parameter( $params['action'] ))
+        if( empty( $params['include_action_params'] )
+         or !($action_params = $this->parse_action_parameter( $params['action'] ))
          or !is_array( $action_params ) )
             $action_params = false;
 
@@ -460,10 +480,14 @@ class PHS_Paginator extends PHS_Registry
 
         // Don't run $action_params through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
         // eg. action_params might be an id passed as javascript function parameter
-        if( !empty( $action_params ) and is_array( $action_params ) )
+        if( !empty( $params['include_action_params'] )
+        and !empty( $action_params ) and is_array( $action_params ) )
         {
             foreach( $action_params as $key => $val )
             {
+                if( $val === null )
+                    continue;
+
                 if( isset( $query_arr[$key] ) )
                     unset( $query_arr[$key] );
 

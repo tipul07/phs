@@ -208,7 +208,7 @@
                 else
                     $field_name = $column_arr['record_field'];
 
-                ?><th class="<?php echo (!empty( $column_arr['sortable'] )?'sortable':'').' '.$column_arr['extra_classes']?>" style="text-align:center;<?php echo $column_arr['extra_style']?>"><?php
+                ?><th class="<?php echo (!empty( $column_arr['sortable'] )?'sortable':'').' '.$column_arr['extra_classes']?>" style="<?php echo $column_arr['extra_style']?>"><?php
 
                 if( ($checkbox_column_name = $paginator_obj->get_checkbox_name_for_column( $column_arr )) )
                 {
@@ -694,3 +694,17 @@ if( !function_exists( 'display_js_functionality' ) )
 }
 
 display_js_functionality( $this, $paginator_obj );
+
+    if( !empty( $flow_params_arr['after_full_list_callback'] )
+    and is_callable( $flow_params_arr['after_full_list_callback'] ) )
+    {
+        $callback_params = $paginator_obj->default_others_render_call_params();
+        $callback_params['columns'] = $columns_arr;
+        $callback_params['filters'] = $filters_arr;
+
+        if( ($end_list_content = @call_user_func( $flow_params_arr['after_full_list_callback'], $callback_params )) === false
+         or $end_list_content === null )
+            $end_list_content = '[' . $this::_t( 'Render after full list call failed.' ) . ']';
+
+        echo $end_list_content;
+    }
