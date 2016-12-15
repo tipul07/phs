@@ -577,7 +577,7 @@ function array_to_query_string( $arr, $params = false )
         } else
         {
             if( !empty( $params['raw_encode_values'] ) )
-                $val = rawurlencode( $val );
+                $val = urlencode( $val );
 
             if( empty( $params['array_name'] ) )
                 $return_str .= $key.'='.$val;

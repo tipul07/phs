@@ -182,9 +182,10 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             }
 
             $data = array(
-                'paginator_params' => $paginator_params,
                 'filters' => $this->_paginator->get_filters_buffer(),
                 'listing' => $this->_paginator->get_listing_buffer(),
+                'paginator_params' => $this->_paginator->pagination_params(),
+                'flow_params' => $this->_paginator->flow_params(),
             );
         }
 
