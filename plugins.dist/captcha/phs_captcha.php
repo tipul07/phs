@@ -308,7 +308,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return $hook_args;
         }
 
-        if( !($hook_args['captcha_buffer'] = $view_obj->render()) )
+        if( ($hook_args['captcha_buffer'] = $view_obj->render()) === false )
         {
             // Make sure buffer is a string
             $hook_args['captcha_buffer'] = '';
@@ -322,6 +322,9 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
             return $hook_args;
         }
+
+        if( empty( $hook_args['captcha_buffer'] ) )
+            $hook_args['captcha_buffer'] = '';
 
         return $hook_args;
     }

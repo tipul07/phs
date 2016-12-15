@@ -121,7 +121,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         $action_result = self::default_action_result();
 
-        if( !($action_result['buffer'] = $view_obj->render()) )
+        if( ($action_result['buffer'] = $view_obj->render()) === false )
         {
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
@@ -130,6 +130,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
             return false;
         }
+
+        if( empty( $action_result['buffer'] ) )
+            $action_result['buffer'] = '';
 
         return $action_result;
     }

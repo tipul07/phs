@@ -150,7 +150,7 @@ class PHS_View extends PHS_Signal_and_slot
 
         $action_result = PHS_Action::default_action_result();
 
-        if( !($action_result['buffer'] = $view_obj->render()) )
+        if( ($action_result['buffer'] = $view_obj->render()) === false )
         {
             if( $view_obj->has_error() )
                 self::st_copy_error( $view_obj );
@@ -159,6 +159,9 @@ class PHS_View extends PHS_Signal_and_slot
 
             return false;
         }
+
+        if( empty( $action_result['buffer'] ) )
+            $action_result['buffer'] = '';
 
         return $action_result;
     }

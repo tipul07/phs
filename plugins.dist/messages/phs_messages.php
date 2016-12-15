@@ -330,7 +330,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return false;
         }
 
-        if( !($hook_args['summary_buffer'] = $view_obj->render()) )
+        if( ($hook_args['summary_buffer'] = $view_obj->render()) === false )
         {
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
@@ -339,6 +339,9 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
             return false;
         }
+
+        if( empty( $hook_args['summary_buffer'] ) )
+            $hook_args['summary_buffer'] = '';
 
         return $hook_args;
     }

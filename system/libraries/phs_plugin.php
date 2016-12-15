@@ -175,6 +175,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
+        if( empty( $buffer ) )
+            $buffer = '';
+
         return $buffer;
     }
 

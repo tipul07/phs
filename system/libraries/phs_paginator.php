@@ -1245,7 +1245,7 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        if( !($buffer = $view_obj->render()) )
+        if( ($buffer = $view_obj->render()) === false )
         {
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );
@@ -1254,6 +1254,9 @@ class PHS_Paginator extends PHS_Registry
 
             return false;
         }
+
+        if( empty( $buffer ) )
+            $buffer = '';
 
         return $buffer;
     }
