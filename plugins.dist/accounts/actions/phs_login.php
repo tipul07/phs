@@ -55,6 +55,8 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_success_notice( $this->_pt( 'Account registered and active. You can login now.' ) );
         if( PHS_params::_g( 'password_changed', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success. You can login now.' ) );
+        if( PHS_params::_g( 'confirmation_email', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $foobar )
         and PHS::user_logged_in()

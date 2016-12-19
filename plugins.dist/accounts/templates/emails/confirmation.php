@@ -13,7 +13,8 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 Hi <?php echo $email_vars['nick']?>,<br/>
 <br/>
 Welcome to the <?php echo $email_vars['site_name']?> Platform!<br/>
-An account has been created on your behalf on our site.<br/>
+Your account password was auto-generated. In order for you to access your account we provide your account password below.<br/>
+For security reasons please change your password as soon as possible.<br/>
 <br/>
 <hr/>
 Here are your login details:<br/>
@@ -22,7 +23,7 @@ Password: <?php echo $email_vars['clean_pass']?><br/>
 <hr/><br/>
 <br/>
 Go to login page: <a href="<?php echo $email_vars['login_link']?>">Login page</a><br/>
-Any problems? <a href="<?php echo $email_vars['contact_us_link']?>">Get in touch</a><br/>
+Need help? <a href="<?php echo $email_vars['contact_us_link']?>">Please contact us!</a><br/>
 <br/>
 We're looking forward to working with you!<br/>
 <br/>

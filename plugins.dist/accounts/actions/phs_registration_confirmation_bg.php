@@ -32,9 +32,9 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
             return false;
         }
 
-        if( !$accounts_model->needs_confirmation_email( $account_arr ) )
+        if( false and !$accounts_model->needs_confirmation_email( $account_arr ) )
         {
-            $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before.' ) );
+            $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before or already active.' ) );
             return false;
         }
 

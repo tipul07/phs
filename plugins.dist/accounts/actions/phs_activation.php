@@ -35,6 +35,13 @@ class PHS_Action_Activation extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
+            return self::default_action_result();
+        }
+
         $confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML );
 
         if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param )) )
@@ -48,6 +55,14 @@ class PHS_Action_Activation extends PHS_Action
         // Reset error for do_confirmation_reason() method call...
         $accounts_plugin->reset_error();
 
+        $will_send_email_confirmation = false;
+        if( !empty( $confirmation_parts['reason'] )
+        and !empty( $confirmation_parts['account_data'] )
+        and $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION
+        and $accounts_model->needs_activation( $confirmation_parts['account_data'] )
+        and $accounts_model->needs_confirmation_email( $confirmation_parts['account_data'] ) )
+            $will_send_email_confirmation = true;
+
         if( !PHS_Notifications::have_notifications_errors()
         and !empty( $confirmation_parts['account_data'] )
         and !empty( $confirmation_parts['reason'] )
@@ -57,15 +72,20 @@ class PHS_Action_Activation extends PHS_Action
 
             $action_result = self::default_action_result();
 
+            $url_params = array();
+            $url_params['reason'] = $confirmation_parts['reason'];
+            if( !empty( $will_send_email_confirmation ) )
+                $url_params['confirmation_email'] = 1;
+
             if( !empty( $confirmation_result['redirect_url'] ) )
                 $action_result['redirect_to_url'] = $confirmation_result['redirect_url'];
 
             elseif( $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION
              or !PHS::user_logged_in() )
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'reason' => $confirmation_parts['reason'] ) );
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $url_params );
 
             else
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'reason' => $confirmation_parts['reason'] ) );
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), $url_params );
 
             return $action_result;
         }
@@ -75,6 +95,7 @@ class PHS_Action_Activation extends PHS_Action
 
         $data = array(
             'nick' => (!empty( $confirmation_parts['account_data'] )?$confirmation_parts['account_data']['nick']:''),
+            'will_send_email_confirmation' => $will_send_email_confirmation,
         );
 
         return $this->quick_render_template( 'activation', $data );

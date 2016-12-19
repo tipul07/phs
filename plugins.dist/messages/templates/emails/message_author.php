@@ -16,7 +16,7 @@ On <?php echo $email_vars['message_date']?> you sent a new internal message with
 <br/>
 In order to view this message, please click on this link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
 <br/>
-Any problems? <a href="<?php echo $email_vars['contact_us_link']?>">Get in touch</a><br/>
+Need help? <a href="<?php echo $email_vars['contact_us_link']?>">Please contact us!</a><br/>
 <br/>
 Best wishes,<br/>
 <?php echo $email_vars['site_name']?> team

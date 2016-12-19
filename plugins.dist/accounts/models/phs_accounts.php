@@ -52,7 +52,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.2';
     }
 
     /**
@@ -211,7 +211,10 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function needs_confirmation_email( $user_data )
     {
+        // If password was provided by user or he did already login no need to send him password confirmation
         if( !($user_arr = $this->data_to_array( $user_data ))
+         or empty( $user_arr['pass_generated'] )
+         or $this->is_active( $user_arr )
          or $this->has_logged_in( $user_arr ) )
             return false;
 
@@ -716,6 +719,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['status'] = self::STATUS_ACTIVE;
 
         $edit_params = array();
+        $edit_params['{activate_after_registration}'] = true;
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $account_arr, $edit_params );
@@ -737,6 +741,9 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['status'] = self::STATUS_ACTIVE;
 
         $edit_params = array();
+        if( $this->needs_confirmation_email( $account_arr )
+        and $this->is_just_registered( $account_arr ) )
+            $edit_params['{activate_after_registration}'] = true;
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $account_arr, $edit_params );
@@ -799,7 +806,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !$this->needs_confirmation_email( $account_arr ) )
         {
-            $this->set_error( self::ERR_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before.' ) );
+            $this->set_error( self::ERR_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before or already active.' ) );
             return false;
         }
 
@@ -943,7 +950,16 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( empty( $params['fields']['pass'] ) )
-            $params['fields']['pass'] = self::generate_password( (!empty( $accounts_settings['min_password_length'] )?$accounts_settings['min_password_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
+        {
+            if( !empty( $accounts_settings['min_password_length'] ) )
+                $pass_length = $accounts_settings['min_password_length'] + 3;
+            else
+                $pass_length = self::DEFAULT_MIN_PASSWORD_LENGTH;
+
+            $params['fields']['pass'] = self::generate_password( $pass_length );
+            $params['fields']['pass_generated'] = 1;
+        } else
+            $params['fields']['pass_generated'] = 0;
 
         if( empty( $params['fields']['pass_salt'] ) )
             $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
@@ -1054,6 +1070,8 @@ class PHS_Model_Accounts extends PHS_Model
                     return false;
                 }
             }
+
+            $this->reset_error();
         }
 
         $hook_args = PHS_Hooks::default_user_account_hook_args();
@@ -1292,6 +1310,9 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{users_details}'] ) or !is_array( $params['{users_details}'] ) )
             $params['{users_details}'] = false;
 
+        if( empty( $params['{activate_after_registration}'] ) )
+            $params['{activate_after_registration}'] = false;
+
         return $params;
     }
 
@@ -1340,6 +1361,12 @@ class PHS_Model_Accounts extends PHS_Model
         {
             // send password changed email...
             PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'pass_changed_email_bg' ), array( 'uid' => $existing_data['id'] ) );
+        }
+
+        if( !empty( $params['{activate_after_registration}'] )
+        and $this->needs_confirmation_email( $existing_data ) )
+        {
+            $this->send_confirmation_email( $existing_data );
         }
 
         return $existing_data;
@@ -1541,6 +1568,11 @@ class PHS_Model_Accounts extends PHS_Model
                         'nullable' => true,
                     ),
                     'email_verified' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => '2',
+                        'default' => 0,
+                    ),
+                    'pass_generated' => array(
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
                         'default' => 0,

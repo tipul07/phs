@@ -25,7 +25,7 @@ if( !($email_content = $this->context_var( 'email_content' )) )
     <style type="text/css">
     </style>
 </head>
-<body style="background-color:#f1f1f1; margin:0; padding: 10px;">
+<body style="margin:0; padding: 10px;">
 <h2><?php echo $hook_args['subject']?></h2>
 <div style="clear: both;"></div>
 <?php echo $email_content?>

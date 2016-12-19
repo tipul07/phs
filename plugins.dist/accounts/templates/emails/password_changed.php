@@ -19,7 +19,7 @@ Login: <?php echo $email_vars['nick']?><br/>
 Password: <?php echo $email_vars['obfuscated_pass']?><br/>
 <small>For security reasons we obfuscated your password.</small><br/>
 <br/>
-Any problems? <a href="<?php echo $email_vars['contact_us_link']?>">Get in touch</a><br/>
+Need help? <a href="<?php echo $email_vars['contact_us_link']?>">Please contact us!</a><br/>
 <br/>
 Best wishes,<br/>
 <?php echo $email_vars['site_name']?> team

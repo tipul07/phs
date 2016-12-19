@@ -73,10 +73,10 @@ class PHS_Action_Edit_profile extends PHS_Action
         if( !($plugin_settings = $this->get_plugin_settings()) )
             $plugin_settings = array();
 
-        $changes_saved = PHS_params::_g( 'changes_saved', PHS_params::T_NOHTML );
-
-        if( !empty( $changes_saved ) )
+        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
+        if( PHS_params::_g( 'confirmation_email', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $current_user['details_id'] )
          or !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
