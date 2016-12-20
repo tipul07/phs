@@ -865,6 +865,25 @@ class PHS_Model_Messages extends PHS_Model
         return $message_user_arr;
     }
 
+    public function act_mark_as_read_thread( $message_user_data )
+    {
+        $this->reset_error();
+
+        if( empty( $message_user_data )
+         or !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
+         or !($mu_table_name = $this->get_flow_table_name( $mu_flow_params ))
+         or !($message_user_arr = $this->data_to_array( $message_user_data, $mu_flow_params ))
+         or empty( $message_user_arr['thread_id'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t find message details in database.' ) );
+            return false;
+        }
+
+        db_query( 'UPDATE `'.$mu_table_name.'` SET is_new = 0 WHERE thread_id = \''.$message_user_arr['thread_id'].'\' AND user_id = \''.$message_user_arr['user_id'].'\'', $mu_flow_params['db_connection'] );
+
+        return $message_user_arr;
+    }
+
     public function get_thread_messages_flow( $thread_id, $user_id )
     {
         if( empty( $thread_id ) or empty( $user_id )

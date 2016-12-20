@@ -82,6 +82,7 @@ class PHS_Paginator extends PHS_Registry
             'term_plural' => self::_t( 'records' ),
             'listing_title' => self::_t( 'Displaying results...' ),
             'initial_list_arr' => array(),
+            'initial_count_list_arr' => array(),
             'did_query_database' => false,
 
             'bulk_action' => '',
@@ -1077,8 +1078,13 @@ class PHS_Paginator extends PHS_Registry
         if( !($list_arr = $this->flow_param( 'initial_list_arr' ))
          or !is_array( $list_arr ) )
             $list_arr = array();
-        
+
+        if( !($count_list_arr = $this->flow_param( 'initial_count_list_arr' ))
+         or !is_array( $count_list_arr ) )
+            $count_list_arr = $list_arr;
+
         $list_arr['extra_sql'] = '';
+        $count_list_arr['extra_sql'] = '';
 
         foreach( $filters_arr as $filter_arr )
         {
@@ -1118,6 +1124,7 @@ class PHS_Paginator extends PHS_Registry
                         $linkage_params['extra_sql'] = @sprintf( $linkage_params['extra_sql'], $final_value );
 
                     $list_arr['extra_sql'] .= $linkage_params['extra_sql'];
+                    $count_list_arr['extra_sql'] .= $linkage_params['extra_sql'];
 
                     continue;
                 }
@@ -1129,13 +1136,14 @@ class PHS_Paginator extends PHS_Registry
 
             // 'record_field' is always what we send to database...
             $list_arr['fields'][$filter_arr['record_field']] = $check_value;
+            $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
         }
 
         $this->flow_param( 'did_query_database', true );
 
         $model_flow_params = $model_obj->fetch_default_flow_params( $list_arr );
 
-        if( !($records_count = $model_obj->get_count( $list_arr )) )
+        if( !($records_count = $model_obj->get_count( $count_list_arr )) )
         {
             // Set count of total records to 0
             $this->set_records_count( 0 );

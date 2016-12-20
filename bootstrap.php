@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.37' );
+    define( 'PHS_VERSION', '1.0.1.38' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 

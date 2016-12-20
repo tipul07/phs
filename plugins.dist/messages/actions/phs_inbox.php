@@ -133,13 +133,17 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         $list_arr['db_fields'] = 'MAX(`'.$m_table_name.'`.id) AS m_id, `'.$m_table_name.'`.*, MAX(`'.$m_table_name.'`.cdate) AS m_cdate, '.
                                  ' MAX(`'.$mu_table_name.'`.id) AS mu_id, MAX(`'.$mu_table_name.'`.is_new) AS mu_is_new, `'.$mu_table_name.'`.*, COUNT( `'.$mu_table_name.'`.id ) AS m_thread_count ';
         $list_arr['order_by'] = '`'.$m_table_name.'`.sticky ASC, `'.$mu_table_name.'`.cdate DESC';
-        $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
         $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
+
+        $count_list_arr = $list_arr;
+
+        $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
 
         $flow_params = array(
             'term_singular' => $this->_pt( 'message' ),
             'term_plural' => $this->_pt( 'messages' ),
             'initial_list_arr' => $list_arr,
+            'initial_count_list_arr' => $count_list_arr,
             'after_table_callback' => array( $this, 'after_table_callback' ),
             'listing_title' => $this->_pt( 'Inbox' ),
         );
@@ -159,7 +163,13 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                     'display_name' => $this->_pt( 'Delete' ),
                     'action' => 'bulk_delete',
                     'js_callback' => 'phs_messages_list_bulk_delete',
-                    'checkbox_column' => 'id',
+                    'checkbox_column' => 'mu_id',
+                ),
+                array(
+                    'display_name' => $this->_pt( 'Mark as read' ),
+                    'action' => 'bulk_mark_as_read',
+                    'js_callback' => 'phs_messages_list_bulk_mark_as_read',
+                    'checkbox_column' => 'mu_id',
                 ),
             );
         }
@@ -183,12 +193,21 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
             ),
+            array(
+                'display_name' => $this->_pt( 'Subject' ),
+                'display_hint' => $this->_pt( 'Subject contains this value' ),
+                'var_name' => 'fsubject',
+                'record_field' => '`'.$m_table_name.'`.subject',
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ),
         );
 
         $columns_arr = array(
             array(
                 'column_title' => ' ',
-                'record_field' => 'id',
+                'record_field' => 'm_id',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'display_callback' => array( $this, 'display_hide_id' ),
                 'extra_style' => 'width:20px;',
@@ -314,8 +333,8 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 if( !($scope_arr = $this->_paginator->get_scope())
                  or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
                  or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
-                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
+                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'mu_id' ))
+                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'mu_id' ))
                  or empty( $scope_arr[$scope_key] )
                  or !is_array( $scope_arr[$scope_key] ) )
                     return true;
@@ -324,6 +343,67 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 foreach( $scope_arr[$scope_key] as $message_id )
                 {
                     if( !$this->_paginator_model->act_delete_thread( $message_id ) )
+                    {
+                        $remaining_ids_arr[] = $message_id;
+                    }
+                }
+
+                if( isset( $scope_arr[$scope_all_key] ) )
+                    unset( $scope_arr[$scope_all_key] );
+
+                if( empty( $remaining_ids_arr ) )
+                {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset( $scope_arr[$scope_key] );
+
+                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                } else
+                {
+                    if( count( $remaining_ids_arr ) != count( $scope_arr[$scope_key] ) )
+                        $action_result_params['action_result'] = 'failed_some';
+                    else
+                        $action_result_params['action_result'] = 'failed';
+
+                    $scope_arr[$scope_key] = implode( ',', $remaining_ids_arr );
+
+                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                }
+            break;
+
+            case 'bulk_mark_as_read':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required messages marked as read with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Marking selected messages as read failed. Please try again.' ) );
+                    elseif( $action['action_result'] == 'failed_some' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed marking as read all selected messages. Failed messages are still selected. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_WRITE_MESSAGE ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage messages.' ) );
+                    return false;
+                }
+
+                if( !($scope_arr = $this->_paginator->get_scope())
+                 or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'mu_id' ))
+                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'mu_id' ))
+                 or empty( $scope_arr[$scope_key] )
+                 or !is_array( $scope_arr[$scope_key] ) )
+                    return true;
+
+                $remaining_ids_arr = array();
+                foreach( $scope_arr[$scope_key] as $message_id )
+                {
+                    if( !$this->_paginator_model->act_mark_as_read_thread( $message_id ) )
                     {
                         $remaining_ids_arr[] = $message_id;
                     }
@@ -423,7 +503,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         if( ($current_user = PHS::current_user())
         and $current_user['id'] == $params['record']['from_uid'] )
-            return $this->_pt( 'You' );
+            return $this->_pt( 'You (%s)', $params['record']['from_handle'] );
 
         return $params['record']['from_handle'];
     }
@@ -435,6 +515,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
+        $current_user = PHS::current_user();
         $messages_model = $this->_paginator_model;
         $accounts_model = $this->_accounts_model;
         $roles_model = $this->_roles_model;
@@ -571,6 +652,24 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
             if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s message threads?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
+            {
+                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+                if( form_obj )
+                    form_obj.submit();
+            }
+        }
+
+        function phs_messages_list_bulk_mark_as_read()
+        {
+            var total_checked = phs_messages_list_get_checked_ids_count();
+
+            if( !total_checked )
+            {
+                alert( "<?php echo self::_e( 'Please select message threads you want to mark as read first.', '"' )?>" );
+                return false;
+            }
+
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to mark as read %s message threads?', '"' ), '" + total_checked + "' )?>" ) )
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
                 if( form_obj )
