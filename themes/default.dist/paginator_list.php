@@ -46,7 +46,7 @@
 
     $per_page_options_arr = array( 20, 50, 100 );
 ?>
-<div style="width:97%;min-width:97%;margin: 0 auto;">
+<div class="list_container">
     <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post">
     <input type="hidden" name="foobar" value="1" />
     <input type="submit" id="foobar_submit" name="foobar_submit" value="Just Submit" style="display:none;" />
