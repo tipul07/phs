@@ -1007,6 +1007,8 @@ class PHS_Model_Messages extends PHS_Model
             $params['account_data'] = false;
         if( empty( $params['reply_message'] ) )
             $params['reply_message'] = false;
+        if( !isset( $params['exclude_author'] ) )
+            $params['exclude_author'] = true;
 
         if( empty( $params['body'] ) )
             $params['body'] = '';
@@ -1101,7 +1103,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['id'] = array( 'check' => 'IN', 'value' => '('.implode( ',', $users_parts ).')' );
                 $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
@@ -1124,7 +1127,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['nick'] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $users_parts ).'\')' );
                 $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
@@ -1151,7 +1155,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr['join_sql'] = ' LEFT JOIN `'.$users_details_table.'` ON `'.$users_table.'`.details_id = `'.$users_details_table.'`.id ';
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
                 $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $handlers_parts ).'\')' );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
@@ -1174,7 +1179,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['level'] = $params['dest_type_level'];
                 $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
@@ -1201,7 +1207,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = $params['dest_type_role'];
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
@@ -1231,7 +1238,8 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = array( 'check' => 'IN', 'value' =>
                     '(SELECT role_id FROM `'.$roles_units_links_table.'` WHERE `'.$roles_units_links_table.'`.role_unit_id = \''.$params['dest_type_role_unit'].'\')' );
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                if( !empty( $account_arr ) )
+                if( !empty( $account_arr )
+                and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
 
                 if( !($accounts_count = $accounts_model->get_count( $list_arr )) )
