@@ -66,9 +66,9 @@ class PHS_Action_Contact_us extends PHS_Action
                 {
                     $email_addr = trim( $email_addr );
                     if( empty( $email_addr )
-                        or !PHS_params::check_type( $email_addr, PHS_params::T_EMAIL ) )
+                     or !PHS_params::check_type( $email_addr, PHS_params::T_EMAIL ) )
                     {
-                        PHS_Notifications::add_error_notice( self::_t( '[%s] doesn\'t seem to be an email address. Please change your PHS_CONTACT_EMAIL constant in main.php file.', $email_addr ) );
+                        PHS_Notifications::add_error_notice( '['.$email_addr.'] doesn\'t seem to be an email address. Please change your PHS_CONTACT_EMAIL constant in main.php file.' );
                         continue;
                     }
 

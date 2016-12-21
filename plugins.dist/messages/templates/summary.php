@@ -32,10 +32,6 @@
         $can_reply_messages = true;
 
 ?><script type="text/javascript">
-function phs_close_messages_summary_popup()
-{
-    $("#<?php echo (!empty( $summary_container_id )?$summary_container_id:'messages-summary-popup')?>").hide();
-}
 function phs_messages_summary_delete_message( id )
 {
     PHS_JSEN.js_messages_hide_all();
@@ -65,17 +61,16 @@ function phs_messages_summary_delete_message( id )
 }
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">
-    <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>">Inbox</a> (<?php echo $messages_new?>/<?php echo $messages_count?>)
+    <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>"><i class="fa fa-envelope"></i>Inbox</a> <span class="messages_counter">(<?php echo $messages_new?>/<?php echo $messages_count?>)</span>
     <?php
     if( !empty( $compose_url ) )
     {
-        ?> |
-        <a href="<?php echo $compose_url?>">Compose</a>
+        ?><a href="<?php echo $compose_url?>"><i class="fa fa fa-pencil"></i>Compose</a>
         <?php
     }
     ?>
 
-    <div style="float:right; margin: 0 15px 0 0; cursor: pointer;" onclick="phs_close_messages_summary_popup()"><i class="fa fa-times-circle"></i></div>
+    <!--<div style="float:right; margin: 0 15px 0 0; cursor: pointer;" onclick="open_messages_summary_menu_pane()"><i class="fa fa-times-circle"></i></div>-->
 </div>
 <div id="messages-summary-popup-content">
 <div id="phs_ajax_new_messages" style="display:none;"></div>
@@ -104,7 +99,7 @@ function phs_messages_summary_delete_message( id )
                     ?> <a href="<?php echo PHS::url( $compose_route_arr, array( 'reply_to_muid' => $full_message_arr['message_user']['id'] ) )?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt( 'Reply' )?>"></i></a> <?php
                 }
                 ?>
-                <a href="javascript:void(0)" onclick="phs_messages_summary_delete_message('<?php echo $full_message_arr['message_user']['id']?>')"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
+                <a href="javascript:void(0)" onclick="phs_messages_summary_delete_message('<?php echo $full_message_arr['message_user']['id']?>')"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete' )?>"></i></a>
                 </div>
             </div>
             </div>

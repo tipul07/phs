@@ -280,6 +280,20 @@
     margin-right: 10px;
     margin-bottom: 10px;
 }
+.btn-small,
+.btn-medium,
+.btn-big{
+    color: #FFF !important;
+	font-style: normal;
+}
+.btn-small.btn-default,
+.btn-medium.btn-default,
+.btn-big.btn-default,
+.btn-small.btn-default:visited,
+.btn-medium.btn-default:visited,
+.btn-big.btn-default:visited {
+    color: #333 !important;
+}
 a:visited.btn-small,
 a:visited.btn-medium,
 a:visited.btn-big {
@@ -305,7 +319,6 @@ a:hover.btn-big {
     padding: 4px 8px;
     font-size: 12px;
     text-transform: uppercase;
-    color: #fff !important;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -322,7 +335,6 @@ a:hover.btn-big {
     padding: 10px 15px;
     font-size: 13px;
     text-transform: uppercase;
-    color: #fff !important;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -339,7 +351,6 @@ a:hover.btn-big {
     padding: 15px 18px;
     font-size: 14px;
     text-transform: uppercase;
-    color: #fff !important;
 
     -webkit-transition: all 0.2s ease 0s;
     -moz-transition: all 0.2s ease 0s;
@@ -352,12 +363,15 @@ a:hover.btn-big {
     border-radius: 3px;
 }
 
-.btn-small:hover,
-.btn-medium:hover,
-.btn-big:hover{
-    color: #fff !important;
-}
 
+
+
+/* inside a jquery modal */
+.ui-widget-content a.btn-small,
+.ui-widget-content a.btn-medium,
+.ui-widget-content a.btn-big {
+	
+	}
 
 
 /* EMPTY BUTTONS

@@ -18,9 +18,10 @@
         </section>
 
         <fieldset>
-            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>!', $nick );?></p>
+            <p><?php echo $this->_pt( 'Hello %s.', '<strong>'.$nick.'</strong>' );?></p>
             <p><?php echo $this->_pt( 'You successfully registered your account. However, before using your account you must activate it.' )?></p>
-            <p><?php echo $this->_pt( 'We sent you an activation link at <strong>%s</strong>. Please check your email (also looking into spam folder) and click or access the activation link.', $this->context_var( 'email' ) )?></p>
+            <p><?php echo $this->_pt( 'We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.',
+                                      '<strong>'.$this->context_var( 'email' ).'</strong>' )?></p>
         </fieldset>
 
         <fieldset>

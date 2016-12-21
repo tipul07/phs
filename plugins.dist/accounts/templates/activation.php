@@ -16,7 +16,7 @@
             if( !($nick = $this->context_var( 'nick' )) )
                 $nick = $this->_pt( 'there' );
             ?>
-            <p><?php echo $this->_pt( 'Hello <strong>%s</strong>.', $nick );?></p>
+            <p><?php echo $this->_pt( 'Hello %s.', '<strong>'.$nick.'</strong>' );?></p>
             <p><?php echo $this->_pt( 'Action required for confirmation failed. This might happen because confirmation link expired. Please try again.' )?></p>
         </fieldset>
 

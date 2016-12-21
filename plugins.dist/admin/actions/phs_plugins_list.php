@@ -227,7 +227,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'sortable' => false,
             ),
             array(
-                'column_title' => $this->_pt( 'Version<br/><small>Installed / Script</small>' ),
+                'column_title' => $this->_pt( 'Version' ).'<br/><small>'.$this->_pt( 'Installed / Script' ).'</small>',
                 'record_field' => 'version',
                 'extra_style' => 'vertical-align: middle;width:100px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',

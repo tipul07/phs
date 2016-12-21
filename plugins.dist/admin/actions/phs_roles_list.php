@@ -148,7 +148,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
         $columns_arr = array(
             array(
-                'column_title' => $this->_pt( '#' ),
+                'column_title' => '#',
                 'record_field' => 'id',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:50px;max-width:80px;',

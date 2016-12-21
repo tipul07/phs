@@ -918,8 +918,8 @@ class PHS_Model_Accounts extends PHS_Model
                         $regexp_parts[2] = '';
 
                     $this->set_error( self::ERR_INSERT,
-                                      $this->_pt( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
-                                                $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
+                                      $this->_pt( 'Password doesn\'t match regular expression %s.',
+                                                '<a href="https://regex101.com/?regex='.$regexp_parts[1].'&options='.$regexp_parts[2].'" title="'.$this->_pt( 'Click for details' ).'" target="_blank">'.$accounts_settings['password_regexp'].'</a>' ) );
                 } else
                     $this->set_error( self::ERR_INSERT, $this->_pt( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
 
@@ -1216,8 +1216,8 @@ class PHS_Model_Accounts extends PHS_Model
                         $regexp_parts[2] = '';
 
                     $this->set_error( self::ERR_EDIT,
-                                      $this->_pt( 'Password doesn\'t match regular expression <a href="https://regex101.com/?regex=%s&options=%s" title="Click for details" target="_blank">%s</a>.',
-                                                $regexp_parts[1], $regexp_parts[2], $accounts_settings['password_regexp'] ) );
+                                      $this->_pt( 'Password doesn\'t match regular expression %s.',
+                                                  '<a href="https://regex101.com/?regex='.$regexp_parts[1].'&options='.$regexp_parts[2].'" title="'.$this->_pt( 'Click for details' ).'" target="_blank">'.$accounts_settings['password_regexp'].'</a>' ) );
                 } else
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp'] ) );
 

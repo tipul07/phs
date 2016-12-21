@@ -103,7 +103,7 @@ class PHS_encdec extends PHS_Language
         if( !$this->internal_keys_count or !$this->internal_keys_len
          or $this->internal_keys_count > 35 )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' ) );
+            $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
             return false;
         }
 
@@ -111,7 +111,7 @@ class PHS_encdec extends PHS_Language
         {
             if( strlen( $key ) != $this->internal_keys_len )
             {
-                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' ) );
+                $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
                 return false;
             }
         }

@@ -163,8 +163,21 @@
     <script type="text/javascript">
         function open_messages_summary_menu_pane()
         {
+            var isVisible = false;
             close_menu_panes();
-            $('#messages-summary-container' ).stop().fadeToggle();
+            $('#messages-summary-container').stop().fadeToggle(function(){ if(!isVisible) isVisible = true });
+            var once = true;
+            if (once) {
+                $(window).click(function() {
+                    if (isVisible && $('#messages-summary-container').is(':visible'))
+                        $('#messages-summary-container').stop().fadeOut();
+                });
+
+                $('#messages-summary-container, #messages_summary_toggle').click(function(event){
+                    event.stopPropagation();
+                });
+                once = false;
+            }
         }
         function close_messages_summary_menu_pane()
         {
@@ -465,7 +478,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                             if( !empty( $mail_hook_args['summary_buffer'] ) )
                             {
                             ?>
-                            <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']?></span></a>
+                            <li class="main-menu-placeholder"><a href="javascript:void(0)" id="messages_summary_toggle" onclick="open_messages_summary_menu_pane()" onfocus="this.blur();" class="fa fa-envelope main-menu-icon"><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']?></span></a>
                                 <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']?></div>
                             </li>
                             <?php

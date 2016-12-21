@@ -174,7 +174,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
         $columns_arr = array(
             array(
-                'column_title' => $this->_pt( '#' ),
+                'column_title' => '#',
                 'record_field' => 'id',
                 'checkbox_record_index_key' => array(
                     'key' => 'id',
