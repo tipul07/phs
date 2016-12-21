@@ -44,16 +44,12 @@
         echo $cell_content;
     }
 ?>
-<div style="width:97%;min-width:97%;margin: 0 auto;">
+<div class="list_filters_container">
     <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post">
     <input type="hidden" name="foobar" value="1" />
 
         <div class="form_container">
 
-            <section class="heading-bordered">
-                <h3><?php echo $this::_t( 'Filters' )?></h3>
-            </section>
-            
             <div id="<?php echo $filters_form_name?>_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;">
             <?php
             $filters_display_arr = array();
@@ -189,9 +185,9 @@ function toggle_filters_inputs_and_text()
     var text_obj = $('#<?php echo $filters_form_name?>_text');
 
     if( inputs_obj )
-        inputs_obj.toggle();
+        inputs_obj.slideToggle('fast');
     if( text_obj )
-        text_obj.toggle();
+        text_obj.slideToggle('fast');
 }
 </script>
 <?php

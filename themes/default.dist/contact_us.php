@@ -32,7 +32,7 @@
             <fieldset class="form-group">
                 <label for="body"><?php echo $this::_t( 'Message' )?></label>
                 <div class="lineform_line">
-                <textarea id="body" name="body" class="form-control" required="required" style="width: 400px; height: 300px;"><?php echo $this->context_var( 'body' )?></textarea>
+                <textarea id="body" name="body" class="form-control" required="required" style="width: 351px; height: 300px;"><?php echo $this->context_var( 'body' )?></textarea>
                 </div>
             </fieldset>
 
