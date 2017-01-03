@@ -200,6 +200,16 @@ class PHS_Model_Plugins extends PHS_Model
         return $plugin_arr;
     }
 
+    public function is_status_inactive( $plugin_data )
+    {
+        if( empty( $plugin_data )
+         or !($plugin_arr = $this->data_to_array( $plugin_data ))
+         or $plugin_arr['status'] != self::STATUS_INACTIVE )
+            return false;
+
+        return $plugin_arr;
+    }
+
     public function is_installed( $plugin_data )
     {
         if( empty( $plugin_data )

@@ -4,6 +4,7 @@ namespace phs;
 
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_Instantiable;
 
 //! @version 1.00
 
@@ -167,6 +168,11 @@ class PHS_Agent extends PHS_Registry
         else
             $extra['active'] = (!empty( $extra['active'] )?1:0);
 
+        if( empty( $extra['plugin'] ) or !is_string( $extra['plugin'] ) )
+            $extra['plugin'] = '';
+        else
+            $extra['plugin'] = trim( $extra['plugin'] );
+
         if( !is_array( $params ) )
             $params = array();
 
@@ -186,6 +192,7 @@ class PHS_Agent extends PHS_Registry
             $edit_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $edit_arr['timed_seconds'] = $once_every_seconds;
             $edit_arr['run_async'] = ($extra['run_async']?1:0);
+            $edit_arr['plugin'] = $extra['plugin'];
 
             if( !($job_arr = $agent_jobs_model->edit( $existing_job, array( 'fields' => $edit_arr ) )) )
             {
@@ -205,7 +212,8 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $insert_arr['timed_seconds'] = $once_every_seconds;
             $insert_arr['run_async'] = ($extra['run_async']?1:0);
-            $insert_arr['active'] = $extra['active'];
+            $insert_arr['status'] = ($extra['active']?$agent_jobs_model::STATUS_ACTIVE:$agent_jobs_model::STATUS_INACTIVE);
+            $insert_arr['plugin'] = $extra['plugin'];
 
             if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))
              or empty( $job_arr['id'] ) )
@@ -331,6 +339,76 @@ class PHS_Agent extends PHS_Registry
         );
     }
 
+    public static function suspend_agent_jobs( $plugin )
+    {
+        self::st_reset_error();
+
+        if( !($plugin_name = PHS_Instantiable::safe_escape_plugin_name( $plugin )) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid plugin name.' ) );
+            return false;
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
+        if( !($flow_params = $agent_jobs_model->fetch_default_flow_params()) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t obtain agent jobs flow parameters.' ) );
+            return false;
+        }
+
+        if( !db_query( 'UPDATE `'.$agent_jobs_model->get_flow_table_name( $flow_params ).'`'.
+                       ' SET status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\' '.
+                       ' WHERE '.
+                       ' plugin = \''.prepare_data( $plugin ).'\' AND status = \''.$agent_jobs_model::STATUS_ACTIVE.'\'', $flow_params['db_connection'] ) )
+        {
+            self::st_set_error( self::ERR_JOB_DB, self::_t( 'Error running query to suspend agent jobs for provided plugin.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function unsuspend_agent_jobs( $plugin )
+    {
+        self::st_reset_error();
+
+        if( !($plugin_name = PHS_Instantiable::safe_escape_plugin_name( $plugin )) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid plugin name.' ) );
+            return false;
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
+        if( !($flow_params = $agent_jobs_model->fetch_default_flow_params()) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t obtain agent jobs flow parameters.' ) );
+            return false;
+        }
+
+        if( !db_query( 'UPDATE `'.$agent_jobs_model->get_flow_table_name( $flow_params ).'`'.
+                       ' SET status = \''.$agent_jobs_model::STATUS_ACTIVE.'\' '.
+                       ' WHERE '.
+                       ' plugin = \''.prepare_data( $plugin ).'\' AND status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\'', $flow_params['db_connection'] ) )
+        {
+            self::st_set_error( self::ERR_JOB_DB, self::_t( 'Error running query to re-activate agent jobs for provided plugin.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
     public function check_agent_jobs()
     {
         $this->reset_error();
@@ -350,7 +428,7 @@ class PHS_Agent extends PHS_Registry
         $list_arr = $agent_jobs_model->fetch_default_flow_params();
         $list_arr['fields']['is_running'] = array( 'check' => 'IS', 'raw_value' => 'NULL' );
         $list_arr['fields']['timed_action'] = array( 'check' => '<=', 'value' => date( $agent_jobs_model::DATETIME_DB ) );
-        $list_arr['fields']['active'] = 1;
+        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
         $list_arr['order_by'] = 'run_async DESC';
 
         if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false

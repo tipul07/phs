@@ -191,6 +191,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             'term_plural' => $this->_pt( 'plugins' ),
             'after_record_callback' => array( $this, 'after_record_callback' ),
             'after_table_callback' => array( $this, 'after_table_callback' ),
+            'listing_title' => $this->_pt( 'Plugins List' ),
         );
 
         if( !($plugins_statuses = $this->_paginator_model->get_statuses_as_key_val()) )

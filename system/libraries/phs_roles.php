@@ -15,7 +15,8 @@ class PHS_Roles extends PHS_Registry
           ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
           ROLEU_MANAGE_PLUGINS = 'phs_manage_plugins', ROLEU_LIST_PLUGINS = 'phs_list_plugins',
           ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
-          ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount';
+          ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
+          ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs';
 
     /** @var bool|\phs\system\core\models\PHS_Model_Roles $_role_model  */
     private static $_role_model = false;
@@ -189,6 +190,7 @@ class PHS_Roles extends PHS_Registry
 
         if( ($role_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
+            // TODO: check $role_arr['plugin'] if it is same as $params['plugin'] (don't allow other plugins to overwrite roles)
             $edit_fields_arr = array();
             $check_fields = $role_model::get_register_edit_role_unit_fields();
             
@@ -276,6 +278,7 @@ class PHS_Roles extends PHS_Registry
 
         if( ($role_unit_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
+            // TODO: check $role_arr['plugin'] if it is same as $params['plugin'] (don't allow other plugins to overwrite role units)
             $edit_fields_arr = array();
             $check_fields = $role_model::get_register_edit_role_unit_fields();
 

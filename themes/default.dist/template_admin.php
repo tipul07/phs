@@ -93,7 +93,7 @@
             $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
 
             $(".chosen-select").chosen( { disable_search_threshold: 7 } );
-            $(".chosen-select-nosearch").chosen( { disable_search: true } );
+            $(".chosen-select-nosearch").chosen({disable_search: true});
             $(".ui-button").button();
             $("*[title]").tooltip();
         }
@@ -199,64 +199,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                 )
                     echo $hook_args['buffer'];
 
-                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
-                {
-                    ?>
-                    <li><?php echo $this::_t( 'Plugins Management' ) ?>
-                        <ul>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'plugins_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
-                        </ul>
-                    </li>
-                    <?php
-                }
-                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
-                {
-                    ?>
-                    <li><?php echo $this::_t( 'Roles Management' ) ?>
-                        <ul>
-                            <?php
-                                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
-                                {
-                                    ?>
-                                    <li><a href="<?php echo PHS::url( array(
-                                                                              'a' => 'role_add', 'p' => 'admin'
-                                                                      ) ) ?>"><?php echo $this::_t( 'Add Role' ) ?></a>
-                                    </li>
-                                    <?php
-                                }
-                            ?>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'roles_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Manage Roles' ) ?></a></li>
-                        </ul>
-                    </li>
-                    <?php
-                }
-                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
-                {
-                    ?>
-                    <li><?php echo $this::_t( 'Users Management' ) ?>
-                        <ul>
-                            <?php
-                                if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
-                                {
-                                    ?>
-                                    <li><a href="<?php echo PHS::url( array(
-                                                                              'a' => 'user_add', 'p' => 'admin'
-                                                                      ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
-                                    </li>
-                                    <?php
-                                }
-                            ?>
-                            <li><a href="<?php echo PHS::url( array(
-                                                                      'a' => 'users_list', 'p' => 'admin'
-                                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
-                        </ul>
-                    </li>
-                    <?php
-                }
 
                 if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
                                                       PHS_Hooks::default_buffer_hook_args() )) and is_array( $hook_args ) and !empty($hook_args['buffer'])
@@ -459,7 +401,8 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     </header>
     <div class="clearfix"></div>
 
-    <div id="content"><?php
+    <div id="content">
+		<div id="main_content"><?php
 }
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
@@ -472,10 +415,9 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 {
-    ?><div class="clearfix"></div></div>
-    <div class="clearfix"></div>
+		?></div>
 
-    <div class="clearfix" style="margin-bottom: 10px;"></div>
+
 
     <footer id="footer">
         <div id="footer_content">

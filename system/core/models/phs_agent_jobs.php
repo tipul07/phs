@@ -12,12 +12,19 @@ class PHS_Model_Agent_jobs extends PHS_Model
 {
     const ERR_DB_JOB = 10000;
 
+    const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_SUSPENDED = 3;
+    protected static $STATUSES_ARR = array(
+        self::STATUS_ACTIVE => array( 'title' => 'Active' ),
+        self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
+        self::STATUS_SUSPENDED => array( 'title' => 'Suspended' ),
+    );
+
     /**
      * @return string Returns version of model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.4';
     }
 
     /**
@@ -48,6 +55,143 @@ class PHS_Model_Agent_jobs extends PHS_Model
         );
     }
 
+    final public function get_statuses()
+    {
+        static $statuses_arr = array();
+
+        if( !empty( $statuses_arr ) )
+            return $statuses_arr;
+
+        $statuses_arr = array();
+        // Translate and validate statuses...
+        foreach( self::$STATUSES_ARR as $status_id => $status_arr )
+        {
+            $status_id = intval( $status_id );
+            if( empty( $status_id ) )
+                continue;
+
+            if( empty( $status_arr['title'] ) )
+                $status_arr['title'] = $this->_pt( 'Status %s', $status_id );
+            else
+                $status_arr['title'] = $this->_pt( $status_arr['title'] );
+
+            $statuses_arr[$status_id] = $status_arr;
+        }
+
+        return $statuses_arr;
+    }
+
+    final public function get_statuses_as_key_val()
+    {
+        static $user_statuses_key_val_arr = false;
+
+        if( $user_statuses_key_val_arr !== false )
+            return $user_statuses_key_val_arr;
+
+        $user_statuses_key_val_arr = array();
+        if( ($user_statuses = $this->get_statuses()) )
+        {
+            foreach( $user_statuses as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $user_statuses_key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        return $user_statuses_key_val_arr;
+    }
+
+    public function valid_status( $status )
+    {
+        $all_statuses = $this->get_statuses();
+        if( empty( $status )
+            or empty( $all_statuses[$status] ) )
+            return false;
+
+        return $all_statuses[$status];
+    }
+
+    public function act_activate( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job details not found in database.' ) );
+            return false;
+        }
+
+        if( $this->job_is_suspended( $job_arr ) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job is suspended. You must activate plugin to activate it again.' ) );
+            return false;
+        }
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_ACTIVE;
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function act_inactivate( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job details not found in database.' ) );
+            return false;
+        }
+
+        if( $this->job_is_suspended( $job_arr ) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job is suspended. You must activate plugin to activate it again.' ) );
+            return false;
+        }
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_INACTIVE;
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function act_suspend( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job details not found in database.' ) );
+            return false;
+        }
+
+        $edit_arr = array();
+        $edit_arr['status'] = self::STATUS_SUSPENDED;
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function act_delete( $job_data )
+    {
+        $this->reset_error();
+
+        if( empty( $job_data )
+         or !($flow_params = $this->fetch_default_flow_params())
+         or !($table_name = $this->get_flow_table_name( $flow_params ))
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Agent job details not found in database.' ) );
+            return false;
+        }
+
+        if( !db_query( 'DELETE FROM `'.$table_name.'` WHERE id = \''.$job_arr['id'].'\'', $flow_params['db_connection'] ) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Error deleting agent job from database.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
     public function start_job( $job_data )
     {
         if( empty( $job_data )
@@ -65,37 +209,6 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr['pid'] = $pid;
 
         PHS_Logger::logf( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']' );
-
-        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
-    }
-
-    public function refresh_job( $job_data )
-    {
-        $this->reset_error();
-
-        if( empty( $job_data )
-         or !($job_arr = $this->data_to_array( $job_data )) )
-        {
-            $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
-            return false;
-        }
-
-        $cdate = date( self::DATETIME_DB );
-
-        $edit_arr = array();
-        if( empty( $job_arr['pid'] ) )
-        {
-            if( !($pid = @getmypid()) )
-                $pid = -1;
-
-            $edit_arr['pid'] = $pid;
-        }
-
-        if( empty( $job_arr['is_running'] )
-         or empty_db_date( $job_arr['is_running'] ) )
-            $edit_arr['is_running'] = $cdate;
-
-        $edit_arr['last_action'] = $cdate;
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
@@ -131,6 +244,37 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr['is_running'] = null;
         $edit_arr['last_action'] = date( self::DATETIME_DB );
         $edit_arr['timed_action'] = date( self::DATETIME_DB, $next_time );
+
+        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+    }
+
+    public function refresh_job( $job_data )
+    {
+        $this->reset_error();
+
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data )) )
+        {
+            $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
+            return false;
+        }
+
+        $cdate = date( self::DATETIME_DB );
+
+        $edit_arr = array();
+        if( empty( $job_arr['pid'] ) )
+        {
+            if( !($pid = @getmypid()) )
+                $pid = -1;
+
+            $edit_arr['pid'] = $pid;
+        }
+
+        if( empty( $job_arr['is_running'] )
+         or empty_db_date( $job_arr['is_running'] ) )
+            $edit_arr['is_running'] = $cdate;
+
+        $edit_arr['last_action'] = $cdate;
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
@@ -189,7 +333,27 @@ class PHS_Model_Agent_jobs extends PHS_Model
     {
         if( empty( $job_data )
          or !($job_arr = $this->data_to_array( $job_data ))
-         or empty( $job_arr['active'] ) )
+         or $job_arr['status'] != self::STATUS_ACTIVE )
+            return false;
+
+        return true;
+    }
+
+    public function job_is_inactive( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data ))
+         or $job_arr['status'] != self::STATUS_INACTIVE )
+            return false;
+
+        return true;
+    }
+
+    public function job_is_suspended( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data ))
+         or $job_arr['status'] != self::STATUS_SUSPENDED )
             return false;
 
         return true;
@@ -227,15 +391,17 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['plugin'] ) )
+            $params['fields']['plugin'] = '';
+
         if( !isset( $params['fields']['run_async'] ) )
             $params['fields']['run_async'] = 1;
         else
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
 
-        if( !isset( $params['fields']['active'] ) )
-            $params['fields']['active'] = 1;
-        else
-            $params['fields']['active'] = (!empty( $params['fields']['active'] )?1:0);
+        if( empty( $params['fields']['status'] )
+         or !$this->valid_status( $params['fields']['status'] ) )
+            $params['fields']['status'] = self::STATUS_ACTIVE;
 
         if( empty( $params['fields']['timed_seconds'] ) )
             $params['fields']['timed_seconds'] = 0;
@@ -266,15 +432,19 @@ class PHS_Model_Agent_jobs extends PHS_Model
         if( !empty( $params['fields']['handler'] )
         and $this->get_details_fields( $check_arr ) )
         {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Handler already defined in database.' ) );
+            $this->set_error( self::ERR_EDIT, self::_t( 'Handler already defined in database.' ) );
+            return false;
+        }
+
+        if( !empty( $params['fields']['status'] )
+        and !$this->valid_status( $params['fields']['status'] ) )
+        {
+            $this->set_error( self::ERR_EDIT, self::_t( 'Agent job status is not defined.' ) );
             return false;
         }
 
         if( isset( $params['fields']['run_async'] ) )
             $params['fields']['run_async'] = (!empty( $params['fields']['run_async'] )?1:0);
-
-        if( isset( $params['fields']['active'] ) )
-            $params['fields']['active'] = (!empty( $params['fields']['active'] )?1:0);
 
         if( isset( $params['fields']['is_running'] ) )
         {
@@ -321,6 +491,14 @@ class PHS_Model_Agent_jobs extends PHS_Model
                         'index' => true,
                         'comment' => 'String which will help identify task',
                     ),
+                    'plugin' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'index' => true,
+                        'comment' => 'Tells if job was installed by a plugin',
+                    ),
                     'pid' => array(
                         'type' => self::FTYPE_INT,
                     ),
@@ -362,11 +540,11 @@ class PHS_Model_Agent_jobs extends PHS_Model
                         'index' => true,
                         'comment' => 'Next time action should run',
                     ),
-                    'active' => array(
+                    'status' => array(
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
-                        'default' => 1,
-                        'comment' => 'Is this job still active',
+                        'default' => self::STATUS_ACTIVE,
+                        'comment' => 'Status of current job',
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,
