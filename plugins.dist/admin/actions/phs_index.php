@@ -3,11 +3,17 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Index extends PHS_Action
 {
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_WEB );
+    }
+
     public function execute()
     {
         PHS::page_settings( 'page_title', $this->_pt( 'Admin Area' ) );

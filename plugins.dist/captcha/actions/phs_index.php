@@ -2,13 +2,18 @@
 
 namespace phs\plugins\captcha\actions;
 
-use \phs\libraries\PHS_Action;
-use phs\libraries\PHS_params;
-use \phs\system\core\views\PHS_View;
 use \phs\PHS_session;
+use \phs\PHS_Scope;
+use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_params;
 
 class PHS_Action_Index extends PHS_Action
 {
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+    }
+
     public function execute()
     {
         /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $plugin_instance */

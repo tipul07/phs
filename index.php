@@ -7,6 +7,20 @@
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Model;
     use \phs\libraries\PHS_Logger;
+    use \phs\libraries\PHS_Instantiable;
+
+
+    // $plugin = PHS_Instantiable::CORE_PLUGIN;
+    //
+    // echo 'Plugin:<br/>'."\n";
+    // var_dump( PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN ) );
+    // echo 'Controllers:<br/>'."\n";
+    // var_dump( PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER ) );
+    // echo 'Actions:<br/>'."\n";
+    // var_dump( PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION ) );
+    // echo 'Models:<br/>'."\n";
+    // var_dump( PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL ) );
+    // exit;
 
     // /** @var \phs\plugins\s2p_companies\models\PHS_Model_Companies $model_obj */
     // $model_obj = PHS::load_model( 'companies', 's2p_companies' );

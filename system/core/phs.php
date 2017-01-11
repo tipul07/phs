@@ -12,8 +12,8 @@ use \phs\libraries\PHS_Hooks;
 final class PHS extends PHS_Registry
 {
     const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
-          ERR_LOAD_SCOPE = 2006,
-          ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010;
+          ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
+          ERR_SCRIPT_FILES = 2011;
 
     const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
           COOKIE_DOMAIN = 'cookie_domain',
@@ -1285,6 +1285,113 @@ final class PHS extends PHS_Registry
         }
 
         return $instance_obj;
+    }
+
+    /**
+     * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
+     * This only returns file names, does no check if class is instantiable...
+     *
+     * @param bool|string $plugin Core plugin if false or plugin name as string
+     * @param string $instance_type What script files should we check PHS_Instantiable::INSTANCE_TYPE_*
+     *
+     * @return array|bool
+     */
+    public static function get_plugin_scripts_from_dir( $plugin = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+    {
+        self::st_reset_error();
+
+        switch( $instance_type )
+        {
+            case PHS_Instantiable::INSTANCE_TYPE_PLUGIN:
+                $class_name = 'PHS_Plugin_Index';
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_MODEL:
+                $class_name = 'PHS_Model_Index';
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_CONTROLLER:
+                $class_name = 'PHS_Controller_Index';
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_ACTION:
+                $class_name = 'PHS_Action_Index';
+            break;
+
+            default:
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Invalid instance type to obtain script files list.' ) );
+                return false;
+            break;
+        }
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        {
+            $plugin = false;
+
+            if( $instance_type == PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+            {
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'There is no CORE plugin.' ) );
+                return false;
+            }
+        }
+
+        elseif( !($plugin = PHS_Instantiable::safe_escape_plugin_name( $plugin )) )
+        {
+            self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Invalid plugin name to obtain script files list.' ) );
+            return false;
+        }
+
+        // Get generic information about an index controller to obtain paths to be checked...
+        if( !($instance_details = PHS_Instantiable::get_instance_details( $class_name, $plugin, $instance_type )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Couldn\'t obtain instance details for generic controller index from plugin %s .', (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        if( empty( $instance_details['instance_path'] ) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Couldn\'t read controllers directory from plugin %s .', (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        // Plugin might not have even directory created meaning no script files
+        if( !@is_dir( $instance_details['instance_path'] )
+         or !@is_readable( $instance_details['instance_path'] ) )
+            return array();
+
+        // Check spacial case if we are asked for plugin script (as there's only one)
+        $resulting_instance_names = array();
+        if( $plugin != PHS_Instantiable::CORE_PLUGIN
+        and $instance_type == PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+        {
+            if( !@file_exists( $instance_details['instance_path'].'phs_'.$plugin.'.php' ) )
+            {
+                if( !self::st_has_error() )
+                    self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Couldn\'t read plugin script file for plugin %s .', $plugin ) );
+                return false;
+            }
+
+            $resulting_instance_names[] = $plugin;
+        } else
+        {
+            if( ($file_scripts = @glob( $instance_details['instance_path'] . 'phs_*.php' ))
+            and is_array( $file_scripts ) )
+            {
+                foreach( $file_scripts as $file_script )
+                {
+                    $script_file_name = basename( $file_script );
+                    // Special check as plugin script is only one
+                    if( substr( $script_file_name, 0, 4 ) != 'phs_'
+                     or substr( $script_file_name, -4 ) != '.php' )
+                        continue;
+
+                    $instance_file_name = substr( substr( $script_file_name, 4 ), 0, -4 );
+
+                    $resulting_instance_names[] = $instance_file_name;
+                }
+            }
+        }
+
+        return $resulting_instance_names;
     }
 
     /**

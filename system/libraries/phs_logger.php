@@ -137,6 +137,97 @@ class PHS_Logger extends PHS_Registry
         return self::$_channels;
     }
 
+    public static function get_file_header_arr()
+    {
+        return array(
+            '          Date          |    Identifier   |      IP         |  Log',
+            '------------------------+-----------------+-----------------+---------------------------------------------------',
+        );
+    }
+
+    public static function get_file_header_str()
+    {
+        return implode( "\n", self::get_file_header_arr() )."\n";
+    }
+
+    public static function tail_log( $channel, $lines, $buffer = 4096 )
+    {
+        self::st_reset_error();
+
+        if( !($logs_dir = self::logging_dir()) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t obtain logging directory.' ) );
+            return false;
+        }
+
+        if( !self::defined_channel( $channel ) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid logging channel.' ) );
+            return false;
+        }
+
+        $filename = $logs_dir.$channel;
+
+        // Open the file
+        if( !($f = @fopen( $filename, 'rb' )) )
+        {
+            self::st_set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error opening log file for read.' ) );
+            return false;
+        }
+
+        // Jump to last character
+        @fseek( $f, -1, SEEK_END );
+
+        // Read it and adjust line number if necessary
+        // (Otherwise the result would be wrong if file doesn't end with a blank line)
+        if( @fread( $f, 1 ) != "\n" )
+            $lines -= 1;
+
+        // Start reading
+        $output = '';
+        $chunk = '';
+
+        $using_mb = false;
+        if( @function_exists( 'mb_strlen' ) )
+            $using_mb = true;
+
+        // While we would like more
+        while( ($ftell_val = @ftell( $f )) > 0 and $lines >= 0 )
+        {
+            // Figure out how far back we should jump
+            $seek = min( $ftell_val, $buffer );
+
+            // Do the jump (backwards, relative to where we are)
+            @fseek( $f, -$seek, SEEK_CUR );
+
+            if( ($chunk = @fread( $f, $seek )) === false )
+                break;
+
+            // Read a chunk and prepend it to our output
+            $output = $chunk.$output;
+
+            // Jump back to where we started reading
+            if( $using_mb )
+                @fseek( $f, -mb_strlen( $chunk, '8bit' ), SEEK_CUR );
+            else
+                @fseek( $f, -strlen( $chunk ), SEEK_CUR );
+
+            // Decrease our line counter
+            $lines -= substr_count( $chunk, "\n" );
+        }
+        @fclose( $f );
+
+        // While we have too many lines
+        // (Because of buffer size we might have read too many)
+        while( $lines++ < 0 )
+        {
+            // Find first newline and remove all text before that
+            $output = substr( $output, strpos( $output, "\n" ) + 1 );
+        }
+
+        return $output;
+    }
+
     public static function logf()
     {
         if( !self::logging_enabled() )
@@ -226,8 +317,7 @@ class PHS_Logger extends PHS_Registry
 
         if( empty( $log_size ) )
         {
-            fputs( $fil, "          Date          |    Identifier   |      IP         |  Log\n" );
-            fputs( $fil, "------------------------+-----------------+-----------------+---------------------------------------------------\n" );
+            fputs( $fil, self::get_file_header_str() );
         }
 
         @fputs( $fil, str_pad( $log_time, 23, ' ', STR_PAD_LEFT ) . ' | ' .

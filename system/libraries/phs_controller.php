@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Hooks;
 
 abstract class PHS_Controller extends PHS_Signal_and_slot
 {
-    const ERR_RUN_ACTION = 40000;
+    const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
     private $_action = false;
 
@@ -33,10 +33,33 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     }
 
     /**
+     * @param int $scope Scope to be checked
+     *
+     * @return bool Returns true if controller is allowed to run in provided scope
+     */
+    public function scope_is_allowed( $scope )
+    {
+        $this->reset_error();
+
+        if( !PHS_Scope::valid_scope( $scope ) )
+        {
+            $this->set_error( self::ERR_SCOPE, self::_t( 'Invalid scope.' ) );
+            return false;
+        }
+
+        if( ($allowed_scopes = $this->allowed_scopes())
+        and is_array( $allowed_scopes )
+        and !in_array( $scope, $allowed_scopes ) )
+            return false;
+
+        return true;
+    }
+
+    /**
      * @param string $action Action to be loaded and executed
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
      *
-     * @return bool|
+     * @return bool|array Returns false on error or an action array on success
      */
     public function execute_action( $action, $plugin = null )
     {
@@ -50,10 +73,8 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
             return false;
         }
 
-        if( ($allowed_scopes = $this->allowed_scopes())
-        and is_array( $allowed_scopes )
-        and ($current_scope = PHS_Scope::current_scope())
-        and !in_array( $current_scope, $allowed_scopes ) )
+        if( ($current_scope = PHS_Scope::current_scope())
+        and !$this->scope_is_allowed( $current_scope ) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Controller not allowed to run in current scope.' ) );
             return false;

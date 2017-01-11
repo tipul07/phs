@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.40' );
+    define( 'PHS_VERSION', '1.0.1.41' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -267,6 +267,7 @@ if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
 }
 
 // Walk thgrough plugins bootstrap scripts...
+//! TODO: Walk only through active plugins...
 foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
 {
     if( ($bootstrap_scripts = @glob( $bstrap_dir . '*/phs_bootstrap_{0,10,20,30,40,50,60,70,80,90}.php', GLOB_BRACE ))

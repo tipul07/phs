@@ -127,8 +127,6 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         if( !empty( $statuses_arr ) )
             $statuses_arr = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $statuses_arr );
 
-        var_dump( $statuses_arr );
-
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
             $bulk_actions = false;
 
@@ -655,7 +653,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         }
 
         ?>
-        <a href="javascript:void(0)" onclick="phs_agent_jobs_list_delete( '<?php echo $agent_job['id']?>', '<?php echo (!empty( $agent_job['plugin'] )?1:0)?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete agent job' )?>"></i></a>
+        <a href="javascript:void(0)" onclick="phs_agent_jobs_list_delete( '<?php echo $agent_job['id']?>', <?php echo (!empty( $agent_job['plugin'] )?1:0)?> )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete agent job' )?>"></i></a>
         <?php
 
         return ob_get_clean();

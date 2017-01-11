@@ -3,6 +3,7 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Action;
@@ -16,7 +17,12 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
     /** @var bool|\phs\libraries\PHS_Plugin $_plugin_obj */
     private $_plugin_obj = false;
-    
+
+    public function allowed_scopes()
+    {
+        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+    }
+
     public function execute()
     {
         PHS::page_settings( 'page_title', $this->_pt( 'Plugin Settings' ) );

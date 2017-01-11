@@ -8,7 +8,7 @@ use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Signal_and_slot
 {
-    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002;
+    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003;
 
     const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
@@ -44,6 +44,11 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         }
     }
 
+    public function instance_type()
+    {
+        return self::INSTANCE_TYPE_ACTION;
+    }
+
     /**
      * Returns an array of scopes in which action is allowed to run
      *
@@ -54,9 +59,27 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return array();
     }
 
-    public function instance_type()
+    /**
+     * @param int $scope Scope to be checked
+     *
+     * @return bool Returns true if controller is allowed to run in provided scope
+     */
+    public function scope_is_allowed( $scope )
     {
-        return self::INSTANCE_TYPE_ACTION;
+        $this->reset_error();
+
+        if( !PHS_Scope::valid_scope( $scope ) )
+        {
+            $this->set_error( self::ERR_SCOPE, self::_t( 'Invalid scope.' ) );
+            return false;
+        }
+
+        if( ($allowed_scopes = $this->allowed_scopes())
+        and is_array( $allowed_scopes )
+        and !in_array( $scope, $allowed_scopes ) )
+            return false;
+
+        return true;
     }
 
     static function default_action_result()

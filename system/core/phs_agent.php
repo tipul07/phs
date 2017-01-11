@@ -5,14 +5,109 @@ namespace phs;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
+use \phs\libraries\PHS_Plugin;
 
 //! @version 1.00
 
 class PHS_Agent extends PHS_Registry
 {
-    const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004;
+    const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004,
+          ERR_AVAILABLE_ACTIONS = 30005;
 
     const DATA_AGENT_KEY = 'bg_agent_data';
+
+    public static function get_agent_routes()
+    {
+        self::st_reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            self::st_set_error( self::ERR_AVAILABLE_ACTIONS, self::_t( 'Couldn\'t load plugins model.' ) );
+            return false;
+        }
+
+        if( !($plugins_list = $plugins_model->cache_all_dir_details()) )
+            $plugins_list = array();
+
+        $available_plugins_arr = array();
+
+        if( ($agent_controllers = self::get_agent_available_controllers())
+        and ($agent_actions = self::get_agent_available_actions()) )
+        {
+            $available_plugins_arr[PHS_Instantiable::CORE_PLUGIN]['info'] = PHS_Plugin::core_plugin_details_fields();
+            $available_plugins_arr[PHS_Instantiable::CORE_PLUGIN]['controllers'] = $agent_controllers;
+            $available_plugins_arr[PHS_Instantiable::CORE_PLUGIN]['actions'] = $agent_actions;
+            $available_plugins_arr[PHS_Instantiable::CORE_PLUGIN]['instance'] = false;
+        }
+
+        /** @var \phs\libraries\PHS_Plugin $plugin_instance */
+        foreach( $plugins_list as $plugin_name => $plugin_instance )
+        {
+            if( !($plugin_info_arr = $plugin_instance->get_plugin_info())
+             or empty( $plugin_info_arr['is_installed'] )
+             or !($agent_controllers = self::get_agent_available_controllers( $plugin_name ))
+             or !($agent_actions = self::get_agent_available_actions( $plugin_name )))
+                continue;
+
+            $available_plugins_arr[$plugin_name]['info'] = $plugin_info_arr;
+            $available_plugins_arr[$plugin_name]['controllers'] = $agent_controllers;
+            $available_plugins_arr[$plugin_name]['actions'] = $agent_actions;
+            $available_plugins_arr[$plugin_name]['instance'] = $plugin_instance;
+        }
+
+        return $available_plugins_arr;
+    }
+
+    public static function get_agent_available_controllers( $plugin = false )
+    {
+        self::st_reset_error();
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        if( !($controller_names = PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER ))
+         or !is_array( $controller_names ) )
+            return array();
+
+        $available_controllers = array();
+        foreach( $controller_names as $controller_name )
+        {
+            /** @var \phs\libraries\PHS_Controller $controller_obj */
+            if( !($controller_obj = PHS::load_controller( $controller_name, $plugin ))
+             or !$controller_obj->scope_is_allowed( PHS_Scope::SCOPE_AGENT ) )
+                continue;
+
+            $available_controllers[$controller_name] = $controller_obj;
+        }
+
+        return $available_controllers;
+    }
+
+    public static function get_agent_available_actions( $plugin = false )
+    {
+        self::st_reset_error();
+
+        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        if( !($action_names = PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION ))
+         or !is_array( $action_names ) )
+            return array();
+
+        $available_actions = array();
+        foreach( $action_names as $action_name )
+        {
+            /** @var \phs\libraries\PHS_Action $action_obj */
+            if( !($action_obj = PHS::load_action( $action_name, $plugin ))
+             or !$action_obj->scope_is_allowed( PHS_Scope::SCOPE_AGENT ) )
+                continue;
+
+            $available_actions[$action_name] = $action_obj;
+        }
+
+        return $available_actions;
+    }
 
     public static function current_job_data( $job_data = null )
     {
@@ -168,6 +263,7 @@ class PHS_Agent extends PHS_Registry
         else
             $extra['active'] = (!empty( $extra['active'] )?1:0);
 
+        // This tells if job was added by plugin or is an user defined job
         if( empty( $extra['plugin'] ) or !is_string( $extra['plugin'] ) )
             $extra['plugin'] = '';
         else

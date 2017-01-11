@@ -98,7 +98,7 @@
                         ?><option value="<?php echo $model_id?>" <?php echo ($form_data['selected_module']==$model_id?'selected="selected"':'')?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'?></option><?php
                     }
                     ?></select>
-                    <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small" value="<?php echo $this->_pte( '&raquo;' ) ?>" style="float:none;" />
+                    <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small" value="&raquo;" style="float:none;" />
                 </div>
                 <div class="clearfix" style="margin-bottom: 15px;"></div>
                 <?php
