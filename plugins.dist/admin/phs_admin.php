@@ -100,6 +100,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'description' => $this->_pt( 'Allow user to list agent jobs' ),
                     ),
 
+                    // Logs...
+                    PHS_Roles::ROLEU_VIEW_LOGS => array(
+                        'name' => $this->_pt( 'View system logs' ),
+                        'description' => $this->_pt( 'Allow user to view system logs' ),
+                    ),
+
                     // Accounts...
                     PHS_Roles::ROLEU_MANAGE_ACCOUNTS => array(
                         'name' => $this->_pt( 'Manage accounts' ),

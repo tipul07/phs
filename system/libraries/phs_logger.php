@@ -150,7 +150,7 @@ class PHS_Logger extends PHS_Registry
         return implode( "\n", self::get_file_header_arr() )."\n";
     }
 
-    public static function tail_log( $channel, $lines, $buffer = 4096 )
+    public static function get_logging_files()
     {
         self::st_reset_error();
 
@@ -160,13 +160,47 @@ class PHS_Logger extends PHS_Registry
             return false;
         }
 
-        if( !self::defined_channel( $channel ) )
+        if( !($log_files_arr = @glob( $logs_dir.'*.log' )) )
+            return array();
+
+        $return_arr = array();
+        foreach( $log_files_arr as $file_name )
         {
-            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid logging channel.' ) );
+            if( !($base_name = @basename( $file_name )) )
+                continue;
+
+            $return_arr[$base_name] = $file_name;
+        }
+
+        return $return_arr;
+    }
+
+    public static function tail_log( $log_file, $lines, $buffer = 4096 )
+    {
+        self::st_reset_error();
+
+        if( !($logs_dir = self::logging_dir()) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t obtain logging directory.' ) );
             return false;
         }
 
-        $filename = $logs_dir.$channel;
+        if( strtolower( substr( $log_file, -4 ) ) == '.log' )
+            $check_channel = substr( $log_file, 0, -4 );
+        else
+            $check_channel = $log_file;
+
+        $filename = $logs_dir.$log_file;
+
+        if( substr( $log_file, -4 ) != '.log' )
+            $filename .= '.log';
+
+        if( !PHS::safe_escape_root_script( $check_channel )
+         or !@file_exists( $filename ) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid logging file.' ) );
+            return false;
+        }
 
         // Open the file
         if( !($f = @fopen( $filename, 'rb' )) )
@@ -276,6 +310,9 @@ class PHS_Logger extends PHS_Registry
             return false;
 
         $log_file = $logs_dir.$channel;
+
+        if( substr( $channel, -4 ) != '.log' )
+            $log_file .= '.log';
 
         if( !($request_ip = request_ip()) )
             $request_ip = '(unknown)';

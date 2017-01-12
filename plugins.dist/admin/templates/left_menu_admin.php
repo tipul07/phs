@@ -14,6 +14,7 @@ use \phs\libraries\PHS_Roles;
     $can_manage_roles = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES );
     $can_list_accounts = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS );
     $can_manage_accounts = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS );
+    $can_view_logs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_VIEW_LOGS );
 
     if( !$can_list_plugins and !$can_manage_plugins
     and !$can_list_agent_jobs and !$can_manage_agent_jobs
@@ -64,6 +65,18 @@ if( $can_list_agent_jobs or $can_manage_agent_jobs )
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'agent_jobs_list', 'p' => 'admin'
                                               ) ) ?>"><?php echo $this::_t( 'List agent jobs' ) ?></a></li>
+        </ul>
+    </li>
+    <?php
+}
+if( $can_view_logs )
+{
+    ?>
+    <li><?php echo $this::_t( 'System logs' ) ?>
+        <ul>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'system_logs', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'View logs' ) ?></a></li>
         </ul>
     </li>
     <?php
