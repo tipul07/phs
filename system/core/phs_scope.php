@@ -200,7 +200,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 
-        if( !in_array( self::current_scope(), array( self::SCOPE_BACKGROUND, self::SCOPE_BACKGROUND ) )
+        if( !in_array( self::current_scope(), array( self::SCOPE_AGENT, self::SCOPE_BACKGROUND ) )
         and !@headers_sent() )
         {
             if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )

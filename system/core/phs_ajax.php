@@ -104,7 +104,7 @@ class PHS_ajax extends PHS_Registry
         $execution_params = array();
         $execution_params['die_on_error'] = false;
 
-        if( !PHS::execute_route( $execution_params ) )
+        if( !($action_result = PHS::execute_route( $execution_params )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
@@ -112,7 +112,7 @@ class PHS_ajax extends PHS_Registry
             return false;
         }
 
-        return true;
+        return $action_result;
     }
 }
 

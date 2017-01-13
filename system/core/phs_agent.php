@@ -373,8 +373,13 @@ class PHS_Agent extends PHS_Registry
             return false;
         }
 
+        // Agent job cannot be edited as it will be managed by PHS_Agent class...
         if( !empty( $extra['return_command'] ) )
-            return $cmd_parts['cmd'];
+        {
+            return array(
+                'cmd' => $cmd_parts['cmd'],
+            );
+        }
 
         PHS_Logger::logf( 'Launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT );
 
@@ -733,7 +738,7 @@ class PHS_Agent extends PHS_Registry
         $execution_params = array();
         $execution_params['die_on_error'] = false;
 
-        if( !PHS::execute_route( $execution_params ) )
+        if( !($action_result = PHS::execute_route( $execution_params )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error executing route.' ) );
@@ -752,7 +757,7 @@ class PHS_Agent extends PHS_Registry
 
         $agent_jobs_model->stop_job( $job_arr );
 
-        return true;
+        return $action_result;
     }
 }
 

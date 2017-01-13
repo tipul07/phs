@@ -399,6 +399,42 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_registry[$instance_id];
     }
 
+    /**
+     * @return array|bool False on error or array containing plugin names (without instantiating plugins)
+     */
+    public function get_all_plugin_names_from_dir()
+    {
+        $this->reset_error();
+
+        @clearstatcache();
+
+        if( ($dirs_list = @glob( PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR )) === false
+         or !is_array( $dirs_list ) )
+        {
+            $this->set_error( self::ERR_DIR_DETAILS, self::_t( 'Couldn\'t get a list of plugin directories.' ) );
+            return false;
+        }
+
+        $return_arr = array();
+        foreach( $dirs_list as $dir_name )
+        {
+            $dir_name = basename( $dir_name );
+            if( empty( $dir_name ) )
+                continue;
+
+            $return_arr[] = $dir_name;
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Get plugin names and instances as key value pairs
+     *
+     * @param bool $force Force plugins recheck
+     *
+     * @return array|bool False on error or array with plugin name as key and plugin instance as value
+     */
     public function cache_all_dir_details( $force = false )
     {
         $this->reset_error();

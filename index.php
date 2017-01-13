@@ -4,11 +4,23 @@
 
     use \phs\PHS;
     use \phs\PHS_crypt;
+    use \phs\PHS_bg_jobs;
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Model;
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Instantiable;
 
+    // var_dump( PHS_bg_jobs::run( array(
+    //                                 'plugin' => 'admin',
+    //                                 'controller' => 'index_bg',
+    //                                 'action' => 'plugins_integrity_bg',
+    //                             ),
+    //                             array( 'p1' => 1, 'p2' => 2 ),
+    //                             array(
+    //                                 'return_buffer' => true,
+    //                             )
+    // ) );
+    // exit;
 
     // $plugin = PHS_Instantiable::CORE_PLUGIN;
     //

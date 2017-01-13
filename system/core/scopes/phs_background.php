@@ -6,6 +6,7 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Logger;
+use \phs\PHS_bg_jobs;
 
 class PHS_Scope_Background extends PHS_Scope
 {
@@ -40,11 +41,11 @@ class PHS_Scope_Background extends PHS_Scope
         if( !empty( $action_result['redirect_to_url'] ) )
             PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...', PHS_Logger::TYPE_BACKGROUND );
 
-        if( !empty( $action_result['page_settings']['page_title'] ) or !empty( $action_result['buffer'] ) )
-            PHS_Logger::logf( 'Title ['.$action_result['page_settings']['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_BACKGROUND );
+        // if( !empty( $action_result['page_settings']['page_title'] ) or !empty( $action_result['buffer'] ) )
+        //     PHS_Logger::logf( 'Title ['.$action_result['page_settings']['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_BACKGROUND );
         // else
         //     PHS_Logger::logf( 'Action run with success.', PHS_Logger::TYPE_BACKGROUND );
 
-        return true;
+        return $action_result;
     }
 }

@@ -13,8 +13,9 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\libraries\PHS_Logger;
     use \phs\PHS_bg_jobs;
+    use \phs\libraries\PHS_Logger;
+    use \phs\libraries\PHS_Action;
 
     PHS_Logger::logf( ' --- Started bg job...', PHS_Logger::TYPE_BACKGROUND );
 
@@ -34,7 +35,7 @@
     $run_job_extra = array();
     $run_job_extra['bg_jobs_model'] = (!empty( $parsed_input['bg_jobs_model'] )?$parsed_input['bg_jobs_model']:false);
 
-    if( !($run_result = PHS_bg_jobs::bg_run_job( $job_arr, $run_job_extra )) )
+    if( !($action_result = PHS_bg_jobs::bg_run_job( $job_arr, $run_job_extra )) )
     {
         PHS_Logger::logf( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
 
@@ -48,3 +49,8 @@
     }
 
     PHS_Logger::logf( ' --- Background script finish', PHS_Logger::TYPE_BACKGROUND );
+
+    $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
+    if( !empty( $job_arr['return_buffer'] )
+    and !empty( $action_result['buffer'] ) )
+        echo $action_result['buffer'];

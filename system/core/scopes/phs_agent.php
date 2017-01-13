@@ -35,6 +35,6 @@ class PHS_Scope_Agent extends PHS_Scope
         if( !empty( $action_result['redirect_to_url'] ) )
             PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a agent script...', PHS_Logger::TYPE_AGENT );
 
-        return true;
+        return $action_result;
     }
 }

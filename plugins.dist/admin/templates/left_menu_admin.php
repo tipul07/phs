@@ -30,6 +30,9 @@ if( $can_list_plugins or $can_manage_plugins )
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'plugins_list', 'p' => 'admin'
                                               ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'plugins_integrity', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'Plugins\' Integrity' ) ?></a></li>
         </ul>
     </li>
     <?php

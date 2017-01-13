@@ -14,7 +14,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -157,6 +157,11 @@ class PHS_Model_Bg_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['return_buffer'] ) )
+            $params['fields']['return_buffer'] = 0;
+        else
+            $params['fields']['return_buffer'] = 1;
+
         if( empty( $params['fields']['timed_action'] )
          or empty_db_date( $params['fields']['timed_action'] ) )
             $params['fields']['timed_action'] = null;
@@ -218,6 +223,12 @@ class PHS_Model_Bg_jobs extends PHS_Model
                         'length' => '255',
                         'nullable' => true,
                         'default' => null,
+                    ),
+                    'return_buffer' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => 2,
+                        'default' => 0,
+                        'comment' => 'Should job return something to caller',
                     ),
                     'params' => array(
                         'type' => self::FTYPE_LONGTEXT,

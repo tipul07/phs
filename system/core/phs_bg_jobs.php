@@ -5,6 +5,7 @@ namespace phs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_Action;
 
 //! @version 1.00
 
@@ -139,6 +140,19 @@ class PHS_bg_jobs extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        // Tells if we need to pass the result of action to caller script
+        // In case we need result of action, job should be called in synchronous and task should run right away, not timed (async_task=false)
+        if( empty( $extra['return_buffer'] ) )
+            $extra['return_buffer'] = false;
+        else
+            $extra['return_buffer'] = true;
+
+        if( !empty( $extra['return_buffer'] ) )
+        {
+            $extra['async_task'] = false;
+            $extra['timed_action'] = false;
+        }
+
         if( empty( $extra['return_command'] ) )
             $extra['return_command'] = false;
         if( !isset( $extra['async_task'] ) )
@@ -176,6 +190,7 @@ class PHS_bg_jobs extends PHS_Registry
         $insert_arr['route'] = $cleaned_route;
         $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
         $insert_arr['timed_action'] = $extra['timed_action'];
+        $insert_arr['return_buffer'] = ($extra['return_buffer']?1:0);
 
         if( !($job_arr = $bg_jobs_model->insert( array( 'fields' => $insert_arr ) ))
          or empty( $job_arr['id'] ) )
@@ -191,6 +206,7 @@ class PHS_bg_jobs extends PHS_Registry
         $cmd_extra = array();
         $cmd_extra['async_task'] = $extra['async_task'];
         $cmd_extra['bg_jobs_model'] = $bg_jobs_model;
+        $cmd_extra['return_buffer'] = $extra['return_buffer'];
 
         if( !($cmd_parts = self::get_job_command( $job_arr, $cmd_extra ))
          or empty( $cmd_parts['cmd'] ) )
@@ -204,7 +220,13 @@ class PHS_bg_jobs extends PHS_Registry
         }
 
         if( !empty( $extra['return_command'] ) )
-            return $cmd_parts['cmd'];
+        {
+            //!!! Be sure to hard_delete job record if you don't use it
+            return array(
+                'cmd' => $cmd_parts['cmd'],
+                'job_data' => $job_arr,
+            );
+        }
 
         if( !empty_db_date( $extra['timed_action'] )
         and parse_db_date( $extra['timed_action'] ) > time() )
@@ -226,7 +248,7 @@ class PHS_bg_jobs extends PHS_Registry
 
             $job_start_time = microtime( true );
 
-            if( !($run_result = self::bg_run_job( $job_arr, $run_job_extra )) )
+            if( !($action_result = self::bg_run_job( $job_arr, $run_job_extra )) )
             {
                 PHS_Logger::logf( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
 
@@ -239,8 +261,17 @@ class PHS_bg_jobs extends PHS_Registry
                                   ' running: '.number_format( ($job_start_time-microtime( true )), 6, '.', '' ).'s', PHS_Logger::TYPE_BACKGROUND );
             }
 
+            $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
+
+            if( !empty( $job_arr['return_buffer'] )
+            and !empty( $action_result['buffer'] ) )
+                return $action_result['buffer'];
+
             return true;
         }
+
+        if( !empty( $job_arr['return_buffer'] ) )
+            return @shell_exec( $cmd_parts['cmd'] );
 
         return (@system( $cmd_parts['cmd'] ) !== false );
     }
@@ -257,6 +288,11 @@ class PHS_bg_jobs extends PHS_Registry
             $bg_jobs_model = $extra['bg_jobs_model'];
         else
             $bg_jobs_model = PHS::load_model( 'bg_jobs' );
+
+        if( empty( $extra['return_buffer'] ) )
+            $extra['return_buffer'] = false;
+        else
+            $extra['return_buffer'] = true;
 
         if( !isset( $extra['async_task'] ) )
             $extra['async_task'] = true;
@@ -280,11 +316,13 @@ class PHS_bg_jobs extends PHS_Registry
         if( strtolower( substr( PHP_OS, 0, 3 ) ) == 'win' )
         {
             // launching background task under windows
-            $cmd = 'start '.(!empty($extra['async_task'])?' /B ':'').$clean_cmd;
+            $cmd = 'start '.(!empty( $extra['async_task'] )?' /B ':'').$clean_cmd;
         } else
         {
-            $cmd = $clean_cmd . ' 2>/dev/null >&- <&- >/dev/null';
-            if( !empty($extra['async_task']) )
+            $cmd = $clean_cmd . ' 2>/dev/null <&-';
+            if( empty( $extra['return_buffer'] ) )
+                $cmd .= ' >&- >/dev/null';
+            if( !empty( $extra['async_task'] ) )
                 $cmd .= ' &';
         }
 
@@ -425,7 +463,7 @@ class PHS_bg_jobs extends PHS_Registry
         $execution_params = array();
         $execution_params['die_on_error'] = false;
 
-        if( !PHS::execute_route( $execution_params ) )
+        if( !($action_result = PHS::execute_route( $execution_params )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error executing route.' ) );
@@ -444,7 +482,7 @@ class PHS_bg_jobs extends PHS_Registry
 
         $bg_jobs_model->hard_delete( $job_arr );
 
-        return true;
+        return $action_result;
     }
 }
 
