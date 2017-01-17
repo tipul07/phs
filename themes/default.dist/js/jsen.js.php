@@ -301,7 +301,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             to_url = PHS_JSEN.removeURLParameter( to_url, '_PHS_JSENr' );
 
-            rand_no = Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000);
+            var rand_no = Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000);
             if( to_url.search( '\\?' ) == -1 )
                 to_url = to_url + "?&_PHS_JSENr=" + rand_no;
             else

@@ -50,7 +50,9 @@
 
     PHS_Logger::logf( ' --- Background script finish', PHS_Logger::TYPE_BACKGROUND );
 
-    $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
-    if( !empty( $job_arr['return_buffer'] )
-    and !empty( $action_result['buffer'] ) )
-        echo $action_result['buffer'];
+    if( !empty( $action_result ) )
+    {
+        $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
+        if( !empty( $job_arr['return_buffer'] ) )
+            echo @json_encode( $action_result );
+    }

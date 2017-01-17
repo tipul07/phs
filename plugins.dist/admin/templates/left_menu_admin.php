@@ -22,17 +22,25 @@ use \phs\libraries\PHS_Roles;
     and !$can_list_accounts and !$can_manage_accounts )
         return '';
 
-if( $can_list_plugins or $can_manage_plugins )
+if( $can_list_accounts or $can_manage_accounts )
 {
     ?>
-    <li><?php echo $this::_t( 'Plugins Management' ) ?>
+    <li><?php echo $this::_t( 'Users Management' ) ?>
         <ul>
+            <?php
+            if( $can_manage_roles )
+            {
+                ?>
+                <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'user_add', 'p' => 'admin'
+                                                  ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
+                </li>
+                <?php
+            }
+            ?>
             <li><a href="<?php echo PHS::url( array(
-                                                      'a' => 'plugins_list', 'p' => 'admin'
-                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
-            <li><a href="<?php echo PHS::url( array(
-                                                      'a' => 'plugins_integrity', 'p' => 'admin'
-                                              ) ) ?>"><?php echo $this::_t( 'Plugins\' Integrity' ) ?></a></li>
+                                                      'a' => 'users_list', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
         </ul>
     </li>
     <?php
@@ -60,6 +68,21 @@ if( $can_list_roles or $can_manage_roles )
     </li>
     <?php
 }
+if( $can_list_plugins or $can_manage_plugins )
+{
+    ?>
+    <li><?php echo $this::_t( 'Plugins Management' ) ?>
+        <ul>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'plugins_list', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'List Plugins' ) ?></a></li>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'plugins_integrity', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'Plugins\' Integrity' ) ?></a></li>
+        </ul>
+    </li>
+    <?php
+}
 if( $can_list_agent_jobs or $can_manage_agent_jobs )
 {
     ?>
@@ -80,29 +103,6 @@ if( $can_view_logs )
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'system_logs', 'p' => 'admin'
                                               ) ) ?>"><?php echo $this::_t( 'View logs' ) ?></a></li>
-        </ul>
-    </li>
-    <?php
-}
-if( $can_list_accounts or $can_manage_accounts )
-{
-    ?>
-    <li><?php echo $this::_t( 'Users Management' ) ?>
-        <ul>
-            <?php
-            if( $can_manage_roles )
-            {
-                ?>
-                <li><a href="<?php echo PHS::url( array(
-                                                      'a' => 'user_add', 'p' => 'admin'
-                                                  ) ) ?>"><?php echo $this::_t( 'Add User' ) ?></a>
-                </li>
-                <?php
-            }
-            ?>
-            <li><a href="<?php echo PHS::url( array(
-                                                      'a' => 'users_list', 'p' => 'admin'
-                                              ) ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
         </ul>
     </li>
     <?php

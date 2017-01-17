@@ -263,15 +263,32 @@ class PHS_bg_jobs extends PHS_Registry
 
             $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
 
-            if( !empty( $job_arr['return_buffer'] )
-            and !empty( $action_result['buffer'] ) )
-                return $action_result['buffer'];
+            if( !empty( $job_arr['return_buffer'] ) )
+                return $action_result;
 
             return true;
         }
 
         if( !empty( $job_arr['return_buffer'] ) )
-            return @shell_exec( $cmd_parts['cmd'] );
+        {
+            if( !($action_result = @shell_exec( $cmd_parts['cmd'] )) )
+            {
+                PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') error launching job or job returned empty buffer when we expected a response.', PHS_Logger::TYPE_BACKGROUND );
+
+                $edit_arr = array();
+                $edit_arr['fields'] = array();
+                $edit_arr['fields']['last_error'] = 'Error launching job or job returned empty buffer when we expected a response.';
+                $edit_arr['fields']['last_action'] = date( $bg_jobs_model::DATETIME_DB );
+
+                $bg_jobs_model->edit( $job_arr, $edit_arr );
+
+                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error launching job or job returned empty buffer when we expected a response.' ) );
+
+                return false;
+            }
+
+            return @json_decode( $action_result, true );
+        }
 
         return (@system( $cmd_parts['cmd'] ) !== false );
     }
