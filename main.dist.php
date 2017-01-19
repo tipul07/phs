@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.1.44' );
+define( 'PHS_KNOWN_VERSION', '1.0.1.45' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -90,8 +90,10 @@ define( 'PHS_FRAMEWORK_LOGS_DIR', PHS_PATH.'system/logs/' );
 define( 'PHS_FRAMEWORK_UPLOADS_DIR', PHS_PATH.'_uploads/' );
 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
-define( 'PHS_DEFAULT_THEME', 'default' );
-define( 'PHS_THEME', 'default' );
+if( !defined( 'PHS_DEFAULT_THEME' ) )
+    define( 'PHS_DEFAULT_THEME', 'default' );
+if( !defined( 'PHS_THEME' ) )
+    define( 'PHS_THEME', 'default' );
 
 // Default crypting keys...
 define( 'PHS_DEFAULT_CRYPT_KEY', '' );

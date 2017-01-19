@@ -12,6 +12,9 @@ final class PHS_session extends PHS_Registry
           SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_AUTOSTART = 'sess_autostart',
           SESS_STARTED = 'sess_started';
 
+    // Make sure session is not considered garbage by adding a parameter in session with a "random" number
+    const SESS_TIME_PARAM_NAME = '__phs_t';
+
     function __construct()
     {
         parent::__construct();
@@ -145,6 +148,8 @@ final class PHS_session extends PHS_Registry
             $sess_arr = array();
 
         $_SESSION = $sess_arr;
+
+        $_SESSION[self::SESS_TIME_PARAM_NAME] = microtime( true );
 
         @session_write_close();
 

@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.44' );
+    define( 'PHS_VERSION', '1.0.1.45' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -230,17 +230,19 @@ define( 'PHS_THEMES_WWW', $base_url.'themes/' );
 define( 'PHS_LANGUAGES_WWW', $base_url.'languages/' );
 define( 'PHS_DOWNLOADS_WWW', $base_url.'downloads/' );
 
-// Init session
-include_once( PHS_SYSTEM_DIR.'session_init.php' );
-
-// Init language system
-include_once( PHS_SYSTEM_DIR.'languages_init.php' );
+// most used functionalities defined as functions for quick access (doh...)
+include_once( PHS_SYSTEM_DIR.'functions.php' );
 
 // Init crypting system
 include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 
-// most used functionalities defined as functions for quick access (doh...)
-include_once( PHS_SYSTEM_DIR.'functions.php' );
+// Init session
+// !!!NOTE!!! When working with session variables you HAVE to use PHS_session::_* (_g - get, _s - set and _d - delete)
+// $_SESSION array will be overwritten by PHS_session class and variables set directly in $_SESSION array will be lost
+include_once( PHS_SYSTEM_DIR.'session_init.php' );
+
+// Init language system
+include_once( PHS_SYSTEM_DIR.'languages_init.php' );
 
 //
 // Check if we are in install flow...
@@ -279,6 +281,9 @@ foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
         }
     }
 }
+
+// Start language system
+include_once( PHS_SYSTEM_DIR.'languages_start.php' );
 
 PHS::trigger_hooks( PHS_Hooks::H_AFTER_BOOTSTRAP );
 

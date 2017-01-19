@@ -310,6 +310,34 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             window.location.href = to_url;
         },
 
+        change_language: function( language )
+        {
+            show_submit_protection( "<?php echo PHS_Language::_t( 'Changing language... Please wait.' )?>" );
+
+            var ajax_params = {
+                cache_response: false,
+                method: 'post',
+                url_data: { "<?php echo PHS_Language::LANG_URL_PARAMETER?>": language },
+                data_type: 'json',
+
+                onsuccess: function( response, status, ajax_obj, response_data ) {
+                    hide_submit_protection();
+
+                    if( response
+                     && typeof response.language_changed != "undefined" && response.language_changed )
+                        PHS_JSEN.refreshPage();
+                },
+
+                onfailed: function( ajax_obj, status, error_exception ) {
+                    hide_submit_protection();
+
+                    PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_t( 'Error changing language. Please retry.' )?>" ], "error" );
+                }
+            };
+
+            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'a' => 'change_language_ajax' ) )?>", ajax_params );
+        },
+
         dialogErrors : function( error_arr )
         {
             if( !error_arr || typeof error_arr != "object" || !error_arr.length )

@@ -3,11 +3,15 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\libraries\PHS_Action;
 
 //! This class define all core hooks (for usability)
 class PHS_Hooks extends PHS_Registry
 {
     const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
+
+         // Language hooks
+         H_LANGUAGE_DEFINITION = 'phs_language_definition',
 
          // Model hooks
          H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
@@ -82,6 +86,14 @@ class PHS_Hooks extends PHS_Registry
         );
     }
 
+    public static function default_language_definition_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'default_language' => false,
+            'languages_arr' => array(),
+        ), self::default_common_hook_args() );
+    }
+
     public static function default_page_location_hook_args()
     {
         return self::validate_array_recursive( array(
@@ -90,6 +102,14 @@ class PHS_Hooks extends PHS_Registry
             'page_template_args' => false,
             'new_page_template' => false,
             'new_page_template_args' => false,
+        ), self::default_common_hook_args() );
+    }
+
+    public static function default_action_execute_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'action_obj' => false,
+            'action_result' => PHS_Action::default_action_result(),
         ), self::default_common_hook_args() );
     }
 

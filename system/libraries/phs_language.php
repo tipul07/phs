@@ -9,6 +9,12 @@ use \phs\PHS;
 
 class PHS_Language extends PHS_Error
 {
+    // Key in session to hold current language
+    const LANG_SESSION_KEY = 'phs_lang';
+
+    // Parameter received in _GET or _POST to set the language for current page
+    const LANG_URL_PARAMETER = '__phsl';
+
     /** @var PHS_Language_Container $lang_callable_obj */
     private static $lang_callable_obj = false;
 
@@ -78,13 +84,23 @@ class PHS_Language extends PHS_Error
 
     /**
      * @param string $lang For which language to add files
-     * @param string $files_arr Array of files to be added
+     * @param array $files_arr Array of files to be added
      *
      * @return string Returns currently selected language
      */
     public static function add_language_files( $lang, $files_arr )
     {
         return self::language_container()->add_language_files( $lang, $files_arr );
+    }
+
+    /**
+     * @param string $lang Language to be checked
+     *
+     * @return string|bool Returns language key if language is valid or false if language is not defined
+     */
+    public static function valid_language( $lang )
+    {
+        return self::language_container()->valid_language( $lang );
     }
 
     /**
@@ -249,9 +265,13 @@ class PHS_Language_Container extends PHS_Error
     //! Contains defined language which can be used by the system. These are not necessary loaded in memory in order to optimize memory
     //! eg. $DEFINED_LANGUAGES['en'] = array(
     // 'title' => 'English (friendly name of language)',
+    // 'dir' => '{server path to language directory}',
+    // 'www' => '{URL to language directory}',
     // 'files' => array( 'path_to_csv_file1', 'path_to_csv_file2' ),
     // 'browser_lang' => 'en-GB', // what should be sent to browser as language
-    // 'flag_file' => 'en.png', // file name of language flag (used when displaying language chooser)
+    // 'browser_charset' => 'utf8', // What charset to use in browser
+    // 'flag_file' => 'http://www.example.com/full/url/to/flag/file/en.png', // used when displaying language option, if not provided will not put image
+    // system will add automatically phs_language_{language index} class to language container so you can customize display with css
     // );
     private static $DEFINED_LANGUAGES = array();
 
@@ -276,7 +296,7 @@ class PHS_Language_Container extends PHS_Error
 
     public static function st_set_current_language( $lang )
     {
-        if( !self::valid_language( $lang ) )
+        if( !self::st_valid_language( $lang ) )
             return false;
 
         self::$CURRENT_LANGUAGE = $lang;
@@ -285,7 +305,7 @@ class PHS_Language_Container extends PHS_Error
 
     public static function st_set_default_language( $lang )
     {
-        if( !self::valid_language( $lang ) )
+        if( !self::st_valid_language( $lang ) )
             return false;
 
         self::$DEFAULT_LANGUAGE = $lang;
@@ -344,6 +364,11 @@ class PHS_Language_Container extends PHS_Error
         return self::st_set_default_language( $lang );
     }
 
+    public function valid_language( $lang )
+    {
+        return self::st_valid_language( $lang );
+    }
+
     static function prepare_lang_index( $lang )
     {
         return strtolower( trim( $lang ) );
@@ -382,7 +407,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool|string
      */
-    static function valid_language( $lang )
+    static function st_valid_language( $lang )
     {
         $lang = self::prepare_lang_index( $lang );
         return (isset( self::$DEFINED_LANGUAGES[$lang] )?$lang:false);
@@ -468,7 +493,7 @@ class PHS_Language_Container extends PHS_Error
 
         $lang = self::prepare_lang_index( $lang );
         if( empty( $lang )
-         or !($lang = self::valid_language( $lang )) )
+         or !($lang = self::st_valid_language( $lang )) )
         {
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language not defined.' );
             return false;
@@ -508,7 +533,7 @@ class PHS_Language_Container extends PHS_Error
      */
     public static function get_defined_language( $lang )
     {
-        if( !($lang = self::valid_language( $lang )) )
+        if( !($lang = self::st_valid_language( $lang )) )
             return false;
 
         return self::$DEFINED_LANGUAGES[$lang];
@@ -526,7 +551,7 @@ class PHS_Language_Container extends PHS_Error
     {
         $this->reset_error();
 
-        if( !($lang = self::valid_language( $lang ))
+        if( !($lang = self::st_valid_language( $lang ))
          or !($lang_details = self::get_defined_language( $lang ))
          or empty( $lang_details['files'] ) or !is_array( $lang_details['files'] ) )
         {
@@ -554,7 +579,7 @@ class PHS_Language_Container extends PHS_Error
      */
     private function load_language_file( $file, $lang, $force = false )
     {
-        if( !($lang = self::valid_language( $lang )) )
+        if( !($lang = self::st_valid_language( $lang )) )
         {
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined.' );
             return false;
@@ -712,7 +737,7 @@ class PHS_Language_Container extends PHS_Error
         if( !is_string( $index ) )
             return 'Language index is not a string ('.gettype( $index ).' provided)';
 
-        if( !($lang = self::valid_language( $lang )) )
+        if( !($lang = self::st_valid_language( $lang )) )
             return $index;
 
         if( empty( $args ) or !is_array( $args ) )

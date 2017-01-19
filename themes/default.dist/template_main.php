@@ -79,7 +79,9 @@
     <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
 
     <?php
-    if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' )) )
+    if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
+    and ($datepicker_lang_file = $this->get_resource_path( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
+    and @file_exists( $datepicker_lang_file ) )
     {
         ?><script type="text/javascript" src="<?php echo $jq_datepicker_lang_url?>"></script><?php
     }
@@ -120,7 +122,7 @@
 
             $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
-            $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
+            $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close"></i>' );
             $('.dismissible-close').on( 'click', function( event ){
                 $(this).parent().slideUp();
                 $(this).parent().find(".dismissible").html("");
@@ -181,28 +183,29 @@
         }
         function close_messages_summary_menu_pane()
         {
-            $('#messages-summary-container' ).hide();
+            $('#messages-summary-container' ).fadeOut();
         }
-        function open_login_menu_pane()
+        function open_login_menu_pane( trigger )
         {
-            $('#login_popup').slideToggle();
+            $('#login_popup').stop().slideToggle();
+            $(trigger).find('div').toggleClass('fa-arrow-down').toggleClass('fa-arrow-up');
         }
         function open_right_menu_pane()
         {
             close_messages_summary_menu_pane();
-            $('#menu-right-pane' ).fadeToggle();
+            $('#menu-right-pane' ).toggle('slide', { direction: 'right' }, 300);
             $('#menu-left-pane' ).hide();
         }
         function open_left_menu_pane()
         {
             close_messages_summary_menu_pane();
             $('#menu-right-pane' ).hide();
-            $('#menu-left-pane' ).fadeToggle();
+            $('#menu-left-pane' ).toggle('slide', { direction: 'left' }, 300);
         }
         function close_menu_panes()
         {
-            $('#menu-right-pane' ).hide();
-            $('#menu-left-pane' ).hide();
+            $('#menu-right-pane' ).hide('slide', { direction: 'right' }, 200);
+            $('#menu-left-pane' ).hide('slide', { direction: 'left' }, 200);
         }
     </script>
 
@@ -215,19 +218,16 @@
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 {
 ?>
-<div id="main_submit_protection" style="display: none; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 10000;">
-    <div style="position: relative; width: 100%; height: 100%;">
-        <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background: #333; opacity: 0.5; filter:alpha(opacity=50)"></div>
-        <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;">
-            <div id="protection-wrapper" style="position: fixed; display: table; margin: 0px auto; margin-top: 50px; width: 100%">
-                <div style="margin: 0px auto; display: table;">
-
-                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; min-width:250px; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
-                        <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
-                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' )?></p>
-                    </div>
-
-                </div>
+<div id="main_submit_protection">
+    <div class="mask"></div>
+    <div class="loader_container">
+        <div id="main_submit_protection_loading_content">
+            <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
+            <div class="loader-3_container">
+                <div class="loader-3"></div>
+            </div>
+            <div id="main_submit_protection_message">
+                <?php echo $this::_t( 'Please wait...' )?>
             </div>
         </div>
     </div>
@@ -288,7 +288,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         if( !empty( $user_logged_in ) )
         {
             ?>
-            <li><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
+            <li class="welcome_msg"><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
 
             <?php
             if( !empty( $accounts_model )
@@ -322,10 +322,10 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             }
             ?>
             <li>
-                <a href="javascript:void(0);" onclick="open_login_menu_pane();this.blur();"><?php echo $this::_t( 'Login' ) ?>
-                    <div style="float:right;" class="fa fa-arrow-down"></div>
+                <a href="javascript:void(0);" onclick="open_login_menu_pane(this);this.blur();"><?php echo $this::_t( 'Login' ) ?>
+                    <div class="fa fa-arrow-up trigger_embedded_login"></div>
                 </a>
-                <div id="login_popup" style="display: none; padding: 10px;width:100%;">
+                <div id="login_popup" class="login_popup">
                     <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url( array(
                                                                                                                              'p' => 'accounts',
                                                                                                                              'a' => 'login'
@@ -368,20 +368,19 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                 $current_language = PHS_Language::get_default_language();
 
             ?>
-            <li><span><?php echo $this::_t( 'Choose language' )?></span>
+            <li><?php echo $this::_t( 'Choose language' )?>
                 <ul>
                 <?php
                 foreach( $defined_languages as $lang => $lang_details )
                 {
                     $language_flag = '';
-                    if( !empty( $lang_details['flag_file'] ) and !empty( $lang_details['dir'] ) and !empty( $lang_details['www'] )
-                    and @file_exists( $lang_details['dir'].$lang_details['flag_file'] ) )
+                    if( !empty( $lang_details['flag_file'] ) )
                         $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
 
-                    $language_link = 'javascript:alert( "In work..." )';
+                    $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
                     ?>
-                    <li><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
+                    <li class="phs_language_container phs_language_<?php echo $lang?><?php echo ($current_language==$lang?' phs_language_selected':'')?>"><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
                     <?php
                 }
                 ?>
@@ -491,13 +490,13 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                 </div>
             </div>
 
-            <div class="clearfix"></div>
         </div>
     </header>
-    <div class="clearfix"></div>
+
     <!-- END: page_header -->
 
-    <div id="content"><?php
+    <div id="content">
+        <div id="main_content"><?php
 }
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
@@ -509,8 +508,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 {
-    ?><div class="clearfix"></div></div>
-    <div class="clearfix" style="margin-bottom: 10px;"></div>
+    ?></div>
 
     <footer id="footer">
         <!-- BEGIN: page_footer -->
@@ -530,16 +528,18 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             if( PHS::st_debugging_mode()
             and ($debug_data = PHS::platform_debug_data()) )
             {
-                $debug_str = ' | '.$debug_data['db_queries_count'].' queries, '.
+                $debug_str = ' </br><span class="debug_str"> '.$debug_data['db_queries_count'].' queries, '.
                              ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
-                             ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s';
+                             ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s'.
+                             '</span>';
             }
             ?>
-            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
+            <div><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
         <!-- END: page_footer -->
     </footer>
     <div class="clearfix"></div>
+    </div>
 
 </div>
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/lightbox.js' )?>"></script>

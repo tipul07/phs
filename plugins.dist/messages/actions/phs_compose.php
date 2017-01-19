@@ -211,20 +211,6 @@ class PHS_Action_Compose extends PHS_Action
             'messages_plugin' => $messages_plugin,
         );
 
-
-        $action_result = $this->quick_render_template( 'compose', $data );
-
-        /** @var \phs\plugins\s2p_libraries\PHS_Plugin_S2p_libraries $libraries_plugin */
-        if( ($libraries_plugin = PHS::load_plugin( 's2p_libraries' ))
-        and ($libraries_view_obj = $libraries_plugin->quick_init_view_instance( 'page_in_header' )) )
-        {
-            if( empty( $action_result['page_settings']['page_in_header'] ) )
-                $action_result['page_settings']['page_in_header'] = '';
-
-            if( ($page_in_header_buffer = $libraries_view_obj->render()) )
-                $action_result['page_settings']['page_in_header'] .= $page_in_header_buffer;
-        }
-
-        return $action_result;
+        return $this->quick_render_template( 'compose', $data );
     }
 }

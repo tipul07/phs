@@ -217,8 +217,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        $hook_args = PHS_Hooks::default_common_hook_args();
-        $hook_args['action'] = $this;
+        $hook_args = PHS_Hooks::default_action_execute_hook_args();
+        $hook_args['action_obj'] = $this;
+        $hook_args['action_result'] = self::default_action_result();
 
         PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args );
 
@@ -246,8 +247,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        $this->set_action_result( $action_result );
-
         if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_AFTER_RUN, array(
             'controller_obj' => $this->_controller_obj,
         ) )) )
@@ -262,10 +261,18 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        $hook_args = PHS_Hooks::default_common_hook_args();
-        $hook_args['action'] = $this;
+        $hook_args = PHS_Hooks::default_action_execute_hook_args();
+        $hook_args['action_obj'] = $this;
+        $hook_args['action_result'] = $action_result;
 
-        PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args );
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args ))
+        and is_array( $hook_args ) )
+        {
+            if( !empty( $hook_args['action_result'] ) )
+                $action_result = $hook_args['action_result'];
+        }
+
+        $this->set_action_result( $action_result );
 
         return $this->get_action_result();
     }

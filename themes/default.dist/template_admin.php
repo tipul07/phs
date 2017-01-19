@@ -76,7 +76,9 @@
     <script  src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
 
     <?php
-        if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' )) )
+        if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
+        and ($datepicker_lang_file = $this->get_resource_path( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
+        and @file_exists( $datepicker_lang_file ) )
         {
             ?><script type="text/javascript" src="<?php echo $jq_datepicker_lang_url?>"></script><?php
         }
@@ -168,19 +170,16 @@
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     {
 ?>
-<div id="main_submit_protection" style="display: none; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 10000;">
-    <div style="position: relative; width: 100%; height: 100%;">
-        <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background: #333; opacity: 0.5; filter:alpha(opacity=50)"></div>
-        <div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;">
-            <div id="protection-wrapper" style="position: fixed; display: table; margin: 0px auto; margin-top: 50px; width: 100%">
-                <div style="margin: 0px auto; display: table;">
-
-                    <div id="main_submit_protection_loading_content" style="margin: 20% auto 0 auto; min-width:250px; background-color: white;border: 2px solid lightgrey; text-align: center; padding: 40px;">
-                        <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' ) ?>"></div>
-                        <p style="padding:20px;margin: 20px auto;" id="main_submit_protection_message"><?php echo $this::_t( 'Please wait...' ) ?></p>
-                    </div>
-
-                </div>
+<div id="main_submit_protection">
+    <div class="mask"></div>
+    <div class="loader_container">
+        <div id="main_submit_protection_loading_content">
+            <div class="ajax-loader" title="<?php echo $this::_te( 'Loading...' )?>"></div>
+            <div class="loader-3_container">
+                <div class="loader-3"></div>
+            </div>
+            <div id="main_submit_protection_message">
+                <?php echo $this::_t( 'Please wait...' )?>
             </div>
         </div>
     </div>
@@ -295,22 +294,20 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                     ?>
                     <li><span><?php echo $this::_t( 'Choose language' ) ?></span>
                         <ul>
-                            <?php
-                                foreach( $defined_languages as $lang => $lang_details )
-                                {
-                                    $language_flag = '';
-                                    if( !empty($lang_details['flag_file']) and !empty($lang_details['dir']) and !empty($lang_details['www']) and @file_exists( $lang_details['dir'] . $lang_details['flag_file'] ) )
-                                        $language_flag = '<span style="margin: 0 5px;"><img src="' . $lang_details['www'] . $lang_details['flag_file'] . '" /></span> ';
+                        <?php
+                        foreach( $defined_languages as $lang => $lang_details )
+                        {
+                            $language_flag = '';
+                            if( !empty( $lang_details['flag_file'] ) )
+                                $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
 
-                                    $language_link = 'javascript:alert( "In work..." )';
+                            $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
-                                    ?>
-                                    <li>
-                                        <a href="<?php echo $language_link ?>"><?php echo $language_flag . $lang_details['title'] ?></a>
-                                    </li>
-                                    <?php
-                                }
                             ?>
+                            <li><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
+                            <?php
+                        }
+                        ?>
                         </ul>
                     </li>
                     <?php
