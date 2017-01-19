@@ -56,7 +56,21 @@
     <meta name="author"             content="PHS Framework" />
     <meta name="revisit-after"      content="1 days" />
 
-    <link href="<?php echo $this->get_resource_url( 'images/favicon.png' )?>" rel="shortcut icon" />
+    <?php
+    if( ($favicon_url = $this->get_resource_url( 'images/favicon.ico' ))
+    and ($favicon_file = $this->get_resource_path( 'images/favicon.ico' ))
+    and @file_exists( $favicon_file ) )
+    {
+        ?><link href="<?php echo $favicon_url?>" rel="shortcut icon" /><?php
+    }
+
+    elseif( ($favicon_url = $this->get_resource_url( 'images/favicon.png' ))
+    and ($favicon_file = $this->get_resource_path( 'images/favicon.png' ))
+    and @file_exists( $favicon_file ) )
+    {
+        ?><link href="<?php echo $favicon_url?>" rel="shortcut icon" /><?php
+    }
+    ?>
 
     <link href="<?php echo $this->get_resource_url( 'jquery-ui.css' )?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo $this->get_resource_url( 'jquery-ui.theme.css' )?>" rel="stylesheet" type="text/css" />
