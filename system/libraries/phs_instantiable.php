@@ -11,7 +11,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view',
           INSTANCE_TYPE_SCOPE = 'scope';
 
-    const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates';
+    const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages';
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
@@ -229,6 +229,30 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_languages_www()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_www()) )
+            return false;
+
+        return $prefix.self::LANGUAGES_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_languages_path()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_path()) )
+            return false;
+
+        return $prefix.self::LANGUAGES_DIR.'/';
     }
 
     /**
@@ -576,7 +600,10 @@ abstract class PHS_Instantiable extends PHS_Registry
             }
 
             if( $return_arr['plugin_name'] != self::CORE_PLUGIN )
+            {
                 $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix . self::TEMPLATES_DIR . '/';
+                $return_arr['plugin_paths'][self::LANGUAGES_DIR] = $path_prefix . self::LANGUAGES_DIR . '/';
+            }
         }
 
         return $return_arr;

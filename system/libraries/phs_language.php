@@ -40,6 +40,18 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * Returns language details as it was defined using self::define_language()
+     *
+     * @param string $lang
+     *
+     * @return bool|array
+     */
+    public static function get_defined_language( $lang )
+    {
+        return self::language_container()->get_defined_language( $lang );
+    }
+
+    /**
      * @param string $key Language array key to be returned
      * @return mixed Returns currently selected language details from language array definition
      */
@@ -564,6 +576,32 @@ class PHS_Language_Container extends PHS_Error
             if( !$this->load_language_file( $file, $lang, $force ) )
                 return false;
         }
+
+        // PHS::get_theme_language_paths() might set static errors. We don't want to check errors here and we will preserve static error
+        $old_static_error = self::st_stack_error();
+        $current_language = self::get_current_language();
+        if( ($default_theme = PHS::get_default_theme())
+        and ($theme_language_paths = PHS::get_theme_language_paths( $default_theme ))
+        and !empty( $theme_language_paths['dir'] )
+        and $current_language
+        and @file_exists( $theme_language_paths['dir'].$current_language.'.csv' ) )
+        {
+            if( !$this->load_language_file( $theme_language_paths['dir'].$current_language.'.csv', $lang, $force ) )
+                return false;
+        }
+
+        if( ($current_theme = PHS::get_theme())
+        and $default_theme != $current_theme
+        and ($theme_language_paths = PHS::get_theme_language_paths( $current_theme ))
+        and !empty( $theme_language_paths['dir'] )
+        and $current_language
+        and @file_exists( $theme_language_paths['dir'].$current_language.'.csv' ) )
+        {
+            if( !$this->load_language_file( $theme_language_paths['dir'].$current_language.'.csv', $lang, $force ) )
+                return false;
+        }
+
+        self::st_restore_errors( $old_static_error );
 
         return true;
     }

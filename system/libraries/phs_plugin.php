@@ -16,7 +16,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
           SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
-    const LIBRARIES_DIR = 'libraries', LANGUAGES_DIR = 'languages';
+    const LIBRARIES_DIR = 'libraries';
 
     private $_libraries_instances = array();
     // Plugin details as defined in default_plugin_details_fields() method
@@ -219,11 +219,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $this->_custom_lang_files_included = true;
 
-        if( !@file_exists( $this->instance_plugin_path().self::LANGUAGES_DIR )
-        and !@is_dir( $this->instance_plugin_path().self::LANGUAGES_DIR ) )
+        $languages_dir = $this->instance_plugin_languages_path();
+
+        if( !@is_dir( rtrim( $languages_dir, '/' ) ) )
             return;
 
-        $language_file = $this->instance_plugin_path().self::LANGUAGES_DIR.'/'.$current_language.'.csv';
+        $language_file = $languages_dir.$current_language.'.csv';
         if( @file_exists( $language_file ) )
             self::add_language_files( $current_language, array( $language_file ) );
     }

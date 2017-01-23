@@ -75,7 +75,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
                     if( empty( $check_plugin )
                      or ($check_plugin != PLUGIN_NAME_ALL and !in_array( $check_plugin, $plugin_names_arr )) )
                     {
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Please provide a valid plugin name ['.$check_plugin.'].' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Please provide a valid plugin name.' ) );
                         return $action_result;
                     }
 

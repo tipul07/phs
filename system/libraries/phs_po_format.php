@@ -14,6 +14,7 @@ class PHS_po_format extends PHS_Registry
     private $_li = 0;
 
     private $header_lines = 0;
+    // Header values as they are defined in PO file
     private $header_arr = array();
 
     public function set_filename( $f )
@@ -64,13 +65,53 @@ class PHS_po_format extends PHS_Registry
 
     public function get_po_header()
     {
+        static $lower_header_arr = false;
+
         if( empty( $this->header_arr ) )
             $this->extract_header();
+
+        if( $lower_header_arr === false )
+        {
+            $lower_header_arr = array();
+            foreach( $this->header_arr as $key => $val )
+                $lower_header_arr[strtolower($key)] = $val;
+        }
 
         return array(
             'header_lines' => $this->header_lines,
             'header_arr' => $this->header_arr,
+            'lower_header_arr' => $lower_header_arr,
         );
+    }
+
+    public function guess_language_from_header()
+    {
+        if( !($header_data = $this->get_po_header())
+         or empty( $header_data['lower_header_arr'] )
+         or empty( $header_data['lower_header_arr']['language'] ) )
+            return false;
+
+        $guessed_language = '';
+        // Although BCP 47 itself only allows "-" as a separator; for compatibility, Unicode language identifiers allows both "-" and "_".
+        // Implementations should also accept both.
+        if( strstr( $header_data['lower_header_arr']['language'], '_' ) !== false )
+        {
+            if( ($header_val = explode( '_', $header_data['lower_header_arr']['language'], 2 ))
+            and !empty( $header_val[0] ) )
+                $guessed_language = strtolower( $header_val[0] );
+        } elseif( strstr( $header_data['lower_header_arr']['language'], '-' ) !== false )
+        {
+            if( ($header_val = explode( '-', $header_data['lower_header_arr']['language'], 2 ))
+            and !empty( $header_val[0] ) )
+                $guessed_language = strtolower( $header_val[0] );
+        } else
+            $guessed_language = strtolower( $header_data['lower_header_arr']['language'] );
+
+        $return_arr = array();
+        $return_arr['guessed_language'] = $guessed_language;
+        $return_arr['valid_language'] = self::valid_language( $guessed_language );
+
+        return $return_arr;
     }
 
     private function extract_po_unit()
@@ -89,10 +130,10 @@ class PHS_po_format extends PHS_Registry
             return false;
 
         $unit_arr = array();
-        $unit_arr['comment'] = '';
-        $unit_arr['files'] = array();
         $unit_arr['index'] = '';
         $unit_arr['translation'] = '';
+        $unit_arr['comment'] = '';
+        $unit_arr['files'] = array();
 
         do
         {

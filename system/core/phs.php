@@ -276,6 +276,8 @@ final class PHS extends PHS_Registry
 
     public static function valid_theme( $theme )
     {
+        self::st_reset_error();
+
         if( empty( $theme )
          or !($theme = PHS_Instantiable::safe_escape_theme_name( $theme ))
          or !@is_dir( PHS_THEMES_DIR . $theme ) or !@is_readable( PHS_THEMES_DIR . $theme ) )
@@ -285,6 +287,31 @@ final class PHS extends PHS_Registry
         }
 
         return $theme;
+    }
+
+    public static function get_theme_language_paths( $theme = false )
+    {
+        self::st_reset_error();
+
+        if( $theme === false )
+            $theme = self::get_theme();
+
+        if( !($theme = self::valid_theme( $theme )) )
+            return false;
+
+        if( !@is_dir( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR ) or !@is_readable( PHS_THEMES_DIR . $theme ) )
+            return false;
+
+        if( !@is_readable( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR ) )
+        {
+            self::st_set_error( self::ERR_THEME, self::_t( 'Theme (%s) languages directory is not readable.', $theme ) );
+            return false;
+        }
+
+        return array(
+            'path' => PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR . '/',
+            'www' => PHS_THEMES_WWW . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR . '/',
+        );
     }
 
     public static function set_theme( $theme )
