@@ -382,7 +382,11 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                 $current_language = PHS_Language::get_default_language();
 
             ?>
-            <li><?php echo $this::_t( 'Choose language' )?>
+            <li class="phs_lang_container">
+				<div class="switch_lang_title">
+					<i class="fa fa-globe" style=""></i>
+					<span><?php echo $this::_t( 'Change language' )?></span>
+				</div>
                 <ul>
                 <?php
                 foreach( $defined_languages as $lang => $lang_details )
@@ -394,7 +398,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                     $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
                     ?>
-                    <li class="phs_language_container phs_language_<?php echo $lang?><?php echo ($current_language==$lang?' phs_language_selected':'')?>"><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
+                    <li class="phs_language_<?php echo $lang?><?php echo ($current_language==$lang?' phs_language_selected':'')?>"><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
                     <?php
                 }
                 ?>

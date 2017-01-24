@@ -25,17 +25,18 @@ COLORS:
  2.1 	- Hacks for dialogs
  2.1 	- Paginator styles 
 
- 3.1	- Right / Left Menus
- 3.1.1 	- Embedded Login Form
- 3.2 	- Message Summary
+ 3.1    - Right / Left Menus
+ 3.1.1  - Embedded Login Form
+ 3.1.2  - Language Selector
+ 3.2    - Message Summary
  
- 4.1	- List Views (Paginator Views)
- 4.1.1 	- List Filter (Paginator Filter)
- 4.1.2 	- List (Paginator)
+ 4.1    - List Views (Paginator Views)
+ 4.1.1  - List Filter (Paginator Filter)
+ 4.1.2  - List (Paginator)
  
- 5.1 	- LOGIN PAGE
- 5.2 	- COMPANY DETAILS
- 5.2.1 	- TOC
+ 5.1    - LOGIN PAGE
+ 5.2    - COMPANY DETAILS
+ 5.2.1  - TOC
  5.2.2 	- COMPANY DOCUMENTS ICONS
  5.3 	- COMPANY DOCUMENTS
  5.3.1 	- COMPANY DOCUMENTS - REJECT DIALOG
@@ -558,10 +559,11 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 				
 				#main_submit_protection_message {
 					color: #FFF;
-					font-size: 1.5em;
-					position: relative;
-					top: -4.9em;
-					}
+                                        font-size: 1.5em;
+                                        position: relative;
+                                        top: -4.9em;
+                                        text-shadow: 1px 1px 0 #666;
+                                        }
 /*--- 1.11 - Loader Overlay Mask- END---------------------------*/
 
 /*--- 1.12 - jQuery dialog - START -----------------------------*/
@@ -750,13 +752,44 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 	.login_popup {
 		border-bottom: 1px solid #0aa5b3;
 		border-top: 1px solid #0aa5b3;
-		display: block;
-		padding: 1em;
-		}
-/*--- 3.1.2 - Embedded Login Form - END --------------------------*/
+                display: block;
+                padding: 1em;
+                }
+/*--- 3.1.1 - Embedded Login Form - END --------------------------*/
+
+/*--- 3.1.2 - Language Selector - START --------------------------*/
+        .menu-pane ul > li.phs_lang_container {
+                position: absolute;
+                bottom: 1em;
+                left: 1.5em;
+                }
+                .switch_lang_title {
+                        line-height: 3em;
+                        }
+                        .switch_lang_title > i {
+                                font-size: 1.5em; 
+                                position: relative; 
+                                top: 0.1em; 
+                                color: #888;
+                                margin-right: 0.2em;
+                                }
+                        .menu-pane .switch_lang_title > span {
+                                color: #AAA;
+                                margin: 0;
+                                }
+                .phs_lang_container > ul {}
+                        .phs_lang_container > ul > li > a {
+                                background-repeat: no-repeat;
+                                background-position: left center;
+                                padding-left: 2em;
+                                }
+                        .phs_lang_container > ul >.phs_language_en > a { background-image: url('../images/flags/icon_lang_en.gif') }
+                        .phs_lang_container > ul >.phs_language_it > a { background-image: url('../images/flags/icon_lang_it.gif') }
+/*--- 3.1.2 - Language Selector - END ----------------------------*/
+
 
 /*--- 3.2 - Message Summary - START ------------------------------*/
-	#messages-summary-container { display: none }
+        #messages-summary-container { display: none }
 
 	#messages-summary-popup { 
 		padding: 0; right: 0; color: white; width: 350px; 
@@ -975,10 +1008,10 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 	/*--- 4.1.2 - List - START -----------------------------------*/
 /*--- 4.1 - List Views - END -------------------------------------*/
  
- 
+
 /*--- 5.1 - LOGIN PAGE -------------------------------------------*/
-	.login_page {}
-		.login_page .success-box, .login_page .warning-box, .login_page .error-box, .login_page .infobox {
+        .login_page {}
+                .login_page .success-box, .login_page .warning-box, .login_page .error-box, .login_page .infobox {
 			}
 		#login_form {
 			text-align: center;
