@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.46' );
+    define( 'PHS_VERSION', '1.0.1.47' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -244,20 +244,31 @@ include_once( PHS_SYSTEM_DIR.'session_init.php' );
 // Init language system
 include_once( PHS_SYSTEM_DIR.'languages_init.php' );
 
+/** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+if( !($plugins_model = PHS::load_model( 'plugins' )) )
+{
+    echo PHS::_t( 'ERROR Instantiating plugins model:' )."\n";
+    var_dump( PHS::st_get_error() );
+    exit;
+}
+
+if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
+{
+    if( !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
+    {
+        echo 'It seems you didn\'t run yet install script.';
+        exit;
+    }
+
+    $active_plugins = array();
+}
+
 //
 // Check if we are in install flow...
 //
 if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
 {
     echo 'Checking plugins module installation... ';
-
-    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = PHS::load_model( 'plugins' )) )
-    {
-        echo PHS::_t( 'ERROR Instantiating plugins model:' )."\n";
-        var_dump( PHS::st_get_error() );
-        exit;
-    }
 
     if( !$plugins_model->check_install_plugins_db() )
     {
@@ -268,19 +279,47 @@ if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
     echo PHS::_t( 'DONE' )."\n\n";
 }
 
-// Walk thgrough plugins bootstrap scripts...
-//! TODO: Walk only through active plugins...
-foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
+$bootstrap_scripts = array();
+$bootstrap_scripts_numbers = array( 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 );
+// Make sure we have right order as keys in array
+foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
+    $bootstrap_scripts[$bootstrap_scripts_number_i] = array();
+
+foreach( $active_plugins as $plugin_name => $plugin_db_arr )
 {
-    if( ($bootstrap_scripts = @glob( $bstrap_dir . '*/phs_bootstrap_{0,10,20,30,40,50,60,70,80,90}.php', GLOB_BRACE ))
-    and is_array( $bootstrap_scripts ) )
+    foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
     {
-        foreach( $bootstrap_scripts as $bootstrap_script )
-        {
-            include_once( $bootstrap_script );
-        }
+        if( @file_exists( PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php' ) )
+            $bootstrap_scripts[$bootstrap_scripts_number_i][] = PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php';
     }
 }
+
+foreach( $bootstrap_scripts as $bootstrap_scripts_number_i => $bootstrap_scripts_arr )
+{
+    if( empty( $bootstrap_scripts_arr ) or !is_array( $bootstrap_scripts_arr ) )
+        continue;
+
+    foreach( $bootstrap_scripts_arr as $bootstrap_script )
+    {
+        include_once( $bootstrap_script );
+    }
+}
+
+
+// Walk thgrough plugins bootstrap scripts...
+//! TODO: Walk only through active plugins...
+// foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
+// {
+//     if( ($bootstrap_scripts = @glob( $bstrap_dir . '*/phs_bootstrap_{0,10,20,30,40,50,60,70,80,90}.php', GLOB_BRACE ))
+//     and is_array( $bootstrap_scripts ) )
+//     {
+//         var_dump( $bootstrap_scripts );
+//         foreach( $bootstrap_scripts as $bootstrap_script )
+//         {
+//             include_once( $bootstrap_script );
+//         }
+//     }
+// }
 
 // Start language system
 include_once( PHS_SYSTEM_DIR.'languages_start.php' );

@@ -6,6 +6,7 @@ use phs\libraries\PHS_Hooks;
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_line_params;
+use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_logger;
 
 class PHS_Model_Plugins extends PHS_Model
@@ -18,6 +19,9 @@ class PHS_Model_Plugins extends PHS_Model
 
     // Cached database plugins rows
     private static $db_plugins = array();
+
+    // Cached database plugin records which are plugins in framework
+    private static $db_plugin_plugins = array();
 
     // Cached database registry rows
     private static $db_registry = array();
@@ -168,6 +172,7 @@ class PHS_Model_Plugins extends PHS_Model
     private function _reset_db_plugin_cache()
     {
         self::$db_plugins = array();
+        self::$db_plugin_plugins = array();
     }
 
     private function _reset_plugin_registry_cache()
@@ -474,7 +479,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         if( !empty( $force )
         and !empty( self::$db_plugins ) )
-            self::$db_plugins = array();
+            $this->_reset_db_plugin_cache();
 
         if( !empty( self::$db_plugins ) )
             return self::$db_plugins;
@@ -495,7 +500,68 @@ class PHS_Model_Plugins extends PHS_Model
             self::$db_plugins[$db_arr['instance_id']] = $db_arr;
         }
 
+        if( !empty( self::$db_plugins ) )
+        {
+            self::$db_plugin_plugins = array();
+            $this->get_all_active_plugins( false );
+        }
+
         return true;
+    }
+
+    public function get_all_active_plugin_records( $force = false )
+    {
+        $this->reset_error();
+
+        if( !$this->cache_all_db_details( $force )
+         or empty( self::$db_plugins ) )
+            return array();
+
+        $return_arr = array();
+        foreach( self::$db_plugins as $instance_id => $plugin_arr )
+        {
+            if( !$this->is_active( $plugin_arr ) )
+                continue;
+
+            $return_arr[$instance_id] = $plugin_arr;
+        }
+
+        return $return_arr;
+    }
+
+    public function get_all_active_plugins( $force = false )
+    {
+        $this->reset_error();
+
+        if( (!empty( $force ) or empty( self::$db_plugins ))
+        and !$this->cache_all_db_details( $force ) )
+        {
+            self::$db_plugin_plugins = array();
+            return array();
+        }
+
+        if( !empty( self::$db_plugin_plugins ) )
+        {
+            if( empty( $force ) )
+                return self::$db_plugin_plugins;
+
+            self::$db_plugin_plugins = array();
+        }
+
+        if( !is_array( self::$db_plugin_plugins ) )
+            self::$db_plugin_plugins = array();
+
+        foreach( self::$db_plugins as $instance_id => $plugin_arr )
+        {
+            if( !$this->is_active( $plugin_arr )
+             or $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+             or empty( $plugin_arr['plugin'] ) )
+                continue;
+
+            self::$db_plugin_plugins[$plugin_arr['plugin']] = $plugin_arr;
+        }
+
+        return self::$db_plugin_plugins;
     }
 
     public function cache_all_db_registry_details( $force = false )
