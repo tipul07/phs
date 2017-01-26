@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.47' );
+    define( 'PHS_VERSION', '1.0.1.48' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -253,20 +253,20 @@ if( !($plugins_model = PHS::load_model( 'plugins' )) )
 }
 
 if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
-{
-    if( !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
-    {
-        echo 'It seems you didn\'t run yet install script.';
-        exit;
-    }
-
     $active_plugins = array();
-}
 
 //
 // Check if we are in install flow...
 //
-if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
+if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
+{
+    if( empty( $active_plugins )
+    and !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
+    {
+        echo 'It seems you didn\'t run yet install script.';
+        exit;
+    }
+} else
 {
     echo 'Checking plugins module installation... ';
 
@@ -281,7 +281,7 @@ if( defined( 'PHS_INSTALLING_FLOW' ) and constant( 'PHS_INSTALLING_FLOW' ) )
 
 $bootstrap_scripts = array();
 $bootstrap_scripts_numbers = array( 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 );
-// Make sure we have right order as keys in array
+// Make sure we have right order for keys in array
 foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
     $bootstrap_scripts[$bootstrap_scripts_number_i] = array();
 
@@ -304,22 +304,6 @@ foreach( $bootstrap_scripts as $bootstrap_scripts_number_i => $bootstrap_scripts
         include_once( $bootstrap_script );
     }
 }
-
-
-// Walk thgrough plugins bootstrap scripts...
-//! TODO: Walk only through active plugins...
-// foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
-// {
-//     if( ($bootstrap_scripts = @glob( $bstrap_dir . '*/phs_bootstrap_{0,10,20,30,40,50,60,70,80,90}.php', GLOB_BRACE ))
-//     and is_array( $bootstrap_scripts ) )
-//     {
-//         var_dump( $bootstrap_scripts );
-//         foreach( $bootstrap_scripts as $bootstrap_script )
-//         {
-//             include_once( $bootstrap_script );
-//         }
-//     }
-// }
 
 // Start language system
 include_once( PHS_SYSTEM_DIR.'languages_start.php' );

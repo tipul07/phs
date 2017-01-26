@@ -6,7 +6,7 @@ use phs\libraries\PHS_Registry;
 
 final class PHS_session extends PHS_Registry
 {
-    const ERR_DOMAIN = 1;
+    const ERR_DOMAIN = 1, ERR_COOKIE = 2;
 
     const SESS_DATA = 'sess_data',
           SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_AUTOSTART = 'sess_autostart',
@@ -96,6 +96,92 @@ final class PHS_session extends PHS_Registry
         self::set_data( self::SESS_DATA, $sess_arr );
 
         return true;
+    }
+
+    public static function set_cookie( $name, $val, $params = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $name ) )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Please provide valid cookie name.' ) );
+            return false;
+        }
+
+        if( !defined( 'PHS_DOMAIN' ) )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Framework domain is not defined.' ) );
+            return false;
+        }
+
+        if( @headers_sent() )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Headers already sent to request.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['expire_secs'] ) )
+            $params['expire_secs'] = 0;
+        else
+            $params['expire_secs'] = intval( $params['expire_secs'] );
+
+        if( !isset( $params['path'] ) )
+            $params['path'] = '/';
+
+        if( !isset( $params['httponly'] ) )
+            $params['httponly'] = false;
+        else
+            $params['httponly'] = (!empty( $params['httponly'] )?true:false);
+
+        return @setcookie( $name, $val, time() + $params['expire_secs'], $params['path'], PHS_DOMAIN, $params['httponly'] );
+    }
+
+    public static function delete_cookie( $name, $params = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $name ) or !is_string( $name ) )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Please provide valid cookie name and value.' ) );
+            return false;
+        }
+
+        if( !defined( 'PHS_DOMAIN' ) )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Framework domain is not defined.' ) );
+            return false;
+        }
+
+        if( @headers_sent() )
+        {
+            self::st_set_error( self::ERR_COOKIE, self::_t( 'Headers already sent to request.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['path'] ) )
+            $params['path'] = '/';
+
+        if( !isset( $params['httponly'] ) )
+            $params['httponly'] = false;
+        else
+            $params['httponly'] = (!empty( $params['httponly'] )?true:false);
+
+        return @setcookie( $name, '', time() - 90000, $params['path'], PHS_DOMAIN, $params['httponly'] );
+    }
+
+    public static function get_cookie( $name )
+    {
+        if( empty( $_COOKIE ) or !is_array( $_COOKIE )
+         or !isset( $_COOKIE[$name] ) )
+            return null;
+
+        return $_COOKIE[$name];
     }
 
     public static function start()

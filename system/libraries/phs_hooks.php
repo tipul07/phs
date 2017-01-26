@@ -34,6 +34,9 @@ class PHS_Hooks extends PHS_Registry
          // Notifications hooks
          H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
+         // Cookie notice hooks
+         H_COOKIE_NOTICE_DISPLAY = 'phs_cookie_notice_display',
+
          // Messages hooks
          H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
          H_MSG_SINGLE_DISPLAY_TYPES_ACTIONS = 'phs_messages_single_types_actions',

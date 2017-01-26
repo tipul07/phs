@@ -49,6 +49,13 @@ final class PHS extends PHS_Registry
         self::init();
     }
 
+    public static function get_distribution_plugins()
+    {
+        // All plugins that come with the framework (these will be installed by default)
+        // Rest of plugins will be managed in plugins interface in admin interface
+        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications' );
+    }
+
     public static function get_core_models()
     {
         // !!! Don't change order of models here unless you know what you'r doing !!!
@@ -197,6 +204,11 @@ final class PHS extends PHS_Registry
             $existing_body_classes = '';
 
         return self::page_settings( 'page_body_class', trim( $existing_body_classes.' '.ltrim( $css_class ) ) );
+    }
+
+    public static function is_secured_request()
+    {
+        return (self::get_data( self::REQUEST_HTTPS )?true:false);
     }
 
     public static function prevent_session()
