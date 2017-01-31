@@ -7,7 +7,7 @@
     /** @var \phs\libraries\PHS_Paginator $paginator_obj */
     if( !($paginator_obj = $this->context_var( 'paginator' )) )
     {
-        echo $this::_t( 'Rendered from outside of paginator.' );
+        echo $this->_pt( 'Rendered from outside of paginator.' );
         return;
     }
 
@@ -39,7 +39,7 @@
 
         if( ($cell_content = @call_user_func( $flow_params_arr['before_filters_callback'], $callback_params )) === false
          or $cell_content === null )
-            $cell_content = '[' . $this::_t( 'Render before filters call failed.' ) . ']';
+            $cell_content = '[' . $this->_pt( 'Render before filters call failed.' ) . ']';
 
         echo $cell_content;
     }
@@ -113,7 +113,7 @@
                             break;
 
                             case PHS_params::T_BOOL:
-                                $field_value_display = (!empty( $field_value )?$this::_t( 'True' ):$this::_t( 'False' ));
+                                $field_value_display = (!empty( $field_value )?$this->_pt( 'True' ):$this->_pt( 'False' ));
                                 ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="<?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox" <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
@@ -135,8 +135,8 @@
 
             <div class="clearfix"></div>
             <div>
-                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection" value="<?php echo $this::_te( 'Filter' )?>" />
-                <input type="button" onclick="toggle_filters_inputs_and_text()" class="btn btn-primary" value="<?php echo $this::_te( 'Hide Filters' )?>" style="margin-right:5px;" />
+                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Filter' )?>" />
+                <input type="button" onclick="toggle_filters_inputs_and_text()" class="btn btn-primary" value="<?php echo $this->_pte( 'Hide Filters' )?>" style="margin-right:5px;" />
             </div>
             </div>
 
@@ -164,11 +164,11 @@
             }
 
             if( empty( $filters_display_arr ) )
-                echo $this::_t( 'No filters set.' );
+                echo $this->_pt( 'No filters set.' );
             else
-                echo '<strong>'.$this::_t( 'Current filters' ).'</strong> - '.implode( ', ', $filters_display_arr ).'.';
+                echo '<strong>'.$this->_pt( 'Current filters' ).'</strong> - '.implode( ', ', $filters_display_arr ).'.';
             ?>
-            (<a href="javascript:void(0);" onclick="toggle_filters_inputs_and_text()">Show filters</a>)
+            (<a href="javascript:void(0);" onclick="toggle_filters_inputs_and_text()"><?php echo $this->_pt( 'Show filters' )?></a>)
             </div>
 
             <div class="clearfix"></div>
@@ -200,7 +200,7 @@ function toggle_filters_inputs_and_text()
 
         if( ($cell_content = @call_user_func( $flow_params_arr['after_filters_callback'], $callback_params )) === false
          or $cell_content === null )
-            $cell_content = '[' . $this::_t( 'Render after filters call failed.' ) . ']';
+            $cell_content = '[' . $this->_pt( 'Render after filters call failed.' ) . ']';
 
         echo $cell_content;
     }
