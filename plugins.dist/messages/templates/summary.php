@@ -61,11 +61,11 @@ function phs_messages_summary_delete_message( id )
 }
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">
-    <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>"><i class="fa fa-envelope"></i>Inbox</a> <span class="messages_counter">(<?php echo $messages_new?>/<?php echo $messages_count?>)</span>
+    <a href="<?php echo PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ) );?>"><i class="fa fa-envelope"></i><?php echo $this->_pt( 'Inbox' )?></a> <span class="messages_counter">(<?php echo $messages_new?>/<?php echo $messages_count?>)</span>
     <?php
     if( !empty( $compose_url ) )
     {
-        ?><a href="<?php echo $compose_url?>"><i class="fa fa fa-pencil"></i>Compose</a>
+        ?><a href="<?php echo $compose_url?>"><i class="fa fa fa-pencil"></i><?php echo $this->_pt( 'Compose' )?></a>
         <?php
     }
     ?>
