@@ -320,9 +320,9 @@ table tbody tr:hover+tr td  {
 .period_field_custom input { line-height: 50px; float: left; vertical-align: middle; width: 100px !important; margin: 10px 0 !important; }
 
 /* 1.5.1  - Cookies agreement */
-#phs_cookie_policy_agreement { text-align: center; padding: 15px; background: black; color: white; }
-#phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions { clear: both; margin-top: 10px; }
-#phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions a { margin-right: 20px; }
+#phs_cookie_policy_agreement { text-align: center; padding: 2em; background: black; color: white; width: 100%; background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNUegoAAS8BCdaQkXcAAAAASUVORK5CYII="); border-bottom: 1px solid #aaa; }
+#phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions { clear: both; margin-top: 1em; }
+#phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions a { margin-right: 1em; }
 
 /* --- 1.9 - FORMS LAYOUT ---*/
 .btn-success, .btn-primary { background-color: #0aa5b3; border-color: #0aa5b3; }

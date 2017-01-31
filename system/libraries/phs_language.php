@@ -15,6 +15,8 @@ class PHS_Language extends PHS_Error
     // Parameter received in _GET or _POST to set the language for current page
     const LANG_URL_PARAMETER = '__phsl';
 
+    const LANG_LINE_DELIMITER = "\n", LANG_COLUMNS_DELIMITER = ',', LANG_COLUMNS_ENCLOSURE = '"', LANG_ENCLOSURE_ESCAPE = '"';
+
     /** @var PHS_Language_Container $lang_callable_obj */
     private static $lang_callable_obj = false;
 
@@ -132,6 +134,55 @@ class PHS_Language extends PHS_Error
         }
 
         return true;
+    }
+
+    /**
+     * Parse specified language file and get language array
+     *
+     * @param string $file
+     * @param string $lang
+     *
+     * @return bool|array Returns parsed lines from language CSV file or false on error
+     */
+    public static function get_language_file_lines( $file, $lang )
+    {
+        self::st_reset_error();
+
+        $language_container = self::language_container();
+
+        if( !($return_arr = $language_container->get_language_file_lines( $file, $lang )) )
+        {
+            if( $language_container->has_error() )
+                self::st_copy_error( $language_container );
+
+            return false;
+        }
+
+        return $return_arr;
+    }
+
+    public static function get_language_file_header_arr()
+    {
+        return self::language_container()->get_language_file_header_arr();
+    }
+
+    public static function get_language_file_header_str()
+    {
+        return self::language_container()->get_language_file_header_str();
+    }
+
+    public static function lang_files_csv_settings( $settings = false )
+    {
+        $lang_container = self::language_container();
+
+        return $lang_container::lang_files_csv_settings( $settings );
+    }
+
+    public static function default_lang_files_csv_settings()
+    {
+        $lang_container = self::language_container();
+
+        return $lang_container::default_lang_files_csv_settings();
     }
 
     /**
@@ -291,9 +342,43 @@ class PHS_Language_Container extends PHS_Error
 
     private static $_LOADED_FILES = array();
 
+    private static $csv_settings = false;
+
     function __construct()
     {
+        self::$csv_settings = self::default_lang_files_csv_settings();
+
         parent::__construct();
+    }
+
+    public static function default_lang_files_csv_settings()
+    {
+        return array(
+            'line_delimiter' => "\n",
+            'columns_delimiter' => ',',
+            'columns_enclosure' => '"',
+            'enclosure_escape' => '"',
+        );
+    }
+
+    public static function lang_files_csv_settings( $settings = false )
+    {
+        if( empty( self::$csv_settings ) )
+            self::$csv_settings = self::default_lang_files_csv_settings();
+
+        if( $settings === false )
+            return self::$csv_settings;
+
+        if( empty( $settings ) or !is_array( $settings ) )
+            return false;
+
+        foreach( self::$csv_settings as $key => $cur_val )
+        {
+            if( array_key_exists( $key, $settings ) )
+                self::$csv_settings[$key] = $settings[$key];
+        }
+
+        return self::$csv_settings;
     }
 
     public static function st_get_default_language()
@@ -582,22 +667,22 @@ class PHS_Language_Container extends PHS_Error
         $current_language = self::get_current_language();
         if( ($default_theme = PHS::get_default_theme())
         and ($theme_language_paths = PHS::get_theme_language_paths( $default_theme ))
-        and !empty( $theme_language_paths['dir'] )
+        and !empty( $theme_language_paths['path'] )
         and $current_language
-        and @file_exists( $theme_language_paths['dir'].$current_language.'.csv' ) )
+        and @file_exists( $theme_language_paths['path'].$current_language.'.csv' ) )
         {
-            if( !$this->load_language_file( $theme_language_paths['dir'].$current_language.'.csv', $lang, $force ) )
+            if( !$this->load_language_file( $theme_language_paths['path'].$current_language.'.csv', $lang, $force ) )
                 return false;
         }
 
         if( ($current_theme = PHS::get_theme())
         and $default_theme != $current_theme
         and ($theme_language_paths = PHS::get_theme_language_paths( $current_theme ))
-        and !empty( $theme_language_paths['dir'] )
+        and !empty( $theme_language_paths['path'] )
         and $current_language
-        and @file_exists( $theme_language_paths['dir'].$current_language.'.csv' ) )
+        and @file_exists( $theme_language_paths['path'].$current_language.'.csv' ) )
         {
-            if( !$this->load_language_file( $theme_language_paths['dir'].$current_language.'.csv', $lang, $force ) )
+            if( !$this->load_language_file( $theme_language_paths['path'].$current_language.'.csv', $lang, $force ) )
                 return false;
         }
 
@@ -617,15 +702,70 @@ class PHS_Language_Container extends PHS_Error
      */
     private function load_language_file( $file, $lang, $force = false )
     {
+        if( empty( $force )
+        and !empty( self::$_LOADED_FILES[$lang][$file] ) )
+            return true;
+
+        if( !($language_arr = $this->get_language_file_lines( $file, $lang )) )
+            return false;
+
+        foreach( $language_arr as $index => $index_lang )
+            self::$LANGUAGE_INDEXES[$lang][$index] = $index_lang;
+
+        if( empty( self::$_LOADED_FILES[$lang] ) )
+            self::$_LOADED_FILES[$lang] = array();
+
+        self::$_LOADED_FILES[$lang][$file] = true;
+
+       return true;
+    }
+
+    public function get_language_file_header_arr()
+    {
+        return array(
+            '# !!!!! DON\'T EDIT THIS COLUMN AT ALL !!!!!' => 'TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE',
+            '# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!' => '',
+            '# Lines starting with # will be ignored.' => 'Column separator is comma!! (configure Excel or similar to use comma)',
+        );
+    }
+
+    public function get_language_file_header_str()
+    {
+        if( !($lines_arr = $this->get_language_file_header_arr()) )
+            return '';
+
+        if( !($csv_settings = self::lang_files_csv_settings()) )
+            $csv_settings = self::default_lang_files_csv_settings();
+
+        $return_str = '';
+        foreach( $lines_arr as $lang_key => $lang_val )
+        {
+            $return_str .= PHS_utils::csv_line( array( $lang_key, $lang_val ),
+                                                $csv_settings['line_delimiter'],
+                                                $csv_settings['columns_delimiter'],
+                                                $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] );
+        }
+
+        return $return_str;
+    }
+
+    /**
+     * Parse specified language file and get language array
+     *
+     * @param string $file
+     * @param string $lang
+     *
+     * @return bool|array Returns parsed lines from language CSV file or false on error
+     */
+    public function get_language_file_lines( $file, $lang )
+    {
+        $this->reset_error();
+
         if( !($lang = self::st_valid_language( $lang )) )
         {
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined.' );
             return false;
         }
-
-        if( empty( $force )
-        and !empty( self::$_LOADED_FILES[$lang][$file] ) )
-            return true;
 
         if( !($utf8_file = self::convert_to_utf8( $file )) )
         {
@@ -640,6 +780,9 @@ class PHS_Language_Container extends PHS_Error
             return false;
         }
 
+        if( !($csv_settings = self::lang_files_csv_settings()) )
+            $csv_settings = self::default_lang_files_csv_settings();
+
         if( function_exists( 'mb_internal_encoding' ) )
             @mb_internal_encoding( 'UTF-8' );
 
@@ -647,6 +790,7 @@ class PHS_Language_Container extends PHS_Error
         if( function_exists( 'mb_substr' ) )
             $mb_substr_exists = true;
 
+        $return_arr = array();
         while( ($buf = @fgets( $fil )) )
         {
             if( ($mb_substr_exists and mb_substr( ltrim( $buf ), 0, 1 ) == '#')
@@ -655,7 +799,7 @@ class PHS_Language_Container extends PHS_Error
 
             $buf = rtrim( $buf, "\r\n" );
 
-            if( !($csv_line = @str_getcsv( $buf, ',', '"', '\\' ))
+            if( !($csv_line = @str_getcsv( $buf, $csv_settings['columns_delimiter'], $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] ))
              or !is_array( $csv_line )
              or count( $csv_line ) != 2 )
                 continue;
@@ -663,17 +807,12 @@ class PHS_Language_Container extends PHS_Error
             $index = $csv_line[0];
             $index_lang = $csv_line[1];
 
-            self::$LANGUAGE_INDEXES[$lang][$index] = $index_lang;
+            $return_arr[$index] = $index_lang;
         }
 
         @fclose( $fil );
 
-        if( empty( self::$_LOADED_FILES[$lang] ) )
-            self::$_LOADED_FILES[$lang] = array();
-
-        self::$_LOADED_FILES[$lang][$file] = true;
-
-       return true;
+       return $return_arr;
     }
 
     /**

@@ -246,12 +246,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         </div>
     </div>
 </div>
-<?php
-    if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_COOKIE_NOTICE_DISPLAY, PHS_Hooks::default_buffer_hook_args() ))
-    and is_array( $hook_args )
-    and !empty( $hook_args['buffer'] ) )
-        echo $hook_args['buffer'];
-?>
 <div id="container">
     <!-- BEGIN: page_header -->
     <div id="menu-left-pane" class="menu-pane">
@@ -422,6 +416,13 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 
     </div>
     <div class="clearfix"></div>
+
+    <?php
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_COOKIE_NOTICE_DISPLAY, PHS_Hooks::default_buffer_hook_args() ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
+    ?>
 
     <header id="header">
         <div id="header_content">

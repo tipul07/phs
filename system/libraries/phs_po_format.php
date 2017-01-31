@@ -2,9 +2,13 @@
 
 namespace phs\libraries;
 
+use \phs\PHS;
+
 class PHS_po_format extends PHS_Registry
 {
-    const ERR_PO_FILE = 1, ERR_INPUT_BUFFER = 2;
+    const ERR_PO_FILE = 1, ERR_INPUT_BUFFER = 2, ERR_LANGUAGE_FILE = 3;
+
+    const PLUGINS_DIST_DIRNAME = 'plugins.dist', THEME_DIST_DIRNAME = 'default.dist';
 
     private $can_use_generator = false;
 
@@ -16,6 +20,11 @@ class PHS_po_format extends PHS_Registry
     private $header_lines = 0;
     // Header values as they are defined in PO file
     private $header_arr = array();
+
+    // After parsing a PO file class caches results here...
+    private $parsed_language = '';
+    private $parsed_indexes = array();
+    private $indexes_count = 0;
 
     public function set_filename( $f )
     {
@@ -53,6 +62,346 @@ class PHS_po_format extends PHS_Registry
             return false;
 
         return true;
+    }
+
+    private function _reset_parsed_indexes()
+    {
+        $this->indexes_count = 0;
+        $this->parsed_language = '';
+        $this->parsed_indexes = array();
+    }
+
+    public function get_parsed_indexes()
+    {
+        return array(
+            'count' => $this->indexes_count,
+            'language' => $this->parsed_language,
+            'language_files' => ((!empty( $this->parsed_indexes ) and is_array( $this->parsed_indexes ))?array_keys( $this->parsed_indexes ):array()),
+            'indexes' => $this->parsed_indexes,
+        );
+    }
+
+    public function backup_language_file( $lang_file )
+    {
+        $this->reset_error();
+
+        $return_arr = array();
+        $return_arr['backup_created'] = false;
+        $return_arr['path'] = '';
+        $return_arr['file_name'] = '';
+        $return_arr['full_name'] = '';
+
+        if( empty( $lang_file )
+         or !@file_exists( $lang_file ) )
+            return $return_arr;
+
+        if( !($path_info = PHS_utils::mypathinfo( $lang_file ))
+         or $lang_file == PHS::relative_path( $path_info['dirname'] )
+         or empty( $path_info['extension'] ) or $path_info['extension'] != 'csv'
+         or empty( $path_info['basename'] ) or !self::valid_language( $path_info['basename'] ) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_FILE, self::_t( 'Couldn\'t get details about language file or language file is invalid.' ) );
+            return false;
+        }
+
+        if( !@is_dir( $path_info['dirname'] )
+         or !@is_writable( $path_info['dirname'] ) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_FILE, self::_t( 'Destination directory is not writable. Please check write rights.' ) );
+            return false;
+        }
+
+        $backup_file_name = $path_info['basename'].'_bk'.date( 'YmdHis' ).'.csv';
+
+        if( ($bk_files = @glob( $path_info['dirname'].'/'.$path_info['basename'].'_bk*.csv' )) )
+        {
+            foreach( $bk_files as $bk_file )
+                @unlink( $bk_file );
+        }
+
+        $return_arr['backup_created'] = true;
+        $return_arr['path'] = $path_info['dirname'];
+        $return_arr['file_name'] = $backup_file_name;
+        $return_arr['full_name'] = $path_info['dirname'].'/'.$backup_file_name;
+
+        if( !@copy( $lang_file, $return_arr['full_name'] ) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_FILE, self::_t( 'Error creating backup file in destination directory. Please check write rights.' ) );
+            return false;
+        }
+
+        return $return_arr;
+    }
+
+    public function update_language_files( $po_file, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['update_language_files'] ) )
+            $params['update_language_files'] = false;
+        else
+            $params['update_language_files'] = true;
+
+        if( !isset( $params['backup_language_files'] ) )
+            $params['backup_language_files'] = true;
+        else
+            $params['backup_language_files'] = (!empty( $params['backup_language_files'] )?true:false);
+
+        if( !isset( $params['merge_with_old_files'] ) )
+            $params['merge_with_old_files'] = true;
+        else
+            $params['merge_with_old_files'] = (!empty( $params['merge_with_old_files'] )?true:false);
+
+        if( !$this->parse_language_from_po_file( $po_file, $params ) )
+            return false;
+
+        $return_arr = array();
+        $return_arr['new_indexes'] = 0;
+        $return_arr['updated_indexes'] = 0;
+        $return_arr['updated_files'] = array();
+        $return_arr['update_errors'] = array();
+
+        if( !$this->indexes_count
+         or empty( $this->parsed_indexes )
+         or !is_array( $this->parsed_indexes ) )
+            return $return_arr;
+
+        if( !($csv_settings = self::lang_files_csv_settings()) )
+            $csv_settings = self::default_lang_files_csv_settings();
+
+        foreach( $this->parsed_indexes as $lang_file => $indexes_arr )
+        {
+            if( !is_array( $indexes_arr ) )
+                continue;
+
+            $new_indexes = 0;
+            $updated_indexes = 0;
+            if( empty( $params['merge_with_old_files'] ) )
+            {
+                $resulting_arr = $indexes_arr;
+                $new_indexes = count( $indexes_arr );
+            } else
+            {
+                if( !@file_exists( $lang_file )
+                 or !($existing_lines_arr = self::get_language_file_lines( $lang_file, $this->parsed_language )) )
+                    $existing_lines_arr = array();
+
+                // Language file exists... see what we can update / add
+                $resulting_arr = $existing_lines_arr;
+                foreach( $indexes_arr as $lang_key => $lang_val )
+                {
+                    if( !isset( $resulting_arr[$lang_key] ) )
+                        $new_indexes++;
+                    elseif( $lang_val != $resulting_arr[$lang_key] )
+                        $updated_indexes ++;
+                    else
+                        // Same thing...
+                        continue;
+
+                    $resulting_arr[$lang_key] = $lang_val;
+                }
+            }
+
+            if( empty( $new_indexes ) and empty( $updated_indexes )
+            and !empty( $resulting_arr ) )
+                continue;
+
+            if( !empty( $params['update_language_files'] ) )
+            {
+                if( !empty( $params['backup_language_files'] )
+                and !$this->backup_language_file( $lang_file ) )
+                {
+                    $error_msg = self::_t( 'Error creating backup for language file [%s]', $lang_file );
+
+                    $return_arr['update_errors'][$lang_file] = $error_msg;
+
+                    PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
+                    continue;
+                }
+
+                if( !($fp = @fopen( $lang_file, 'w' )) )
+                {
+                    $error_msg = self::_t( 'Error creating language file [%s]', $lang_file );
+
+                    $return_arr['update_errors'][$lang_file] = $error_msg;
+
+                    PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
+                    continue;
+                }
+
+                if( ($header_str = self::get_language_file_header_str())
+                and !@fwrite( $fp, $header_str ) )
+                {
+                    PHS_Logger::logf( 'Error writing header for language file ['.$lang_file.']', PHS_Logger::TYPE_MAINTENANCE );
+                }
+            }
+
+            if( empty( $new_indexes ) and empty( $updated_indexes ) )
+            {
+                if( !empty( $params['update_language_files'] ) )
+                {
+                    @fflush( $fp );
+                    @fclose( $fp );
+                }
+
+                continue;
+            }
+
+            if( !empty( $params['update_language_files'] ) )
+            {
+                $line = 1;
+                foreach( $resulting_arr as $lang_key => $lang_val )
+                {
+                    if( !($csv_line = PHS_utils::csv_line( array( $lang_key, $lang_val ),
+                                                          $csv_settings['line_delimiter'],
+                                                          $csv_settings['columns_delimiter'],
+                                                          $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] ))
+                     or !@fwrite( $fp, $csv_line ) )
+                    {
+                        PHS_Logger::logf( 'Error writing ['.$lang_key.'] language index at position ['.$line.']', PHS_Logger::TYPE_MAINTENANCE );
+                    }
+
+                    $line++;
+                }
+
+                @fflush( $fp );
+                @fclose( $fp );
+            }
+
+            $return_arr['new_indexes'] += $new_indexes;
+            $return_arr['updated_indexes'] += $updated_indexes;
+
+            $return_arr['updated_files'][] = $lang_file;
+        }
+
+        return $return_arr;
+    }
+
+    public function parse_language_from_po_file( $po_file, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $po_file )
+         or !is_string( $po_file )
+         or !@file_exists( $po_file ) )
+        {
+            $this->set_error( self::ERR_PO_FILE, self::_t( 'PO file not found.' ) );
+            return false;
+        }
+
+        if( !($contents = @file_get_contents( $po_file ))
+         or !$this->set_buffer( $contents ) )
+        {
+            $this->set_error( self::ERR_PO_FILE, self::_t( 'Couldn\'t read PO file content.' ) );
+            return false;
+        }
+
+        // Try releasing string from memory...
+        unset( $contents );
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['language'] ) )
+        {
+            if( ($guessed_language = $this->guess_language_from_header())
+            and !empty( $guessed_language['guessed_language'] ) )
+                $params['language'] = $guessed_language['guessed_language'];
+        }
+
+        if( empty( $params['language'] )
+         or !($lang_details = PHS_Language::get_defined_language( $params['language'] )) )
+        {
+            $this->set_error( self::ERR_PO_FILE, self::_t( 'Language is invalid.' ) );
+            return false;
+        }
+
+        if( empty( $lang_details['dir'] )
+         or !@is_dir( rtrim( $lang_details['dir'], '/' ) ) )
+        {
+            $this->set_error( self::ERR_PO_FILE, self::_t( 'System language directory %s doesn\'t exist.', (!empty( $lang_details['dir'] )?$lang_details['dir']:'N/A') ) );
+            return false;
+        }
+
+        $this->_reset_parsed_indexes();
+
+        $this->parsed_language = $params['language'];
+
+        $language_directory = $lang_details['dir'];
+
+        $plugins_relative_path = PHS::relative_path( PHS_PLUGINS_DIR );
+        $plugins_relative_path_len = strlen( $plugins_relative_path );
+        $plugins_dist_dirname_len = strlen( self::PLUGINS_DIST_DIRNAME );
+
+        $themes_relative_path = PHS::relative_path( PHS_THEMES_DIR );
+        $themes_relative_path_len = strlen( $themes_relative_path );
+
+        while( ($translation_arr = $this->extract_po_translation()) )
+        {
+            if( empty( $translation_arr['index'] )
+             or empty( $translation_arr['translation'] )
+             or empty( $translation_arr['files'] )
+             or !is_array( $translation_arr['files'] ) )
+                continue;
+
+            foreach( $translation_arr['files'] as $lang_file_arr )
+            {
+                if( empty( $lang_file_arr['file'] )
+                 or substr( $lang_file_arr['file'], 0, $plugins_dist_dirname_len ) == self::PLUGINS_DIST_DIRNAME )
+                    continue;
+
+                $plugin_name = '';
+                $theme_name = '';
+                if( substr( $lang_file_arr['file'], 0, $plugins_relative_path_len ) == $plugins_relative_path
+                and ($path_rest = substr( $lang_file_arr['file'], $plugins_relative_path_len ))
+                and ($path_rest_arr = explode( '/', $path_rest, 2 ))
+                and !empty( $path_rest_arr[0] ) )
+                    $plugin_name = $path_rest_arr[0];
+
+                if( substr( $lang_file_arr['file'], 0, $themes_relative_path_len ) == $themes_relative_path
+                and ($path_rest = substr( $lang_file_arr['file'], $themes_relative_path_len ))
+                and ($path_rest_arr = explode( '/', $path_rest, 2 ))
+                and !empty( $path_rest_arr[0] ) )
+                    $theme_name = $path_rest_arr[0];
+
+                if( $theme_name == self::THEME_DIST_DIRNAME )
+                    continue;
+
+                if( !empty( $theme_name )
+                and ($language_dirs = PHS::get_theme_language_paths( $theme_name ))
+                and !empty( $language_dirs['path'] ) )
+                {
+                    // Add index to theme
+                    $lang_file = $language_dirs['path'].$this->parsed_language.'.csv';
+
+                    $this->parsed_indexes[$lang_file][$translation_arr['index']] = $translation_arr['translation'];
+                }
+
+                if( !empty( $plugin_name )
+                and ($instance_dirs = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( $plugin_name ), $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN ))
+                and !empty( $instance_dirs['plugin_paths'] ) and is_array( $instance_dirs['plugin_paths'] )
+                and !empty( $instance_dirs['plugin_paths'][PHS_Instantiable::LANGUAGES_DIR] ) )
+                {
+                    // Add index to plugin
+                    $lang_file = $instance_dirs['plugin_paths'][PHS_Instantiable::LANGUAGES_DIR].$this->parsed_language.'.csv';
+
+                    $this->parsed_indexes[$lang_file][$translation_arr['index']] = $translation_arr['translation'];
+                }
+
+                if( empty( $theme_name ) and empty( $plugin_name ) )
+                {
+                    // Add to generic language file
+                    $lang_file = $language_directory.$this->parsed_language.'.csv';
+
+                    $this->parsed_indexes[$lang_file][$translation_arr['index']] = $translation_arr['translation'];
+                }
+
+                $this->indexes_count++;
+            }
+        }
+
+        return $this->get_parsed_indexes();
     }
 
     public function extract_po_translation()

@@ -1,0 +1,411 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+ERROR Instantiating plugins model:,ERRORE creare un'istanza plugin modello:
+ERROR checking plugins model install:,ERRORE verifica i plugin modello di installazione:
+DONE,FATTO
+"PHS version changed from %s to %s. Make sure you change main.php file by comparing it with distribution version and in case there are changes recorded, please update your main.php file accordingly. After you are sure everything is updated, change PHS_KNOWN_VERSION constant in first lines of main.php file to %s.","Versione PHS cambiato da%sa%s. Assicurati di modifica del file main.php confrontandolo con la versione della distribuzione e nel caso in cui ci sono cambiamenti registrati, si prega di aggiornare il file main.php di conseguenza. Dopo sei che tutto sia aggiornato, costante cambiamento PHS_KNOWN_VERSION in prime righe del file di main.php a%s."
+ERROR while running system install script [%s]:,Errore di sistema durante l'esecuzione di script di installazione [%s]:
+Couldn't load captcha plugin.,Non poteva caricare plugin captcha.
+Invalid validation code.,Codice di validazione non valido.
+Status %s,Stato %s
+Unknown account.,Account sconosciuto.
+Please provide a valid status.,Si prega di fornire uno stato valido.
+Couldn't load agent jobs model.,Impossibile caricare processi dell'agente modello.
+Please provide a handler for this agent job.,Si prega di fornire un handler per questo processo dell'agente.
+N/A,N/A
+Couldn't load plugins model.,Impossibile caricare il plugin modello.
+Please provide a valid plugin name.,Si prega di fornire un nome del plugin valido.
+Couldn't load roles model.,Impossibile caricare ruoli modello.
+Account not found in database.,Account non trovato nel database.
+Error loading accounts model.,Errore di caricamento del modello di conti.
+seconds,secondi
+Error rendering template [%s].,Errore di rendering modello [%s].
+Unknown destination,Destinazione sconosciuta
+Error obtaining flow details.,Errore durante il ottenendo i dettagli di flusso.
+Please provide language you want to switch to.,Si prega di fornire lingua che si desidera passare.
+Invalid language provided.,Lingua non valido fornito.
+Couldn't change current language. Please try again.,Impossibile cambiare la lingua corrente. Si prega di riprovare.
+Your message was succesfully sent. Thank you!,Il tuo messaggio è stato inviato con successo. Grazie!
+You don't have rights to use contact us form.,Non si dispone di diritti di utilizzo modulo di contatto.
+No email addresses setup in the platform.,Nessun indirizzi e-mail impostati nella piattaforma.
+Please provide mandatory fields in the form.,Si prega di fornire i campi obbligatori del modulo.
+Please provide a valid email address.,Per favore fornisci un indirizzo email valido.
+Site Contact,Sito Contatto
+Contact Us: %s,Contattaci: %s
+Error sending email from contact form to [%s].,Errore durante l'invio e-mail dal modulo di contatto a [%s].
+Failed sending email. Please try again.,Impossibile l'invio di e-mail. Si prega di riprovare.
+Welcome,Benvenuto
+Agent job details not found in database.,Dettagli di processo dell'agente non trovato nel database.
+Agent job is suspended. You must activate plugin to activate it again.,Processo dell'agente è sospeso. È necessario attivare plugin per attivarlo di nuovo.
+Error deleting agent job from database.,Errore cancellazione di processo dell'agente dal database.
+Job not found in database.,Processo non trovato nel database.
+Couldn't get agent jobs details.,Impossibile ottenere dettagli di processi dell'agente.
+Couldn't get agent jobs model settings.,Impossibile ottenere impostazioni del modello processi dell'agente.
+Please provide a route.,Si prega di fornire una route.
+Please provide a handler for this task.,Si prega di fornire un handler per questo compito.
+Handler already defined in database.,Handler già definito nel database.
+Agent job status is not defined.,Stato di processo dell'agente non è definito.
+Unknown error.,Errore sconosciuto.
+Couldn't get background jobs details.,Impossibile ottenere dettagli i processi sfondo.
+Couldn't get background jobs model settings.,Impossibile ottenere le impostazioni del modello processi sfondo.
+Invalid instance ID.,ID istanza non valido.
+Unknown instance ID.,ID istanza sconosciuta.
+Error saving settings in database.,Errore di salvataggio delle impostazioni nel database.
+Error saving registry data in database.,Errore di salvataggio dei dati di registro nel database.
+Couldn't get a list of plugin directories.,Impossibile ottenere l'elenco delle directory dei plugin.
+Couldn't find plugin settings in database. Try re-installing plugin.,Impossibile trovare le impostazioni del plugin nel database. Provare a reinstallare plugin.
+Unknown instance database details.,Sconosciuto dettagli del database istanza.
+Error validating plugin database fields.,Errore durante la convalida campi del database plugin.
+Couldn't save plugin details to database.,Impossibile salvare i dettagli di plugin nel database.
+Error deleting registry database entry for instance %s.,Errore durante la cancellazione di voce del database di registro per l'istanza %s.
+Error validating plugin registry database fields.,Errore durante la convalida campi del database di registro plugin.
+Couldn't save plugin registry to database.,Impossibile salvare di registro plugin nel database.
+Please provide a valid plugin status.,Si prega di fornire uno stato di plugin valido.
+Please provide a plugin id.,Si prega di fornire un id plugin.
+There is already a plugin with this id in database.,C'è già un plugin con questo id nel database.
+Error when triggering force install signal.,Errore quando innescando la forza di installazione del segnale.
+Please provide a slug for this role.,Si prega di fornire un slug per questo ruolo.
+Please provide a name for this role.,Si prega di fornire un nome per questo ruolo.
+There is already a role registered with this slug.,C'è già un ruolo registrato con questo slug.
+Please provide a valid status for this role.,Si prega di fornire uno stato valido per questo ruolo.
+Role not found in database.,Ruolo non trovato nel database.
+Couldn't unlink role units from role.,Impossibile scollegare le unità di ruolo dal ruolo.
+No role units provided to unlink from role.,Nessuna unità di ruolo forniti da scollegare al ruolo.
+No role units provided to link to role.,Nessuna unità di ruolo forniti da collegare al ruolo.
+Invalid flow parameters.,Parametri di flusso non valido.
+Error un-linking old role units from role.,Errore scollegamento di vecchie unità di ruolo al ruolo.
+Error linking all role units to role.,Errore collegamento tutte le unità di ruolo al ruolo.
+No roles provided to unlink from account.,Nessun ruolo forniti da scollegare al conto.
+Couldn't unlink roles from account.,Impossibile scollegare i ruoli da conto.
+Couldn't unlink role from all accounts.,Impossibile scollegare il ruolo di tutti gli account.
+Error un-linking old roles from account.,Errore scollegamento di vecchi ruoli dal conto.
+Error linking all roles to account.,Errore collegamento di tutti i ruoli al conto.
+Role slug cannot be empty.,Slug ruolo non può essere vuoto.
+Please provide a slug for this role unit.,Si prega di fornire un slug per questa unità ruolo.
+Please provide a name for this role unit.,Si prega di fornire un nome per questa unità di ruolo.
+There is already a role unit registered with this slug.,C'è già un'unità di ruolo registrata con questo slug.
+Please provide a valid status for this role unit.,Si prega di fornire uno stato valido per questa unità di ruolo.
+Role unit slug cannot be empty.,Slug unità di ruolo non può essere vuoto.
+Please provide a role id.,Si prega di fornire un id di ruolo.
+Please provide a role unit id.,Si prega di fornire un id di unità di ruolo.
+Please provide user id.,Si prega di fornire l'id utente.
+Theme %s doesn't exist or directory is not readable.,Tema %s non esiste o la directory non è leggibile.
+Theme (%s) languages directory is not readable.,Tema (%s) directory lingue non è leggibile.
+Couldn't obtain route.,Impossibile ottenere route.
+Bad route in request.,Route errata nella richiesta.
+Invalid scopes provided for action of the route.,Scope non valido previste per l'azione del route.
+Couldn't parse route.,Impossibile analizzare route.
+Route is invalid.,Route non è valido.
+Couldn't instantiate plugin from route.,Impossibile creare un'istanza plugin dal route.
+Couldn't instantiate controller from route.,Impossibile creare un'istanza di controllo dal route.
+Couldn't instantiate action from route.,Impossibile creare un'istanza dell'azione dal route.
+Action %s is not ment to run in scope %s.,L'azione %s non è destinata a funzionare in scope %s.
+Couldn't obtain route details.,Impossibile ottenere dettagli del route.
+Couldn't obtain controller instance for %s.,Impossibile ottenere istanza di controllore per %s.
+Error executing action [%s].,Errore durante l'esecuzione dell'azione [%s].
+Error spawning scope instance.,L'errore che spawn istanza scope.
+Couldn't instantiate scope object.,Impossibile creare un'istanza di scope oggetto.
+Couldn't load model %s from plugin %s.,Impossibile caricare il modello %s dal plugin %s.
+Couldn't obtain instance for model %s from plugin %s .,Impossibile ottenere dell'istanza per il modello %s dal plugin %s.
+Couldn't load view %s from plugin %s.,Impossibile caricare vista %s dal plugin %s.
+Couldn't load controller %s from plugin %s.,Impossibile caricare il controllore %s dal plugin %s.
+Couldn't obtain instance for controller %s from plugin %s .,Impossibile ottenere un'istanza per il controllore %s dal plugin %s.
+Invalid instance type to obtain script files list.,Non valido tipo di istanza per ottenere la lista dei file di script.
+There is no CORE plugin.,Non ci è plugin CORE.
+Invalid plugin name to obtain script files list.,Non valido nome del plugin per ottenere la lista dei file di script.
+Couldn't obtain instance details for generic controller index from plugin %s .,Impossibile ottenere i dettagli delle istanze per l'indice del controller generico dal plugin %s.
+Couldn't read controllers directory from plugin %s .,Impossibile leggere la directory controller dal plugin %s.
+Couldn't read plugin script file for plugin %s .,Impossibile leggere il file di script plugin per il plugin %s.
+Couldn't load action %s from plugin %s.,Impossibile caricare azione %s dal plugin %s.
+Couldn't obtain instance for action %s from plugin %s .,Impossibile ottenere un'istanza per l'azione %s dal plugin %s.
+Couldn't load scope %s from plugin %s.,Impossibile caricare scope %s dal plugin %s.
+Couldn't obtain instance for scope %s from plugin %s .,Impossibile ottenere istanza per scope %s dal plugin %s.
+Plugin name is not a string.,Nome del plugin non è una stringa.
+Couldn't load plugin %s.,Impossibile caricare il plugin %s.
+Couldn't obtain instance for plugin class %s from plugin %s.,Impossibile ottenere un'istanza per la classe plugin %s dal plugin %s.
+Please provide a valid hook name.,Si prega di fornire un nome del gancio valido.
+Couldn't add callback for hook %s.,Impossibile aggiungere callback per gancio %s.
+Please provide a job handler.,Si prega di fornire un handler di processo.
+Couldn't load agent job details from database.,Impossibile caricare i dettagli di processo dell'agente dal database.
+Couldn't delete agent job from database.,Impossibile cancellare processo dell'agente dal database.
+Invalid route for agent job.,Route non valido per processo dell'agente.
+Couldn't save agent job details in database. Please try again.,Impossibile salvare i dettagli del processo dell'agente nel database. Si prega riprovare.
+Couldn't load agent jobs details from database.,Impossibile caricare i dettagli di processo dell'agente dal database.
+Agent job not active.,Processo dell'agente non attivo.
+Couldn't get agent job command.,Impossibile ottenere il comando processo dell'agente.
+Invalid plugin name.,Nome del plugin non valido.
+Couldn't obtain agent jobs flow parameters.,Impossibile ottenere parametri di flusso di processi dell'agente.
+Error running query to suspend agent jobs for provided plugin.,Errore di esecuzione di query per sospendere i processi dell'agente per il plugin fornito.
+Error running query to re-activate agent jobs for provided plugin.,Errore di esecuzione di query per riattivare i processi di agente per il plugin fornito.
+Couldn't get agent job details.,Impossibile ottenere dettagli di processo dell'agente.
+Couldn't refresh agent job details.,Impossibile aggiornare i dettagli di processo dell'agente.
+Agent job already running.,Processo dell'agente già in esecuzione.
+Agent job seems to stall. Run not told to force execution.,Processo dell'agente sembra che stallo. RUN non detto di forzare l'esecuzione.
+Couldn't save background jobs details in database.,Impossibile salvare dettagli di processi sfondo nel database.
+Error preparing environment.,Errore durante la preparazione dell'ambiente.
+Error executing route.,Errore di esecuzione route.
+Error executing route [%s].,Errore di esecuzione route [%s].
+Couldn't get background job details.,Impossibile ottenere dettagli di processi sfondo.
+Couldn't refresh background job details.,Impossibile ottenere dettagli di processo sfondo.
+Couldn't load background jobs model.,Impossibile caricare modello di processi sfondo.
+Couldn't save database details. Please try again.,Impossibile salvare i dettagli del database. Si prega di riprovare.
+Couldn't get background job command.,Impossibile ottenere il comando di processo sfondo.
+Error launching job or job returned empty buffer when we expected a response.,Errore di lancio processo o processo restituiti buffer vuoto quando ci aspettavamo una risposta.
+Job already running.,Processo già in esecuzione.
+Job seems to stall. Run not told to force execution.,Processo sembra che stallo. RUN non detto di forzare l'esecuzione.
+Invalid database settings,Impostazioni del database non valide
+Invalid database driver,Driver di database non valido
+Invalid connection or database settings,Impostazioni di connessione o di database non valido
+Database initialization error.,Errore di inizializzazione del database.
+Database driver is not implemented yet.,Driver di database non è ancora implementata.
+No database connection configured.,No connessione al database configurato.
+Unknown database connection.,Connessione al database sconosciuta.
+Invalid scope parameters.,Parametri di scope non validi.
+Unknown running action.,Esecuzione dell'azione sconosciuta.
+Couldn't obtain action result.,Impossibile ottenere risultato azione.
+Please provide valid cookie name.,Si prega di fornire nome del cookie valido.
+Framework domain is not defined.,Dominio quadro non è definito.
+Headers already sent to request.,Intestazione già inviato per richiedere.
+Please provide valid cookie name and value.,Si prega di fornire il nome cookie valido e valore.
+Domain not set.,Dominio non impostato.
+Error instantiating view object.,Errore istanziando vista oggetto.
+Invalid theme passed to template.,Tema non valido passato a modello.
+Error initializing view.,Errore di inizializzazione vista.
+Error instantiating view class.,Errore istanziando classe di visualizzazione.
+Error setting up view instance.,Errore durante l'impostazione vista istanza.
+Not a controller instance.,Non una istanza del controller.
+Not an action instance.,Non un'istanza azione.
+Please provide a resource file.,Si prega di fornire un file di risorse.
+Couldn't get includes directories.,Impossibile ottenere include le directory.
+Please provide a template first.,Si prega di fornire prima un modello.
+Template [%s] not found.,Template [%s] non trovata.
+Invalid resource file.,File di risorse non valido.
+Resource file [%s] not found.,File di risorse [%s] non trovata.
+Invalid template structure.,Struttura del modello non valido.
+Invalid template file.,File di modello non valido.
+Invalid theme.,Tema non valido.
+Error instantiating core model [%s].,Errore istanziando modello di base [%s].
+Error instantiating plugins model.,Errore istanziando modello plugin.
+Error obtaining plugins list.,Errore durante il ottenendo elenco di plugin.
+Invalid scope.,Scope non valido.
+Unknown or not active action.,Azione sconosciuta o non attiva.
+Action not allowed to run in current scope.,L'azione non consentita l'esecuzione nel scope attuale.
+Controller doesn't appear to be a PHS instance.,Controllore non sembra essere un'istanza PHS.
+Unknown or not active controller.,Controllore sconosciuto o non attivo.
+Controller not allowed to run in current scope.,Controllore non consentita l'esecuzione nel scope corrente.
+Couldn't load action [%s].,Impossibile caricare le azione [%s].
+Couldn't load foobar action.,Impossibile caricare le azione di foobar.
+Private key is empty.,Chiave privata è vuoto.
+Internal keys array is invalid!,Array di chiavi interne non è valido!
+Couldn't decode the string.,Non poteva decodificare la stringa.
+Unknown parameters.,Parametri sconosciuti.
+Unknown source.,Fonte sconosciuta.
+Unknown destination.,Destinazione sconosciuta.
+Unknown source file.,File sorgente sconosciuta.
+Cannot create directory.,Impossibile creare la directory.
+Cannot write in destination directory.,Impossibile scrivere nella directory di destinazione.
+Extension not allowed.,Estensione non consentita.
+Cannot open source file.,Impossibile aprire il file sorgente.
+Destination already exists.,Destinazione esiste già.
+Cannot create destination file.,Impossibile creare il file di destinazione.
+Error downloading file.,Errore durante il download di file.
+Downloaded file too big.,File scaricato troppo grande.
+Source file too big.,File sorgente troppo grande.
+Invalid source settings.,Impostazioni sorgente non valido.
+Invalid destination settings.,Impostazioni di destinazione non validi.
+Unknown copy method.,Metodo di copia sconosciuta.
+Source not found,Sorgente non trovato
+Destination file already exists,File di destinazione esiste già
+Cannot create destination directory.,Impossibile creare directory di destinazione.
+Failed renaming source file.,Impossibile rinominare file sorgente.
+Failed changing source to [%s].,Impossibile cambiare sorgente a [%s].
+Couldn't delete registry database record.,Impossibile eliminare record del database di registro.
+Please provide a valid instance name.,Si prega di fornire un nome di istanza valida.
+Please provide a valid instance type.,Si prega di fornire un tipo di istanza valida.
+Bad class name.,Nome classe errato.
+Plugin name not allowed.,Nome del plugin non è consentito.
+Unknown plugin name.,Nome del plugin sconosciuta.
+Unknown instance type.,Tipo di istanza sconosciuta.
+Class name is not a framework models.,Nome classe non è un modelli framework.
+Class name is not a framework controller.,Nome classe non è un controllore framework.
+Class name is not a framework action.,Nome classe non è un'azione framework.
+Class name is not a framework view.,Nome classe non è una vista framework.
+Class name is not a framework scope.,Nome classe non è un scope framework.
+Class name is not a framework plugin.,Nome classe non è un plugin framework.
+Seems like class name doesn't contain namespace.,Sembra che il nome della classe non contiene spazio dei nomi.
+Couldn't create instance for classes outside phs namespace.,Impossibile creare l'istanza per le classi di fuori phs spazio dei nomi.
+Couldn't load instance file for class %s from plugin %s.,Impossibile caricare il file di istanza per la classe %s dal plugin %s.
+Class %s not defined in %s file.,Classe %s non definito nel file %s.
+Loaded class doesn't appear to be a PHS instance.,Classe caricata non sembra essere un'istanza PHS.
+Unkown parameters for LDAP class.,Parametri sconosciuti per classe LDAP.
+Invalid LDAP server settings.,Impostazioni del server LDAP non valide.
+Failed validating LDAP config.,Impossibile convalidare configurazione LDAP.
+LDAP repository not setup.,Repository LDAP non è configurato.
+Unkown parameters sent to LDAP rename.,Parametri sconosciuti inviati a rinominare LDAP.
+Cannot get source LDAP info.,Impossibile ottenere informazioni sorgente LDAP.
+LDAP resource not found.,Sorgente LDAP non trovato.
+Cannot get destination LDAP info.,Impossibile ottenere informazioni destinazione LDAP.
+Failed updating destination meta data.,Impossibile aggiornare i metadati destinazione.
+Failed renaming LDAP resource.,Impossibile rinominare sorgente LDAP.
+Unkown parameters sent to LDAP file_details.,Parametri sconosciuti inviati a dettagli file LDAP.
+Cannot generate LDAP info.,Impossibile generare informazioni LDAP.
+Unkown parameters sent to LDAP unlink.,Parametri sconosciuti inviati scollegare LDAP.
+LDAP repository not ready.,Repository LDAP non è pronto.
+Bad parameters sent to LDAP add.,Parametri errati inviati a LDAP aggiungere.
+Cannot read source file [%s],Impossibile leggere il file sorgente [%s]
+Extension [%s] not allowed. [Only: %s],Estensione [%s] non consentita. [Solo: %s]
+Extension [%s] not allowed. [Denied: %s],Estensione [%s] non consentita. [Negato: %s]
+LDAP file already exists. [%s],File di LDAP esiste già. [%s]
+Error copying resource file to LDAP structure.,Errore di copiare il file di risorse alla struttura LDAP.
+Unkown LDAP meta file.,File meta LDAP sconosciuto.
+Couldn't read LDAP meta file.,Impossibile leggere il file meta LDAP.
+Error reading LDAP meta file.,Errore durante la lettura del file meta LDAP.
+Cannot open meta file for write.,Impossibile aprire il file meta per la scrittura.
+[%s] is not a directory.,[%s] non è una directory.
+Cannot open LDAP config file for write.,Impossibile aprire il file di configurazione LDAP per la scrittura.
+Couldn't obtain logging directory.,Impossibile ottenere directory di registrazione.
+Invalid logging file.,File di log non valido.
+Error opening log file for read.,Errore durante l'apertura del file di registro per la lettura.
+Please provide table name.,Si prega di fornire il nome della tabella.
+Failed validating flow parameters.,Impossibile convalidare parametri di flusso.
+Table %s doesn't exist.,La tabella %s non esiste.
+Couldn't get definition for table %s.,Impossibile ottenere la definizione per la tabella %s.
+Delete cancelled by trigger.,Cancella annullato dal grilletto.
+Delete cancelled by delete signal trigger.,Cancella annullato dal grilletto segnale di cancellazione.
+Couldn't fetch flow parameters for table %s.,Impossibile recuperare parametri di flusso per la tabella %s.
+Invalid fields definition for table %s.,Definizione dei campi non valido per la tabella %s.
+Field %s has an invalid definition.,Il campo %s ha una definizione non valida.
+Couldn't validate field %s.,Impossibile convalidare campo %s.
+Field %s is not in enum scope.,Il campo %s non è in scope enum.
+Invalid table definition.,Definizione della tabella non valido.
+Couldn't parse parameters for database insert.,Impossibile analizzare i parametri per l'inserimento del database.
+Error validating parameters.,Errore durante la convalida dei parametri.
+Failed saving information to database.,Impossibile salvare le informazioni nel database.
+Failed actions after database insert.,Azioni fallito dopo inserisci database.
+Exiting record not found in database.,Record di uscendo non trovato nel database.
+Couldn't parse parameters for database edit.,Impossibile analizzare i parametri per modificare database.
+Failed actions after database edit.,Azioni fallito dopo modificare database.
+Record doesn't have table index as key in result.,Record non ha indice di tabella come chiave in risultato.
+Failed actions before database edit.,Azioni falliti prima modificare database.
+Couldn't obtain plugins model id.,Impossibile ottenere i id del modello di plugin.
+Couldn't obtain current model id.,Impossibile ottenere id corrente del modello.
+Error installing plugins model.,Errore durante l'installazione modello di plugin.
+Error saving plugin details to database.,Errore durante il salvataggio dettagli di plugin nel database.
+Invalid column definition [%s].,Definizione di colonna non valido [%s].
+Column [%s] already exists.,Colonna [%s] esiste già.
+Column [%s] in alter table statement doesn't exist.,Colonna [%s] in alter table non esiste.
+Error altering table to add column [%s].,Errore alterazione di tavolo per aggiungere colonna [%s].
+Error altering table to add indexes for [%s].,Errore alterazione di tavolo per aggiungere indici per [%s].
+Column [%s] in alter table (change) statement doesn't exist in table structure.,Colonna [%s] nella alter table (cambiamento) dichiarazione non esiste nella struttura della tabella.
+Error altering table to change column [%s].,Errore alterazione di tavolo per cambiare colonna [%s].
+Error altering table (change) to drop OLD index for [%s].,Errore alterazione di tavolo (cambiamento) per cadere indice Vecchio per [%s].
+Error altering table (change) to add indexes for [%s].,Errore alterazione di tavolo (cambiamento) per aggiungere gli indici per [%s].
+Invalid parameters sent to drop column method.,Parametri non validi inviati a cadere metodo della colonna.
+Error altering table to drop column [%s].,Errore alterazione di tavolo a cadere colonna [%s].
+Setup for model [%s] is invalid.,Configurazione per il modello [%s] non è valido.
+Model table [%s] not defined in model [%s].,Tavolo modello [%s] non definito nel modello di [%s].
+Error generating table %s for model %s.,Errore generazione di tavolo %s per il modello %s.
+"Couldn't update table %s, model %s.","Impossibile aggiornare tabella %s, modello %s."
+"Old field name %s found twice in same table model table %s, model %s.","Vecchio nome del campo %s trovato due volte nello stesso modello da tavolo tabella %s, modello %s."
+Error updating table properties %s for model %s.,Errore di aggiornamento proprietà della tabella %s per il modello %s.
+"Error changing column %s, table %s, model %s.","Errore cambiando colonna %s, tabella %s, modello %s."
+"Error adding column %s, table %s, model %s.","Errore durante l'aggiunta colonna %s, tabella %s, modello %s."
+"Error updating column %s, table %s, model %s.","Errore aggiornamento colonna %s, tabella %s, modello %s."
+"Error dropping column %s, table %s, model %s.","Errore caduta colonna %s, tabella %s, modello %s."
+Plugins model cannot be uninstalled.,Modello plugin non può essere disinstallato.
+Error hard-deleting model from database.,Errore hard-cancellazione modello dal database.
+Error dropping table %s.,Errore cadere tabella %s.
+Couldn't obtain current plugin id.,Impossibile ottenere id corrente plugin.
+Model custom update functionality failed.,Funzionalità aggiornamento del modello personalizzato non è riuscito.
+Error saving model details to database.,Errore durante il salvataggio dettagli del modello nel database.
+record,record
+records,record
+Displaying results...,Visualizzazione dei risultati ...
+%s ago,%s fa
+Bad columns format.,Formato colonne errato.
+Please provide a column_title for all columns.,Si prega di fornire un titolo colonna per tutte le colonne.
+Bad filters format.,Formato filtri errato.
+var_name or record_field not provided for %s filter.,var_nome o record_field non previsti per %s filtro.
+Bad bulk actions format.,Formato azioni in blocco errato.
+No action or js_callback provided for bulk action %s.,Nessuna azione o js_callback previste per l'azione in blocco %s.
+Model is invalid.,Modello non è valido.
+Error obtaining filters buffer.,Errore durante il ottenendo buffer filtri.
+Model not set. Nothing to query.,Modello non impostato. Niente da interrogare.
+Error obtaining listing buffer.,Errore durante il ottenendo elencando buffer.
+Couldn't load action depencies.,Impossibile caricare le dipendenze di azione.
+Error loading paginator parameters.,Errore di caricamento parametri impaginatore.
+Couldn't instantiate paginator class.,Impossibile creare un'istanza di classe impaginatore.
+Something went wrong while preparing paginator class.,Qualcosa è andato storto durante la preparazione della classe impaginatore.
+Couldn't initialize paginator class.,Impossibile inizializzare classe impaginatore.
+Something went wrong...,Qualcosa è andato storto...
+Error validating template resource.,Errore durante la convalida delle risorse modello.
+Instantiating view from plugin.,Istanziando vista dal plugin.
+Couldn't load library from plugin [%s],Impossibile caricare la libreria dal plugin [%s]
+Couldn't load library [%s] from plugin [%s],Impossibile caricare la libreria [%s] dal plugin [%s]
+Couldn't instantiate library class for library [%s] from plugin [%s],Impossibile creare un'istanza della classe di libreria per la libreria [%s] dal plugin [%s]
+Library [%s] from plugin [%s] is not a PHS library.,Libreria [%s] dal plugin [%s] non è una libreria PHS.
+Library [%s] from plugin [%s] couldn't set plugin parent.,Libreria [%s] dal plugin [%s] non potrebbe impostare genitore plugin.
+Library [%s] from plugin [%s] couldn't set location paths.,Libreria [%s] dal plugin [%s] non potrebbe impostare percorsi di posizione.
+Error updating model %s.,Errore aggiornamento modello %s.
+Plugin not found in database.,Plugin non trovato nel database.
+Error activating %s %s.,Errore attivazione %s %s.
+Error activating plugin.,Errore attivazione plugin.
+Plugin custom activation functionality failed.,Funzionalità di attivazione plugin personalizzato non riuscita.
+Plugin custom inactivation functionality failed.,Funzionalità di inattivazione plugin personalizzato non riuscita.
+Error inactivating %s %s.,Errore inattivazione %s %s.
+Error inactivating plugin.,Errore inattivazione plugin.
+Couldn't install agent job [%s] for plugin [%s],Impossibile installare processo dell'agente [%s] per il plugin [%s]
+Couldn't install agent job [%s] for [%s],Impossibile installare processo dell'agente [%s] per [%s]
+Couldn't uninstall agent job [%s] for [%s],Impossibile disinstallare processo dell'agente [%s] per [%s]
+Couldn't get a correct slug for role [%s],Impossibile ottenere una slug corretta per il ruolo [%s]
+Couldn't get a correct slug for role unit [%s],Impossibile ottenere una slug corretta per l'unità di ruolo [%s]
+Couldn't install role unit [%s],Impossibile installare unità di ruolo [%s]
+Couldn't install role [%s],Impossibile installare il ruolo [%s]
+Plugin custom install functionality failed.,Funzionalità di installazione plugin personalizzata non è riuscita.
+Error installing model %s.,Errore durante l'installazione modello %s.
+"Finishing plugin installation failed. Please uninstall, then re-install the plugin.","Finitura di installazione del plugin non è riuscita. Disinstallare, quindi reinstallare il plugin."
+Plugin is still active. Please inactivate it first.,Plugin è ancora attivo. Si prega di inattivare prima.
+Plugin custom un-install functionality failed.,Funzionalità di disinstallazione plugin personalizzato non è riuscita.
+Error un-installing model %s.,Errore di disinstallare modello %s.
+Error hard-deleting plugin from database.,Errore hard-cancellazione plugin dal database.
+Plugin custom update functionality failed.,Funzionalità di aggiornamento plugin personalizzato non è riuscito.
+Error updating model [%s] from plugin [%s],Errore aggiornamento di modello [%s] dal plugin [%s]
+CORE Framework,CORE Framework
+CORE functionality,CORE funzionalità
+PO file not found or not readable.,File PO non trovato o non leggibile.
+Couldn't read PO file or it is empty.,Impossibile leggere il file PO o è vuoto.
+Invalid input buffer.,Buffer di input non valido.
+Please provide valid parameters for this role.,Si prega di fornire parametri validi per questo ruolo.
+Error adding role [%s] to database.,Errore durante l'aggiunta ruolo [%s] al database.
+Please provide valid parameters for this role unit.,Si prega di fornire parametri validi per questa unità ruolo.
+Error adding role unit [%s] to database.,Errore aggiungendo unità ruolo [%s] al database.
+Error connecting with class.,Errore durante la connessione con classe.
+Signal already defined.,Segnale già definito.
+Signal not defined.,Segnale non definito.
+Couldn't obtain instance to send signal.,Impossibile ottenere dell'istanza per inviare il segnale.
+Signal receive not implemented correctly.,Ricezione del segnale non implementato correttamente.
+years,anni
+year,anno
+months,mesi
+month,mese
+days,giorni
+day,giorno
+hours,ore
+hour,ora
+minutes,minuti
+minute,minuto
+second,secondo
+weeks,settimane
+week,settimana
+Cannot create empty directory.,Impossibile creare directory vuota.
+Cannot create directory [%s],Impossibile creare la directory [%s]
+Couldn't get details about language file or language file is invalid.,Impossibile ottenere i dettagli relativi file di lingua o file della lingua non è valido.
+Destination directory is not writable. Please check write rights.,Directory di destinazione non è scrivibile. Si prega di verificare i diritti di scrittura.
+Error creating backup file in destination directory. Please check write rights.,Errore durante la creazione del file di backup nella directory di destinazione. Si prega di verificare i diritti di scrittura.
+Error creating backup for language file [%s],Errore durante la creazione di backup per file della lingua [%s]
+Error creating language file [%s],Errore di file di lingua creazione [%s]
+PO file not found.,File PO non trovato.
+Couldn't read PO file content.,Impossibile leggere il contenuto dei file PO.
+Language is invalid.,La lingua non è valida.
+System language directory %s doesn't exist.,Directory della lingua di sistema %s non esiste.

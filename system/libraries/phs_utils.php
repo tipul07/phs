@@ -1172,4 +1172,25 @@ class PHS_utils extends PHS_Language
 
         return @htmlspecialchars( $string, $params['convert_flags'], $params['xml_encoding'] );
     }
+
+    static function csv_column( $str, $delimiter = ',', $enclosure = '"', $escape = '"' )
+    {
+        if( strstr( $str, $enclosure ) !== false
+         or strstr( $str, $delimiter ) !== false )
+            $str = $enclosure.str_replace( $enclosure, $escape.$enclosure, $str ).$enclosure;
+
+        return $str;
+    }
+
+    static function csv_line( $line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"' )
+    {
+        if( empty( $line_arr ) or !is_array( $line_arr ) )
+            return '';
+
+        $result_arr = array();
+        foreach( $line_arr as $line_str )
+            $result_arr[] = self::csv_column( $line_str, $delimiter, $enclosure, $escape );
+
+        return implode( $delimiter, $result_arr ).$line_delimiter;
+    }
 }

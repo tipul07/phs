@@ -1,0 +1,65 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Change Password,Cambia password
+Edit Profile,Modifica Profilo
+Forgot Password,Ha dimenticato la password
+Login,Accedi
+Logout,Logout
+Username,Nome utente
+Email,E-mail
+Validation code,Codice di validazione
+Password,Password
+Remember Me,Ricordami
+Register,Registro
+N/A,N/A
+Contact Us,Contattaci
+Please wait...,Attendere prego...
+Subject,Soggetto
+Send Message,Invia Messaggio
+Page not found,Pagina non trovata
+Message,Messaggio
+Error initializing PHS JS Engine,Errore durante l'inizializzazione PHS JS Engine
+Loading,Caricamento in corso
+Couldn't obtain jQuery object for autocomplete field.,Impossibile ottenere oggetto jQuery per il campo di completamento automatico.
+URL not provided for autocomplete field.,URL non ha fornito per il campo di completamento automatico.
+Changing language... Please wait.,Cambiamento della lingua ... Attendere prego.
+Error changing language. Please retry.,Errore durante il cambiamento della lingua. Si prega di riprovare.
+Error,Errore
+Error ontaining dialogue body. Please try again.,Errore durante il ottenendo del corpo del dialogo. Si prega di riprovare.
+Rendered from outside of paginator.,Rendering dall'esterno impaginatore.
+Render before filters call failed.,Render prima che i filtri chiamata non riuscita.
+True,Vero
+False,Falso
+Filter,Filtro
+Hide Filters,Nascondi filtri
+No filters set.,Nessun filtro impostato.
+Current filters,Filtri correnti
+Render after filters call failed.,Render dopo i filtri chiamata non riuscita.
+ - Bulk Actions - ,- Azioni in blocco -
+Apply,Applicare
+%s per page,%s per pagina
+Render before table call failed.,Render prima che la tavolo chiamata non è riuscita.
+Render after headers call failed.,Render dopo intestazioni chiamata non riuscita.
+No %s found with specified filters.,Nessun %s trovato con filtri specificati.
+No %s found in database.,Nessun %s trovato nel database.
+Bad column setup,Installazione di colonna errato
+Cell callback failed.,Cell callback non è riuscita.
+Render cell call failed.,Render cell call non è riuscita.
+Render before footer call failed.,Render prima che footer chiamata non è riuscita.
+Previous page,Pagina precedente
+Next page,Pagina seguente
+"Displaying %s / %s %s, page %s / %s, %s per page.","Visualizzazione %s / %s %s, pagina %s / %s, %s per pagina."
+Render after table call failed.,Render dopo tavolo chiamata non è riuscita.
+Render after full list call failed.,Render dopo elenco completo chiamata non riuscita
+Couldn't load accounts model. Please contact support.,Impossibile caricare modello di conti. Si prega di contattare il supporto.
+Loading...,Caricamento in corso...
+Hello %s,Hello %s
+Choose language,Scegli la lingua
+Site Index,Site Index
+Terms and Conditions,Termini e condizioni
+All rights reserved.,Tutti i diritti riservati.
+Select language,Seleziona lingua
+Admin Menu,Admin Menu
+Home,Home
+Change language,Cambia lingua
