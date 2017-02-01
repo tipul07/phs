@@ -12,17 +12,14 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Hi <?php echo $email_vars['nick']?>,<br/>
 <br/>
-Welcome to the <?php echo $email_vars['site_name']?> Platform!<br/>
+Welcome to the <?php echo $email_vars['site_name']?> platform!<br/>
 You're almost ready, just confirm your registration by clicking here: <a target="_blank" href="<?php echo $email_vars['activation_link']?>">Confirm Registration</a>
 <br/>
-or copy and paste the link below in your browser:<hr/>
-<?php echo $email_vars['activation_link']?>
+or copy and paste the link below in your browser:<br/>
 <hr/>
-Here are your login details:<br/>
-Login: <?php echo $email_vars['nick']?><br/>
-Password: <?php echo $email_vars['obfuscated_pass']?><br/>
-<small>For security reasons we obfuscated your password.</small>
+<?php echo $email_vars['activation_link']?><br/>
 <hr/>
+<br/>
 Need help? <a href="<?php echo $email_vars['contact_us_link']?>">Please contact us!</a><br/>
 <br/>
 We're looking forward to working with you!<br/>

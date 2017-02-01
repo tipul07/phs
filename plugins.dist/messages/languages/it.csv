@@ -103,7 +103,7 @@ Error completing message flow. Please try again.,Errore completando il flusso de
 Error obtaining message details from database.,Errore durante il ottenendo dettagli del messaggio dal database.
 Sender account details not found.,Dettagli del conto del mittente non trovato.
 Couldn't find reply message in database.,Impossibile trovare il messaggio di risposta nel database.
-Internal message sent,Messaggio interno inviato
+Internal message sent,Invio messaggio interno
 New internal message,Nuovo messaggio interno
 Unknown user for this user message.,Utente sconosciuto per questo messaggio utente.
 Unknown message details for this user message.,Dettagli messaggio sconosciuto per questo messaggio utente.

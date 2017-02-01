@@ -1,7 +1,7 @@
 # !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
-Account Activation,Attivazione dell'account
+Account Activation,Attivazione account
 Couldn't load accounts plugin.,Impossibile caricare conti plugin.
 Couldn't load accounts model.,Impossibile caricare conti modello.
 Couldn't interpret confirmation parameter. Please try again.,Impossibile interpretare parametro di conferma. Riprova.
@@ -29,7 +29,7 @@ Invalid validation code.,Codice di validazione non valido.
 Invalid account.,Account non valido.
 Error sending forgot password email. Please try again.,Errore durante l'invio e-mail dimenticato la password. Si prega di riprovare.
 Cannot send forgot password email to this account.,Non è possibile inviare dimenticato email password per questo account.
-Password reset link,Link di reimpostazione della password
+Password reset link,Rispristina la tua password
 Error sending forgot password email to %s.,Errore durante l'invio e-mail dimenticato la password a %s.
 Login,Accedi
 Your session expired. Please login again into your account.,La sessione scaduta. Si prega di effettuare nuovamente l'accesso al tuo account.
@@ -44,7 +44,7 @@ You logged out from your account...,Sei disconnesso dal tuo account...
 Successfully logged out...,Sei stato disconnesso con successo...
 Error logging out... Please try again.,Errore di disconnessione... Si prega di riprovare
 Account doesn't need password change notification.,Account non ha bisogno di notifica di modifica della password.
-Password changed,Password modificata
+Password changed,Password cambiata
 Error sending password changed message to %s.,Errore durante l'invio della password modificata messaggio a%s.
 Register an Account,Registra un Account
 User account registered with success...,Account utente registrato con successo ...
@@ -57,7 +57,7 @@ Error sending confirmation email to %s.,Errore durante l'invio e-mail di conferm
 Cannot send registration email to this account.,Non è possibile inviare e-mail di registrazione a questo account.
 Error sending registration email to %s.,Errore durante l'invio e-mail di registrazione a %s.
 Account doesn't need email verification.,Account non ha bisogno di verifica e-mail.
-Verify Email,Verifica E-mail
+Verify Email,Email di verifica
 Error sending verify email message to %s.,Errore durante l'invio e-mail messaggio di verifica a %s.
 Level %s,Livello %s
 Status %s,Stato %s

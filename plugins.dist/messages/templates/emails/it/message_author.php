@@ -12,11 +12,11 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Ciao <?php echo $email_vars['author_nick']?>,<br/>
 <br/>
-Il <?php echo $email_vars['message_date']?> hai inviato un nuovo messaggio interno con oggetto "<?php echo $email_vars['message_subject']?>".<br/>
+Il <?php echo $email_vars['message_date']?> hai inviato un nuovo messaggio interno con questo oggetto "<?php echo $email_vars['message_subject']?>".<br/>
 <br/>
-Per visualizzare questo messaggio, clicca su questo link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
+Per vedere questo messaggio, clicca su questo link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
 <br/>
-Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Vi preghiamo di contattarci!</a><br/>
+Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>
-I migliori auguri,<br/>
-<?php echo $email_vars['site_name']?> squadra
+Cordiali saluti,<br/>
+<?php echo $email_vars['site_name']?> team

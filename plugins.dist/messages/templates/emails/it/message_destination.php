@@ -16,7 +16,7 @@ Il <?php echo $email_vars['message_date']?> hai ricevuto un nuovo messaggio inte
 <br/>
 Per visualizzare questo messaggio, clicca su questo link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
 <br/>
-Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Vi preghiamo di contattarci!</a><br/>
+Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>
-I migliori auguri,<br/>
-<?php echo $email_vars['site_name']?> squadra
+Cordiali saluti,<br/>
+<?php echo $email_vars['site_name']?> team

@@ -23,9 +23,9 @@ Password: <?php echo $email_vars['clean_pass']?><br/>
 <hr/><br/>
 <br/>
 Vai alla pagina login: <a href="<?php echo $email_vars['login_link']?>">Pagina di Login</a><br/>
-Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Vi preghiamo di contattarci!</a><br/>
+Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>
 Non vediamo l'ora di lavorare con te!<br/>
 <br/>
-I migliori auguri,<br/>
-<?php echo $email_vars['site_name']?> squadra
+Cordiali saluti,<br/>
+<?php echo $email_vars['site_name']?> team

@@ -12,20 +12,17 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Ciao <?php echo $email_vars['nick']?>,<br/>
 <br/>
-Benvenuti al <?php echo $email_vars['site_name']?> Piattaforma!<br/>
-Sei quasi pronto, basta confermare la registrazione cliccando qui: <a target="_blank" href="<?php echo $email_vars['activation_link']?>">Conferma registrazione</a>
+Benvenuti sulla piattaforma di <?php echo $email_vars['site_name']?>!<br/>
+Sei quasi pronto, conferma la tua registrazione cliccando qui: <a target="_blank" href="<?php echo $email_vars['activation_link']?>">Conferma la tua registrazione</a>
 <br/>
-o copia e incolla il link in basso nel browser:<hr/>
-<?php echo $email_vars['activation_link']?>
+o copia e incolla il seguente link sul tuo browser:<br/>
 <hr/>
-Ecco i tuoi dati d'accesso:<br/>
-Login: <?php echo $email_vars['nick']?><br/>
-Password: <?php echo $email_vars['obfuscated_pass']?><br/>
-<small>Per motivi di sicurezza abbiamo offuscato la tua password.</small>
+<?php echo $email_vars['activation_link']?><br/>
 <hr/>
-Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Vi preghiamo di contattarci!</a><br/>
+<br/>
+Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>
 Non vediamo l'ora di lavorare con te!<br/>
 <br/>
-I migliori auguri,<br/>
-<?php echo $email_vars['site_name']?> squadra
+Cordiali saluti,<br/>
+<?php echo $email_vars['site_name']?> team

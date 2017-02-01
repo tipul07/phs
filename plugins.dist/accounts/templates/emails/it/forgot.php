@@ -12,15 +12,15 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Ciao <?php echo $email_vars['nick']?>,<br/>
 <br/>
-Abbiamo ricevuto una richiesta di reimpostare la password dell'account.<br/>
-Per cambiare la password, clicca qui: <a target="_blank" href="<?php echo $email_vars['forgot_link']?>">Conferma registrazione</a>
+Abbiamo ricevuto una richiesta di ripristinare la password del tuo account.<br/>
+Per cambiare la tua password, per piacere, clicca qui: <a target="_blank" href="<?php echo $email_vars['forgot_link']?>">Cambiare la password</a>
 <br/>
-o copia e incolla il link in basso nel browser:<br/>
+o copia e incolla il seguente link sul tuo browser:<br/>
 <br/>
 <?php echo $email_vars['forgot_link']?><br/>
 <br/>
-Vi siete ricordati la password? <a href="<?php echo $email_vars['login_link']?>">Accedi al tuo account</a><br/>
-Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Vi preghiamo di contattarci!</a><br/>
+Ti ricordi la tua password? <a href="<?php echo $email_vars['login_link']?>">Fai il login dal tuo account</a><br/>
+Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>
-I migliori auguri,<br/>
-<?php echo $email_vars['site_name']?> squadra
+Cordiali saluti,<br/>
+<?php echo $email_vars['site_name']?> team
