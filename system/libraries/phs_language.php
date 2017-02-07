@@ -851,11 +851,11 @@ class PHS_Language_Container extends PHS_Error
         if( !($file_bin = @system( 'which file' ))
          or !($iconv_bin = @system( 'which iconv' )) )
         {
+            ob_end_clean();
+
             // we don't have required files to convert csv to utf8... check if we have a utf8 language file...
             if( @file_exists( $params['utf8_file'] ) )
                 return $params['utf8_file'];
-
-            ob_end_clean();
 
             return false;
         }

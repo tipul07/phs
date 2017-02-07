@@ -1,5 +1,8 @@
 <?php
 
+    if( !defined( 'PHS_VERSION' ) )
+        exit;
+
 // Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
 define( 'PHS_SITE_NAME', 'PoweredByPHS.com' );
 

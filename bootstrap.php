@@ -252,14 +252,14 @@ if( !($plugins_model = PHS::load_model( 'plugins' )) )
     exit;
 }
 
-if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
-    $active_plugins = array();
-
 //
 // Check if we are in install flow...
 //
 if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
 {
+    if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
+        $active_plugins = array();
+
     if( empty( $active_plugins )
     and !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
     {
@@ -268,6 +268,9 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
     }
 } else
 {
+    if( !($active_plugins = $plugins_model->cache_all_db_details()) )
+        $active_plugins = array();
+
     echo 'Checking plugins module installation... ';
 
     if( !$plugins_model->check_install_plugins_db() )
