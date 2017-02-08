@@ -109,7 +109,7 @@ define( 'PHP_EXEC', '/usr/bin/php' );
 
 // Debugging mode?
 define( 'PHS_DEBUG_MODE', true );
-define( 'PHS_DEBUG_THROW_ERRORS', true );
+define( 'PHS_DEBUG_THROW_ERRORS', false );
 
 include_once( PHS_PATH.'bootstrap.php' );
 
