@@ -868,7 +868,10 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
         if( $connection_name === false )
             $connection_name = $this->default_connection();
 
-        $this->set_error( $error_code, $debug_err );
+        $error_params = array();
+        $error_params['prevent_throwing_errors'] = (!empty( $this->error_state )?true:false);
+
+        $this->set_error( $error_code, $debug_err, '', $error_params );
 
         if( $this->display_errors )
         {

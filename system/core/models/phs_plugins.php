@@ -497,14 +497,14 @@ class PHS_Model_Plugins extends PHS_Model
 
         $list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'plugins' ) );
 
-        db_supress_errors( $this->get_db_connection() );
+        db_supress_errors( $list_arr['db_connection'] );
         if( !($all_db_plugins = $this->get_list( $list_arr )) )
         {
-            db_restore_errors_state( $this->get_db_connection() );
+            db_restore_errors_state( $list_arr['db_connection'] );
             self::$db_plugins = array();
             return true;
         }
-        db_restore_errors_state( $this->get_db_connection() );
+        db_restore_errors_state( $list_arr['db_connection'] );
 
         foreach( $all_db_plugins as $db_id => $db_arr )
         {
