@@ -20,6 +20,9 @@ class PHS_Model_Plugins extends PHS_Model
     // Cached database plugins rows
     private static $db_plugins = array();
 
+    // Cached database plugin records which are ACTIVE plugins in framework
+    private static $db_plugin_active_plugins = array();
+
     // Cached database plugin records which are plugins in framework
     private static $db_plugin_plugins = array();
 
@@ -173,6 +176,7 @@ class PHS_Model_Plugins extends PHS_Model
     {
         self::$db_plugins = array();
         self::$db_plugin_plugins = array();
+        self::$db_plugin_active_plugins = array();
     }
 
     private function _reset_plugin_registry_cache()
@@ -513,6 +517,8 @@ class PHS_Model_Plugins extends PHS_Model
         if( !empty( self::$db_plugins ) )
         {
             self::$db_plugin_plugins = array();
+            $this->get_all_plugins( false );
+            self::$db_plugin_active_plugins = array();
             $this->get_all_active_plugins( false );
         }
 
@@ -546,6 +552,41 @@ class PHS_Model_Plugins extends PHS_Model
         if( (!empty( $force ) or empty( self::$db_plugins ))
         and !$this->cache_all_db_details( $force ) )
         {
+            self::$db_plugin_active_plugins = array();
+            return array();
+        }
+
+        if( !empty( self::$db_plugin_active_plugins ) )
+        {
+            if( empty( $force ) )
+                return self::$db_plugin_active_plugins;
+
+            self::$db_plugin_active_plugins = array();
+        }
+
+        if( !is_array( self::$db_plugin_active_plugins ) )
+            self::$db_plugin_active_plugins = array();
+
+        foreach( self::$db_plugins as $instance_id => $plugin_arr )
+        {
+            if( !$this->is_active( $plugin_arr )
+             or $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+             or empty( $plugin_arr['plugin'] ) )
+                continue;
+
+            self::$db_plugin_active_plugins[$plugin_arr['plugin']] = $plugin_arr;
+        }
+
+        return self::$db_plugin_active_plugins;
+    }
+
+    public function get_all_plugins( $force = false )
+    {
+        $this->reset_error();
+
+        if( (!empty( $force ) or empty( self::$db_plugins ))
+        and !$this->cache_all_db_details( $force ) )
+        {
             self::$db_plugin_plugins = array();
             return array();
         }
@@ -563,8 +604,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         foreach( self::$db_plugins as $instance_id => $plugin_arr )
         {
-            if( !$this->is_active( $plugin_arr )
-             or $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+            if( $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
              or empty( $plugin_arr['plugin'] ) )
                 continue;
 

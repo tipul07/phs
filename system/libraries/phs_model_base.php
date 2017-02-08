@@ -883,19 +883,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $hook_params['flow_params'] = $flow_params;
         $hook_params['fields_arr'] = $fields_arr;
 
-        if( (
-                // Check plugin hook
-                (!empty( $plugin_instance_id )
-                    and ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params ))
-                )
-                or
-                // Check model hook
-                ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params ))
-                or
-                // Check generic hook
-                ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params ))
-            )
-        and is_array( $extra_fields_arr ) and !empty( $extra_fields_arr['fields_arr'] ) )
+        if( !empty( $plugin_instance_id )
+        and ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params )) )
+            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
+
+        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params )) )
+            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
+
+        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params )) )
             $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
 
         return $fields_arr;
