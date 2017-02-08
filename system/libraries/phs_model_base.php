@@ -63,6 +63,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
     const T_DETAILS_KEY = '{details}';
 
+    const RECORD_NEW_INSERT_KEY = '{new_in_db}';
+
     // Tables definition
     protected $_definition = array();
 
@@ -1249,6 +1251,15 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $return_arr;
     }
 
+    public function record_is_new( $record_arr )
+    {
+        if( empty( $record_arr ) or !is_array( $record_arr )
+         or empty( $record_arr[self::RECORD_NEW_INSERT_KEY] ) )
+            return false;
+
+        return true;
+    }
+
     public function insert( $params )
     {
         $this->reset_error();
@@ -1316,7 +1327,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $insert_arr[$params['table_index']] = $item_id;
 
         // Set to tell future calls record was just added to database...
-        $insert_arr['{new_in_db}'] = true;
+        $insert_arr[self::RECORD_NEW_INSERT_KEY] = true;
 
         $insert_after_exists = (@method_exists( $this, 'insert_after_'.$params['table_name'] )?true:false);
 
