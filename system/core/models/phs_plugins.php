@@ -473,6 +473,13 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$dir_plugins;
     }
 
+    public function get_all_db_details( $force = false )
+    {
+        $this->cache_all_db_details( $force );
+
+        return (empty( self::$db_plugins )?array():self::$db_plugins);
+    }
+
     public function cache_all_db_details( $force = false )
     {
         $this->reset_error();
@@ -482,7 +489,7 @@ class PHS_Model_Plugins extends PHS_Model
             $this->_reset_db_plugin_cache();
 
         if( !empty( self::$db_plugins ) )
-            return self::$db_plugins;
+            return true;
 
         $list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'plugins' ) );
 

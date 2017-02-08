@@ -268,7 +268,7 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
     }
 } else
 {
-    if( !($active_plugins = $plugins_model->cache_all_db_details()) )
+    if( !($active_plugins = $plugins_model->get_all_db_details()) )
         $active_plugins = array();
 
     echo 'Checking plugins module installation... ';
