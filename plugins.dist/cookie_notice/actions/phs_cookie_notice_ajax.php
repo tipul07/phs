@@ -33,8 +33,6 @@ class PHS_Action_Cookie_notice_ajax extends PHS_Action
 
         $agree_cookies = PHS_params::_pg( 'agree_cookies', PHS_params::T_INT );
 
-        var_dump( $agree_cookies );
-
         if( !empty( $agree_cookies )
         and $plugin_obj->accept_cookie_agreement() )
             $action_result['ajax_result']['with_success'] = true;

@@ -8,12 +8,12 @@
         $no_nickname_only_email = false;
 ?>
 <!-- BEGIN: main -->
-<div style="min-width:600px;max-width:800px;margin: 0 auto;">
+<div style="width:600px;margin: 0 auto;">
     <form id="register_form" name="register_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
 
-        <div class="form_container" style="width: 450px;">
+        <div class="form_container">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Register an account' )?></h3>
