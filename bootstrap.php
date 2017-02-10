@@ -293,7 +293,10 @@ foreach( $active_plugins as $plugin_name => $plugin_db_arr )
     foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
     {
         if( @file_exists( PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php' ) )
-            $bootstrap_scripts[$bootstrap_scripts_number_i][] = PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php';
+        {
+            $bootstrap_scripts[$bootstrap_scripts_number_i][] = PHS_PLUGINS_DIR . $plugin_name . '/phs_bootstrap_' . $bootstrap_scripts_number_i . '.php';
+            echo '<!-- '.PHS_PLUGINS_DIR . $plugin_name . '/phs_bootstrap_' . $bootstrap_scripts_number_i . '.php -->';
+        }
     }
 }
 

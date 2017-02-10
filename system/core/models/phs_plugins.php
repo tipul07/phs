@@ -496,12 +496,15 @@ class PHS_Model_Plugins extends PHS_Model
             return true;
 
         $list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'plugins' ) );
+        $list_arr['order_by'] = 'is_core DESC';
 
         db_supress_errors( $list_arr['db_connection'] );
         if( !($all_db_plugins = $this->get_list( $list_arr )) )
         {
             db_restore_errors_state( $list_arr['db_connection'] );
             self::$db_plugins = array();
+            self::$db_plugin_plugins = array();
+            self::$db_plugin_active_plugins = array();
             return true;
         }
         db_restore_errors_state( $list_arr['db_connection'] );
