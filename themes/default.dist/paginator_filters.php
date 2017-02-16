@@ -85,8 +85,10 @@
 
                         if( !empty( $filter_details['display_hint'] ) )
                         {
-                            ?> <i class="fa fa-question-circle" title="<?php echo form_str( $filter_details['display_hint'] )?>"></i><?php
+                            ?> <i class="fa fa-question-circle" title="<?php echo form_str( $filter_details['display_hint'] )?>"></i> <?php
                         }
+
+                        ?> <a href="javascript:void(0)" onclick="clear_filter_value( '<?php echo $field_id?>' )"><i class="fa fa-times-circle" title="<?php echo $this->_pt( 'Clear filter' )?>"></i></a> <?php
 
                     ?></label>
                     <div class="paginator_input"><?php
@@ -109,7 +111,7 @@
                         switch( $filter_details['type'] )
                         {
                             case PHS_params::T_DATE:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="datepicker form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
                             case PHS_params::T_BOOL:
@@ -179,6 +181,22 @@
 </div>
 <div class="clearfix"></div>
 <script type="text/javascript">
+$(document).ready(function(){
+    $(".phs_filter_datepicker").datepicker({
+        dateFormat: 'yy-mm-dd',
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true
+    });
+});
+function clear_filter_value( obj_id )
+{
+    var obj = $("#"+obj_id);
+    if( !obj )
+        return;
+
+    obj.val( '' );
+}
 function toggle_filters_inputs_and_text()
 {
     var inputs_obj = $('#<?php echo $filters_form_name?>_inputs');
