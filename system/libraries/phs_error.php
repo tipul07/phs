@@ -2,7 +2,8 @@
 
 namespace phs\libraries;
 
-if( !defined( 'PHS_VERSION' ) )
+if( (!defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ))
+and !defined( 'PHS_VERSION' ) )
     exit;
 
 class PHS_Error

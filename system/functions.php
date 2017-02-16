@@ -1,6 +1,7 @@
 <?php
 
-if( !defined( 'PHS_VERSION' ) )
+if( (!defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ))
+and !defined( 'PHS_VERSION' ) )
     exit;
 
 if( !defined( 'DATETIME_T_EMPTY' ) )

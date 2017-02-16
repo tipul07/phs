@@ -1,6 +1,7 @@
 <?php
 
-if( !defined( 'PHS_VERSION' ) )
+if( (!defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ))
+and !defined( 'PHS_VERSION' ) )
     exit;
 
 use \phs\libraries\PHS_Language;
