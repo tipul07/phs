@@ -27,13 +27,18 @@ and !empty( $hook_args['languages_arr'] ) and is_array( $hook_args['languages_ar
     }
 }
 
+$reques_lang_set = false;
 if( ($session_lang = PHS_session::_g( PHS_Language::LANG_SESSION_KEY ))
 and PHS_Language::valid_language( $session_lang ) )
+{
+    $reques_lang_set = true;
     PHS_Language::set_current_language( $session_lang );
+}
 
 if( ($url_lang = PHS_params::_gp( PHS_Language::LANG_URL_PARAMETER ))
 and PHS_Language::valid_language( $url_lang ) )
 {
+    $reques_lang_set = true;
     PHS_Language::set_current_language( $url_lang );
 
     if( empty( $session_lang )
@@ -44,4 +49,9 @@ and PHS_Language::valid_language( $url_lang ) )
 // Check if we should change default language as requested by plugins in hook call
 if( !empty( $hook_args['default_language'] )
 and PHS_Language::valid_language( $hook_args['default_language'] ) )
+{
     PHS_Language::set_default_language( $hook_args['default_language'] );
+
+    if( !$reques_lang_set )
+        PHS_Language::set_current_language( $hook_args['default_language'] );
+}
