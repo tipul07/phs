@@ -12,7 +12,7 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Ciao <?php echo $email_vars['destination_nick']?>,<br/>
 <br/>
-Il <?php echo $email_vars['message_date']?> hai ricevuto un nuovo messaggio interno da <?php echo $email_vars['author_handle']?> with subject "<?php echo $email_vars['message_subject']?>".<br/>
+Il <?php echo $email_vars['message_date']?> hai ricevuto un nuovo messaggio interno da <?php echo $email_vars['author_handle']?> con questo oggetto "<?php echo $email_vars['message_subject']?>".<br/>
 <br/>
 Per visualizzare questo messaggio, clicca su questo link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
 <br/>

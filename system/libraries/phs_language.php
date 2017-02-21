@@ -109,6 +109,16 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param string $dir Directory to scan for language files ({en|gb|de|ro}.csv)
+     *
+     * @return bool True on success, false if directory is not readable
+     */
+    public static function scan_for_language_files( $dir )
+    {
+        return self::language_container()->scan_for_language_files( $dir );
+    }
+
+    /**
      * @param string $lang Language to be checked
      *
      * @return string|bool Returns language key if language is valid or false if language is not defined
@@ -340,6 +350,8 @@ class PHS_Language_Container extends PHS_Error
     private static $DEFINED_LANGUAGES = array();
 
     private static $LANGUAGE_INDEXES = array();
+
+    private static $_RELOAD_LANGUAGES = array();
 
     private static $_LOADED_FILES = array();
 
@@ -585,7 +597,65 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function add_language_files( $lang, array $files_arr, $force_language_reload = false )
+    /**
+     * @param string $dir Directory to scan for language files ({en|gb|de|ro}.csv)
+     *
+     * @return bool True on success, false if directory is not readable
+     */
+    public function scan_for_language_files( $dir )
+    {
+        $dir = rtrim( PHS::from_relative_path( PHS::relative_path( $dir ) ), '/\\' );
+        if( empty( $dir )
+         or !@is_dir( $dir ) or !@is_readable( $dir ) )
+            return false;
+
+        if( ($languages_arr = self::get_defined_languages())
+        and is_array( $languages_arr ) )
+        {
+            foreach( $languages_arr as $lang_key => $lang_arr )
+            {
+                $language_file = $dir.'/'.$lang_key.'.csv';
+                if( @file_exists( $language_file ) )
+                    self::add_language_files( $lang_key, array( $language_file ) );
+            }
+        }
+
+        return true;
+    }
+
+    public function force_reload_language_files( $lang )
+    {
+        $this->reset_error();
+
+        $lang = self::prepare_lang_index( $lang );
+        if( empty( $lang )
+         or !($lang = self::st_valid_language( $lang )) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language not defined.' );
+            return false;
+        }
+
+        self::$_RELOAD_LANGUAGES[$lang] = true;
+
+        return true;
+    }
+
+    public function should_reload_language_files( $lang )
+    {
+        $this->reset_error();
+
+        $lang = self::prepare_lang_index( $lang );
+        if( empty( $lang )
+         or !($lang = self::st_valid_language( $lang )) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language not defined.' );
+            return false;
+        }
+
+        return (!empty( self::$_RELOAD_LANGUAGES[$lang] )?true:false);
+    }
+
+    public function add_language_files( $lang, array $files_arr )
     {
         $this->reset_error();
 
@@ -606,18 +676,18 @@ class PHS_Language_Container extends PHS_Error
         foreach( $files_arr as $lang_file )
         {
             if( empty( $lang_file )
-                or !@file_exists( $lang_file ) or !@is_readable( $lang_file ) )
+             or !@file_exists( $lang_file ) or !@is_readable( $lang_file ) )
             {
                 $this->set_error( self::ERR_LANGUAGE_DEFINITION, 'Language file ['.@basename( $lang_file ).'] for language ['.$lang.'] not found or not readable.' );
                 return false;
             }
+
+            if( !in_array( $lang_file, self::$DEFINED_LANGUAGES[$lang]['files'] ) )
+            {
+                self::$DEFINED_LANGUAGES[$lang]['files'][] = $lang_file;
+                $this->force_reload_language_files( $lang );
+            }
         }
-
-        self::$DEFINED_LANGUAGES[$lang]['files'] = array_merge( self::$DEFINED_LANGUAGES[$lang]['files'], $files_arr );
-
-        // if language was already loaded, reload all files to include newly added files
-        if( $this->language_loaded( $lang ) )
-            $this->load_language( $lang, $force_language_reload );
 
         return true;
     }
@@ -650,44 +720,52 @@ class PHS_Language_Container extends PHS_Error
         $this->reset_error();
 
         if( !($lang = self::st_valid_language( $lang ))
-         or !($lang_details = self::get_defined_language( $lang ))
-         or empty( $lang_details['files'] ) or !is_array( $lang_details['files'] ) )
+         or !($lang_details = self::get_defined_language( $lang )) )
         {
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined or has no files to be loaded.' );
             return false;
         }
 
-        foreach( $lang_details['files'] as $file )
-        {
-            if( !$this->load_language_file( $file, $lang, $force ) )
-                return false;
-        }
-
         // PHS::get_theme_language_paths() might set static errors. We don't want to check errors here and we will preserve static error
         $old_static_error = self::st_stack_error();
-        $current_language = self::get_current_language();
         if( ($default_theme = PHS::get_default_theme())
         and ($theme_language_paths = PHS::get_theme_language_paths( $default_theme ))
-        and !empty( $theme_language_paths['path'] )
-        and $current_language
-        and @file_exists( $theme_language_paths['path'].$current_language.'.csv' ) )
+        and !empty( $theme_language_paths['path'] ) )
         {
-            if( !$this->load_language_file( $theme_language_paths['path'].$current_language.'.csv', $lang, $force ) )
+            if( !$this->scan_for_language_files( $theme_language_paths['path'] ) )
                 return false;
         }
 
         if( ($current_theme = PHS::get_theme())
         and $default_theme != $current_theme
         and ($theme_language_paths = PHS::get_theme_language_paths( $current_theme ))
-        and !empty( $theme_language_paths['path'] )
-        and $current_language
-        and @file_exists( $theme_language_paths['path'].$current_language.'.csv' ) )
+        and !empty( $theme_language_paths['path'] ) )
         {
-            if( !$this->load_language_file( $theme_language_paths['path'].$current_language.'.csv', $lang, $force ) )
+            if( !$this->scan_for_language_files( $theme_language_paths['path'] ) )
                 return false;
         }
 
         self::st_restore_errors( $old_static_error );
+
+        // After theme directories were scanned start loading files...
+        if( !($lang_details = self::get_defined_language( $lang )) )
+        {
+            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined or has no files to be loaded.' );
+            return false;
+        }
+
+        // Don't throw error if language is defined, but has no files to be loaded...
+        if( !empty( $lang_details['files'] ) and is_array( $lang_details['files'] ) )
+        {
+            foreach( $lang_details['files'] as $file )
+            {
+                if( !$this->load_language_file( $file, $lang, $force ) )
+                    return false;
+            }
+        }
+
+        if( !empty( self::$_RELOAD_LANGUAGES[$lang] ) )
+            unset( self::$_RELOAD_LANGUAGES[$lang] );
 
         return true;
     }
@@ -898,7 +976,17 @@ class PHS_Language_Container extends PHS_Error
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
 
-        return $this->_tl( $index, self::get_current_language(), $args );
+        if( !isset( $args[0] )
+         or !self::valid_language( $args[0] ) )
+            $t_lang = self::get_current_language();
+
+        else
+        {
+            $t_lang = $args[0];
+            @array_shift( $args );
+        }
+
+        return $this->_tl( $index, $t_lang, $args );
     }
 
     /**
@@ -921,7 +1009,8 @@ class PHS_Language_Container extends PHS_Error
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
 
-        if( !self::language_loaded( $lang ) )
+        if( !self::language_loaded( $lang )
+         or $this->should_reload_language_files( $lang ) )
         {
             if( !$this->load_language( $lang ) )
             {
@@ -938,6 +1027,11 @@ class PHS_Language_Container extends PHS_Error
             $working_index = self::$LANGUAGE_INDEXES[$lang][$index];
         else
             $working_index = $index;
+
+        if( !empty( $args )
+        and isset( $args[0] )
+        and $args[0] === false )
+            @array_shift( $args );
 
         if( !empty( $args ) )
         {

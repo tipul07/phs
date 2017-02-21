@@ -3,6 +3,8 @@
 
     $this->set_context( 'page_title', 'Step 1' );
 
+    var_dump( $_SERVER );
+
 ?>
 <form id="phs_setup_step1" name="phs_setup_step1" method="post">
 <fieldset class="form-group">

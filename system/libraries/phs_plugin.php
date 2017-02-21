@@ -224,9 +224,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if( !@is_dir( rtrim( $languages_dir, '/' ) ) )
             return;
 
-        $language_file = $languages_dir.$current_language.'.csv';
-        if( @file_exists( $language_file ) )
-            self::add_language_files( $current_language, array( $language_file ) );
+        self::scan_for_language_files( $languages_dir );
     }
 
     public static function safe_escape_library_name( $name )
