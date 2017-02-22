@@ -24,9 +24,10 @@ o copia e incolla il seguente link sul tuo browser:<br/>
     {
         ?>
         <br/>
-        Come la password è stata generata, si riceverà una e-mail dopo l'attivazione con la tua password.<br/><?php
+        A breve ti verrà inviata una e-mail con la Password di attivazione per accedere al tuo conto.<br/><?php
     }
 ?>
+Ricordati di attivare l’account!<br/>
 <br/>
 Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>
 <br/>

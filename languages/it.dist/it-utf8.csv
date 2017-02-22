@@ -409,3 +409,5 @@ PO file not found.,File PO non trovato.
 Couldn't read PO file content.,Impossibile leggere il contenuto dei file PO.
 Language is invalid.,La lingua non è valida.
 System language directory %s doesn't exist.,Directory della lingua di sistema %s non esiste.
+PHS Root path,PHS percorso principale
+PHS Domain,PHS Dominio

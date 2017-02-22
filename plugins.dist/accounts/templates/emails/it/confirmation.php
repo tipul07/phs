@@ -12,9 +12,10 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 ?>
 Ciao <?php echo $email_vars['nick']?>,<br/>
 <br/>
-Benvenuti al <?php echo $email_vars['site_name']?> Piattaforma!<br/>
-La password dell'account è stato generato automaticamente. Al fine di poter accedere al tuo conto forniamo la password dell'account di seguito.<br/>
-Per motivi di sicurezza si prega di cambiare la password al più presto possibile.<br/>
+Benvenuto sulla piattaforma di <?php echo $email_vars['site_name']?>!<br/>
+La password dell'account è stata generata automaticamente.<br/>
+Al fine di poter accedere al tuo conto ti forniamo la password dell'account qui di seguito.<br/>
+Per motivi di sicurezza ti preghiamo di cambiare la password il prima possibile.<br/>
 <br/>
 <hr/>
 Ecco i tuoi dati d'accesso:<br/>
