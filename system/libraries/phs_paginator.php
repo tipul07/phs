@@ -276,7 +276,7 @@ class PHS_Paginator extends PHS_Registry
         if( !($flow_params_arr = $this->flow_params()) )
             return '';
 
-        return $flow_params_arr['form_prefix'].'paginator_list_form';
+        return $flow_params_arr['form_prefix'].'paginator_filters_form';
     }
 
     public function get_checkbox_name_for_column( $column_arr )
@@ -669,6 +669,8 @@ class PHS_Paginator extends PHS_Registry
     public static function default_bulk_actions_fields()
     {
         return array(
+            'display_in_top' => true,
+            'display_in_bottom' => true,
             'display_name' => '',
             'action' => '',
             'js_callback' => '',

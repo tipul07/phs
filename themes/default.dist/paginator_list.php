@@ -26,7 +26,7 @@
     if( !($pagination_arr = $paginator_obj->pagination_params()) )
         $pagination_arr = $paginator_obj->default_pagination_params();
 
-    if( !($listing_form_name = $paginator_obj->get_filters_form_name()) )
+    if( !($listing_form_name = $paginator_obj->get_listing_form_name()) )
         $listing_form_name = $flow_params_arr['form_prefix'].'paginator_list_form';
     if( !($bulk_select_name = $paginator_obj->get_bulk_action_select_name()) )
         $bulk_select_name = '';
@@ -59,8 +59,18 @@
 			or !empty( $flow_params_arr['display_bottom_bulk_actions'] )) )
 	{
 		$json_actions = array();
+        $bulk_top_actions_arr = array();
+        $bulk_bottom_actions_arr = array();
 		foreach( $bulk_actions as $action )
 		{
+            if( empty( $action ) or !is_array( $action ) )
+                continue;
+
+            if( !empty( $action['display_in_top'] ) )
+                $bulk_top_actions_arr[] = $action;
+            if( !empty( $action['display_in_bottom'] ) )
+                $bulk_bottom_actions_arr[] = $action;
+
 			$json_actions[$action['action']] = $action;
 		}
 
@@ -78,7 +88,11 @@
 			if( !bulk_select_obj )
 				return false;
 
-			var bulk_action = bulk_select_obj.val();
+			return submit_bulk_action_with_name( bulk_select_obj.val() );
+		}
+
+		function submit_bulk_action_with_name( bulk_action )
+		{
 			if( !bulk_action
 			 || !(bulk_action in phs_paginator_bulk_actions) )
 			{
@@ -107,25 +121,31 @@
 		$select_name = $bulk_select_name.'top';
 		$select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='top')?true:false);
 
-		?><div style="margin-bottom:5px;float:left;">
-		<select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
-			<option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
-			<?php
-			foreach( $bulk_actions as $action_arr )
-			{
-				$selected_option = '';
-				if( $select_with_action
-				and !empty( $flow_params_arr['bulk_action'] )
-				and $action_arr['action'] == $flow_params_arr['bulk_action'] )
-					$selected_option = 'selected="selected"';
+		if( empty( $bulk_top_actions_arr ) )
+        {
+            ?><input type="hidden" name="<?php echo $select_name?>" id="<?php echo $select_name?>" value="" /><?php
+        } else
+        {
+            ?><div style="margin-bottom:5px;float:left;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
+                <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
+                <?php
+                foreach( $bulk_top_actions_arr as $action_arr )
+                {
+                    $selected_option = '';
+                    if( $select_with_action
+                    and !empty( $flow_params_arr['bulk_action'] )
+                    and $action_arr['action'] == $flow_params_arr['bulk_action'] )
+                        $selected_option = 'selected="selected"';
 
-				?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
-			}
-			?>
-		</select>
-		<input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
-		</div>
-		<?php
+                    ?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
+                }
+                ?>
+            </select>
+            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            </div>
+            <?php
+	    }
 	}
 
 	$per_page_var_name = $flow_params_arr['form_prefix'] . $pagination_arr['per_page_var_name'];
@@ -549,33 +569,39 @@
 		echo $cell_content;
 	}
 
-	if( !empty( $flow_params_arr['display_top_bulk_actions'] )
+	if( !empty( $flow_params_arr['display_bottom_bulk_actions'] )
 	and !empty( $bulk_select_name )
 	and !empty( $bulk_actions ) )
 	{
 		$select_name = $bulk_select_name.'bottom';
 		$select_with_action = ((!empty( $flow_params_arr['bulk_action_area'] ) and $flow_params_arr['bulk_action_area']=='bottom')?true:false);
 
-		?><div style="margin-bottom:5px;float:left;">
-		<select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
-			<option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
-			<?php
-				foreach( $bulk_actions as $action_arr )
-				{
-					$selected_option = '';
-					if( $select_with_action
-					and !empty( $flow_params_arr['bulk_action'] )
-					and $action_arr['action'] == $flow_params_arr['bulk_action'] )
-						$selected_option = 'selected="selected"';
+		if( empty( $bulk_bottom_actions_arr ) )
+        {
+            ?><input type="hidden" name="<?php echo $select_name?>" id="<?php echo $select_name?>" value="" /><?php
+        } else
+        {
+            ?><div style="margin-bottom:5px;float:left;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
+                <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
+                <?php
+                    foreach( $bulk_bottom_actions_arr as $action_arr )
+                    {
+                        $selected_option = '';
+                        if( $select_with_action
+                        and !empty( $flow_params_arr['bulk_action'] )
+                        and $action_arr['action'] == $flow_params_arr['bulk_action'] )
+                            $selected_option = 'selected="selected"';
 
-					?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
-				}
-			?>
-		</select>
-		<input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
-		</div>
-		<div class="clearfix"></div>
-		<?php
+                        ?><option value="<?php echo $action_arr['action']?>" <?php echo $selected_option?>><?php echo $action_arr['display_name']?></option><?php
+                    }
+                ?>
+            </select>
+            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            </div>
+            <div class="clearfix"></div>
+            <?php
+	    }
 	}
 	?>
 
