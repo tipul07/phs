@@ -167,3 +167,13 @@ I just forgot my password,Ho appena dimenticato la password
 Account registered,Account registrato
 "You successfully registered your account. However, before using your account you must activate it.","Il tuo account è stato registrato con successo. Tuttavia, prima di utilizzare il tuo account è necessario attivarlo."
 We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.,Abbiamo inviato un link di attivazione a %s . Si prega di controllare la tua e-mail (anche guardando nella cartella spam) e fare clic o accedere al link di attivazione.
+Member,Membro
+Operator,Operatore
+Admin,Amministratore
+Super admin,Super amministratore
+Developer,Sviluppatore
+Inactive,Inattivo
+Active,Attivo
+Suspended,Sospeso
+Deleted,Eliminata
+there, 

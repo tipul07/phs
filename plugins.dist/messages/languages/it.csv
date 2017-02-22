@@ -141,3 +141,5 @@ Loading next messages...,Caricamento prossimi messaggi ...
 Error loading messages. Please retry.,Errore nel caricamento dei messaggi. Si prega di riprovare.
 FROM: %s,DA: %s
 TO: %s,A: %s
+Role not found in database for message destination.,Ruolo non trovato nel database per destinazione del messaggio.
+Role unit not found in database for message destination.,Unità di ruolo non trovato nel database per la destinazione del messaggio.
