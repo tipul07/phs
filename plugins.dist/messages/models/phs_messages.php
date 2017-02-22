@@ -1031,10 +1031,15 @@ class PHS_Model_Messages extends PHS_Model
 
         if( empty( $params['body'] ) )
             $params['body'] = '';
+        if( empty( $params['force_dest_str'] ) )
+            $params['force_dest_str'] = '';
         if( empty( $params['type'] ) )
             $params['type'] = self::TYPE_NORMAL;
         if( empty( $params['type_id'] ) )
             $params['type_id'] = 0;
+
+        if( empty( $params['bg_job_params'] ) or !is_array( $params['bg_job_params'] ) )
+            $params['bg_job_params'] = array();
 
         if( empty( $params['reply_message'] )
          or !($reply_message = $this->full_data_to_array( $params['reply_message'] )) )
@@ -1108,6 +1113,9 @@ class PHS_Model_Messages extends PHS_Model
         else
             $message_fields['can_reply'] = (!empty( $params['can_reply'] )?1:0);
 
+        if( !empty( $params['force_dest_str'] ) )
+            $message_fields['dest_str'] = $params['force_dest_str'];
+
         $accounts_count = 0;
         switch( $params['dest_type'] )
         {
@@ -1132,7 +1140,8 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                $message_fields['dest_str'] = implode( ', ', $users_parts );
+                if( empty( $params['force_dest_str'] ) )
+                    $message_fields['dest_str'] = implode( ', ', $users_parts );
             break;
 
             case self::DEST_TYPE_USERS:
@@ -1143,8 +1152,12 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
+                $safe_strings_arr = array();
+                foreach( $users_parts as $user_name )
+                    $safe_strings_arr[] = prepare_data( $user_name );
+
                 $list_arr = $users_flow_params;
-                $list_arr['fields']['nick'] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $users_parts ).'\')' );
+                $list_arr['fields']['nick'] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $safe_strings_arr ).'\')' );
                 $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
                 if( !empty( $account_arr )
                 and !empty( $params['exclude_author'] ) )
@@ -1156,7 +1169,8 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                $message_fields['dest_str'] = implode( ', ', $users_parts );
+                if( empty( $params['force_dest_str'] ) )
+                    $message_fields['dest_str'] = implode( ', ', $users_parts );
             break;
 
             case self::DEST_TYPE_HANDLERS:
@@ -1167,13 +1181,17 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
+                $safe_strings_arr = array();
+                foreach( $handlers_parts as $user_handle )
+                    $safe_strings_arr[] = prepare_data( $user_handle );
+
                 $users_table = $accounts_model->get_flow_table_name( $users_flow_params );
                 $users_details_table = $user_details_model->get_flow_table_name( $users_details_flow_params );
 
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' LEFT JOIN `'.$users_details_table.'` ON `'.$users_table.'`.details_id = `'.$users_details_table.'`.id ';
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $handlers_parts ).'\')' );
+                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $safe_strings_arr ).'\')' );
                 if( !empty( $account_arr )
                 and !empty( $params['exclude_author'] ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $account_arr['id'] );
@@ -1184,7 +1202,8 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                $message_fields['dest_str'] = implode( ', ', $handlers_parts );
+                if( empty( $params['force_dest_str'] ) )
+                    $message_fields['dest_str'] = implode( ', ', $handlers_parts );
             break;
 
             case self::DEST_TYPE_LEVEL:
@@ -1219,12 +1238,29 @@ class PHS_Model_Messages extends PHS_Model
                 }
 
                 $roles_users_flow_params = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) );
+                $roles_flow_params = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
                 $roles_users_table = $roles_model->get_flow_table_name( $roles_users_flow_params );
                 $users_table = $accounts_model->get_flow_table_name( $users_flow_params );
 
+                $role_arr = false;
+                if( !is_numeric( $params['dest_type_role'] )
+                 or !($role_id = intval( $params['dest_type_role'] ))
+                 or !($role_arr = $roles_model->get_details( $role_id, $roles_flow_params )) )
+                {
+                    $roles_fields_arr = array();
+                    $roles_fields_arr['slug'] = $params['dest_type_role'];
+                    $roles_fields_arr['status'] = $roles_model::STATUS_ACTIVE;
+
+                    if( !($role_arr = $roles_model->get_details_fields( $roles_fields_arr, $roles_flow_params )) )
+                    {
+                        $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role not found in database for message destination.' ) );
+                        return false;
+                    }
+                }
+
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
-                $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = $params['dest_type_role'];
+                $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = $role_arr['id'];
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
                 if( !empty( $account_arr )
                 and !empty( $params['exclude_author'] ) )
@@ -1236,7 +1272,7 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                $message_fields['dest_id'] = $params['dest_type_role'];
+                $message_fields['dest_id'] = $role_arr['id'];
             break;
 
             case self::DEST_TYPE_ROLE_UNIT:
@@ -1247,15 +1283,32 @@ class PHS_Model_Messages extends PHS_Model
                 }
 
                 $roles_users_flow_params = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) );
+                $roles_units_flow_params = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) );
                 $roles_users_table = $roles_model->get_flow_table_name( $roles_users_flow_params );
                 $roles_units_links_flow_params = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) );
                 $roles_units_links_table = $roles_model->get_flow_table_name( $roles_units_links_flow_params );
                 $users_table = $accounts_model->get_flow_table_name( $users_flow_params );
 
+                $role_unit_arr = false;
+                if( !is_numeric( $params['dest_type_role_unit'] )
+                 or !($role_unit_id = intval( $params['dest_type_role_unit'] ))
+                 or !($role_unit_arr = $roles_model->get_details( $role_unit_id, $roles_units_flow_params )) )
+                {
+                    $roles_units_fields_arr = array();
+                    $roles_units_fields_arr['slug'] = $params['dest_type_role_unit'];
+                    $roles_units_fields_arr['status'] = $roles_model::STATUS_ACTIVE;
+
+                    if( !($role_unit_arr = $roles_model->get_details_fields( $roles_units_fields_arr, $roles_units_flow_params )) )
+                    {
+                        $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role unit not found in database for message destination.' ) );
+                        return false;
+                    }
+                }
+
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = array( 'check' => 'IN', 'value' =>
-                    '(SELECT role_id FROM `'.$roles_units_links_table.'` WHERE `'.$roles_units_links_table.'`.role_unit_id = \''.$params['dest_type_role_unit'].'\')' );
+                    '(SELECT role_id FROM `'.$roles_units_links_table.'` WHERE `'.$roles_units_links_table.'`.role_unit_id = \''.$role_unit_arr['id'].'\')' );
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
                 if( !empty( $account_arr )
                 and !empty( $params['exclude_author'] ) )
@@ -1267,7 +1320,7 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                $message_fields['dest_id'] = $params['dest_type_role_unit'];
+                $message_fields['dest_id'] = $role_unit_arr['id'];
             break;
         }
 
@@ -1308,35 +1361,24 @@ class PHS_Model_Messages extends PHS_Model
 
         $message_arr['body_id'] = $message_body_arr['id'];
 
-        // if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
-        // {
-        //     // We already work in a background script...
-        //     if( !$this->write_message_finish_bg( $message_arr ) )
-        //     {
-        //         $this->hard_delete( $message_arr, $m_flow_params );
-        //         $this->hard_delete( $message_body_arr, $mb_flow_params );
-        //
-        //         if( !$this->has_error() )
-        //             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error finishing additional work required for message #%s.', $message_arr['id'] ) );
-        //
-        //         return false;
-        //     }
-        // } else
-        // {
-            if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ), array( 'mid' => $message_arr['id'] ), array( 'same_thread_if_bg' => true ) ) )
-            {
-                $this->hard_delete( $message_arr, $m_flow_params );
-                $this->hard_delete( $message_body_arr, $mb_flow_params );
+        $bg_job_params = $params['bg_job_params'];
+        $bg_job_params['mid'] = $message_arr['id'];
 
-                if( self::st_has_error() )
-                    $error_msg = self::st_get_error_message();
-                else
-                    $error_msg = $this->_pt( 'Error completing message flow. Please try again.' );
+        if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ),
+                               $bg_job_params,
+                               array( 'same_thread_if_bg' => true ) ) )
+        {
+            $this->hard_delete( $message_arr, $m_flow_params );
+            $this->hard_delete( $message_body_arr, $mb_flow_params );
 
-                $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-                return false;
-            }
-        // }
+            if( self::st_has_error() )
+                $error_msg = self::st_get_error_message();
+            else
+                $error_msg = $this->_pt( 'Error completing message flow. Please try again.' );
+
+            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
+            return false;
+        }
 
         return array(
             'message' => $message_arr,
@@ -1344,13 +1386,26 @@ class PHS_Model_Messages extends PHS_Model
         );
     }
 
-    public function write_message_finish_bg( $message_data )
+    public function write_message_finish_bg( $message_data, $params = false )
     {
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
         and !$this->load_dependencies() )
             return false;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['email_author'] ) )
+            $params['email_author'] = true;
+        else
+            $params['email_author'] = (!empty( $params['email_author'] )?true:false);
+
+        if( !isset( $params['email_destination'] ) )
+            $params['email_destination'] = true;
+        else
+            $params['email_destination'] = (!empty( $params['email_destination'] )?true:false);
 
         $accounts_model = self::$_accounts_model;
         $messages_plugin = self::$_messages_plugin;
@@ -1458,8 +1513,12 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
+                $safe_strings_arr = array();
+                foreach( $users_parts as $user_name )
+                    $safe_strings_arr[] = prepare_data( $user_name );
+
                 $list_arr = $users_flow_params;
-                $list_arr['fields']['nick'] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $users_parts ).'\')' );
+                $list_arr['fields']['nick'] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $safe_strings_arr ).'\')' );
                 $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
                 if( !empty( $author_arr ) )
                     $list_arr['fields']['id'] = array( 'check' => '!=', 'value' => $author_arr['id'] );
@@ -1479,13 +1538,17 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
+                $safe_strings_arr = array();
+                foreach( $handlers_parts as $user_handle )
+                    $safe_strings_arr[] = prepare_data( $user_handle );
+
                 $users_table = $accounts_model->get_flow_table_name( $users_flow_params );
                 $users_details_table = $user_details_model->get_flow_table_name( $users_details_flow_params );
 
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' LEFT JOIN `'.$users_details_table.'` ON `'.$users_table.'`.details_id = `'.$users_details_table.'`.id ';
                 $list_arr['fields']['`'.$users_table.'`.status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $handlers_parts ).'\')' );
+                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = array( 'check' => 'IN', 'value' => '(\''.implode( '\',\'', $safe_strings_arr ).'\')' );
                 if( !empty( $author_arr ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $author_arr['id'] );
 
@@ -1573,11 +1636,15 @@ class PHS_Model_Messages extends PHS_Model
 
         $return_arr = array();
         $return_arr['message'] = $message_arr;
+        $return_arr['email_sent_to_author'] = false;
+        $return_arr['email_sent_to_destination'] = false;
         $return_arr['users_messaged'] = array();
         $return_arr['users_not_messaged'] = array();
 
         $message_date = date( 'Y-m-d H:i', parse_db_date( $message_arr['cdate'] ) );
 
+        $email_sent_to_author = false;
+        $email_sent_to_destination = false;
         if( !empty( $author_arr ) )
         {
             $message_users_fields = array();
@@ -1597,7 +1664,8 @@ class PHS_Model_Messages extends PHS_Model
                 PHS_Logger::logf( 'Error inserting sent message #'.$message_arr['id'].' for user '.$author_arr['nick'].' (#'.$author_arr['id'].').' );
             } else
             {
-                if( !empty( $settings_arr['send_emails'] ) )
+                if( !empty( $params['email_author'] )
+                and !empty( $settings_arr['send_emails'] ) )
                 {
                     // send confirmation email...
                     $hook_args = array();
@@ -1616,20 +1684,31 @@ class PHS_Model_Messages extends PHS_Model
                     if( ($hook_results = PHS_Hooks::trigger_email( $hook_args )) === null
                      or (is_array( $hook_results ) and !empty( $hook_results['send_result'] )) )
                     {
-                        $message_users_fields = array();
-                        $message_users_fields['email_sent'] = 1;
+                        $email_sent_to_author = true;
+                    }
+                }
 
-                        $messages_users_arr = $mu_flow_params;
-                        $messages_users_arr['fields'] = $message_users_fields;
+                // If author should not receive email, just tell system we sent the email so it will not try resending
+                if( empty( $params['email_author'] ) )
+                    $email_sent_to_author = true;
 
-                        if( $this->edit( $mu_details_arr, $messages_users_arr ) )
-                        {
-                            $mu_details_arr['email_sent'] = 1;
-                        }
+                if( $email_sent_to_author )
+                {
+                    $message_users_fields = array();
+                    $message_users_fields['email_sent'] = 1;
+
+                    $messages_users_arr = $mu_flow_params;
+                    $messages_users_arr['fields'] = $message_users_fields;
+
+                    if( $this->edit( $mu_details_arr, $messages_users_arr ) )
+                    {
+                        $mu_details_arr['email_sent'] = 1;
                     }
                 }
             }
         }
+
+        $return_arr['email_sent_to_author'] = $email_sent_to_author;
 
         foreach( $accounts_list as $account_id => $account_arr )
         {
@@ -1654,7 +1733,8 @@ class PHS_Model_Messages extends PHS_Model
             {
                 $return_arr['users_messaged'][$account_id] = $account_arr;
 
-                if( !empty( $settings_arr['send_emails'] ) )
+                if( !empty( $params['email_destination'] )
+                and !empty( $settings_arr['send_emails'] ) )
                 {
                     // send confirmation email...
                     $hook_args = array();
@@ -1674,20 +1754,31 @@ class PHS_Model_Messages extends PHS_Model
                     if( ($hook_results = PHS_Hooks::trigger_email( $hook_args )) === null
                      or (is_array( $hook_results ) and !empty( $hook_results['send_result'] )) )
                     {
-                        $message_users_fields = array();
-                        $message_users_fields['email_sent'] = 1;
+                        $email_sent_to_destination = true;
+                    }
+                }
 
-                        $messages_users_arr = $mu_flow_params;
-                        $messages_users_arr['fields'] = $message_users_fields;
+                // If author should not receive email, just tell system we sent the email so it will not try resending
+                if( empty( $params['email_destination'] ) )
+                    $email_sent_to_destination = true;
 
-                        if( $this->edit( $mu_details_arr, $messages_users_arr ) )
-                        {
-                            $mu_details_arr['email_sent'] = 1;
-                        }
+                if( $email_sent_to_destination )
+                {
+                    $message_users_fields = array();
+                    $message_users_fields['email_sent'] = 1;
+
+                    $messages_users_arr = $mu_flow_params;
+                    $messages_users_arr['fields'] = $message_users_fields;
+
+                    if( $this->edit( $mu_details_arr, $messages_users_arr ) )
+                    {
+                        $mu_details_arr['email_sent'] = 1;
                     }
                 }
             }
         }
+
+        $return_arr['email_sent_to_destination'] = $email_sent_to_destination;
 
         return $return_arr;
     }

@@ -32,7 +32,7 @@ class PHS_Action_Write_message_bg extends PHS_Action
             return false;
         }
 
-        if( !$messages_model->write_message_finish_bg( $message_arr ) )
+        if( !$messages_model->write_message_finish_bg( $message_arr, $params ) )
         {
             if( $messages_model->has_error() )
                 $this->copy_error( $messages_model, self::ERR_FINISH_ERROR );

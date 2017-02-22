@@ -266,12 +266,20 @@ class PHS_Model_Accounts extends PHS_Model
         return $accounts_details_arr;
     }
 
-    final public function get_levels()
+    final public function get_levels( $lang = false )
     {
         static $levels_arr = array();
 
-        if( !empty( $levels_arr ) )
+        if( empty( $lang )
+        and !empty( $levels_arr ) )
             return $levels_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Member', $lang );
+        $this->_pt( 'Operator', $lang );
+        $this->_pt( 'Admin', $lang );
+        $this->_pt( 'Super admin', $lang );
+        $this->_pt( 'Developer', $lang );
 
         $new_levels_arr = self::$LEVELS_ARR;
         $hook_args = PHS_Hooks::default_common_hook_args();
@@ -281,7 +289,7 @@ class PHS_Model_Accounts extends PHS_Model
         and is_array( $extra_levels_arr ) and !empty( $extra_levels_arr['levels_arr'] ) )
             $new_levels_arr = self::merge_array_assoc( $extra_levels_arr['levels_arr'], $new_levels_arr );
 
-        $levels_arr = array();
+        $return_arr = array();
         // Translate and validate levels...
         if( !empty( $new_levels_arr ) and is_array( $new_levels_arr ) )
         {
@@ -292,44 +300,51 @@ class PHS_Model_Accounts extends PHS_Model
                     continue;
 
                 if( empty( $level_arr['title'] ) )
-                    $level_arr['title'] = $this->_pt( 'Level %s', $level_id );
+                    $level_arr['title'] = $this->_pt( 'Level %s', $lang, $level_id );
                 else
-                    $level_arr['title'] = $this->_pt( $level_arr['title'] );
+                    $level_arr['title'] = $this->_pt( $level_arr['title'], $lang );
 
-                $levels_arr[$level_id] = array(
+                $return_arr[$level_id] = array(
                     'title' => $level_arr['title']
                 );
             }
         }
 
-        return $levels_arr;
+        if( empty( $lang ) )
+            $levels_arr = $return_arr;
+
+        return $return_arr;
     }
 
-    final public function get_levels_as_key_val()
+    final public function get_levels_as_key_val( $lang = false )
     {
         static $user_levels_key_val_arr = false;
 
-        if( $user_levels_key_val_arr !== false )
+        if( empty( $lang )
+        and $user_levels_key_val_arr !== false )
             return $user_levels_key_val_arr;
 
-        $user_levels_key_val_arr = array();
-        if( ($user_levels = $this->get_levels()) )
+        $return_arr = array();
+        if( ($user_levels = $this->get_levels( $lang )) )
         {
             foreach( $user_levels as $key => $val )
             {
                 if( !is_array( $val ) )
                     continue;
 
-                $user_levels_key_val_arr[$key] = $val['title'];
+                $return_arr[$key] = $val['title'];
             }
         }
 
-        return $user_levels_key_val_arr;
+        if( empty( $lang ) )
+            $user_levels_key_val_arr = $return_arr;
+
+        return $return_arr;
     }
 
-    public function valid_level( $level )
+    public function valid_level( $level, $lang = false )
     {
-        $all_levels = $this->get_levels();
+        $all_levels = $this->get_levels( $lang );
         if( empty( $level )
          or empty( $all_levels[$level] ) )
             return false;
@@ -337,12 +352,19 @@ class PHS_Model_Accounts extends PHS_Model
         return $all_levels[$level];
     }
 
-    final public function get_statuses()
+    final public function get_statuses( $lang = false )
     {
         static $statuses_arr = array();
 
-        if( !empty( $statuses_arr ) )
+        if( empty( $lang )
+        and !empty( $statuses_arr ) )
             return $statuses_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Inactive', $lang );
+        $this->_pt( 'Active', $lang );
+        $this->_pt( 'Suspended', $lang );
+        $this->_pt( 'Deleted', $lang );
 
         $hook_args = PHS_Hooks::default_common_hook_args();
         $hook_args['statuses_arr'] = self::$STATUSES_ARR;
@@ -352,7 +374,7 @@ class PHS_Model_Accounts extends PHS_Model
         and is_array( $extra_statuses_arr ) and !empty( $extra_statuses_arr['statuses_arr'] ) )
             $new_statuses_arr = self::merge_array_assoc( $extra_statuses_arr['statuses_arr'], $new_statuses_arr );
 
-        $statuses_arr = array();
+        $return_arr = array();
         // Translate and validate statuses...
         if( !empty( $new_statuses_arr ) and is_array( $new_statuses_arr ) )
         {
@@ -367,23 +389,27 @@ class PHS_Model_Accounts extends PHS_Model
                 else
                     $status_arr['title'] = $this->_pt( $status_arr['title'] );
 
-                $statuses_arr[$status_id] = array(
+                $return_arr[$status_id] = array(
                     'title' => $status_arr['title']
                 );
             }
         }
 
-        return $statuses_arr;
+        if( empty( $lang ) )
+            $statuses_arr = $return_arr;
+
+        return $return_arr;
     }
 
-    final public function get_statuses_as_key_val()
+    final public function get_statuses_as_key_val( $lang = false )
     {
         static $user_statuses_key_val_arr = false;
 
-        if( $user_statuses_key_val_arr !== false )
+        if( empty( $lang )
+        and $user_statuses_key_val_arr !== false )
             return $user_statuses_key_val_arr;
 
-        $user_statuses_key_val_arr = array();
+        $return_arr = array();
         if( ($user_statuses = $this->get_statuses()) )
         {
             foreach( $user_statuses as $key => $val )
@@ -391,16 +417,19 @@ class PHS_Model_Accounts extends PHS_Model
                 if( !is_array( $val ) )
                     continue;
 
-                $user_statuses_key_val_arr[$key] = $val['title'];
+                $return_arr[$key] = $val['title'];
             }
         }
 
-        return $user_statuses_key_val_arr;
+        if( empty( $lang ) )
+            $user_statuses_key_val_arr = $return_arr;
+
+        return $return_arr;
     }
 
-    public function valid_status( $status )
+    public function valid_status( $status, $lang = false )
     {
-        $all_statuses = $this->get_statuses();
+        $all_statuses = $this->get_statuses( $lang );
         if( empty( $status )
          or empty( $all_statuses[$status] ) )
             return false;
