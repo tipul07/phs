@@ -988,7 +988,12 @@ class PHS_Model_Accounts extends PHS_Model
             $params['fields']['pass'] = self::generate_password( $pass_length );
             $params['fields']['pass_generated'] = 1;
         } else
-            $params['fields']['pass_generated'] = 0;
+        {
+            if( empty( $params['fields']['pass_generated'] ) )
+                $params['fields']['pass_generated'] = 0;
+            else
+                $params['fields']['pass_generated'] = 1;
+        }
 
         if( empty( $params['fields']['pass_salt'] ) )
             $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );

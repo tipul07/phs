@@ -40,7 +40,7 @@ class PHS_Action_Registration_email_bg extends PHS_Action
         $hook_args['subject'] = $this->_pt( 'Account Activation' );
         $hook_args['email_vars'] = array(
             'nick' => $account_arr['nick'],
-            'obfuscated_pass' => $accounts_model->obfuscate_password( $account_arr ),
+            'pass_generated' => $account_arr['pass_generated'],
             'activation_link' => $accounts_plugin->get_confirmation_link( $account_arr, $accounts_plugin::CONF_REASON_ACTIVATION ),
             'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
             'login_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $account_arr['nick'] ) ),

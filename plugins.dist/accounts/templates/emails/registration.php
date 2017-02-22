@@ -19,6 +19,14 @@ or copy and paste the link below in your browser:<br/>
 <hr/>
 <?php echo $email_vars['activation_link']?><br/>
 <hr/>
+<?php
+    if( !empty( $email_vars['pass_generated'] ) )
+    {
+        ?>
+        <br/>
+        As your password was generated, you will receive an email after activation with your password.<br/><?php
+    }
+?>
 <br/>
 Need help? <a href="<?php echo $email_vars['contact_us_link']?>">Please contact us!</a><br/>
 <br/>
