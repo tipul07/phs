@@ -308,6 +308,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
+        PHS::user_logged_in( true );
+
         return $onuser_arr;
     }
 
@@ -575,7 +577,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $hook_args;
 
         if( !($skey_value = PHS_session::_g( self::session_key() ))
-         or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model ) )) )
+         or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ) )) )
         {
             $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
             $user_db_data = $accounts_model->get_empty_data();
