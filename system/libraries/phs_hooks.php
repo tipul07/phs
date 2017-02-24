@@ -192,6 +192,7 @@ class PHS_Hooks extends PHS_Registry
     {
         return self::validate_array_recursive( array(
             'concatenate_buffer' => 'buffer',
+            'buffer_data' => array(),
             'buffer' => '',
         ), self::default_common_hook_args() );
     }
