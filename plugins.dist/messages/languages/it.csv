@@ -38,7 +38,7 @@ Mark as read,Segna come letto
 From,Da
 Author messaging handle contains this value,Handle della messaggistica dell'autore contiene questo valore
 To,A
-Destination messagin handle contains this value,Handle della messaggistica di destinazione contiene questo valore
+Destination messagin handle contains this value,La gestione della messaggistica del destinatario contiene questo valore
 Subject,Soggetto
 Subject contains this value,Il soggetto contiene questo valore
 System,Sistema
@@ -115,7 +115,7 @@ Failed validating messages summary template file.,Impossibile convalidare il fil
 Failed loading messages model.,Impossibile caricare i messaggi modello.
 Error obtaining summary list of messages.,Errore durante l'ottenimento dell'elenco riepilogativo dei messaggi.
 Compose message,Componi messaggio
-Destination,Destinazione
+Destination,Destinatario
 Comma separated user ids,Separa con la virgola gli ID utente
 Comma separated user nicknames or emails,Separa con la virgola il nickname dell'utente o e-mail
 Comma separated messaging handlers,Separa con la virgola gli handlers di messaggistica

@@ -37,7 +37,7 @@ No filters set.,Nessun filtro impostato.
 Current filters,Filtri correnti
 Render after filters call failed.,Decodifica dopo che i filtri della chiamata falliscano.
  - Bulk Actions - ,- Azioni in blocco -
-Apply,Applicare
+Apply,Applica
 %s per page,%s per pagina
 Render before table call failed.,Decodifica prima che la tabella della chiamata fallisca.
 Render after headers call failed.,Decodifica dopo che le intestazioni della chiamata falliscano.

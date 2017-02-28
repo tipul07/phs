@@ -139,8 +139,8 @@ Password should pass regular expresion: ,La password deve avere la seguente cara
 Password should pass regular expresion: %s.,La password deve avere la seguente caratteristica: %s.
 Confirm Password,Password confermata
 Change password,Cambia la password
-NOT VERIFIED,NON VERIFICATO
-Send verification email,E-mail di verifica inviata
+NOT VERIFIED,NON VERIFICATA
+Send verification email,Invia E-mail di verifica
 Email is %s,L'e-mail è %s
 VERIFIED,VERIFICATO
 Title,Titolo
@@ -148,8 +148,8 @@ Title,Titolo
 First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono
-Company,Azienda
-Save Changes,Modifiche salvate
+Company,Società
+Save Changes,Salva modifiche
 Forgot password,Hai dimenticato la password
 Provide email address of your account,Fornire l'indirizzo e-mail per il tuo account
 Validation code,Codice di validazione

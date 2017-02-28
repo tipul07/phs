@@ -16,8 +16,8 @@ Title,Titolo
 First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono
-Company,Azienda
-Save Changes,Modifiche salvate
+Company,Società
+Save Changes,Salva modifiche
 Password,Password
 Register,Registro
 Add Agent Job,Aggiungere la funzione del responsabile
@@ -136,7 +136,7 @@ Install plugin,Installazione del plugin
 Uninstall plugin,Disinstallazione del plugin
 Activate plugin,Attivazione del plugin
 Upgrade plugin,Aggiornamento del plugin
-Inactivate plugin,Disattivazionde del plugin
+Inactivate plugin,Disattivazione del plugin
 Delete plugin,Eliminazionde del plugin
 Add Role,Aggiungere un ruolo
 You don't have rights to manage roles.,Non si dispone dei diritti per gestire ruoli.
@@ -157,7 +157,7 @@ Required roles activated with success.,I ruoli richiesti sono stati attivati con
 Activating selected roles failed. Please try again.,Attivazione dei ruoli selezionati non è riuscita. Si prega di riprovare.
 Failed activating all selected roles. Roles which failed activation are still selected. Please try again.,Impossibile attivare tutti i ruoli selezionati. I ruoli la cui attivazione non è riuscita sono ancora selezionati. Si prega di riprovare.
 Required roles inactivated with success.,La richiesta della disattivazione dei ruoli è avvenuta con successo.
-Inactivating selected roles failed. Please try again.,LA disattivazionde deo ruoli selezionati non è riuscita. Si prega di riprovare.
+Inactivating selected roles failed. Please try again.,La disattivazione dei ruoli selezionati non è riuscita. Si prega di riprovare.
 Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,La disattivazione dei ruoli selezionati è fallita. I ruoli la cui disattivazione è fallita sono ancora selezionati. Si prega di riprovare.
 Required roles deleted with success.,La richiesta dell'eliminazionde dei ruoli è avvenuta con successo.
 Deleting selected roles failed. Please try again.,L'eliminazionde dei ruoli selezionati non è riuscita. Si prega di riprovare.
@@ -202,7 +202,7 @@ Never,Mai
 Required accounts activated with success.,La richiesta dell'attivazione degli accounts è avvenuta con successo.
 Activating selected accounts failed. Please try again.,L'attivazione degli accounts selezionati non è riuscita. Si prega di riprovare.
 Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.,Impossibile attivare tutti gli account selezionati. Gli accounts la cui attivazione è fallitasono ancora selezionati. Si prega di riprovare.
-Required accounts inactivated with success.,LA richiesta della disattivazionde degli accounts è avvenuta con successo.
+Required accounts inactivated with success.,La richiesta della disattivazione degli account è avvenuta con successo.
 Inactivating selected accounts failed. Please try again.,La disattivazione degl accounts selezionati non è riuscita. Si prega di riprovare.
 Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.,Impossibile disattivare tutti gli accounts selezionati. Gli accounts la cui disattivazione non è  riuscita sono ancora selezionati. Si prega di riprovare.
 Required accounts deleted with success.,La richiesta dell'eliminazionde degli accounts è avvenuta con successo.

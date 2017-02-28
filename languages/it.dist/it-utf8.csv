@@ -217,7 +217,7 @@ Invalid destination settings.,Le impostazioni di destinazione non sono valide.
 Unknown copy method.,Metodo di copia sconosciuta.
 Source not found,Origine non trovata
 Destination file already exists,File di destinazione esiste già
-Cannot create destination directory.,Impossibile creare la guid di destinazione.
+Cannot create destination directory.,Impossibile creare la directory di destinazione.
 Failed renaming source file.,Impossibile rinominare il file d'origine.
 Failed changing source to [%s].,Impossibile cambiare l'origine a [%s].
 Couldn't delete registry database record.,Impossibile eliminare la registrazione del database di registro.

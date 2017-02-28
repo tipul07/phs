@@ -8,7 +8,7 @@
     <form id="forgot_form" name="forgot_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container" style="width: 450px;">
+        <div class="form_container" style="width: 550px;">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Forgot password' )?></h3>
@@ -17,7 +17,7 @@
             <fieldset class="form-group">
                 <label for="email"><?php echo $this->_pt( 'Email' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" />
+                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" /><br/>
                 <small><?php echo $this->_pt( 'Provide email address of your account' )?></small>
                 </div>
             </fieldset>
