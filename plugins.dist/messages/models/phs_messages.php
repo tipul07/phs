@@ -1598,7 +1598,7 @@ class PHS_Model_Messages extends PHS_Model
                 if( !empty( $author_arr ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $author_arr['id'] );
 
-                if( !($accounts_list = $accounts_model->get_count( $list_arr )) )
+                if( !($accounts_list = $accounts_model->get_list( $list_arr )) )
                 {
                     $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No users match destination you provided.' ) );
                     return false;
@@ -1626,7 +1626,7 @@ class PHS_Model_Messages extends PHS_Model
                 if( !empty( $author_arr ) )
                     $list_arr['fields']['`'.$users_table.'`.id'] = array( 'check' => '!=', 'value' => $author_arr['id'] );
 
-                if( !($accounts_list = $accounts_model->get_count( $list_arr )) )
+                if( !($accounts_list = $accounts_model->get_list( $list_arr )) )
                 {
                     $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No users match destination you provided.' ) );
                     return false;
