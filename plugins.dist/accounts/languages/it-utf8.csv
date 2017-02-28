@@ -2,145 +2,145 @@
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
 Account Activation,Attivazione account
-Couldn't load accounts plugin.,Impossibile caricare conti plugin.
-Couldn't load accounts model.,Impossibile caricare conti modello.
-Couldn't interpret confirmation parameter. Please try again.,Impossibile interpretare parametro di conferma. Riprova.
-Action Confirmed...,Azione Confermato ...
-Change Password,Cambia password
-You should login first...,Si dovrebbe accedi prima ...
-Password changed with success.,Password modificata con successo.
-Please provide mandatory fields.,Si prega di fornire i campi obbligatori.
-Wrong current password.,Sbagliato password corrente.
+Couldn't load accounts plugin.,Impossibile caricare gli accounts plugin.
+Couldn't load accounts model.,Impossibile caricare gli accounts modello.
+Couldn't interpret confirmation parameter. Please try again.,Impossibile decodificare il parametro di conferma. Si prega di riprovare.
+Action Confirmed...,Azione Confermata ...
+Change Password,Cambia la password
+You should login first...,Si dovrebbe effettuare il primo login ...
+Password changed with success.,La password è stata modificata con successo.
+Please provide mandatory fields.,Si prega di compilare i campi obbligatori.
+Wrong current password.,La password corrente è sbagliata.
 Passwords mismatch.,Mancata corrispondenza delle password.
 Changes saved...,Modifiche salvate...
 Error changing password. Please try again.,Errore durante il cambiamento della password. Riprova.
 Edit Profile,Modifica Profilo
-Couldn't load account details model.,Impossibile caricare il modello di dettagli account.
-Changes saved to database.,Modifiche salvate al database.
-An email with your password was sent to email provided in your account details.,Fu spedita un'e-mail con la tua password all'indirizzo email fornito in dati del tuo account.
-Verification email sent... Please follow the steps in email to acknowledge your email address.,Email di verifica inviata... Si prega di seguire i passaggi nell'e-mail per confermare il tuo indirizzo email.
-Couldn't send verification email. Please try again.,Non poteva inviare email di verifica. Si prega di riprovare.
-Error saving details to database. Please try again.,Errore di salvataggio dati al database. Si prega di riprovare.
-Forgot Password,Ha dimenticato la password
-Already logged in...,Sei già loggato...
-Email with instructions sent to provided email address.,E-mail con le istruzioni inviate a indirizzo email fornito.
+Couldn't load account details model.,Impossibile caricare il modello dei dettagli dell' account.
+Changes saved to database.,Modifiche salvate sul database.
+An email with your password was sent to email provided in your account details.,Al''indirizzo email che ci hai fornito ti invieremo un'e-mail con la password
+Verification email sent... Please follow the steps in email to acknowledge your email address.,Email di verifica inviata... Si prega di seguire i passaggi indicati nell'e-mail per la conferma del tuo indirizzo email.
+Couldn't send verification email. Please try again.,Non è stato possibile inviare l'email di verifica. Si prega di riprovare.
+Error saving details to database. Please try again.,Errore di salvataggio dati sul database. Si prega di riprovare.
+Forgot Password,Password dimenticata
+Already logged in...,Hai già effettuato il login...
+Email with instructions sent to provided email address.,Ti abbiamo inviato un'e-mail con le istruzioni all'indirizzo email che ci hai fornito.
 Couldn't load captcha plugin.,Non poteva caricare plugin captcha.
 Invalid validation code.,Codice di validazione non valido.
 Invalid account.,Account non valido.
-Error sending forgot password email. Please try again.,Errore durante l'invio e-mail dimenticato la password. Si prega di riprovare.
-Cannot send forgot password email to this account.,Non è possibile inviare dimenticato email password per questo account.
+Error sending forgot password email. Please try again.,Errore durante l'invio dell'e-mail della password dimenticata. Si prega di riprovare.
+Cannot send forgot password email to this account.,Non è possibile inviare l'email della password dimentica a questo account.
 Password reset link,Rispristina la tua password
-Error sending forgot password email to %s.,Errore durante l'invio e-mail dimenticato la password a %s.
+Error sending forgot password email to %s.,Errore durante l'invio dell' e-mail della password dimenticata a %s.
 Login,Accedi
-Your session expired. Please login again into your account.,La sessione scaduta. Si prega di effettuare nuovamente l'accesso al tuo account.
-Account registered and active. You can login now.,Account registrati e attivi. Puoi effettuare il login ora.
-Password changed with success. You can login now.,Password cambiata con successo. Puoi effettuare il login ora.
-Please provide complete mandatory fields.,Si prega di fornire completi campi obbligatori.
-Bad username or password.,Username o password errate.
+Your session expired. Please login again into your account.,Sessione scaduta. Si prega di effettuare nuovamente l'accesso al tuo account.
+Account registered and active. You can login now.,Account registrato e attivo. Puoi effettuare il login ora.
+Password changed with success. You can login now.,La Password è stata cambiata con successo. Puoi effettuare il login ora.
+Please provide complete mandatory fields.,Si prega di completare i campi obbligatori.
+Bad username or password.,Username o password sono errate.
 Successfully logged in...,Accesso effettuato con successo...
 Error logging in... Please try again.,Errore di accesso... Si prega di riprovare
 Logout,Logout
-You logged out from your account...,Sei disconnesso dal tuo account...
-Successfully logged out...,Sei stato disconnesso con successo...
+You logged out from your account...,Ti sei disconnesso dal tuo account...
+Successfully logged out...,Il logout è avvenuto con successo...
 Error logging out... Please try again.,Errore di disconnessione... Si prega di riprovare
-Account doesn't need password change notification.,Account non ha bisogno di notifica di modifica della password.
+Account doesn't need password change notification.,L' account non ha bisogno della notifica della modifica della password.
 Password changed,Password cambiata
-Error sending password changed message to %s.,Errore durante l'invio della password modificata messaggio a%s.
+Error sending password changed message to %s.,Errore durante l'invio del messaggio della password modificata a%s.
 Register an Account,Registra un Account
 User account registered with success...,Account utente registrato con successo ...
 Passwords mistmatch.,Mancata corrispondenza delle password.
-Couldn't register user. Please try again.,Impossibile registrare utente. Si prega di riprovare.
+Couldn't register user. Please try again.,Impossibile registrare l'utente. Si prega di riprovare.
 Cannot send registration confirmation to this account.,Non è possibile inviare la conferma di registrazione a questo account.
-This account doesn't need a confirmation email anymore. Logged in before or already active.,Questo account non ha bisogno di più di una e-mail di conferma. Collegato prima o già attivo.
+This account doesn't need a confirmation email anymore. Logged in before or already active.,Questo account non ha bisogno dell'e-mail di conferma. Primo login già  effettuato o già attivo.
 Account Confirmation,Account Confermato
-Error sending confirmation email to %s.,Errore durante l'invio e-mail di conferma a %s.
-Cannot send registration email to this account.,Non è possibile inviare e-mail di registrazione a questo account.
-Error sending registration email to %s.,Errore durante l'invio e-mail di registrazione a %s.
-Account doesn't need email verification.,Account non ha bisogno di verifica e-mail.
+Error sending confirmation email to %s.,Errore durante l'invio dell'e-mail di conferma a %s.
+Cannot send registration email to this account.,Non è possibile inviare l'e-mail della registrazione a questo account.
+Error sending registration email to %s.,Errore durante l'invio dell'e-mail di registrazione a %s.
+Account doesn't need email verification.,L'account non ha bisogno dell'e-mail di verifica.
 Verify Email,Email di verifica
-Error sending verify email message to %s.,Errore durante l'invio e-mail messaggio di verifica a %s.
+Error sending verify email message to %s.,Errore durante l'invio dell'e-mail del messaggio di verifica  a %s.
 Level %s,Livello %s
 Status %s,Stato %s
 Unknown account.,Account sconosciuto.
-Couldn't obtain account password.,Impossibile ottenere password di account.
-Error saving session details to database.,Errore durante il salvataggio dettagli della sessione a database.
+Couldn't obtain account password.,Impossibile ottenere la password dell' account.
+Error saving session details to database.,Errore durante il salvataggio dei dettagli della sessione del database.
 Already logged in.,Sei già loggato.
-Error sending confirmation email. Please try again.,Errore durante l'invio e-mail di conferma. Si prega di riprovare.
-Please provide an email.,Si prega di fornire una e-mail.
+Error sending confirmation email. Please try again.,Errore durante l'invio dell'e-mail di conferma. Si prega di riprovare.
+Please provide an email.,Si prega di fornire un'e-mail.
 Please provide a valid email.,Si prega di fornire un indirizzo email valido.
 Please provide an username.,Si prega di fornire un nome utente.
 Please provide a valid account level.,Si prega di fornire un livello di account valido.
 Please provide a valid status.,Si prega di fornire uno stato valido.
 Please provide a password.,Si prega di fornire una password.
-Password should be at least %s characters.,La password deve essere di almeno %s caratteri.
+Password should be at least %s characters.,La password deve avere almeno %s caratteri.
 Click for details,Clicca per i dettagli
-Password doesn't match regular expression %s.,Password non corrisponde all'espressione regolare %s.
-Username already exists in database. Please pick another one.,Nome utente esiste già nel database. Si prega di scegliere un altro.
-Email address exists in database. Please pick another one.,Indirizzo e-mail esiste nel database. Si prega di scegliere un altro.
-Error obtaining account details model instance.,Errore di ottenendo i dettagli dell'account istanza modello.
-Error saving account details in database. Please try again.,Errore di salvataggio dati account nel database. Si prega di riprovare.
-Error sending activation email. Please try again.,Errore durante l'invio e-mail di attivazione. Si prega di riprovare.
-Invalid flow parameters while updating user details.,Parametri di flusso non validi durante l'aggiornamento dettagli utente.
-Invalid account to update details.,Conto non valido per aggiornare i dettagli.
-Couldn't link account details with the account. Please try again.,Impossibile collegare dettagli del conto con l'account. Si prega di riprovare.
+Password doesn't match regular expression %s.,La password non corrisponde alla giusta formulazione %s.
+Username already exists in database. Please pick another one.,Questo nome utente esiste già nel database. Si prega di sceglierne un altro.
+Email address exists in database. Please pick another one.,L'indirizzo e-mail esiste nel database. Si prega di sceglierne un altro.
+Error obtaining account details model instance.,Errore nell'ottenere i dettagli dell'account del modello dell'istanza.
+Error saving account details in database. Please try again.,Errore di salvataggio dei dati nell'account nel database. Si prega di riprovare.
+Error sending activation email. Please try again.,Errore durante l'invio della e-mail di attivazione. Si prega di riprovare.
+Invalid flow parameters while updating user details.,Parametri di flusso non validi durante l'aggiornamento dei dettagli dell'utente.
+Invalid account to update details.,Account non valido per aggiornare i dettagli.
+Couldn't link account details with the account. Please try again.,Impossibile collegare i dettagli dell'account con l'account. Si prega di riprovare.
 Invalid email address.,Indirizzo email non valido.
-Nickname already exists in database. Please pick another one.,Nickname esiste già nel database. Si prega di scegliere un altro.
-Error saving account roles in database. Please try again.,Errore di salvataggio ruoli conto in banca dati. Si prega di riprovare.
-Please provide an user account id.,Si prega di fornire un id di account utente.
-Accounts Management,Conti di gestione
-Handles all functionality related to user accounts.,Gestisce tutte le funzionalità relative agli account utente.
+Nickname already exists in database. Please pick another one.,Il nickname esiste già nel database. Si prega di sceglierne un altro.
+Error saving account roles in database. Please try again.,Errore di salvataggio dei ruoli dell'account nella banca dati. Si prega di riprovare.
+Please provide an user account id.,Si prega di fornire un id dell' account dell'utente.
+Accounts Management,Accounts di gestione
+Handles all functionality related to user accounts.,Gestisce tutte le funzionalità relative degli accounts utente.
 Email mandatory at registration,E-mail obbligatoria al momento della registrazione
 Replace nick with email,Sostituire nick con e-mail
-"If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?","Se, per qualsiasi motivo, soprannome non è fornita quando si crea un conto dovrebbe essere sostituito con fornito e-mail?"
-"Use only email, no nickname","Utilizzare solo e-mail, non soprannome"
-Hide nickname complately and use only email as nickname.,Hide soprannome completamente e utilizzare solo e-mail come nickname.
-Account requires activation,Conto richiede l'attivazione
-"Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.","Dovrebbe un account essere attivata prima di accesso dopo la registrazione? Quando l'amministratore crea gli account, questi saranno automaticamente attiva."
-Generate password if not present,"Generare password, se non presente"
-"If, by any reasons, password is not present when creating an account autogenerate a password or return error?","Se, per qualsiasi motivo, la password non è presente durante la creazione di un auto conto generare una password o errore di tornare?"
-Emails should be unique,E-mails dovrebbe essere univoco
-Should account creation fail if same email already exists in database?,Dovrebbe creazione di account fallire se stessa e-mail esiste già nel database?
-Minimum password length,Lunghezza minima password
+"If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?","Se, per qualsiasi motivo, il nickname non è fornito quando si crea l'account dovrebbe essere sostituito con l'e-mail fornita?"
+"Use only email, no nickname","Utilizzare solo e-mail, non nickname"
+Hide nickname complately and use only email as nickname.,Nascondere il nickname e utilizzare solo l'e-mail come nickname.
+Account requires activation,L'account richiede l'attivazione
+"Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.","L'account dovrebbe essere attivato prima del primo login dopo la registrazione? Quando che l'amministratore crea l'account, l'attivazione avvine automaticamente."
+Generate password if not present,"Generare password, se non è presente"
+"If, by any reasons, password is not present when creating an account autogenerate a password or return error?","Se, per qualsiasi motivo, la password non è stata creata durante la creazione dell'account, autogenerare una password o creare un errore?"
+Emails should be unique,Le e-mails dovrebbe essere uniche
+Should account creation fail if same email already exists in database?,La creazione dell'account dovrebbe fallire se la stessa e-mail esiste già nel database?
+Minimum password length,Lunghezza minima della password
 Password reg-exp,Password reg-exp
-"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.","Se previsto, tutte le password devono passare questa espressione regolare. Precedente account creati non saranno interessati da questo."
-Password salt length,Lunghezza salt password
+"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.","Se previsto, tutte le password devono passare questa corretta formulazione. Gli accounts creati precedentemente non saranno influenzati da questo."
+Password salt length,Lunghezza password salt
 Each account uses it's own password salt. (Google salt for more details),Ogni account utilizza la propria password salt. (Google salt per maggiori dettagli)
-Announce password change,Annunciare modifica della password
-Should system send an email to account's email address when password changes?,Dovrebbe il sistema invio una e-mail all'indirizzo di posta elettronica del conto quando si modifiche delle password?
-Password lifetime (long) mins,Password durata (lungo) minuti
-"After how many minutes should session expire if user ticked \""Remember Me\"" checkbox","Dopo quanti minuti sessione dovrebbe scadere se l'utente fa clic su \""Ricordami\"" checkbox"
-Password lifetime (short) mins,Password durata (breve) minuti
-"After how many minutes should session expire if user DIDN'T tick \""Remember Me\"" checkbox","Dopo quanti minuti sessione dovrebbe scadere se l'utente NON ha fatto clic su \""Ricordami\"" checkbox"
-Couldn't logout from subaccount.,Non poteva logout dall'account secondari.
-Couldn't logout from your account. Please retry.,Non poteva il logout dal tuo account. Si prega di riprovare.
+Announce password change,Annunciare la modifica della password
+Should system send an email to account's email address when password changes?,Il sistema dovrebbe inviare una e-mail all'indirizzo di posta elettronica dell'accountquando la password viene modificata?
+Password lifetime (long) mins,Durata minima della validità della password
+"After how many minutes should session expire if user ticked \""Remember Me\"" checkbox","Dopo quanti minuti la sessione dovrebbe scadere se l'utente fa clic su \""Ricordami\"" checkbox"
+Password lifetime (short) mins,Durata minima della validità della password
+"After how many minutes should session expire if user DIDN'T tick \""Remember Me\"" checkbox","Dopo quanti minuti la sessione dovrebbe scadere se l'utente NON ha fatto clic su \""Ricordami\"" checkbox"
+Couldn't logout from subaccount.,Non poteva effettuare il logout dall'account secondario.
+Couldn't logout from your account. Please retry.,Non puoi effettuare il logout dal tuo account. Si prega di riprovare.
 Unknown or inactive account.,Account sconosciuto o inattivo.
 Login failed. Please try again.,Accesso non riuscito. Si prega di riprovare.
 Invalid confirmation reason.,Motivo di conferma non valido
-Confirmation parameter is invalid or expired.,Conferma parametro è non valido o scaduto.
+Confirmation parameter is invalid or expired.,Il parametro di conferma è non valido o scaduto.
 Your account is now active.,Il tuo account è attivo.
-Your email address is now confirmed.,Il tuo indirizzo e-mail è ora confermata.
+Your email address is now confirmed.,Il tuo indirizzo e-mail è confermato.
 You can now change your password.,È ora possibile modificare la password.
-Couldn't obtain confirmation parameters.,Non poteva ottenere parametri di conferma.
+Couldn't obtain confirmation parameters.,Non puoi ottenere i parametri di conferma.
 Confirmation reason unknown.,Motivo di conferma sconosciuto.
-Account doesn't require activation.,Account non richiede l'attivazione.
-Failed activating account. Please try again.,Impossibile attivare account. Si prega di riprovare.
-Failed confirming email address. Please try again.,Impossibile conferma indirizzo e-mail. Si prega di riprovare.
+Account doesn't require activation.,L'account non richiede l'attivazione.
+Failed activating account. Please try again.,Impossibile attivare l'account. Si prega di riprovare.
+Failed confirming email address. Please try again.,Impossibile confermare l'indirizzo e-mail. Si prega di riprovare.
 Cannot change password for this account.,Non è possibile modificare la password per l'account.
-Couldn't obtain change password page parameters. Please try again.,Impossibile ottenere i parametri pagina cambiare password. Si prega di riprovare.
+Couldn't obtain change password page parameters. Please try again.,Impossibile ottenere i parametri della pagina per cambiare la password. Si prega di riprovare.
 Confirmation action failed,Azione di conferma non riuscita
-Hello %s.,Hello %s.
+Hello %s.,Ciao %s.
 Action required for confirmation failed. This might happen because confirmation link expired. Please try again.,Azione necessaria per la conferma non riuscita. Questo potrebbe accadere perché il link di conferma è scaduto. Si prega di riprovare.
 Go to login page,Vai alla pagina di login
 Username,Nome utente
 Email,E-mail
 Current Password,Password Attuale
 New Password,Nuova Password
-Password should pass regular expresion: ,La password deve passare espressione regolare:
-Password should pass regular expresion: %s.,La password deve passare espressione regolare: %s.
-Confirm Password,Conferma Password
-Change password,Cambia password
+Password should pass regular expresion: ,La password deve avere la seguente caratteristica :
+Password should pass regular expresion: %s.,La password deve avere la seguente caratteristica: %s.
+Confirm Password,Password confermata
+Change password,Cambia la password
 NOT VERIFIED,NON VERIFICATO
-Send verification email,Invia e-mail di verifica
+Send verification email,E-mail di verifica inviata
 Email is %s,L'e-mail è %s
 VERIFIED,VERIFICATO
 Title,Titolo
@@ -149,24 +149,24 @@ First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono
 Company,Azienda
-Save Changes,Salvare Cambiamenti
-Forgot password,Ha dimenticato la password
+Save Changes,Modifiche salvate
+Forgot password,Hai dimenticato la password
 Provide email address of your account,Fornire l'indirizzo e-mail per il tuo account
 Validation code,Codice di validazione
-Once you submit this form you will receive an email with instructions.,Dopo aver inviato questa forma riceverai una mail con le istruzioni.
+Once you submit this form you will receive an email with instructions.,Dopo aver inviato questo modulo riceverai una mail con le istruzioni.
 Submit,Invio
 Password,Password
 Remember Me,Ricordami
  (for %s), (per %s)
-Normal sessions will expire in %s.,Normali sessioni scadrà in %s.
+Normal sessions will expire in %s.,La sessione scadrà in %s.
 Register an account,Registra un account
 Confirm password,Conferma password
 Register,Registro
 Already have an account,Hai già un account
-I just forgot my password,Ho appena dimenticato la password
+I just forgot my password,Password dimenticata
 Account registered,Account registrato
 "You successfully registered your account. However, before using your account you must activate it.","Il tuo account è stato registrato con successo. Tuttavia, prima di utilizzare il tuo account è necessario attivarlo."
-We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.,Abbiamo inviato un link di attivazione a %s . Si prega di controllare la tua e-mail (anche guardando nella cartella spam) e fare clic o accedere al link di attivazione.
+We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.,Abbiamo inviato un link di attivazione a %s . Si prega di controllare la tua e-mail (guarda anche nella cartella spam) e clicca o accedi al link di attivazione.
 Member,Membro
 Operator,Operatore
 Admin,Amministratore

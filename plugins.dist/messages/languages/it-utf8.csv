@@ -1,145 +1,145 @@
 # !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
-Couldn't load accounts model.,Impossibile caricare conti modello.
-You should login first...,Si dovrebbe accedi prima ...
+Couldn't load accounts model.,Impossibile caricare gli accounts modello.
+You should login first...,Si dovrebbe effettuare il primo login ...
  - Choose - , - Scegliere - 
 Delete,Cancellare
 N/A,N/A
 Invalid,Non valido
 Actions,Azioni
 Unknown action.,Azione sconosciuta.
-Couldn't load roles model.,Impossibile caricare ruoli modello.
-Error loading accounts model.,Errore di caricamento del modello di conti.
+Couldn't load roles model.,Impossibile caricare i ruoli del modello.
+Error loading accounts model.,Errore di caricamento del modello degli accounts.
 Message deleted with success.,Messaggio cancellato con successo.
-Error rendering template [%s].,Errore di rendering modello [%s].
-Couldn't load messages plugin.,Non poteva caricare messaggi plugin.
+Error rendering template [%s].,Errore nella traduzione del modello [%s].
+Couldn't load messages plugin.,Non poteva caricare i messaggi plugin.
 You don't have rights to read messages.,Non si dispone dei diritti per leggere i messaggi.
 Couldn't load messages model.,Impossibile caricare i messaggi modello.
 Couldn't load message details.,Impossibile caricare i dettagli del messaggio.
-No more messages...,Nessun altro messaggi ...
+No more messages...,Non ci sono altri messaggi ...
 Unknown author,Autore sconosciuto
-Error rendering messages. Please retry.,Errore di rendering del messaggi. Si prega di riprovare.
+Error rendering messages. Please retry.,Errore nella traduzionde dei messaggi. Si prega di riprovare.
 Compose Message,Componi Messaggio
-Message queued... Server will send it as soon as possible.,Messaggio in coda ... Server invierà il più presto possibile.
+Message queued... Server will send it as soon as possible.,Messaggio in coda ... Il server lo invierà il più presto possibile.
 Unknown message or you don't have rights to reply to this messages.,Messaggio sconosciuto o non si dispone dei diritti per rispondere a questi messaggi.
 You don't have rights to compose messages.,Non si dispone dei diritti per scrivere messaggi.
-You cannot reply to this message. Author not reachable.,È Impossibile rispondere a questo messaggio. Autore non raggiungibile.
+You cannot reply to this message. Author not reachable.,È Impossibile rispondere a questo messaggio. L'autore non è raggiungibile.
 Re: ,Re: 
-Message details saved in database.,Dettagli del messaggio salvati nel database.
+Message details saved in database.,I dettagli del messaggio sono stati salvati nel database.
 Error sending message. Please try again.,Errore durante l'invio del messaggio. Si prega di riprovare.
 Inbox,Posta in arrivo
 Couldn't load required functionality.,Impossibile caricare la funzionalità richiesta.
 message,messaggio
 messages,messaggi
-Message details not found in database.,Dettagli del messaggio non trovato nel database.
-Address details saved in database.,Dettagli indirizzo salvati nel database.
+Message details not found in database.,I dettagli del messaggio non sono stati trovati nel database.
+Address details saved in database.,I dettagli dell'indirizzo sono stati salvati nel database.
 Mark as read,Segna come letto
 From,Da
-Author messaging handle contains this value,Maniglia di messaggistica autore contiene questo valore
+Author messaging handle contains this value,Handle della messaggistica dell'autore contiene questo valore
 To,A
-Destination messagin handle contains this value,Maniglia di messaggistica di destinazione contiene questo valore
+Destination messagin handle contains this value,Handle della messaggistica di destinazione contiene questo valore
 Subject,Soggetto
-Subject contains this value,Soggetto contiene questo valore
+Subject contains this value,Il soggetto contiene questo valore
 System,Sistema
 Last reply,Ultima risposta
-Required messages deleted with success.,Messaggi richiesti cancellati con successo.
-Deleting selected messages failed. Please try again.,Cancellazione dei messaggi selezionati non è riuscita. Si prega di riprovare.
-Failed deleting all selected messages. Messages which failed deletion are still selected. Please try again.,Impossibile cancellazione tutti i messaggi selezionati. Messaggi che non è riuscita la cancellazione sono ancora selezionati. Si prega di riprovare.
+Required messages deleted with success.,La richiesta dell'eliminazione dei messaggi è avvenuta con successo.
+Deleting selected messages failed. Please try again.,L'eliminazione dei messaggi selezionati non è riuscita. Si prega di riprovare.
+Failed deleting all selected messages. Messages which failed deletion are still selected. Please try again.,Impossibile eliminare tutti i messaggi selezionati. I messaggi la cui eliminazione non è riuscita sono ancora selezionati. Si prega di riprovare.
 You don't have rights to manage messages.,Non si dispone dei diritti per gestire i messaggi.
-Required messages marked as read with success.,Messaggi obbligatori contrassegnati come letti con successo.
-Marking selected messages as read failed. Please try again.,Contrassegno dei messaggi selezionati come letto fallito. Si prega di riprovare.
-Failed marking as read all selected messages. Failed messages are still selected. Please try again.,Impossibile segnare come letti tutti i messaggi selezionati. Messaggi non riusciti sono ancora selezionati. Si prega di riprovare.
-Deleting message failed. Please try again.,Cancellazione di messaggio non è riuscita. Si prega di riprovare.
-Cannot delete address. Address not found in database.,Impossibile cancellare indirizzo. Indirizzo non trovato nel database.
+Required messages marked as read with success.,I messaggi obbligatori sono stati contrassegnati come letti con successo.
+Marking selected messages as read failed. Please try again.,Il contrassegno dei messaggi selezionati come letto è fallito. Si prega di riprovare.
+Failed marking as read all selected messages. Failed messages are still selected. Please try again.,Impossibile segnare come letti tutti i messaggi selezionati. I messaggi selezionati che non sono stati segnati come letti sono ancora selezionati. Si prega di riprovare.
+Deleting message failed. Please try again.,L'eliminazione del messaggio non è riuscita. Si prega di riprovare.
+Cannot delete address. Address not found in database.,Impossibile cancellare indirizzo. L'indirizzo non è stato trovato nel database.
 You (%s),Tu (%s)
 Unknown destination,Destinazione sconosciuta
 Unknown user level,Livello di utente sconosciuto
 Unknown role,Ruolo sconosciuto
 Unknown role unit,Unità ruolo sconosciuto
-View thread,Visualizza thread
-Delete message thread,Cancellare thread del messaggio
-View Message,Visualizza Messaggio
+View thread,Visualizza il thread
+Delete message thread,Elimina il thread del messaggio
+View Message,Visualizza il messaggio
 Couldn't load thread of message.,Impossibile caricare il thread del messaggio.
-Message doesn't require additional work.,Messaggio non richiede lavoro aggiuntivo.
+Message doesn't require additional work.,Il messaggio non richiede lavoro aggiuntivo.
 Error finishing additional work required for message #%s.,Errore terminato il lavoro aggiuntivo richiesto per il messaggio #%s.
-You don't have enough rights to access this section.,Non si dispone di diritti sufficienti per accedere a questa sezione.
-Couldn't obtain plugin instance.,Impossibile ottenere un'istanza plugin.
+You don't have enough rights to access this section.,Non si dispone dei diritti sufficienti per accedere a questa sezione.
+Couldn't obtain plugin instance.,Impossibile ottenere un'istanza del plugin.
 You don't have rights to access this section.,Non si dispone dei diritti per accedere a questa sezione.
-Error loading roles model.,Errore di caricamento del modello di ruoli.
-Error loading messages plugin.,Errore nel caricamento messaggi plugin.
+Error loading roles model.,Errore di caricamento del modello dei ruoli.
+Error loading messages plugin.,Errore nel caricamento dei messaggi di plugin.
 You,Tu
-Error initiating parameters for summary listing of messages.,Errore avvio parametri per elenco riepilogativo dei messaggi.
-Error initiating parameters for message emulation.,Errore avvio di parametri per l'emulazione messaggio.
+Error initiating parameters for summary listing of messages.,Errore di avvio dei parametri per l'elenco riepilogativo dei messaggi.
+Error initiating parameters for message emulation.,Errore di avvio dei parametri per l'emulazione del messaggio.
 Couldn't find message details in database.,Impossibile trovare i dettagli del messaggio nel database.
 Couldn't load message details from database.,Impossibile caricare i dettagli del messaggio dal database.
 Couldn't load account details from database.,Impossibile caricare i dettagli dell'account dal database.
 Message body not available yet...,Il corpo del messaggio non è ancora disponibile ...
 Couldn't retrieve message data.,Impossibile recuperare i dati del messaggio.
-Couldn't load account data of the message.,Impossibile caricare i dati di conto del messaggio.
+Couldn't load account data of the message.,Impossibile caricare i dati dell'account del messaggio.
 Couldn't retrieve message body.,Impossibile recuperare il corpo del messaggio.
-Couldn't retrieve user message details.,Impossibile recuperare i dettagli del messaggio di utente.
+Couldn't retrieve user message details.,Impossibile recuperare i dettagli del messaggio dell'utente.
 Destination type %s,Tipo di destinazione %s
 Type %s,Tipo %s
 Importance %s,Importanza %s
 Error loading depedencies.,Errore nel caricamento delle dipendenze.
-Error initiating parameters for message.,Errore avvio di parametri per messaggio.
-Invalid parameters when saving message in database.,Parametri non validi durante il salvataggio del messaggio nel database.
-Please provide a subject for this message.,Si prega di fornire un soggetto per questo messaggio.
-Invalid account for message sender.,Conto non valido per mittente del messaggio.
-Invalid destination type.,Tipo di destinazione non valido.
-Invalid message type.,Tipo di messaggio non valido.
-Users ids list not provided for message destination.,L'elenco degli utenti ID non è previsto per la destinazione del messaggio.
-No users match destination you provided.,Nessun utente corrisponde destinazione che hai fornito.
-User list not provided for message destination.,L'elenco di utenti non è prevista per la destinazione del messaggio.
-No message handlers match destination you provided.,Non ci sono gestori di messaggi corrisponde destinazione che hai fornito.
-User level not provided for message destination.,Livello utente non è previsto per la destinazione del messaggio.
-Role not provided for message destination.,Ruolo non è previsto per la destinazione del messaggio.
-Role unit not provided for message destination.,Unità ruolo non è previsto per la destinazione del messaggio.
-Error saving message details to database.,Errore durante il salvataggio dettagli del messaggio al database.
-Error saving message body details to database.,Errore durante il salvataggio dettagli del corpo del messaggio nel database.
-Error updating message details to database.,Errore durante l'aggiornamento dettagli del messaggio al database.
-Error completing message flow. Please try again.,Errore completando il flusso dei messaggi. Si prega di riprovare.
-Error obtaining message details from database.,Errore durante il ottenendo dettagli del messaggio dal database.
-Sender account details not found.,Dettagli del conto del mittente non trovato.
+Error initiating parameters for message.,Errore nell'avvio dei parametri per il messaggio.
+Invalid parameters when saving message in database.,Durante il salvataggio del messaggio nel database dei parametri non erano validi.
+Please provide a subject for this message.,Si prega di fornire un oggetto per questo messaggio.
+Invalid account for message sender.,L'account non è valido per il mittente del messaggio.
+Invalid destination type.,Tipo di destinazione non è valida.
+Invalid message type.,Tipo di messaggio non è valido.
+Users ids list not provided for message destination.,L'elenco degli ID degli utenti non è previsto per la destinazione del messaggio.
+No users match destination you provided.,Nessun utente corrisponde alla destinazione che è stata fornita.
+User list not provided for message destination.,L'elenco degli utenti non è prevista per la destinazione del messaggio.
+No message handlers match destination you provided.,Nessun gestore dei messaggi corrisponde con la destinazione che è stata fornita.
+User level not provided for message destination.,Il livello dell'utente non è previsto per la destinazione del messaggio.
+Role not provided for message destination.,Il ruolo non è previsto per la destinazione del messaggio.
+Role unit not provided for message destination.,L'unità di ruolo non è prevista per la destinazione del messaggio.
+Error saving message details to database.,Errore durante il salvataggio dei dettagli del messaggio al database.
+Error saving message body details to database.,Errore durante il salvataggio  dei dettagli del messaggio nel database.
+Error updating message details to database.,Errore durante l'aggiornamento dei dettagli del messaggio al database.
+Error completing message flow. Please try again.,Errore durante il completamento del flusso dei messaggi. Si prega di riprovare.
+Error obtaining message details from database.,Errore durante l'ootenimento dei dettagli del messaggio dal database.
+Sender account details not found.,I dettagli dell'account del mittente non sono stati trovati.
 Couldn't find reply message in database.,Impossibile trovare il messaggio di risposta nel database.
 Internal message sent,Invio messaggio interno
 New internal message,Nuovo messaggio interno
 Unknown user for this user message.,Utente sconosciuto per questo messaggio utente.
-Unknown message details for this user message.,Dettagli messaggio sconosciuto per questo messaggio utente.
+Unknown message details for this user message.,Dettagli per il  messaggio sconosciuto per questo messaggio utente.
 Unknown thread id for this user message.,Id thread sconosciuto per questo messaggio utente.
-Error instantiating accounts details model.,Errore creare un'istanza del modello conti dettagli.
-Error altering user_details table.,Errore alterando dettagli_utente tavolo.
+Error instantiating accounts details model.,Errore nel creare un'istanza del modello per i dettagli degli accounts.
+Error altering user_details table.,Errore che altera i dettagli_utente.
 Couldn't load summary template from plugin settings.,Impossibile caricare il modello di sintesi dalle impostazioni del plugin.
-Failed validating messages summary template file.,Impossibile convalidare file modello messaggi di riepilogo.
+Failed validating messages summary template file.,Impossibile convalidare il file del modello messaggi di riepilogo.
 Failed loading messages model.,Impossibile caricare i messaggi modello.
-Error obtaining summary list of messages.,Errore durante il ottenendo elenco riepilogativo dei messaggi.
+Error obtaining summary list of messages.,Errore durante l'ottenimento dell'elenco riepilogativo dei messaggi.
 Compose message,Componi messaggio
 Destination,Destinazione
-Comma separated user ids,Separati da virgola gli ID utente
-Comma separated user nicknames or emails,Separati da virgola soprannomi utente o e-mail
-Comma separated messaging handlers,Separati da virgola handlers di messaggistica
-Message subject...,Soggetto del messaggio...
-Destination cannot reply,Destinazione non può rispondere
-Tick this checkbox if you want destination not to be able to reply to the message.,Seleziona questa casella di controllo se si desidera che la destinazione di non essere in grado di rispondere al messaggio.
+Comma separated user ids,Separa con la virgola gli ID utente
+Comma separated user nicknames or emails,Separa con la virgola il nickname dell'utente o e-mail
+Comma separated messaging handlers,Separa con la virgola gli handlers di messaggistica
+Message subject...,Oggetto del messaggio...
+Destination cannot reply,La destinazione non corrisponde
+Tick this checkbox if you want destination not to be able to reply to the message.,Seleziona questa casella di controllo se si desidera far arrivare il messaggioal destinatario.
 Body,Corpo
 Message body...,Corpo del messaggio...
 Send Message,Invia Messaggio
-Couldn't get parent plugin object.,Impossibile ottenere l'oggetto plugin parent.
+Couldn't get parent plugin object.,Impossibile ottenere l'oggetto del plugin parent.
 Messages,Messaggi
 Compose,Scrivi
 Couldn't load dependencies.,Impossibile caricare le dipendenze.
-Error deleting message. Please retry.,Errore di cancallzione di messaggio. Si prega di riprovare.
+Error deleting message. Please retry.,Errore di cancallzione del messaggio. Si prega di riprovare.
 Reply,Rispondere
-Couldn't initialize required parameters for current view.,Impossibile inizializzare parametri necessari per la visualizzazione corrente.
-Load previous messages,Caricare messaggi precedenti
+Couldn't initialize required parameters for current view.,Impossibile inizializzare i parametri necessari per la visualizzazione corrente.
+Load previous messages,Caricare i messaggi precedenti
 %s messages,%s messaggi
 1 message,1 messaggio
-Load next messages,Caricare prossimi messaggi
+Load next messages,Caricare i prossimi messaggi
 Loading previous messages...,Caricamento messaggi precedenti ...
-Loading next messages...,Caricamento prossimi messaggi ...
+Loading next messages...,Caricamenti messaggi successivi ...
 Error loading messages. Please retry.,Errore nel caricamento dei messaggi. Si prega di riprovare.
 FROM: %s,DA: %s
 TO: %s,A: %s
-Role not found in database for message destination.,Ruolo non trovato nel database per destinazione del messaggio.
-Role unit not found in database for message destination.,Unità di ruolo non trovato nel database per la destinazione del messaggio.
+Role not found in database for message destination.,Il ruolo non è stato trovato nel database per la destinazione del messaggio.
+Role unit not found in database for message destination.,L'unità di ruolo non è stata trovata nel database per la destinazione del messaggio.

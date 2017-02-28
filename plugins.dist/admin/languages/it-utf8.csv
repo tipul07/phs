@@ -2,53 +2,53 @@
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
 DONE,FATTO
-Couldn't load accounts plugin.,Impossibile caricare conti plugin.
-Couldn't load accounts model.,Impossibile caricare conti modello.
-You should login first...,Si dovrebbe accedi prima ...
-Error saving details to database. Please try again.,Errore di salvataggio dati al database. Si prega di riprovare.
-Password should be at least %s characters.,La password deve essere di almeno %s caratteri.
+Couldn't load accounts plugin.,Impossibile caricare gli accounts plugin.
+Couldn't load accounts model.,Impossibile caricare gli accounts modello.
+You should login first...,Si dovrebbe effettuare il primo login ...
+Error saving details to database. Please try again.,Errore di salvataggio dati sul database. Si prega di riprovare.
+Password should be at least %s characters.,La password deve avere almeno %s caratteri.
 Username,Nome utente
 Email,E-mail
-Password should pass regular expresion: ,La password deve passare espressione regolare:
-Password should pass regular expresion: %s.,La password deve passare espressione regolare: %s.
+Password should pass regular expresion: ,La password deve avere la seguente caratteristica :
+Password should pass regular expresion: %s.,La password deve avere la seguente caratteristica: %s.
 Title,Titolo
 "eg. Mr., Ms., Mss., etc","ad es. Sig., Sig.ra, Sig.na, ecc"
 First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono
 Company,Azienda
-Save Changes,Salvare Cambiamenti
+Save Changes,Modifiche salvate
 Password,Password
 Register,Registro
-Add Agent Job,Aggiungere di processo dell'agente
-You don't have rights to manage agent jobs.,Non hai i diritti per gestire i processi di agente.
-Couldn't load agent jobs model.,Impossibile caricare processi dell'agente modello.
-Please provide a handler for this agent job.,Si prega di fornire un handler per questo processo dell'agente.
-Agent job handler already exists. Pick another one.,Handler processo dell'agente esiste già. Scegliere un altro.
-Job parameters doesn't look like a valid JSON string or JSON is empty.,Parametri processo non sembra una stringa JSON valido o JSON è vuoto.
-"Invalid plugin, controller or action selected. Please select valid values from drop down list.","Non valido plugin, controllore o azione selezionata. Si prega di selezionare i valori validi dal elenco a discesa."
-"Couldn't compose a valid route using provided plugin, controller or action. Please select valid values from drop down list.","Impossibile comporre una route valida utilizzando fornito plugin, controllore o azione. Si prega di selezionare i valori validi dall'elenco a discesa."
+Add Agent Job,Aggiungere la funzione del responsabile
+You don't have rights to manage agent jobs.,Non hai i diritti per gestire le funzioni del responsabile.
+Couldn't load agent jobs model.,Impossibile caricare il modello degli incarichi del responsabile.
+Please provide a handler for this agent job.,Si prega di fornire un'amministratore per questa funzione del responsabile.
+Agent job handler already exists. Pick another one.,L'amministratore per questa funzione di responsabile esiste già. Sceglierne un altro.
+Job parameters doesn't look like a valid JSON string or JSON is empty.,Il processo dei parametri non sembra una stringa  valido JSON o JSON è vuoto.
+"Invalid plugin, controller or action selected. Please select valid values from drop down list.","Plugin non valido, controllore o selezionare un'azione. Si prega di selezionare i valori validi dal elenco a discesa."
+"Couldn't compose a valid route using provided plugin, controller or action. Please select valid values from drop down list.","Impossibile comporre una route valida utilizzando il plugin fornito, controllore o selezionare un'azione. Si prega di selezionare i valori validi dall'elenco a discesa."
 Please provide a valid running interval in seconds.,Si prega di fornire un intervallo di esecuzione valida in secondi.
-Agent job details saved...,Dettagli di processo dell'agente salvato...
-Edit Agent Job,Modifica processo dell'agente
-Invalid agent job...,Processo dell'agente non valido...
-Agent job details saved.,Dettagli di processo dell'agente salvato.
-Manage Agent Jobs,Gestire processi dell'agente
-Couldn't load libraries plugin.,Impossibile caricare le librerie plugin.
-You don't have rights to list agent jobs.,Non si dispone dei diritti per elencare processi dell'agente.
-agent job,processo dell'agente
-agent jobs,processi dell'agente
-Agent Jobs,Processi Dell'Agente
-Invalid agent job or agent job was not found in database.,Processo dell'agente non valido o di processo dell'agente non è stato trovato nel database.
-Agent job details saved in database.,Dettagli di processo dell'agente salvato nel database.
+Agent job details saved...,I dettagli delle funzioni del responsabile sono stati salvati...
+Edit Agent Job,Modifica le funzioni del responsabile
+Invalid agent job...,La funzione del responsabile non è valida...
+Agent job details saved.,Dettagli delle funzioni del responsabile sono stati salvati.
+Manage Agent Jobs,Gestire le funzioni del responsabile
+Couldn't load libraries plugin.,Impossibile caricare i plugin delle librerie.
+You don't have rights to list agent jobs.,Non si dispone dei diritti per classificare le funzioni del responsabile.
+agent job,Funzione del responsabile
+agent jobs,le funzioni del responsabile
+Agent Jobs,Le funzioni del responsabile
+Invalid agent job or agent job was not found in database.,La funzione del responsabile non è valida o la funzione dell'agente non è stata trovata nel database.
+Agent job details saved in database.,I dettagli delle funzioni del responsabile sono state salvate nel database.
  - Choose - , - Scegliere - 
-Inactivate,Inattivare
+Inactivate,Disattivare
 Activate,Attivare
 Delete,Cancellare
-Handler,Handler
-All records containing this value at handler field,Tutti i record contenenti questo valore al campo handler
-Route,Route
-All records containing this value at route field,Tutti i record contenenti questo valore al campo route
+Handler,Amministratore
+All records containing this value at handler field,Tutti i documenti contenengono questo valore nel campo amministratore
+Route,Percorso
+All records containing this value at route field,Tutti i documenti contengono questo valore nel campo percorso
 Status,Stato
 N/A,N/A
 Plugin,Plugin
@@ -59,185 +59,185 @@ Invalid,Non valido
 Created,Creato
 Actions,Azioni
 Unknown action.,Azione sconosciuta.
-Required agent jobs activated with success.,Processi dell'agente richiesti attivati con successo.
-Activating selected agent jobs failed. Please try again.,Attivazione di processi di agente selezionati non riuscita. Si prega di riprovare.
-Failed activating all selected agent jobs. Agent jobs which failed activation are still selected. Please try again.,Impossibile attivare tutti i processi di agente selezionati. Processi di agente che non riuscita attivazione sono ancora selezionati. Si prega di riprovare.
-Required agent jobs inactivated with success.,Processi di agente richiesto inattivati con successo.
-Inactivating selected agent jobs failed. Please try again.,Inattivazione  di processi di agente selezionati non riuscita. Si prega di riprovare.
-Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.,Impossibile inattivando tutti i processi di agente selezionati. Processi di agente che non riuscita inattivazione sono ancora selezionati. Si prega di riprovare.
-Required agent jobs deleted with success.,Necessari processi di agente cancellati con successo.
-Deleting selected agent jobs failed. Please try again.,Cancellazione di processi di agente selezionati non riuscita. Si prega di riprovare.
-Failed deleting all selected agent jobs. Agent jobs which failed deletion are still selected. Please try again.,Impossibile cancellare tutti i processi dell'agente selezionati. Processi dell'agente che non è riuscita la cancellazione sono ancora selezionati. Si prega di riprovare.
-Agent job activated with success.,Processo dell'agente attivato con successo.
-Activating agent job failed. Please try again.,Attivazione di processo dell'agente selezionato non riuscita. Si prega di riprovare.
-You don't have rights to manage agent job.,Non hai i diritti per gestire il processo dell'agente.
-Cannot activate address. Agent job not found in database.,Impossibile attivare indirizzo. Processo dell'agente non trovato nel database.
-Agent job inactivated with success.,Processo dell'agente inattivato con successo.
-Inactivating agent job failed. Please try again.,Inattivazione di processo dell'agente non riuscita. Si prega di riprovare.
-Cannot inactivate address. Agent job not found in database.,Impossibile inattivare indirizzo. Processo dell'agente non trovato nel database.
-Agent job deleted with success.,Processo dell'agente cancellato con successo.
-Deleting agent job failed. Please try again.,Cancellazione di processo dell'agente non riuscita. Si prega di riprovare.
-Cannot delete address. Agent job not found in database.,Impossibile cancellare indirizzo. Processo dell'agente non trovato nel database.
+Required agent jobs activated with success.,Le richieste per le funzioni del responsabile sono state attivate con successo.
+Activating selected agent jobs failed. Please try again.,L'attivazione delle funzioni del responsabile selezionate non è riuscita. Si prega di riprovare.
+Failed activating all selected agent jobs. Agent jobs which failed activation are still selected. Please try again.,Impossibile attivare tutte le funzioni del responsabile selezionate. Le funzioni del responsabile che non sono state attivate sono ancora selezionate. Si prega di riprovare.
+Required agent jobs inactivated with success.,La richiesta di disattivare le funzioni del responsabile è avvenuta con successo.
+Inactivating selected agent jobs failed. Please try again.,La disattivazione delle funzioni del responsabile non è riuscita. Si prega di riprovare.
+Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.,Impossibile disattivare tutte le funzioni del responsabile selezionate. Le funzioni del responsabile che non sono state disattivate  sono ancora selezionate. Si prega di riprovare.
+Required agent jobs deleted with success.,La richiesta per eliminare le funzioni del responsanbile è avvenuta con successo.
+Deleting selected agent jobs failed. Please try again.,L'eliminazione delle funzioni del responsabile che sono state selezionate non è riuscita. Si prega di riprovare.
+Failed deleting all selected agent jobs. Agent jobs which failed deletion are still selected. Please try again.,Impossibile eliminare tutte le funzioni del responsabile selezionate. L'eliminazione delle funzioni del responsche non è riuscita e sono ancora selezionate. Si prega di riprovare.
+Agent job activated with success.,La funzione del responsabile è stata attivata con successo.
+Activating agent job failed. Please try again.,L'attivazione della funzione del responsabile selezionata non è riuscita. Si prega di riprovare.
+You don't have rights to manage agent job.,Non hai i diritti per gestire la funzione del responsabile.
+Cannot activate address. Agent job not found in database.,Impossibile attivare l'indirizzo. LA funzionde del responsabile non è stata trovata nel database.
+Agent job inactivated with success.,La funzione del responsabile è stata disattivata con successo.
+Inactivating agent job failed. Please try again.,La disattivazione della funzione del resposabile non è riuscita. Si prega di riprovare.
+Cannot inactivate address. Agent job not found in database.,Impossibile disattivare l'indirizzo. La funzionde del responsabile  non è stata trovata nel database.
+Agent job deleted with success.,La funzione del responsabile è stata eliminata con successo.
+Deleting agent job failed. Please try again.,L'eliminazione della funzione del responsabile non è riuscita. Si prega di riprovare.
+Cannot delete address. Agent job not found in database.,Impossibile eliminare l'indirizzo. La funzionde del responsabile non è stata trovata nel database.
 Runs every %s,Esecuzione ogni %s
-Edit agent job,Modifica processo dell'agente
-Activate agent job,Attivare di processo dell'agente
-Inactivate agent job,Inattivare di processo dell'agente
-Delete agent job,Cancellare di processo dell'agente
+Edit agent job,Modifica della funzione del responsabile
+Activate agent job,Attivazione della funzionde del responsabile
+Inactivate agent job,Disattivare la funzionde del responsabile
+Delete agent job,Eliminare la funzionde del responsabile
 Admin Area,Admin Area
 Plugin Settings,Impostazioni del plugin
 You don't have rights to list plugins.,Non si dispone dei diritti per elencare i plugin.
 Settings saved in database.,Impostazioni salvate nel database.
 Error saving settings in database. Please try again.,Errore di salvataggio delle impostazioni nel database. Si prega di riprovare.
-Plugins' Integrity,Integrità dei plugins
+Plugins' Integrity,Integrazione dei plugins
 You don't have rights to manage plugins.,Non si dispone di diritti di gestione dei plugin.
-Couldn't load plugins model.,Impossibile caricare il plugin modello.
+Couldn't load plugins model.,Impossibile caricare il modello del plugin.
 Please provide a valid plugin name.,Si prega di fornire un nome del plugin valido.
 "Checking plugin %s (%s controllers, %s actions, %s models)...","Verifica dei plugin %s (%s controllori, %s azioni, %s modelli) ..."
 INSTALLED,Installato
-NOT Installed,Non Installati
-Plugin name not provided for validity check,Nome del plugin non fornito per controllo di validità
-Unknown error while instantiating plugin.,Errore istanziando plugin.
-Unknown error while instantiating controller.,Errore sconosciuto durante istanziando controller.
-Unknown error while instantiating action.,Errore sconosciuto durante istanziando azione.
-Unknown error while instantiating model.,Errore sconosciuto durante istanziando modello.
+NOT Installed,Non Installato
+Plugin name not provided for validity check,Il nome del plugin non è stato fornito per controllare la validità
+Unknown error while instantiating plugin.,Errore durante l'installazione del plugin.
+Unknown error while instantiating controller.,Errore sconosciuto durante l'installazione del controller.
+Unknown error while instantiating action.,Errore sconosciuto durante l'installezione dell'azione.
+Unknown error while instantiating model.,Errore sconosciuto durante l'installazionde del modello.
 Nothing to instantiate. Please check parameters.,Nulla per creare un'istanza. Si prega di controllare i parametri.
 Plugins List,Lista dei plugin
-Plugin ID is invalid or plugin was not found.,Plugin ID non è valido o non è stato trovato il plugin.
-Couldn't get plugin info for %s.,Impossibile ottenere informazioni plugin per %s.
+Plugin ID is invalid or plugin was not found.,Il plugin ID non è valido o non è stato trovato il plugin.
+Couldn't get plugin info for %s.,Impossibile ottenere informazioni del plugin per %s.
 plugin,plugin
 plugins,plugin
 Not Installed,Non Installati
-All records containing this value,Tutti i record contenenti questo valore
+All records containing this value,Tutti i documenti contenengono questo valore
 Version,Versione
 Installed / Script,Installato / Script
 Status Date,Data dello Stato
 Installed,Installato
 Plugin installed with success.,Plugin installato con successo.
-Installing plugin failed. Please try again.,Installazione di plugin non riuscita. Si prega di riprovare.
-Cannot install plugin. Invalid module ID.,Impossibile installare plugin. ID del modulo non valido.
-Couldn't instantiate plugin.,Impossibile creare un'istanza di plugin.
-Plugin activated with success.,Plugin attivato con successo.
-Activating plugin failed. Please try again.,Attivazione di plugin non riuscita. Si prega di riprovare.
-Cannot install plugin. Invalid plugin ID.,Impossibile installare plugin. ID del plugin non valido.
-Plugin inactivated with success.,Plugin inattivato con successo.
-Inactivating plugin failed. Please try again.,Inattivazione di plugin non riuscita. Si prega di riprovare.
-Cannot inactivate plugin. Invalid plugin ID.,Impossibile inattivare plugin. ID del plugin non valido.
-Plugin upgraded with success.,Plugin aggiornato con successo.
-Upgrading plugin failed. Please try again.,Aggiornamento di plugin non riuscita. Si prega di riprovare.
-Cannot upgrade plugin. Invalid plugin ID.,Impossibile aggiornare plugin. ID del plugin non valido.
+Installing plugin failed. Please try again.,L'installazione del plugin non è riuscita. Si prega di riprovare.
+Cannot install plugin. Invalid module ID.,Impossibile installare il plugin. L'ID del modulo non è valido.
+Couldn't instantiate plugin.,Impossibile creare un'istanza del plugin.
+Plugin activated with success.,Il plugin è stato attivato con successo.
+Activating plugin failed. Please try again.,Attivazione del plugin non è riuscita. Si prega di riprovare.
+Cannot install plugin. Invalid plugin ID.,Impossibile installare il plugin. ID del plugin non è valido.
+Plugin inactivated with success.,Plugin disattivato con successo.
+Inactivating plugin failed. Please try again.,La disattivazione del plugin non è riuscita. Si prega di riprovare.
+Cannot inactivate plugin. Invalid plugin ID.,Impossibile disattivare il plugin. ID del plugin non è valido.
+Plugin upgraded with success.,Il plugin è stato aggiornato con successo.
+Upgrading plugin failed. Please try again.,L'aggiornamento del plugin non è riuscita. Si prega di riprovare.
+Cannot upgrade plugin. Invalid plugin ID.,Impossibile aggiornare il plugin. ID del plugin non è valido.
 Plugin uninstalled with success.,Plugin disinstallato con successo.
-Uninstalling plugin failed. Please try again.,Disinstallazione di plugin non riuscita. Si prega di riprovare.
-Cannot uninstall plugin. Invalid plugin ID.,Impossibile disinstallare plugin. ID del plugin non valido.
-Plugin deleted with success.,Plugin cancellato con successo.
-Deleting plugin failed. Please try again.,Cancellazione di plugin non riuscita. Si prega di riprovare.
-Cannot delete plugin. Invalid plugin ID.,Impossibile cancellare plugin. ID del plugin non valido.
+Uninstalling plugin failed. Please try again.,Disinstallazione del plugin non è riuscita. Si prega di riprovare.
+Cannot uninstall plugin. Invalid plugin ID.,Impossibile disinstallare il plugin. ID del plugin non è valido.
+Plugin deleted with success.,Il plugin è stato eliminato con successo.
+Deleting plugin failed. Please try again.,L'eliminazione del plugin non è riuscita. Si prega di riprovare.
+Cannot delete plugin. Invalid plugin ID.,Impossibile eliminare il plugin. ID del plugin non è valido.
 %s models,%s modelli
-Install plugin,Installare plugin
-Uninstall plugin,Disinstallare plugin
-Activate plugin,Attivare plugin
-Upgrade plugin,Aggiornamento plugin
-Inactivate plugin,Inattivare plugin
-Delete plugin,Cancellare plugin
-Add Role,Aggiungere Ruolo
-You don't have rights to manage roles.,Non si dispone di diritti per gestire ruoli.
-Couldn't load roles model.,Impossibile caricare ruoli modello.
-Role details saved...,Dettagli ruolo salvati ...
+Install plugin,Installazione del plugin
+Uninstall plugin,Disinstallazione del plugin
+Activate plugin,Attivazione del plugin
+Upgrade plugin,Aggiornamento del plugin
+Inactivate plugin,Disattivazionde del plugin
+Delete plugin,Eliminazionde del plugin
+Add Role,Aggiungere un ruolo
+You don't have rights to manage roles.,Non si dispone dei diritti per gestire ruoli.
+Couldn't load roles model.,Impossibile caricare i ruoli del modello.
+Role details saved...,Dettagli dei ruoli salvati ...
 Edit Role,Modifica ruolo
 Invalid role...,Ruolo non valido ...
 Role details saved.,Dettagli ruolo salvati.
 Roles List,Lista ruoli
-You don't have rights to list roles.,Non si dispone di diritti di elencare ruoli.
+You don't have rights to list roles.,Non si dispone dei diritti per classificare i ruoli.
 role,ruolo
 roles,ruoli
-Invalid role or role was not found in database.,Ruolo non valido o ruolo non è stato trovato nel database.
-Role details saved in database.,Dettagli di ruolo salvati nel database.
+Invalid role or role was not found in database.,Ruolo non valido o il ruolo non è stato trovato nel database.
+Role details saved in database.,Dettagli del ruolo sono stati salvati nel database.
 Name,Nome
 Slug,Slug
-Required roles activated with success.,Ruoli richiesti attivati con successo.
-Activating selected roles failed. Please try again.,Attivazione di ruoli selezionati non riuscita. Si prega di riprovare.
-Failed activating all selected roles. Roles which failed activation are still selected. Please try again.,Impossibile attivare tutti i ruoli selezionati. Ruoli che non riuscita attivazione sono ancora selezionati. Si prega di riprovare.
-Required roles inactivated with success.,Ruoli richiesti inattivati con successo.
-Inactivating selected roles failed. Please try again.,Inattivazione di ruoli selezionati non riuscita. Si prega di riprovare.
-Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,Non riuscita inattivando tutti i ruoli selezionati. Ruoli che non riuscita inattivazione sono ancora selezionati. Si prega di riprovare.
-Required roles deleted with success.,Ruoli richiesti cancellati con successo.
-Deleting selected roles failed. Please try again.,Cancellazione di ruoli selezionati non riuscita. Si prega di riprovare.
-Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.,Impossibile cancellare tutti i ruoli selezionati. Ruoli che non riuscita la cancellazione sono ancora selezionati. Si prega di riprovare.
+Required roles activated with success.,I ruoli richiesti sono stati attivati con successo.
+Activating selected roles failed. Please try again.,Attivazione dei ruoli selezionati non è riuscita. Si prega di riprovare.
+Failed activating all selected roles. Roles which failed activation are still selected. Please try again.,Impossibile attivare tutti i ruoli selezionati. I ruoli la cui attivazione non è riuscita sono ancora selezionati. Si prega di riprovare.
+Required roles inactivated with success.,La richiesta della disattivazione dei ruoli è avvenuta con successo.
+Inactivating selected roles failed. Please try again.,LA disattivazionde deo ruoli selezionati non è riuscita. Si prega di riprovare.
+Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,La disattivazione dei ruoli selezionati è fallita. I ruoli la cui disattivazione è fallita sono ancora selezionati. Si prega di riprovare.
+Required roles deleted with success.,La richiesta dell'eliminazionde dei ruoli è avvenuta con successo.
+Deleting selected roles failed. Please try again.,L'eliminazionde dei ruoli selezionati non è riuscita. Si prega di riprovare.
+Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.,Impossibile eliminare i ruoli selezionati. I ruoli la cui eliminazione è fallita sono ancora selezionati. Si prega di riprovare.
 Role activated with success.,Ruolo attivato con successo.
-Activating role failed. Please try again.,Attivazione di ruolo non riuscita. Si prega di riprovare.
-Cannot activate role. Role not found.,Impossibile attivare ruolo. Ruolo non trovato.
-Role inactivated with success.,Ruolo inattivato con successo.
-Inactivating role failed. Please try again.,Inattivazione di ruolo non riuscita. Si prega di riprovare.
-Cannot inactivate role. Role not found.,Impossibile inattivare ruolo. Ruolo non trovato.
-Role deleted with success.,Ruolo cancellato con successo.
-Deleting role failed. Please try again.,Cancellazione di ruolo non riuscita. Si prega di riprovare.
-Cannot delete role. Role not found.,Impossibile cancellare ruolo. Ruolo non trovato.
-Edit role,Modifica ruolo
-Activate role,Attivare ruolo
-Inactivate role,Inattivare ruolo
-Delete role,Cancellare ruolo
+Activating role failed. Please try again.,Attivazione del ruolo non è riuscita. Si prega di riprovare.
+Cannot activate role. Role not found.,Impossibile attivare il ruolo. Il ruolo non è stato trovato.
+Role inactivated with success.,Ruolo disattivato con successo.
+Inactivating role failed. Please try again.,LA disattivazione del ruolo non è riuscita. Si prega di riprovare.
+Cannot inactivate role. Role not found.,Impossibile disattivare il ruolo. Il ruolo non è stato trovato.
+Role deleted with success.,Il ruolo è stato eliminato con successo.
+Deleting role failed. Please try again.,L'eliminazione del ruolo non è riuscita. Si prega di riprovare.
+Cannot delete role. Role not found.,Impossibile eliminare il ruolo. Il ruolo non è stato trovato.
+Edit role,Modifica del ruolo
+Activate role,Attivare il ruolo
+Inactivate role,Disattivare il ruolo
+Delete role,Eliminare il ruolo
 System logs,Log di sistema
-You don't have rights to view system logs.,Non si dispone di diritti per visualizzare i log di sistema.
+You don't have rights to view system logs.,Non si dispone dei diritti per visualizzare i log di sistema.
 Invalid log file for download.,File di log non valido per il download.
-Cannot read provided log file data.,Non è possibile leggere i dati dei file di log forniti.
+Cannot read provided log file data.,Non è possibile leggere i dati del file di log che sono stati forniti.
 Add User,Aggiungi utente
 You don't have rights to manage accounts.,Non si dispone dei diritti per gestire gli account.
 User account created...,Account utente creato ...
 Edit User,Modifica Utente
 Invalid account...,Account non valido...
 Account details saved in database.,Dettagli account salvati nel database.
-Password fields don't match.,Campi per la password non corrispondono.
-List Users,Elencare Utenti
+Password fields don't match.,I campi per la password non corrispondono.
+List Users,Elencare gli utenti
 You don't have rights to create accounts.,Non si dispone dei diritti per creare gli account.
-User account created.,Account utente creato.
-Account not found in database.,Account non trovato nel database.
+User account created.,L'account dell'utente è stato creato.
+Account not found in database.,L'account non è stato trovato nel database.
 user,utente
 users,utenti
 IDs,IDs
-Comma separated ids,IDs separati da virgola
+Comma separated ids,IDs separati dalla virgola
 "eg. 1,2,3","ad es. 1,2,3"
-Nickname,Soprannome
+Nickname,Nickname
 Level,Livello
 Last Login,Ultimo Accesso
 Never,Mai
-Required accounts activated with success.,Account necessari attivati con successo.
-Activating selected accounts failed. Please try again.,Attivazione di account selezionati non riuscita. Si prega di riprovare.
-Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.,Impossibile attivare tutti i account selezionati. Account che non riuscita attivazione sono ancora selezionati. Si prega di riprovare.
-Required accounts inactivated with success.,Account necessari inattivati con successo.
-Inactivating selected accounts failed. Please try again.,Inattivazione di account selezionati non riuscita. Si prega di riprovare.
-Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.,Impossibile inattivando tutti i account selezionati. Account che non riuscita inattivazione sono ancora selezionati. Si prega di riprovare.
-Required accounts deleted with success.,Account necessari cancellati con successo.
-Deleting selected accounts failed. Please try again.,Cancellazione di account selezionati non riuscita. Si prega di riprovare.
-Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.,Impossibile cancallare tutti i account selezionati. Account che non è riuscita la cancellazione sono ancora selezionati. Si prega di riprovare.
-Logged in with success.,Accesso effettuato con successo.
-Logging in as this account failed. Please try again.,Accesso come questo account non riuscito. Si prega di riprovare.
-You don't have rights to login as this accounts.,Non si dispone dei diritti per accedere come questo account.
-Cannot login as this account. Account not found.,Impossibile accedere a questo account. Account non trovato.
-Account not active. Activate account first.,L'account non è attivo. Attivare account prima.
-Account activated with success.,Account attivato con successo.
-Activating account failed. Please try again.,Attivazione di account non riuscita. Si prega di riprovare.
-Cannot activate account. Account not found.,Impossibile attivare account. Account non trovato.
-Account inactivated with success.,Account inattivato con successo.
-Inactivating account failed. Please try again.,Inattivazione account non riuscita. Si prega di riprovare.
-Cannot inactivate account. Account not found.,Impossibile inattivare account. Account non trovato.
-Account deleted with success.,Account cancellato con successo.
-Deleting account failed. Please try again.,Cancellazione di account non riuscita. Si prega di riprovare.
-Cannot delete account. Account not found.,Impossibile cancellare account. Account non trovato.
-Change login to this account,Cambio login per questo account.
+Required accounts activated with success.,La richiesta dell'attivazione degli accounts è avvenuta con successo.
+Activating selected accounts failed. Please try again.,L'attivazione degli accounts selezionati non è riuscita. Si prega di riprovare.
+Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.,Impossibile attivare tutti gli account selezionati. Gli accounts la cui attivazione è fallitasono ancora selezionati. Si prega di riprovare.
+Required accounts inactivated with success.,LA richiesta della disattivazionde degli accounts è avvenuta con successo.
+Inactivating selected accounts failed. Please try again.,La disattivazione degl accounts selezionati non è riuscita. Si prega di riprovare.
+Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.,Impossibile disattivare tutti gli accounts selezionati. Gli accounts la cui disattivazione non è  riuscita sono ancora selezionati. Si prega di riprovare.
+Required accounts deleted with success.,La richiesta dell'eliminazionde degli accounts è avvenuta con successo.
+Deleting selected accounts failed. Please try again.,L'eliminazionde degli accounts selezionati è fallita. Si prega di riprovare.
+Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.,Impossibile eliminare tutti gli accounts selezionati. Gli account la cui eliminazioneè falita sono ancora selezionati. Si prega di riprovare.
+Logged in with success.,L'accesso è stato effettuato con successo.
+Logging in as this account failed. Please try again.,L'accesso con questo account non è riuscito. Si prega di riprovare.
+You don't have rights to login as this accounts.,Non si dispone dei diritti per accedere con questo account.
+Cannot login as this account. Account not found.,Impossibile accedere a questo account. L'account non è stato trovato.
+Account not active. Activate account first.,L'account non è attivo. Attiva l'account prima.
+Account activated with success.,L'account è stato attivato con successo.
+Activating account failed. Please try again.,L'attivazione dell'account non è riuscita. Si prega di riprovare.
+Cannot activate account. Account not found.,Impossibile attivare l'account. L'account non è stato trovato.
+Account inactivated with success.,L'account è stato disattivato con successo.
+Inactivating account failed. Please try again.,La disattivazione dell'account non è riuscita. Si prega di riprovare.
+Cannot inactivate account. Account not found.,Impossibile disattivare l'account. L'account non è stato trovato.
+Account deleted with success.,L'account è stato eliminato con successo.
+Deleting account failed. Please try again.,L'eliminazione dell'account non è riuscita. Si prega di riprovare.
+Cannot delete account. Account not found.,Impossibile eliminare l'account. L'account non è stato trovato.
+Change login to this account,Cambio del login per questo account.
 Edit account,Modifica account
-Activate account,Attivare account
-Inactivate account,Inattivare account
-Delete account,Cancellare account
-Error loading accounts model.,Errore di caricamento del modello di conti.
-You don't have enough rights to access this section...,Non si dispone di diritti sufficienti per accedere a questa sezione...
+Activate account,Account attivato
+Inactivate account,Account disattivato
+Delete account,Account eliminato
+Error loading accounts model.,Errore di caricamento del modello degli accounts.
+You don't have enough rights to access this section...,Non si dispone dei diritti sufficienti per accedere a questa sezione...
 Guests,Ospiti
-Role used by non-logged visitors,Ruolo utilizzato da visitatori non registrato
+Role used by non-logged visitors,Ruolo utilizzato dai visitatori non è stato registrato
 Contact Us,Contattaci
-Allow user to use contact us form,Consenti all'utente di utilizzare modulo di contatto
+Allow user to use contact us form,Consenti all'utente di utilizzare il modulo per contattarci
 Allow user to use registration form,Consenti all'utente di utilizzare modulo di registrazione
-Member accounts,Account membro 
-Default functionality role (what normal members can do),Ruolo funzionalità predefinita (ciò che membri normali possono fare)
-Admin accounts,Account amministratore
-Role assigned to admin accounts.,Ruolo assegnato agli account amministratore.
+Member accounts,Membro dell'account
+Default functionality role (what normal members can do),Ruolo della funzionalità predefinita (ciò che i membri normali possono fare)
+Admin accounts,Account dell'amministratore
+Role assigned to admin accounts.,Ruolo assegnato agli account dell'amministratore.
 Manage roles,Gestire i ruoli
 Allow user to define or edit roles,Permette all'utente di definire o modificare i ruoli
 List roles,Elencare ruoli
@@ -246,85 +246,85 @@ Manage plugins,Gestire i plugin
 Allow user to manage plugins,Consenti all'utente di gestire i plugin
 List plugins,Elencare plugin
 Allow user to list plugins,Consenti all'utente di elencare i plugin
-Manage agent jobs,Gestire i processi dell'agente
-Allow user to manage agent jobs,Consenti all'utente di gestire i processi dell'agente
-List agent jobs,Elencare processi dell'agente
-Allow user to list agent jobs,Consenti all'utente di elencare i processi dell'agente
+Manage agent jobs,Gestire i processi del responsabile
+Allow user to manage agent jobs,Consenti all'utente di gestire le funzioni del responsabile
+List agent jobs,Elencare le funzioni del responsabile
+Allow user to list agent jobs,Consenti all'utente di elencare le funzioni del responsabile
 View system logs,Visualizzare i log di sistema
 Allow user to view system logs,Consenti all'utente di visualizzare i log di sistema
-Manage accounts,Gestire gli account
+Manage accounts,Gestire gli accounts
 Allow user to manage accounts,Consenti all'utente di gestire gli account
-List accounts,Elencare account
-Allow user to list accounts,Consenti all'utente di elencare gli account
-Login sub-account,Accesso account secondario
+List accounts,Elencare accounts
+Allow user to list accounts,Consenti all'utente di elencare gli accounts
+Login sub-account,Accesso all'account secondario
 Allow user to login as other user,Consenti all'utente di effettuare il login come un altro utente
-"Only plugins, controllers and actions which support agent scope will be shown.","Verranno mostrati solo i plugin, i controller e le azioni che sostengono agente scope."
+"Only plugins, controllers and actions which support agent scope will be shown.","Solo i plugin, i controller e le azioni che sostengono l'obiettio del responsabile verranno mostrati ."
 Controller,Controllore
 Action,Azione
-Handler should be unique as it will identify agent job.,Handler deve essere univoco dato che identificherà processo dell'agente.
-Job parameters,Parametri processo
-This is a JSON string which will be decoded and passed as parameter to job execute method.,Questa è una stringa JSON che verrà decodificato e passato come parametro di processo metodo execute.
+Handler should be unique as it will identify agent job.,Il gestore deve essere univoco dato che identificherà il processo del responsabile.
+Job parameters,Funzioni del processo
+This is a JSON string which will be decoded and passed as parameter to job execute method.,Questa è una stringa JSON che verrà decodificata e passata come parametro del processo del metodo execute.
 Running interval,Intervallo di esecuzione
-Once how many seconds should this job run. Minimum interval depends on interval set for _agent.php script to run in crontab.,Una volta su quanti secondi questo processo dovrebbe funzionare. Intervallo minimo dipende dal set di intervallo per _agent.php script per l'esecuzione in crontab.
+Once how many seconds should this job run. Minimum interval depends on interval set for _agent.php script to run in crontab.,Ogni quanti secondi questo processo dovrebbe funzionare. L'intervallo minimo dipende dal set di intervallo per _agent.php script per l'esecuzione in crontab.
 seconds,secondi
 Run asynchronous,Esecuzione asincrona
-This agent job will stop agent from advancing to next job untill it is finished.,Questo processo dell'agente fermerà agente da avanzare al prossimo processo fino a quando non è finito.
-Add job,Aggiungere processo
+This agent job will stop agent from advancing to next job untill it is finished.,Questa funzionde del responsabile fermerà l'avanzamento del responsabile fino a quando il processo successivonon è finito.
+Add job,Aggiungere una funzione
 Back,Indietro
-Edit job,Modifica processo
+Edit job,Modifica la funzione
 Welcome...,Benvenuto...
-You are in admin section of %s site.,Sei in sezione amministrativa di %s sito
+You are in admin section of %s site.,Sei nella sezione dell'amministratore di %s sito
 Currently logged in %s - %s.,Attualmente loggato %s -%s.
 Users Management,Gestione Utenti
-Manage Users,Gestire Utenti
-Roles Management,Gestione Ruoli
-Manage Roles,Gestire Ruoli
-Plugins Management,Gestione Plugin
-List Plugins,Elencare Plugin
-Agent script,Script di agente
+Manage Users,Gestire gli utenti
+Roles Management,Gestione dei ruoli
+Manage Roles,Gestire i ruoli
+Plugins Management,Gestione dei Plugin
+List Plugins,Elencare i Plugin
+Agent script,Script del responsabile
 View logs,Visualizza i log
 Settings for,Impostazioni per
 Database version,Versione del database
 Script version,Versione dello script
 Please upgrade the plugin,Si prega di aggiornare il plugin
-Selected module doesn't have any settings.,Modulo selezionato non ha alcuna impostazione.
+Selected module doesn't have any settings.,Il modulo selezionato non ha alcuna impostazione.
 [Non-editable],[Non modificabile]
-Render settings field call failed.,Le impostazioni di rendering chiamata campo non è riuscita.
-Not a key-value array...,Non un array con chiave-valori ...
-Template file,File modello
+Render settings field call failed.,Tradurre le impostazioni del campo della chiamata non riuscita è fallita.
+Not a key-value array...,Il key-value non è disponibile ...
+Template file,Modello del file
 From paths,Dai percorsi
-Values array should be provided,Valori array dovrebbe essere fornite
+Values array should be provided,I valori disponibili dovrebbero essere stati forniti
 Save settings,Salvare le impostazioni
 Cancel,Annullare
 Plugin to check,Plugin per controllare
  - All plugins - ,- Tutti i plugin -
-Integrity check,Controllo di integrità
+Integrity check,Controllo dell'integrità
 Please wait...,Attendere prego...
-Checking plugin integrity...,Controllo di plugin integrità...
+Checking plugin integrity...,Controllo dell'integrità del plugin...
 Sending request to server... Please wait.,Invio della richiesta al server... Attendere prego.
 Checking integrity for plugin %s...,Controllo di integrità per il plugin %s ...
-Checking integrity for ALL plugins...,Controllo integrità per tutti i plugin...
-Didn't find a valid value in plugins list to check integrity.,Non trovare un valore valido nell'elenco plugin per controllare l'integrità.
+Checking integrity for ALL plugins...,Controllo dell'integrità per tutti i plugin...
+Didn't find a valid value in plugins list to check integrity.,Non è stato trovato un valore valido nell'elenco plugin per il controllo dell'integrità.
 Message deleted with success.,Messaggio cancellato con successo.
-Error sending request to server. Please retry.,Errore invio richiesta al server. Si prega di riprovare.
-Slug should be unique. Once role is defined you cannot change this slug.,Slug deve essere univoco. Una volta che ruolo viene definito non è possibile modificare questa slug.
+Error sending request to server. Please retry.,Errore di invio di richiesta al server. Si prega di riprovare.
+Slug should be unique. Once role is defined you cannot change this slug.,Slug deve essere univoco. Una volta che il ruolo viene definito non è possibile modificare questo slug.
 Description,Descrizione
 Role Units,Unità di ruolo
-Add role,Aggiungere ruolo
-Save changes,Salvare cambiamenti
+Add role,Aggiungere il ruolo
+Save changes,Salvare i cambiamenti
 System Logs,Log di sistema
 Log file,File di log
 lines,linee
-View file,Visualizza file
+View file,Visualizza il file
 Log file not provided or invalid.,File di log non previsto o non valido.
 File name,Nome del file
 File size,Dimensione del file
 Download file,Download file
-Displaying last %s lines from %s file.,Visualizzazione ultime %s righe dal %s file.
-Log file returned empty buffer.,File di log restituito buffer vuoto.
-Add User Account,Aggiungere Account Utente
-Create Account,Creare Account
-Edit User Account,Modifica Account Utente
+Displaying last %s lines from %s file.,Visualizzazione delle ultime %s righe dal %s file.
+Log file returned empty buffer.,File di log restituisce il buffer vuoto.
+Add User Account,Aggiungere un account all'utente
+Create Account,Creare un account
+Edit User Account,Modifica l'account dell'utente
 Roles,Ruoli
 Change roles,Cambia i ruoli
 Complete password fields ony if you want to change password,Completare i campi della password solo se si desidera modificare la password

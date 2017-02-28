@@ -1,11 +1,11 @@
 # !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
-Couldn't load template from plugin settings.,Impossibile caricare modello da impostazioni del plugin.
-Error rendering template [%s].,Errore di rendering modello [%s].
+Couldn't load template from plugin settings.,Impossibile caricare il modello dalle impostazioni del plugin.
+Error rendering template [%s].,Errore nella traduzione del modello [%s].
 Couldn't load cookies notification plugin.,Impossibile caricare i cookie plugin di notifica.
-Failed validating notifications template file.,Impossibile convalidare le notifiche file modello.
-"This site uses cookies which help us deliver a better user experience. By browsing the site, you agree to cookies usage.","Questo sito utilizza cookies che aiuterà a fornire una migliore esperienza utente. Con la consultazione del sito, l'utente accetta di utilizzo cookie."
+Failed validating notifications template file.,Impossibile convalidare le notifiche del file modello.
+"This site uses cookies which help us deliver a better user experience. By browsing the site, you agree to cookies usage.","Questo sito utilizza cookies che aiuterà a fornire una migliore esperienza all'utente. Con la consultazione del sito, l'utente accetta di utilizzare i cookies."
 More info,Maggiori informazioni
 I don't agree,Non sono d'accordo
 I AGREE,ACCETTO

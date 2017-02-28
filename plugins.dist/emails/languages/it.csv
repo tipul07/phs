@@ -3,25 +3,25 @@
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
 Username,Nome utente
 Password,Password
-Route,Route
-Couldn't load template from plugin settings.,Impossibile caricare modello da impostazioni del plugin.
+Route,Percorso
+Couldn't load template from plugin settings.,Impossibile caricare il modello dalle impostazioni del plugin.
 Error loading SMTP library.,Errore nel caricamento della libreria SMTP.
-Failed validating main email template file.,Impossibile convalidare file di modello di e-mail principale.
-Failed validating email template file.,Impossibile convalidare file di modello di e-mail.
-Invalid SMTP route.,Route SMTP non valido.
-Rendering template %s resulted in empty buffer.,Rendering modello %s ha provocato buffer vuoto.
-Error sending email.,Errore durante l'invio e-mail.
-To parameter is not an email.,A parametro non è una e-mail.
-Email body is empty.,Corpo e-mail è vuoto.
-Error sending email using native function.,Errore durante l'invio e-mail utilizzando la funzione nativa.
-Error sending email using SMTP function.,Errore durante l'invio e-mail utilizzando la funzione SMTP.
-Mandatory SMTP parameters not set.,Parametri SMTP obbligatori non impostate.
-Error sending email using SMTP library.,Errore durante l'invio e-mail utilizzando la libreria SMTP.
-Mandatory native mail parameters not set.,Parametri email native obbligatorie non impostate.
+Failed validating main email template file.,Impossibile convalidare il file del modello dell' e-mail principale.
+Failed validating email template file.,Impossibile convalidare il file del modello dell' e-mail.
+Invalid SMTP route.,Il percorso SMTP non è valido.
+Rendering template %s resulted in empty buffer.,La traduzione del modello %s ha provocato il buffer vuoto.
+Error sending email.,Errore durante l'invio dell'e-mail.
+To parameter is not an email.,Al parametro non c'è una e-mail.
+Email body is empty.,Il corpo della e-mail è vuoto.
+Error sending email using native function.,Errore durante l'invio dell'e-mail che utilizza la funzione nativa.
+Error sending email using SMTP function.,Errore durante l'invio dell'e-mail che utilizza la funzione SMTP.
+Mandatory SMTP parameters not set.,Parametri SMTP obbligatori non sono stati impostati.
+Error sending email using SMTP library.,Errore durante l'invio dell'e-mail che utilizza la libreria SMTP.
+Mandatory native mail parameters not set.,Parametri dell'email native obbligatorie non sono stati impostati.
 Localhost,Localhost
-What hostname should be reported to SMTP server,Quale nome host deve essere segnalato al server SMTP
+What hostname should be reported to SMTP server,Quale hostname deve essere segnalato al server SMTP
 SMTP Host,SMTP Host
-SMTP server used to send emails,Server SMTP utilizzato per inviare e-mail
+SMTP server used to send emails,Il server SMTP è stato utilizzato per inviare e-mail
 SMTP Port,Porta SMTP
 SMTP Timeout,Timeout di SMTP
 SMTP Encryption,Crittografia SMTP

@@ -2,9 +2,9 @@
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
 Couldn't obtain plugin settings.,Impossibile ottenere le impostazioni plugin.
-Function imagecreatetruecolor doesn't exist. Maybe gd library is not installed or doesn't support this function.,imagecreatetruecolor funzione non esiste. Forse libreria gd non è installato o non supporta questa funzione.
+Function imagecreatetruecolor doesn't exist. Maybe gd library is not installed or doesn't support this function.,La funzione imagecreatetruecolor non esiste. Forse la libreria gd non è installata o non supporta questa funzione.
 Font couldn't be found.,Font non è stato trovato.
-Error loading image captcha library.,Errore nel caricamento libreria di immagini captcha.
-Couldn't load template from plugin settings.,Impossibile caricare modello da impostazioni del plugin.
-Failed validating captcha template file.,Impossibile convalidare file modello captcha.
-Error rendering template [%s].,Errore di rendering modello [%s].
+Error loading image captcha library.,Errore nel caricamento della libreria delle immagini captcha.
+Couldn't load template from plugin settings.,Impossibile caricare il modello dalle impostazioni del plugin.
+Failed validating captcha template file.,Impossibile convalidare il file del modello captcha.
+Error rendering template [%s].,Errore nella traduzione del modello [%s].
