@@ -32,6 +32,18 @@
     define( 'PHS_SETUP_PHS_CORE_DIR', PHS_SETUP_PHS_SYSTEM_DIR.'core/' );
     define( 'PHS_SETUP_PHS_LIBRARIES_DIR', PHS_SETUP_PHS_SYSTEM_DIR.'libraries/' );
 
+    define( 'PHS_SETUP_PHS_CORE_MODEL_DIR', PHS_SETUP_PHS_CORE_DIR.'models/' );
+    define( 'PHS_SETUP_PHS_CORE_CONTROLLER_DIR', PHS_SETUP_PHS_CORE_DIR.'controllers/' );
+    define( 'PHS_SETUP_PHS_CORE_VIEW_DIR', PHS_SETUP_PHS_CORE_DIR.'views/' );
+    define( 'PHS_SETUP_PHS_CORE_ACTION_DIR', PHS_SETUP_PHS_CORE_DIR.'actions/' );
+    define( 'PHS_SETUP_PHS_CORE_PLUGIN_DIR', PHS_SETUP_PHS_CORE_DIR.'plugins/' );
+    define( 'PHS_SETUP_PHS_CORE_SCOPE_DIR', PHS_SETUP_PHS_CORE_DIR.'scopes/' );
+
+    // These paths will need a www pair, but after bootstrap
+    define( 'PHS_THEMES_DIR', PHS_SETUP_PHS_PATH.'themes/' );
+    define( 'PHS_LANGUAGES_DIR', PHS_SETUP_PHS_PATH.'languages/' );
+    define( 'PHS_DOWNLOADS_DIR', PHS_SETUP_PHS_PATH.'downloads/' );
+
     if( !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php' )
      or !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' )
      or !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' ) )
@@ -39,7 +51,7 @@
         // TODO: Give option to manually create a file...
         ?>
         <h1>Paths detection failure...</h1>
-        <p>Couldn't locate phs_error.php, phs_language.php and phs_registry.php files from . You should manually setup the framework.</p>
+        <p>Couldn't locate phs_error.php, phs_language.php and phs_registry.php files from PHS framework file structure. You should setup the framework manually.</p>
         <?php
 
         exit;
@@ -48,13 +60,36 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_instantiable.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_plugin.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_base.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_encdec.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_interface.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_params.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_line_params.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_hooks.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_logger.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_notifications.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_utils.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_file_upload.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_paginator.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_paginator_action.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_db.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_session.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_crypt.php' );
+    include_once( PHS_SETUP_PHS_CORE_VIEW_DIR.'phs_view.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_scope.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_bg_jobs.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_agent.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_ajax.php' );
 
     include_once( PHS_SETUP_PHS_SYSTEM_DIR.'functions.php' );
 

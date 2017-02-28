@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.51' );
+    define( 'PHS_VERSION', '1.0.1.52' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -14,7 +14,7 @@ if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) or !constant( 'PHS_DEFAULT_CRYPT_KEY' )
 }
 
 define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
-define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
+define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_SSL_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
 
 define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
@@ -60,6 +60,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_model_base.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
@@ -192,12 +193,9 @@ if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 //
 // Request domain settings (if available)
 //
-if( ($request_full_host = PHS::get_data( PHS::REQUEST_FULL_HOST )) )
+if( ($custom_config_file = PHS::check_custom_config()) )
 {
-    if( @is_file( PHS_CONFIG_DIR.$request_full_host.'.php' ) )
-    {
-        include_once( PHS_CONFIG_DIR.$request_full_host.'.php' );
-    }
+    include_once( $custom_config_file );
 }
 //
 // END Request domain settings (if available)
@@ -216,7 +214,7 @@ include_once( PHS_SYSTEM_DIR.'database_init.php' );
 //
 
 define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!=''?':':'').PHS_PORT.'/'.PHS_DOMAIN_PATH );
-define( 'PHS_FULL_SSL_PATH_WWW', PHS_DOMAIN.(PHS_SSL_PORT!=''?':':'').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH );
+define( 'PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT!=''?':':'').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH );
 
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
 define( 'PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW );

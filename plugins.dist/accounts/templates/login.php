@@ -52,7 +52,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Login' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Login' )?>" />
             </fieldset>
 
             <fieldset>

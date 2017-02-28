@@ -33,7 +33,7 @@ class PHS_Action_Login extends PHS_Action
         $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
         $pass = PHS_params::_pg( 'pass', PHS_params::T_NOHTML );
         $do_remember = PHS_params::_pg( 'do_remember', PHS_params::T_INT );
-        $submit = PHS_params::_p( 'submit' );
+        $do_submit = PHS_params::_p( 'do_submit' );
 
         $back_page = PHS_params::_gp( 'back_page', PHS_params::T_NOHTML );
 
@@ -86,7 +86,7 @@ class PHS_Action_Login extends PHS_Action
             $plugin_settings['session_expire_minutes_normal'] = 0; // till browser closes
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !empty( $submit )
+        if( !empty( $do_submit )
         and !PHS_Notifications::have_notifications_errors() )
         {
             if( empty( $nick ) or empty( $pass ) )

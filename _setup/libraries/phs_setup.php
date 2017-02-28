@@ -2,6 +2,9 @@
 
 namespace phs\setup\libraries;
 
+if( !defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ) )
+    exit;
+
 class PHS_Setup
 {
     private $setup_config = false;
@@ -18,6 +21,55 @@ class PHS_Setup
     {
     }
 
+    public function check_prerequisite()
+    {
+        $error_arr = array();
+
+        if( !defined( 'PHS_SETUP_PATH' )
+         or !defined( 'PHS_SETUP_CONFIG_DIR' ) or !constant( 'PHS_SETUP_CONFIG_DIR' ) )
+        {
+            ob_start();
+            ?>Some paths were not correctly detected / defined:<br/>
+            <ul>
+                <?php
+                if( !defined( 'PHS_SETUP_PATH' ) )
+                {
+                     ?><li><em>PHS_SETUP_PATH</em> - not defined correctly</li><?php
+                }
+                if( !defined( 'PHS_SETUP_CONFIG_DIR' ) or !constant( 'PHS_SETUP_CONFIG_DIR' ) )
+                {
+                    ?><li><em>PHS_SETUP_CONFIG_DIR</em> - not defined or empty</li><?php
+                }
+                ?>
+            </ul>
+            Please try setting up _setup/main.php file manually...
+            <?php
+            $check_err_msg = ob_get_clean();
+
+            $error_arr[] = $check_err_msg;
+        } elseif( !($setup_config_dir = rtrim( PHS_SETUP_CONFIG_DIR, '/\\' ))
+               or !@is_dir( $setup_config_dir )
+               or !@is_writable( $setup_config_dir ) )
+        {
+            ob_start();
+            ?>Setup script will write all configuration files in directory <strong><?php echo (!empty( $setup_config_dir )?$setup_config_dir:'_setup/config')?></strong>.
+            Please make this directory writable by PHP before continuing.<?php
+            $check_err_msg = ob_get_clean();
+
+            $error_arr[] = $check_err_msg;
+        }
+
+        if( !empty( $error_arr ) )
+        {
+            $data = array();
+            $data['error_message_arr'] = $error_arr;
+            $data['error_title'] = 'Setup Errors...';
+
+            echo PHS_Setup_layout::get_instance()->render( 'error_only', $data, true );
+            exit;
+        }
+    }
+
     public static function default_setup_config()
     {
         return array(
@@ -27,6 +79,7 @@ class PHS_Setup
 
     public function load_steps()
     {
+        var_dump( $_SERVER ); exit;
         for( $step_i = 1; @file_exists( PHS_SETUP_LIBRARIES_DIR.'phs_step_'.$step_i.'.php' ); $step_i++ )
         {
             include( PHS_SETUP_LIBRARIES_DIR.'phs_step_'.$step_i.'.php' );

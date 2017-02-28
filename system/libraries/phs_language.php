@@ -172,6 +172,32 @@ class PHS_Language extends PHS_Error
         return $return_arr;
     }
 
+    /**
+     * Loads a specific CSV file for language $lang. This file is provided in 'files' index of language definition array for provided language
+     *
+     * @param string $file
+     * @param bool $force Force loading laguange files
+     * @param string $lang
+     *
+     * @return bool
+     */
+    public static function load_language_file( $file, $lang, $force = false )
+    {
+        self::st_reset_error();
+
+        $language_container = self::language_container();
+
+        if( !($return_arr = $language_container->load_language_file( $file, $lang, $force )) )
+        {
+            if( $language_container->has_error() )
+                self::st_copy_error( $language_container );
+
+            return false;
+        }
+
+        return $return_arr;
+    }
+
     public static function get_language_file_header_arr()
     {
         return self::language_container()->get_language_file_header_arr();
@@ -779,7 +805,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool
      */
-    private function load_language_file( $file, $lang, $force = false )
+    public function load_language_file( $file, $lang, $force = false )
     {
         if( empty( $force )
         and !empty( self::$_LOADED_FILES[$lang][$file] ) )

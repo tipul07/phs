@@ -26,12 +26,15 @@ class PHS_Setup_layout extends PHS_Setup_view
         }
     }
 
-    public function render( $template, $data = false )
+    public function render( $template, $data = false, $include_main_template = false )
     {
         $this->set_context( $this->common_data );
 
         if( !($template_buf = $this->render_view( $template, $data )) )
             $template_buf = '';
+
+        if( empty( $include_main_template ) )
+            return $template_buf;
 
         $main_template_data = array(
             'page_content' => $template_buf,

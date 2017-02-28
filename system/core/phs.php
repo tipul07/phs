@@ -15,8 +15,7 @@ final class PHS extends PHS_Registry
           ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
           ERR_SCRIPT_FILES = 2011;
 
-    const REQUEST_FULL_HOST = 'request_full_host', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
-          COOKIE_DOMAIN = 'cookie_domain',
+    const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
 
           ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action',
 
@@ -77,56 +76,115 @@ final class PHS extends PHS_Registry
         self::set_data( self::PHS_BOOTSTRAP_END_TIME, 0 );
         self::set_data( self::PHS_END_TIME, 0 );
 
-        $cookie_domain = PHS_DEFAULT_DOMAIN;
-        $request_full_host = '';
-        $request_host = '';
-        $request_port = '';
+        $secure_request = self::detect_secure_request();
 
-        if( empty( $_SERVER['HTTP_HOST'] ) )
+        if( empty( $_SERVER['SERVER_NAME'] ) )
+            $request_host = '127.0.0.1';
+        else
+            $request_host = $_SERVER['SERVER_NAME'];
+
+        if( empty( $_SERVER['SERVER_PORT'] ) )
         {
-            $request_full_host = $cookie_domain;
-            $request_host = $cookie_domain;
+            if( $secure_request )
+                $request_port = '443';
+            else
+                $request_port = '80';
         } else
-        {
-            // sanity cleaning (request comes from outside), $request_full_host will be used to load domain specific settings...
-            $request_full_host = str_replace(
-                                    array( '..', '/', '~', '<', '>', '|' ),
-                                    array( '.',  '',  '',  '',  '',  '' ),
-                                    $_SERVER['HTTP_HOST'] );
+            $request_port = $_SERVER['SERVER_PORT'];
 
-            if( strstr( $request_full_host, ':' ) !== false
-            and ($host_details = explode( ':', $request_full_host, 2 )) )
-            {
-                $request_host = $host_details[0];
-                $request_port = (!empty( $host_details[1] )?$host_details[1]:'');
-            } else
-            {
-                $request_host = $request_full_host;
-            }
 
-            $cookie_domain = $request_host;
-        }
-
-        if( isset( $_SERVER['HTTPS'] )
-        and ($_SERVER['HTTPS'] == 'on' or $_SERVER['HTTPS'] == '1') )
+        if( $secure_request )
             self::set_data( self::REQUEST_HTTPS, true );
         else
             self::set_data( self::REQUEST_HTTPS, false );
 
-        self::set_data( self::REQUEST_FULL_HOST, $request_full_host );
+        self::set_data( self::REQUEST_HOST_CONFIG, self::get_request_host_config() );
         self::set_data( self::REQUEST_HOST, $request_host );
         self::set_data( self::REQUEST_PORT, $request_port );
-        self::set_data( self::COOKIE_DOMAIN, $cookie_domain );
 
         self::$inited = true;
     }
 
+    /**
+     * Checks if there is a config file to be included and return it's path. We don't include it here as we want to include in global scope...
+     *
+     * @param bool|string $config_dir Directory where we should check for config file
+     * @return bool|string File to be included or false if nothing to include
+     */
+    public static function check_custom_config( $config_dir = false )
+    {
+        if( !self::$inited )
+            self::init();
+
+        if( empty( $config_dir ) )
+        {
+            if( !defined( 'PHS_CONFIG_DIR' ) )
+                return false;
+
+            $config_dir = PHS_CONFIG_DIR;
+        }
+
+        if( !($host_config = self::get_data( self::REQUEST_HOST_CONFIG ))
+         or empty( $host_config['server_name'] ) )
+            return false;
+
+        if( empty( $host_config['server_port'] ) )
+            $host_config['server_port'] = '';
+
+        if( !empty( $host_config['server_port'] )
+        and @is_file( $config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php' ) )
+            return $config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php';
+
+        if( @is_file( $config_dir.$host_config['server_name'].'.php' ) )
+            return $config_dir.$host_config['server_name'].'.php';
+
+        return false;
+    }
+
+    /**
+     * @return bool Tells if current request is done on a secure connection (HTTPS or HTTP)
+     */
+    public static function detect_secure_request()
+    {
+        if( isset( $_SERVER['HTTPS'] )
+        and ($_SERVER['HTTPS'] == 'on' or $_SERVER['HTTPS'] == '1') )
+            return true;
+
+        return false;
+    }
+
+    /**
+     * Returns request full hostname (based on this system will check for custom configuration files)
+     *
+     * @return string Returns request full hostname (based on this system will check for custom configuration files)
+     */
+    public static function get_request_host_config()
+    {
+        if( empty( $_SERVER['SERVER_NAME'] ) )
+            $server_name = 'default';
+        else
+            $server_name = trim( str_replace(
+                array( '..', '/', '~', '<', '>', '|', '&', '%', '!', '`' ),
+                array( '.',  '',  '',  '',  '',  '',  '',  '',  '',  '' ),
+                $_SERVER['SERVER_NAME'] ) );
+
+        if( empty( $_SERVER['SERVER_PORT'] )
+         or in_array( $_SERVER['SERVER_PORT'], array( '80', '443' ) ) )
+            $server_port = '';
+        else
+            $server_port = $_SERVER['SERVER_PORT'];
+
+        return array(
+            'server_name' => $server_name,
+            'server_port' => $server_port,
+        );
+    }
+
     private static function reset_registry()
     {
-        self::set_data( self::REQUEST_FULL_HOST, '' );
+        self::set_data( self::REQUEST_HOST_CONFIG, false );
         self::set_data( self::REQUEST_HOST, '' );
         self::set_data( self::REQUEST_PORT, '' );
-        self::set_data( self::COOKIE_DOMAIN, '' );
         self::set_data( self::REQUEST_HTTPS, false );
 
         self::set_data( self::CURRENT_THEME, '' );
@@ -402,7 +460,9 @@ final class PHS extends PHS_Registry
         return array(
             // configuration constants
             'PHS_SITE_NAME' => 'PHS_DEFAULT_SITE_NAME',
+            'PHS_COOKIE_DOMAIN' => 'PHS_DEFAULT_COOKIE_DOMAIN',
             'PHS_DOMAIN' => 'PHS_DEFAULT_DOMAIN',
+            'PHS_SSL_DOMAIN' => 'PHS_DEFAULT_SSL_DOMAIN',
             'PHS_PORT' => 'PHS_DEFAULT_PORT',
             'PHS_SSL_PORT' => 'PHS_DEFAULT_SSL_PORT',
             'PHS_DOMAIN_PATH' => 'PHS_DEFAULT_DOMAIN_PATH',

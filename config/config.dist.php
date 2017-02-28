@@ -9,8 +9,12 @@ define( 'PHS_SITE_NAME', 'PoweredByPHS.com' );
 // Where should Contact Us send emails (this email(s) might be shown to users) this can contain comma separated emails
 define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
 
-// Domain name only (eg. www,example.com)
+// domain to set session cookie (could be .example.com serving all subdomains)
+define( 'PHS_COOKIE_DOMAIN', '.domain.com' );
+// Domain name only (eg. www.example.com)
 define( 'PHS_DOMAIN', 'domain.only.com' );
+// If diffrent than "normal" domain (eg. secure.example.com)
+define( 'PHS_SSL_DOMAIN', PHS_DOMAIN );
 // port if site is accessible with a port other than 80. If default port used (80) leave empty
 define( 'PHS_PORT', 'site port' );
 // https port if site is accessible with a port other than 443. If default port used (443) leave empty

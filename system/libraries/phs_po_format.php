@@ -245,6 +245,8 @@ class PHS_po_format extends PHS_Registry
                     @fclose( $fp );
                 }
 
+                self::load_language_file( $lang_file, $this->parsed_language, true );
+
                 continue;
             }
 
@@ -267,6 +269,8 @@ class PHS_po_format extends PHS_Registry
 
                 @fflush( $fp );
                 @fclose( $fp );
+
+                self::load_language_file( $lang_file, $this->parsed_language, true );
             }
 
             $return_arr['new_indexes'] += $new_indexes;

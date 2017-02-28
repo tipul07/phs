@@ -44,6 +44,6 @@ abstract class PHS_Step extends PHS_Registry
         $data['step_interface_buf'] = $step_interface_buf;
         $data['step_instance'] = $this;
 
-        return PHS_Setup_layout::get_instance()->render( 'template_steps', $data );
+        return PHS_Setup_layout::get_instance()->render( 'template_steps', $data, true );
     }
 }

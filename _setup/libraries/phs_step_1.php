@@ -37,13 +37,37 @@ class PHS_Step_1 extends PHS_Step
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $phs_root_dir = PHS_params::_p( 'phs_root_dir', PHS_params::T_NOHTML );
+        $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
+        $phs_domain = PHS_params::_p( 'phs_domain', PHS_params::T_NOHTML );
+        $phs_ssl_domain = PHS_params::_p( 'phs_ssl_domain', PHS_params::T_NOHTML );
+        $phs_port = PHS_params::_p( 'phs_port', PHS_params::T_NOHTML );
+        $phs_ssl_port = PHS_params::_p( 'phs_ssl_port', PHS_params::T_NOHTML );
+        $phs_domain_path = PHS_params::_p( 'phs_domain_path', PHS_params::T_NOHTML );
+
+        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
 
         if( empty( $foobar ) )
         {
             $phs_root_dir = PHS_SETUP_PHS_PATH;
+
+            if( ($domain_settings = PHS_Setup_utils::_detect_setup_domain()) )
+            {
+                $phs_domain = $domain_settings['domain'];
+                $phs_cookie_domain = $domain_settings['cookie_domain'];
+                $phs_ssl_domain = $domain_settings['ssl_domain'];
+                $phs_port = $domain_settings['port'];
+                $phs_ssl_port = $domain_settings['ssl_port'];
+                $phs_domain_path = $domain_settings['domain_path'];
+            }
         }
 
         $data['phs_root_dir'] = $phs_root_dir;
+        $data['phs_domain'] = $phs_domain;
+        $data['phs_ssl_domain'] = $phs_ssl_domain;
+        $data['phs_cookie_domain'] = $phs_cookie_domain;
+        $data['phs_port'] = $phs_port;
+        $data['phs_ssl_port'] = $phs_ssl_port;
+        $data['phs_domain_path'] = $phs_domain_path;
 
         return PHS_Setup_layout::get_instance()->render( 'step1', $data );
     }
