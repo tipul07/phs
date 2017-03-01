@@ -79,7 +79,6 @@ class PHS_Setup
 
     public function load_steps()
     {
-        var_dump( $_SERVER ); exit;
         for( $step_i = 1; @file_exists( PHS_SETUP_LIBRARIES_DIR.'phs_step_'.$step_i.'.php' ); $step_i++ )
         {
             include( PHS_SETUP_LIBRARIES_DIR.'phs_step_'.$step_i.'.php' );

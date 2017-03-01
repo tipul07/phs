@@ -25,8 +25,8 @@ You don't have rights to manage agent jobs.,Non hai i diritti per gestire le fun
 Couldn't load agent jobs model.,Impossibile caricare il modello degli incarichi del responsabile.
 Please provide a handler for this agent job.,Si prega di fornire un'amministratore per questa funzione del responsabile.
 Agent job handler already exists. Pick another one.,L'amministratore per questa funzione di responsabile esiste già. Sceglierne un altro.
-Job parameters doesn't look like a valid JSON string or JSON is empty.,Il processo dei parametri non sembra una stringa  valido JSON o JSON è vuoto.
-"Invalid plugin, controller or action selected. Please select valid values from drop down list.","Plugin non valido, controllore o selezionare un'azione. Si prega di selezionare i valori validi dal elenco a discesa."
+Job parameters doesn't look like a valid JSON string or JSON is empty.,Il processo dei parametri non sembra una stringa JSON valida o il JSON è vuoto.
+"Invalid plugin, controller or action selected. Please select valid values from drop down list.","Plugin non valido, controllare o selezionare un'azione. Si prega di selezionare i valori validi dal elenco a discesa."
 "Couldn't compose a valid route using provided plugin, controller or action. Please select valid values from drop down list.","Impossibile comporre una route valida utilizzando il plugin fornito, controllore o selezionare un'azione. Si prega di selezionare i valori validi dall'elenco a discesa."
 Please provide a valid running interval in seconds.,Si prega di fornire un intervallo di esecuzione valida in secondi.
 Agent job details saved...,I dettagli delle funzioni del responsabile sono stati salvati...
