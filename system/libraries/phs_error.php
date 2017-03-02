@@ -267,6 +267,22 @@ class PHS_Error
         self::get_error_static_instance()->set_error( $error_no, $error_msg, $error_debug_msg );
     }
 
+    public function change_error_message( $error_msg, $error_debug_msg = '' )
+    {
+        if( empty( $error_debug_msg ) )
+            $error_debug_msg = $error_msg;
+
+        $this->error_simple_msg = $error_msg;
+        $this->error_debug_msg = $error_debug_msg;
+
+        return $this->get_error();
+    }
+
+    public function st_change_error_message( $error_msg, $error_debug_msg = '' )
+    {
+        return self::get_error_static_instance()->change_error_message( $error_msg, $error_debug_msg );
+    }
+
     //! Add a warning message
     /**
      *   Add a warning message for a speficied tag or as general warning. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
@@ -510,6 +526,19 @@ class PHS_Error
             return $err_arr['error_debug_msg'];
 
         return $err_arr['error_simple_msg'];
+    }
+
+    public static function arr_change_error_message( $err_arr, $error_msg, $error_debug_msg = '' )
+    {
+        $err_arr = self::validate_error_arr( $err_arr );
+
+        if( empty( $error_debug_msg ) )
+            $error_debug_msg = $error_msg;
+
+        $err_arr['error_debug_msg'] = $error_debug_msg;
+        $err_arr['error_simple_msg'] = $error_msg;
+
+        return $err_arr;
     }
 
     public static function arr_merge_error_to_array( $source_error_arr, $error_arr )
