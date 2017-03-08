@@ -546,10 +546,14 @@ class PHS_Error
         $source_error_arr = self::validate_error_arr( $source_error_arr );
         $error_arr = self::validate_error_arr( $error_arr );
 
-        $source_error_arr['error_msg'] .= ($source_error_arr['error_msg']!=''?"\n\n":'').$error_arr['error_msg'];
-        $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg']!=''?"\n\n":'').$error_arr['error_simple_msg'];
-        $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!=''?"\n\n":'').$error_arr['error_debug_msg'];
-        $source_error_arr['display_error'] .= ($source_error_arr['display_error']!=''?"\n\n":'').$error_arr['display_error'];
+        if( $error_arr['error_msg'] != '' )
+            $source_error_arr['error_msg'] .= ($source_error_arr['error_msg']!=''?"\n\n":'').$error_arr['error_msg'];
+        if( $error_arr['error_simple_msg'] != '' )
+            $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg']!=''?"\n\n":'').$error_arr['error_simple_msg'];
+        if( $error_arr['error_debug_msg'] != '' )
+            $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!=''?"\n\n":'').$error_arr['error_debug_msg'];
+        if( $error_arr['display_error'] != '' )
+            $source_error_arr['display_error'] .= ($source_error_arr['display_error']!=''?"\n\n":'').$error_arr['display_error'];
 
         if( !self::arr_has_error( $source_error_arr )
         and self::arr_has_error( $error_arr ) )

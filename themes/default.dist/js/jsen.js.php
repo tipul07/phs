@@ -1,6 +1,6 @@
 <?php
 
-// /version 1.25
+// /version 1.26
 
     include( '../../../main.php' );
 
@@ -16,7 +16,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.25,
+        version: 1.26,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -668,7 +668,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 onclose           : null,
                 onbeforeclose     : null,
-                onsuccess         : null
+                onsuccess         : null,
+
+                dialog_full_options : null
             };
 
             var options = $.extend( {}, defaults, o );
@@ -689,7 +691,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
             if( dialog_obj )
             {
-                dialog_obj.dialog( {
+                var dialog_default_options_obj = {
                     width: options.width,
                     height: options.height,
                     draggable: options.draggable,
@@ -717,7 +719,15 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     open: function(event, ui) {
                         $('.ui-widget-overlay').css('opacity', options.opacity);
                     }
-                });
+                };
+
+                var dialog_options_obj = {};
+                if( options.dialog_full_options )
+                    dialog_options_obj = $.extend( {}, dialog_default_options_obj, options.dialog_full_options );
+                else
+                    dialog_options_obj = dialog_default_options_obj;
+
+                dialog_obj.dialog( dialog_options_obj );
 
                 // Check if we should call an url
                 if( typeof options.url != "undefined" && options.url )
