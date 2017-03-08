@@ -44,7 +44,6 @@ define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
 // These paths will need a www pair, but after bootstrap
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
 define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
-define( 'PHS_DOWNLOADS_DIR', PHS_PATH.'downloads/' );
 
 // name of directory where email templates are stored (either theme relative or plugin relative)
 // eg. (themes/default/emails or plugins/accounts/templates/emails)
@@ -226,7 +225,6 @@ define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
 
 define( 'PHS_THEMES_WWW', $base_url.'themes/' );
 define( 'PHS_LANGUAGES_WWW', $base_url.'languages/' );
-define( 'PHS_DOWNLOADS_WWW', $base_url.'downloads/' );
 
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.php' );

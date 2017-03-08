@@ -74,7 +74,7 @@
             if( !empty( $plugin_info['description'] ) )
             {
                 ?><div class="clearfix"></div>
-                <small style="top:-25px;position:relative;"><?php echo $plugin_info['description']?></small>
+                <small style="top:-15px;position:relative;"><?php echo $plugin_info['description']?></small>
                 <div class="clearfix"></div><?php
             }
 

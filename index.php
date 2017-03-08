@@ -24,6 +24,13 @@
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Instantiable;
 
+
+    // $companies_model = PHS::load_model( 'companies', 's2p_companies' );
+    //
+    // var_dump( $companies_model->validate_company_details( 15 ) );
+    // var_dump( $companies_model->get_error() );
+    // exit;
+
     // var_dump( PHS_bg_jobs::run( array(
     //                                 'plugin' => 'admin',
     //                                 'controller' => 'index_bg',

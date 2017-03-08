@@ -1263,6 +1263,21 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
+     * Performs any necessary custom actions after updating plugin from $old_version to $new_version
+     * Overwrite this method to do particular updates.
+     * If this function returns false whole update will stop, however model database structure updates will remain.
+     *
+     * @param string $old_version Old version of plugin
+     * @param string $new_version New version of plugin
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_after_update( $old_version, $new_version )
+    {
+        return true;
+    }
+
+    /**
      * Performs any necessary actions when updating plugin from $old_version to $new_version
      *
      * @param string $old_version Old version of plugin
@@ -1289,7 +1304,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom update functionality failed.' ) );
 
-            PHS_Logger::logf( '!!! Error in plugin custom update functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::logf( '!!! Error in plugin custom update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
@@ -1336,6 +1351,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     return false;
                 }
             }
+        }
+
+        if( !$this->custom_after_update( $old_version, $new_version ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom after update functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in plugin custom update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
         }
 
         $plugin_details = array();

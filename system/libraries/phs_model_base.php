@@ -114,7 +114,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     }
 
     /**
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return false|string Returns false if model uses default database connection or connection name as string
      */
@@ -161,7 +161,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Returns primary table key
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return string What's primary key of the table (override the method if not `id`)
      */
@@ -173,7 +173,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Returns table name used in flow without prefix
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return string Returns table set in parameters flow or main table if no table is specified in flow
      * (table name can be passed to $params array of each method in 'table_name' index)
@@ -204,11 +204,26 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     }
 
     /**
+     * Performs any necessary custom actions after updating model tables from $old_version to $new_version
+     * Overwrite this method to do particular updates.
+     * If this function returns false updating model to last version will stop, model table structure will remain changed tho.
+     *
+     * @param string $old_version Old version of plugin
+     * @param string $new_version New version of plugin
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_after_update( $old_version, $new_version )
+    {
+        return true;
+    }
+
+    /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
      * This should do checks on raw parameters received by insert method.
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array|bool Flow parameters array
      */
@@ -223,7 +238,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * This should do checks on raw parameters received by edit method.
      *
      * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array|bool Flow parameters array
      */
@@ -259,7 +274,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @param array $insert_arr Data array added with success in database
      * @param array $params Flow parameters
      *
-     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
+     * @return array|bool Returns data array added in database (with changes, if required) or false if record should be deleted from database.
      * Deleted record will be hard-deleted
      */
     protected function insert_after( $insert_arr, $params )
@@ -301,7 +316,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Parses flow parameters if anything special should be done for listing records query and returns modified parameters array
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Flow parameters array
      */
@@ -2806,23 +2821,34 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom update functionality failed.' ) );
 
-            PHS_Logger::logf( '!!! Error in model custom update functionality. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::logf( '!!! Error in model custom update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
         if( !$this->_load_plugins_instance() )
         {
-            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
+
+            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
             return false;
         }
 
         // This will only create non-existing tables...
         if( !$this->update_tables() )
             return false;
+
+        if( !$this->custom_after_update( $old_version, $new_version ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after update functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in model custom after update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
 
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;

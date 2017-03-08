@@ -42,7 +42,6 @@
     // These paths will need a www pair, but after bootstrap
     define( 'PHS_THEMES_DIR', PHS_SETUP_PHS_PATH.'themes/' );
     define( 'PHS_LANGUAGES_DIR', PHS_SETUP_PHS_PATH.'languages/' );
-    define( 'PHS_DOWNLOADS_DIR', PHS_SETUP_PHS_PATH.'downloads/' );
 
     if( !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php' )
      or !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' )

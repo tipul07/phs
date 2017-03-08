@@ -551,7 +551,26 @@ class PHS_Error
         $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!=''?"\n\n":'').$error_arr['error_debug_msg'];
         $source_error_arr['display_error'] .= ($source_error_arr['display_error']!=''?"\n\n":'').$error_arr['display_error'];
 
+        if( !self::arr_has_error( $source_error_arr )
+        and self::arr_has_error( $error_arr ) )
+            $source_error_arr['error_no'] = $error_arr['error_no'];
+
         return $source_error_arr;
+    }
+
+    public static function arr_append_error_to_array( $error_arr, $error_msg, $error_code = false )
+    {
+        if( empty( $error_msg ) )
+            return false;
+
+        $error_arr = self::validate_error_arr( $error_arr );
+
+        if( $error_code === false )
+            $error_code = self::arr_get_error_code( $error_arr );
+
+        $append_error_arr = self::arr_set_error( $error_code, $error_msg );
+
+        return self::arr_merge_error_to_array( $error_arr, $append_error_arr );
     }
 
     public function stack_all_errors()
