@@ -367,7 +367,13 @@ table tbody tr:hover+tr td  {
 			line-height: 1.1em;
 			}
 
-fieldset.form-group label { float: left; margin-top: 5px; color: #555; font-family: "Segoe UI", Helvetica, Arial, Verdana, sans-serif }
+fieldset.form-group label { 
+	float: left; 
+	margin-top: 5px; 
+	color: #555; 
+	font-family: "Segoe UI", Helvetica, Arial, Verdana, sans-serif;
+	max-width: 14em;
+	}
 fieldset.form-group .form-control { display: inline !important; }
 .form-control:focus {
 	border: 2px solid #666;
