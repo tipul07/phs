@@ -4,12 +4,16 @@
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
-if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) or !constant( 'PHS_DEFAULT_CRYPT_KEY' )
- or empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR )
- or !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) or !constant( 'PHS_DEFAULT_CRYPT_KEY' ) )
 {
-    echo 'You should generate first your crypting keys and update main.php <em>PHS_DEFAULT_CRYPT_KEY</em> constant '.
-         ' and <em>$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR</em> array variable using <em>_new_crypt_keys.php</em> script.';
+    echo 'You should generate first your crypting key and update main.php <em>PHS_DEFAULT_CRYPT_KEY</em> constant.';
+    exit;
+}
+
+if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) or !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+{
+    echo 'You should generate first your crypting keys and update main.php '.
+         ' <em>$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR</em> array variable using <em>_new_crypt_keys.php</em> script.';
     exit;
 }
 
