@@ -12,7 +12,6 @@ if( !defined( 'DATETIME_T_FORMAT' ) )
 use \phs\PHS_db;
 use \phs\libraries\PHS_Model;
 
-
 function generate_guid()
 {
     return sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',

@@ -55,7 +55,8 @@
             $filters_display_arr = array();
             foreach( $filters_arr as $filter_details )
             {
-                if( empty( $filter_details['var_name'] )
+                if( empty( $filter_details ) or !is_array( $filter_details )
+                 or empty( $filter_details['var_name'] )
                  or !empty( $filter_details['hidden_filter'] ))
                     continue;
 
@@ -195,7 +196,20 @@ function clear_filter_value( obj_id )
     if( !obj )
         return;
 
-    obj.val( '' );
+    var obj_type = obj.prop( 'type' );
+    if( obj_type != "select-one" && obj_type != "select-multiple" )
+        obj.val( '' );
+
+    else
+    {
+        var default_val = "";
+        if( obj[0] && obj[0][0] )
+            default_val = obj[0][0].value;
+
+        obj.val( default_val );
+
+        obj.trigger( "chosen:updated" );
+    }
 }
 function toggle_filters_inputs_and_text()
 {

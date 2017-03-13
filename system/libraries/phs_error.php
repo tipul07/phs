@@ -163,10 +163,67 @@ class PHS_Error
 
             $return_str .= ']';
 
-            return  $return_str;
+            return $return_str;
         }
 
         return '('.@get_class( $value ).')';
+    }
+
+    public static function var_dump( $var, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['level'] ) )
+            $params['level'] = 0;
+        if( !isset( $params['max_level'] ) )
+            $params['max_level'] = 3;
+
+        if( $params['level'] >= $params['max_level'] )
+        {
+            if( is_scalar( $var ) )
+            {
+                if( !empty( $params['level'] ) )
+                    return $var;
+
+                ob_start();
+                var_dump( $var );
+                return ob_get_clean();
+            }
+
+            return '[Max recursion lvl reached: ' . $params['max_level'] . '] (' . gettype( $var ).' '.PHS_Error::mixed_to_string( $var ) . ')';
+        }
+
+        $new_params = $params;
+        $new_params['level']++;
+
+        if( is_array( $var ) )
+        {
+            $new_var = array();
+            foreach( $var as $key => $arr_val )
+                $new_var[$key] = self::var_dump( $arr_val, $new_params );
+        } elseif( is_object( $var ) )
+        {
+            $new_var = new \stdClass();
+            if( ($var_vars = get_object_vars( $var )) )
+            {
+                foreach( $var_vars as $key => $arr_val )
+                    $new_var->$key = self::var_dump( $arr_val, $new_params );
+            }
+        } elseif( is_resource( $var ) )
+            $new_var = 'Resource ('.@get_resource_type( $var ).')';
+        else
+            $new_var = $var;
+
+        if( empty( $params['level'] ) )
+        {
+            ob_start();
+            var_dump( $new_var );
+
+            return ob_get_clean();
+        }
+
+        return $new_var;
     }
 
     //! Set error code and error message in an array

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use \phs\PHS;
@@ -109,6 +110,24 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return self::default_action_result();
         }
 
+        // Generic action hooks...
+        $hook_args = PHS_Hooks::default_paginator_action_parameters_hook_args();
+        $hook_args['paginator_action_obj'] = $this;
+        $hook_args['paginator_params'] = $paginator_params;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS, $hook_args ))
+        and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
+            $paginator_params = $hook_args['paginator_params'];
+
+        // Particular action hooks...
+        $hook_args = PHS_Hooks::default_paginator_action_parameters_hook_args();
+        $hook_args['paginator_action_obj'] = $this;
+        $hook_args['paginator_params'] = $paginator_params;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS.$this->instance_id(), $hook_args ))
+        and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
+            $paginator_params = $hook_args['paginator_params'];
+
         if( !($this->_paginator = new PHS_Paginator( $paginator_params['base_url'], $paginator_params['flow_parameters'] ))
          or !$this->we_have_paginator() )
         {
@@ -119,6 +138,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
             return self::default_action_result();
         }
+
+        //echo self::var_dump( $paginator_params['columns_arr'], array( 'max_level' => 3 ) );
 
         $init_went_ok = true;
         if( !$this->_paginator->set_columns( $paginator_params['columns_arr'] )

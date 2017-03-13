@@ -367,7 +367,10 @@
 				if( !empty( $column_arr['display_callback'] ) )
 				{
 					if( !@is_callable( $column_arr['display_callback'] ) )
-						$cell_content = '[' . $this::_t( 'Cell callback failed.' ) . ']';
+                    {
+                        $cell_content = '[' . $this::_t( 'Cell callback failed.' ) . ']';
+                        $cell_content .= $this::var_dump( $column_arr['display_callback'], array( 'max_level' => 1 ) );
+                    }
 
 					else
 					{

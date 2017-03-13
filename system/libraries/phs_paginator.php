@@ -574,7 +574,9 @@ class PHS_Paginator extends PHS_Registry
         $default_column_fields = self::default_column_fields();
         foreach( $columns_arr as $column )
         {
-            if( !($new_column = self::validate_array_to_new_array_recursive( $column, $default_column_fields )) )
+            if( empty( $column )
+             or !is_array( $column )
+             or !($new_column = self::validate_array_to_new_array_recursive( $column, $default_column_fields )) )
                 continue;
 
             if( empty( $new_column['column_title'] ) )

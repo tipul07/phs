@@ -1640,6 +1640,8 @@ final class PHS extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        if( empty( $extra['overwrite_result'] ) )
+            $extra['overwrite_result'] = false;
         if( empty( $extra['chained_hook'] ) )
             $extra['chained_hook'] = false;
         if( empty( $extra['stop_chain'] ) )
@@ -1654,6 +1656,7 @@ final class PHS extends PHS_Registry
         $hookdata['args'] = $hook_extra_args;
         $hookdata['chained'] = (!empty( $extra['chained_hook'] )?true:false);
         $hookdata['stop_chain'] = (!empty( $extra['stop_chain'] )?true:false);
+        $hookdata['overwrite_result'] = (!empty( $extra['overwrite_result'] )?true:false);
 
         self::$hooks[$hook_name][$extra['priority']][] = $hookdata;
 
@@ -1720,7 +1723,12 @@ final class PHS extends PHS_Registry
 
                 if( !empty( $hook_callback['chained'] )
                 and is_array( $result ) )
-                    $hook_args = self::merge_array_assoc_recursive( $hook_args, $result );
+                {
+                    if( !empty( $hook_callback['overwrite_result'] ) )
+                        $hook_args = $result;
+                    else
+                        $hook_args = self::merge_array_assoc_recursive( $hook_args, $result );
+                }
 
                 if( !empty( $resulting_buffer )
                 and !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] )

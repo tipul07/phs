@@ -1746,34 +1746,29 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $params;
     }
 
+    public static function get_count_default_params()
+    {
+        return array(
+            'count_field' => '*',
+            'extra_sql' => '',
+            'join_sql' => '',
+            'group_by' => '',
+
+            'db_fields' => '',
+
+            'fields' => array(),
+
+            'flags' => array(),
+        );
+    }
+
     public function get_count( $params = false )
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-            return 0;
-
-        if( empty( $params['count_field'] ) )
-            $params['count_field'] = '*';
-
-        if( empty( $params['extra_sql'] ) )
-            $params['extra_sql'] = '';
-        if( empty( $params['join_sql'] ) )
-            $params['join_sql'] = '';
-        if( empty( $params['group_by'] ) )
-            $params['group_by'] = '';
-
-        if( empty( $params['fields'] ) )
-            $params['fields'] = array();
-        // Flags are interpretted in child model and alter extra_sql, join_sql and group_by parameters
-        if( empty( $params['flags'] ) or !is_array( $params['flags'] ) )
-            $params['flags'] = array();
-
-        // Make sure db_fields index is defined as get_count_list_common_params will work with this index (related to listing method)
-        if( empty( $params['db_fields'] ) )
-            $params['db_fields'] = '';
-
-        if( ($params = $this->get_count_list_common_params( $params )) === false
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or !($params = self::validate_array( $params, self::get_count_default_params() ))
+         or ($params = $this->get_count_list_common_params( $params )) === false
          or ($params = $this->get_count_prepare_params( $params )) === false
          or ($params = $this->get_query_fields( $params )) === false )
             return 0;
@@ -1802,42 +1797,50 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         return $ret;
     }
 
+    public static function get_list_default_params()
+    {
+        return array(
+            'get_query_id' => false,
+            // will get populated in get_list_common
+            'arr_index_field' => '',
+
+            'extra_sql' => '',
+            'join_sql' => '',
+            'group_by' => '',
+            'order_by' => '',
+
+            'db_fields' => '',
+
+            'offset' => 0,
+            'enregs_no' => 1000,
+
+            'fields' => array(),
+
+            'flags' => array(),
+        );
+    }
+
     protected function get_list_common( $params = false )
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( !($params = $this->fetch_default_flow_params( $params ))
+         or !($params = self::validate_array( $params, self::get_list_default_params() )) )
             return false;
 
         $db_connection = $this->get_db_connection( $params );
         $full_table_name = $this->get_flow_table_name( $params );
 
-        if( empty( $params['get_query_id'] ) )
-            $params['get_query_id'] = false;
         // Field which will be used as key in result array (be sure is unique)
         if( empty( $params['arr_index_field'] ) )
             $params['arr_index_field'] = $params['table_index'];
 
-        if( empty( $params['extra_sql'] ) )
-            $params['extra_sql'] = '';
-        if( empty( $params['join_sql'] ) )
-            $params['join_sql'] = '';
         if( empty( $params['db_fields'] ) )
             $params['db_fields'] = '`'.$full_table_name.'`.*';
-        if( empty( $params['offset'] ) )
-            $params['offset'] = 0;
-        if( empty( $params['enregs_no'] ) )
-            $params['enregs_no'] = 1000;
         if( empty( $params['order_by'] ) )
             $params['order_by'] = '`'.$full_table_name.'`.`'.$params['table_index'].'` DESC';
         if( empty( $params['group_by'] ) )
             $params['group_by'] = '`'.$full_table_name.'`.`'.$params['table_index'].'`';
-
-        if( empty( $params['fields'] ) )
-            $params['fields'] = array();
-        // Flags are interpretted in child model and alter extra_sql, join_sql and group_by parameters
-        if( empty( $params['flags'] ) or !is_array( $params['flags'] ) )
-            $params['flags'] = array();
 
         if( ($params = $this->get_count_list_common_params( $params )) === false
          or ($params = $this->get_list_prepare_params( $params )) === false
