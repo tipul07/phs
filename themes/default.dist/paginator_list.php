@@ -252,6 +252,9 @@
 				?></span><?php
 			}
 
+            if( !empty( $column_arr['column_title_extra'] ) )
+                echo $column_arr['column_title_extra'];
+
 			?></th><?php
 		}
 		?>
@@ -367,10 +370,7 @@
 				if( !empty( $column_arr['display_callback'] ) )
 				{
 					if( !@is_callable( $column_arr['display_callback'] ) )
-                    {
                         $cell_content = '[' . $this::_t( 'Cell callback failed.' ) . ']';
-                        $cell_content .= $this::var_dump( $column_arr['display_callback'], array( 'max_level' => 1 ) );
-                    }
 
 					else
 					{
@@ -389,6 +389,7 @@
 						$cell_callback_params['table_field']    = $field_details;
 						$cell_callback_params['preset_content'] = $cell_content;
 						$cell_callback_params['model_obj']      = $model_obj;
+						$cell_callback_params['extra_callback_params'] = (!empty( $column_arr['extra_callback_params'] )?$column_arr['extra_callback_params']:false);
 
 						if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
 						 or $cell_content === null )

@@ -70,6 +70,7 @@ class PHS_Paginator extends PHS_Registry
             'table_field' => false,
             'preset_content' => '',
             'model_obj' => false,
+            'extra_callback_params' => false,
         );
     }
 
@@ -529,6 +530,8 @@ class PHS_Paginator extends PHS_Registry
     {
         return array(
             'column_title' => '',
+            // Extra text to add after column_title (outsize sort link)
+            'column_title_extra' => '',
             // 'record_db_field' is record array key (SELECT field AS my_alias...) => 'record_db_field' = 'my_alias'
             'record_db_field' => '',
             // 'record_field' is always what we send to database...
@@ -549,6 +552,8 @@ class PHS_Paginator extends PHS_Registry
             'display_key_value' => false,
             // in case we want a special display for this cell
             'display_callback' => false,
+            // Extra parameters to be sent to display callback (if display_callback is present)
+            'extra_callback_params' => false,
             // in case field is a date what format should the date be displayed in?
             'date_format' => '',
             // What should be displayed if value in column is not something valid

@@ -433,7 +433,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     <footer id="footer">
         <div id="footer_content">
             <div class="footerlinks">
-                <a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |
+                <a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>"><?php echo $this::_t( 'Contact Us' )?></a> |
                 <a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a>
             </div>
             <div class="clearfix"></div>
@@ -442,12 +442,13 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             if( PHS::st_debugging_mode()
             and ($debug_data = PHS::platform_debug_data()) )
             {
-                $debug_str = ' | '.$debug_data['db_queries_count'].' queries, '.
+                $debug_str = ' </br><span class="debug_str">'.$debug_data['db_queries_count'].' queries, '.
                              ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
-                             ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s';
+                             ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s'.
+                             '</span>';
             }
             ?>
-            <div style="float: right"><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
+            <div><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
     </footer>
     <div class="clearfix"></div>
