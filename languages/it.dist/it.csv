@@ -411,3 +411,15 @@ Language is invalid.,La lingua non è valida.
 System language directory %s doesn't exist.,La guida della lingua di sistema %s non esiste.
 PHS Root path,PHS percorso principale
 PHS Domain,PHS Dominio
+PHS SSL Domain,PHS SSL Dominio
+for HTTPS requests,per richieste HTTPS
+PHS Cookie Domain,PHS Cookie Dominio
+PHS Port,PHS Port
+"for \""normal\"" requests (HTTP)","per \""normali\"" richieste (HTTP)"
+"If 80, leave blank","Se 80, lasciare in bianco"
+PHS SSL Port,PHS SSL Port
+"If 443, leave blank","Se 443, lasciare in bianco"
+PHS Domain path,PHS Domain path
+Continue,Continua
+Model custom after update functionality failed.,Modello personalizzato dopo la funzionalità di aggiornamento non riuscita.
+Plugin custom after update functionality failed.,Plugin personalizzati dopo la funzionalità di aggiornamento non riuscita.
