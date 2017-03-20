@@ -16,7 +16,8 @@
      or !($message_arr = $this->context_var( 'message_arr' ))
      or !$messages_model::is_full_message_data( $message_arr )
      or !($thread_arr = $this->context_var( 'thread_arr' ))
-     or !$messages_model::is_full_message_data( $thread_arr ) )
+     or !$messages_model::is_full_message_data( $thread_arr )
+     or !($current_user = PHS::user_logged_in()) )
         return $this->_pt( 'Couldn\'t initialize required parameters for current view.' );
 
     if( !($thread_messages_arr = $this->context_var( 'thread_messages_arr' )) )
@@ -30,10 +31,10 @@
     if( !($roles_units_arr = $this->context_var( 'roles_units_arr' )) )
         $roles_units_arr = array();
 
-    $current_user = PHS::current_user();
-
     $messages_before = 0;
+    $messages_before_new = 0;
     $messages_after = 0;
+    $messages_after_new = 0;
     if( !empty( $thread_messages_arr ) and is_array( $thread_messages_arr ) )
     {
         $we_are_before = true;
@@ -46,9 +47,18 @@
             }
 
             if( $we_are_before )
+            {
                 $messages_before++;
-            else
+                if( $current_user['id'] == $um_arr['user_id']
+                and !empty( $um_arr['is_new'] ) )
+                    $messages_before_new++;
+            } else
+            {
                 $messages_after++;
+                if( !empty( $um_arr['is_new'] )
+                and !empty( $um_arr['is_new'] ) )
+                    $messages_after_new++;
+            }
         }
 
     }
@@ -75,6 +85,13 @@
                         echo $this->_pt( '%s messages', $messages_before );
                     else
                         echo $this->_pt( '1 message' );
+
+                    echo ', ';
+
+                    if( $messages_before_new != 1 )
+                        echo $this->_pt( '%s new messages', $messages_before_new );
+                    else
+                        echo $this->_pt( '1 new message' );
                 ?> ... </a>
             </fieldset>
             </div>
@@ -93,6 +110,13 @@
                         echo $this->_pt( '%s messages', $messages_after );
                     else
                         echo $this->_pt( '1 message' );
+
+                    echo ', ';
+
+                    if( $messages_after_new != 1 )
+                        echo $this->_pt( '%s new messages', $messages_after_new );
+                    else
+                        echo $this->_pt( '1 new message' );
                 ?> ... </a>
             </fieldset>
             </div>

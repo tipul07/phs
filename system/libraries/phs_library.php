@@ -24,7 +24,7 @@ abstract class PHS_Library extends PHS_Registry
     {
         $this->_location_paths = self::validate_array( $paths, self::get_library_default_location_paths() );
 
-        $this->_location_paths['library_path'] = rtrim( $this->_location_paths['library_path'], '/' ).'/';
+        $this->_location_paths['library_path'] = rtrim( $this->_location_paths['library_path'], '/\\' ).'/';
         $this->_location_paths['library_www'] = rtrim( $this->_location_paths['library_www'], '/' ).'/';
 
         if( $this->_location_paths['library_path'] == '/' )

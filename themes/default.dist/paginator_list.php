@@ -203,7 +203,10 @@
 
 		foreach( $columns_arr as $column_arr )
 		{
-			if( !empty( $column_arr['record_db_field'] ) )
+            if( empty( $column_arr ) or !is_array( $column_arr ) )
+                continue;
+
+            if( !empty( $column_arr['record_db_field'] ) )
 				$field_name = $column_arr['record_db_field'];
 			else
 				$field_name = $column_arr['record_field'];
@@ -315,6 +318,25 @@
 
 			foreach( $columns_arr as $column_arr )
 			{
+			    if( empty( $column_arr ) or !is_array( $column_arr ) )
+			        continue;
+
+                $cell_render_params                   = $paginator_obj->default_cell_render_call_params();
+                $cell_render_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
+                $cell_render_params['page_index']     = $knti;
+                $cell_render_params['list_index']     = $offset + $knti;
+                $cell_render_params['columns_count']  = $columns_count;
+                $cell_render_params['record']         = $record_arr;
+                $cell_render_params['column']         = $column_arr;
+                $cell_render_params['table_field']    = false;
+                $cell_render_params['preset_content'] = '';
+                $cell_render_params['model_obj']      = $model_obj;
+                $cell_render_params['paginator_obj']  = $paginator_obj;
+
+                if( !($cell_content = $paginator_obj->render_column_for_record( $cell_render_params )) )
+                    $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
+
+                /**
 				if( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
 				{
 					if( !empty( $column_arr['record_db_field'] ) )
@@ -381,6 +403,7 @@
 							$field_details = false;
 
 						$cell_callback_params                   = $paginator_obj->default_cell_render_call_params();
+						$cell_callback_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
 						$cell_callback_params['page_index']     = $knti;
 						$cell_callback_params['list_index']     = $offset + $knti;
 						$cell_callback_params['columns_count']  = $columns_count;
@@ -422,6 +445,7 @@
 					and $checkbox_content !== null and is_string( $checkbox_content ) )
 						$cell_content = $checkbox_content;
 				}
+				**/
 
 				?><td class="<?php echo $column_arr['extra_records_classes']?>" <?php if (!empty($column_arr['extra_records_style'])) echo 'style="'.$column_arr['extra_records_style'].'"'?>><?php echo $cell_content?></td><?php
 			}
@@ -432,6 +456,7 @@
 			and is_callable( $flow_params_arr['after_record_callback'] ) )
 			{
 				$callback_params                   = $paginator_obj->default_cell_render_call_params();
+                $callback_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
 				$callback_params['page_index']     = $knti;
 				$callback_params['list_index']     = $offset + $knti;
 				$callback_params['columns_count']  = $columns_count;

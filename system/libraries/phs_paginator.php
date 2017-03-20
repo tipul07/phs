@@ -13,6 +13,8 @@ class PHS_Paginator extends PHS_Registry
     const CHECKBOXES_COLUMN_ALL_SUFIX = '_all';
     const ACTION_PARAM_NAME = 'pag_act', ACTION_PARAMS_PARAM_NAME = 'pag_act_params', ACTION_RESULT_PARAM_NAME = 'pag_act_result';
 
+    const CELL_RENDER_HTML = 1, CELL_RENDER_TEXT = 2, CELL_RENDER_JSON = 3;
+
     // Bulk actions array
     private $_bulk_actions = array();
     // Filters array
@@ -31,7 +33,10 @@ class PHS_Paginator extends PHS_Registry
     private $_pagination_params_arr = false;
     private $_columns_definition_arr = array();
 
+    // Array with records to be displayed (limit set based on paginator parameters from model or provided array of records from external source)
     private $_records_arr = array();
+    // If exporting records we store query result here so we can iterate results rather than obtaining a huge (maybe) array with all records
+    private $_query_id = false;
 
     /** @var string */
     private $_base_url = '';
@@ -51,6 +56,15 @@ class PHS_Paginator extends PHS_Registry
             $this->base_url( $base_url );
     }
 
+    public static function valid_render_type( $render_type )
+    {
+        if( empty( $render_type )
+         or !in_array( $render_type, array( self::CELL_RENDER_HTML, self::CELL_RENDER_TEXT, self::CELL_RENDER_JSON ) ) )
+            return false;
+
+        return true;
+    }
+
     public function default_others_render_call_params()
     {
         return array(
@@ -62,6 +76,7 @@ class PHS_Paginator extends PHS_Registry
     public function default_cell_render_call_params()
     {
         return array(
+            'request_render_type' => self::CELL_RENDER_HTML,
             'page_index' => 0,
             'list_index' => 0,
             'columns_count' => 0,
@@ -70,6 +85,7 @@ class PHS_Paginator extends PHS_Registry
             'table_field' => false,
             'preset_content' => '',
             'model_obj' => false,
+            'paginator_obj' => false,
             'extra_callback_params' => false,
         );
     }
@@ -84,7 +100,11 @@ class PHS_Paginator extends PHS_Registry
             'listing_title' => self::_t( 'Displaying results...' ),
             'initial_list_arr' => array(),
             'initial_count_list_arr' => array(),
+
+            // Tells if we did query database to get records already
             'did_query_database' => false,
+            // Tells if current records are obtained from querying model or they were provided
+            'records_from_model' => false,
 
             'bulk_action' => '',
             'bulk_action_area' => '',
@@ -243,6 +263,17 @@ class PHS_Paginator extends PHS_Registry
         else
             $date_str = $params['record'][$field_name];
 
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case self::CELL_RENDER_JSON:
+                case self::CELL_RENDER_TEXT:
+                    return $date_str;
+                break;
+            }
+        }
+
         $seconds_ago = seconds_passed( $date_time );
 
         return '<span title="'.self::_t( '%s ago', PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
@@ -307,11 +338,22 @@ class PHS_Paginator extends PHS_Registry
          or !isset( $params['record'][$params['column']['checkbox_record_index_key']['key']] ) )
             return false;
 
-        if( !($scope_arr = $this->get_scope()) )
-            $scope_arr = array();
-
         if( empty( $params['preset_content'] ) )
             $params['preset_content'] = '';
+
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case self::CELL_RENDER_JSON:
+                case self::CELL_RENDER_TEXT:
+                    return $params['preset_content'];
+                break;
+            }
+        }
+
+        if( !($scope_arr = $this->get_scope()) )
+            $scope_arr = array();
 
         $checkbox_value = $params['record'][$params['column']['checkbox_record_index_key']['key']];
         $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
@@ -507,11 +549,40 @@ class PHS_Paginator extends PHS_Registry
     private function reset_records()
     {
         $this->_records_arr = array();
+        $this->_query_id = false;
     }
 
     public function get_records()
     {
         return $this->_records_arr;
+    }
+
+    public function get_query_id()
+    {
+        return $this->_query_id;
+    }
+
+    public function set_query_id( $qid )
+    {
+        $this->reset_records();
+
+        if( $qid
+        and !($qid instanceof \mysqli_result) )
+            return false;
+
+        if( empty( $qid ) )
+            $qid = false;
+
+        $this->_query_id = $qid;
+
+        $records_count = 0;
+        if( $qid
+        and !($records_count = @mysqli_num_rows( $qid )) )
+            $records_count = 0;
+
+        $this->pagination_params( 'listing_records_count', $records_count );
+
+        return true;
     }
 
     public function set_records( $records_arr )
@@ -1053,6 +1124,353 @@ class PHS_Paginator extends PHS_Registry
         $this->pagination_params( 'offset', $offset );
     }
 
+    public function reset_record_data( $record_data )
+    {
+        if( empty( $record_data ) or !is_array( $record_data ) )
+            return $this->default_export_record_data();
+
+        $record_data['record_arr'] = array();
+        $record_data['record_buffer'] = '';
+
+        return $record_data;
+    }
+
+    public function default_export_record_data()
+    {
+        return array(
+            // Tells if current "record" to be parsed is the actual header of export
+            'is_header' => false,
+            // Index of record in records array
+            'record_index' => 0,
+            // Counter of current record in export list
+            'record_count' => 0,
+            // Actual record as array after "rendering" contents
+            'record_arr' => array(),
+            // Record after parsing its content for output
+            'record_buffer' => '',
+        );
+    }
+
+    public function export_result_array()
+    {
+        return array(
+            'export_file_dir' => '',
+            'export_file_name' => '',
+            // Full location to export file
+            'export_full_file_path' => '',
+            // How many successful exports
+            'exports_successful' => 0,
+            'exports_failed' => 0,
+        );
+    }
+
+    public function do_export_records( $params = false)
+    {
+        $this->reset_error();
+
+        if( !($columns_arr = $this->get_columns())
+         or !is_array( $columns_arr ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'No columns defined for paginator. Export failed.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['filter_records_fields'] ) or !is_array( $params['filter_records_fields'] ) )
+            $params['filter_records_fields'] = false;
+
+        if( empty( $params['ignore_headers'] ) )
+            $params['ignore_headers'] = false;
+        else
+            $params['ignore_headers'] = true;
+
+        if( empty( $params['model_query_params'] ) )
+            $params['model_query_params'] = false;
+
+        if( empty( $params['request_render_type'] )
+         or !self::valid_render_type( $params['request_render_type'] ) )
+            $params['request_render_type'] = self::CELL_RENDER_TEXT;
+
+        if( empty( $params['exporter_library_params'] ) or !is_array( $params['exporter_library_params'] ) )
+            $params['exporter_library_params'] = false;
+
+        if( empty( $params['exporter_library'] ) )
+        {
+            $exporter_library_params = array();
+            $exporter_library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_Paginator_exporter_csv';
+            $exporter_library_params['init_params'] = $params['exporter_library_params'];
+
+            if( !($params['exporter_library'] = PHS::load_core_library( 'phs_paginator_exporter_csv', $exporter_library_params )) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_FUNCTIONALITY );
+                else
+                    $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error loading default CSV export library.' ) );
+                return false;
+            }
+        }
+
+        /** @var \phs\libraries\PHS_Paginator_exporter_library $exporter_library_obj */
+        if( !($exporter_library_obj = $params['exporter_library'])
+         or !($exporter_library_obj instanceof PHS_Paginator_exporter_library) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Provided library is not a paginator export library.' ) );
+            return false;
+        }
+
+        $exporter_library_obj->paginator_obj( $this );
+
+        if( !$this->query_records_for_export( $params['model_query_params'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error querying model for records to export.' ) );
+
+            return false;
+        }
+
+        if( !$exporter_library_obj->start_output() )
+        {
+            if( $exporter_library_obj->has_error() )
+                $this->copy_error( $exporter_library_obj );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error calling exporting library output start method.' ) );
+
+            return false;
+        }
+
+        $record_data = $this->default_export_record_data();
+
+        if( empty( $params['ignore_headers'] )
+        and ($header_arr = $this->get_columns_header_as_array()) )
+        {
+            $record_data['is_header'] = true;
+            $record_data['record_arr'] = $header_arr;
+
+            if( !($record_data['record_buffer'] = $exporter_library_obj->record_to_buffer( $record_data )) )
+                $record_data['record_buffer'] = '';
+
+            if( !$exporter_library_obj->record_to_output( $record_data ) )
+            {
+                $exporter_library_obj->finish_output();
+
+                if( $exporter_library_obj->has_error() )
+                    $this->copy_error( $exporter_library_obj );
+                else
+                    $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error outputing header for export.' ) );
+
+                return false;
+            }
+        }
+
+        $record_data['is_header'] = false;
+
+        $records_arr = $this->get_records();
+        $query_id = $this->get_query_id();
+
+        $return_arr = $this->export_result_array();
+        $return_arr['export_file_name'] = $exporter_library_obj->export_registry( 'export_file_name' );
+        $return_arr['export_file_dir'] = $exporter_library_obj->export_registry( 'export_file_dir' );
+        $return_arr['export_full_file_path'] = $exporter_library_obj->export_registry( 'export_full_file_path' );
+
+        // sanity check
+        if( empty( $records_arr ) or !is_array( $records_arr ) )
+            $records_arr = false;
+        if( empty( $query_id ) or !($query_id instanceof \mysqli_result) )
+            $query_id = false;
+
+        if( empty( $records_arr ) and empty( $query_id ) )
+        {
+            $exporter_library_obj->finish_output();
+
+            return $return_arr;
+        }
+
+        // Records have query fields in keys (usually unique ids, but not necessary consecutive)
+        $records_keys_arr = false;
+        $records_keys_index = 0;
+        if( !empty( $records_arr ) and is_array( $records_arr ) )
+            $records_keys_arr = array_keys( $records_arr );
+
+        $record_index = '';
+        // Record count starts from 1 (header is 0)
+        $record_count = 0;
+
+        $cell_render_params = $this->default_cell_render_call_params();
+        $cell_render_params['request_render_type'] = $params['request_render_type'];
+        $cell_render_params['page_index']     = 0;
+        $cell_render_params['list_index']     = 0;
+        $cell_render_params['columns_count']  = count( $columns_arr );
+        $cell_render_params['record']         = false;
+        $cell_render_params['column']         = false;
+        $cell_render_params['table_field']    = false;
+        $cell_render_params['preset_content'] = '';
+        $cell_render_params['model_obj']      = $this->get_model();
+        $cell_render_params['paginator_obj']  = $this;
+
+        $fields_filters = false;
+
+        while( true )
+        {
+            $record_data = $this->reset_record_data( $record_data );
+            $record_count++;
+
+            if( !empty( $records_keys_arr ) )
+            {
+                // get record from $records_arr array
+                if( !isset( $records_keys_arr[$records_keys_index] )
+                 or !($db_record_arr = $records_arr[$records_keys_arr[$records_keys_index]]) )
+                    $db_record_arr = false;
+
+                else
+                {
+                    $record_index = $records_keys_arr[$records_keys_index];
+                    $records_keys_index++;
+                }
+            } else
+            {
+                // get record from query
+                if( !($db_record_arr = @mysqli_fetch_assoc( $query_id )) )
+                    $db_record_arr = false;
+            }
+
+            if( empty( $db_record_arr ) )
+                break;
+
+            $cell_render_params['page_index'] = $record_count;
+            $cell_render_params['list_index'] = $record_count;
+            $cell_render_params['record'] = $db_record_arr;
+            $cell_render_params['table_field'] = false;
+            $cell_render_params['preset_content'] = '';
+
+            $record_arr = array();
+            foreach( $columns_arr as $column_arr )
+            {
+                if( empty( $column_arr ) or !is_array( $column_arr ) )
+                    continue;
+
+                $cell_render_params['column'] = $column_arr;
+
+                if( !($field_name = $this->get_column_name( $column_arr )) )
+                    $field_name = false;
+
+                if( !($cell_content = $this->render_column_for_record( $cell_render_params )) )
+                    $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
+
+                if( $field_name !== false )
+                    $record_arr[$field_name] = $cell_content;
+                else
+                    $record_arr[] = $cell_content;
+            }
+
+            // Validate selection filters based on record field keys
+            if( $fields_filters === false
+            and !empty( $params['filter_records_fields'] ) )
+            {
+                $fields_filters = array();
+                foreach( $params['filter_records_fields'] as $field_key => $filter_values )
+                {
+                    if( !isset( $record_arr[$field_key] )
+                     or empty( $filter_values ) or !is_array( $filter_values ) )
+                        continue;
+
+                    $fields_filters[$field_key] = $filter_values;
+                }
+            }
+
+            if( !empty( $fields_filters ) )
+            {
+                $should_continue = false;
+                foreach( $fields_filters as $field_key => $filter_values )
+                {
+                    if( isset( $record_arr[$field_key] )
+                    and !in_array( $record_arr[$field_key], $filter_values ) )
+                    {
+                        $should_continue = true;
+                        break;
+                    }
+                }
+
+                if( $should_continue )
+                    continue;
+            }
+
+            $record_data['record_count'] = $record_count;
+            $record_data['record_index'] = $record_index;
+            $record_data['record_arr'] = $record_arr;
+
+            if( !($record_data['record_buffer'] = $exporter_library_obj->record_to_buffer( $record_data )) )
+            {
+                $return_arr['exports_failed']++;
+                continue;
+            }
+
+            if( !$exporter_library_obj->record_to_output( $record_data ) )
+            {
+                $return_arr['exports_failed']++;
+                continue;
+            }
+        }
+
+        if( !$exporter_library_obj->finish_output() )
+        {
+            if( $exporter_library_obj->has_error() )
+                $this->copy_error( $exporter_library_obj );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error calling exporting library output finish method.' ) );
+
+            return false;
+        }
+
+        return $return_arr;
+    }
+
+    public function get_columns_header_as_array()
+    {
+        if( !($columns_arr = $this->get_columns())
+         or !is_array( $columns_arr ) )
+            return array();
+
+        $return_arr = array();
+        foreach( $columns_arr as $column_array_index => $column_arr )
+        {
+            if( empty( $column_arr ) or !is_array( $column_arr ) )
+                continue;
+
+            $return_arr[$column_array_index] = (!empty( $column_arr['column_title'] )?$column_arr['column_title']:'');
+        }
+
+        return $return_arr;
+    }
+
+    protected function query_records_for_export( $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        // In case we want to export all records or only records from current page...
+        if( empty( $params['export_all_records'] ) )
+            $params['export_all_records'] = false;
+        else
+            $params['export_all_records'] = true;
+
+        $records_params = array();
+        if( !empty( $params['export_all_records'] ) )
+        {
+            $records_params['store_query_id'] = true;
+            $records_params['ignore_query_limit'] = true;
+        } else
+        {
+            $records_params['store_query_id'] = false;
+            $records_params['ignore_query_limit'] = false;
+        }
+
+        return $this->query_model_for_records( $records_params );
+    }
+
     public function query_model_for_records( $params = false )
     {
         $this->reset_error();
@@ -1062,10 +1480,29 @@ class PHS_Paginator extends PHS_Registry
 
         if( empty( $params['force'] ) )
             $params['force'] = false;
+        if( empty( $params['store_query_id'] ) )
+            $params['store_query_id'] = false;
+        else
+            $params['store_query_id'] = true;
+
+        if( !empty( $params['store_query_id'] ) )
+        {
+            if( empty( $params['ignore_query_limit'] ) )
+                $params['ignore_query_limit'] = false;
+            else
+                $params['ignore_query_limit'] = true;
+        }
+
+        $current_records = $this->get_records();
 
         if( empty( $params['force'] )
-        and ($this->get_records()
+        and (!empty( $current_records )
                 or $this->flow_param( 'did_query_database' )) )
+            return true;
+
+        if( !empty( $params['force'] )
+        and !empty( $current_records )
+        and !$this->flow_param( 'records_from_model' ) )
             return true;
 
         $this->reset_records();
@@ -1149,6 +1586,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $this->flow_param( 'did_query_database', true );
+        $this->flow_param( 'records_from_model', true );
 
         $model_flow_params = $model_obj->fetch_default_flow_params( $list_arr );
 
@@ -1162,8 +1600,15 @@ class PHS_Paginator extends PHS_Registry
 
         $this->set_records_count( $records_count );
 
-        $list_arr['offset'] = $this->pagination_params( 'offset' );
-        $list_arr['enregs_no'] = $this->pagination_params( 'records_per_page' );
+        if( !empty( $params['ignore_query_limit'] ) )
+        {
+            $list_arr['offset'] = 0;
+            $list_arr['enregs_no'] = 10000000000;
+        } else
+        {
+            $list_arr['offset'] = $this->pagination_params( 'offset' );
+            $list_arr['enregs_no'] = $this->pagination_params( 'records_per_page' );
+        }
 
         $sort = $this->pagination_params( 'sort' );
 
@@ -1188,12 +1633,155 @@ class PHS_Paginator extends PHS_Registry
         and empty( $sort_type_added ) )
             $list_arr['order_by'] .= ' '.(empty( $sort )?'ASC':'DESC');
 
-        if( !($records_arr = $model_obj->get_list( $list_arr )) )
-            $records_arr = array();
+        if( !empty( $params['store_query_id'] ) )
+            $list_arr['get_query_id'] = true;
 
-        $this->set_records( $records_arr );
+        if( !($query_result = $model_obj->get_list( $list_arr )) )
+            $query_result = false;
+
+        if( !empty( $params['store_query_id'] ) )
+            $this->set_query_id( $query_result );
+
+        else
+        {
+            if( empty( $query_result ) )
+                $query_result = array();
+
+            $this->set_records( $query_result );
+        }
 
         return true;
+    }
+
+    public function get_column_name( $column_arr )
+    {
+        if( empty( $column_arr ) or !is_array( $column_arr ) )
+            return false;
+
+        $column_name = false;
+        if( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
+        {
+            if( !empty( $column_arr['record_db_field'] ) )
+                $column_name = $column_arr['record_db_field'];
+            else
+                $column_name = $column_arr['record_field'];
+        }
+
+        return $column_name;
+    }
+
+    public function render_column_for_record( $render_params )
+    {
+        if( empty( $render_params ) or !is_array( $render_params ) )
+            $render_params = array();
+
+        if( empty( $render_params['request_render_type'] )
+         or !self::valid_render_type( $render_params['request_render_type'] ) )
+            $render_params['request_render_type'] = self::CELL_RENDER_HTML;
+
+        if( empty( $render_params['record'] ) or !is_array( $render_params['record'] )
+         or empty( $render_params['column'] ) or !is_array( $render_params['column'] ) )
+            return '!'.self::_t( 'Unkown column or invalid record' ).'!';
+
+        $column_arr = $render_params['column'];
+        $record_arr = $render_params['record'];
+
+        if( !($model_obj = $this->get_model()) )
+            $model_obj = false;
+
+        if( !($field_name = $this->get_column_name( $column_arr )) )
+            $field_name = false;
+
+        $cell_content = false;
+        if( empty( $column_arr['record_field'] )
+        and empty( $column_arr['record_db_field'] )
+        and empty( $column_arr['display_callback'] ) )
+            $cell_content = '!'.self::_t( 'Bad column setup' ).'!';
+
+        elseif( !empty( $column_arr['display_key_value'] )
+            and is_array( $column_arr['display_key_value'] )
+            and !empty( $field_name )
+            and isset( $record_arr[$field_name] )
+            and isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
+            $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
+
+        elseif( !empty( $model_obj )
+            and !empty( $field_name )
+            and isset( $record_arr[$field_name] )
+            and ($field_details = $model_obj->table_field_details( $field_name ))
+            and is_array( $field_details ) )
+        {
+            switch( $field_details['type'] )
+            {
+                case $model_obj::FTYPE_DATETIME:
+                case $model_obj::FTYPE_DATE:
+                    if( empty_db_date( $record_arr[$field_name] ) )
+                    {
+                        $cell_content = false;
+                        if( empty( $column_arr['invalid_value'] ) )
+                            $column_arr['invalid_value'] = self::_t( 'N/A' );
+                    } elseif( !empty( $column_arr['date_format'] ) )
+                        $cell_content = @date( $column_arr['date_format'], parse_db_date( $record_arr[$field_name] ) );
+                break;
+            }
+        }
+
+        if( $cell_content === false
+        and !empty( $field_name )
+        and isset( $record_arr[$field_name] ) )
+            $cell_content = $record_arr[$field_name];
+
+        if( $cell_content === false )
+        {
+            if( !empty( $column_arr['invalid_value'] ) )
+                $cell_content = $column_arr['invalid_value'];
+            else
+                $cell_content = '(???)';
+        }
+
+        if( !empty( $column_arr['display_callback'] ) )
+        {
+            if( !@is_callable( $column_arr['display_callback'] ) )
+                $cell_content = '!'.self::_t( 'Cell callback failed.' ).'!';
+
+            else
+            {
+                if( empty( $field_name )
+                 or !isset( $record_arr[$field_name] )
+                 or !($field_details = $model_obj->table_field_details( $field_name ))
+                 or !is_array( $field_details ) )
+                    $field_details = false;
+
+                $cell_callback_params = $render_params;
+                $cell_callback_params['table_field'] = $field_details;
+                $cell_callback_params['preset_content'] = $cell_content;
+                $cell_callback_params['extra_callback_params'] = (!empty( $column_arr['extra_callback_params'] )?$column_arr['extra_callback_params']:false);
+
+                if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
+                 or $cell_content === null )
+                    $cell_content = '!' . $this::_t( 'Render cell call failed.' ) . '!';
+            }
+        }
+
+        // Allow display_callback parameter on checkbox fields...
+        if( $this->get_checkbox_name_for_column( $column_arr ) )
+        {
+            if( empty( $field_name )
+             or !isset( $record_arr[$field_name] )
+             or !($field_details = $model_obj->table_field_details( $field_name ))
+             or !is_array( $field_details ) )
+                $field_details = false;
+
+            $cell_callback_params = $render_params;
+            $cell_callback_params['table_field'] = $field_details;
+            $cell_callback_params['preset_content'] = $cell_content;
+
+            if( ($checkbox_content = $this->display_checkbox_column( $cell_callback_params )) !== false
+            and $checkbox_content !== null and is_string( $checkbox_content ) )
+                $cell_content = $checkbox_content;
+        }
+
+        return $cell_content;
     }
 
     public function get_listing_buffer()

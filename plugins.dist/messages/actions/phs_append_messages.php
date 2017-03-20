@@ -150,7 +150,7 @@ class PHS_Action_Append_messages extends PHS_Action
             $buffer = '';
             foreach( $ids_to_render as $render_message_id )
             {
-                if( !($message_arr = $messages_model->full_data_to_array( $render_message_id, $current_user )) )
+                if( !($message_arr = $messages_model->full_data_to_array( $render_message_id, $current_user, array( 'ignore_user_message' => true ) )) )
                     continue;
 
                 if( !($author_handle = $messages_model->get_relative_account_message_handler( $message_arr['message']['from_uid'], $current_user )) )

@@ -23,7 +23,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
           // Role which sums all role units for platform admins
           ROLE_MESSAGE_ADMIN = 'phs_messages_admin';
 
-    const ROLEU_READ_MESSAGE = 'phs_messages_read', ROLEU_REPLY_MESSAGE = 'phs_messages_reply', ROLEU_WRITE_MESSAGE = 'phs_messages_write',
+    const ROLEU_READ_MESSAGE = 'phs_messages_read', ROLEU_REPLY_MESSAGE = 'phs_messages_reply', ROLEU_FOLLOWUP_MESSAGE = 'phs_messages_followup',
+          ROLEU_WRITE_MESSAGE = 'phs_messages_write',
           ROLEU_HANDLER_CHANGE = 'phs_messages_handler_change', ROLEU_HANDLER_AUTOCOMPLETE = 'phs_messages_handler_autocomplete',
           ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous',
           ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt';
@@ -33,7 +34,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -193,7 +194,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
                         'description' => 'Allow user to read received messages',
                     ),
                     self::ROLEU_REPLY_MESSAGE => array(
-                        'name' => 'Replay to a message',
+                        'name' => 'Reply to a message',
                         'description' => 'Allow user to reply to received messages',
                     ),
                 ),
@@ -208,6 +209,10 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_WRITE_MESSAGE] = array(
             'name' => 'Compose messages',
             'description' => 'Allow user to compose messages to other users',
+        );
+        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_FOLLOWUP_MESSAGE] = array(
+            'name' => 'Follow up messages',
+            'description' => 'Allow user to send a message to destination even if destination didn\'t reply yet',
         );
         $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_HANDLER_CHANGE] = array(
             'name' => 'Change message handler',

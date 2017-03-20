@@ -17,7 +17,7 @@ Error changing password. Please try again.,Errore durante il cambiamento della p
 Edit Profile,Modifica Profilo
 Couldn't load account details model.,Impossibile caricare il modello dei dettagli dell' account.
 Changes saved to database.,Modifiche salvate sul database.
-An email with your password was sent to email provided in your account details.,Al''indirizzo email che ci hai fornito ti invieremo un'e-mail con la password
+An email with your password was sent to email provided in your account details.,All'indirizzo email che ci hai fornito ti invieremo un'e-mail con la password
 Verification email sent... Please follow the steps in email to acknowledge your email address.,Email di verifica inviata... Si prega di seguire i passaggi indicati nell'e-mail per la conferma del tuo indirizzo email.
 Couldn't send verification email. Please try again.,Non è stato possibile inviare l'email di verifica. Si prega di riprovare.
 Error saving details to database. Please try again.,Errore di salvataggio dati sul database. Si prega di riprovare.

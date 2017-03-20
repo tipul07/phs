@@ -101,7 +101,7 @@ class PHS_View extends PHS_Signal_and_slot
                 foreach( $template['extra_paths'] as $dir_path => $dir_www )
                 {
                     $full_path = rtrim( PHS::from_relative_path( $dir_path ), '/\\' );
-                    $full_www = rtrim( PHS::from_relative_url( $dir_www ), '/\\' );
+                    $full_www = rtrim( PHS::from_relative_url( $dir_www ), '/' );
 
                     $extra_paths[$full_path.'/'] = $full_www.'/';
                 }
@@ -288,7 +288,7 @@ class PHS_View extends PHS_Signal_and_slot
         if( !@is_dir( $dir_path ) or !@is_readable( $dir_path ) )
             return false;
 
-        $dir_www = rtrim( $dir_www, '/\\' ).'/';
+        $dir_www = rtrim( $dir_www, '/' ).'/';
 
         $this->_extra_template_dirs[$dir_path.'/'] = $dir_www;
 
@@ -389,7 +389,7 @@ class PHS_View extends PHS_Signal_and_slot
             foreach( $this->_extra_template_dirs as $dir_path => $dir_www )
             {
                 $dir_path = rtrim( $dir_path, '/\\' );
-                $dir_www = rtrim( $dir_www, '/\\' );
+                $dir_www = rtrim( $dir_www, '/' );
 
                 if( @file_exists( $dir_path . '/'.$current_language )
                 and @is_dir( $dir_path . '/'.$current_language ) )

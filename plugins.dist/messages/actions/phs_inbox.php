@@ -150,6 +150,8 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         if( PHS_params::_g( 'unknown_message', PHS_params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Message details not found in database.' ) );
+        if( PHS_params::_g( 'unknown_thread', PHS_params::T_INT ) )
+            PHS_Notifications::add_error_notice( $this->_pt( 'Message thread details not found in database.' ) );
         if( PHS_params::_g( 'address_added', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Address details saved in database.' ) );
 

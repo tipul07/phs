@@ -618,6 +618,15 @@ abstract class PHS_Instantiable extends PHS_Registry
         return strtolower( $name );
     }
 
+    public static function safe_escape_library_name( $name )
+    {
+        if( empty( $name ) or !is_string( $name )
+         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+            return false;
+
+        return $name;
+    }
+
     public static function safe_escape_class_name( $name )
     {
         if( empty( $name ) or !is_string( $name )

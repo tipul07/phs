@@ -138,6 +138,15 @@ class PHS_po_format extends PHS_Registry
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
+        if( empty( $params['language'] ) )
+            $params['language'] = false;
+
+        elseif( !self::valid_language( $params['language'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Language is invalid.' ) );
+            return false;
+        }
+
         if( empty( $params['update_language_files'] ) )
             $params['update_language_files'] = false;
         else
@@ -315,7 +324,7 @@ class PHS_po_format extends PHS_Registry
         }
 
         if( empty( $params['language'] )
-         or !($lang_details = PHS_Language::get_defined_language( $params['language'] )) )
+         or !($lang_details = self::get_defined_language( $params['language'] )) )
         {
             $this->set_error( self::ERR_PO_FILE, self::_t( 'Language is invalid.' ) );
             return false;

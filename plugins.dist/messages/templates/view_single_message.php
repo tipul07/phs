@@ -29,8 +29,11 @@
     $current_user = PHS::current_user();
 
     $can_reply_messages = false;
+    $can_followup_messages = false;
     if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_REPLY_MESSAGE ) )
         $can_reply_messages = true;
+    if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE ) )
+        $can_followup_messages = true;
 
     if( !empty( $message_arr['message_user'] )
     and !empty( $message_arr['message_user']['is_new'] )
@@ -41,53 +44,17 @@
     }
 
 ?>
-<fieldset class="form-group message_line <?php echo (!empty( $message_arr['message_user']['is_author'] )?'my_message':'');?>" >
-    <?php
-    $destination_str = '';
+<fieldset class="form-group message_line <?php echo ((!empty( $message_arr['message_user'] ) and !empty( $message_arr['message_user']['is_author'] ))?'my_message':'');?>" >
+<?php
 
-    switch( $message_arr['message']['dest_type'] )
-    {
-        default:
-            $destination_str = '['.$this->_pt( 'Unknown destination' ).']';
-        break;
+    if( !($destination_str = $messages_model->get_destination_as_string( $message_arr['message'] )) )
+        $destination_str = '['.$this->_pt( 'Unknown destination' ).']';
 
-        case $messages_model::DEST_TYPE_USERS_IDS:
-            $destination_str = 'IDs: '.$message_arr['message']['dest_str'];
-        break;
-
-        case $messages_model::DEST_TYPE_USERS:
-        case $messages_model::DEST_TYPE_HANDLERS:
-            $destination_str = $message_arr['message']['dest_str'];
-        break;
-
-        case $messages_model::DEST_TYPE_LEVEL:
-            if( !empty( $user_levels[$message_arr['message']['dest_id']] ) )
-                $destination_str = $user_levels[$message_arr['message']['dest_id']];
-            else
-                $destination_str = '['.$this->_pt( 'Unknown user level' ).']';
-        break;
-
-        case $messages_model::DEST_TYPE_ROLE:
-            if( !empty( $roles_arr[$message_arr['message']['dest_id']] ) )
-                $destination_str = $roles_arr[$message_arr['message']['dest_id']]['name'];
-            else
-                $destination_str = '['.$this->_pt( 'Unknown role' ).']';
-        break;
-
-        case $messages_model::DEST_TYPE_ROLE_UNIT:
-            if( !empty( $roles_units_arr[$message_arr['message']['dest_id']] ) )
-                $destination_str = $roles_units_arr[$message_arr['message']['dest_id']]['name'];
-            else
-                $destination_str = '['.$this->_pt( 'Unknown role unit' ).']';
-        break;
-    }
-
-    if( !empty( $message_arr['message_user']['user_id'] )
+    if( !empty( $message_arr['message_user'] )
+    and !empty( $message_arr['message_user']['user_id'] )
     and $message_arr['message_user']['user_id'] == $current_user['id']
     and empty( $message_arr['message_user']['is_author'] ) )
-    {
         $destination_str = $this->_pt( 'You (%s)', $destination_str );
-    }
 
     ?>
 	<div class="message_header">
@@ -116,9 +83,26 @@
 		{
 			$msg_actions_arr['msg_reply'] = array(
 				'extra_classes' => '',
-				'action_link' => PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'reply_to_muid' => $message_arr['message_user']['id'] ) ),
+				'action_link' => PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'reply_to_muid' => $message_arr['message_user']['id'], 'reply_to_all' => 0 ) ),
 				'action_icon' => 'fa-reply',
 				'action_label' => $this->_pt( 'Reply' ),
+			);
+			$msg_actions_arr['msg_reply_to_all'] = array(
+				'extra_classes' => '',
+				'action_link' => PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'reply_to_muid' => $message_arr['message_user']['id'], 'reply_to_all' => 1 ) ),
+				'action_icon' => 'fa-reply-all',
+				'action_label' => $this->_pt( 'Reply to all' ),
+			);
+		}
+
+		if( $can_followup_messages
+		and $messages_model->can_followup( $message_arr, array( 'account_data' => $current_user ) ) )
+		{
+			$msg_actions_arr['msg_followup'] = array(
+				'extra_classes' => '',
+				'action_link' => PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'follow_up_muid' => $message_arr['message_user']['id'] ) ),
+				'action_icon' => 'fa-flag',
+				'action_label' => $this->_pt( 'Follow Up' ),
 			);
 		}
 

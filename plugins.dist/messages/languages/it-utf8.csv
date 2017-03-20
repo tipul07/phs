@@ -143,3 +143,13 @@ FROM: %s,DA: %s
 TO: %s,A: %s
 Role not found in database for message destination.,Il ruolo non è stato trovato nel database per la destinazione del messaggio.
 Role unit not found in database for message destination.,L'unità di ruolo non è stata trovata nel database per la destinazione del messaggio.
+Unknown message or you don't have rights to reply to this message.,Messaggio sconosciuto o non si dispone di diritti di rispondere a questo messaggio.
+Unknown message or you don't have rights to follow up this message.,Messaggio sconosciuto o non si dispone di diritti a seguire questo messaggio.
+You cannot follow up this message.,Non si può seguire questo messaggio.
+Message thread details not found in database.,Messaggio dettagli filo non trovato nel database.
+Unknown message or you don't have rights to follow up this messages.,Messaggio sconosciuto o non si dispone dei diritti per seguire questi messaggi.
+Couldn't find follow up message in database.,Non riusciva a trovare seguire messaggio nel database.
+%s new messages,%s nuovi messaggi
+1 new message,1 nuovo messaggio
+Reply to all,Rispondi a tutti
+Follow Up,Seguito

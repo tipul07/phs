@@ -33,11 +33,22 @@
     if( !($reply_to_muid = $this->context_var( 'reply_to_muid' )) )
         $reply_to_muid = 0;
 
+    if( !($followup_message = $this->context_var( 'followup_message' )) )
+        $followup_message = false;
+    if( !($follow_up = $this->context_var( 'follow_up' )) )
+        $follow_up = 0;
+    if( !($follow_up_muid = $this->context_var( 'follow_up_muid' )) )
+        $follow_up_muid = 0;
+
     $url_args_arr = array();
     if( !empty( $reply_to ) )
         $url_args_arr['reply_to'] = $reply_to;
     if( !empty( $reply_to_muid ) )
         $url_args_arr['reply_to_muid'] = $reply_to_muid;
+    if( !empty( $follow_up ) )
+        $url_args_arr['follow_up'] = $follow_up;
+    if( !empty( $follow_up_muid ) )
+        $url_args_arr['follow_up_muid'] = $follow_up_muid;
 
     $current_user = PHS::current_user();
 
@@ -160,6 +171,9 @@
                     if( !empty( $reply_message ) )
                     {
                         echo $this->context_var( 'dest_type_handlers' );
+                    } elseif( !empty( $followup_message ) )
+                    {
+                        echo $messages_model->get_destination_as_string( $followup_message['message'] );
                     } else
                     {
                         ?>

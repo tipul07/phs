@@ -8,12 +8,13 @@ use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Library;
 
 final class PHS extends PHS_Registry
 {
     const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
           ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
-          ERR_SCRIPT_FILES = 2011;
+          ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012;
 
     const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
 
@@ -35,6 +36,8 @@ final class PHS extends PHS_Registry
     private static $inited = false;
     private static $instance = false;
     private static $hooks = array();
+
+    private static $_core_libraries_instances = array();
 
     private static $_INTERPRET_SCRIPT = 'index';
     private static $_BACKGROUND_SCRIPT = '_bg';
@@ -1268,6 +1271,95 @@ final class PHS extends PHS_Registry
             $hook_result = PHS_Hooks::default_user_db_details_hook_args();
 
         return $hook_result['session_db_data'];
+    }
+
+    public static function get_core_library_full_path( $library )
+    {
+        $library = PHS_Instantiable::safe_escape_library_name( $library );
+        if( empty( $library )
+         or !@file_exists( PHS_CORE_LIBRARIES_DIR.$library.'.php' ) )
+            return false;
+
+        return PHS_CORE_LIBRARIES_DIR.$library.'.php';
+    }
+
+    /**
+     * Try loading a core library
+     *
+     * @param string $library Core library file to be loaded
+     * @param bool|array $params Loading parameters
+     *
+     * @return bool|libraries\PHS_Library
+     */
+    public static function load_core_library( $library, $params = false )
+    {
+        self::st_reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
+        // so class name is from "root" namespace
+        if( empty( $params['full_class_name'] ) )
+            $params['full_class_name'] = '\\'.ltrim( $library, '\\' );
+        if( empty( $params['init_params'] ) )
+            $params['init_params'] = false;
+        if( empty( $params['as_singleton'] ) )
+            $params['as_singleton'] = true;
+
+        if( !($library = PHS_Instantiable::safe_escape_library_name( $library )) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load core library.' ) );
+            return false;
+        }
+
+        if( !empty( $params['as_singleton'] )
+        and !empty( self::$_core_libraries_instances[$library] ) )
+            return self::$_core_libraries_instances[$library];
+
+        if( !($file_path = self::get_core_library_full_path( $library )) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load core library [%s].', $library ) );
+            return false;
+        }
+
+        ob_start();
+        include_once( $file_path );
+        ob_get_clean();
+
+        if( !@class_exists( $params['full_class_name'], false ) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t instantiate library class for core library [%s].', $library ) );
+            return false;
+        }
+
+        /** @var \phs\libraries\PHS_Library $library_instance */
+        if( empty( $params['init_params'] ) )
+            $library_instance = new $params['full_class_name']();
+        else
+            $library_instance = new $params['full_class_name']( $params['init_params'] );
+
+        if( !($library_instance instanceof PHS_Library) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Core library [%s] is not a PHS library.', $library ) );
+            return false;
+        }
+
+        $location_details = $library_instance::get_library_default_location_paths();
+        $location_details['library_file'] = $file_path;
+        $location_details['library_path'] = rtrim( PHS_CORE_LIBRARIES_DIR, '/\\' );
+        $location_details['library_www'] = rtrim( PHS_CORE_LIBRARIES_WWW, '/' );
+
+        if( !$library_instance->set_library_location_paths( $location_details ) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Core library [%s] couldn\'t set location paths.', $library ) );
+            return false;
+        }
+
+        if( !empty( $params['as_singleton'] ) )
+            self::$_core_libraries_instances[$library] = $library_instance;
+
+        return $library_instance;
     }
 
     /**

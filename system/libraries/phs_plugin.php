@@ -221,19 +221,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $languages_dir = $this->instance_plugin_languages_path();
 
-        if( !@is_dir( rtrim( $languages_dir, '/' ) ) )
+        if( !@is_dir( rtrim( $languages_dir, '/\\' ) ) )
             return;
 
         self::scan_for_language_files( $languages_dir );
-    }
-
-    public static function safe_escape_library_name( $name )
-    {
-        if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
-            return false;
-
-        return strtolower( $name );
     }
 
     public function get_library_full_path( $library )
@@ -262,11 +253,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function load_library( $library, $params = false )
     {
+        $this->reset_error();
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
+        // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
+        // so class name is from "root" namespace
         if( empty( $params['full_class_name'] ) )
-            $params['full_class_name'] = $library;
+            $params['full_class_name'] = '\\'.ltrim( $library, '\\' );
         if( empty( $params['init_params'] ) )
             $params['init_params'] = false;
         if( empty( $params['as_singleton'] ) )

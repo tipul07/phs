@@ -51,7 +51,7 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -399,13 +399,21 @@ class PHS_Model_Messages extends PHS_Model
         return $return_arr;
     }
 
-    public function full_data_to_array( $full_message_data, $account_data = false )
+    public function full_data_to_array( $full_message_data, $account_data = false, $params = false )
     {
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
         and !$this->load_dependencies() )
             return false;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['ignore_user_message'] ) )
+            $params['ignore_user_message'] = false;
+        else
+            $params['ignore_user_message'] = true;
 
         $message_data = false;
         $message_user = false;
@@ -467,8 +475,13 @@ class PHS_Model_Messages extends PHS_Model
 
             if( !($message_user = $this->get_details_fields( $check_arr, $msg_users_flow )) )
             {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t retrieve user message details.' ) );
-                return false;
+                if( empty( $params['ignore_user_message'] ) )
+                {
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t retrieve user message details.' ) );
+                    return false;
+                }
+
+                $message_user = false;
             }
         }
 
@@ -555,6 +568,41 @@ class PHS_Model_Messages extends PHS_Model
          or !$this->account_is_destination( $full_message_arr, $account_arr )
          or empty( $full_message_arr['message']['from_uid'] )
          or empty( $full_message_arr['message']['can_reply'] ) )
+        {
+            $this->reset_error();
+            return false;
+        }
+
+        return $full_message_arr;
+    }
+
+    public function can_followup( $record_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['account_data'] ) )
+            $params['account_data'] = false;
+
+        $accounts_model = self::$_accounts_model;
+        $messages_plugin = self::$_messages_plugin;
+
+        $account_arr = false;
+        if( !empty( $params['account_data'] )
+        and (!($account_arr = $accounts_model->data_to_array( $params['account_data'] ))
+                or !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE )
+            ) )
+            return false;
+
+        if( !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr ))
+         or !$this->account_is_author( $full_message_arr, $account_arr )
+         or empty( $full_message_arr['message']['from_uid'] ) )
         {
             $this->reset_error();
             return false;
@@ -884,23 +932,39 @@ class PHS_Model_Messages extends PHS_Model
         return $message_user_arr;
     }
 
-    public function get_thread_messages_flow( $thread_id, $user_id )
+    public function get_thread_messages_flow( $thread_id, $user_id = 0 )
     {
-        if( empty( $thread_id ) or empty( $user_id )
+        if( !empty( $thread_id ) )
+            $thread_id = intval( $thread_id );
+        if( !empty( $user_id ) )
+            $user_id = intval( $user_id );
+
+        if( empty( $thread_id )
          or !($um_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
          or !($um_table_name = $this->get_flow_table_name( $um_flow_params )) )
             return array();
 
-        $list_fields_arr = array();
-        $list_fields_arr['thread_id'] = $thread_id;
-        $list_fields_arr['user_id'] = $user_id;
+        if( !empty( $user_id ) )
+            $extra_order_sql = ', (user_id = \''.$user_id.'\') DESC, is_author ASC';
+        else
+            $extra_order_sql = ', is_author DESC';
 
-        $list_arr = $um_flow_params;
-        $list_arr['fields'] = $list_fields_arr;
-        $list_arr['order_by'] = 'cdate ASC';
-
-        if( !($result_list_arr = $this->get_list( $list_arr )) )
+        if( !($qid = db_query( 'SELECT * FROM `'.$um_table_name.'` '.
+                               ' WHERE thread_id = \''.$thread_id.'\' '.
+                               ' ORDER BY message_id ASC, cdate ASC '.$extra_order_sql, $um_flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
             return array();
+
+        $result_list_arr = array();
+        $last_message_id = 0;
+        while( ($user_message_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( $user_message_arr['message_id'] != $last_message_id )
+            {
+                $result_list_arr[$user_message_arr['id']] = $user_message_arr;
+                $last_message_id = $user_message_arr['message_id'];
+            }
+        }
 
         return $result_list_arr;
     }
@@ -987,6 +1051,70 @@ class PHS_Model_Messages extends PHS_Model
         return $return_arr;
     }
 
+    public function get_destination_as_string( $message_data )
+    {
+        $this->reset_error();
+
+        if( empty( self::$_accounts_model )
+        and !$this->load_dependencies() )
+            return false;
+
+        $accounts_model = self::$_accounts_model;
+        $roles_model = self::$_roles_model;
+
+        if( !($m_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages' ) )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error initiating parameters for message.' ) );
+            return false;
+        }
+
+        if( empty( $message_data )
+         or !($message_arr = $this->data_to_array( $message_data, $m_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load message details from database.' ) );
+            return false;
+        }
+
+        $destination_str = '';
+        switch( $message_arr['dest_type'] )
+        {
+            case self::DEST_TYPE_USERS_IDS:
+                $destination_str = 'IDs: '.$message_arr['dest_str'];
+            break;
+
+            case self::DEST_TYPE_USERS:
+            case self::DEST_TYPE_HANDLERS:
+                $destination_str = $message_arr['dest_str'];
+            break;
+
+            case self::DEST_TYPE_LEVEL:
+                if( ($user_levels = $accounts_model->get_levels_as_key_val())
+                and !empty( $user_levels[$message_arr['dest_id']] ) )
+                    $destination_str = $user_levels[$message_arr['dest_id']];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown user level' ).']';
+            break;
+
+            case self::DEST_TYPE_ROLE:
+                if( ($roles_arr = $roles_model->get_all_roles())
+                and !empty( $roles_arr[$message_arr['dest_id']] ) )
+                    $destination_str = $roles_arr[$message_arr['dest_id']]['name'];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown role' ).']';
+            break;
+
+            case self::DEST_TYPE_ROLE_UNIT:
+                if( ($roles_units_arr = $roles_model->get_all_role_units())
+                and !empty( $roles_units_arr[$message_arr['dest_id']] ) )
+                    $destination_str = $roles_units_arr[$message_arr['dest_id']]['name'];
+                else
+                    $destination_str = '['.$this->_pt( 'Unknown role unit' ).']';
+            break;
+        }
+
+        return $destination_str;
+    }
+
     public function write_message( $params )
     {
         $this->reset_error();
@@ -1022,17 +1150,18 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
-        if( empty( $params['account_data'] ) )
-            $params['account_data'] = false;
         if( empty( $params['reply_message'] ) )
             $params['reply_message'] = false;
+        if( empty( $params['followup_message'] ) )
+            $params['followup_message'] = false;
+
+        if( empty( $params['account_data'] ) )
+            $params['account_data'] = false;
         if( !isset( $params['exclude_author'] ) )
             $params['exclude_author'] = true;
 
         if( empty( $params['body'] ) )
             $params['body'] = '';
-        if( empty( $params['force_dest_str'] ) )
-            $params['force_dest_str'] = '';
         if( empty( $params['type'] ) )
             $params['type'] = self::TYPE_NORMAL;
         if( empty( $params['type_id'] ) )
@@ -1044,6 +1173,10 @@ class PHS_Model_Messages extends PHS_Model
         if( empty( $params['reply_message'] )
          or !($reply_message = $this->full_data_to_array( $params['reply_message'] )) )
             $reply_message = false;
+
+        if( empty( $params['followup_message'] )
+         or !($followup_message = $this->full_data_to_array( $params['followup_message'] )) )
+            $followup_message = false;
 
         $account_arr = false;
         if( !empty( $params['account_data'] )
@@ -1062,7 +1195,17 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
+        if( !empty( $followup_message )
+        and ((!empty( $account_arr ) and !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE ))
+                or !$this->can_followup( $followup_message, array( 'account_data' => $account_arr ) )
+            ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown message or you don\'t have rights to follow up this messages.' ) );
+            return false;
+        }
+
         if( empty( $reply_message )
+        and empty( $followup_message )
         and !empty( $account_arr )
         and !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_WRITE_MESSAGE ) )
         {
@@ -1095,6 +1238,11 @@ class PHS_Model_Messages extends PHS_Model
         else
             $message_fields['reply_id'] = 0;
 
+        if( !empty( $followup_message ) )
+            $message_fields['followup_id'] = $followup_message['message']['id'];
+        else
+            $message_fields['followup_id'] = 0;
+
         $message_fields['thread_id'] = 0;  // will be updated with own id or reply thread id...
 
         $message_fields['dest_type'] = $params['dest_type'];
@@ -1112,9 +1260,6 @@ class PHS_Model_Messages extends PHS_Model
             $message_fields['can_reply'] = 0;
         else
             $message_fields['can_reply'] = (!empty( $params['can_reply'] )?1:0);
-
-        if( !empty( $params['force_dest_str'] ) )
-            $message_fields['dest_str'] = $params['force_dest_str'];
 
         $accounts_count = 0;
         switch( $params['dest_type'] )
@@ -1140,8 +1285,7 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                if( empty( $params['force_dest_str'] ) )
-                    $message_fields['dest_str'] = implode( ', ', $users_parts );
+                $message_fields['dest_str'] = implode( ', ', $users_parts );
             break;
 
             case self::DEST_TYPE_USERS:
@@ -1169,8 +1313,7 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                if( empty( $params['force_dest_str'] ) )
-                    $message_fields['dest_str'] = implode( ', ', $users_parts );
+                $message_fields['dest_str'] = implode( ', ', $users_parts );
             break;
 
             case self::DEST_TYPE_HANDLERS:
@@ -1202,8 +1345,7 @@ class PHS_Model_Messages extends PHS_Model
                     return false;
                 }
 
-                if( empty( $params['force_dest_str'] ) )
-                    $message_fields['dest_str'] = implode( ', ', $handlers_parts );
+                $message_fields['dest_str'] = implode( ', ', $handlers_parts );
             break;
 
             case self::DEST_TYPE_LEVEL:
@@ -1465,6 +1607,21 @@ class PHS_Model_Messages extends PHS_Model
             }
 
             $thread_id = $reply_message['thread_id'];
+        }
+
+        if( !empty( $message_arr['followup_id'] ) )
+        {
+            if( !($followup_message = $this->get_details( $message_arr['followup_id'], $m_flow_params )) )
+            {
+                $this->hard_delete( $message_arr, $m_flow_params );
+                if( !empty( $message_arr['body_id'] ) )
+                    $this->hard_delete( $message_arr['body_id'], $mb_flow_params );
+
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t find follow up message in database.' ) );
+                return false;
+            }
+
+            $thread_id = $followup_message['thread_id'];
         }
 
         if( !db_query( 'UPDATE `' . $this->get_flow_table_name( $m_flow_params ) . '` '.
@@ -1918,6 +2075,12 @@ class PHS_Model_Messages extends PHS_Model
                         'default' => 0,
                         'index' => true,
                         'comment' => 'Id of message replying to',
+                    ),
+                    'followup_id' => array(
+                        'type' => self::FTYPE_INT,
+                        'default' => 0,
+                        'index' => true,
+                        'comment' => 'Id of follow up message',
                     ),
                     'body_id' => array(
                         'type' => self::FTYPE_INT,

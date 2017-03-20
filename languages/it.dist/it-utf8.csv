@@ -423,3 +423,26 @@ PHS Domain path,PHS Domain path
 Continue,Continua
 Model custom after update functionality failed.,Modello personalizzato dopo la funzionalità di aggiornamento non riuscita.
 Plugin custom after update functionality failed.,Plugin personalizzati dopo la funzionalità di aggiornamento non riuscita.
+Couldn't load core library.,Impossibile caricare la libreria core.
+Couldn't load core library [%s].,Impossibile caricare la libreria core [%s].
+Couldn't instantiate library class for core library [%s].,Impossibile creare un'istanza della classe per la libreria core [%s].
+Core library [%s] is not a PHS library.,Libreria core [% s] non è una libreria PHS.
+Core library [%s] couldn't set location paths.,Libreria core [%s] non poteva impostare percorsi di posizione.
+No columns defined for paginator. Export failed.,Senza colonne definite per impaginatore. Esportazione non riuscita.
+Error loading default CSV export library.,Errore durante il caricamento di libreria di esportazione CSV predefinito.
+Provided library is not a paginator export library.,La libreria fornita non è una libreria di esportazione di impaginatore.
+Error querying model for records to export.,Errore query modello per i record da esportare.
+Error calling exporting library output start method.,Errore durante la chiamata esportatore libreria uscita metodo start.
+Error outputing header for export.,Errore quando intestazione outputing per l'esportazione.
+Failed rendering cell,ellule di rendering non riuscita
+Error calling exporting library output finish method.,Errore durante la chiamata esportatori output della libreria finitura metodo.
+Unkown column or invalid record,Colonna sconosciuto o record non valido
+Bad column setup,Installazione di colonna errato
+Cell callback failed.,Cell callback non è riuscita.
+Render cell call failed.,Render cell call non è riuscita.
+No directory provided to save export data to or no rights to write in that directory.,Nessuna directory fornita per salvare i dati di esportazione da o non esistono diritti per scrivere in tale directory.
+Couldn't create export file.,Impossibile creare il file di esportazione.
+Headers already sent. Cannot send export file to browser.,Le intestazioni vengono già inviate. Non è possibile inviare il file di esportazione al browser.
+Bad record data to export.,I dati del record da esportare è male.
+Exporter setup failure.,Errore di installazione di esportatore.
+Invalid file descriptor for export.,Descrittore di file non valido per l'esportazione.

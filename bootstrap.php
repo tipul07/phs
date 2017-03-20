@@ -1,6 +1,6 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.52' );
+    define( 'PHS_VERSION', '1.0.1.53' );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -44,6 +44,7 @@ define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
 define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
 define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
 define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
+define( 'PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/' );
 
 // These paths will need a www pair, but after bootstrap
 define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
@@ -78,6 +79,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_utils.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_file_upload.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_paginator.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_paginator_action.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_paginator_exporter_library.php' );
 include_once( PHS_CORE_DIR.'phs.php' );
 include_once( PHS_CORE_DIR.'phs_db.php' );
 include_once( PHS_CORE_DIR.'phs_session.php' );
@@ -226,6 +228,7 @@ if( !($base_url = PHS::get_base_url()) )
     $base_url = '/';
 
 define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
+define( 'PHS_CORE_LIBRARIES_WWW', $base_url.'system/core/libraries/' );
 
 define( 'PHS_THEMES_WWW', $base_url.'themes/' );
 define( 'PHS_LANGUAGES_WWW', $base_url.'languages/' );
