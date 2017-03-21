@@ -1692,6 +1692,11 @@ class PHS_Paginator extends PHS_Registry
         if( !($field_name = $this->get_column_name( $column_arr )) )
             $field_name = false;
 
+        $field_exists_in_record = false;
+        if( !empty( $field_name )
+        and array_key_exists( $field_name, $record_arr ) )
+            $field_exists_in_record = true;
+
         $cell_content = false;
         if( empty( $column_arr['record_field'] )
         and empty( $column_arr['record_db_field'] )
@@ -1707,7 +1712,7 @@ class PHS_Paginator extends PHS_Registry
 
         elseif( !empty( $model_obj )
             and !empty( $field_name )
-            and isset( $record_arr[$field_name] )
+            and $field_exists_in_record
             and ($field_details = $model_obj->table_field_details( $field_name ))
             and is_array( $field_details ) )
         {
@@ -1728,16 +1733,8 @@ class PHS_Paginator extends PHS_Registry
 
         if( $cell_content === false
         and !empty( $field_name )
-        and isset( $record_arr[$field_name] ) )
+        and $field_exists_in_record )
             $cell_content = $record_arr[$field_name];
-
-        if( $cell_content === false )
-        {
-            if( !empty( $column_arr['invalid_value'] ) )
-                $cell_content = $column_arr['invalid_value'];
-            else
-                $cell_content = '(???)';
-        }
 
         if( !empty( $column_arr['display_callback'] ) )
         {
@@ -1747,14 +1744,14 @@ class PHS_Paginator extends PHS_Registry
             else
             {
                 if( empty( $field_name )
-                 or !isset( $record_arr[$field_name] )
+                 or !$field_exists_in_record
                  or !($field_details = $model_obj->table_field_details( $field_name ))
                  or !is_array( $field_details ) )
                     $field_details = false;
 
                 $cell_callback_params = $render_params;
                 $cell_callback_params['table_field'] = $field_details;
-                $cell_callback_params['preset_content'] = $cell_content;
+                $cell_callback_params['preset_content'] = ($cell_content === false?'':$cell_content);
                 $cell_callback_params['extra_callback_params'] = (!empty( $column_arr['extra_callback_params'] )?$column_arr['extra_callback_params']:false);
 
                 if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
@@ -1774,11 +1771,20 @@ class PHS_Paginator extends PHS_Registry
 
             $cell_callback_params = $render_params;
             $cell_callback_params['table_field'] = $field_details;
-            $cell_callback_params['preset_content'] = $cell_content;
+            $cell_callback_params['preset_content'] = ($cell_content === false?'':$cell_content);
 
             if( ($checkbox_content = $this->display_checkbox_column( $cell_callback_params )) !== false
             and $checkbox_content !== null and is_string( $checkbox_content ) )
                 $cell_content = $checkbox_content;
+        }
+
+        if( empty( $cell_content )
+         or !is_string( $cell_content ) )
+        {
+            if( !empty( $column_arr['invalid_value'] ) )
+                $cell_content = $column_arr['invalid_value'];
+            else
+                $cell_content = '(???)';
         }
 
         return $cell_content;

@@ -1333,7 +1333,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        $db_insert_arr = $this->get_empty_data();
+        $db_insert_arr = $this->get_empty_data( $params );
         foreach( $insert_arr as $key => $val )
             $db_insert_arr[$key] = $val;
 

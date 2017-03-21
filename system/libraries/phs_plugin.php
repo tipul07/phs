@@ -629,6 +629,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public static function agent_job_structure()
     {
         return array(
+            'title' => '',
             'handler' => '',
             'route' => '',
             'params' => null,
@@ -684,6 +685,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         {
             $agent_job_arr = self::validate_array( $agent_job_arr, $agent_job_structure );
 
+            if( !empty( $agent_job_arr['title'] ) )
+                $agent_job_arr['title'] = trim( $agent_job_arr['title'] );
+            else
+                $agent_job_arr['title'] = '';
+
             if( !empty( $agent_job_arr['timed_seconds'] ) )
                 $agent_job_arr['timed_seconds'] = intval( $agent_job_arr['timed_seconds'] );
 
@@ -715,6 +721,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
 
             $job_extra_arr = array();
+            $job_extra_arr['title'] = $agent_job_arr['title'];
             $job_extra_arr['run_async'] = $agent_job_arr['run_async'];
             $job_extra_arr['active'] = $agent_job_arr['active'];
             $job_extra_arr['plugin'] = $this->instance_plugin_name();

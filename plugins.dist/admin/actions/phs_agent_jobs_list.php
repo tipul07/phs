@@ -101,10 +101,6 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
         $agent_jobs_model = $this->_paginator_model;
 
-        if( !($addresses_flow = $agent_jobs_model->fetch_default_flow_params( array( 'table_name' => 's2p_companies_addresses' ) ))
-         or !($addresses_table_name = $agent_jobs_model->get_flow_table_name( $addresses_flow )) )
-            $addresses_table_name = '';
-
         $list_arr = array();
 
         $flow_params = array(
@@ -193,9 +189,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'display_callback' => array( $this, 'display_hide_id' ),
             ),
             array(
-                'column_title' => $this->_pt( 'Handler' ),
-                'record_field' => 'handler',
-                //'display_callback' => array( $this, 'display_address_title' ),
+                'column_title' => $this->_pt( 'Title' ),
+                'record_field' => 'title',
+                'display_callback' => array( $this, 'display_job_title' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Route' ),
@@ -235,8 +231,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'column_title' => $this->_pt( 'Created' ),
                 'default_sort' => 1,
                 'record_db_field' => 'cdate',
-                'record_field' => (!empty( $addresses_table_name )?'`'.$addresses_table_name.'`.':'').'cdate %s, '.
-                                  (!empty( $addresses_table_name )?'`'.$addresses_table_name.'`.':'').'handler ASC ',
+                'record_field' => 'cdate %s, handler ASC ',
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
@@ -253,7 +248,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             )
         );
 
-        if( PHS_Roles::user_has_role_units( PHS::current_user(), PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+        if( PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'id',
@@ -597,6 +592,40 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         return '';
     }
 
+    public function display_job_title( $params )
+    {
+        if( empty( $params )
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] )
+         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+            return false;
+
+        $paginator_obj = $this->_paginator;
+
+        if( empty( $params['preset_content'] ) )
+            $params['preset_content'] = '';
+
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    $params['preset_content'] .= (!empty( $params['preset_content'] )?' - ':'').$params['record']['handler'];
+                break;
+
+                case $paginator_obj::CELL_RENDER_HTML:
+                    if( !empty( $params['preset_content'] ) )
+                        $params['preset_content'] .= '<br/><small>'.$params['record']['handler'].'</small>';
+                    else
+                        $params['preset_content'] = $params['record']['handler'];
+                break;
+            }
+        }
+
+        return $params['preset_content'];
+    }
+
     public function display_timed_seconds( $params )
     {
         if( empty( $params )
@@ -605,7 +634,30 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
          or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
-        return '<span title="'.$this->_pt( 'Runs every %s', PHS_utils::parse_period( $params['preset_content'] ) ).'">'.$params['preset_content'].'s</span>';
+        $paginator_obj = $this->_paginator;
+
+        if( empty( $params['record']['timed_seconds'] ) )
+            $params['record']['timed_seconds'] = 0;
+
+        $runs_every_x_str = $this->_pt( 'Runs every %s', PHS_utils::parse_period( $params['record']['timed_seconds'] ) );
+
+        $cell_str = '';
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    $cell_str = $params['record']['timed_seconds'].'s - '.$runs_every_x_str;
+                break;
+
+                case $paginator_obj::CELL_RENDER_HTML:
+                    $cell_str = '<span title="'.self::_e( $runs_every_x_str ).'">'.$params['record']['timed_seconds'].'s</span>';
+                break;
+            }
+        }
+
+        return $cell_str;
     }
 
     public function display_actions( $params )

@@ -24,7 +24,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     /**
@@ -391,6 +391,9 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['title'] ) )
+            $params['fields']['title'] = '';
+
         if( empty( $params['fields']['plugin'] ) )
             $params['fields']['plugin'] = '';
 
@@ -482,6 +485,13 @@ class PHS_Model_Agent_jobs extends PHS_Model
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
+                    ),
+                    'title' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
+                        'comment' => 'Descriptive title',
                     ),
                     'handler' => array(
                         'type' => self::FTYPE_VARCHAR,

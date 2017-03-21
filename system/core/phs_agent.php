@@ -253,6 +253,11 @@ class PHS_Agent extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        if( !empty( $extra['title'] ) )
+            $extra['title'] = trim( $extra['title'] );
+        else
+            $extra['title'] = '';
+
         if( !isset( $extra['run_async'] ) )
             $extra['run_async'] = true;
         else
@@ -283,6 +288,7 @@ class PHS_Agent extends PHS_Registry
         {
             // At this point it doesn't matter if job is currently running as fields edited won't affect running flow of tasks...
             $edit_arr = array();
+            $edit_arr['title'] = $extra['title'];
             $edit_arr['handler'] = $handler;
             $edit_arr['route'] = $cleaned_route;
             $edit_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
@@ -302,6 +308,7 @@ class PHS_Agent extends PHS_Registry
         } else
         {
             $insert_arr = array();
+            $insert_arr['title'] = $extra['title'];
             $insert_arr['handler'] = $handler;
             $insert_arr['pid'] = 0;
             $insert_arr['route'] = $cleaned_route;
