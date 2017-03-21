@@ -55,6 +55,46 @@ class PHS_Registry extends PHS_Language
         return true;
     }
 
+    /**
+     * Translate an array to provided language. It is expected that $strings_arr is an array of arrays and $keys_arr are keys inside "leafs" arrays.
+     * This is useful when defining statuses, types, etc arrays inside models which contains texts which normally should be translated.
+     * Check $STATUSES_ARR found in built-in models to understand.
+     *
+     * @param array $strings_arr Array to be walked
+     * @param array $keys_arr Keys to be translated
+     * @param bool|string $lang Language in which we want array translated
+     *
+     * @return array Translated array
+     */
+    public function translate_array_keys( $strings_arr, $keys_arr, $lang = false )
+    {
+        if( empty( $strings_arr ) or !is_array( $strings_arr ) )
+            return array();
+
+        if( empty( $keys_arr ) or !is_array( $keys_arr ) )
+            return $strings_arr;
+
+        if( $lang == false )
+            $lang = self::get_current_language();
+
+        foreach( $strings_arr as $key => $val_arr )
+        {
+            if( !is_array( $val_arr ) )
+                continue;
+
+            foreach( $keys_arr as $trans_key )
+            {
+                if( !isset( $strings_arr[$key][$trans_key] )
+                 or !is_string( $strings_arr[$key][$trans_key] ) )
+                    continue;
+
+                $strings_arr[$key][$trans_key] = $this->_pt( $strings_arr[$key][$trans_key], $lang );
+            }
+        }
+
+        return $strings_arr;
+    }
+
     public static function get_data( $key )
     {
         if( array_key_exists( $key, self::$data ) )
