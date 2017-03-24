@@ -180,9 +180,7 @@ class PHS_utils extends PHS_Language
         if( @file_exists( $segments_quick ) and @is_dir( $segments_quick ) )
             return true;
 
-        $segments_path = (string)$params['root'];
-        if( substr( $segments_path, -1 ) == '/' )
-            $segments_path = substr( $segments_path, 0, -1 );
+        $segments_path = rtrim( (string)$params['root'], '/\\' );
 
         foreach( $segments_arr as $dir_segment )
         {

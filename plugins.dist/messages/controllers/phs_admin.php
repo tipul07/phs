@@ -36,7 +36,7 @@ class PHS_Controller_Admin extends PHS_Controller
             return false;
         }
 
-        if( !$accounts_model->acc_is_admin( $current_user ) )
+        if( !$accounts_model->acc_is_operator( $current_user ) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You don\'t have enough rights to access this section.' ) );
 

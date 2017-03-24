@@ -14,7 +14,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.4';
     }
 
     /**
@@ -61,6 +61,43 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_CONTACT_US => array(
                         'name' => $this->_pt( 'Contact Us' ),
                         'description' => $this->_pt( 'Allow user to use contact us form' ),
+                    ),
+                ),
+            ),
+
+            PHS_Roles::ROLE_OPERATOR => array(
+                'name' => $this->_pt( 'Admin accounts' ),
+                'description' => $this->_pt( 'Role assigned to admin accounts.' ),
+                'role_units' => array(
+
+                    // Roles...
+                    PHS_Roles::ROLEU_LIST_ROLES => array(
+                        'name' => $this->_pt( 'List roles' ),
+                        'description' => $this->_pt( 'Allow user to view defined roles' ),
+                    ),
+
+                    // Plugins...
+                    PHS_Roles::ROLEU_LIST_PLUGINS => array(
+                        'name' => $this->_pt( 'List plugins' ),
+                        'description' => $this->_pt( 'Allow user to list plugins' ),
+                    ),
+
+                    // Agent...
+                    PHS_Roles::ROLEU_LIST_AGENT_JOBS => array(
+                        'name' => $this->_pt( 'List agent jobs' ),
+                        'description' => $this->_pt( 'Allow user to list agent jobs' ),
+                    ),
+
+                    // Logs...
+                    PHS_Roles::ROLEU_VIEW_LOGS => array(
+                        'name' => $this->_pt( 'View system logs' ),
+                        'description' => $this->_pt( 'Allow user to view system logs' ),
+                    ),
+
+                    // Accounts...
+                    PHS_Roles::ROLEU_LIST_ACCOUNTS => array(
+                        'name' => $this->_pt( 'List accounts' ),
+                        'description' => $this->_pt( 'Allow user to list accounts' ),
                     ),
                 ),
             ),
@@ -122,6 +159,9 @@ class PHS_Plugin_Admin extends PHS_Plugin
                 ),
             ),
         );
+
+        $return_arr[PHS_Roles::ROLE_OPERATOR]['role_units'] = self::validate_array( $return_arr[PHS_Roles::ROLE_OPERATOR]['role_units'],
+            self::validate_array( $return_arr[PHS_Roles::ROLE_MEMBER]['role_units'], $return_arr[PHS_Roles::ROLE_GUEST]['role_units'] ) );
 
         $return_arr[PHS_Roles::ROLE_ADMIN]['role_units'] = self::validate_array( $return_arr[PHS_Roles::ROLE_ADMIN]['role_units'],
             self::validate_array( $return_arr[PHS_Roles::ROLE_MEMBER]['role_units'], $return_arr[PHS_Roles::ROLE_GUEST]['role_units'] ) );

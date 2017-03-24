@@ -17,17 +17,17 @@ class PHS_Action_Run_backups_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\s2p_companies\models\PHS_Model_Companies $companies_model */
-        if( !($companies_model = PHS::load_model( 'companies', 's2p_companies' )) )
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
         {
-            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Couldn\'t load company model.' ) );
+            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Couldn\'t load backup plugin.' ) );
             return false;
         }
 
-        if( !$companies_model->check_companies_setup_ag() )
+        if( !$backup_plugin->run_backups_bg() )
         {
-            if( $companies_model->has_error() )
-                $this->copy_error( $companies_model );
+            if( $backup_plugin->has_error() )
+                $this->copy_error( $backup_plugin );
             else
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error checking companies setups.' ) );
 

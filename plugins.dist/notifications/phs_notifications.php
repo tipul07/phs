@@ -19,7 +19,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**

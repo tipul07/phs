@@ -954,9 +954,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
+        if( ($plugin_details = $this->get_plugin_details())
+        and !empty( $plugin_details['name'] ) )
+            $plugin_name = $plugin_details['name'];
+        else
+            $plugin_name = $this->instance_plugin_name();
+
         $plugin_details = array();
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['plugin'] = $this->instance_plugin_name();
+        $plugin_details['plugin_name'] = $plugin_name;
         $plugin_details['type'] = $this->instance_type();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
@@ -1365,7 +1372,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
+        if( ($plugin_details = $this->get_plugin_details())
+            and !empty( $plugin_details['name'] ) )
+            $plugin_name = $plugin_details['name'];
+        else
+            $plugin_name = $this->instance_plugin_name();
+
         $plugin_details = array();
+        $plugin_details['plugin_name'] = $plugin_name;
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['version'] = $this->get_plugin_version();
 

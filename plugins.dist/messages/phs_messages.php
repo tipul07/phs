@@ -34,7 +34,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -115,6 +115,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
                     if( $accounts_model->acc_is_admin( $user_arr ) )
                         $roles_arr = array( self::ROLE_MESSAGE_ADMIN );
+                    elseif( $accounts_model->acc_is_operator( $user_arr ) )
+                        $roles_arr = array( self::ROLE_MESSAGE_ALL );
                     else
                         $roles_arr = array( self::ROLE_MESSAGE_WRITER );
 
@@ -411,6 +413,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         if( $accounts_model->acc_is_admin( $account_arr ) )
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ADMIN;
+        elseif( $accounts_model->acc_is_operator( $account_arr ) )
+            $hook_args['roles_arr'][] = array( self::ROLE_MESSAGE_ALL );
         else
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_WRITER;
 

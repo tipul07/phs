@@ -27,7 +27,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -49,7 +49,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     public function get_output_as_key_vals()
     {
         return array(
-            self::OUTPUT_JPG => 'PNG',
+            self::OUTPUT_JPG => 'JPG',
             self::OUTPUT_GIF => 'GIF',
             self::OUTPUT_PNG => 'PNG',
         );
@@ -90,6 +90,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
                 'display_name' => 'Captcha output image format',
                 'type' => PHS_params::T_INT,
                 'default' => self::OUTPUT_PNG,
+                'extra_style' => 'min-width: 100px;',
                 'values_arr' => $this->get_output_as_key_vals(),
             ),
             'default_width' => array(

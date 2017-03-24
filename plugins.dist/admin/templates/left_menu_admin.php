@@ -86,7 +86,7 @@ if( $can_list_plugins or $can_manage_plugins )
 if( $can_list_agent_jobs or $can_manage_agent_jobs )
 {
     ?>
-    <li><?php echo $this::_t( 'Agent script' ) ?>
+    <li><?php echo $this::_t( 'Agent Script' ) ?>
         <ul>
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'agent_jobs_list', 'p' => 'admin'
@@ -98,7 +98,7 @@ if( $can_list_agent_jobs or $can_manage_agent_jobs )
 if( $can_view_logs )
 {
     ?>
-    <li><?php echo $this::_t( 'System logs' ) ?>
+    <li><?php echo $this::_t( 'System Logs' ) ?>
         <ul>
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'system_logs', 'p' => 'admin'

@@ -1,12 +1,14 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 
-    /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-    if( !($roles_model = $this->context_var( 'roles_model' )) )
-        return $this->_pt( 'Couldn\'t load roles model.' );
-
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
+
+    /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+    if( !($roles_model = $this->context_var( 'roles_model' ))
+     or !($plugins_model = $this->context_var( 'plugins_model' )) )
+        return $this->_pt( 'Couldn\'t load roles model.' );
 
     if( !($accounts_plugin_settings = $this->context_var( 'accounts_plugin_settings' )) )
         $accounts_plugin_settings = array();
@@ -161,20 +163,48 @@
     <?php
     if( !empty( $roles_by_slug ) and is_array( $roles_by_slug ) )
     {
+        $old_plugin = false;
+        $plugin_name = $this->_pt( 'Manually added' );
+        $did_autofocus = false;
         foreach( $roles_by_slug as $role_slug => $role_arr )
         {
             if( $roles_model->is_deleted( $role_arr ) )
                 continue;
 
-            ?><div>
-            <div style="float:left;"><input type="checkbox" id="account_roles_slugs_<?php echo $role_slug ?>" name="account_roles_slugs[]" value="<?php echo form_str( $role_slug )?>" data-role-title="<?php echo form_str( $role_arr['name'] )?>" data-role-slug="<?php echo form_str( $role_slug )?>" <?php echo (in_array( $role_slug, $account_roles ) ? 'checked="checked"' : '')?> rel="skin_checkbox" /></div>
+            if( $old_plugin !== $role_arr['plugin'] )
+            {
+                if( !($plugin_name = $plugins_model->get_plugin_name_by_slug( $role_arr['plugin'] )) )
+                    $plugin_name = $this->_pt( 'Manually added' );
+
+                if( $old_plugin !== false )
+                {
+                    ?><div style="margin-bottom:10px;"></div><?php
+                }
+                ?>
+                <section class="heading-bordered">
+                    <h4><?php echo $plugin_name?></h4>
+                </section>
+                <?php
+                $old_plugin = $role_arr['plugin'];
+            }
+            ?>
+            <div class="clearfix">
+            <div style="float:left;"><input type="checkbox" id="account_roles_slugs_<?php echo $role_slug ?>"
+                                            name="account_roles_slugs[]" value="<?php echo form_str( $role_slug )?>" rel="skin_checkbox"
+                                            data-role-title="<?php echo form_str( $role_arr['name'] )?>"
+                                            data-role-slug="<?php echo form_str( $role_slug )?>"
+                                            data-role-plugin="<?php echo form_str( $role_arr['plugin'] )?>"
+                                            data-role-plugin-name="<?php echo form_str( $plugin_name )?>"
+                                            <?php echo (in_array( $role_slug, $account_roles ) ? 'checked="checked"' : '')?>
+                                            <?php echo (!$did_autofocus?'autofocus="true"':'')?> /></div>
             <label style="margin-left:5px;width: auto !important;float:left;" for="account_roles_slugs_<?php echo $role_slug ?>">
                 <?php echo $role_arr['name']?>
                 <i class="fa fa-question-circle" title="<?php echo form_str( $role_arr['description'] )?>"></i>
             </label>
             </div>
-            <div class="clearfix"></div>
             <?php
+
+            $did_autofocus = true;
         }
     }
     ?>
@@ -202,7 +232,7 @@ function open_roles_dialogue()
     PHS_JSEN.createAjaxDialog( {
         suffix: 'user_roles_',
         width: 800,
-        height: 450,
+        height: 600,
         title: "<?php echo $this->_pte( 'Account Roles' )?>",
         resizable: false,
         source_obj: container_obj,
@@ -226,11 +256,33 @@ function update_selected_roles()
     if( !roles_container_obj )
         return;
 
+    var old_slug = false;
+
     var selected_roles = [];
     $("input:checked[name=account_roles_slugs\\[\\]").each(function(){
         var role_title = $(this).data( 'roleTitle' );
         if( role_title && role_title.length )
+        {
+            var plugin_slug = $(this).data( 'rolePlugin' );
+            var plugin_name = $(this).data( 'rolePluginName' );
+
+            if( !plugin_slug || !plugin_slug.length )
+                plugin_slug = "";
+
+            if( plugin_name && plugin_name.length
+             && old_slug !== plugin_slug )
+            {
+                var prefix = " - ";
+                if( old_slug !== false )
+                    prefix = "<br/> - ";
+
+                role_title = prefix + "<strong>" + plugin_name + "</strong>: " + role_title;
+
+                old_slug = plugin_slug;
+            }
+
             selected_roles.push( role_title );
+        }
     });
 
     if( selected_roles.length )

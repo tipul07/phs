@@ -10,11 +10,12 @@ class PHS_Model_Roles extends PHS_Model
 {
     const ERR_READ = 10000, ERR_WRITE = 10001;
 
-    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_DELETED = 3;
+    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
     protected static $STATUSES_ARR = array(
         self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
         self::STATUS_ACTIVE => array( 'title' => 'Active' ),
         self::STATUS_DELETED => array( 'title' => 'Deleted' ),
+        self::STATUS_SUSPENDED => array( 'title' => 'Suspended' ),
     );
 
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
@@ -62,6 +63,64 @@ class PHS_Model_Roles extends PHS_Model
         );
     }
 
+    final public function get_statuses( $lang = false )
+    {
+        static $statuses_arr = array();
+
+        if( $lang === false
+        and !empty( $statuses_arr ) )
+            return $statuses_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Inactive' );
+        $this->_pt( 'Active' );
+        $this->_pt( 'Deleted' );
+        $this->_pt( 'Suspended' );
+
+        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
+
+        if( $lang === false )
+            $statuses_arr = $result_arr;
+
+        return $result_arr;
+    }
+
+    final public function get_statuses_as_key_val( $lang = false )
+    {
+        static $statuses_key_val_arr = false;
+
+        if( $lang === false
+        and $statuses_key_val_arr !== false )
+            return $statuses_key_val_arr;
+
+        $key_val_arr = array();
+        if( ($statuses = $this->get_statuses( $lang )) )
+        {
+            foreach( $statuses as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        if( $lang === false )
+            $statuses_key_val_arr = $key_val_arr;
+
+        return $key_val_arr;
+    }
+
+    public function valid_status( $status, $lang = false )
+    {
+        $all_statuses = $this->get_statuses( $lang );
+        if( empty( $status )
+         or !isset( $all_statuses[$status] ) )
+            return false;
+
+        return $all_statuses[$status];
+    }
+
     public function is_active( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
@@ -84,6 +143,15 @@ class PHS_Model_Roles extends PHS_Model
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
          or $role_arr['status'] != self::STATUS_DELETED )
+            return false;
+
+        return $role_arr;
+    }
+
+    public function is_suspended( $role_data )
+    {
+        if( !($role_arr = $this->data_to_array( $role_data ))
+         or $role_arr['status'] != self::STATUS_SUSPENDED )
             return false;
 
         return $role_arr;
@@ -185,66 +253,6 @@ class PHS_Model_Roles extends PHS_Model
         return true;
     }
 
-    final public function get_statuses()
-    {
-        static $statuses_arr = array();
-
-        if( !empty( $statuses_arr ) )
-            return $statuses_arr;
-
-        $statuses_arr = array();
-        // Translate and validate statuses...
-        foreach( self::$STATUSES_ARR as $status_id => $status_arr )
-        {
-            $status_id = intval( $status_id );
-            if( empty( $status_id ) )
-                continue;
-
-            if( empty( $status_arr['title'] ) )
-                $status_arr['title'] = self::_t( 'Status %s', $status_id );
-            else
-                $status_arr['title'] = self::_t( $status_arr['title'] );
-
-            $statuses_arr[$status_id] = array(
-                'title' => $status_arr['title']
-            );
-        }
-
-        return $statuses_arr;
-    }
-
-    final public function get_statuses_as_key_val()
-    {
-        static $user_statuses_key_val_arr = false;
-
-        if( $user_statuses_key_val_arr !== false )
-            return $user_statuses_key_val_arr;
-
-        $user_statuses_key_val_arr = array();
-        if( ($user_statuses = $this->get_statuses()) )
-        {
-            foreach( $user_statuses as $key => $val )
-            {
-                if( !is_array( $val ) )
-                    continue;
-
-                $user_statuses_key_val_arr[$key] = $val['title'];
-            }
-        }
-
-        return $user_statuses_key_val_arr;
-    }
-
-    public function valid_status( $status )
-    {
-        $all_statuses = $this->get_statuses();
-        if( empty( $status )
-            or empty( $all_statuses[$status] ) )
-            return false;
-
-        return $all_statuses[$status];
-    }
-
     /**
      * Try transforming a string to role or role unit slug.
      *
@@ -294,7 +302,7 @@ class PHS_Model_Roles extends PHS_Model
         $list_arr['table_name'] = 'roles_units';
         // Raise this limit if you have more units...
         $list_arr['enregs_no'] = $model_settings['units_cache_size'];
-        $list_arr['order_by'] = 'roles_units.name ASC';
+        $list_arr['order_by'] = 'roles_units.plugin ASC, roles_units.name ASC';
 
         if( !($all_role_units = $this->get_list( $list_arr )) )
             $all_role_units = array();
@@ -368,10 +376,10 @@ class PHS_Model_Roles extends PHS_Model
 
         $all_roles = array();
 
-        $list_arr = array();
+        $list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
         // Raise this limit if you have more units...
         $list_arr['enregs_no'] = $model_settings['roles_cache_size'];
-        $list_arr['order_by'] = 'roles.name ASC';
+        $list_arr['order_by'] = 'roles.plugin ASC, roles.name ASC';
 
         if( !($all_roles = $this->get_list( $list_arr )) )
             $all_roles = array();

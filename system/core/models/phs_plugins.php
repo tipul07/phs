@@ -59,7 +59,7 @@ class PHS_Model_Plugins extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -617,6 +617,24 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$db_plugin_plugins;
     }
 
+    /**
+     * Returns plugin name as described in plugin instance using get_plugin_details() method at installation time.
+     *
+     * @param string $slug Plugin identifier
+     *
+     * @return string Plugin name or empty string if not found
+     */
+    public function get_plugin_name_by_slug( $slug )
+    {
+        if( ($all_plugins = $this->get_all_plugins())
+        and !empty( $all_plugins[$slug] )
+        and is_array( $all_plugins[$slug] )
+        and !empty( $all_plugins[$slug]['plugin_name'] ) )
+            return $all_plugins[$slug]['plugin_name'];
+
+        return '';
+    }
+
     public function cache_all_db_registry_details( $force = false )
     {
         $this->reset_error();
@@ -1007,6 +1025,9 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['plugin_name'] ) )
+            $params['fields']['plugin_name'] = '';
+
         $now_date = date( self::DATETIME_DB );
 
         $params['fields']['status_date'] = $now_date;
@@ -1052,6 +1073,10 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         $now_date = date( self::DATETIME_DB );
+
+        if( isset( $params['fields']['plugin_name'] )
+        and empty( $params['fields']['plugin_name'] ) )
+            $params['fields']['plugin_name'] = '';
 
         if( isset( $params['fields']['status'] )
         and empty( $params['fields']['status_date'] ) )
@@ -1130,6 +1155,11 @@ class PHS_Model_Plugins extends PHS_Model
                         'nullable' => true,
                         'editable' => false,
                         'index' => true,
+                    ),
+                    'plugin_name' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
                     ),
                     'added_by' => array(
                         'type' => self::FTYPE_INT,

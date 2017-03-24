@@ -1055,6 +1055,8 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( $this->acc_is_admin( $insert_arr ) )
             $roles_arr = array( PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_ADMIN );
+        elseif( $this->acc_is_operator( $insert_arr ) )
+            $roles_arr = array( PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR );
         else
             $roles_arr = array( PHS_Roles::ROLE_MEMBER );
 

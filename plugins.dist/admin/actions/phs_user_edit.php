@@ -66,6 +66,13 @@ class PHS_Action_User_edit extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load plugins model.' ) );
+            return self::default_action_result();
+        }
+
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
@@ -204,7 +211,9 @@ class PHS_Action_User_edit extends PHS_Action
             'password_regexp' => $accounts_plugin_settings['password_regexp'],
 
             'roles_by_slug' => $roles_by_slug,
+
             'roles_model' => $roles_model,
+            'plugins_model' => $plugins_model,
         );
 
         return $this->quick_render_template( 'user_edit', $data );

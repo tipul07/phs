@@ -10,20 +10,21 @@ use \phs\libraries\PHS_Roles;
 
     $cuser_arr = PHS::current_user();
 
+    $can_list_rules = PHS_Roles::user_has_role_units( $cuser_arr, $plugin_obj::ROLEU_LIST_RULES );
+    $can_manage_rules = PHS_Roles::user_has_role_units( $cuser_arr, $plugin_obj::ROLEU_MANAGE_RULES );
     $can_list_backups = PHS_Roles::user_has_role_units( $cuser_arr, $plugin_obj::ROLEU_LIST_BACKUPS );
-    $can_manage_backups = PHS_Roles::user_has_role_units( $cuser_arr, $plugin_obj::ROLEU_MANAGE_BACKUPS );
     $can_delete_backups = PHS_Roles::user_has_role_units( $cuser_arr, $plugin_obj::ROLEU_DELETE_BACKUPS );
 
-    if( !$can_list_backups and !$can_manage_backups and !$can_delete_backups )
+    if( !$can_list_rules and !$can_manage_rules and !$can_list_backups and !$can_delete_backups )
         return '';
 
 ?>
 <li><?php echo $this::_t( 'System Backups' ) ?>
     <ul>
         <?php
-        if( $can_manage_backups or $can_list_backups )
+        if( $can_manage_rules or $can_list_rules )
         {
-            if( $can_manage_backups )
+            if( $can_manage_rules )
             {
             ?>
             <li><a href="<?php echo PHS::url( array(
@@ -39,10 +40,15 @@ use \phs\libraries\PHS_Roles;
             </li>
             <?php
         }
+        if( $can_list_backups or $can_delete_backups )
+        {
         ?>
         <li><a href="<?php echo PHS::url( array(
                                                   'a' => 'backups_list', 'p' => 'backup'
                                           ) ) ?>"><?php echo $this::_t( 'List Backups' ) ?></a></li>
+        <?php
+        }
+        ?>
     </ul>
 </li>
 <?php

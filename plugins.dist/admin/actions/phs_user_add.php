@@ -59,17 +59,35 @@ class PHS_Action_User_add extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+        if( !($roles_model = PHS::load_model( 'roles' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load roles model.' ) );
+            return self::default_action_result();
+        }
+
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load plugins model.' ) );
+            return self::default_action_result();
+        }
+
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
             return self::default_action_result();
         }
 
+        if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
+            $roles_by_slug = array();
+
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_p( 'nick', PHS_params::T_NOHTML );
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
         $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
         $level = PHS_params::_p( 'level', PHS_params::T_INT );
+        $account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
         $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
         $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );
@@ -103,6 +121,7 @@ class PHS_Action_User_add extends PHS_Action
             $insert_params_arr = array();
             $insert_params_arr['fields'] = $insert_arr;
             $insert_params_arr['{users_details}'] = $insert_details_arr;
+            $insert_params_arr['{account_roles}'] = $account_roles_slugs;
             $insert_params_arr['{send_confirmation_email}'] = true;
 
             if( ($new_account = $accounts_model->insert( $insert_params_arr )) )
@@ -133,10 +152,16 @@ class PHS_Action_User_add extends PHS_Action
             'lname' => $lname,
             'phone' => $phone,
             'company' => $company,
+
             'accounts_plugin_settings' => $accounts_plugin_settings,
             'user_levels' => $accounts_model->get_levels(),
             'min_password_length' => $accounts_plugin_settings['min_password_length'],
             'password_regexp' => $accounts_plugin_settings['password_regexp'],
+
+            'roles_by_slug' => $roles_by_slug,
+
+            'roles_model' => $roles_model,
+            'plugins_model' => $plugins_model,
         );
 
         return $this->quick_render_template( 'user_add', $data );

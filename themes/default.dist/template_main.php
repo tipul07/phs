@@ -261,7 +261,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             echo $hook_args['buffer'];
 
         if( !empty( $accounts_model )
-        and $accounts_model->acc_is_admin( $cuser_arr ) )
+        and $accounts_model->acc_is_operator( $cuser_arr ) )
         {
             ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
         }
@@ -306,7 +306,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 
             <?php
             if( !empty( $accounts_model )
-            and $accounts_model->acc_is_admin( $cuser_arr ) )
+            and $accounts_model->acc_is_operator( $cuser_arr ) )
             {
                 ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
             }

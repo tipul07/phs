@@ -4,6 +4,10 @@
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
 
+    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+    if( !($plugins_model = $this->context_var( 'plugins_model' )) )
+        return $this->_pt( 'Couldn\'t load plugins model.' );
+
     if( !($ru_slugs = $this->context_var( 'ru_slugs' )) )
         $ru_slugs = array();
     if( !($role_units_by_slug = $this->context_var( 'role_units_by_slug' )) )
@@ -13,7 +17,7 @@
     <form id="add_role_form" name="add_role_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_add' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive" style="width: 650px;">
+        <div class="form_container responsive" style="width: 700px;">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Add Role' )?></h3>
@@ -45,17 +49,35 @@
                 <label for="email"><?php echo $this->_pt( 'Role Units' )?>:</label>
                 <div class="lineform_line">
                 <?php
+                $old_plugin = false;
                 foreach( $role_units_by_slug as $unit_slug => $unit_arr )
                 {
+                    if( $old_plugin !== $unit_arr['plugin'] )
+                    {
+                        if( !($plugin_name = $plugins_model->get_plugin_name_by_slug( $unit_arr['plugin'] )) )
+                            $plugin_name = $this->_pt( 'Manually added' );
+
+                        if( $old_plugin !== false )
+                        {
+                            ?><div style="margin-bottom:10px;"></div><?php
+                        }
+                        ?>
+                        <section class="heading-bordered">
+                            <h4><?php echo $plugin_name?></h4>
+                        </section>
+                        <?php
+                        $old_plugin = $unit_arr['plugin'];
+                    }
                     ?>
-                    <div>
-                        <div style="float:left;"><input type="checkbox" id="ru_slug_<?php echo $unit_slug ?>" name="ru_slugs[]" value="<?php echo form_str( $unit_slug )?>" rel="skin_checkbox" <?php echo (in_array( $unit_slug, $ru_slugs ) ? 'checked="checked"' : '')?> /></div>
-                        <label style="margin-left:5px;width: auto !important;float:left;" for="ru_slug_<?php echo $unit_slug ?>">
+                    <div class="clearfix">
+                        <div style="float:left;"><input type="checkbox" id="ru_slug_<?php echo $unit_slug ?>"
+                                                        name="ru_slugs[]" value="<?php echo form_str( $unit_slug )?>" rel="skin_checkbox"
+                                                        <?php echo (in_array( $unit_slug, $ru_slugs ) ? 'checked="checked"' : '')?> /></div>
+                        <label style="margin-left:5px;width: auto !important;max-width: none !important;float:left;" for="ru_slug_<?php echo $unit_slug ?>">
                             <?php echo $unit_arr['name']?>
                             <i class="fa fa-question-circle" title="<?php echo form_str( $unit_arr['description'] )?>"></i>
                         </label>
                     </div>
-                    <div class="clearfix"></div>
                     <?php
                 }
                 ?>

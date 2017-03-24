@@ -2,9 +2,11 @@
 
 namespace phs\plugins\backup\models;
 
+use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
+use \phs\libraries\PHS_utils;
 
 class PHS_Model_Rules extends PHS_Model
 {
@@ -54,6 +56,11 @@ class PHS_Model_Rules extends PHS_Model
         if( $lang === false
         and !empty( $statuses_arr ) )
             return $statuses_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Inactive' );
+        $this->_pt( 'Active' );
+        $this->_pt( 'Deleted' );
 
         $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
 
@@ -139,6 +146,20 @@ class PHS_Model_Rules extends PHS_Model
             $targets_key_val_arr = $key_val_arr;
 
         return $key_val_arr;
+    }
+
+    public function get_rule_days()
+    {
+        return array(
+            0 => $this->_pt( 'Each day' ),
+            1 => $this->_pt( 'Monday' ),
+            2 => $this->_pt( 'Tuesday' ),
+            3 => $this->_pt( 'Wednesday' ),
+            4 => $this->_pt( 'Thursday' ),
+            5 => $this->_pt( 'Friday' ),
+            6 => $this->_pt( 'Saturday' ),
+            7 => $this->_pt( 'Sunday' ),
+        );
     }
 
     public function valid_target( $target, $lang = false )
@@ -261,6 +282,106 @@ class PHS_Model_Rules extends PHS_Model
         $return_arr['account_data'] = $account_arr;
 
         return $return_arr;
+    }
+
+    public function get_location_for_rule( $rule_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $rule_data )
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($rule_arr = $this->data_to_array( $rule_data, $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['create_location_if_not_found'] ) )
+            $params['create_location_if_not_found'] = false;
+        else
+            $params['create_location_if_not_found'] = true;
+
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
+        if( !empty( $rule_arr['location'] ) )
+        {
+            if( !($location_details = $backup_plugin->resolve_directory_location( $rule_arr['location'] )) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup rule location.' ) );
+                return false;
+            }
+        } else
+        {
+            if( !($setting_arr = $backup_plugin->get_db_settings()) )
+                $setting_arr = array();
+
+            if( empty( $setting_arr['location'] ) )
+                $setting_arr['location'] = '';
+
+            if( !($location_details = $backup_plugin->resolve_directory_location( $rule_arr['location'] )) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup rule location.' ) );
+                return false;
+            }
+        }
+
+        if( empty( $location_details['location_exists'] ) )
+        {
+            if( empty( $params['create_location_if_not_found'] ) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Backup rule location doesn\'t exist or is not a directory.' ) );
+                return false;
+            }
+
+            $mkdir_params = array();
+            $mkdir_params['root'] = $location_details['location_root'];
+
+            if( !PHS_utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create full directory structure for backup rule.' ) );
+                PHS_Logger::logf( 'Couldn\'t create full directory structure for backup rule #'.$rule_arr['id'].' ('.$location_root.$location_str.').', PHS_Logger::TYPE_MAINTENANCE );
+                return false;
+            }
+
+            $location_details['location_exists'] = true;
+        }
+
+        return $location_details;
+    }
+
+    public function get_location_stats_for_rule( $rule_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $rule_data )
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($rule_arr = $this->data_to_array( $rule_data, $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['create_location_if_not_found'] ) )
+            $params['create_location_if_not_found'] = false;
+        else
+            $params['create_location_if_not_found'] = true;
+
+        if( !($location_arr = $this->get_location_for_rule( $rule_arr, $params ))
+         or empty( $location_arr['full_path'] ) )
+            return false;
+
+        return $this->get_directory_stats( $location_arr['full_path'] );
     }
 
     public function targets_arr_to_bits( $target_arr )

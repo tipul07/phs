@@ -6,6 +6,23 @@
 
     use \phs\PHS;
 
+    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+    if( !($plugins_model = PHS::load_model( 'plugins' )) )
+    {
+        if( !PHS::st_has_error() )
+            PHS::st_set_error( -1, PHS::_t( 'Error instantiating plugins model.' ) );
+
+        return PHS::st_get_error();
+    }
+
+    if( !$plugins_model->check_installation() )
+    {
+        if( $plugins_model->has_error() )
+            return $plugins_model->get_error();
+
+        return PHS::arr_set_error( -1, PHS::_t( 'Error while checking plugins model installation.' ) );
+    }
+
     if( ($core_models = PHS::get_core_models())
     and is_array( $core_models ) )
     {
@@ -22,15 +39,6 @@
                 return PHS::st_get_error();
             }
         }
-    }
-
-    /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = PHS::load_model( 'plugins' )) )
-    {
-        if( !PHS::st_has_error() )
-            PHS::st_set_error( -1, PHS::_t( 'Error instantiating plugins model.' ) );
-
-        return PHS::st_get_error();
     }
 
     if( ($plugins_arr = $plugins_model->cache_all_dir_details()) === false

@@ -9,7 +9,7 @@ class PHS_Roles extends PHS_Registry
 {
     const ERR_DEPENDENCIES = 1;
 
-    const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_ADMIN = 'phs_admin';
+    const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin';
 
     const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
           ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',

@@ -57,6 +57,13 @@ class PHS_Action_Role_edit extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        if( !($plugins_model = PHS::load_model( 'plugins' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load plugins model.' ) );
+            return self::default_action_result();
+        }
+
         $rid = PHS_params::_gp( 'rid', PHS_params::T_INT );
         $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
 
@@ -137,8 +144,10 @@ class PHS_Action_Role_edit extends PHS_Action
             'name' => $name,
             'slug' => $role_arr['slug'],
             'description' => $description,
+
             'ru_slugs' => $ru_slugs,
             'role_units_by_slug' => $roles_model->get_all_role_units_by_slug(),
+            'plugins_model' => $plugins_model,
         );
 
         return $this->quick_render_template( 'role_edit', $data );

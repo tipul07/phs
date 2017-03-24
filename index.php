@@ -24,21 +24,6 @@
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Instantiable;
 
-    /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-    $rules_model = PHS::load_model( 'rules', 'backup' );
-
-    $insert_arr = $rules_model->fetch_default_flow_params();
-    $insert_arr['fields'] = array();
-    $insert_arr['fields']['title'] = 'Test rule';
-    $insert_arr['fields']['target'] = array( $rules_model::BACKUP_TARGET_DATABASE, $rules_model::BACKUP_TARGET_UPLOADS );
-    $insert_arr['fields']['status'] = $rules_model::STATUS_ACTIVE;
-    $insert_arr['fields']['hour'] = 4;
-    $insert_arr['{days_arr}'] = array( 1, 2, 3, 5 );
-
-    var_dump( $rules_model->insert( $insert_arr ) );
-    var_dump( $rules_model->get_error() );
-    exit;
-
     // var_dump( PHS_bg_jobs::run( array(
     //                                 'plugin' => 'admin',
     //                                 'controller' => 'index_bg',
