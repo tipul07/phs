@@ -2,19 +2,20 @@
 
 namespace phs\plugins\backup\models;
 
-use phs\libraries\PHS_Logger;
 use \phs\PHS;
+use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_utils;
 
 class PHS_Model_Rules extends PHS_Model
 {
-    const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
+    const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
     protected static $STATUSES_ARR = array(
         self::STATUS_ACTIVE => array( 'title' => 'Active' ),
         self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
         self::STATUS_DELETED => array( 'title' => 'Deleted' ),
+        self::STATUS_SUSPENDED => array( 'title' => 'Suspended' ),
     );
 
     const BACKUP_TARGET_DATABASE = 1, BACKUP_TARGET_UPLOADS = 2;
@@ -22,6 +23,8 @@ class PHS_Model_Rules extends PHS_Model
         self::BACKUP_TARGET_DATABASE => array( 'title' => 'Database' ),
         self::BACKUP_TARGET_UPLOADS => array( 'title' => 'Uploaded files' ),
     );
+
+    const DAY_ALL = 0, DAY_MONDAY = 1, DAY_TUESDAY = 2, DAY_WEDNESDAY = 3, DAY_THURSDAY = 4, DAY_FRIDAY = 5, DAY_SATURDAY = 6, DAY_SUNDAY = 7;
 
     const BACKUP_TARGET_ALL = ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
 
@@ -61,6 +64,7 @@ class PHS_Model_Rules extends PHS_Model
         $this->_pt( 'Inactive' );
         $this->_pt( 'Active' );
         $this->_pt( 'Deleted' );
+        $this->_pt( 'Suspended' );
 
         $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
 
@@ -131,7 +135,7 @@ class PHS_Model_Rules extends PHS_Model
             return $targets_key_val_arr;
 
         $key_val_arr = array();
-        if( ($targets = $this->get_statuses( $lang )) )
+        if( ($targets = $this->get_targets( $lang )) )
         {
             foreach( $targets as $key => $val )
             {
@@ -151,14 +155,14 @@ class PHS_Model_Rules extends PHS_Model
     public function get_rule_days()
     {
         return array(
-            0 => $this->_pt( 'Each day' ),
-            1 => $this->_pt( 'Monday' ),
-            2 => $this->_pt( 'Tuesday' ),
-            3 => $this->_pt( 'Wednesday' ),
-            4 => $this->_pt( 'Thursday' ),
-            5 => $this->_pt( 'Friday' ),
-            6 => $this->_pt( 'Saturday' ),
-            7 => $this->_pt( 'Sunday' ),
+            self::DAY_ALL => $this->_pt( 'Each day' ),
+            self::DAY_MONDAY => $this->_pt( 'Monday' ),
+            self::DAY_TUESDAY => $this->_pt( 'Tuesday' ),
+            self::DAY_WEDNESDAY => $this->_pt( 'Wednesday' ),
+            self::DAY_THURSDAY => $this->_pt( 'Thursday' ),
+            self::DAY_FRIDAY => $this->_pt( 'Friday' ),
+            self::DAY_SATURDAY => $this->_pt( 'Saturday' ),
+            self::DAY_SUNDAY => $this->_pt( 'Sunday' ),
         );
     }
 
@@ -199,12 +203,36 @@ class PHS_Model_Rules extends PHS_Model
         return $record_arr;
     }
 
+    public function is_suspended( $record_data )
+    {
+        if( !($record_arr = $this->data_to_array( $record_data ))
+         or $record_arr['status'] != self::STATUS_SUSPENDED )
+            return false;
+
+        return $record_arr;
+    }
+
     public function act_activate( $record_data, $params = false )
     {
+        $this->reset_error();
+
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
         if( empty( $record_data )
          or !($record_arr = $this->data_to_array( $record_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule details not found in database.' ) );
+            return false;
+        }
+
+        if( !$backup_plugin->plugin_active()
+        and $this->is_suspended( $record_arr ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'You will have to activate backup plugin before activating backup rule.' ) );
             return false;
         }
 
@@ -222,10 +250,25 @@ class PHS_Model_Rules extends PHS_Model
 
     public function act_inactivate( $record_data, $params = false )
     {
+        $this->reset_error();
+
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
         if( empty( $record_data )
          or !($record_arr = $this->data_to_array( $record_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule details not found in database.' ) );
+            return false;
+        }
+
+        if( !$backup_plugin->plugin_active()
+        and $this->is_suspended( $record_arr ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'You will have to activate backup plugin before inactivating backup rule.' ) );
             return false;
         }
 
@@ -264,6 +307,46 @@ class PHS_Model_Rules extends PHS_Model
         return $this->edit( $record_arr, $edit_params_arr );
     }
 
+    public function act_suspend_all_rules()
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain all required resources.' ) );
+            return false;
+        }
+
+        if( !db_query( 'UPDATE `'.$table_name.'` SET status = \''.self::STATUS_SUSPENDED.'\' WHERE status = \''.self::STATUS_ACTIVE.'\'', $flow_params['db_connection'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error suspending all active backup rules.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    public function act_unsuspend_all_rules()
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain all required resources.' ) );
+            return false;
+        }
+
+        if( !db_query( 'UPDATE `'.$table_name.'` SET status = \''.self::STATUS_ACTIVE.'\' WHERE status = \''.self::STATUS_SUSPENDED.'\'', $flow_params['db_connection'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error unsuspending all active backup rules.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
     public function can_user_edit( $record_data, $account_data )
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -296,14 +379,6 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
-        if( empty( $params['create_location_if_not_found'] ) )
-            $params['create_location_if_not_found'] = false;
-        else
-            $params['create_location_if_not_found'] = true;
-
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
         if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
         {
@@ -311,55 +386,28 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( !empty( $rule_arr['location'] ) )
+        if( !($result_details = $backup_plugin->get_location_for_path( $rule_arr['location'], $params )) )
         {
-            if( !($location_details = $backup_plugin->resolve_directory_location( $rule_arr['location'] )) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup rule location.' ) );
-                return false;
-            }
-        } else
-        {
-            if( !($setting_arr = $backup_plugin->get_db_settings()) )
-                $setting_arr = array();
-
-            if( empty( $setting_arr['location'] ) )
-                $setting_arr['location'] = '';
-
-            if( !($location_details = $backup_plugin->resolve_directory_location( $rule_arr['location'] )) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup rule location.' ) );
-                return false;
-            }
+            if( $backup_plugin->has_error() )
+                $this->copy_error( $backup_plugin );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain rule location path details.' ) );
+            return false;
         }
 
-        if( empty( $location_details['location_exists'] ) )
-        {
-            if( empty( $params['create_location_if_not_found'] ) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Backup rule location doesn\'t exist or is not a directory.' ) );
-                return false;
-            }
-
-            $mkdir_params = array();
-            $mkdir_params['root'] = $location_details['location_root'];
-
-            if( !PHS_utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create full directory structure for backup rule.' ) );
-                PHS_Logger::logf( 'Couldn\'t create full directory structure for backup rule #'.$rule_arr['id'].' ('.$location_root.$location_str.').', PHS_Logger::TYPE_MAINTENANCE );
-                return false;
-            }
-
-            $location_details['location_exists'] = true;
-        }
-
-        return $location_details;
+        return $result_details;
     }
 
     public function get_location_stats_for_rule( $rule_data, $params = false )
     {
         $this->reset_error();
+
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
 
         if( empty( $rule_data )
          or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
@@ -369,19 +417,11 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
-        if( empty( $params['create_location_if_not_found'] ) )
-            $params['create_location_if_not_found'] = false;
-        else
-            $params['create_location_if_not_found'] = true;
-
         if( !($location_arr = $this->get_location_for_rule( $rule_arr, $params ))
          or empty( $location_arr['full_path'] ) )
             return false;
 
-        return $this->get_directory_stats( $location_arr['full_path'] );
+        return $backup_plugin->get_directory_stats( $location_arr['full_path'] );
     }
 
     public function targets_arr_to_bits( $target_arr )

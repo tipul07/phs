@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\plugins\admin\controllers;
+namespace phs\plugins\backup\controllers;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Controller;

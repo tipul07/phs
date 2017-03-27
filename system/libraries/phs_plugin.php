@@ -1071,7 +1071,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
         }
 
-        if( !$this->custom_install_finish() )
+        if( !$this->custom_after_install() )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Finishing plugin installation failed. Please uninstall, then re-install the plugin.' ) );
@@ -1215,7 +1215,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return bool true on success, false on failure
      */
-    protected function custom_install_finish()
+    protected function custom_after_install()
     {
         return true;
     }

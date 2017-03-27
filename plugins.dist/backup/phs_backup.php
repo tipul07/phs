@@ -6,10 +6,13 @@ use \phs\PHS;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_params;
-use \phs\libraries\PHS_Roles;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_utils;
 
 class PHS_Plugin_Backup extends PHS_Plugin
 {
+    const ERR_LOCATION_DOESNT_EXIST = 1, ERR_LOCATION_NOT_DIR = 2;
+
     const DIRNAME_IN_UPLOADS = '_backups';
 
     const AGENT_JOB_HANDLE = 'backup_index_bg_run_backups_ag',
@@ -119,6 +122,90 @@ class PHS_Plugin_Backup extends PHS_Plugin
         );
     }
 
+    public function custom_after_install()
+    {
+        // Even if we get an error when adding predefined backup rules don't break the install...
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        if( !($backup_rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($flow_params = $backup_rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($rules_days = $backup_rules_model->get_rule_days()) )
+            return true;
+
+        $rule_fields = array();
+        $rule_fields['title'] = $this->_pt( 'Weekly Backup (%s)', $rules_days[$backup_rules_model::DAY_SUNDAY] );
+        $rule_fields['location'] = '';
+        $rule_fields['hour'] = 4;
+        $rule_fields['target'] = $backup_rules_model::BACKUP_TARGET_ALL;
+        $rule_fields['status'] = $backup_rules_model::STATUS_ACTIVE;
+
+        $rule_params_arr = $flow_params;
+        $rule_params_arr['fields'] = $rule_fields;
+        $rule_params_arr['{days_arr}'] = array( $backup_rules_model::DAY_SUNDAY );
+
+        $backup_rules_model->insert( $rule_params_arr );
+
+        $rule_fields = array();
+        $rule_fields['title'] = $this->_pt( 'Daily Backup' );
+        $rule_fields['location'] = '';
+        $rule_fields['hour'] = 4;
+        $rule_fields['target'] = $backup_rules_model::BACKUP_TARGET_ALL;
+        $rule_fields['status'] = $backup_rules_model::STATUS_INACTIVE;
+
+        $rule_params_arr = $flow_params;
+        $rule_params_arr['fields'] = $rule_fields;
+        $rule_params_arr['{days_arr}'] = array( $backup_rules_model::DAY_ALL );
+
+        $backup_rules_model->insert( $rule_params_arr );
+
+        return true;
+    }
+
+    protected function custom_activate( $plugin_arr )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        if( !($backup_rules_model = PHS::load_model( 'rules', 'backup' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        if( !$backup_rules_model->act_unsuspend_all_rules() )
+        {
+            if( $backup_rules_model->has_error() )
+                $this->copy_error( $backup_rules_model );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t un-suspend all backup rules.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function custom_inactivate( $plugin_arr )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        if( !($backup_rules_model = PHS::load_model( 'rules', 'backup' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        if( !$backup_rules_model->act_suspend_all_rules() )
+        {
+            if( $backup_rules_model->has_error() )
+                $this->copy_error( $backup_rules_model );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t suspend all backup rules.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
     public function plugin_settings_render_location( $params )
     {
         $params = self::validate_array( $params, $this->default_custom_renderer_params() );
@@ -200,17 +287,91 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $full_path = $location_root.$location_path;
 
         $return_arr = array(
-            'location_exists' => true,
+            'location_exists' => false,
+            'location_is_dir' => false,
             'location_root' => $location_root,
             'location_path' => $location_path,
             'full_path' => $full_path,
         );
 
-        if( empty( $full_path )
-         or !@is_dir( $full_path ) )
-            $return_arr['location_exists'] = false;
+        if( !empty( $full_path ) )
+        {
+            if( @file_exists( $full_path ) )
+            {
+                $return_arr['location_exists'] = true;
+
+                if( @is_dir( $full_path ) )
+                    $return_arr['location_is_dir'] = true;
+            }
+        }
 
         return $return_arr;
+    }
+
+    public function get_location_for_path( $path, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['create_location_if_not_found'] ) )
+            $params['create_location_if_not_found'] = false;
+        else
+            $params['create_location_if_not_found'] = true;
+
+        if( !empty( $path ) )
+        {
+            if( !($location_details = $this->resolve_directory_location( $path )) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve location path.' ) );
+                return false;
+            }
+        } else
+        {
+            if( !($setting_arr = $this->get_db_settings()) )
+                $setting_arr = array();
+
+            if( empty( $setting_arr['location'] ) )
+                $setting_arr['location'] = '';
+
+            if( !($location_details = $this->resolve_directory_location( $setting_arr['location'] )) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup location.' ) );
+                return false;
+            }
+        }
+
+        if( !empty( $location_details['location_exists'] )
+        and empty( $location_details['location_is_dir'] ) )
+        {
+            $this->set_error( self::ERR_LOCATION_NOT_DIR, $this->_pt( 'Backup location is not a directory.' ) );
+            return false;
+        }
+
+        if( empty( $location_details['location_exists'] ) )
+        {
+            if( empty( $params['create_location_if_not_found'] ) )
+            {
+                $this->set_error( self::ERR_LOCATION_DOESNT_EXIST, $this->_pt( 'Backup location doesn\'t exist or is not a directory.' ) );
+                return false;
+            }
+
+            $mkdir_params = array();
+            $mkdir_params['root'] = $location_details['location_root'];
+
+            if( !PHS_utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create full directory structure for backup rule.' ) );
+                PHS_Logger::logf( 'Couldn\'t create full directory structure for backup location ('.$location_details['location_root'].$location_details['location_path'].').', PHS_Logger::TYPE_MAINTENANCE );
+                return false;
+            }
+
+            $location_details['location_exists'] = true;
+            $location_details['location_is_dir'] = true;
+        }
+
+        return $location_details;
     }
 
     public function get_directory_stats( $dir )
@@ -263,10 +424,10 @@ class PHS_Plugin_Backup extends PHS_Plugin
         if( empty( $hook_args['roles_arr'] ) )
             $hook_args['roles_arr'] = array();
 
-        if( $accounts_model->acc_is_operator( $account_arr ) )
-            $hook_args['roles_arr'][] = self::ROLE_ADMIN_COMPANY;
-        else
-            $hook_args['roles_arr'][] = self::ROLE_COMPANY_OWNER;
+        if( $accounts_model->acc_is_admin( $account_arr ) )
+            $hook_args['roles_arr'][] = self::ROLE_BACKUP_MANAGER;
+        elseif( $accounts_model->acc_is_operator( $account_arr ) )
+            $hook_args['roles_arr'][] = self::ROLE_BACKUP_OPERATOR;
 
         return $hook_args;
     }
