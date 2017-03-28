@@ -66,8 +66,8 @@ class PHS_Plugin_Admin extends PHS_Plugin
             ),
 
             PHS_Roles::ROLE_OPERATOR => array(
-                'name' => $this->_pt( 'Admin accounts' ),
-                'description' => $this->_pt( 'Role assigned to admin accounts.' ),
+                'name' => $this->_pt( 'Operator accounts' ),
+                'description' => $this->_pt( 'Role assigned to operator accounts.' ),
                 'role_units' => array(
 
                     // Roles...
