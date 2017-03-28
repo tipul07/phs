@@ -446,3 +446,7 @@ Headers already sent. Cannot send export file to browser.,Le intestazioni vengon
 Bad record data to export.,I dati del record da esportare è male.
 Exporter setup failure.,Errore di installazione di esportatore.
 Invalid file descriptor for export.,Descrittore di file non valido per l'esportazione.
+Inactive,Inattivo
+Active,Attivo
+Suspended,Sospeso
+Deleted,Eliminata

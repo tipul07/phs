@@ -1,0 +1,51 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Couldn't load accounts model.,Impossibile caricare gli accounts modello.
+You should login first...,Si dovrebbe effettuare il primo login ...
+Error saving details to database. Please try again.,Errore di salvataggio dati sul database. Si prega di riprovare.
+Inactive,Inattivo
+Active,Attivo
+Suspended,Sospeso
+Deleted,Eliminata
+Title,Titolo
+ - Choose - , - Scegliere - 
+Inactivate,Disattivare
+Activate,Attivare
+Delete,Cancellare
+Status,Stato
+N/A,N/A
+Undefined,Non definito
+Invalid,Non valido
+Created,Creato
+Actions,Azioni
+Unknown action.,Azione sconosciuta.
+Error loading accounts model.,Errore di caricamento del modello degli accounts.
+You don't have enough rights to access this section...,Non si dispone dei diritti sufficienti per accedere a questa sezione...
+Company Addresses List,Elenco degli indirizzi aziendali.
+Required addresses activated with success.,Gli indirizzi richiesti sono stati attivati con successo.
+Activating selected addresses failed. Please try again.,Attivazione degli indirizzi selezionati non è riuscita. Si prega di riprovare.
+Failed activating all selected addresses. Addresses which failed activation are still selected. Please try again.,Impossibile attivare tutti gli indirizzi selezionati. Gli indirizzi la cui attivazionenon è avvenuta sono ancora selezionati. Si prega di riprovare.
+You don't have rights to manage company addresses.,Non si dispone dei diritti per gestire gli indirizzi aziendali.
+Required addresses inactivated with success.,La richiesta di disattivazione degli indirizzi è avvenuta con successo.
+Inactivating selected addresses failed. Please try again.,La disattivazione degli indirizzi selezionati non è riuscita. Si prega di riprovare.
+Failed inactivating all selected addresses. Addresses which failed inactivation are still selected. Please try again.,Impossibile disattivare tutti gli indirizzi selezionati. Gli indirizzi la cui disattivazione non è avvenuta sono ancora selezionati. Si prega di riprovare.
+Required addresses deleted with success.,La richiesta di eliminazione degli indirizzi è avvenuta con successo.
+Deleting selected addresses failed. Please try again.,L'eliminazione degli indirizzi selezionati non è riuscita. Si prega di riprovare.
+Failed deleting all selected addresses. Addresses which failed deletion are still selected. Please try again.,Impossibile eliminare tutti gli indirizzi selezionati. Gli indirizzi la cui  eliminazione non è avvenuta con successo sono ancora selezionati. Si prega di riprovare.
+Address activated with success.,L'indirizzo è stato attivato con successo.
+Activating address failed. Please try again.,L'attivazione dell' indirizzo non è riuscita. Si prega di riprovare.
+Cannot activate address. Address not found in database.,Impossibile attivare l'indirizzo. L'indirizzo non è stato trovato nel database.
+Address inactivated with success.,L'indirizzo è stato disattivato con successo.
+Inactivating address failed. Please try again.,La disattivazione dell'indirizzo non è riuscita. Si prega di riprovare.
+Cannot inactivate address. Address not found in database.,Impossibile disattivare  l'indirizzo. L'indirizzo non è stato trovato nel database.
+Address deleted with success.,L'indirizzo è stato eliminato con successo.
+Deleting address failed. Please try again.,L'eliminazione dell'indirizzo non riuscita. Si prega di riprovare.
+Cannot delete address. Address not found in database.,Impossibile cancellare indirizzo. L'indirizzo non è stato trovato nel database.
+Edit address,Modifica indirizzo
+Activate address,Attiva indirizzo
+Inactivate address,Disattiva  l'indirizzo
+Delete address,Elimina l'indirizzo
+Error checking companies setups.,Errore nel controllo delle configurazioni delle aziende.
+Invalid flow parameters.,Parametri di flusso non valido.
+Couldn't get parent plugin object.,Impossibile ottenere l'oggetto del plugin parent.
