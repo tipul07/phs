@@ -73,6 +73,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             if( empty( $back_page ) )
                 $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
+            else
+                $back_page = from_safe_url( $back_page );
 
             $back_page = add_url_params( $back_page, $args );
 
@@ -239,11 +241,25 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 // make sure static error is reset
                 self::st_reset_error();
 
-                if( ($save_value = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
-                    $new_settings_arr[$field_name] = $save_value;
+                if( ($save_result = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
+                {
+                    if( is_array( $save_result )
+                    and !empty( $save_result['{new_settings_fields}'] ) and is_array( $save_result['{new_settings_fields}'] ) )
+                    {
+                        foreach( $db_settings as $s_key => $s_val )
+                        {
+                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
+                                $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                        }
+                    } else
+                        $new_settings_arr[$field_name] = $save_result;
+                }
 
                 elseif( self::st_has_error() )
                     PHS_Notifications::add_error_notice( self::st_get_error_message() );
+
+                if( self::st_has_warnings() )
+                    PHS_Notifications::add_warning_notice( self::st_get_warnings() );
             }
 
             if( !PHS_Notifications::have_notifications_errors() )

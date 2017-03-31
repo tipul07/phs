@@ -81,6 +81,8 @@ class PHS_Action_Role_edit extends PHS_Action
 
             if( empty( $back_page ) )
                 $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'roles_list' ) );
+            else
+                $back_page = from_safe_url( $back_page );
 
             $back_page = add_url_params( $back_page, $args );
 

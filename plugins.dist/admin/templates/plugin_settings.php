@@ -129,7 +129,6 @@
                         $field_placeholder = '';
 
                     $field_id    = $field_name;
-                    $field_name  = $field_id;
                     $field_value = null;
                     if( isset( $form_data[$field_name] ) and $form_data[$field_name] !== null )
                         $field_value = $form_data[$field_name];

@@ -10,6 +10,8 @@ class PHS_Error
 {
     const ERR_OK = 0, ERR_PARAMETERS = 10000, ERR_FUNCTIONALITY = 10001;
 
+    const WARNING_NOTAG = -1;
+
     //! Error code as integer
     /** @var int $error_no */
     private $error_no = self::ERR_OK;
@@ -191,7 +193,7 @@ class PHS_Error
                 return ob_get_clean();
             }
 
-            return '[Max recursion lvl reached: ' . $params['max_level'] . '] (' . gettype( $var ).' '.PHS_Error::mixed_to_string( $var ) . ')';
+            return '[Max recursion lvl reached: ' . $params['max_level'] . '] (' . gettype( $var ).' '.self::mixed_to_string( $var ) . ')';
         }
 
         $new_params = $params;
@@ -349,6 +351,9 @@ class PHS_Error
      **/
     public function add_warning( $warning, $tag = false )
     {
+        if( empty( $this->warnings_arr[self::WARNING_NOTAG] ) )
+            $this->warnings_arr[self::WARNING_NOTAG] = array();
+
         $backtrace = '';
         if( is_array( ($err_info = debug_backtrace()) ) )
         {
@@ -370,21 +375,21 @@ class PHS_Error
             }
         }
 
-        if( $this->debugging_mode() )
-            $warning_msg = $warning."\n".
+        $warning_unit = array(
+            'warning_msg' => $warning,
+            'debug_msg' => $warning."\n".
                            'Backtrace:'."\n".
-                           $backtrace;
-        else
-            $warning_msg = $warning;
+                           $backtrace,
+        );
 
         if( !empty( $tag ) )
         {
             if( !isset( $this->warnings_arr[$tag] ) )
                 $this->warnings_arr[$tag] = array();
 
-            $this->warnings_arr[$tag][] = $warning_msg;
+            $this->warnings_arr[$tag][] = $warning_unit;
         } else
-            $this->warnings_arr[] = $warning_msg;
+            $this->warnings_arr[self::WARNING_NOTAG][] = $warning_unit;
 
         $this->warnings_no++;
     }
@@ -399,7 +404,7 @@ class PHS_Error
      * Remove warning messages for a speficied tag or all warnings.
      *
      * @param bool|string $tag string Remove warnings of specific tag or all warnings. (default false)
-     * @return int
+     * @return int Returns number of warnings left after removing required warnings
      **/
     public function reset_warnings( $tag = false )
     {
@@ -427,6 +432,9 @@ class PHS_Error
         return self::get_error_static_instance()->reset_warnings( $tag );
     }
 
+    /**
+     * Reset instance error
+     */
     public function reset_error()
     {
         $this->error_no = self::ERR_OK;
@@ -435,11 +443,17 @@ class PHS_Error
         $this->error_debug_msg = '';
     }
 
+    /**
+     *  Reset error of static instance
+     */
     public static function st_reset_error()
     {
         self::get_error_static_instance()->reset_error();
     }
 
+    /**
+     * @return array Returns default error array structure with default values (no error)
+     */
     public static function default_error_array()
     {
         return array(
@@ -497,6 +511,7 @@ class PHS_Error
      * Copies error set in $obj to current object
      *
      * @param PHS_Error $obj
+     * @param int|bool $force_error_code
      *
      * @return bool
      */
@@ -683,41 +698,78 @@ class PHS_Error
     /**
      *   Return warnings array for specified tag (if any) or
      *
-     *   \param $tag Check if we have warnings for provided tag (false by default)
-     *   \return (mixed) Return array of warnings (all or for specified tag) or false if no warnings
+     *   @param bool $simple_messages Tells which set of messages to get (simple or debugging)
+     *   @param string|bool $tag Check if we have warnings for provided tag (false by default)
+     *   @return mixed Return array of warnings (all or for specified tag) or false if no warnings
      **/
-    public function get_warnings( $tag = false )
+    public function get_warnings( $simple_messages = true, $tag = false )
     {
         if( empty( $this->warnings_arr )
          or ($tag !== false and !isset( $this->warnings_arr[$tag] )) )
             return false;
 
-        $ret_warnings = array();
-
         if( $tag === false )
-            $warning_pool = $this->warnings_arr;
+            $warning_pool = $this->warnings_arr[self::WARNING_NOTAG];
         else
             $warning_pool = $this->warnings_arr[$tag];
 
         if( empty( $warning_pool ) or !is_array( $warning_pool ) )
-            $warning_pool = array();
+            return array();
 
-        foreach( $warning_pool as $wtag => $warning )
+        $ret_warnings = array();
+        foreach( $warning_pool as $warning_unit )
         {
-            if( is_array( $warning ) )
-            {
-                foreach( $warning as $junk => $value )
-                    $ret_warnings[] = '['.$wtag.'] '.$value;
-            } else
-                $ret_warnings[] = $warning;
+            if( !is_array( $warning_unit )
+             or empty( $warning_unit['warning_msg'] )
+             or empty( $warning_unit['debug_msg'] ) )
+                continue;
+
+            $ret_warnings[] = ($simple_messages?$warning_unit['warning_msg']:$warning_unit['debug_msg']);
         }
 
         return $ret_warnings;
     }
 
-    public static function st_get_warnings( $tag = false )
+    //! Return warnings for specified tag or all warnings
+    /**
+     *   Return all warnings array
+     *
+     *   @param bool $simple_messages Tells which set of messages to get (simple or debugging)
+     *   @return array Return array of all warnings
+     **/
+    public function get_all_warnings( $simple_messages = true )
     {
-        return self::get_error_static_instance()->get_warnings( $tag );
+        if( empty( $this->warnings_arr ) )
+            return array();
+
+        $ret_warnings = array();
+        foreach( $this->warnings_arr as $tag => $warnings_arr )
+        {
+            if( !is_array( $warnings_arr ) )
+                continue;
+
+            foreach( $warnings_arr as $warning_unit )
+            {
+                if( !is_array( $warning_unit )
+                 or empty( $warning_unit['warning_msg'] )
+                 or empty( $warning_unit['debug_msg'] ) )
+                    continue;
+
+                $ret_warnings[] = ($simple_messages?$warning_unit['warning_msg']:$warning_unit['debug_msg']);
+            }
+        }
+
+        return $ret_warnings;
+    }
+
+    public static function st_get_warnings( $simple_messages = true, $tag = false )
+    {
+        return self::get_error_static_instance()->get_warnings( $simple_messages, $tag );
+    }
+
+    public static function st_get_all_warnings( $simple_messages = true )
+    {
+        return self::get_error_static_instance()->get_all_warnings( $simple_messages );
     }
 
     //! \brief Returns function/method call backtrace

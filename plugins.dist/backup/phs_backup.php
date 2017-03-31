@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -113,13 +113,114 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         return array(
             'location' => array(
-                'display_name' => 'Default backups location',
-                'display_hint' => 'A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir ('.PHS_UPLOADS_DIR.').',
+                'display_name' => $this->_pt( 'Default backups location' ),
+                'display_hint' => $this->_pt( 'A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => self::DIRNAME_IN_UPLOADS,
                 'custom_renderer' => array( $this, 'plugin_settings_render_location' ),
+                'custom_save' => array( $this, 'plugin_settings_save_location' ),
             ),
         );
+    }
+
+    public function plugin_settings_render_location( $params )
+    {
+        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
+
+        if( isset( $params['field_details']['default'] ) )
+            $default_value = $params['field_details']['default'];
+        else
+            $default_value = self::DIRNAME_IN_UPLOADS;
+
+        if( isset( $params['field_value'] ) )
+            $field_value = $params['field_value'];
+        else
+            $field_value = $default_value;
+
+        if( isset( $params['field_id'] ) )
+            $field_id = $params['field_id'];
+        else
+            $field_id = $params['field_name'];
+
+        $error_msg = '';
+        $stats_str = '';
+        if( !($location_details = $this->resolve_directory_location( $field_value )) )
+            $error_msg = $this->_pt( 'Couldn\'t obtain current location details.' );
+
+        elseif( empty( $location_details['location_exists'] ) )
+            $error_msg = $this->_pt( 'At the moment directory doesn\'t exist. System will try creating it at first run.' );
+
+        elseif( empty( $location_details['full_path'] )
+                    or !is_writeable( $location_details['full_path'] ) )
+            $error_msg = $this->_pt( 'Resolved directory is not writeable.' );
+
+        elseif( !($stats_arr = $this->get_directory_stats( $location_details['full_path'] )) )
+            $error_msg = $this->_pt( 'Couldn\'t obtain directory stats.' );
+
+        else
+            $stats_str = $location_details['full_path'].'<br/>'.$this->_pt( 'Total space: %s, Free space: %s', format_filesize( $stats_arr['total_space'] ), format_filesize( $stats_arr['free_space'] ) );
+
+        ob_start();
+        ?><input type="text" id="<?php echo $field_id ?>" name="<?php echo $params['field_name']?>"
+                 class="form-control <?php echo $params['field_details']['extra_classes'] ?>"
+                 style="<?php echo $params['field_details']['extra_style'] ?>"
+                 <?php echo (empty( $params['field_details']['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>
+                 value="<?php echo self::_e( $field_value )?>" /><?php
+
+        if( !empty( $error_msg ) )
+        {
+            ?><div style="color:red;"><?php echo $error_msg?></div><?php
+        } elseif( !empty( $stats_str ) )
+        {
+            ?><small><strong><?php echo $stats_str?></strong></small><br/><?php
+        }
+
+        $render_result = ob_get_clean();
+
+        return $render_result;
+    }
+
+    public function plugin_settings_save_location( $params )
+    {
+        $params = self::validate_array( $params, self::st_default_custom_save_params() );
+
+        if( empty( $params['field_name'] )
+         or empty( $params['form_data'] ) or !is_array( $params['form_data'] )
+         or $params['field_name'] != 'location' )
+            return null;
+
+        if( !array_key_exists( 'field_value', $params )
+         or $params['field_value'] === null )
+            $old_value = null;
+        else
+            $old_value = $params['field_value'];
+
+        if( isset( $params['field_details']['default'] ) )
+            $default_value = $params['field_details']['default'];
+        else
+            $default_value = self::DIRNAME_IN_UPLOADS;
+
+        if( !isset( $params['form_data']['location'] ) )
+        {
+            if( $old_value !== null )
+                return $old_value;
+
+            return $default_value;
+        }
+
+        if( empty( $params['form_data']['location'] ) )
+            $params['form_data']['location'] = '';
+
+        $new_value = $params['form_data']['location'];
+
+        if( $new_value === $old_value )
+            return $new_value;
+
+        $this->update_db_registry( array(
+            'old_location' => $old_value,
+        ) );
+
+        return $new_value;
     }
 
     public function custom_after_install()
@@ -204,63 +305,6 @@ class PHS_Plugin_Backup extends PHS_Plugin
         }
 
         return true;
-    }
-
-    public function plugin_settings_render_location( $params )
-    {
-        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
-
-        if( isset( $params['field_details']['default'] ) )
-            $default_value = $params['field_details']['default'];
-        else
-            $default_value = self::DIRNAME_IN_UPLOADS;
-
-        if( isset( $params['field_value'] ) )
-            $field_value = $params['field_value'];
-        else
-            $field_value = $default_value;
-
-        if( isset( $params['field_id'] ) )
-            $field_id = $params['field_id'];
-        else
-            $field_id = $params['field_name'];
-
-        $error_msg = '';
-        $stats_str = '';
-        if( !($location_details = $this->resolve_directory_location( $field_value )) )
-            $error_msg = $this->_pt( 'Couldn\'t obtain current location details.' );
-
-        elseif( empty( $location_details['location_exists'] ) )
-            $error_msg = $this->_pt( 'At the moment directory doesn\'t exist. System will try creating it at first run.' );
-
-        elseif( empty( $location_details['full_path'] )
-                    or !is_writeable( $location_details['full_path'] ) )
-            $error_msg = $this->_pt( 'Resolved directory is not writeable.' );
-
-        elseif( !($stats_arr = $this->get_directory_stats( $location_details['full_path'] )) )
-            $error_msg = $this->_pt( 'Couldn\'t obtain directory stats.' );
-
-        else
-            $stats_str = $this->_pt( 'Total space: %s, Free space: %s', format_filesize( $stats_arr['total_space'] ), format_filesize( $stats_arr['free_space'] ) );
-
-        ob_start();
-        ?><input type="text" id="<?php echo $field_id ?>" name="<?php echo $params['field_name']?>"
-                 class="form-control <?php echo $params['field_details']['extra_classes'] ?>"
-                 style="<?php echo $params['field_details']['extra_style'] ?>"
-                 <?php echo (empty( $params['field_details']['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>
-                 value="<?php echo self::_e( $field_value )?>" /><?php
-
-        if( !empty( $error_msg ) )
-        {
-            ?><div style="color:red;"><?php echo $error_msg?></div><?php
-        } elseif( !empty( $stats_str ) )
-        {
-            ?><small><strong><?php echo $stats_str?></strong></small><br/><?php
-        }
-
-        $render_result = ob_get_clean();
-
-        return $render_result;
     }
 
     public function resolve_directory_location( $location_path )
@@ -397,7 +441,45 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
     public function run_backups_bg()
     {
+        $this->reset_error();
 
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         or !($rd_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules_days' ) ))
+         or !($rd_table_name = $rules_model->get_flow_table_name( $rd_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        $return_arr = array();
+        $return_arr['backup_rules'] = 0;
+        $return_arr['failed_rules_ids'] = array();
+
+        $now_time = time();
+        $today_day = date( 'w', $now_time ) + 1;
+        $now_hour = date( 'G', $now_time ) + 1;
+
+        if( ($qid = db_query( 'SELECT `'.$r_table_name.'`.* '.
+                              ' FROM `'.$r_table_name.'`'.
+                              ' LEFT JOIN `'.$rd_table_name.'` ON `'.$rd_table_name.'`.rule_id = `'.$r_table_name.'`.id '.
+                              ' WHERE '.
+                              ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
+                              ' AND (`'.$rd_table_name.'`.day = \''.$today_day.'\' OR `'.$rd_table_name.'`.day = 0)'.
+                              ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\'', $r_flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
+            return $return_arr;
+
+        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            $return_arr['backup_rules']++;
+            if( !($run_result = $rules_model->run_backup_rule_bg( $rule_arr )) )
+                $return_arr['failed_rules_ids'][] = $rule_arr['id'];
+        }
+
+        return $return_arr;
     }
 
     public function trigger_after_left_menu_admin( $hook_args = false )

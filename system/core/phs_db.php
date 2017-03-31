@@ -52,6 +52,7 @@ final class PHS_db extends PHS_Registry
             'port' => '3306',
             'timezone' => date( 'P' ),
             'charset' => 'UTF8',
+            'use_pconnect' => true,
             // tells if connection was passed to database driver
             'connection_passed' => false,
         );
@@ -116,9 +117,9 @@ final class PHS_db extends PHS_Registry
     /**
      * Returns database settings for a specific connection
      *
-     * @param string|false $connection_name Connection name
+     * @param string|bool $connection_name Connection name
      *
-     * @return false|array
+     * @return false|array All or required connection settings
      */
     public static function get_db_connection( $connection_name = false )
     {
@@ -252,7 +253,6 @@ final class PHS_db extends PHS_Registry
                     $db_instance->die_on_errors( PHS_DB_DIE_ON_ERROR );
                     $db_instance->debug_errors( $on_debugging_mode );
                     $db_instance->close_after_query( PHS_DB_CLOSE_AFTER_QUERY );
-                    $db_instance->use_pconnect( PHS_DB_USE_PCONNECT );
 
                     self::set_data( self::DB_MYSQLI_INSTANCE, $db_instance );
                 }
@@ -271,6 +271,8 @@ final class PHS_db extends PHS_Registry
 
     /**
      * On-demand database driver instantiation... best way to use database connections...
+     *
+     * @param bool|string $connection_name Connection used with database
      *
      * @return bool|\phs\libraries\PHS_db_interface|\phs\libraries\PHS_Language Returns database driver instance
      */

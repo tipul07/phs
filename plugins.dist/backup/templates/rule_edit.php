@@ -13,6 +13,8 @@
     if( !($days_arr = $this->context_var( 'days_arr' )) )
         $days_arr = array();
 
+    if( !($plugin_location = $this->context_var( 'plugin_location' )) )
+        $plugin_location = array();
     if( !($rule_location = $this->context_var( 'rule_location' )) )
         $rule_location = array();
     if( !($rule_days = $this->context_var( 'rule_days' )) )
@@ -38,15 +40,31 @@
 
     else
         $stats_str = $this->_pt( 'Total space: %s, Free space: %s', format_filesize( $stats_arr['total_space'] ), format_filesize( $stats_arr['free_space'] ) );
+
+    if( !($back_page = $this->context_var( 'back_page' )) )
+        $back_page = PHS::url( array( 'p' => 'backup', 'a' => 'rules_list' ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="add_rule_form" name="add_rule_form" action="<?php echo PHS::url( array( 'p' => 'backup', 'a' => 'rule_add' ) )?>" method="post">
+    <form id="edit_rule_form" name="edit_rule_form" action="<?php echo PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), array( 'rid' => $this->context_var( 'rid' ) ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
+        <?php
+        if( !empty( $back_page ) )
+        {
+            ?><input type="hidden" name="back_page" value="<?php echo form_str( safe_url( $back_page ) )?>" /><?php
+        }
+        ?>
 
         <div class="form_container responsive" style="width: 700px;">
 
+            <?php
+            if( !empty( $back_page ) )
+            {
+                ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
+            }
+            ?>
+
             <section class="heading-bordered">
-                <h3><?php echo $this->_pt( 'Add Rule' )?></h3>
+                <h3><?php echo $this->_pt( 'Edit Rule' )?></h3>
             </section>
 
             <fieldset class="form-group">
@@ -60,16 +78,27 @@
                 <label for="location"><?php echo $this->_pt( 'Location' )?>:</label>
                 <div class="lineform_line">
                 <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->context_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
-                <br/><small><?php echo $this->_pt( 'Leave blank to use location set in plugin settings%s.', (!empty( $rule_location['location_path'] )?' ('.$rule_location['location_path'].')':'') )?></small>
+                <br/>
+                <small>
+                <?php
+                echo $this->_pt( 'Leave blank to use location set in plugin settings%s.', (!empty( $plugin_location['location_path'] )?' ('.$plugin_location['location_path'].')':'') ).'<br/>';
+                echo $this->_pt( 'If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR );
+                ?><br/></small>
                 <?php
                 if( !empty( $error_msg ) )
                 {
-                    ?><div style="color:red;"><?php echo $error_msg?></div><?php
+                    ?><div style="color:red;"><?php echo $error_msg?></div><br/><?php
                 } elseif( !empty( $stats_str ) )
                 {
-                    ?><br/><small><strong><?php echo $stats_str?></strong></small><?php
+                    ?><small><?php
+                    if( !empty( $rule_location['location_path'] ) )
+                        echo $this->_pt( '%s stats:', $rule_location['location_path'] ).'<br/>';
+                    ?><strong><?php echo $stats_str?></strong>
+                    </small><br/><?php
                 }
                 ?>
+                <small>
+                </small>
                 </div>
             </fieldset>
 
@@ -146,7 +175,7 @@
                     <div id="server_apache_note" style="display:none;">
                         <strong>Apache Note</strong><br/>
                         Please note that you will have to place a <em>.htaccess</em> file in location directory that will restrict access to your backup files.
-                        <code>eg.<pre>
+                        <code>eg. <?php echo (!empty( $rule_location['full_path'] )?'<br/>'.$rule_location['full_path'].'/.htaccess':'')?><pre>
 &lt;Files "*.*"&gt;
     Require all denied
 &lt;/Files&gt;
@@ -155,7 +184,7 @@
                     <div id="server_nginx_note" style="display:none;">
                         <strong>Nginx Note</strong><br/>
                         Please note that you will have to place a <em>nginx.conf</em> file in location directory that will restrict access to your backup files.
-                        <code>eg.<pre>
+                        <code>eg. <?php echo (!empty( $rule_location['full_path'] )?'<br/>'.$rule_location['full_path'].'/nginx.conf':'')?><pre>
 location /backup_location_dir {
     deny all;
     return 404;
@@ -166,7 +195,7 @@ location /backup_location_dir {
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Add rule' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Save changes' )?>" />
             </fieldset>
 
         </div>

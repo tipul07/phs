@@ -39,6 +39,7 @@ define( 'PHS_DB_PREFIX', '' );
 define( 'PHS_DB_PORT', '3306' );
 define( 'PHS_DB_TIMEZONE', date( 'P' ) );
 define( 'PHS_DB_CHARSET', 'UTF8' );
+define( 'PHS_DB_USE_PCONNECT', true );
 define( 'PHS_DB_DRIVER_SETTINGS', @json_encode( array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' ) ) );
 
 // Controlling database library behaviour (if different than default one)
@@ -62,6 +63,7 @@ define( 'PHS_DB_DRIVER_SETTINGS', @json_encode( array( 'sql_mode' => '-ONLY_FULL
 // $mysql_settings['port'] = '';
 // $mysql_settings['timezone'] = date( 'P' );
 // $mysql_settings['charset'] = 'UTF8';
+// $mysql_settings['use_pconnect'] = true;
 // $mysql_settings['driver_settings'] = array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' );
 //
 // define( 'PHS_NEW_CONNECTION', 'db_new_connection' );

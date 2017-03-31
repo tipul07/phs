@@ -96,6 +96,8 @@ class PHS_Action_User_edit extends PHS_Action
 
             if( empty( $back_page ) )
                 $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'users_list' ) );
+            else
+                $back_page = from_safe_url( $back_page );
 
             $back_page = add_url_params( $back_page, $args );
 
@@ -193,6 +195,7 @@ class PHS_Action_User_edit extends PHS_Action
         $data = array(
             'uid' => $account_arr['id'],
             'back_page' => $back_page,
+
             'nick' => $nick,
             'pass' => $pass,
             'pass2' => $pass2,

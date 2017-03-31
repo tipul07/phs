@@ -91,26 +91,70 @@ class PHS_Notifications extends PHS_Language
 
     public static function add_error_notice( $msg )
     {
+        if( empty( $msg ) )
+            return;
+
         if( self::$_notifications_arr === false )
             self::reset_notifications();
 
-        self::$_notifications_arr['errors'][] = $msg;
+        if( is_string( $msg ) )
+            self::$_notifications_arr['errors'][] = $msg;
+
+        elseif( is_array( $msg ) )
+        {
+            foreach( $msg as $msg_str )
+            {
+                if( !is_string( $msg_str ) )
+                    continue;
+
+                self::$_notifications_arr['errors'][] = $msg_str;
+            }
+        }
     }
 
     public static function add_warning_notice( $msg )
     {
+        if( empty( $msg ) )
+            return;
+
         if( self::$_notifications_arr === false )
             self::reset_notifications();
 
-        self::$_notifications_arr['warnings'][] = $msg;
+        if( is_string( $msg ) )
+            self::$_notifications_arr['warnings'][] = $msg;
+
+        elseif( is_array( $msg ) )
+        {
+            foreach( $msg as $msg_str )
+            {
+                if( !is_string( $msg_str ) )
+                    continue;
+
+                self::$_notifications_arr['warnings'][] = $msg_str;
+            }
+        }
     }
 
     public static function add_success_notice( $msg )
     {
+        if( empty( $msg ) )
+            return;
+
         if( self::$_notifications_arr === false )
             self::reset_notifications();
 
-        self::$_notifications_arr['success'][] = $msg;
-    }
+        if( is_string( $msg ) )
+            self::$_notifications_arr['success'][] = $msg;
 
+        elseif( is_array( $msg ) )
+        {
+            foreach( $msg as $msg_str )
+            {
+                if( !is_string( $msg_str ) )
+                    continue;
+
+                self::$_notifications_arr['success'][] = $msg_str;
+            }
+        }
+    }
 }

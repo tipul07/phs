@@ -46,4 +46,12 @@ interface PHS_db_interface
 
     // Restore error handling functions as before suppress_errors() method was called
     public function restore_errors_state();
+
+    /**
+     * @param bool|array $dump_params Array containing dump parameters
+     *
+     * @return array Returns populated $dump_params array
+     */
+    public function dump_database( $dump_params = false );
+
 }

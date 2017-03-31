@@ -70,6 +70,15 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_db_registry;
     }
 
+    public function update_db_registry( $registry_part_arr )
+    {
+        if( empty( $registry_part_arr ) or !is_array( $registry_part_arr ) )
+            return false;
+
+        return $this->save_db_registry( self::merge_array_assoc( $this->get_db_registry(), $registry_part_arr ) );
+
+    }
+
     public function clean_db_registry()
     {
         return $this->save_db_registry( array() );

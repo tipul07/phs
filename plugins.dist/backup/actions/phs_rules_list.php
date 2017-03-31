@@ -77,7 +77,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
      */
     public function load_paginator_params()
     {
-        PHS::page_settings( 'page_title', $this->_pt( 'Company Addresses List' ) );
+        PHS::page_settings( 'page_title', $this->_pt( 'Backup Rules List' ) );
 
         if( !($current_user = PHS::user_logged_in()) )
         {
@@ -190,24 +190,22 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( 'Title' ),
                 'record_field' => 'title',
-                'display_callback' => array( $this, 'display_address_title' ),
-				'extra_classes' => 'alias_th',
-				'extra_records_classes' => 'alias',
             ),
             array(
                 'column_title' => $this->_pt( 'When' ),
                 'record_field' => 'hour',
                 'display_callback' => array( $this, 'display_backup_rule_when' ),
                 'invalid_value' => $this->_pt( 'N/A' ),
-				'extra_classes' => 'country_th',
-				'extra_records_classes' => 'country',
             ),
             array(
                 'column_title' => $this->_pt( 'Where' ),
                 'record_field' => 'location',
                 'display_callback' => array( $this, 'display_backup_rule_where' ),
-				'extra_classes' => 'city_th',
-				'extra_records_classes' => 'city',
+            ),
+            array(
+                'column_title' => $this->_pt( 'What' ),
+                'record_field' => 'target',
+                'display_callback' => array( $this, 'display_backup_rule_what' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Status' ),
@@ -297,11 +295,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required addresses activated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required backup rules activated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected addresses failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected backup rules failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected addresses. Addresses which failed activation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected backup rules. Backup rules which failed activation are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -309,7 +307,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -358,11 +356,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required addresses inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required backup rules inactivated with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected addresses failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected backup rules failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected addresses. Addresses which failed inactivation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected backup rules. Backup rules which failed inactivation are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -370,7 +368,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -419,11 +417,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] == 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required addresses deleted with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required backup rules deleted with success.' ) );
                     elseif( $action['action_result'] == 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting selected addresses failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Deleting selected backup rules failed. Please try again.' ) );
                     elseif( $action['action_result'] == 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed deleting all selected addresses. Addresses which failed deletion are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed deleting all selected backup rules. Backup rules which failed deletion are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -431,7 +429,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -490,7 +488,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -524,7 +522,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -558,7 +556,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 if( !($current_user = PHS::user_logged_in())
                  or !PHS_Roles::user_has_role_units( $current_user, $backup_plugin::ROLEU_MANAGE_RULES ) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage company addresses.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage backup rules.' ) );
                     return false;
                 }
 
@@ -587,46 +585,95 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         return '';
     }
 
-    public function display_address_title( $params )
+    public function display_backup_rule_when( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        return '<strong>'.$params['preset_content'].'</strong>';
+        $rules_model = $this->_paginator_model;
+        if( !($days_arr = $rules_model->get_rule_days()) )
+            $days_arr = array();
+
+        if( !($rule_days_arr = $rules_model->get_rule_days_as_array( $params['record']['id'] )) )
+            $rule_days_arr = array();
+
+        $days_str_arr = array();
+        foreach( $rule_days_arr as $day )
+        {
+            if( empty( $days_arr[$day] ) )
+                continue;
+
+            $days_str_arr[] = $days_arr[$day];
+        }
+
+        if( empty( $days_str_arr ) )
+            $days_str_arr = '';
+        else
+            $days_str_arr = implode( ', ', $days_str_arr );
+
+        $hour_str = '';
+        if( isset( $params['record']['hour'] ) )
+            $hour_str = ($days_str_arr!=''?' @':'').$params['record']['hour'].($params['record']['hour']<12?'am':'pm');
+
+        return $days_str_arr.$hour_str;
     }
 
-    public function display_address_address( $params )
+    public function display_backup_rule_where( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        $address_str = '';
-        if( !empty( $params['preset_content'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['preset_content'];
-        if( !empty( $params['record']['postcode'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['record']['postcode'];
+        $rules_model = $this->_paginator_model;
+        if( !($location_arr = $rules_model->get_location_for_rule( $params['record'] )) )
+            $location_arr = false;
+        if( !($location_stats_arr = $rules_model->get_location_stats_for_rule( $params['record'] )) )
+            $location_stats_arr = false;
 
-        return $address_str;
+        $extra_str = '';
+        if( empty( $location_arr['location_exists'] ) )
+            $extra_str = ' <i class="fa fa-exclamation-circle status_pending" title="'.$this->_pt( 'This location doesn\'t exist yet. System will try creating it at first run.' ).'"></i>';
+        elseif( empty( $location_arr['location_is_dir'] ) )
+            $extra_str = ' <i class="fa fa-exclamation-circle status_rejected" title="'.$this->_pt( 'This location is not a directory. Backups will not be saved here! Please fix this by editing the rule or fixing directory.' ).'"></i>';
+
+        return '<span title="'.self::_e( $location_arr['full_path'] ).'">'.$location_arr['location_path'].'</span>'.$extra_str.
+            (empty( $location_stats_arr )?'':
+                '<br/>'.$this->_pt( 'Total: %s, Free: %s', format_filesize( $location_stats_arr['total_space'] ), format_filesize( $location_stats_arr['free_space'] ) )
+            );
     }
 
-    public function display_address_city_state( $params )
+    public function display_backup_rule_what( $params )
     {
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] ) )
             return false;
 
-        $address_str = '';
-        if( !empty( $params['preset_content'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['preset_content'];
-        if( !empty( $params['record']['state'] ) )
-            $address_str .= (!empty( $address_str )?', ':'').$params['record']['state'];
+        $rules_model = $this->_paginator_model;
+        if( !($targets_arr = $rules_model->get_targets_as_key_val()) )
+            $targets_arr = array();
 
-        return $address_str;
+        if( !($rule_targets_arr = $rules_model->bits_to_targets_arr( $params['record']['target'] )) )
+            $rule_targets_arr = array();
+
+        $targets_str_arr = array();
+        foreach( $rule_targets_arr as $target_id )
+        {
+            if( empty( $targets_arr[$target_id] ) )
+                continue;
+
+            $targets_str_arr[] = $targets_arr[$target_id];
+        }
+
+        if( empty( $targets_str_arr ) )
+            $targets_str_arr = $this->_pt( 'N/A' );
+        else
+            $targets_str_arr = implode( ', ', $targets_str_arr );
+
+        return $targets_str_arr;
     }
 
     public function display_actions( $params )
@@ -648,41 +695,38 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         if( empty( $params )
          or !is_array( $params )
          or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($address_arr = $this->_paginator_model->data_to_array( $params['record'] )) )
+         or !($rule_arr = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
-        $is_inactive = $this->_paginator_model->is_inactive( $address_arr );
-        $is_active = $this->_paginator_model->is_active( $address_arr );
+        $is_inactive = $this->_paginator_model->is_inactive( $rule_arr );
+        $is_active = $this->_paginator_model->is_active( $rule_arr );
 
         ob_start();
         if( $is_inactive or $is_active )
         {
-            if( $this->_accounts_model->acc_is_operator( $current_user ) )
-                $edit_url_params = array( 'p' => 's2p_companies', 'c' => 'admin', 'a' => 'address_edit' );
-            else
-                $edit_url_params = array( 'p' => 's2p_companies', 'a' => 'address_edit' );
+            $edit_url_params = array( 'p' => 'backup', 'a' => 'rule_edit' );
 
             ?>
-            <a href="<?php echo PHS::url( $edit_url_params, array( 'aid' => $address_arr['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit address' )?>"></i></a>
+            <a href="<?php echo PHS::url( $edit_url_params, array( 'rid' => $rule_arr['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit address' )?>"></i></a>
             <?php
         }
         if( $is_inactive )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_activate( '<?php echo $address_arr['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate address' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_backup_rules_list_activate( '<?php echo $rule_arr['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate address' )?>"></i></a>
             <?php
         }
         if( $is_active )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_inactivate( '<?php echo $address_arr['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate address' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_backup_rules_list_inactivate( '<?php echo $rule_arr['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate address' )?>"></i></a>
             <?php
         }
 
-        if( !$this->_paginator_model->is_deleted( $address_arr ) )
+        if( !$this->_paginator_model->is_deleted( $rule_arr ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_delete( '<?php echo $address_arr['id']?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete address' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_backup_rules_list_delete( '<?php echo $rule_arr['id']?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt( 'Delete address' )?>"></i></a>
             <?php
         }
 
@@ -757,11 +801,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select addresses you want to activate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select backup rules you want to activate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s addresses?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s backup rules?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -776,11 +820,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select addresses you want to inactivate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select backup rules you want to inactivate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s addresses?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s backup rules?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -795,11 +839,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select addresses you want to delete first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select backup rules you want to delete first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s addresses?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s backup rules?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");

@@ -29,7 +29,7 @@ class PHS_Action_Run_backups_ag extends PHS_Action
             if( $backup_plugin->has_error() )
                 $this->copy_error( $backup_plugin );
             else
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error checking companies setups.' ) );
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Checking backup rules failed.' ) );
 
             return false;
         }

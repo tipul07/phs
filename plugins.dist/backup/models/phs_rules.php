@@ -33,7 +33,7 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -152,18 +152,29 @@ class PHS_Model_Rules extends PHS_Model
         return $key_val_arr;
     }
 
-    public function get_rule_days()
+    public function get_rule_days( $lang = false )
     {
-        return array(
-            self::DAY_ALL => $this->_pt( 'Each day' ),
-            self::DAY_MONDAY => $this->_pt( 'Monday' ),
-            self::DAY_TUESDAY => $this->_pt( 'Tuesday' ),
-            self::DAY_WEDNESDAY => $this->_pt( 'Wednesday' ),
-            self::DAY_THURSDAY => $this->_pt( 'Thursday' ),
-            self::DAY_FRIDAY => $this->_pt( 'Friday' ),
-            self::DAY_SATURDAY => $this->_pt( 'Saturday' ),
-            self::DAY_SUNDAY => $this->_pt( 'Sunday' ),
+        static $days_arr = false;
+
+        if( $lang === false
+        and !empty( $days_arr ) )
+            return $days_arr;
+
+        $return_arr = array(
+            self::DAY_ALL => $this->_pt( 'Each day', $lang ),
+            self::DAY_MONDAY => $this->_pt( 'Monday', $lang ),
+            self::DAY_TUESDAY => $this->_pt( 'Tuesday', $lang ),
+            self::DAY_WEDNESDAY => $this->_pt( 'Wednesday', $lang ),
+            self::DAY_THURSDAY => $this->_pt( 'Thursday', $lang ),
+            self::DAY_FRIDAY => $this->_pt( 'Friday', $lang ),
+            self::DAY_SATURDAY => $this->_pt( 'Saturday', $lang ),
+            self::DAY_SUNDAY => $this->_pt( 'Sunday', $lang ),
         );
+
+        if( $lang === false )
+            $days_arr = $return_arr;
+
+        return $return_arr;
     }
 
     public function valid_target( $target, $lang = false )
@@ -424,6 +435,177 @@ class PHS_Model_Rules extends PHS_Model
         return $backup_plugin->get_directory_stats( $location_arr['full_path'] );
     }
 
+    public function create_backup_directory( $rule_data )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
+        if( empty( $rule_data )
+         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($rule_arr = $this->data_to_array( $rule_data, $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        $location_params = array();
+        $location_params['create_location_if_not_found'] = true;
+
+        if( !($location_details = $this->get_location_for_rule( $rule_arr, $location_params ))
+         or empty( $location_details['full_path'] )
+         or empty( $location_details['location_exists'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create backup location for provided rule.' ) );
+
+            PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): Failed creating backup location directory.', $backup_plugin::LOG_CHANNEL );
+            return false;
+        }
+
+        if( empty( $location_details['location_is_dir'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Backup location is not a directory.' ) );
+
+            PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): Destination is not a directory.', $backup_plugin::LOG_CHANNEL );
+
+            return false;
+        }
+
+        if( !is_writable( $location_details['full_path'] ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Backup location directory is not writable.' ) );
+
+            PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): Destination directory is not writable ('.$location_details['full_path'].').', $backup_plugin::LOG_CHANNEL );
+
+            return false;
+        }
+
+        $rule_path = rtrim( $backup_plugin['full_path'], '/\\' ).'/'.$rule_arr['id'];
+        if( !@file_exists( $rule_path )
+         or !@is_dir( $rule_path ) )
+        {
+            if( !@mkdir( $rule_path, 0750 ) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error creating rule directory in backup location directory.' ) );
+
+                PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): Error creating rule directory in destination directory ('.$rule_path.').', $backup_plugin::LOG_CHANNEL );
+
+                return false;
+            }
+        }
+
+        return array(
+            'rule_data' => $rule_arr,
+            'rule_path' => $rule_path,
+        );
+    }
+
+    public function get_database_backup_script_buffer( $rule_data, $rule_location = false )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        if( empty( $rule_data )
+         or !($rule_arr = $rules_model->data_to_array( $rule_data, $r_flow_params ))
+         or $rules_model->is_deleted( $rule_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $rule_location )
+        and (!($rule_location = $this->create_backup_directory( $rule_arr ))
+                or empty( $rule_location['rule_path'] )
+            ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining backup rule location details.' ) );
+
+            PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL );
+
+            return false;
+        }
+
+        return 'To be continued...';
+    }
+
+    public function run_backup_rule_bg( $rule_data, $params = false )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        if( empty( $rule_data )
+         or !($rule_arr = $rules_model->data_to_array( $rule_data, $r_flow_params ))
+         or $rules_model->is_deleted( $rule_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        if( !($rule_location = $this->create_backup_directory( $rule_arr ))
+         or empty( $rule_location['rule_path'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining backup rule location details.' ) );
+
+            PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL );
+
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        $rule_arr['target'] = intval( $rule_arr['target'] );
+        $bg_script_commands = array();
+        if( $rule_arr['target'] & (1 << self::BACKUP_TARGET_DATABASE) )
+        {
+            if( !($dabase_buf = $this->get_database_backup_script_buffer( $rule_arr, $rule_location )) )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining batabase backup script commands.' ) );
+
+                PHS_Logger::logf( 'Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL );
+
+                return false;
+            }
+        }
+    }
+
     public function targets_arr_to_bits( $target_arr )
     {
         if( empty( $target_arr ) or !is_array( $target_arr ) )
@@ -442,6 +624,23 @@ class PHS_Model_Rules extends PHS_Model
         return $target_bits;
     }
 
+    public function bits_to_targets_arr( $bits )
+    {
+        $bits = intval( $bits );
+        if( empty( $bits )
+         or !($all_targets = $this->get_targets()) )
+            return array();
+
+        $return_arr = array();
+        foreach( $all_targets as $target_id => $target_arr )
+        {
+            if( ($bits & (1 << $target_id)) )
+                $return_arr[] = $target_id;
+        }
+
+        return $return_arr;
+    }
+
     public function get_rule_days_as_array( $rule_id )
     {
         $this->reset_error();
@@ -449,7 +648,7 @@ class PHS_Model_Rules extends PHS_Model
         $rule_id = intval( $rule_id );
         if( empty( $rule_id )
          or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules_days' ) ))
-         or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\'', $this->get_db_connection( $flow_params ) ))
+         or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\' ORDER BY `day` ASC', $this->get_db_connection( $flow_params ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 
@@ -780,6 +979,13 @@ class PHS_Model_Rules extends PHS_Model
 
     protected function get_edit_prepare_params_backup_rules( $existing_arr, $params )
     {
+        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup plugin.' ) );
+            return false;
+        }
+
         if( isset( $params['fields']['title'] ) and empty( $params['fields']['title'] ) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide a rule title.' ) );
@@ -798,36 +1004,70 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['location'] ) )
+        if( isset( $params['fields']['location'] ) )
         {
-            $params['fields']['location'] = rtrim( $params['fields']['location'], '/\\' );
-            $location_check = $params['fields']['location'];
-            if( substr( $params['fields']['location'], 0, 1 ) != '/'
-            and substr( $params['fields']['location'], 1, 2 ) != ':\\' )
-                $location_check = PHS_PATH.$params['fields']['location'];
+            if( !($location_check = $backup_plugin->resolve_directory_location( $params['fields']['location'] )) )
+            {
+                if( $backup_plugin->has_error() )
+                    $this->copy_error( $backup_plugin );
+                else
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Provided backup location couldn\'t be checked.' ) );
+
+                return false;
+            }
 
             // we have an absolute path
-            if( !@file_exists( $location_check )
-             or !@is_dir( $location_check ) )
+            if( empty( $location_check['location_exists'] )
+             or empty( $location_check['location_is_dir'] ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Provided backup location is not a directory.' ) );
                 return false;
             }
 
-            if( !@is_writable( $location_check ) )
+            if( !@is_writable( $location_check['full_path'] ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Provided backup location is not writable.' ) );
                 return false;
             }
+
+            $params['fields']['location'] = $location_check['location_path'];
         }
 
-        if( !empty( $params['fields']['hour'] ) )
+        if( isset( $params['fields']['hour'] ) )
         {
             $params['fields']['hour'] = intval( $params['fields']['hour'] );
             if( $params['fields']['hour'] < 0 or $params['fields']['hour'] > 23 )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid backup hour.' ) );
                 return false;
+            }
+        }
+
+        if( isset( $params['fields']['target'] ) )
+        {
+            if( empty( $params['fields']['target'] ) )
+                $params['fields']['target'] = self::BACKUP_TARGET_ALL;
+
+            elseif( is_array( $params['fields']['target'] ) )
+            {
+                if( !($target_bits = $this->targets_arr_to_bits( $params['fields']['target'] )) )
+                    $target_bits = self::BACKUP_TARGET_ALL;
+
+                $params['fields']['target'] = $target_bits;
+            } else
+            {
+                $params['fields']['target'] = intval( $params['fields']['target'] );
+                if( ($targets_arr = $this->get_targets_as_key_val()) )
+                {
+                    $target_bits = 0;
+                    foreach( $targets_arr as $target_key => $target_name )
+                    {
+                        if( ($params['fields']['target'] & (1 << $target_key)) )
+                            $target_bits |= (1 << $target_key);
+                    }
+
+                    $params['fields']['target'] = $target_bits;
+                }
             }
         }
 
@@ -839,6 +1079,10 @@ class PHS_Model_Rules extends PHS_Model
 
         elseif( !empty( $params['fields']['status_date'] ) )
             $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+
+
+        if( !empty( $params['fields']['last_run'] ) )
+            $params['fields']['last_run'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['last_run'] ) );
 
         if( empty( $params['{days_arr}'] ) or !is_array( $params['{days_arr}'] ) )
             $params['{days_arr}'] = false;
@@ -989,6 +1233,9 @@ class PHS_Model_Rules extends PHS_Model
                         'index' => true,
                     ),
                     'status_date' => array(
+                        'type' => self::FTYPE_DATETIME,
+                    ),
+                    'last_run' => array(
                         'type' => self::FTYPE_DATETIME,
                     ),
                     'cdate' => array(

@@ -70,6 +70,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_db_class.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_params.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_line_params.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_hooks.php' );
@@ -170,6 +171,7 @@ $mysql_settings['prefix'] = PHS_DB_PREFIX;
 $mysql_settings['port'] = PHS_DB_PORT;
 $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
 $mysql_settings['charset'] = PHS_DB_CHARSET;
+$mysql_settings['use_pconnect'] = PHS_DB_CHARSET;
 
 $mysql_settings['driver_settings'] = array();
 if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )

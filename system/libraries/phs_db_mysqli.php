@@ -11,13 +11,8 @@ define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
 /**
  *  MySQL class parser for PHS suite...
  */
-class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
+class PHS_db_mysqli extends PHS_db_class
 {
-    //! Cannot connect to server.
-    const ERR_CONNECT = 1;
-    //! Cannot query server.
-    const ERR_QUERY = 2;
-
     //! Database settings - array with connection settings (can hold one or more database connection settings). Array indexes: host, port (default 3306), database, user, password, default;
     //! Eg. $my_settings['default']['host'] = 'localhost'; $my_settings['default']['port'] = '3306'; ... etc
     // /see PHS_db_mysql::settings()
@@ -47,9 +42,6 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
     //! Behaviour: Display more info on errors
     var $debug_errors;
 
-    //! Behaviour: Use mysql_pconnect or mysql_connect when connecting to mysql server
-    var $use_pconnect;
-
     //! Query result details...
     var $last_inserted_id, $affected_rows;
 
@@ -67,7 +59,6 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
         $this->display_errors = true;
         $this->die_on_errors = true;
         $this->debug_errors = true;
-        $this->use_pconnect = true;
         $this->close_after_query = true;
         $this->error_state = false;
 
@@ -129,15 +120,6 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
 
         $this->close_after_query = $var;
         return $this->close_after_query;
-    }
-
-    function use_pconnect( $var = null )
-    {
-        if( is_null( $var ) )
-            return $this->use_pconnect;
-
-        $this->use_pconnect = $var;
-        return $this->use_pconnect;
     }
 
     function default_connection( $connection_name = null )
@@ -207,6 +189,11 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
         $this->my_settings[$connection_name]['database'] = $mysql_settings['database'];
         $this->my_settings[$connection_name]['user'] = $mysql_settings['user'];
         $this->my_settings[$connection_name]['password'] = $mysql_settings['password'];
+
+        if( isset( $mysql_settings['use_pconnect'] ) )
+            $this->my_settings[$connection_name]['use_pconnect'] = (!empty( $mysql_settings['use_pconnect'] )?true:false);
+        else
+            $this->my_settings[$connection_name]['use_pconnect'] = true;
 
         if( !empty( $mysql_settings['driver_settings'] ) and is_array( $mysql_settings['driver_settings'] ) )
             $this->my_settings[$connection_name]['driver_settings'] = $mysql_settings['driver_settings'];
@@ -296,7 +283,7 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
             $this->connection_id = array();
 
         $host = $conn_settings['host'];
-        if( $this->use_pconnect )
+        if( !empty( $conn_settings['use_pconnect'] ) )
             $host = 'p:'.$conn_settings['host'];
 
         $this->connection_id[$connection_name] = @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
@@ -305,7 +292,7 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
          or !is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof \mysqli) )
         {
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!=''?' (with password)':'').(!empty( $this->use_pconnect )?' (using permanent)':'').'.',
+                                 'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!=''?' (with password)':'').(!empty( $conn_settings['use_pconnect'] )?' (using permanent)':'').'.',
                                  'cannot connect',
                                  $connection_name );
             return false;
@@ -929,5 +916,15 @@ class PHS_db_mysqli extends PHS_Registry implements PHS_db_interface
         return @mysqli_num_rows( $qid );
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function dump_database( $dump_params = false )
+    {
+        if( !($dump_params = parent::dump_database( $dump_params )) )
+            return false;
+
+
+    }
 
 }
