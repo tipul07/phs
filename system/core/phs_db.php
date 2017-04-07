@@ -115,7 +115,8 @@ final class PHS_db extends PHS_Registry
     }
 
     /**
-     * Returns database settings for a specific connection
+     * Returns database settings for a specific connection. These settings are not settings saved inside specific driver, but generic database settings.
+     * Inside driver settings connection name passed as false means default connection. Here we don't have connection name as false!
      *
      * @param string|bool $connection_name Connection name
      *
@@ -134,6 +135,34 @@ final class PHS_db extends PHS_Registry
             return false;
 
         return $all_connections[$connection_name];
+    }
+
+    public static function get_connection_identifier( $connection_name )
+    {
+        if( empty( $connection_name )
+         or !($connection_settings = self::get_db_connection( $connection_name ))
+         or !is_array( $connection_settings )
+         or !($connection_settings = self::validate_array( $connection_settings, self::get_default_db_connection_settings_arr() )) )
+            return false;
+
+        $return_arr = array();
+        // As unique as possible identifier for database connection (as string)
+        $return_arr['identifier'] = false;
+        // Extension given to dump file/dir
+        $return_arr['type'] = 'dump';
+
+        switch( $connection_settings['driver'] )
+        {
+            case self::DB_DRIVER_MYSQLI:
+                $return_arr['identifier'] = $connection_settings['driver'];
+                $return_arr['identifier'] .= (!empty( $return_arr['identifier'] )?'__':'').str_replace( '.', '_', $connection_settings['host'] );
+                $return_arr['identifier'] .= (!empty( $return_arr['identifier'] )?'__':'').$connection_settings['database'];
+
+                $return_arr['type'] = 'sql';
+            break;
+        }
+
+        return $return_arr;
     }
 
     public static function default_db_connection( $connection_name = false )

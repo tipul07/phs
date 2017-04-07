@@ -24,7 +24,6 @@
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Instantiable;
 
-
     // if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     // {
     //    echo 'accounts inactive';

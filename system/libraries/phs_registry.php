@@ -142,23 +142,6 @@ class PHS_Registry extends PHS_Language
         return true;
     }
 
-    public static function validate_array( $arr, $default_arr )
-    {
-        if( empty( $default_arr ) or !is_array( $default_arr ) )
-            return false;
-
-        if( empty( $arr ) or !is_array( $arr ) )
-            $arr = array();
-
-        foreach( $default_arr as $key => $val )
-        {
-            if( !array_key_exists( $key, $arr ) )
-                $arr[$key] = $val;
-        }
-
-        return $arr;
-    }
-
     public static function merge_array_assoc( $arr1, $arr2 )
     {
         if( empty( $arr1 ) or !is_array( $arr1 ) )
@@ -192,6 +175,23 @@ class PHS_Registry extends PHS_Language
         }
 
         return $arr1;
+    }
+
+    public static function validate_array( $arr, $default_arr )
+    {
+        if( empty( $default_arr ) or !is_array( $default_arr ) )
+            return false;
+
+        if( empty( $arr ) or !is_array( $arr ) )
+            $arr = array();
+
+        foreach( $default_arr as $key => $val )
+        {
+            if( !array_key_exists( $key, $arr ) )
+                $arr[$key] = $val;
+        }
+
+        return $arr;
     }
 
     public static function validate_array_recursive( $arr, $default_arr )

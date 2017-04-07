@@ -921,10 +921,87 @@ class PHS_db_mysqli extends PHS_db_class
      */
     public function dump_database( $dump_params = false )
     {
-        if( !($dump_params = parent::dump_database( $dump_params )) )
+        if( !($dump_params = self::validate_array_recursive( $dump_params, self::default_dump_parameters() ))
+         or !($dump_params = parent::dump_database( $dump_params ))
+         or empty( $dump_params['binaries'] ) or !is_array( $dump_params['binaries'] )
+         or empty( $dump_params['binaries']['mysqldump_bin'] )
+         or empty( $dump_params['connection_identifier'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error validating database dump parameters.' ) );
             return false;
+        }
 
+        if( !($connection_settings = $this->connection_settings( $dump_params['connection_name'] ))
+         or !is_array( $connection_settings ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error validating database dump parameters.' ) );
+            return false;
+        }
 
+        $connection_identifier = $dump_params['connection_identifier']['identifier'];
+
+        $credentials_file = $dump_params['output_dir'].'/export_'.$connection_identifier.'.cnf';
+        if( !($fil = @fopen( $credentials_file, 'w' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating dump credentials file.' ) );
+            return false;
+        }
+
+        if( !@fputs( $fil, '[mysqldump]'."\n".
+                           'user = '.$connection_settings['user']."\n".
+                           'password = '.$connection_settings['password']."\n" ) )
+        {
+            @unlink( $credentials_file );
+
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t write to dump credentials file.' ) );
+            return false;
+        }
+        @fflush( $fil );
+        @fclose( $fil );
+
+        $dump_file = $connection_identifier.'.'.$dump_params['connection_identifier']['type'];
+
+        $output_file = $dump_params['output_dir'].'/'.$dump_file;
+
+        if( empty( $dump_params['dump_commands_for_shell'] ) or !is_array( $dump_params['dump_commands_for_shell'] ) )
+            $dump_params['dump_commands_for_shell'] = array();
+        if( empty( $dump_params['delete_files_after_export'] ) or !is_array( $dump_params['delete_files_after_export'] ) )
+            $dump_params['delete_files_after_export'] = array();
+        if( empty( $dump_params['generated_files'] ) or !is_array( $dump_params['generated_files'] ) )
+            $dump_params['generated_files'] = array();
+
+        $dump_params['generated_files'][] = $credentials_file;
+
+        // mysqldump -av --user=root -p --add-drop-table=true --comments=true testdb > testdb.sql 2> output.log
+        $dump_params['dump_commands_for_shell'][] = $dump_params['binaries']['mysqldump_bin'].
+                                                 ' --defaults-extra-file='.$credentials_file.
+                                                 ' --host='.$connection_settings['host'].' --port='.$connection_settings['port'].
+                                                 (!empty( $dump_params['log_file'] )?' --log-error='.$dump_params['log_file']:'').
+                                                 ' -av --add-drop-table=true --comments=true '.
+                                                 $connection_settings['database'].' > '.$output_file;
+
+        if( empty( $dump_params['zip_dump'] ) )
+            $dump_params['resulting_files']['dump_files'][] = $output_file;
+
+        else
+        {
+            $zip_file = $dump_params['output_dir'].'/'.$connection_identifier.'_'.$dump_params['connection_identifier']['type'].'.zip';
+
+            $dump_params['dump_commands_for_shell'][] = $dump_params['binaries']['zip_bin'].' -q '.$zip_file.' '.$dump_file;
+
+            $dump_params['delete_files_after_export'][] = $output_file;
+
+            $dump_params['resulting_files']['dump_files'][] = $zip_file;
+        }
+
+        if( !empty( $dump_params['log_file'] ) )
+            $dump_params['resulting_files']['log_files'][] = $dump_params['log_file'];
+
+        $dump_params['delete_files_after_export'][] = $credentials_file;
+
+        return $dump_params;
     }
 
 }

@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     /**
@@ -46,7 +46,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
     public function get_models()
     {
-        return array( 'rules' );
+        return array( 'rules', 'results' );
     }
 
     /**
@@ -111,6 +111,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_settings_structure()
     {
+        ob_start();
+        if( !($mysql_dump_path = @system( 'which mysqldump' )) )
+            $mysql_dump_path = 'mysqldump';
+        if( !($zip_path = @system( 'which zip' )) )
+            $zip_path = 'zip';
+        ob_clean();
+
         return array(
             'location' => array(
                 'display_name' => $this->_pt( 'Default backups location' ),
@@ -119,6 +126,18 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 'default' => self::DIRNAME_IN_UPLOADS,
                 'custom_renderer' => array( $this, 'plugin_settings_render_location' ),
                 'custom_save' => array( $this, 'plugin_settings_save_location' ),
+            ),
+            'mysqldump_bin' => array(
+                'display_name' => $this->_pt( 'mysqldump binary location' ),
+                'display_hint' => $this->_pt( 'Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => $mysql_dump_path,
+            ),
+            'zip_bin' => array(
+                'display_name' => $this->_pt( 'zip binary location' ),
+                'display_hint' => $this->_pt( 'Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => $zip_path,
             ),
         );
     }
@@ -359,6 +378,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
+        if( !isset( $params['error_if_not_found'] ) )
+            $params['error_if_not_found'] = true;
+        else
+            $params['error_if_not_found'] = (!empty( $params['error_if_not_found'] )?true:false);
+
         if( empty( $params['create_location_if_not_found'] ) )
             $params['create_location_if_not_found'] = false;
         else
@@ -368,7 +392,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
         {
             if( !($location_details = $this->resolve_directory_location( $path )) )
             {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve location path.' ) );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve location path.' ) );
                 return false;
             }
         } else
@@ -381,12 +406,14 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             if( !($location_details = $this->resolve_directory_location( $setting_arr['location'] )) )
             {
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup location.' ) );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t resolve backup location.' ) );
                 return false;
             }
         }
 
-        if( !empty( $location_details['location_exists'] )
+        if( !empty( $params['error_if_not_found'] )
+        and !empty( $location_details['location_exists'] )
         and empty( $location_details['location_is_dir'] ) )
         {
             $this->set_error( self::ERR_LOCATION_NOT_DIR, $this->_pt( 'Backup location is not a directory.' ) );
@@ -397,6 +424,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
         {
             if( empty( $params['create_location_if_not_found'] ) )
             {
+                if( empty( $params['error_if_not_found'] ) )
+                    return $location_details;
+
                 $this->set_error( self::ERR_LOCATION_DOESNT_EXIST, $this->_pt( 'Backup location doesn\'t exist or is not a directory.' ) );
                 return false;
             }
@@ -406,6 +436,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             if( !PHS_utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
             {
+                if( empty( $params['error_if_not_found'] ) )
+                    return $location_details;
+
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create full directory structure for backup rule.' ) );
                 PHS_Logger::logf( 'Couldn\'t create full directory structure for backup location ('.$location_details['location_root'].$location_details['location_path'].').', PHS_Logger::TYPE_MAINTENANCE );
                 return false;
@@ -461,14 +494,18 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $now_time = time();
         $today_day = date( 'w', $now_time ) + 1;
         $now_hour = date( 'G', $now_time ) + 1;
+        // 0 to 365, mysql DAYOFYEAR is 1 to 366
+        $day_of_year = date( 'z', $now_time ) + 1;
 
-        if( ($qid = db_query( 'SELECT `'.$r_table_name.'`.* '.
+        // Select active rules for today and for current hour and that didn't run today
+        if( !($qid = db_query( 'SELECT `'.$r_table_name.'`.* '.
                               ' FROM `'.$r_table_name.'`'.
                               ' LEFT JOIN `'.$rd_table_name.'` ON `'.$rd_table_name.'`.rule_id = `'.$r_table_name.'`.id '.
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND (`'.$rd_table_name.'`.day = \''.$today_day.'\' OR `'.$rd_table_name.'`.day = 0)'.
-                              ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\'', $r_flow_params['db_connection'] ))
+                              ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\''.
+                              ' AND (`'.$r_table_name.'`.last_run IS NULL OR DAYOFYEAR(`'.$r_table_name.'`.last_run) != '.$day_of_year.')', $r_flow_params['db_connection'] ))
          or !@mysqli_num_rows( $qid ) )
             return $return_arr;
 

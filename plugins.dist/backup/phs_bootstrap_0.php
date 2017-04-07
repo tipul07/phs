@@ -2,11 +2,14 @@
 
 use \phs\PHS;
 use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Logger;
 
 /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
 if( ($backup_plugin = PHS::load_plugin( 'backup' ))
 and $backup_plugin->plugin_active() )
 {
+    PHS_Logger::define_channel( $backup_plugin::LOG_CHANNEL );
+
     PHS::register_hook(
     // $hook_name
         PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,

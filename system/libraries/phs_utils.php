@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.30
+ *  \version 1.31
  */
 
 class PHS_utils extends PHS_Language
@@ -299,8 +299,7 @@ class PHS_utils extends PHS_Language
         if( !isset( $params['recursive'] ) )
             $params['recursive'] = true;
 
-        if( substr( $directory, -1 ) == '/' )
-            $directory = substr( $directory, 0, -1 );
+        $directory = rtrim( $directory, '/\\' );
 
         if( !@file_exists( $directory ) or !@is_dir( $directory ) )
             return true;

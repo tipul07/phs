@@ -255,6 +255,16 @@ function db_settings( $connection = false )
     return $db_instance->connection_settings( $connection );
 }
 
+function db_connection_identifier( $connection )
+{
+    if( empty( $connection )
+     or !($connection_identifier = PHS_db::get_connection_identifier( $connection ))
+     or !is_array( $connection_identifier ) )
+        return false;
+
+    return $connection_identifier;
+}
+
 function db_prefix( $connection = false )
 {
     if( !($db_settings = db_settings( $connection ))
@@ -267,17 +277,11 @@ function db_prefix( $connection = false )
 
 function db_dump( $dump_params, $connection = false )
 {
+    PHS_db::st_reset_error();
+
     if( !($db_instance = PHS_db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
-            return false;
-
-        if( PHS_DB_DIE_ON_ERROR )
-            exit;
-
+        PHS_db::st_set_error( PHS_db::ERR_DATABASE, PHS_db::_t( 'Error obtaining database driver instance.' ) );
         return false;
     }
 
@@ -286,7 +290,7 @@ function db_dump( $dump_params, $connection = false )
         if( $db_instance->has_error() )
             PHS_db::st_copy_error( $db_instance );
         else
-            PHS_db::st_set_error( PHS_db::ERR_DATABASE, PHS_db::_t( 'Error dumping data from database.' ) );
+            PHS_db::st_set_error( PHS_db::ERR_DATABASE, PHS_db::_t( 'Error obtaining dump commands from driver instance.' ) );
 
         return false;
     }

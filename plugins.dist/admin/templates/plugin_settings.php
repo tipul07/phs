@@ -139,7 +139,8 @@
 
                     ?>
                     <fieldset class="lineformwide">
-                        <label for="<?php echo $field_id ?>"><strong><?php echo $field_details['display_name']; ?></strong><?php echo (empty( $field_details['editable'] )?'<br/><small>'.$this->_pt( '[Non-editable]' ).'</small>':'')?></label>
+                        <label for="<?php echo $field_id ?>"><strong><?php echo $field_details['display_name']; ?></strong>
+                            <?php echo (empty( $field_details['editable'] )?'<br/><small>'.$this->_pt( '[Non-editable]' ).'</small>':'')?></label>
                         <div class="lineformwide_line"><?php
 
                         if( !empty( $field_details['custom_renderer'] )

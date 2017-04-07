@@ -1243,6 +1243,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $validated_fields = array();
         $data_arr = array();
+        $has_raw_fields = false;
         foreach( $table_fields as $field_name => $field_details )
         {
             if( empty( $field_details['editable'] )
@@ -1251,7 +1252,21 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             if( array_key_exists( $field_name, $params['fields'] ) )
             {
-                $data_arr[$field_name] = self::validate_field_value( $params['fields'][ $field_name ], $field_name, $field_details );
+                // we can pass raw values (see quick_edit or quick_insert)
+                if( !is_array( $params['fields'][$field_name] ) )
+                    $field_value = self::validate_field_value( $params['fields'][$field_name], $field_name, $field_details );
+
+                else
+                {
+                    $has_raw_fields = true;
+                    $field_value = $params['fields'][$field_name];
+
+                    if( empty( $params['fields'][$field_name]['raw_field'] )
+                    and array_key_exists( 'value', $params['fields'][$field_name] ) )
+                        $field_value['value'] = self::validate_field_value( $params['fields'][$field_name]['value'], $field_name, $field_details );;
+                }
+
+                $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
             } elseif( isset( $field_details['default'] )
                   and $params['action'] == 'insert' )
@@ -1260,6 +1275,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         $return_arr = array();
+        $return_arr['has_raw_fields'] = $has_raw_fields;
         $return_arr['data_arr'] = $data_arr;
         $return_arr['validated_fields'] = $validated_fields;
 
@@ -1318,9 +1334,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         $insert_arr = $validation_arr['data_arr'];
+        $db_connection = $this->get_db_connection( $params );
 
-        if( !($sql = db_quick_insert( $this->get_flow_table_name( $params ), $insert_arr ))
-         or !($item_id = db_query_insert( $sql, $this->get_db_connection( $params ) )) )
+        if( !($sql = db_quick_insert( $this->get_flow_table_name( $params ), $insert_arr, $db_connection ))
+         or !($item_id = db_query_insert( $sql, $db_connection )) )
         {
             if( @method_exists( $this, 'insert_failed_'.$params['table_name'] ) )
                 @call_user_func( array( $this, 'insert_failed_' . $params['table_name'] ), $insert_arr, $params );
@@ -1333,9 +1350,22 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        $db_insert_arr = $this->get_empty_data( $params );
-        foreach( $insert_arr as $key => $val )
-            $db_insert_arr[$key] = $val;
+        if( !empty( $validation_arr['has_raw_fields'] ) )
+        {
+            // there are raw fields, so we query for existing data in table...
+            if( !($db_insert_arr = $this->get_details( $item_id, $params )) )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_INSERT, self::_t( 'Failed saving information to database.' ) );
+
+                return false;
+            }
+        } else
+        {
+            $db_insert_arr = $this->get_empty_data( $params );
+            foreach( $insert_arr as $key => $val )
+                $db_insert_arr[$key] = $val;
+        }
 
         $insert_arr = $db_insert_arr;
 
@@ -1429,11 +1459,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         $full_table_name = $this->get_flow_table_name( $params );
+        $db_connection = $this->get_db_connection( $params );
 
         $edit_arr = $validation_arr['data_arr'];
         if( !empty( $edit_arr )
-        and (!($sql = db_quick_edit( $full_table_name, $edit_arr ))
-                or !db_query( $sql.' WHERE `'.$full_table_name.'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $this->get_db_connection( $params ) )
+        and (!($sql = db_quick_edit( $full_table_name, $edit_arr, $db_connection ))
+                or !db_query( $sql.' WHERE `'.$full_table_name.'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $db_connection )
             ) )
         {
             if( @method_exists( $this, 'edit_failed_'.$params['table_name'] ) )
@@ -1474,8 +1505,21 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( !empty( $edit_arr ) )
         {
-            foreach( $edit_arr as $key => $val )
-                $existing_arr[$key] = $val;
+            if( !empty( $validation_arr['has_raw_fields'] ) )
+            {
+                // there are raw fields, so we query for existing data in table...
+                if( !($existing_arr = $this->get_details( $existing_arr['id'], $params )) )
+                {
+                    if( !$this->has_error() )
+                        $this->set_error( self::ERR_INSERT, self::_t( 'Failed saving information to database.' ) );
+
+                    return false;
+                }
+            } else
+            {
+                foreach( $edit_arr as $key => $val )
+                    $existing_arr[$key] = $val;
+            }
         }
 
         return $existing_arr;

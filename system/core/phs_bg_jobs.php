@@ -290,7 +290,11 @@ class PHS_bg_jobs extends PHS_Registry
             return @json_decode( $action_result, true );
         }
 
-        return (@system( $cmd_parts['cmd'] ) !== false );
+        ob_start();
+        $result = (@system( $cmd_parts['cmd'] ) !== false );
+        ob_clean();
+
+        return $result;
     }
 
     public static function get_job_command( $job_data, $extra = false )
