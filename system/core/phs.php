@@ -1238,6 +1238,8 @@ final class PHS extends PHS_Registry
         $return_arr['db_queries_count'] = db_query_count();
         $return_arr['bootstrap_time'] = $bootstrap_time;
         $return_arr['running_time'] = $running_time;
+        $return_arr['memory_usage'] = memory_get_usage();
+        $return_arr['memory_peak'] = memory_get_peak_usage();
 
         return $return_arr;
     }

@@ -31,7 +31,7 @@ class PHS_Model_Results extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -1073,6 +1073,63 @@ class PHS_Model_Results extends PHS_Model
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a backup result file type.' ) );
             return false;
+        }
+
+        return $params;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function get_count_list_common_params( $params = false )
+    {
+        if( !empty( $params['flags'] ) and is_array( $params['flags'] ) )
+        {
+            $model_table = $this->get_flow_table_name( $params );
+            foreach( $params['flags'] as $flag )
+            {
+                switch( $flag )
+                {
+                    // for results listing
+                    case 'include_rule_details':
+
+                        if( $params['table_name'] == 'backup_results' )
+                        {
+                            if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+                             or !($rules_table = $rules_model->get_flow_table_name( array( 'table_name' => 'backup_rules' ))) )
+                                continue;
+
+                            $params['db_fields'] .= ', `'.$rules_table.'`.title AS backup_rules_title, '.
+                                ' `'.$rules_table.'`.hour AS backup_rules_hour, '.
+                                ' `'.$rules_table.'`.target AS backup_rules_target, '.
+                                ' `'.$rules_table.'`.location AS backup_rules_location, '.
+                                ' `'.$rules_table.'`.status AS backup_rules_status, '.
+                                ' `'.$rules_table.'`.status_date AS backup_rules_status_date, '.
+                                ' `'.$rules_table.'`.last_run AS backup_rules_last_run, '.
+                                ' `'.$rules_table.'`.cdate AS backup_rules_cdate ';
+                            $params['join_sql'] .= ' LEFT JOIN `'.$rules_table.'` ON `'.$rules_table.'`.id = `'.$model_table.'`.rule_id ';
+                        }
+                    break;
+
+                    // for result files listing
+                    case 'include_result_details':
+
+                        if( $params['table_name'] == 'backup_results_files' )
+                        {
+                            if( !($results_table = $this->get_flow_table_name( array( 'table_name' => 'backup_results' ))) )
+                                continue;
+
+                            $params['db_fields'] .= ', `'.$results_table.'`.rule_id AS backup_results_rule_id, '.
+                                ' `'.$results_table.'`.run_dir AS backup_results_run_dir, '.
+                                ' `'.$results_table.'`.size AS backup_results_size, '.
+                                ' `'.$results_table.'`.status AS backup_results_status, '.
+                                ' `'.$results_table.'`.status_date AS backup_results_status_date, '.
+                                ' `'.$results_table.'`.cdate AS backup_results_cdate ';
+                            $params['join_sql'] .= ' LEFT JOIN `'.$results_table.'` ON `'.$results_table.'`.id = `'.$model_table.'`.result_id ';
+                        }
+                    break;
+                }
+            }
         }
 
         return $params;
