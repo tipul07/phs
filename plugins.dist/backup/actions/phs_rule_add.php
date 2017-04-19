@@ -64,10 +64,19 @@ class PHS_Action_Rule_add extends PHS_Action
             return self::default_action_result();
         }
 
+        $days_options_arr = array(
+            7 => $this->_pt( 'One week' ),
+            14 => $this->_pt( 'Two weeks' ),
+            30 => $this->_pt( '30 days' ),
+            60 => $this->_pt( '60 days' ),
+        );
+
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $hour = PHS_params::_p( 'hour', PHS_params::T_INT );
+        $delete_after_days = PHS_params::_p( 'delete_after_days', PHS_params::T_INT );
+        $cdelete_after_days = PHS_params::_p( 'cdelete_after_days', PHS_params::T_INT );
         if( !($target_arr = PHS_params::_p( 'target_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
             $target_arr = array();
         if( !($days_arr = PHS_params::_p( 'days_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
@@ -77,6 +86,22 @@ class PHS_Action_Rule_add extends PHS_Action
 
         $do_submit = PHS_params::_p( 'do_submit' );
 
+        if( !empty( $do_submit ) )
+        {
+            if( $delete_after_days == -1 )
+                PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
+
+            elseif( $delete_after_days === 0 )
+                $cdelete_after_days = 0;
+
+            elseif( $delete_after_days == -2 )
+            {
+                if( empty( $cdelete_after_days ) or $cdelete_after_days < 0 )
+                    $cdelete_after_days = 0;
+            } else
+                $cdelete_after_days = $delete_after_days;
+        }
+
         if( !($rule_days = $rules_model->get_rule_days()) )
             $rule_days = array();
         if( !($targets_arr = $rules_model->get_targets_as_key_val()) )
@@ -84,13 +109,15 @@ class PHS_Action_Rule_add extends PHS_Action
         if( !($rule_location = $backup_plugin->get_location_for_path( $location )) )
             $rule_location = '';
 
-        if( !empty( $do_submit ) )
+        if( !empty( $do_submit )
+        and !PHS_Notifications::have_any_notifications() )
         {
             $insert_arr = array();
             $insert_arr['uid'] = $current_user['id'];
             $insert_arr['title'] = $title;
             $insert_arr['location'] = $location;
             $insert_arr['hour'] = $hour;
+            $insert_arr['delete_after_days'] = $cdelete_after_days;
             $insert_arr['target'] = $target_arr;
 
             $insert_params_arr = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) );
@@ -118,10 +145,13 @@ class PHS_Action_Rule_add extends PHS_Action
         $data = array(
             'title' => $title,
             'hour' => $hour,
+            'delete_after_days' => $delete_after_days,
             'target_arr' => $target_arr,
             'days_arr' => $days_arr,
             'location' => $location,
 
+            'days_options_arr' => $days_options_arr,
+            'cdelete_after_days' => $cdelete_after_days,
             'rule_days' => $rule_days,
             'targets_arr' => $targets_arr,
             'rule_location' => $rule_location,

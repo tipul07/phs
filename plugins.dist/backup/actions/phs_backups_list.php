@@ -127,6 +127,9 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 			'listing_title' => $this->_pt( 'Backup Results' ),
         );
 
+        if( PHS_params::_g( 'unknown_backup_result', PHS_params::T_INT ) )
+            PHS_Notifications::add_error_notice( $this->_pt( 'Invalid backup result or backup result not found in database.' ) );
+
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
             $statuses_arr = array();
 
@@ -185,11 +188,15 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( 'Where' ),
                 'record_field' => 'location',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
                 'display_callback' => array( $this, 'display_backup_rule_where' ),
             ),
             array(
                 'column_title' => $this->_pt( 'What' ),
                 'record_field' => 'target',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
                 'display_callback' => array( $this, 'display_backup_rule_what' ),
             ),
             array(
@@ -229,7 +236,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             );
         }
 
-        $url_params = array( 'p' => 'backup', 'a' => 'rules_list' );
+        $url_params = array( 'p' => 'backup', 'a' => 'backups_list' );
 
         $return_arr = $this->default_paginator_params();
         $return_arr['base_url'] = PHS::url( $url_params );
@@ -437,7 +444,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             $display_dir = $dir3.'/'.$dir2.'/'.$dir1;
         }
 
-        return '<span title="'.self::_e( $params['record']['run_dir'] ).'">'.$display_dir.'</span>'.
+        return '<span title="'.self::_e( $params['record']['run_dir'] ).'" class="no-title-skinning">'.$display_dir.'</span>'.
                ' - '.
                '<span title="'.self::_e( $this->_pt( '%s bytes', number_format( $params['record']['size'] ) ) ).'">'.format_filesize( $params['record']['size'] ).'</span>'.
             (empty( $location_stats_arr )?'':
@@ -473,10 +480,10 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         else
             $targets_str_arr = implode( ', ', $targets_str_arr );
 
-        $targets_str_arr .= '<br/>'.
-                    '<a href="javascript:void(0)" onclick="phs_backup_results_list_view_files('.$params['record']['id'].')">'.$this->_pt( 'View files' ).'</a>';
+        return '<div class="clearfix">'.$targets_str_arr.'</div>'.
+               '<div style="text-align: center;"><a href="javascript:void(0)" onclick="phs_backup_results_list_view_files('.$params['record']['id'].')">'.$this->_pt( 'View files' ).'</a></div>';
 
-        return $targets_str_arr;
+        //return $targets_str_arr;
     }
 
     public function display_actions( $params )
@@ -570,14 +577,14 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         function phs_backup_results_list_view_files( id )
         {
             PHS_JSEN.createAjaxDialog( {
-                width: 800,
+                width: 900,
                 height: 600,
                 suffix: "backup_result_files_",
                 resizable: true,
                 close_outside_click: false,
 
                 title: "<?php echo $this->_e( $this->_pt( 'Backup Result Files' ) )?>",
-                method: "GET",
+                method: "get",
                 url: "<?php echo PHS_ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>",
                 url_data: { result_id: id }
            });

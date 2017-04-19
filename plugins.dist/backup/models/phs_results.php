@@ -217,6 +217,8 @@ class PHS_Model_Results extends PHS_Model
         if( !$this->unlink_all_result_files_for_result( $record_arr, array( 'update_result' => false ) ) )
             return false;
 
+        PHS_utils::rmdir_tree( $record_arr['run_dir'], array( 'recursive' => true ) );
+
         return $this->hard_delete( $record_arr );
     }
 
@@ -326,6 +328,8 @@ class PHS_Model_Results extends PHS_Model
         if( empty( $params['force'] )
         and !$this->is_running( $result_arr ) )
         {
+            PHS_Logger::logf( 'Cannot finish rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Rule is not running.', $backup_plugin::LOG_CHANNEL );
+
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup result is not running.' ) );
             return false;
         }
@@ -350,6 +354,8 @@ class PHS_Model_Results extends PHS_Model
 
             PHS_Logger::logf( 'Failed setting result data to '.$status_title.' ('.$edit_arr['fields']['status'].')', $backup_plugin::LOG_CHANNEL );
         }
+
+        PHS_Logger::logf( 'FINISHED rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Output ['.$result_arr['run_dir'].']', $backup_plugin::LOG_CHANNEL );
 
         return array(
             'result_data' => $new_result,
@@ -586,7 +592,7 @@ class PHS_Model_Results extends PHS_Model
             $result_file_arr['{result_data}'] = $result_arr;
         }
 
-        if( !$this->hard_delete( $result_file_arr ) )
+        if( !$this->hard_delete( $result_file_arr, $flow_params ) )
         {
             if( !empty( $params['update_result'] ) )
             {

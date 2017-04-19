@@ -17,12 +17,7 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\PHS_crypt;
-    use \phs\PHS_bg_jobs;
     use \phs\libraries\PHS_Hooks;
-    use \phs\libraries\PHS_Model;
-    use \phs\libraries\PHS_Logger;
-    use \phs\libraries\PHS_Instantiable;
 
     // if( !($accounts_plugin = PHS::load_plugin( 'accounts' )) )
     // {

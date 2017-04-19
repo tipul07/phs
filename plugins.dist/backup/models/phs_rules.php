@@ -36,7 +36,7 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.4';
     }
 
     /**
@@ -865,6 +865,8 @@ class PHS_Model_Rules extends PHS_Model
         $resulting_files = array();
         $generated_files = array();
 
+        PHS_Logger::logf( 'STARTING backup rule (R#'.$rule_arr['id'].'). Output ['.$run_path.']', $backup_plugin::LOG_CHANNEL );
+
         $bg_script_commands[] = 'cd "'.$run_path.'"';
 
         if( $rule_arr['target'] & (1 << self::BACKUP_TARGET_DATABASE) )
@@ -1509,6 +1511,15 @@ class PHS_Model_Rules extends PHS_Model
             }
         }
 
+        if( empty( $params['fields']['delete_after_days'] ) )
+            $params['fields']['delete_after_days'] = 0;
+
+        elseif( $params['fields']['delete_after_days'] < 0 )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid result delition interval.' ) );
+            return false;
+        }
+
         if( empty( $params['fields']['target'] ) )
             $params['fields']['target'] = self::BACKUP_TARGET_ALL;
 
@@ -1824,6 +1835,10 @@ class PHS_Model_Rules extends PHS_Model
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '255',
                         'nullable' => true,
+                    ),
+                    'delete_after_days' => array(
+                        'type' => self::FTYPE_INT,
+                        'comment' => 'Delete backups older than x days, 0 disabled',
                     ),
                     'hour' => array(
                         'type' => self::FTYPE_INT,

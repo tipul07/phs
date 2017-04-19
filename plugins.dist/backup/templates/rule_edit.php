@@ -21,6 +21,8 @@
         $rule_days = array();
     if( !($targets_arr = $this->context_var( 'targets_arr' )) )
         $targets_arr = array();
+    if( !($days_options_arr = $this->context_var( 'days_options_arr' )) )
+        $days_options_arr = array();
 
     $error_msg = '';
     $stats_str = '';
@@ -166,6 +168,40 @@
                 </div>
             </fieldset>
 
+            <?php
+            if( ($selected_delete_after_days = $this->context_var( 'delete_after_days' )) === false )
+                $selected_delete_after_days = 0;
+            if( !($cdelete_after_days = $this->context_var( 'cdelete_after_days' ))
+             or $cdelete_after_days < 0 )
+                $cdelete_after_days = 1;
+
+            $selected_delete_after_days = intval( $selected_delete_after_days );
+            ?>
+            <fieldset class="form-group">
+                <label for="delete_after_days"><?php echo $this->_pt( 'Delete backups' )?>:</label>
+                <div class="lineform_line">
+                    <div style="float:left;margin-right:5px;">
+                    <select name="delete_after_days" id="delete_after_days" class="chosen-select" style="min-width:200px;" onchange="check_delete_after_days_change()">
+                    <option value="-1"><?php echo $this->_pt( ' - Choose - ' )?></option>
+                    <option value="0" <?php echo ($selected_delete_after_days===0?'selected="selected"':'')?>><?php echo $this->_pt( ' - Don\'t delete results - ' )?></option>
+                    <option value="-2" <?php echo ($selected_delete_after_days==-2?'selected="selected"':'')?>><?php echo $this->_pt( ' - Custom value - ' )?></option>
+                    <?php
+                    foreach( $days_options_arr as $days_no => $days_text )
+                    {
+                        ?><option value="<?php echo $days_no?>" <?php echo (($selected_delete_after_days !== false and $selected_delete_after_days==$days_no)?'selected="selected"':'')?>><?php echo $days_text?></option><?php
+                    }
+                    ?></select></div>
+                    <div id="delete_after_days_container" style="float:left;margin-right:5px;line-height: 1.5em;">
+                        <div style="float:left;margin-right:5px;">
+                        <input type="text" id="cdelete_after_days" name="cdelete_after_days" class="form-control" value="<?php echo form_str( $cdelete_after_days )?>" style="width: 60px;" />
+                        </div>
+                        <div style="float:left;line-height: 1.5em;"><small><?php echo $this->_pt( 'days' )?></small></div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <small><?php echo $this->_pt( 'Delete resulting backup files of this rule after provided number of days.' )?></small>
+                </div>
+            </fieldset>
+
             <fieldset class="form-group">
                 <label for="email"><?php echo $this->_pt( 'Web Server Note' )?>:</label>
                 <div class="lineform_line">
@@ -223,4 +259,24 @@ function changed_days( el )
         });
     }
 }
+function check_delete_after_days_change()
+{
+    var delete_after_days_obj = $("#delete_after_days");
+    if( !delete_after_days_obj )
+        return;
+
+    var option_val = delete_after_days_obj.val();
+
+    if( option_val == -1 || option_val == 0 )
+    {
+        $("#delete_after_days_container").hide();
+    } else if( option_val == -2 )
+    {
+        $("#delete_after_days_container").show();
+    } else
+        $("#delete_after_days_container").hide();
+}
+$(document).ready(function(){
+    check_delete_after_days_change();
+});
 </script>

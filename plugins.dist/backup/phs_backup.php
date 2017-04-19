@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.5';
+        return '1.0.6';
     }
 
     /**
@@ -111,12 +111,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        ob_start();
+        @ob_start();
         if( !($mysql_dump_path = @system( 'which mysqldump' )) )
             $mysql_dump_path = 'mysqldump';
         if( !($zip_path = @system( 'which zip' )) )
             $zip_path = 'zip';
-        ob_clean();
+        @ob_end_clean();
 
         return array(
             'location' => array(
@@ -470,6 +470,78 @@ class PHS_Plugin_Backup extends PHS_Plugin
             'free_space' => $free_space,
             'total_space' => $total_space,
         );
+    }
+
+    public function delete_old_backups_bg()
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($results_model = PHS::load_model( 'results', 'backup' ))
+         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         or !($br_flow_params = $results_model->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
+         or !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        $return_arr = array();
+        $return_arr['results_deleted'] = 0;
+        $return_arr['failed_delete_result_ids'] = array();
+
+        $now_time = time();
+
+        // Select active rules for today and for current hour and that didn't run today
+        if( !($qid = db_query( 'SELECT `'.$r_table_name.'`.* '.
+                              ' FROM `'.$r_table_name.'`'.
+                              ' WHERE '.
+                              ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
+                              ' AND `'.$r_table_name.'`.delete_after_days > 0', $r_flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
+            return $return_arr;
+
+        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( !($br_qid = db_query( 'SELECT `'.$br_table_name.'`.* '.
+                                   ' FROM `'.$br_table_name.'`'.
+                                   ' WHERE '.
+                                   ' (`'.$br_table_name.'`.status = \''.$results_model::STATUS_FINISHED.'\' OR '.
+                                            ' `'.$br_table_name.'`.status = \''.$results_model::STATUS_ERROR.'\') '.
+                                   ' AND `'.$br_table_name.'`.status_date <= \''.date( $results_model::DATETIME_DB, $now_time - $rule_arr['delete_after_days'] * 86400).'\'', $br_flow_params['db_connection'] ))
+             or !($results_count = @mysqli_num_rows( $br_qid )) )
+            {
+                PHS_Logger::logf( 'Nothing older than '.$rule_arr['delete_after_days'].' days to be deleted for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                continue;
+            }
+
+            PHS_Logger::logf( 'Trying to delete '.$results_count.' results older than '.$rule_arr['delete_after_days'].' days for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+
+            while( ($result_arr = @mysqli_fetch_assoc( $qid )) )
+            {
+                if( $results_model->act_delete( $result_arr ) )
+                {
+                    PHS_Logger::logf( 'Deleted result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                    $return_arr['results_deleted']++;
+                } else
+                {
+                    if( !$results_model->has_error() )
+                        $error_msg = $results_model->get_error_message();
+                    else
+                        $error_msg = 'Unknown error.';
+
+                    PHS_Logger::logf( 'Failed deleting result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                    PHS_Logger::logf( 'Error: '.$error_msg, self::LOG_CHANNEL );
+
+                    $return_arr['failed_delete_result_ids'][] = $result_arr['id'];
+                }
+            }
+        }
+
+        return $return_arr;
     }
 
     public function run_backups_bg()

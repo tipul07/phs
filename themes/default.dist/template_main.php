@@ -114,7 +114,7 @@
             $(".chosen-select").chosen( { disable_search_threshold: 7 } );
             $(".chosen-select-nosearch").chosen( { disable_search: true } );
             $(".ui-button").button();
-            $("*[title]").tooltip();
+            $("*[title]").not(".no-title-skinning").tooltip();
         }
 
         function ignore_hidden_required( obj )

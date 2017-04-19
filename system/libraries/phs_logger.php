@@ -48,6 +48,15 @@ class PHS_Logger extends PHS_Registry
         return true;
     }
 
+    public static function safe_escape_log_channel( $channel )
+    {
+        if( empty( $channel ) or !is_string( $channel )
+         or preg_match( '@[^a-zA-Z0-9_\-]@', $channel ) )
+            return false;
+
+        return $channel;
+    }
+
     /**
      * @param string $channel Channel name (basically this is the log file name). It should end in .log or have no extension.
      *
@@ -63,7 +72,7 @@ class PHS_Logger extends PHS_Registry
         else
             $check_channel = $channel;
 
-        if( !PHS::safe_escape_root_script( $check_channel ) )
+        if( !self::safe_escape_log_channel( $check_channel ) )
             return false;
 
         self::$_custom_channels[$channel] = 1;

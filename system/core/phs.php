@@ -55,7 +55,7 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications' );
+        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications', 'backup' );
     }
 
     public static function get_core_models()
@@ -713,13 +713,22 @@ final class PHS extends PHS_Registry
             return false;
         }
 
+        if( !($controller_scopes_arr = $controller_obj->allowed_scopes()) )
+            $scopes_check_arr = $action_obj->allowed_scopes();
+
+        elseif( !($scopes_check_arr = $action_obj->allowed_scopes()) )
+            $scopes_check_arr = $controller_scopes_arr;
+
+        else
+            $scopes_check_arr = self::array_merge_unique_values( $controller_scopes_arr, $scopes_check_arr );
+
         if( !empty( $params['action_accepts_scopes'] )
-        and ($action_scopes = $action_obj->allowed_scopes())
-        and is_array( $action_scopes ) )
+        and !empty( $scopes_check_arr )
+        and is_array( $scopes_check_arr ) )
         {
             foreach( $params['action_accepts_scopes'] as $scope )
             {
-                if( !in_array( $scope, $action_scopes ) )
+                if( !in_array( $scope, $scopes_check_arr ) )
                 {
                     $scope_title = '(???)';
                     if( ($scope_details = PHS_Scope::valid_scope( $scope )) )
@@ -1365,6 +1374,35 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * @param string $core_library Short library name (eg. ftp, paginator_exporter_csv, etc)
+     * @param bool|array $params Parameters passed to self::load_core_library() method
+     *
+     * @return bool|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
+     */
+    public static function get_core_library_instance( $core_library, $params = false )
+    {
+        if( empty( $core_library )
+         or !($library_name = PHS_Instantiable::safe_escape_library_name( $core_library )) )
+        {
+            self::st_set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load core library.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        $core_library = strtolower( $core_library );
+
+        $library_params = $params;
+        $library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_'.ucfirst( $core_library );
+
+        if( !($library_obj = self::load_core_library( 'phs_'.$core_library, $library_params )) )
+            return false;
+
+        return $library_obj;
+    }
+
+    /**
      * Returns an instance of a model. If model is part of a plugin $plugin will contain name of that plugin.
      *
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
@@ -1620,10 +1658,8 @@ final class PHS extends PHS_Registry
     /**
      * @param string $scope
      * @param string|bool $plugin
-     
-      
-*
-*@return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
+     *
+     * @return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
      */
     public static function load_scope( $scope, $plugin = false )
     {

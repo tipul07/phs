@@ -34,8 +34,8 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
 
         if( !($this->_plugins_instance = PHS::load_model( 'plugins' )) )
         {
-            $this->set_error( self::ERR_PLUGINS_MODEL, self::_t( 'Couldn\'t load plugins model.' ) );
             $this->_plugins_instance = false;
+            $this->set_error( self::ERR_PLUGINS_MODEL, self::_t( 'Couldn\'t load plugins model.' ) );
             return false;
         }
 

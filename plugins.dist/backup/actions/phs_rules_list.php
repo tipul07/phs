@@ -2,6 +2,7 @@
 
 namespace phs\plugins\backup\actions;
 
+use phs\libraries\PHS_utils;
 use \phs\PHS;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
@@ -22,19 +23,22 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
     public function load_depencies()
     {
-        if( !($this->_backup_plugin = $this->get_plugin_instance()) )
+        if( !$this->_backup_plugin
+        and !($this->_backup_plugin = $this->get_plugin_instance()) )
         {
             $this->set_error( self::ERR_ACTION, $this->_pt( 'Couldn\'t load backup plugin.' ) );
             return false;
         }
 
-        if( !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        if( !$this->_accounts_model
+        and !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
             $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load accounts model.' ) );
             return false;
         }
 
-        if( !($this->_paginator_model = PHS::load_model( 'rules', 'backup' )) )
+        if( !$this->_paginator_model
+        and !($this->_paginator_model = PHS::load_model( 'rules', 'backup' )) )
         {
             $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load backup rules model.' ) );
             return false;
@@ -61,12 +65,6 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
 
             return $action_result;
-        }
-
-        if( empty( $this->_paginator_model ) )
-        {
-            if( !$this->load_depencies() )
-                return false;
         }
 
         return false;
@@ -196,16 +194,22 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 'record_field' => 'hour',
                 'display_callback' => array( $this, 'display_backup_rule_when' ),
                 'invalid_value' => $this->_pt( 'N/A' ),
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'Where' ),
                 'record_field' => 'location',
                 'display_callback' => array( $this, 'display_backup_rule_where' ),
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'What' ),
                 'record_field' => 'target',
                 'display_callback' => array( $this, 'display_backup_rule_what' ),
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'Status' ),
@@ -617,7 +621,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         if( isset( $params['record']['hour'] ) )
             $hour_str = ($days_str_arr!=''?' @':'').$params['record']['hour'].($params['record']['hour']<12?'am':'pm');
 
-        return $days_str_arr.$hour_str;
+        $delete_str = '';
+        if( !empty( $params['record']['delete_after_days'] ) )
+            $delete_str = '<br/>'.$this->_pt( 'Delete after %s', PHS_utils::parse_period( $params['record']['delete_after_days'] * 86400, array( 'show_period' => PHS_utils::PERIOD_DAYS ) ) );
+
+        return $days_str_arr.$hour_str.$delete_str;
     }
 
     public function display_backup_rule_where( $params )
@@ -639,7 +647,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         elseif( empty( $location_arr['location_is_dir'] ) )
             $extra_str = ' <i class="fa fa-exclamation-circle status_rejected" title="'.$this->_pt( 'This location is not a directory. Backups will not be saved here! Please fix this by editing the rule or fixing directory.' ).'"></i>';
 
-        return '<span title="'.self::_e( $location_arr['full_path'] ).'">'.$location_arr['location_path'].'</span>'.$extra_str.
+        return '<span title="'.self::_e( $location_arr['full_path'] ).'" class="no-title-skinning">'.$location_arr['location_path'].'</span>'.$extra_str.
             (empty( $location_stats_arr )?'':
                 '<br/>'.$this->_pt( 'Total: %s, Free: %s', format_filesize( $location_stats_arr['total_space'] ), format_filesize( $location_stats_arr['free_space'] ) )
             );
