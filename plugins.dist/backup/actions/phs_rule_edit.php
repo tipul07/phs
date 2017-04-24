@@ -2,6 +2,7 @@
 
 namespace phs\plugins\backup\actions;
 
+use phs\libraries\PHS_line_params;
 use \phs\PHS;
 use \phs\PHS_bg_jobs;
 use \phs\PHS_Scope;
@@ -57,6 +58,13 @@ class PHS_Action_Rule_edit extends PHS_Action
             return self::default_action_result();
         }
 
+        /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
+        if( !($ftp_obj = PHS::get_core_library_instance( 'ftp' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load FTP core library.' ) );
+            return self::default_action_result();
+        }
+
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
         if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
          or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) )) )
@@ -91,6 +99,9 @@ class PHS_Action_Rule_edit extends PHS_Action
             return $action_result;
         }
 
+        if( ($new_rule = $rules_model->get_rule_ftp_settings( $rule_arr )) )
+            $rule_arr = $new_rule;
+
         $days_options_arr = array(
             7 => $this->_pt( 'One week' ),
             14 => $this->_pt( 'Two weeks' ),
@@ -100,12 +111,19 @@ class PHS_Action_Rule_edit extends PHS_Action
 
         if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Backup rule details saved.' ) );
+        if( PHS_params::_g( 'ftp_connection_success', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Connected to FTP server with success.' ) );
+        if( PHS_params::_g( 'ftp_connection_failed', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Failed connecting to FTP server.' ) );
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $hour = PHS_params::_p( 'hour', PHS_params::T_INT );
         $delete_after_days = PHS_params::_p( 'delete_after_days', PHS_params::T_INT );
         $cdelete_after_days = PHS_params::_p( 'cdelete_after_days', PHS_params::T_INT );
+        $copy_results = PHS_params::_p( 'copy_results', PHS_params::T_INT );
+        if( !($ftp_settings = PHS_params::_p( 'ftp_settings', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_ASIS ) )) )
+            $ftp_settings = array();
         if( !($target_arr = PHS_params::_p( 'target_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
             $target_arr = array();
         if( !($days_arr = PHS_params::_p( 'days_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
@@ -114,28 +132,23 @@ class PHS_Action_Rule_edit extends PHS_Action
             $location = '';
 
         $do_submit = PHS_params::_p( 'do_submit' );
+        $do_test_ftp = PHS_params::_pg( 'do_test_ftp' );
 
-        if( !empty( $do_submit ) )
-        {
-            if( $delete_after_days == -1 )
-                PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
-
-            elseif( $delete_after_days === 0 )
-                $cdelete_after_days = 0;
-
-            elseif( $delete_after_days == -2 )
-            {
-                if( empty( $cdelete_after_days ) or $cdelete_after_days < 0 )
-                    $cdelete_after_days = 0;
-            } else
-                $cdelete_after_days = $delete_after_days;
-        }
+        if( !empty( $do_test_ftp ) )
+            $do_submit = true;
 
         if( empty( $foobar ) )
         {
             $title = $rule_arr['title'];
             $hour = $rule_arr['hour'];
             $delete_after_days = $rule_arr['delete_after_days'];
+            $copy_results = $rule_arr['copy_results'];
+
+            if( !empty( $rule_arr['{ftp_settings}'] ) )
+                $ftp_settings = $rule_arr['{ftp_settings}'];
+            else
+                $ftp_settings = array();
+
             $location = $rule_arr['location'];
             if( !($days_arr = $rules_model->get_rule_days_as_array( $rule_arr['id'] )) )
                 $days_arr = array();
@@ -153,6 +166,22 @@ class PHS_Action_Rule_edit extends PHS_Action
                 $delete_after_days = -2;
         }
 
+        if( !empty( $do_submit ) )
+        {
+            if( $delete_after_days == -1 )
+                PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
+
+            elseif( $delete_after_days === 0 )
+                $cdelete_after_days = 0;
+
+            elseif( $delete_after_days == -2 )
+            {
+                if( empty( $cdelete_after_days ) or $cdelete_after_days < 0 )
+                    $cdelete_after_days = 0;
+            } else
+                $cdelete_after_days = $delete_after_days;
+        }
+
         if( !($plugin_settings = $backup_plugin->get_db_settings())
          or empty( $plugin_settings['location'] ) )
             $plocation = '';
@@ -168,35 +197,116 @@ class PHS_Action_Rule_edit extends PHS_Action
         if( !($plugin_location = $backup_plugin->get_location_for_path( $plocation )) )
             $plugin_location = '';
 
+        if( !($copy_results_arr = $rules_model->get_copy_results_as_key_val()) )
+            $copy_results_arr = array();
+        if( !($ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val()) )
+            $ftp_connection_modes_arr = array();
+
         if( !empty( $do_submit )
-        and !PHS_Notifications::have_any_notifications() )
+        and !PHS_Notifications::have_errors_or_warnings_notifications() )
         {
-            $edit_arr = array();
-            $edit_arr['title'] = $title;
-            $edit_arr['location'] = $location;
-            $edit_arr['hour'] = $hour;
-            $edit_arr['delete_after_days'] = $cdelete_after_days;
-            $edit_arr['target'] = $target_arr;
+            $rule_details_saved = false;
+            $ftp_connection_success = false;
 
-            $edit_params_arr = $r_flow_params;
-            $edit_params_arr['fields'] = $edit_arr;
-            $edit_params_arr['{days_arr}'] = $days_arr;
+            if( !empty( $copy_results )
+            and $copy_results == $rules_model::COPY_FTP )
+            {
+                if( empty( $ftp_settings ) or !is_array( $ftp_settings )
+                 or empty( $ftp_settings['connection_mode'] )
+                 or !$ftp_obj->valid_connection_type( $ftp_settings['connection_mode'] )
+                 or !$ftp_obj->settings_valid( $ftp_settings ) )
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
 
-            if( ($new_role = $rules_model->edit( $rule_arr, $edit_params_arr )) )
+                else
+                {
+                    $ftp_settings['connection_mode'] = intval( $ftp_settings['connection_mode'] );
+
+                    // We hardcode binary transfers...
+                    $ftp_settings['transfer_mode'] = $ftp_obj::TRANSFER_MODE_BINARY;
+
+                    if( !empty( $ftp_settings['timeout'] ) )
+                        $ftp_settings['timeout'] = intval( $ftp_settings['timeout'] );
+                    else
+                        $ftp_settings['timeout'] = 0;
+
+                    if( !empty( $ftp_settings['passive_mode'] ) )
+                        $ftp_settings['passive_mode'] = true;
+                    else
+                        $ftp_settings['passive_mode'] = false;
+                }
+            }
+
+            if( !PHS_Notifications::have_errors_or_warnings_notifications() )
+            {
+                $edit_arr = array();
+                $edit_arr['title'] = $title;
+                $edit_arr['location'] = $location;
+                $edit_arr['hour'] = $hour;
+                $edit_arr['delete_after_days'] = $cdelete_after_days;
+                $edit_arr['copy_results'] = $copy_results;
+                $edit_arr['ftp_settings'] = $ftp_settings;
+                $edit_arr['target'] = $target_arr;
+
+                $edit_params_arr = $r_flow_params;
+                $edit_params_arr['fields'] = $edit_arr;
+                $edit_params_arr['{days_arr}'] = $days_arr;
+
+                if( ($new_role = $rules_model->edit( $rule_arr, $edit_params_arr )) )
+                {
+                    $rule_details_saved = true;
+                } else
+                {
+                    if( $rules_model->has_error() )
+                        PHS_Notifications::add_error_notice( $rules_model->get_error_message() );
+                    else
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
+                }
+            }
+
+            // we saved all data and we try now to connect...
+            if( !empty( $copy_results )
+            and $copy_results == $rules_model::COPY_FTP
+            and !PHS_Notifications::have_errors_or_warnings_notifications()
+            and !empty( $do_test_ftp ) )
+            {
+                if( !$ftp_obj->settings( $ftp_settings ) )
+                {
+                    if( $ftp_obj->has_error() )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Error in FTP settings: %s.', $ftp_obj->get_error_message() ) );
+                    else
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t setup a FTP instance with provided settings.' ) );
+                } else
+                {
+                    if( $ftp_obj->ls() !== false )
+                        $ftp_connection_success = true;
+
+                    else
+                    {
+                        if( $ftp_obj->has_error() )
+                            PHS_Notifications::add_error_notice( $this->_pt( 'Error connecting to FTP server: %s.', $ftp_obj->get_error_message() ) );
+                        else
+                            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t connect to FTP server.' ) );
+                    }
+                }
+            }
+
+            if( $rule_details_saved )
             {
                 PHS_Notifications::add_success_notice( $this->_pt( 'Backup rule details saved...' ) );
 
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), array( 'rid' => $rid, 'changes_saved' => 1 ) );
+                $url_args = array(
+                    'rid' => $rid,
+                    'changes_saved' => 1,
+                );
+
+                if( !empty( $ftp_connection_success ) )
+                    $url_args['ftp_connection_success'] = 1;
+
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), $url_args );
 
                 return $action_result;
-            } else
-            {
-                if( $rules_model->has_error() )
-                    PHS_Notifications::add_error_notice( $rules_model->get_error_message() );
-                else
-                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
         }
 
@@ -207,16 +317,21 @@ class PHS_Action_Rule_edit extends PHS_Action
             'title' => $title,
             'hour' => $hour,
             'delete_after_days' => $delete_after_days,
+            'copy_results' => $copy_results,
+            'ftp_settings' => $ftp_settings,
             'target_arr' => $target_arr,
             'days_arr' => $days_arr,
             'location' => $location,
 
+            'copy_results_arr' => $copy_results_arr,
+            'ftp_connection_modes_arr' => $ftp_connection_modes_arr,
             'days_options_arr' => $days_options_arr,
             'cdelete_after_days' => $cdelete_after_days,
             'rule_days' => $rule_days,
             'targets_arr' => $targets_arr,
             'rule_location' => $rule_location,
             'plugin_location' => $plugin_location,
+            'rules_model' => $rules_model,
             'backup_plugin' => $backup_plugin,
         );
 

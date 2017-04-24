@@ -31,7 +31,7 @@ class PHS_Model_Results extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     /**
@@ -1172,6 +1172,11 @@ class PHS_Model_Results extends PHS_Model
                     ),
                     'size' => array(
                         'type' => self::FTYPE_INT,
+                    ),
+                    'copied' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'index' => true,
+                        'comment' => 'Date when results were copied',
                     ),
                     'status' => array(
                         'type' => self::FTYPE_TINYINT,

@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     /**

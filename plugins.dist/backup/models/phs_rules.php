@@ -3,6 +3,7 @@
 namespace phs\plugins\backup\models;
 
 use \phs\PHS;
+use phs\PHS_crypt;
 use \phs\PHS_db;
 use \phs\PHS_bg_jobs;
 use \phs\libraries\PHS_Logger;
@@ -10,6 +11,7 @@ use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_db_class;
 use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_line_params;
 
 class PHS_Model_Rules extends PHS_Model
 {
@@ -27,6 +29,11 @@ class PHS_Model_Rules extends PHS_Model
         self::BACKUP_TARGET_UPLOADS => array( 'title' => 'Uploaded files' ),
     );
 
+    const COPY_FTP = 1;
+    protected static $COPY_RESULTS_ARR = array(
+        self::COPY_FTP => array( 'title' => 'Copy to FTP' ),
+    );
+
     const DAY_ALL = 0, DAY_MONDAY = 1, DAY_TUESDAY = 2, DAY_WEDNESDAY = 3, DAY_THURSDAY = 4, DAY_FRIDAY = 5, DAY_SATURDAY = 6, DAY_SUNDAY = 7;
 
     const BACKUP_TARGET_ALL = ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
@@ -36,7 +43,7 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     /**
@@ -111,6 +118,61 @@ class PHS_Model_Rules extends PHS_Model
             return false;
 
         return $all_statuses[$status];
+    }
+
+    final public function get_copy_results( $lang = false )
+    {
+        static $copy_results_arr = array();
+
+        if( $lang === false
+        and !empty( $copy_results_arr ) )
+            return $copy_results_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Copy to FTP' );
+
+        $result_arr = $this->translate_array_keys( self::$COPY_RESULTS_ARR, array( 'title' ), $lang );
+
+        if( $lang === false )
+            $copy_results_arr = $result_arr;
+
+        return $result_arr;
+    }
+
+    final public function get_copy_results_as_key_val( $lang = false )
+    {
+        static $copy_results_key_val_arr = false;
+
+        if( $lang === false
+        and $copy_results_key_val_arr !== false )
+            return $copy_results_key_val_arr;
+
+        $key_val_arr = array();
+        if( ($copy_results = $this->get_copy_results( $lang )) )
+        {
+            foreach( $copy_results as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        if( $lang === false )
+            $copy_results_key_val_arr = $key_val_arr;
+
+        return $key_val_arr;
+    }
+
+    public function valid_copy_results( $copy_result, $lang = false )
+    {
+        $all_copy_results = $this->get_copy_results( $lang );
+        if( empty( $copy_result )
+         or !isset( $all_copy_results[$copy_result] ) )
+            return false;
+
+        return $all_copy_results[$copy_result];
     }
 
     final public function get_targets( $lang = false )
@@ -1291,6 +1353,34 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
+    public function get_rule_ftp_settings( $rule_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !($rule_arr = $this->data_to_array( $rule_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Backup rule not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $rule_arr['ftp_settings'] ) )
+            $rule_arr['{ftp_settings}'] = array();
+
+        else
+        {
+            if( !($rule_arr['{ftp_settings}'] = PHS_line_params::parse_string( $rule_arr['ftp_settings'] )) )
+                $rule_arr['{ftp_settings}'] = array();
+
+            if( !empty( $rule_arr['{ftp_settings}']['pass'] ) )
+                $rule_arr['{ftp_settings}']['pass'] = PHS_crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] );
+        }
+
+        return $rule_arr;
+    }
+
     public function link_days_to_rule( $rule_data, $days_arr, $params = false )
     {
         $this->reset_error();
@@ -1467,6 +1557,51 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['copy_results'] ) )
+            $params['fields']['copy_results'] = 0;
+
+        elseif( !$this->valid_copy_results( $params['fields']['copy_results'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a copy result action.' ) );
+            return false;
+        }
+
+        if( !empty( $params['fields']['copy_results'] ) )
+        {
+            switch( $params['fields']['copy_results'] )
+            {
+                case self::COPY_FTP:
+                /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
+                if( !($ftp_obj = PHS::get_core_library_instance( 'ftp' )) )
+                {
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t load FTP core library.' ) );
+                    return false;
+                }
+
+                if( !empty( $params['fields']['ftp_settings'] ) )
+                {
+                    if( !is_array( $params['fields']['ftp_settings'] ) )
+                        $params['fields']['ftp_settings'] = PHS_line_params::parse_string( $params['fields']['ftp_settings'] );
+                }
+
+                if( empty( $params['fields']['ftp_settings'] )
+                 or !is_array( $params['fields']['ftp_settings'] )
+                 or !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
+                {
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Invalid FTP settings.' ) );
+                    return false;
+                }
+
+                if( empty( $params['fields']['ftp_settings']['pass'] ) )
+                    $params['fields']['ftp_settings']['pass'] = '';
+
+                $params['fields']['ftp_settings']['pass'] = PHS_crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+
+                $params['fields']['ftp_settings'] = PHS_line_params::to_string( $params['fields']['ftp_settings'] );
+                break;
+            }
+        }
+
         if( empty( $params['fields']['location'] ) )
             $params['fields']['location'] = '';
 
@@ -1621,6 +1756,53 @@ class PHS_Model_Rules extends PHS_Model
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide valid status for backup rule.' ) );
             return false;
+        }
+
+        if( isset( $params['fields']['copy_results'] ) )
+        {
+            if( empty( $params['fields']['copy_results'] ) )
+            {
+                $params['fields']['copy_results'] = 0;
+                $params['fields']['ftp_settings'] = '';
+            } elseif( !$this->valid_copy_results( $params['fields']['copy_results'] ) )
+            {
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide a copy result action.' ) );
+                return false;
+            } else
+            {
+                switch( $params['fields']['copy_results'] )
+                {
+                    case self::COPY_FTP:
+                        /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
+                        if( !($ftp_obj = PHS::get_core_library_instance( 'ftp' )) )
+                        {
+                            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t load FTP core library.' ) );
+                            return false;
+                        }
+
+                        if( !empty( $params['fields']['ftp_settings'] ) )
+                        {
+                            if( !is_array( $params['fields']['ftp_settings'] ) )
+                                $params['fields']['ftp_settings'] = PHS_line_params::parse_string( $params['fields']['ftp_settings'] );
+                        }
+
+                        if( empty( $params['fields']['ftp_settings'] )
+                         or !is_array( $params['fields']['ftp_settings'] )
+                         or !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
+                        {
+                            $this->set_error( self::ERR_INSERT, $this->_pt( 'Invalid FTP settings.' ) );
+                            return false;
+                        }
+
+                        if( empty( $params['fields']['ftp_settings']['pass'] ) )
+                            $params['fields']['ftp_settings']['pass'] = '';
+
+                        $params['fields']['ftp_settings']['pass'] = PHS_crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+
+                        $params['fields']['ftp_settings'] = PHS_line_params::to_string( $params['fields']['ftp_settings'] );
+                    break;
+                }
+            }
         }
 
         if( isset( $params['fields']['location'] ) )
@@ -1849,6 +2031,15 @@ class PHS_Model_Rules extends PHS_Model
                     'location' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '255',
+                        'nullable' => true,
+                    ),
+                    'copy_results' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => '2',
+                        'comment' => 'Should results be copied',
+                    ),
+                    'ftp_settings' => array(
+                        'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                     ),
                     'status' => array(

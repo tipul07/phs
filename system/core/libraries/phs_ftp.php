@@ -119,6 +119,32 @@ class PHS_Ftp extends PHS_Library
         return $result_arr;
     }
 
+    final public function get_connection_types_as_key_val( $lang = false )
+    {
+        static $ctypes_key_val_arr = false;
+
+        if( $lang === false
+        and $ctypes_key_val_arr !== false )
+            return $ctypes_key_val_arr;
+
+        $key_val_arr = array();
+        if( ($types = $this->get_connection_types( $lang )) )
+        {
+            foreach( $types as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        if( $lang === false )
+            $ctypes_key_val_arr = $key_val_arr;
+
+        return $key_val_arr;
+    }
+
     public function valid_connection_type( $con_type )
     {
         $con_type = intval( $con_type );
@@ -1988,6 +2014,10 @@ class PHS_Ftp extends PHS_Library
             $params['skip_callbacks'] = false;
         if( empty( $params['dir_rights'] ) )
             $params['dir_rights'] = 0755; // try to set dir flags after creation (if supported)
+        if( !isset( $params['recursive'] ) )
+            $params['recursive'] = true;
+        else
+            $params['recursive'] = (!empty( $params['recursive'] )?true:false);
 
         if( $ftp_settings['connection_mode'] == self::CON_TYPE_CURL
          or $ftp_settings['connection_mode'] == self::CON_TYPE_CURL_SSL )
@@ -2016,16 +2046,40 @@ class PHS_Ftp extends PHS_Library
         if( $ftp_settings['connection_mode'] == self::CON_TYPE_NORMAL
          or $ftp_settings['connection_mode'] == self::CON_TYPE_NORMAL_SSL )
         {
-            if( !@ftp_mkdir( $this->internal_settings['con'], $remote_dir ) )
+            if( !empty( $params['recursive'] ) )
+                $path_parts = explode( '/', $remote_dir );
+            else
+                $path_parts = array( $remote_dir );
+
+            $old_dir = @ftp_pwd( $this->internal_settings['con'] );
+
+            foreach( $path_parts as $part )
             {
-                $this->set_error( self::ERR_REMOTE_LOCATION, 'FTP couldn\'t create directory.' );
-                if( empty( $params['skip_callbacks'] ) )
-                    $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => false ) );
-                return false;
+                if( !@ftp_chdir( $this->internal_settings['con'], $part ) )
+                {
+                    if( !@ftp_mkdir( $this->internal_settings['con'], $part ) )
+                    {
+                        $this->set_error( self::ERR_REMOTE_LOCATION, 'FTP couldn\'t create directory.' );
+                        if( empty( $params['skip_callbacks'] ) )
+                            $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => false ) );
+                        return false;
+                    }
+
+                    if( !empty( $params['dir_rights'] ) )
+                        @ftp_chmod( $this->internal_settings['con'], $params['dir_rights'], $part );
+
+                    if( @ftp_chdir( $this->internal_settings['con'], $part ) === false )
+                    {
+                        $this->set_error( self::ERR_REMOTE_LOCATION, 'FTP couldn\'t create directory.' );
+                        if( empty( $params['skip_callbacks'] ) )
+                            $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => false ) );
+                        return false;
+                    }
+                }
             }
 
-            if( !empty( $params['dir_rights'] ) )
-                @ftp_chmod( $this->internal_settings['con'], $params['dir_rights'], $remote_dir );
+            if( $old_dir !== false )
+                @ftp_chdir( $this->internal_settings['con'], $old_dir );
         }
 
         elseif( $ftp_settings['connection_mode'] == self::CON_TYPE_CURL
@@ -2039,7 +2093,8 @@ class PHS_Ftp extends PHS_Library
                 return false;
             }
 
-            @curl_setopt( $this->internal_settings['con'], constant( 'CURLOPT_FTP_CREATE_MISSING_DIRS' ), true );
+            if( !empty( $params['recursive'] ) )
+                @curl_setopt( $this->internal_settings['con'], constant( 'CURLOPT_FTP_CREATE_MISSING_DIRS' ), true );
             @curl_setopt( $this->internal_settings['con'], constant( 'CURLOPT_URL' ), $curl_url['dir_url'] );
 
             if( $remote_dir != '' )
@@ -2068,8 +2123,8 @@ class PHS_Ftp extends PHS_Library
             } else
                 $remote_dir = $dir;
 
-            if( !is_dir( 'ssh2.sftp://'.intval( $this->internal_settings['con'] ).'/'.$remote_dir )
-            and !@ssh2_sftp_mkdir( $this->internal_settings['con'], $remote_dir, $params['dir_rights'], true ) )
+            if( !@is_dir( 'ssh2.sftp://'.intval( $this->internal_settings['con'] ).'/'.$remote_dir )
+            and !@ssh2_sftp_mkdir( $this->internal_settings['con'], $remote_dir, $params['dir_rights'], $params['recursive'] ) )
             {
                 $this->set_error( self::ERR_REMOTE_LOCATION, 'SFTP cannot create remote directory.' );
                 if( empty( $params['skip_callbacks'] ) )

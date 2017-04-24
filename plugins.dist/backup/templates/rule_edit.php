@@ -5,13 +5,17 @@
     use \phs\libraries\PHS_utils;
 
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-    if( !($backup_plugin = $this->context_var( 'backup_plugin' )) )
+    /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+    if( !($backup_plugin = $this->context_var( 'backup_plugin' ))
+     or !($rules_model = $this->context_var( 'rules_model' )) )
         return $this->_pt( 'Couldn\'t load backup plugin.' );
 
     if( !($target_arr = $this->context_var( 'target_arr' )) )
         $target_arr = array();
     if( !($days_arr = $this->context_var( 'days_arr' )) )
         $days_arr = array();
+    if( !($ftp_settings = $this->context_var( 'ftp_settings' )) )
+        $ftp_settings = array();
 
     if( !($plugin_location = $this->context_var( 'plugin_location' )) )
         $plugin_location = array();
@@ -23,6 +27,10 @@
         $targets_arr = array();
     if( !($days_options_arr = $this->context_var( 'days_options_arr' )) )
         $days_options_arr = array();
+    if( !($copy_results_arr = $this->context_var( 'copy_results_arr' )) )
+        $copy_results_arr = array();
+    if( !($ftp_connection_modes_arr = $this->context_var( 'ftp_connection_modes_arr' )) )
+        $ftp_connection_modes_arr = array();
 
     $error_msg = '';
     $stats_str = '';
@@ -202,6 +210,114 @@
                 </div>
             </fieldset>
 
+            <?php
+            if( ($selected_copy_results = $this->context_var( 'copy_results' )) === false )
+                $selected_copy_results = 0;
+            ?>
+            <fieldset class="form-group">
+                <label for="copy_results"><?php echo $this->_pt( 'Copy results' )?>:</label>
+                <div class="lineform_line">
+                    <select name="copy_results" id="copy_results" class="chosen-select" style="min-width:200px;" onchange="check_copy_results_change()">
+                    <option value="0"><?php echo $this->_pt( ' - Don\'t copy - ' )?></option>
+                    <?php
+                    foreach( $copy_results_arr as $copy_id => $copy_text )
+                    {
+                        ?><option value="<?php echo $copy_id?>" <?php echo ($selected_copy_results==$copy_id?'selected="selected"':'')?>><?php echo $copy_text?></option><?php
+                    }
+                    ?></select>
+                    <br/>
+                    <small><?php echo $this->_pt( 'After creating backup files, copy them in a different location.' )?></small>
+                    <div class="clearfix"></div>
+                    <div id="copy_results_container_<?php echo $rules_model::COPY_FTP?>" style="display:none;">
+
+                        <div style="margin-bottom:10px;border-bottom: 1px solid black;" class="clearfix"><strong><?php echo $this->_pt( 'FTP Settings' )?></strong></div>
+                        <div class="clearfix" style="margin-bottom:10px;">
+                            <label for="ftp_settings_connection_mode" style="width:150px !important;">
+                                <?php echo $this->_pt( 'Connection type' )?>
+                            </label>
+                            <div style="float:left;min-width:200px;max-width:200px;">
+                            <select name="ftp_settings[connection_mode]" id="ftp_settings_connection_mode"
+                                    class="chosen-select">
+                            <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
+                            <?php
+                            if( !empty( $ftp_settings['connection_mode'] ) )
+                                $selected_connection_mode = $ftp_settings['connection_mode'];
+                            else
+                                $selected_connection_mode = 0;
+
+                            foreach( $ftp_connection_modes_arr as $ctype_id => $ctype_text )
+                            {
+                                ?><option value="<?php echo $ctype_id?>" <?php echo ($selected_connection_mode==$ctype_id?'selected="selected"':'')?>><?php echo $ctype_text?></option><?php
+                            }
+                            ?>
+                            </select></div>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_host" style="width:150px !important;"><?php echo $this->_pt( 'Host' )?></label>
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                                   name="ftp_settings[host]"
+                                   id="ftp_settings_host"
+                                   value="<?php echo (!empty( $ftp_settings['host'] )?form_str( $ftp_settings['host'] ):'')?>" />
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_port" style="width:150px !important;"><?php echo $this->_pt( 'Port' )?></label>
+                            <input type="text" class="form-control" style="width:100px;" required="required"
+                                   name="ftp_settings[port]"
+                                   id="ftp_settings_port"
+                                   value="<?php echo (!empty( $ftp_settings['port'] )?form_str( $ftp_settings['port'] ):'')?>" />
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_user" style="width:150px !important;"><?php echo $this->_pt( 'User' )?></label>
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                                   name="ftp_settings[user]"
+                                   id="ftp_settings_user"
+                                   value="<?php echo (!empty( $ftp_settings['user'] )?form_str( $ftp_settings['user'] ):'')?>" />
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_pass" style="width:150px !important;"><?php echo $this->_pt( 'Password' )?></label>
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                                   name="ftp_settings[pass]"
+                                   id="ftp_settings_pass"
+                                   value="<?php echo (!empty( $ftp_settings['pass'] )?form_str( $ftp_settings['pass'] ):'')?>" />
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_timeout" style="width:150px !important;"><?php echo $this->_pt( 'Timeout' )?></label>
+                            <input type="text" class="form-control" style="width:100px;"
+                                   name="ftp_settings[timeout]"
+                                   id="ftp_settings_timeout"
+                                   value="<?php echo (!empty( $ftp_settings['timeout'] )?form_str( $ftp_settings['timeout'] ):'')?>" />
+                            <small><?php echo $this->_pt( 'seconds' )?></small>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_passive_mode" style="width:150px !important;"><?php echo $this->_pt( 'Passive mode' )?></label>
+                            <input type="checkbox" rel="skin_checkbox"
+                                   name="ftp_settings[passive_mode]"
+                                   id="ftp_settings_passive_mode"
+                                   value="1" <?php echo (!empty( $ftp_settings['passive_mode'] )?'checked="checked"':'')?> /><br/>
+                            <small><?php echo $this->_pt( 'Not applicable for all connection modes.' )?></small>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="ftp_settings_remote_dir" style="width:150px !important;"><?php echo $this->_pt( 'Remote directory' )?></label>
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off"
+                                   name="ftp_settings[remote_dir]"
+                                   id="ftp_settings_remote_dir"
+                                   value="<?php echo (!empty( $ftp_settings['remote_dir'] )?form_str( $ftp_settings['remote_dir'] ):'')?>" />
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <input type="submit" id="do_test_ftp" name="do_test_ftp" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Test connection' )?>" />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="form-group">
                 <label for="email"><?php echo $this->_pt( 'Web Server Note' )?>:</label>
                 <div class="lineform_line">
@@ -276,7 +392,24 @@ function check_delete_after_days_change()
     } else
         $("#delete_after_days_container").hide();
 }
+function check_copy_results_change()
+{
+    var copy_results_obj = $("#copy_results");
+    if( !copy_results_obj )
+        return;
+
+    var option_val = copy_results_obj.val();
+
+    if( option_val == 0 )
+    {
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").hide();
+    } else if( option_val == <?php echo $rules_model::COPY_FTP?> )
+    {
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").show();
+    }
+}
 $(document).ready(function(){
     check_delete_after_days_change();
+    check_copy_results_change();
 });
 </script>
