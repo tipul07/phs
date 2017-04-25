@@ -255,7 +255,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_host" style="width:150px !important;"><?php echo $this->_pt( 'Host' )?></label>
-                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required" rel="is_required"
                                    name="ftp_settings[host]"
                                    id="ftp_settings_host"
                                    value="<?php echo (!empty( $ftp_settings['host'] )?form_str( $ftp_settings['host'] ):'')?>" />
@@ -263,7 +263,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_port" style="width:150px !important;"><?php echo $this->_pt( 'Port' )?></label>
-                            <input type="text" class="form-control" style="width:100px;" required="required"
+                            <input type="text" class="form-control" style="width:100px;" required="required" rel="is_required"
                                    name="ftp_settings[port]"
                                    id="ftp_settings_port"
                                    value="<?php echo (!empty( $ftp_settings['port'] )?form_str( $ftp_settings['port'] ):'')?>" />
@@ -271,7 +271,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_user" style="width:150px !important;"><?php echo $this->_pt( 'User' )?></label>
-                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required" rel="is_required"
                                    name="ftp_settings[user]"
                                    id="ftp_settings_user"
                                    value="<?php echo (!empty( $ftp_settings['user'] )?form_str( $ftp_settings['user'] ):'')?>" />
@@ -279,7 +279,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_pass" style="width:150px !important;"><?php echo $this->_pt( 'Password' )?></label>
-                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required" rel="is_required"
                                    name="ftp_settings[pass]"
                                    id="ftp_settings_pass"
                                    value="<?php echo (!empty( $ftp_settings['pass'] )?form_str( $ftp_settings['pass'] ):'')?>" />
@@ -403,9 +403,11 @@ function check_copy_results_change()
     if( option_val == 0 )
     {
         $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").hide();
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").find("*[required]").removeAttr( 'required' );
     } else if( option_val == <?php echo $rules_model::COPY_FTP?> )
     {
         $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").show();
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").find("*[rel='is_required']").attr( 'required', 'required' );
     }
 }
 $(document).ready(function(){

@@ -373,9 +373,11 @@ function check_copy_results_change()
     if( option_val == 0 )
     {
         $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").hide();
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").find("*[required]").removeAttr( 'required' );
     } else if( option_val == <?php echo $rules_model::COPY_FTP?> )
     {
         $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").show();
+        $("#copy_results_container_<?php echo $rules_model::COPY_FTP?>").find("*[rel='is_required']").attr( 'required', 'required' );
     }
 }
 $(document).ready(function(){
