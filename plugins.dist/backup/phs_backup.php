@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.7';
+        return '1.0.8';
     }
 
     /**
@@ -472,6 +472,288 @@ class PHS_Plugin_Backup extends PHS_Plugin
         );
     }
 
+    public function copy_backup_files_bg()
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
+         or !($results_model = PHS::load_model( 'results', 'backup' ))
+         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
+         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         or !($br_flow_params = $results_model->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
+         or !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
+            return false;
+        }
+
+        /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
+        if( !($ftp_obj = PHS::get_core_library_instance( 'ftp' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load FTP core library.' ) );
+            return false;
+        }
+
+        $return_arr = array();
+        $return_arr['results_copied'] = 0;
+        $return_arr['failed_copy_result_ids'] = array();
+
+        $now_time = time();
+
+        // Select active rules for today and for current hour and that didn't run today
+        if( !($qid = db_query( 'SELECT `'.$r_table_name.'`.* '.
+                              ' FROM `'.$r_table_name.'`'.
+                              ' WHERE '.
+                              ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
+                              ' AND `'.$r_table_name.'`.copy_results != 0', $r_flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
+            return $return_arr;
+
+        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( empty( $rule_arr['copy_results'] )
+             or !($rule_with_settings = $rules_model->get_rule_ftp_settings( $rule_arr )) )
+            {
+                PHS_Logger::logf( 'Empty copy method or couldn\'t extract copy settings for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                continue;
+            }
+
+            $copy_init_error = false;
+            switch( $rule_arr['copy_results'] )
+            {
+                default:
+                    PHS_Logger::logf( 'Unknown copy method for rule #'.$rule_arr['id'].' ('.$rule_arr['copy_results'].').', self::LOG_CHANNEL );
+                    $copy_init_error = true;
+                break;
+
+                case $rules_model::COPY_FTP:
+                    if( empty( $rule_arr['ftp_settings'] )
+                     or empty( $rule_with_settings['{ftp_settings}'] )
+                     or !$ftp_obj->settings( $rule_with_settings['{ftp_settings}'] ) )
+                    {
+                        if( $ftp_obj->has_error() )
+                            $error_msg = $ftp_obj->get_error_message();
+                        else
+                            $error_msg = 'Failed sending FTP settings to FTP instance.';
+
+                        PHS_Logger::logf( 'FTP initialization error: '.$error_msg, self::LOG_CHANNEL );
+                        $copy_init_error = true;
+                    }
+
+                    if( !empty( $rule_with_settings['{ftp_settings}']['remote_dir'] ) )
+                    {
+                        $original_settings = $rule_with_settings['{ftp_settings}'];
+                        $original_settings['remote_dir'] = '';
+
+                        $ftp_obj->settings( $original_settings );
+
+                        if( !$ftp_obj->mkdir( $rule_with_settings['{ftp_settings}']['remote_dir'], array( 'recursive' => true ) ) )
+                        {
+                            if( $ftp_obj->has_error() )
+                                $error_msg = $ftp_obj->get_error_message();
+                            else
+                                $error_msg = 'Failed creating remote directory setup in backup rule.';
+
+                            PHS_Logger::logf( 'Error creating remote directory: '.$error_msg, self::LOG_CHANNEL );
+                            $copy_init_error = true;
+                        }
+
+                        $ftp_obj->settings( $rule_with_settings['{ftp_settings}'] );
+                    }
+                break;
+            }
+
+            if( !empty( $copy_init_error ) )
+            {
+                PHS_Logger::logf( 'Error initializing copy instance for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                continue;
+            }
+
+            $results_sql = 'SELECT `'.$br_table_name.'`.* '.
+                           ' FROM `'.$br_table_name.'`'.
+                           ' WHERE '.
+                           ' `'.$br_table_name.'`.status = \''.$results_model::STATUS_FINISHED.'\' '.
+                           ' AND ( `'.$br_table_name.'`.copied IS NULL '.
+                                   ' OR '.
+                                   '(`'.$br_table_name.'`.copied <= \''.date( $results_model::DATETIME_DB, $now_time - 86400 ).'\''.
+                                        ' AND (`'.$br_table_name.'`.copy_error IS NOT NULL AND `'.$br_table_name.'`.copy_error != \'\')'.
+                                   ')'.
+                                ')';
+
+            // select results which were not copied before or ones that system tried to copy and had error, but one day old if error
+            if( !($br_qid = db_query( $results_sql, $br_flow_params['db_connection'] ))
+             or !($results_count = @mysqli_num_rows( $br_qid )) )
+            {
+                PHS_Logger::logf( 'No results to copy for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                continue;
+            }
+
+            PHS_Logger::logf( 'Trying to copy '.$results_count.' results for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+
+            // Get next file to be copied. In case we have more processes uploading files to be sure there's one that picks a transfer.
+            while( ($br_qid = db_query( $results_sql.' LIMIT 0, 1', $br_flow_params['db_connection'] ))
+               and ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
+            {
+                $edit_arr = array(
+                    'fields' => array(
+                        'copied' => date( $results_model::DATETIME_DB ),
+                        'copy_error' => '',
+                    ),
+                );
+
+                if( !($new_result_arr = $results_model->edit( $result_arr, $edit_arr )) )
+                {
+                    $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
+
+                    PHS_Logger::logf( 'Error saving result details in database. Result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                    continue;
+                }
+
+                $result_arr = $new_result_arr;
+
+                if( !($files_arr = $results_model->get_result_files( $result_arr['id'] ))
+                 or !is_array( $files_arr ) )
+                {
+                    if( is_array( $files_arr ) )
+                    {
+                        $return_arr['results_copied']++;
+                        PHS_Logger::logf( 'No result files to copy for for rule result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                    }
+
+                    else
+                    {
+                        $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
+
+                        if( $results_model->has_error() )
+                            $error_msg = $results_model->get_error_message();
+                        else
+                            $error_msg = 'Error obtaining backup result files.';
+
+                        $edit_arr = array(
+                            'fields' => array(
+                                'copy_error' => $error_msg,
+                            ),
+                        );
+
+                        $results_model->edit( $result_arr, $edit_arr );
+
+                        PHS_Logger::logf( 'Error obtaining backup result files for result #'.$result_arr['id'].': '.$error_msg, self::LOG_CHANNEL );
+                    }
+
+                    continue;
+                }
+
+                PHS_Logger::logf( 'Trying to copy '.count( $files_arr ).' result files, total size: '.$result_arr['size'].' bytes for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+
+                $copy_action_error = false;
+                switch( $rule_arr['copy_results'] )
+                {
+                    case $rules_model::COPY_FTP:
+
+                        $remote_dir = $rule_arr['id'].'/'.@basename( $result_arr['run_dir'] );
+
+                        if( !$ftp_obj->mkdir( $remote_dir, array( 'recursive' => true ) ) )
+                        {
+                            $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
+                            $copy_action_error = true;
+                            if( $ftp_obj->has_error() )
+                                $error_msg = $ftp_obj->get_error_message();
+                            else
+                                $error_msg = 'Failed creating remote result directory.';
+
+                            $edit_arr = array(
+                                'fields' => array(
+                                    'copy_error' => $error_msg,
+                                ),
+                            );
+
+                            $results_model->edit( $result_arr, $edit_arr );
+
+                            PHS_Logger::logf( 'Error creating remote result directory: '.$error_msg, self::LOG_CHANNEL );
+                        } else
+                        {
+                            foreach( $files_arr as $file_id => $file_arr )
+                            {
+                                if( empty( $file_arr['file'] )
+                                 or !@file_exists( $file_arr['file'] ) )
+                                {
+                                    $copy_action_error = true;
+
+                                    $error_msg = 'Result file not found ('.(empty( $file_arr['file'] )?'N/A':$file_arr['file']).'), size: '.$file_arr['size'].' bytes.';
+
+                                    $edit_arr = array(
+                                        'fields' => array(
+                                            'copy_error' => $error_msg,
+                                        ),
+                                    );
+
+                                    $results_model->edit( $result_arr, $edit_arr );
+
+                                    PHS_Logger::logf( $error_msg, self::LOG_CHANNEL );
+                                    continue;
+                                }
+
+                                $remote_file = $remote_dir.'/'.basename( $file_arr['file'] );
+
+                                PHS_Logger::logf( 'Uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes', self::LOG_CHANNEL );
+
+                                $start_put_time = time();
+
+                                if( !$ftp_obj->put( $file_arr['file'], array( 'remote_file' => $remote_file ) ) )
+                                {
+                                    $copy_action_error = true;
+
+                                    if( $ftp_obj->has_error() )
+                                        $error_msg = $ftp_obj->get_error_message();
+                                    else
+                                        $error_msg = 'Failed uploading file.';
+
+                                    $error_msg = 'Failed uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes: '.$error_msg;
+
+                                    $edit_arr = array(
+                                        'fields' => array(
+                                            'copy_error' => $error_msg,
+                                        ),
+                                    );
+
+                                    $results_model->edit( $result_arr, $edit_arr );
+
+                                    PHS_Logger::logf( 'Error uploading file: '.$error_msg, self::LOG_CHANNEL );
+                                    continue;
+                                } else
+                                {
+                                    $total_put_time = time() - $start_put_time;
+
+                                    if( $total_put_time <= 0 )
+                                        $upload_speed = $file_arr['size'];
+                                    else
+                                        $upload_speed = number_format( $file_arr['size'] / $total_put_time, 4, '.', '' );
+
+                                    PHS_Logger::logf( 'DONE Uploaded result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes, @'.format_filesize( $upload_speed ).'/s', self::LOG_CHANNEL );
+                                }
+                            }
+                        }
+                    break;
+                }
+
+                if( !empty( $copy_action_error ) )
+                {
+                    $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
+
+                    PHS_Logger::logf( 'Error copying result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                    continue;
+                } else
+                    PHS_Logger::logf( 'DONE Uploading result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+
+                $return_arr['results_copied']++;
+            }
+        }
+
+        return $return_arr;
+    }
+
     public function delete_old_backups_bg()
     {
         $this->reset_error();
@@ -520,7 +802,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             PHS_Logger::logf( 'Trying to delete '.$results_count.' results older than '.$rule_arr['delete_after_days'].' days for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
 
-            while( ($result_arr = @mysqli_fetch_assoc( $qid )) )
+            while( ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
             {
                 if( $results_model->act_delete( $result_arr ) )
                 {
