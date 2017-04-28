@@ -1438,6 +1438,7 @@ final class PHS extends PHS_Registry
      *
      * @param string|bool $view View to be loaded (part of class name after PHS_View_)
      * @param string|bool $plugin Plugin where view is located (false means a core view)
+     * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
      * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
      */

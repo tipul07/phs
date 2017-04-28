@@ -624,7 +624,10 @@ class PHS_Ftp extends PHS_Library
             return true;
 
         if( !$this->can_connect() )
+        {
+            $this->set_error( self::ERR_CONNECTION, 'Cannot connect to server. FTP settings not provided.' );
             return false;
+        }
 
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -729,6 +732,7 @@ class PHS_Ftp extends PHS_Library
             and ($server_fingerprint = @ssh2_fingerprint( $this->internal_settings['con_ssh2'], SSH2_FINGERPRINT_MD5 | SSH2_FINGERPRINT_HEX ))
             and strtoupper( $server_fingerprint ) != strtoupper( $ftp_settings['ssh2_fingerprint'] ) )
             {
+                unset( $this->internal_settings['con_ssh2'] );
                 $this->internal_settings['con_ssh2'] = 0;
 
                 $this->set_error( self::ERR_CONNECTION, 'Server fingerprint mismatch.' );
@@ -740,12 +744,14 @@ class PHS_Ftp extends PHS_Library
             // Login
             if( !@ssh2_auth_password( $this->internal_settings['con_ssh2'], $ftp_settings['user'], $ftp_settings['pass'] ) )
             {
-                unset( $this->internal_settings['con_ssh2'] );
+                //unset( $this->internal_settings['con_ssh2'] );
                 $this->internal_settings['con_ssh2'] = 0;
 
                 $this->set_error( self::ERR_AUTHENTICATION, 'FTP login failed.' );
+
                 if( empty( $params['skip_callbacks'] ) )
                     $this->trigger_phs_hooks( self::H_AFTER_CONNECT, array( 'server' => $ftp_settings, 'success' => false ) );
+
                 return false;
             }
 
@@ -856,7 +862,7 @@ class PHS_Ftp extends PHS_Library
 
         if( !is_string( $dir ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, 'Directory parameter not a string.' );
+            $this->set_error( self::ERR_PARAMETERS, 'Local directory parameter not a string.' );
             return false;
         }
 
@@ -2170,10 +2176,10 @@ class PHS_Ftp extends PHS_Library
         }
         elseif( $ftp_settings['connection_mode'] == self::CON_TYPE_SSH )
         {
-            @ssh2_exec( $this->internal_settings['con'], 'exit' );
+            @ssh2_exec( $this->internal_settings['con_ssh2'], 'exit' );
 
-            unset( $this->internal_settings['con'] );
             unset( $this->internal_settings['con_ssh2'] );
+            unset( $this->internal_settings['con'] );
         }
 
         $this->internal_settings = self::_default_internal_settings();

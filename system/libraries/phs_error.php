@@ -40,6 +40,11 @@ class PHS_Error
     /** @var bool $debugging_mode */
     private $debugging_mode = false;
 
+    //! Tells if we should get full backtrace when we have an error.
+    //! In some cases debug_backtrace() would result in Segmentation fault because of some resources (eg. SSH2/SFTP connections)
+    /** @var bool $supress_backtrace */
+    private $suppress_backtrace = false;
+
     function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
     {
         $error_no = intval( $error_no );
@@ -54,6 +59,7 @@ class PHS_Error
         {
             $this->throw_errors( self::st_throw_errors() );
             $this->debugging_mode( self::st_debugging_mode() );
+            $this->suppress_backtrace( self::st_suppress_backtrace() );
         }
     }
 
@@ -239,37 +245,7 @@ class PHS_Error
      **/
     public static function arr_set_error( $error_no, $error_msg, $error_debug_msg = '' )
     {
-        $backtrace = '';
-        if( is_array( ($err_info = debug_backtrace()) ) )
-        {
-            $lvl = count( $err_info );
-            for( $i = $lvl-1; $i >= 0; $i-- )
-            {
-                $args_str = '';
-                if( is_array( $err_info[$i]['args'] ) )
-                {
-                    foreach( $err_info[$i]['args'] as $key => $val )
-                        $args_str .= self::mixed_to_string( $val ).', ';
-
-                    $args_str = substr( $args_str, 0, -2 );
-                } else
-                    $args_str = $err_info[$i]['args'];
-
-                if( !isset( $err_info[$i]['class'] ) )
-                    $err_info[$i]['class'] = '';
-                if( !isset( $err_info[$i]['type'] ) )
-                    $err_info[$i]['type'] = '';
-                if( !isset( $err_info[$i]['function'] ) )
-                    $err_info[$i]['function'] = '';
-                if( !isset( $err_info[$i]['file'] ) )
-                    $err_info[$i]['file'] = '(unknown)';
-                if( !isset( $err_info[$i]['line'] ) )
-                    $err_info[$i]['line'] = '-1';
-
-                $backtrace .= '#'.($lvl-$i).'. '.$err_info[$i]['class'].$err_info[$i]['type'].$err_info[$i]['function'].'( '.$args_str.' ) -> '.
-                              $err_info[$i]['file'].':'.$err_info[$i]['line']."\n";
-            }
-        }
+        $backtrace = self::st_debug_call_backtrace();
 
         $error_arr = self::default_error_array();
         $error_arr['error_no'] = $error_no;
@@ -354,26 +330,7 @@ class PHS_Error
         if( empty( $this->warnings_arr[self::WARNING_NOTAG] ) )
             $this->warnings_arr[self::WARNING_NOTAG] = array();
 
-        $backtrace = '';
-        if( is_array( ($err_info = debug_backtrace()) ) )
-        {
-            $lvl = count( $err_info );
-            for( $i = $lvl-1; $i >= 0; $i-- )
-            {
-                $args_str = '';
-                if( is_array( $err_info[$i]['args'] ) )
-                {
-                    foreach( $err_info[$i]['args'] as $key => $val )
-                        $args_str .= self::mixed_to_string( $val ).', ';
-
-                    $args_str = substr( $args_str, 0, -2 );
-                } else
-                    $args_str = $err_info[$i]['args'];
-
-                $backtrace .= '#'.($lvl-$i).'. '.$err_info[$i]['class'].$err_info[$i]['type'].$err_info[$i]['function'].'( '.$args_str.' ) -> '.
-                              $err_info[$i]['file'].':'.$err_info[$i]['line']."\n";
-            }
-        }
+        $backtrace = $this->debug_call_backtrace();
 
         $warning_unit = array(
             'warning_msg' => $warning,
@@ -779,10 +736,14 @@ class PHS_Error
      */
     public function debug_call_backtrace()
     {
+        if( $this->suppress_backtrace() )
+            return '';
+
         $backtrace = '';
-        if( is_array( ($err_info = debug_backtrace()) ) )
+        if( ($err_info = @debug_backtrace())
+        and is_array( $err_info ) )
         {
-            $err_info = array_reverse( $err_info );
+            $err_info_len = count( $err_info );
             foreach( $err_info as $i => $trace_data )
             {
                 if( !isset( $trace_data['args'] ) )
@@ -808,9 +769,11 @@ class PHS_Error
                 } else
                     $args_str = $trace_data['args'];
 
-                $backtrace .= '#'.($i+1).'. '.$trace_data['class'].$trace_data['type'].$trace_data['function'].'( '.$args_str.' ) - '.
-                              $trace_data['file'].':'.$trace_data['line']."\n";
+                $backtrace = '#'.($err_info_len-$i).'. '.$trace_data['class'].$trace_data['type'].$trace_data['function'].'( '.$args_str.' ) - '.
+                              $trace_data['file'].':'.$trace_data['line']."\n".$backtrace;
             }
+
+            unset( $err_info );
         }
 
         return $backtrace;
@@ -823,41 +786,7 @@ class PHS_Error
      */
     public static function st_debug_call_backtrace()
     {
-        $backtrace = '';
-        if( is_array( ($err_info = debug_backtrace()) ) )
-        {
-            $err_info = array_reverse( $err_info );
-            foreach( $err_info as $i => $trace_data )
-            {
-                if( !isset( $trace_data['args'] ) )
-                    $trace_data['args'] = '';
-                if( !isset( $trace_data['class'] ) )
-                    $trace_data['class'] = '';
-                if( !isset( $trace_data['type'] ) )
-                    $trace_data['type'] = '';
-                if( !isset( $trace_data['function'] ) )
-                    $trace_data['function'] = '';
-                if( !isset( $trace_data['file'] ) )
-                    $trace_data['file'] = '(unknown)';
-                if( !isset( $trace_data['line'] ) )
-                    $trace_data['line'] = 0;
-
-                $args_str = '';
-                if( is_array( $trace_data['args'] ) )
-                {
-                    foreach( $trace_data['args'] as $key => $val )
-                        $args_str .= self::mixed_to_string( $val ).', ';
-
-                    $args_str = substr( $args_str, 0, -2 );
-                } else
-                    $args_str = $trace_data['args'];
-
-                $backtrace .= '#'.($i+1).'. '.$trace_data['class'].$trace_data['type'].$trace_data['function'].'( '.$args_str.' ) - '.
-                              $trace_data['file'].':'.$trace_data['line']."\n";
-            }
-        }
-
-        return $backtrace;
+        return self::get_error_static_instance()->debug_call_backtrace();
     }
 
     public function throw_errors( $mode = null )
@@ -888,6 +817,21 @@ class PHS_Error
     public static function st_debugging_mode( $mode = null )
     {
         return self::get_error_static_instance()->debugging_mode( $mode );
+    }
+
+    public function suppress_backtrace( $mode = null )
+    {
+        if( is_null( $mode ) )
+            return $this->suppress_backtrace;
+
+        $this->suppress_backtrace = (!empty( $mode )?true:false);
+
+        return $this->suppress_backtrace;
+    }
+
+    public static function st_suppress_backtrace( $mode = null )
+    {
+        return self::get_error_static_instance()->suppress_backtrace( $mode );
     }
 
     static function get_error_static_instance()

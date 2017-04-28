@@ -127,6 +127,11 @@ if( !defined( 'PHS_LOGS_DIR' ) )
 if( !defined( 'PHS_SITEBUILD_VERSION' ) )
     define( 'PHS_SITEBUILD_VERSION', PHS_VERSION );
 
+// Running in debugging mode?
+PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
+// Should errors be thrown?
+PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
+
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
 PHS_Logger::logging_dir( PHS_LOGS_DIR );
@@ -137,11 +142,6 @@ PHS_Scope::current_scope( PHS_Scope::SCOPE_WEB );
 
 PHS::init();
 
-// Running in debugging mode?
-PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
-// Should errors be thrown?
-PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
-
 if( PHS::st_debugging_mode() )
 {
     // Make sure we get all errors if we are in debugging mode and set custom error handler
@@ -149,7 +149,7 @@ if( PHS::st_debugging_mode() )
     ini_set( 'display_errors', true );
     ini_set( 'display_startup_errors', true );
 
-    $old_error_handler = set_error_handler( array( '\phs\PHS', 'error_handler' ) );
+    $old_error_handler = @set_error_handler( array( '\phs\PHS', 'error_handler' ) );
 } else
 {
     // Make sure we don't display errors if we'r not in debugging mode

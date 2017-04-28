@@ -733,7 +733,6 @@ abstract class PHS_Instantiable extends PHS_Registry
             ob_end_clean();
         }
 
-
         if( !@class_exists( $instance_details['instance_full_class'], false ) )
         {
             self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Class %s not defined in %s file.', $instance_details['instance_full_class'], $instance_details['instance_file_name'] ) );
@@ -743,24 +742,26 @@ abstract class PHS_Instantiable extends PHS_Registry
         /** @var PHS_Model $instance_obj */
         if( !empty( $singleton )
         and isset( self::$instances[$instance_details['instance_id']] ) )
-            $instance_obj = self::$instances[$instance_details['instance_id']];
-        else
+            return self::$instances[$instance_details['instance_id']];
+
+        $instance_class = $instance_details['instance_full_class'];
+
+        /** @var PHS_Instantiable $instance_obj */
+        if( !($instance_obj = new $instance_class( $instance_details )) )
         {
-            $instance_class = $instance_details['instance_full_class'];
-
-            /** @var PHS_Instantiable $instance_obj */
-            $instance_obj = new $instance_class( $instance_details );
-
-            if( $instance_obj->has_error() )
-            {
-                self::st_copy_error( $instance_obj );
-                return false;
-            }
+            self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Error instantiating class %s from %s file.', $instance_details['instance_full_class'], $instance_details['instance_file_name'] ) );
+            return false;
         }
 
         if( !($instance_obj instanceof PHS_Instantiable) )
         {
             self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Loaded class doesn\'t appear to be a PHS instance.' ) );
+            return false;
+        }
+
+        if( $instance_obj->has_error() )
+        {
+            self::st_copy_error( $instance_obj );
             return false;
         }
 
