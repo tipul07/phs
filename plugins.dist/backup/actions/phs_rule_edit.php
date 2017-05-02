@@ -3,9 +3,7 @@
 namespace phs\plugins\backup\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
 use \phs\PHS_Scope;
-use \phs\PHS_crypt;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
@@ -269,44 +267,30 @@ class PHS_Action_Rule_edit extends PHS_Action
             and !PHS_Notifications::have_errors_or_warnings_notifications()
             and !empty( $do_test_ftp ) )
             {
-                if( !($ftp_connection_success = $this->_test_ftp( $ftp_settings )) )
-                {
-                    if( $this->has_error() )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'FTP error: %s', $this->get_error_message() ) );
-                    else
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t connect to FTP server.' ) );
-                }
-
                 $this->reset_error();
 
-                // if( !$ftp_obj->settings( $ftp_settings ) )
-                // {
-                //     if( $ftp_obj->has_error() )
-                //         PHS_Notifications::add_error_notice( $this->_pt( 'Error in FTP settings: %s.', $ftp_obj->get_error_message() ) );
-                //     else
-                //         PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t setup a FTP instance with provided settings.' ) );
-                // } else
-                // {
-                //     // if( $ftp_obj->ls() !== false )
-                //     //     $ftp_connection_success = true;
-                //     //
-                //     // else
-                //     // {
-                //     //     $ftp_connection_success = false;
-                //     //     if( $ftp_obj->has_error() )
-                //     //         PHS_Notifications::add_error_notice( $this->_pt( 'Error connecting to FTP server: %s.', $ftp_obj->get_error_message() ) );
-                //     //     else
-                //     //         PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t connect to FTP server.' ) );
-                //     // }
-                //     //
-                //     // $ftp_obj->close();
-                //     //
-                //     // // var_dump( $ftp_obj ); exit;
-                //     // // unset( $ftp_obj );
-                //     // $ftp_obj = null;
-                //
-                //     $ftp_connection_success = true;
-                // }
+                if( !$ftp_obj->settings( $ftp_settings ) )
+                {
+                    if( $ftp_obj->has_error() )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Error sending FTP settings: %s.', $ftp_obj->get_error_message() ) );
+                    else
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t setup a FTP instance with provided settings.' ) );
+                } else
+                {
+                    if( $ftp_obj->ls() !== false )
+                        $ftp_connection_success = true;
+
+                    else
+                    {
+                        $ftp_connection_success = false;
+                        if( $ftp_obj->has_error() )
+                            PHS_Notifications::add_error_notice( $this->_pt( 'Error connecting to FTP server: %s', $ftp_obj->get_error_message() ) );
+                        else
+                            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t connect to FTP server.' ) );
+                    }
+
+                    $ftp_obj->close();
+                }
             }
 
             if( $rule_details_saved )
@@ -363,81 +347,5 @@ class PHS_Action_Rule_edit extends PHS_Action
         );
 
         return $this->quick_render_template( 'rule_edit', $data );
-    }
-
-    private function _test_ftp( $ftp_settings )
-    {
-        $this->reset_error();
-
-        if( empty( $ftp_settings['pass'] ) )
-            $ftp_settings['pass'] = '';
-
-        $ftp_settings['pass'] = PHS_crypt::quick_encode( $ftp_settings['pass'] );
-
-        $script_params = array();
-        $script_params['ftp_settings'] = $ftp_settings;
-
-        if( !($bg_action_result = PHS_bg_jobs::run( array(
-                                                        'plugin' => 'backup',
-                                                        'controller' => 'index_bg',
-                                                        'action' => 'check_ftp_bg',
-                                                    ),
-                                                    $script_params,
-                                                    array(
-                                                        'return_buffer' => true,
-                                                    )
-        ))
-         or !is_array( $bg_action_result ) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error checking FTP server connection. Internal error.' ) );
-            return false;
-        }
-
-        if( empty( $bg_action_result['ajax_result'] ) or !is_array( $bg_action_result['ajax_result'] )
-         or !isset( $bg_action_result['ajax_result']['has_error'] )
-         or !empty( $bg_action_result['ajax_result']['has_error'] ) )
-        {
-            if( !empty( $bg_action_result['ajax_result']['error_message'] ) )
-                $error_msg = $bg_action_result['ajax_result']['error_message'];
-            else
-                $error_msg = $this->_pt( 'Error checking FTP server connection. Internal error.' );
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-
-        // /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
-        // if( !($ftp_obj = PHS::get_core_library_instance( 'ftp', array( 'as_singleton' => false ) )) )
-        // {
-        //     $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load FTP core library.' ) );
-        //     return false;
-        // }
-        //
-        // if( !$ftp_obj->settings( $ftp_settings ) )
-        // {
-        //     if( $ftp_obj->has_error() )
-        //         $this->copy_error( $ftp_obj );
-        //     else
-        //         $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Cannot pass FTP settings to FTP library instance.' ) );
-        //     return false;
-        // }
-        //
-        // if( $ftp_obj->ls() !== false )
-        //     $ftp_connection_success = true;
-        //
-        // else
-        // {
-        //     $ftp_connection_success = false;
-        //     if( $ftp_obj->has_error() )
-        //         $this->copy_error( $ftp_obj );
-        //     else
-        //         $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t connect to FTP server.' ) );
-        // }
-        //
-        // $ftp_obj->close();
-        //
-        // return $ftp_connection_success;
     }
 }

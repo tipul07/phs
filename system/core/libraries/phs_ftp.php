@@ -593,30 +593,30 @@ class PHS_Ftp extends PHS_Library
         return $return_arr;
     }
 
-    /**
-     * Method which will be callback for disconnect signal from libssh2 library
-     *
-     * @param int $reason
-     * @param string $message
-     * @param $language
-     */
-    public function signal_ssh_disconnect( $reason, $message, $language )
-    {
-        $this->close();
-    }
-
-    /**
-     * Method which will be called when a packet is received but the message authentication code failed.
-     * If the callback returns TRUE, the mismatch will be ignored, otherwise the connection will be terminated.
-     * from libssh2 library
-     *
-     * @param string $packet
-     * @return bool
-     */
-    public function signal_ssh_macerror( $packet )
-    {
-        return true;
-    }
+    // /**
+    //  * Method which will be callback for disconnect signal from libssh2 library
+    //  *
+    //  * @param int $reason
+    //  * @param string $message
+    //  * @param $language
+    //  */
+    // public function signal_ssh_disconnect( $reason, $message, $language )
+    // {
+    //     $this->close();
+    // }
+    //
+    // /**
+    //  * Method which will be called when a packet is received but the message authentication code failed.
+    //  * If the callback returns TRUE, the mismatch will be ignored, otherwise the connection will be terminated.
+    //  * from libssh2 library
+    //  *
+    //  * @param string $packet
+    //  * @return bool
+    //  */
+    // public function signal_ssh_macerror( $packet )
+    // {
+    //     return true;
+    // }
 
     public function connect( $params = false )
     {
@@ -714,12 +714,12 @@ class PHS_Ftp extends PHS_Library
                 return false;
             }
 
-            $ssh2_callbacks = array(
-                'disconnect' => array( $this, 'signal_ssh_disconnect' ),
-                'macerror' => array( $this, 'signal_ssh_macerror' ),
-            );
+            // $ssh2_callbacks = array(
+            //     'disconnect' => array( $this, 'signal_ssh_disconnect' ),
+            //     'macerror' => array( $this, 'signal_ssh_macerror' ),
+            // );
 
-            if( !($this->internal_settings['con_ssh2'] = @ssh2_connect( $ftp_settings['host'], $ftp_settings['port'], null, $ssh2_callbacks )) )
+            if( !($this->internal_settings['con_ssh2'] = @ssh2_connect( $ftp_settings['host'], $ftp_settings['port'] )) )//, null, $ssh2_callbacks )) )
             {
                 $this->set_error( self::ERR_CONNECTION, 'FTP connection to server failed.' );
                 if( empty( $params['skip_callbacks'] ) )

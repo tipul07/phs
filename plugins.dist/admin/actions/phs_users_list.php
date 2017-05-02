@@ -505,6 +505,42 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 }
             break;
 
+            case 'resend_registration_email':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Re-sent registration email with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Re-sending registration email failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage accounts.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = intval( $action['action_params'] );
+
+                if( empty( $action['action_params'] )
+                 or !($account_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot re-send registration email. Account not found.' ) );
+                    return false;
+                }
+
+                if( !($send_result = $this->_paginator_model->send_after_registration_email( $account_arr, array( 'send_confirmation_email' => true ) ))
+                 or !is_array( $send_result )
+                 or !empty( $send_result['has_error'] ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
+            break;
+
             case 'activate_account':
                 if( !empty( $action['action_result'] ) )
                 {
@@ -679,6 +715,13 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             <?php
         }
 
+        if( $this->_paginator_model->needs_after_registration_email( $account_arr ) )
+        {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_users_list_resend_registration_email( '<?php echo $account_arr['id']?>' )"><i class="fa fa-share-square-o action-icons" title="<?php echo $this->_pt( 'Re-send registration email' )?>"></i></a>
+            <?php
+        }
+
         if( $is_inactive )
         {
             ?>
@@ -716,7 +759,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_users_list_sublogin_account( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to change login as this account?', '"' )?>" ) )
+            if( confirm( "<?php echo $this->_pte( 'Are you sure you want to change login as this account?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
@@ -727,9 +770,22 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
+        function phs_users_list_resend_registration_email( id )
+        {
+            if( confirm( "<?php echo $this->_pte( 'Are you sure you want to re-send registration email for this account?', '"' )?>" ) )
+            {
+                <?php
+                $url_params = array();
+                $url_params['action'] = array(
+                    'action' => 'resend_registration_email',
+                    'action_params' => '" + id + "',
+                )
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
+            }
+        }
         function phs_users_list_activate_account( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this account?', '"' )?>" ) )
+            if( confirm( "<?php echo $this->_pte( 'Are you sure you want to activate this account?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
@@ -742,7 +798,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         }
         function phs_users_list_inactivate_account( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this account?', '"' )?>" ) )
+            if( confirm( "<?php echo $this->_pte( 'Are you sure you want to inactivate this account?', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
@@ -755,8 +811,8 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
         }
         function phs_users_list_delete_account( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to DELETE this account?', '"' )?>" + "\n" +
-                         "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
+            if( confirm( "<?php echo $this->_pte( 'Are you sure you want to DELETE this account?', '"' )?>" + "\n" +
+                         "<?php echo $this->_pte( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
                 $url_params = array();
@@ -783,11 +839,11 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to activate first.', '"' )?>" );
+                alert( "<?php echo $this->_pte( 'Please select accounts you want to activate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( $this->_pte( 'Are you sure you want to activate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -802,11 +858,11 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to inactivate first.', '"' )?>" );
+                alert( "<?php echo $this->_pte( 'Please select accounts you want to inactivate first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( $this->_pte( 'Are you sure you want to inactivate %s accounts?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -821,12 +877,12 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select accounts you want to delete first.', '"' )?>" );
+                alert( "<?php echo $this->_pte( 'Please select accounts you want to delete first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s accounts?', '"' ), '" + total_checked + "' )?>" + "\n" +
-                         "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
+            if( confirm( "<?php echo sprintf( $this->_pte( 'Are you sure you want to DELETE %s accounts?', '"' ), '" + total_checked + "' )?>" + "\n" +
+                         "<?php echo $this->_pte( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
                 if( form_obj )

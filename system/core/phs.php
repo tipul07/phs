@@ -1889,18 +1889,18 @@ final class PHS extends PHS_Registry
                 // end all buffers
                 while( @ob_end_flush() );
 
-                echo "<b>ERROR</b> [$errno] ($errfile:$errline) $errstr<br />\n";
+                echo "<strong>ERROR</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
                 exit(1);
             break;
 
             case E_WARNING:
             case E_USER_WARNING:
-                echo "<b>WARNING</b> [$errno] ($errfile:$errline) $errstr<br />\n";
+                echo "<strong>WARNING</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
             break;
 
             case E_NOTICE:
             case E_USER_NOTICE:
-                echo "<b>NOTICE</b> [$errno] ($errfile:$errline) $errstr<br />\n";
+                echo "<strong>NOTICE</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
             break;
 
             default:
@@ -1909,5 +1909,10 @@ final class PHS extends PHS_Registry
         }
 
         return true;
+    }
+
+    public static function tick_handler()
+    {
+        var_dump( PHS::st_debug_call_backtrace( 1 ) );
     }
 }
