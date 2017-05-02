@@ -274,9 +274,18 @@ class PHS_Paginator extends PHS_Registry
             }
         }
 
-        $seconds_ago = seconds_passed( $date_time );
+        // force indexes for language xgettext parser
+        self::_t( 'in %s' );
+        self::_t( '%s ago' );
 
-        return '<span title="'.self::_t( '%s ago', PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+        if( ($seconds_ago = seconds_passed( $date_time )) < 0 )
+            // date in future
+            $lang_index = 'in %s';
+        else
+            // date in past
+            $lang_index = '%s ago';
+
+        return '<span title="'.self::_t( $lang_index, PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
     }
 
     public function get_checkbox_name_format()
