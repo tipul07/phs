@@ -300,8 +300,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if( empty( $hook_args['template'] )
-         or !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params )) )
+        if( empty( $hook_args['body_buffer'] )
+        and (empty( $hook_args['template'] )
+            or !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params ))
+            ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_TEMPLATE );
@@ -360,7 +362,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'email_content' => '',
         );
 
-        if( !($email_template_obj = PHS_View::init_view( $email_template, $view_params ))
+        if( !empty( $hook_args['body_buffer'] ) )
+            $email_content_buffer = $hook_args['body_buffer'];
+
+        elseif( empty( $email_template )
+         or !($email_template_obj = PHS_View::init_view( $email_template, $view_params ))
          or !($email_content_buffer = $email_template_obj->render()) )
         {
             if( self::st_has_error() )
@@ -369,7 +375,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->copy_error( $email_template_obj );
 
             if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', ($email_template_obj?$email_template_obj->get_template():'(???)') ) );
+                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', (!empty( $email_template_obj )?$email_template_obj->get_template():'(???)') ) );
 
             PHS_Logger::logf( 'Email template render error ['.$this->get_error_message().'].', PHS_Logger::TYPE_DEBUG );
 

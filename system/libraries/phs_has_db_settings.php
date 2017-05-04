@@ -144,7 +144,6 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         if( !empty( $this->_default_settings ) )
             return $this->_default_settings;
 
-
         if( empty( $this->_settings_structure ) )
             $this->validate_settings_structure();
 

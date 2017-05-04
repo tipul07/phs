@@ -121,7 +121,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
-     * @return array Array with settings of plugin of current model
+     * @return array Array with settings of plugin
      */
     public function get_plugin_settings()
     {
@@ -133,6 +133,21 @@ abstract class PHS_Instantiable extends PHS_Registry
             $plugins_settings = $plugin_obj->get_default_settings();
 
         return $plugins_settings;
+    }
+
+    /**
+     * @return array Array with registry records of plugin
+     */
+    public function get_plugin_registry()
+    {
+        if( !($plugin_obj = $this->get_plugin_instance()) )
+            return array();
+
+        if( !($plugin_registry = $plugin_obj->get_db_registry())
+         or !is_array( $plugin_registry ) )
+            $plugin_registry = array();
+
+        return $plugin_registry;
     }
 
     /**
