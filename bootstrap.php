@@ -24,6 +24,7 @@ define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
 define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
 
 // Root folders
+define( 'PHS_SETUP_DIR', PHS_PATH.'_setup/' );
 define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
 define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
 define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
@@ -229,6 +230,7 @@ define( 'PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW );
 if( !($base_url = PHS::get_base_url()) )
     $base_url = '/';
 
+define( 'PHS_SETUP_WWW', $base_url.'_setup/' );
 define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
 define( 'PHS_CORE_LIBRARIES_WWW', $base_url.'system/core/libraries/' );
 
@@ -268,7 +270,12 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
     if( empty( $active_plugins )
     and !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
     {
-        echo 'It seems you didn\'t run yet install script.';
+        if( !@is_dir( PHS_SETUP_DIR ) )
+            echo 'It seems you didn\'t run yet install script.';
+
+        else
+            @header( 'Location: '.PHS_SETUP_WWW );
+
         exit;
     }
 } else
