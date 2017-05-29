@@ -67,6 +67,8 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             return false;
         }
 
+        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
         if( PHS_params::_g( 'account_created', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
         if( PHS_params::_g( 'unknown_account', PHS_params::T_INT ) )

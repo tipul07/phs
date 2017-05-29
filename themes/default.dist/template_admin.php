@@ -181,6 +181,12 @@
 
 <body<?php echo (($page_body_class = PHS::page_settings( 'page_body_class' ))?' class="'.$page_body_class.'" ':'').$action_result['page_body_extra_tags']?>>
 <?php
+
+if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_START, PHS_Hooks::default_buffer_hook_args() ))
+and is_array( $hook_args )
+and !empty( $hook_args['buffer'] ) )
+    echo $hook_args['buffer'];
+
 if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     {
 ?>
@@ -458,6 +464,12 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/lightbox.js' )?>"></script>
 <?php
 }
+
+if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_END, PHS_Hooks::default_buffer_hook_args() ))
+and is_array( $hook_args )
+and !empty( $hook_args['buffer'] ) )
+    echo $hook_args['buffer'];
+
 ?>
 </body>
 </html>

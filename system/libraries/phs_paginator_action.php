@@ -74,6 +74,82 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     }
 
     /**
+     * @param array $current_columns_arr
+     * @param string|array $where After which column should $new_columns_arr be inserted. If string we assume column key 'record_field' will be provided value/
+     *                      If array, eg $where = array( '{array_key}', '{value_to_be_checked}' ) = array( 'record_field', 'nick' );
+     * @param array $new_columns_arr
+     *
+     * @return array
+     */
+    public function insert_columns_arr( $current_columns_arr, $where, $new_columns_arr )
+    {
+        if( empty( $new_columns_arr ) or !is_array( $new_columns_arr ) )
+        {
+            if( empty( $current_columns_arr ) or !is_array( $current_columns_arr ) )
+                $current_columns_arr = array();
+
+            return $current_columns_arr;
+        }
+
+        if( empty( $current_columns_arr ) or !is_array( $current_columns_arr ) )
+            return $new_columns_arr;
+
+        if( empty( $where )
+         or (!is_string( $where ) and !is_array( $where ))
+         or (is_array( $where )
+                and (empty( $where[0] ) or empty( $where[1] ) or !is_string( $where[0] ) or !is_string( $where[1] )
+             ) )
+        )
+            return $current_columns_arr;
+
+        if( is_string( $where ) )
+            $where = array( 'record_field', $where );
+
+        $where_column_key = $where[0];
+        $where_column_val = $where[1];
+
+        $columns_arr = array();
+        $new_columns_added = false;
+        foreach( $current_columns_arr as $column_key => $column_arr )
+        {
+            if( empty( $column_arr ) or !is_array( $column_arr )
+             or empty( $column_arr[$where_column_key] )
+             or $column_arr[$where_column_key] != $where_column_val )
+            {
+                if( !is_numeric( $column_key ) )
+                    $columns_arr[$column_key] = $column_arr;
+                else
+                    $columns_arr[] = $column_arr;
+                continue;
+            }
+
+            $columns_arr[] = $column_arr;
+
+            $new_columns_added = true;
+            foreach( $new_columns_arr as $new_column_key => $new_column_arr )
+            {
+                if( !is_numeric( $new_column_key ) )
+                    $columns_arr[$new_column_key] = $new_column_arr;
+                else
+                    $columns_arr[] = $new_column_arr;
+            }
+        }
+
+        if( empty( $new_columns_added ) )
+        {
+            foreach( $new_columns_arr as $new_column_key => $new_column_arr )
+            {
+                if( !is_numeric( $new_column_key ) )
+                    $columns_arr[$new_column_key] = $new_column_arr;
+                else
+                    $columns_arr[] = $new_column_arr;
+            }
+        }
+
+        return $columns_arr;
+    }
+
+    /**
      * @return array|bool
      */
     public function execute()
