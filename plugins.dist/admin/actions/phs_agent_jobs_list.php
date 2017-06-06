@@ -86,13 +86,6 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             return false;
         }
 
-        /** @var \phs\plugins\s2p_libraries\PHS_Plugin_S2p_libraries $libraries_plugin */
-        if( !($libraries_plugin = PHS::load_plugin( 's2p_libraries' )) )
-        {
-            $this->set_error( self::ERR_ACTION, $this->_pt( 'Couldn\'t load libraries plugin.' ) );
-            return false;
-        }
-
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_AGENT_JOBS ) )
         {
             $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to list agent jobs.' ) );
