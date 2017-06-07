@@ -22,11 +22,14 @@ class PHS_Step_1 extends PHS_Step
 
     public function step_config_passed()
     {
-        return false;
+        return @file_exists( PHS_SETUP_CONFIG_DIR.$this->get_config_file() );
     }
 
     public function load_current_configuration()
     {
+        if( !@file_exists( PHS_SETUP_CONFIG_DIR.$this->get_config_file() ) )
+            return false;
+
         return true;
     }
 
@@ -36,7 +39,7 @@ class PHS_Step_1 extends PHS_Step
             $data = array();
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $phs_root_dir = PHS_params::_p( 'phs_root_dir', PHS_params::T_NOHTML );
+        $phs_path = PHS_params::_p( 'phs_path', PHS_params::T_NOHTML );
         $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
         $phs_domain = PHS_params::_p( 'phs_domain', PHS_params::T_NOHTML );
         $phs_ssl_domain = PHS_params::_p( 'phs_ssl_domain', PHS_params::T_NOHTML );
@@ -48,7 +51,7 @@ class PHS_Step_1 extends PHS_Step
 
         if( empty( $foobar ) )
         {
-            $phs_root_dir = PHS_SETUP_PHS_PATH;
+            $phs_path = PHS_SETUP_PHS_PATH;
 
             if( ($domain_settings = PHS_Setup_utils::_detect_setup_domain()) )
             {
@@ -61,7 +64,7 @@ class PHS_Step_1 extends PHS_Step
             }
         }
 
-        $data['phs_root_dir'] = $phs_root_dir;
+        $data['phs_path'] = $phs_path;
         $data['phs_domain'] = $phs_domain;
         $data['phs_ssl_domain'] = $phs_ssl_domain;
         $data['phs_cookie_domain'] = $phs_cookie_domain;

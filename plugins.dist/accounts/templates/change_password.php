@@ -17,7 +17,7 @@
     <form id="change_password_form" name="change_password_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), $url_extra_args )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive" style="width: 500px;">
+        <div class="form_container responsive" style="width: 550px;">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Change Password' )?></h3>

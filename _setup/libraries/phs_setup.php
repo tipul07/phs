@@ -2,6 +2,8 @@
 
 namespace phs\setup\libraries;
 
+use \phs\libraries\PHS_params;
+
 if( !defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ) )
     exit;
 
@@ -10,7 +12,11 @@ class PHS_Setup
     private $setup_config = false;
     private $framework_config = false;
 
+    /** @var int $c_step Current step in setup */
     private $c_step = 0;
+    /** @var int $forced_step Force a certain step in the setup */
+    private $forced_step = 0;
+    /** @var int $max_steps Maximum number of steps in setup */
     private $max_steps = 0;
 
     private static $setup_instance_obj = false;
@@ -21,7 +27,7 @@ class PHS_Setup
     {
     }
 
-    public function check_prerequisite()
+    public function check_prerequisites()
     {
         $error_arr = array();
 
@@ -42,7 +48,7 @@ class PHS_Setup
                 }
                 ?>
             </ul>
-            Please try setting up _setup/main.php file manually...
+            Please try setting up _setup/main.php file manually (recommended) or setup the framework manually skipping setup script.
             <?php
             $check_err_msg = ob_get_clean();
 
@@ -110,7 +116,15 @@ class PHS_Setup
             $this->max_steps++;
         }
 
-        if( empty( $this->c_step ) )
+        if( !($this->forced_step = PHS_params::_gp( 'forced_step', PHS_params::T_INT ))
+         or $this->forced_step < 0 or $this->forced_step >= $this->max_steps
+         // Currently c_step holds maximum configured step (we cannot go over this)
+         or $this->forced_step > $this->c_step )
+            $this->forced_step = $this->c_step;
+
+        if( !empty( $this->forced_step ) )
+            $this->c_step = $this->forced_step;
+        elseif( empty( $this->c_step ) )
             $this->c_step = $this->max_steps;
 
         return true;

@@ -5,9 +5,9 @@
 ?>
 <form id="phs_setup_step1" name="phs_setup_step1" method="post">
 <fieldset class="form-group">
-    <label for="phs_root_dir"><?php echo $this->_pt( 'PHS Root path' )?></label>
+    <label for="phs_path"><?php echo $this->_pt( 'PHS Root path' )?></label>
     <div class="lineform_line">
-        <input type="text" id="phs_root_dir" name="phs_root_dir" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_root_dir' ) )?>" placeholder="/path/to/phs/root/" style="width: 350px;" /><br/>
+        <input type="text" id="phs_path" name="phs_path" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_path' ) )?>" placeholder="/path/to/phs/root/" style="width: 350px;" /><br/>
         <small>Absolute path on server to root of PHS framework.</small>
     </div>
 </fieldset>

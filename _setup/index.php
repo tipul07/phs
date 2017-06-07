@@ -6,7 +6,7 @@
 
     $phs_setup_obj = PHS_Setup::get_instance();
 
-    $phs_setup_obj->check_prerequisite();
+    $phs_setup_obj->check_prerequisites();
 
     $phs_setup_obj->load_steps();
 
