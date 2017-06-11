@@ -7,9 +7,6 @@ use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 {
-    // DON'T OVERWRITE THIS CONSTANT. IT REPRESENTS BASE MODEL CLASS VERSION
-    const MODEL_BASE_VERSION = '1.0.0';
-
     const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
           ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010;
 
@@ -93,6 +90,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @return array|bool Returns an array with table fields
      */
     abstract public function fields_definition( $params = false );
+
+    /**
+     * @return string Returns version of base model
+     */
+    final public static function get_model_base_version()
+    {
+        return '1.0.1';
+    }
 
     /**
      * A dynamic table structure means that table fields can be altered by plugins, so system will call update method each time an install check
@@ -1831,7 +1836,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                               ' FROM `'.$this->get_flow_table_name( $params ).'` '.
                               $params['join_sql'].
                               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
-                              (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:''), $db_connection
+                              (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
+                              (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:''), $db_connection
             ))
             and ($result = db_fetch_assoc( $qid, $db_connection )) )
         {
@@ -1850,6 +1856,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             'extra_sql' => '',
             'join_sql' => '',
+            'having_sql' => '',
             'group_by' => '',
             'order_by' => '',
 
@@ -1894,6 +1901,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                               $params['join_sql'].
                               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
                               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
+                              (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
                               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
                               ' LIMIT '.$params['offset'].', '.$params['enregs_no'], $db_connection
                 ))

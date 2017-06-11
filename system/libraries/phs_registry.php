@@ -327,6 +327,14 @@ class PHS_Registry extends PHS_Language
         return $return_arr;
     }
 
+    /**
+     * Returns array of integers casted from comma separated values from provided string
+     *
+     * @param string $str String to be checked
+     * @param bool|array $params Parameters
+     *
+     * @return array Array of casted integers
+     */
     public static function extract_integers_from_comma_separated( $str, $params = false )
     {
         if( !is_string( $str ) )
@@ -346,6 +354,32 @@ class PHS_Registry extends PHS_Language
 
             if( !empty( $params['dump_empty_parts'] )
             and empty( $int_part ) )
+                continue;
+
+            $return_arr[] = $int_part;
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Get all values in string that can be cast to non-empty integers.
+     *
+     * @param array $arr Array to be checked
+     *
+     * @return array
+     */
+    public static function extract_integers_from_array( $arr )
+    {
+        if( empty( $arr ) or !is_array( $arr ) )
+            return array();
+
+        $return_arr = array();
+        foreach( $arr as $int_part )
+        {
+            $int_part = intval( trim( $int_part ) );
+
+            if( empty( $int_part ) )
                 continue;
 
             $return_arr[] = $int_part;
