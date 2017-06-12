@@ -97,8 +97,21 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 @header( 'Pragma: public' );
 
                 if( !empty( $export_registry['export_mime_type'] ) )
-                    @header( 'Content-Type: '.$export_registry['export_mime_type'] );
+                    @header( 'Content-Type: '.$export_registry['export_mime_type'].(!empty( $export_registry['export_encoding'] )?';charset='.$export_registry['export_encoding']:'') );
             break;
+        }
+
+        if( false and $export_registry['export_encoding']
+        and @function_exists( 'mb_internal_encoding' ) )
+        {
+            if( ($export_original_encoding = @mb_internal_encoding()) )
+            {
+                $this->export_registry( array(
+                    'export_original_encoding' => $export_original_encoding,
+                ) );
+            }
+
+            @mb_internal_encoding( $export_registry['export_encoding'] );
         }
 
         return true;
@@ -168,6 +181,12 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
          or empty( $export_registry['export_to'] )
          or !self::valid_export_to( $export_registry['export_to'] ) )
             return true;
+
+        if( false and $export_registry['export_original_encoding']
+        and @function_exists( 'mb_internal_encoding' ) )
+        {
+            @mb_internal_encoding( $export_registry['export_original_encoding'] );
+        }
 
         switch( $export_registry['export_to'] )
         {
@@ -239,12 +258,16 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     public function default_export_registry()
     {
         return array(
+            // To what encoding should we export (if false it will not do any encodings)
+            'export_encoding' => false,
             // Where to export the data
             'export_to' => self::EXPORT_TO_BROWSER,
             'export_file_dir' => '',
             'export_file_name' => '',
             'export_mime_type' => '',
 
+            // Save what encoding was originally used in script before export
+            'export_original_encoding' => false,
             // File descriptor
             'export_fd' => false,
             // Full file path

@@ -36,8 +36,20 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
             $this->export_registry( 'csv_format', $csv_format );
         }
 
-        return PHS_utils::csv_line( $record_data['record_arr'],
+        if( ($csv_line = PHS_utils::csv_line( $record_data['record_arr'],
                                     $csv_format['line_delimiter'], $csv_format['column_delimiter'],
-                                    $csv_format['field_enclosure'], $csv_format['enclosure_escape'] );
+                                    $csv_format['field_enclosure'], $csv_format['enclosure_escape'] )
+        ) )
+        {
+            if( ($export_encoding = $this->export_registry( 'export_encoding' ))
+            and @function_exists( 'mb_internal_encoding' )
+            and @function_exists( 'mb_convert_encoding' ) )
+            {
+                if( strtolower( @mb_internal_encoding() ) != strtolower( $export_encoding ) )
+                    $csv_line = @mb_convert_encoding( $csv_line, $export_encoding );
+            }
+        }
+
+        return $csv_line;
     }
 }

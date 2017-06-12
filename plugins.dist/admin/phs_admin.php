@@ -40,121 +40,121 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         $return_arr = array(
             PHS_Roles::ROLE_GUEST => array(
-                'name' => $this->_pt( 'Guests' ),
-                'description' => $this->_pt( 'Role used by non-logged visitors' ),
+                'name' => 'Guests',
+                'description' => 'Role used by non-logged visitors',
                 'role_units' => array(
                     PHS_Roles::ROLEU_CONTACT_US => array(
-                        'name' => $this->_pt( 'Contact Us' ),
-                        'description' => $this->_pt( 'Allow user to use contact us form' ),
+                        'name' => 'Contact Us',
+                        'description' => 'Allow user to use contact us form',
                     ),
                     PHS_Roles::ROLEU_REGISTER => array(
-                        'name' => $this->_pt( 'Register' ),
-                        'description' => $this->_pt( 'Allow user to use registration form' ),
+                        'name' => 'Register',
+                        'description' => 'Allow user to use registration form',
                     ),
                 ),
             ),
 
             PHS_Roles::ROLE_MEMBER => array(
-                'name' => $this->_pt( 'Member accounts' ),
-                'description' => $this->_pt( 'Default functionality role (what normal members can do)' ),
+                'name' => 'Member accounts',
+                'description' => 'Default functionality role (what normal members can do)',
                 'role_units' => array(
                     PHS_Roles::ROLEU_CONTACT_US => array(
-                        'name' => $this->_pt( 'Contact Us' ),
-                        'description' => $this->_pt( 'Allow user to use contact us form' ),
+                        'name' => 'Contact Us',
+                        'description' => 'Allow user to use contact us form',
                     ),
                 ),
             ),
 
             PHS_Roles::ROLE_OPERATOR => array(
-                'name' => $this->_pt( 'Operator accounts' ),
-                'description' => $this->_pt( 'Role assigned to operator accounts.' ),
+                'name' => 'Operator accounts',
+                'description' => 'Role assigned to operator accounts.',
                 'role_units' => array(
 
                     // Roles...
                     PHS_Roles::ROLEU_LIST_ROLES => array(
-                        'name' => $this->_pt( 'List roles' ),
-                        'description' => $this->_pt( 'Allow user to view defined roles' ),
+                        'name' => 'List roles',
+                        'description' => 'Allow user to view defined roles',
                     ),
 
                     // Plugins...
                     PHS_Roles::ROLEU_LIST_PLUGINS => array(
-                        'name' => $this->_pt( 'List plugins' ),
-                        'description' => $this->_pt( 'Allow user to list plugins' ),
+                        'name' => 'List plugins',
+                        'description' => 'Allow user to list plugins',
                     ),
 
                     // Agent...
                     PHS_Roles::ROLEU_LIST_AGENT_JOBS => array(
-                        'name' => $this->_pt( 'List agent jobs' ),
-                        'description' => $this->_pt( 'Allow user to list agent jobs' ),
+                        'name' => 'List agent jobs',
+                        'description' => 'Allow user to list agent jobs',
                     ),
 
                     // Logs...
                     PHS_Roles::ROLEU_VIEW_LOGS => array(
-                        'name' => $this->_pt( 'View system logs' ),
-                        'description' => $this->_pt( 'Allow user to view system logs' ),
+                        'name' => 'View system logs',
+                        'description' => 'Allow user to view system logs',
                     ),
 
                     // Accounts...
                     PHS_Roles::ROLEU_LIST_ACCOUNTS => array(
-                        'name' => $this->_pt( 'List accounts' ),
-                        'description' => $this->_pt( 'Allow user to list accounts' ),
+                        'name' => 'List accounts',
+                        'description' => 'Allow user to list accounts',
                     ),
                 ),
             ),
 
             PHS_Roles::ROLE_ADMIN => array(
-                'name' => $this->_pt( 'Admin accounts' ),
-                'description' => $this->_pt( 'Role assigned to admin accounts.' ),
+                'name' => 'Admin accounts',
+                'description' => 'Role assigned to admin accounts.',
                 'role_units' => array(
 
                     // Roles...
                     PHS_Roles::ROLEU_MANAGE_ROLES => array(
-                        'name' => $this->_pt( 'Manage roles' ),
-                        'description' => $this->_pt( 'Allow user to define or edit roles' ),
+                        'name' => 'Manage roles',
+                        'description' => 'Allow user to define or edit roles',
                     ),
                     PHS_Roles::ROLEU_LIST_ROLES => array(
-                        'name' => $this->_pt( 'List roles' ),
-                        'description' => $this->_pt( 'Allow user to view defined roles' ),
+                        'name' => 'List roles',
+                        'description' => 'Allow user to view defined roles',
                     ),
 
                     // Plugins...
                     PHS_Roles::ROLEU_MANAGE_PLUGINS => array(
-                        'name' => $this->_pt( 'Manage plugins' ),
-                        'description' => $this->_pt( 'Allow user to manage plugins' ),
+                        'name' => 'Manage plugins',
+                        'description' => 'Allow user to manage plugins',
                     ),
                     PHS_Roles::ROLEU_LIST_PLUGINS => array(
-                        'name' => $this->_pt( 'List plugins' ),
-                        'description' => $this->_pt( 'Allow user to list plugins' ),
+                        'name' => 'List plugins',
+                        'description' => 'Allow user to list plugins',
                     ),
 
                     // Agent...
                     PHS_Roles::ROLEU_MANAGE_AGENT_JOBS => array(
-                        'name' => $this->_pt( 'Manage agent jobs' ),
-                        'description' => $this->_pt( 'Allow user to manage agent jobs' ),
+                        'name' => 'Manage agent jobs',
+                        'description' => 'Allow user to manage agent jobs',
                     ),
                     PHS_Roles::ROLEU_LIST_AGENT_JOBS => array(
-                        'name' => $this->_pt( 'List agent jobs' ),
-                        'description' => $this->_pt( 'Allow user to list agent jobs' ),
+                        'name' => 'List agent jobs',
+                        'description' => 'Allow user to list agent jobs',
                     ),
 
                     // Logs...
                     PHS_Roles::ROLEU_VIEW_LOGS => array(
-                        'name' => $this->_pt( 'View system logs' ),
-                        'description' => $this->_pt( 'Allow user to view system logs' ),
+                        'name' => 'View system logs',
+                        'description' => 'Allow user to view system logs',
                     ),
 
                     // Accounts...
                     PHS_Roles::ROLEU_MANAGE_ACCOUNTS => array(
-                        'name' => $this->_pt( 'Manage accounts' ),
-                        'description' => $this->_pt( 'Allow user to manage accounts' ),
+                        'name' => 'Manage accounts',
+                        'description' => 'Allow user to manage accounts',
                     ),
                     PHS_Roles::ROLEU_LIST_ACCOUNTS => array(
-                        'name' => $this->_pt( 'List accounts' ),
-                        'description' => $this->_pt( 'Allow user to list accounts' ),
+                        'name' => 'List accounts',
+                        'description' => 'Allow user to list accounts',
                     ),
                     PHS_Roles::ROLEU_LOGIN_SUBACCOUNT => array(
-                        'name' => $this->_pt( 'Login sub-account' ),
-                        'description' => $this->_pt( 'Allow user to login as other user' ),
+                        'name' => 'Login sub-account',
+                        'description' => 'Allow user to login as other user',
                     ),
                 ),
             ),
