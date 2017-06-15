@@ -9,7 +9,10 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     private $common_data = array();
 
-    function __construct( $templates_dir = false )
+    private $errors_arr = array();
+    private $success_arr = array();
+
+    function __construct()
     {
         parent::__construct();
 
@@ -26,9 +29,52 @@ class PHS_Setup_layout extends PHS_Setup_view
         }
     }
 
+    public function has_error_msgs()
+    {
+        return (!empty( $this->errors_arr ));
+    }
+
+    public function has_success_msgs()
+    {
+        return (!empty( $this->errors_arr ));
+    }
+
+    public function reset_error_msgs()
+    {
+        $this->errors_arr = array();
+    }
+
+    public function add_error_msg( $msg )
+    {
+        $this->errors_arr[] = $msg;
+    }
+
+    public function reset_success_msgs()
+    {
+        $this->success_arr = array();
+    }
+
+    public function add_success_msg( $msg )
+    {
+        $this->success_arr[] = $msg;
+    }
+
     public function render( $template, $data = false, $include_main_template = false )
     {
+        if( empty( $data ) or !is_array( $data ) )
+            $data = array();
+
         $this->set_context( $this->common_data );
+
+        // make errors available in template too
+        if( !empty( $this->errors_arr ) or !empty( $this->success_arr ) )
+        {
+            $data['notifications'] = array();
+            if( !empty( $this->errors_arr ) )
+                $data['notifications']['error'] = $this->errors_arr;
+            if( !empty( $this->success_arr ) )
+                $data['notifications']['success'] = $this->success_arr;
+        }
 
         if( !($template_buf = $this->render_view( $template, $data )) )
             $template_buf = '';
@@ -36,9 +82,8 @@ class PHS_Setup_layout extends PHS_Setup_view
         if( empty( $include_main_template ) )
             return $template_buf;
 
-        $main_template_data = array(
-            'page_content' => $template_buf,
-        );
+        $main_template_data = $data;
+        $main_template_data['page_content'] = $template_buf;
 
         $this->set_context( $main_template_data );
 

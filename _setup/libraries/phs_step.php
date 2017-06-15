@@ -9,6 +9,8 @@ abstract class PHS_Step extends PHS_Registry
     /** @var bool|\phs\setup\libraries\PHS_Setup $setup_obj */
     private $setup_obj = false;
 
+    private $config_file_loaded = false;
+
     abstract public function step_details();
     abstract public function get_config_file();
     abstract public function step_config_passed();
@@ -21,6 +23,67 @@ abstract class PHS_Step extends PHS_Registry
         parent::__construct();
 
         $this->setup_instance( $setup_inst );
+    }
+
+    protected function save_step_config_file( $params )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Invalid parameters sent to save config file method.' );
+            return false;
+        }
+
+        if( empty( $params['defines'] ) or !is_array( $params['defines'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Nothing to save in the file.' );
+            return false;
+        }
+
+        if( !($config_file = $this->get_config_file()) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Couldn\'t obtain config file name for current step.' );
+            return false;
+        }
+
+        if( !($fil = @fopen( PHS_SETUP_CONFIG_DIR.$config_file, 'w' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Couldn\'t create config file with write rights ('.PHS_SETUP_CONFIG_DIR.$config_file.'). Please make sure PHP has rights to write in that file.' );
+            return false;
+        }
+
+        @fputs( $fil, '<?php'."\n\n" );
+
+        if( ($step_details = $this->step_details()) )
+        {
+            @fputs( $fil, '//'."\n".
+                          '// '.$step_details['title']."\n".
+                          '// '.str_replace( "\n", ' ', $step_details['description'] )."\n".
+                          '//'."\n\n" );
+        }
+
+        foreach( $params['defines'] as $define_key => $define_val )
+        {
+            @fputs( $fil, 'define( \''.$define_key.'\', \''.str_replace( '\'', '\\\'', $define_val ).'\' );'."\n" );
+        }
+
+        @fputs( $fil, "\n\n" );
+
+        @fclose( $fil );
+        @fflush( $fil );
+
+        return true;
+    }
+
+    public function config_file_loaded( $loaded = null )
+    {
+        if( $loaded === null )
+            return $this->config_file_loaded;
+
+        $this->config_file_loaded = (!empty( $loaded ));
+
+        return $this->config_file_loaded;
     }
 
     public function setup_instance( $setup_inst = false )
@@ -45,5 +108,35 @@ abstract class PHS_Step extends PHS_Registry
         $data['step_instance'] = $this;
 
         return PHS_Setup_layout::get_instance()->render( 'template_steps', $data, true );
+    }
+
+    public function has_success_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->has_success_msgs();
+    }
+
+    public function has_error_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->has_error_msgs();
+    }
+
+    public function reset_success_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->reset_success_msgs();
+    }
+
+    public function reset_error_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->reset_error_msgs();
+    }
+
+    public function add_success_msg( $msg )
+    {
+        return PHS_Setup_layout::get_instance()->add_success_msg( $msg );
+    }
+
+    public function add_error_msg( $msg )
+    {
+        return PHS_Setup_layout::get_instance()->add_error_msg( $msg );
     }
 }

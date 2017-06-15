@@ -27,8 +27,15 @@ class PHS_Step_1 extends PHS_Step
 
     public function load_current_configuration()
     {
-        if( !@file_exists( PHS_SETUP_CONFIG_DIR.$this->get_config_file() ) )
+        $config_file = PHS_SETUP_CONFIG_DIR.$this->get_config_file();
+        if( !@file_exists( $config_file ) )
             return false;
+
+        ob_start();
+        include( $config_file );
+        ob_end_clean();
+
+        $this->config_file_loaded( true );
 
         return true;
     }
@@ -40,27 +47,90 @@ class PHS_Step_1 extends PHS_Step
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $phs_path = PHS_params::_p( 'phs_path', PHS_params::T_NOHTML );
-        $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
         $phs_domain = PHS_params::_p( 'phs_domain', PHS_params::T_NOHTML );
         $phs_ssl_domain = PHS_params::_p( 'phs_ssl_domain', PHS_params::T_NOHTML );
+        $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
         $phs_port = PHS_params::_p( 'phs_port', PHS_params::T_NOHTML );
         $phs_ssl_port = PHS_params::_p( 'phs_ssl_port', PHS_params::T_NOHTML );
         $phs_domain_path = PHS_params::_p( 'phs_domain_path', PHS_params::T_NOHTML );
 
         $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
 
+        if( !empty( $do_submit ) )
+        {
+            if( empty( $phs_path ) )
+                $this->add_error_msg( 'Please provide PHS Root path.' );
+
+            if( empty( $phs_domain ) )
+                $this->add_error_msg( 'Please provide PHS Domain.' );
+
+            if( empty( $phs_ssl_domain ) )
+                $phs_ssl_domain = $phs_domain;
+
+            if( empty( $phs_cookie_domain ) )
+                $phs_cookie_domain = $phs_domain;
+
+            if( empty( $phs_port ) )
+                $phs_port = '';
+
+            if( empty( $phs_ssl_port ) )
+                $phs_ssl_port = '';
+
+            if( empty( $phs_domain_path ) )
+                $phs_domain_path = '/';
+
+            $defines_arr = array(
+                'PHS_PATH' => $phs_path,
+                'PHS_DEFAULT_DOMAIN' => $phs_domain,
+                'PHS_DEFAULT_SSL_DOMAIN' => $phs_ssl_domain,
+                'PHS_DEFAULT_COOKIE_DOMAIN' => $phs_cookie_domain,
+                'PHS_DEFAULT_PORT' => $phs_port,
+                'PHS_DEFAULT_SSL_PORT' => $phs_ssl_port,
+                'PHS_DEFAULT_DOMAIN_PATH' => $phs_domain_path,
+            );
+
+            $config_params = array(
+                'defines' => $defines_arr,
+            );
+
+            if( $this->save_step_config_file( $config_params ) )
+                $this->add_success_msg( 'Config file saved with success. Redirecting to next step...' );
+
+            else
+            {
+                if( $this->has_error() )
+                    $this->add_error_msg( $this->get_error_message() );
+                else
+                    $this->add_error_msg( 'Error saving config file for current step.' );
+            }
+        }
+
         if( empty( $foobar ) )
         {
-            $phs_path = PHS_SETUP_PHS_PATH;
-
-            if( ($domain_settings = PHS_Setup_utils::_detect_setup_domain()) )
+            if( $this->config_file_loaded() )
             {
-                $phs_domain = $domain_settings['domain'];
-                $phs_cookie_domain = $domain_settings['cookie_domain'];
-                $phs_ssl_domain = $domain_settings['ssl_domain'];
-                $phs_port = $domain_settings['port'];
-                $phs_ssl_port = $domain_settings['ssl_port'];
-                $phs_domain_path = $domain_settings['domain_path'];
+                $this->add_success_msg( 'Existing config file loaded...' );
+
+                $phs_path = PHS_PATH;
+                $phs_domain = PHS_DEFAULT_DOMAIN;
+                $phs_ssl_domain = PHS_DEFAULT_SSL_DOMAIN;
+                $phs_cookie_domain = PHS_DEFAULT_COOKIE_DOMAIN;
+                $phs_port = PHS_DEFAULT_PORT;
+                $phs_ssl_port = PHS_DEFAULT_SSL_PORT;
+                $phs_domain_path = PHS_DEFAULT_DOMAIN_PATH;
+            } else
+            {
+                $phs_path = PHS_SETUP_PHS_PATH;
+
+                if( ($domain_settings = PHS_Setup_utils::_detect_setup_domain()) )
+                {
+                    $phs_domain = $domain_settings['domain'];
+                    $phs_ssl_domain = $domain_settings['ssl_domain'];
+                    $phs_cookie_domain = $domain_settings['cookie_domain'];
+                    $phs_port = $domain_settings['port'];
+                    $phs_ssl_port = $domain_settings['ssl_port'];
+                    $phs_domain_path = $domain_settings['domain_path'];
+                }
             }
         }
 

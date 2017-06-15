@@ -24,7 +24,8 @@
     <label for="phs_ssl_domain"><?php echo $this->_pt( 'PHS SSL Domain' )?><br/><small><?php echo $this->_pt( 'for HTTPS requests' )?></small></label>
     <div class="lineform_line">
         <input type="text" id="phs_ssl_domain" name="phs_ssl_domain" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_ssl_domain' ) )?>" placeholder="www.domain.com" style="width: 350px;" /><br/>
-        <small>If secure requests (HTTPS) are made on other domain than "normal" one and that subdomain points to this framework. (eg. secure.domain.com)</small>
+        <small>If secure requests (HTTPS) are made on other domain than "normal" one and that subdomain points to this framework. (eg. secure.domain.com).
+               If not provided, system will use value provided at <em>PHS Domain</em>.</small>
     </div>
 </fieldset>
 
@@ -32,7 +33,8 @@
     <label for="phs_cookie_domain"><?php echo $this->_pt( 'PHS Cookie Domain' )?></label>
     <div class="lineform_line">
         <input type="text" id="phs_cookie_domain" name="phs_cookie_domain" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_cookie_domain' ) )?>" placeholder=".domain.com" style="width: 350px;" /><br/>
-        <small>If you are using subdomains, you might want to setup the cookie for all subdomains (eg. ".domain.com" will make cookie available for all subdomains)</small>
+        <small>If you are using subdomains, you might want to setup the cookie for all subdomains (eg. ".domain.com" will make cookie available for all subdomains)
+               If not provided, system will use value provided at <em>PHS Domain</em>.</small>
     </div>
 </fieldset>
 
