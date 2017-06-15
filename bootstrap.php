@@ -128,6 +128,10 @@ if( !defined( 'PHS_LOGS_DIR' ) )
 if( !defined( 'PHS_SITEBUILD_VERSION' ) )
     define( 'PHS_SITEBUILD_VERSION', PHS_VERSION );
 
+// Tell system if it should use multi language...
+// We will enable it for the moment (it can be changed in main or particular config file)
+PHS::set_multi_language( true );
+
 // Running in debugging mode?
 PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
 // Should errors be thrown?

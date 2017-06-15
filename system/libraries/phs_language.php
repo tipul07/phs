@@ -35,6 +35,23 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @return bool Returns true if multi language is enabled or false otherwise
+     */
+    public static function get_multi_language_enabled()
+    {
+        return self::language_container()->get_multi_language_enabled();
+    }
+
+    /**
+     * @param bool $enabled Whether multi language should be enabled or not
+     * @return bool Returns multi language enabled value currently set
+     */
+    public static function set_multi_language( $enabled )
+    {
+        return self::language_container()->set_multi_language( $enabled );
+    }
+
+    /**
      * @return array Returns array of defined languages
      */
     public static function get_defined_languages()
@@ -276,7 +293,7 @@ class PHS_Language extends PHS_Error
 
     /**
      * Translate a specific text in currently selected language. This method receives a variable number of parameters in same way as sprintf works.
-     * @param string $index Language index to be translated
+     * @param string|array $index Language index to be translated or array of arguments to be processed
      *
      * @return string Translated string
      */
@@ -358,6 +375,8 @@ class PHS_Language_Container extends PHS_Error
     // We take error codes from 100000+ to let 1-99999 for custom defined constant errors
     const ERR_LANGUAGE_DEFINITION = 100000, ERR_LANGUAGE_LOAD = 100001, ERR_NOT_STRING = 100002;
 
+    //! Tells if multi language should be enabled
+    private static $MULTI_LANGUAGE_ENABLED = true;
     //! Fallback language in case we try to translate a text which is not defined in current language
     private static $DEFAULT_LANGUAGE = '';
     //! Current language
@@ -388,6 +407,27 @@ class PHS_Language_Container extends PHS_Error
         self::$csv_settings = self::default_lang_files_csv_settings();
 
         parent::__construct();
+    }
+
+    public static function st_get_multi_language_enabled()
+    {
+        return self::$MULTI_LANGUAGE_ENABLED;
+    }
+
+    public static function st_set_multi_language( $enabled )
+    {
+        self::$MULTI_LANGUAGE_ENABLED = (!empty( $enabled )?true:false);
+        return self::$MULTI_LANGUAGE_ENABLED;
+    }
+
+    public function get_multi_language_enabled()
+    {
+        return self::st_get_multi_language_enabled();
+    }
+
+    public function set_multi_language( $enabled )
+    {
+        return self::st_set_multi_language( $enabled );
     }
 
     public static function default_lang_files_csv_settings()
@@ -558,6 +598,9 @@ class PHS_Language_Container extends PHS_Error
      */
     public static function language_loaded( $lang )
     {
+        if( !self::st_get_multi_language_enabled() )
+            return true;
+
         $lang = self::prepare_lang_index( $lang );
         return (isset( self::$LANGUAGE_INDEXES[$lang] )?$lang:false);
     }
@@ -630,6 +673,9 @@ class PHS_Language_Container extends PHS_Error
      */
     public function scan_for_language_files( $dir )
     {
+        if( !self::st_get_multi_language_enabled() )
+            return true;
+
         $dir = rtrim( PHS::from_relative_path( PHS::relative_path( $dir ) ), '/\\' );
         if( empty( $dir )
          or !@is_dir( $dir ) or !@is_readable( $dir ) )
@@ -684,6 +730,9 @@ class PHS_Language_Container extends PHS_Error
     public function add_language_files( $lang, array $files_arr )
     {
         $this->reset_error();
+
+        if( !self::st_get_multi_language_enabled() )
+            return true;
 
         $lang = self::prepare_lang_index( $lang );
         if( empty( $lang )
@@ -744,6 +793,9 @@ class PHS_Language_Container extends PHS_Error
     public function load_language( $lang, $force = false )
     {
         $this->reset_error();
+
+        if( !self::st_get_multi_language_enabled() )
+            return true;
 
         if( !($lang = self::st_valid_language( $lang ))
          or !($lang_details = self::get_defined_language( $lang )) )
@@ -807,6 +859,9 @@ class PHS_Language_Container extends PHS_Error
      */
     public function load_language_file( $file, $lang, $force = false )
     {
+        if( !self::st_get_multi_language_enabled() )
+            return true;
+
         if( empty( $force )
         and !empty( self::$_LOADED_FILES[$lang][$file] ) )
             return true;
@@ -865,6 +920,9 @@ class PHS_Language_Container extends PHS_Error
     public function get_language_file_lines( $file, $lang )
     {
         $this->reset_error();
+
+        if( !self::st_get_multi_language_enabled() )
+            return array();
 
         if( !($lang = self::st_valid_language( $lang )) )
         {
@@ -1029,14 +1087,16 @@ class PHS_Language_Container extends PHS_Error
         if( !is_string( $index ) )
             return 'Language index is not a string ('.gettype( $index ).' provided)';
 
-        if( !($lang = self::st_valid_language( $lang )) )
-            return $index;
+        $lang = self::st_valid_language( $lang );
 
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
 
-        if( !self::language_loaded( $lang )
-         or $this->should_reload_language_files( $lang ) )
+        if( self::st_get_multi_language_enabled()
+        and !empty( $lang )
+        and (!self::language_loaded( $lang )
+            or $this->should_reload_language_files( $lang )
+            ) )
         {
             if( !$this->load_language( $lang ) )
             {
@@ -1049,7 +1109,9 @@ class PHS_Language_Container extends PHS_Error
             }
         }
 
-        if( isset( self::$LANGUAGE_INDEXES[$lang][$index] ) )
+        if( self::st_get_multi_language_enabled()
+        and !empty( $lang )
+        and isset( self::$LANGUAGE_INDEXES[$lang][$index] ) )
             $working_index = self::$LANGUAGE_INDEXES[$lang][$index];
         else
             $working_index = $index;

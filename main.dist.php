@@ -117,8 +117,12 @@ define( 'PHS_DEBUG_THROW_ERRORS', false );
 
 include_once( PHS_PATH.'bootstrap.php' );
 
+use \phs\PHS;
 use \phs\PHS_ajax;
 use \phs\libraries\PHS_Logger;
+
+// Tell the system if it should use multi language feature
+PHS::set_multi_language( true );
 
 // After how many seconds will an Ajax URL expire (if user stays on page and javascript will request same URL)
 PHS_ajax::checksum_timeout( 86400 );

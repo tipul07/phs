@@ -387,5 +387,46 @@ class PHS_Registry extends PHS_Language
 
         return $return_arr;
     }
+
+    /**
+     * Extract all key-values pairs from an array for which key is prefixed with a provided string
+     *
+     * @param array $arr Array with keys-values pairs
+     * @param string $prefix String which is to be checked as prefix in keys
+     * @param bool|array $params Optional parameters to the function
+     *
+     * @return array Resulting key-values pairs which are prefixed with provided string
+     */
+    public static function extract_keys_with_prefix( $arr, $prefix, $params = false )
+    {
+        if( empty( $arr ) or !is_array( $arr ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['remove_prefix_from_keys'] ) )
+            $params['remove_prefix_from_keys'] = true;
+        else
+            $params['remove_prefix_from_keys'] = (!empty( $params['remove_prefix_from_keys'] )?true:false);
+
+        if( !is_string( $prefix ) or $prefix == '' )
+            return $arr;
+
+        $return_arr = array();
+        $prefix_len = strlen( $prefix );
+        foreach( $arr as $key => $val )
+        {
+            if( substr( $key, 0, $prefix_len ) != $prefix )
+                continue;
+
+            if( !empty( $params['remove_prefix_from_keys'] ) )
+                $key = substr( $key, $prefix_len );
+
+            $return_arr[$key] = $val;
+        }
+
+        return $return_arr;
+    }
 }
 
