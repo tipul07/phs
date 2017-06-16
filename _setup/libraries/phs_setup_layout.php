@@ -11,6 +11,7 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     private $errors_arr = array();
     private $success_arr = array();
+    private $notices_arr = array();
 
     function __construct()
     {
@@ -39,6 +40,11 @@ class PHS_Setup_layout extends PHS_Setup_view
         return (!empty( $this->errors_arr ));
     }
 
+    public function has_notices_msgs()
+    {
+        return (!empty( $this->notices_arr ));
+    }
+
     public function reset_error_msgs()
     {
         $this->errors_arr = array();
@@ -59,6 +65,16 @@ class PHS_Setup_layout extends PHS_Setup_view
         $this->success_arr[] = $msg;
     }
 
+    public function reset_notice_msgs()
+    {
+        $this->notices_arr = array();
+    }
+
+    public function add_notice_msg( $msg )
+    {
+        $this->notices_arr[] = $msg;
+    }
+
     public function render( $template, $data = false, $include_main_template = false )
     {
         if( empty( $data ) or !is_array( $data ) )
@@ -67,13 +83,15 @@ class PHS_Setup_layout extends PHS_Setup_view
         $this->set_context( $this->common_data );
 
         // make errors available in template too
-        if( !empty( $this->errors_arr ) or !empty( $this->success_arr ) )
+        if( !empty( $this->errors_arr ) or !empty( $this->success_arr ) or !empty( $this->notices_arr ) )
         {
             $data['notifications'] = array();
             if( !empty( $this->errors_arr ) )
                 $data['notifications']['error'] = $this->errors_arr;
             if( !empty( $this->success_arr ) )
                 $data['notifications']['success'] = $this->success_arr;
+            if( !empty( $this->notices_arr ) )
+                $data['notifications']['notice'] = $this->notices_arr;
         }
 
         if( !($template_buf = $this->render_view( $template, $data )) )

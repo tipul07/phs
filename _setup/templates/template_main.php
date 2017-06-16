@@ -26,7 +26,7 @@ use \phs\libraries\PHS_Hooks;
         if( ($notifications_arr = $this->get_context( 'notifications' ))
         and is_array( $notifications_arr ) )
         {
-            foreach( array( 'error', 'success' ) as $notification_type )
+            foreach( array( 'error', 'success', 'notice' ) as $notification_type )
             {
                 if( !empty( $notifications_arr[$notification_type] ) and is_array( $notifications_arr[$notification_type] ) )
                 {

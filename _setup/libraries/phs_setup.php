@@ -144,6 +144,20 @@ class PHS_Setup
         return self::$STEPS_ARR[$this->c_step]['instance'];
     }
 
+    /**
+     * @return bool|\phs\setup\libraries\PHS_Step
+     */
+    public function get_step_instance( $step )
+    {
+        if( empty( $step )
+         or empty( self::$STEPS_ARR ) or !is_array( self::$STEPS_ARR )
+         or empty( self::$STEPS_ARR[$step] ) or !is_array( self::$STEPS_ARR[$step] )
+         or empty( self::$STEPS_ARR[$step]['instance'] ) )
+            return false;
+
+        return self::$STEPS_ARR[$step]['instance'];
+    }
+
     public function current_step()
     {
         return $this->c_step;

@@ -176,7 +176,7 @@ $mysql_settings['prefix'] = PHS_DB_PREFIX;
 $mysql_settings['port'] = PHS_DB_PORT;
 $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
 $mysql_settings['charset'] = PHS_DB_CHARSET;
-$mysql_settings['use_pconnect'] = PHS_DB_CHARSET;
+$mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
 $mysql_settings['driver_settings'] = array();
 if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )

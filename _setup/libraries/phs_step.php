@@ -120,6 +120,11 @@ abstract class PHS_Step extends PHS_Registry
         return PHS_Setup_layout::get_instance()->has_error_msgs();
     }
 
+    public function has_notice_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->has_notices_msgs();
+    }
+
     public function reset_success_msgs()
     {
         return PHS_Setup_layout::get_instance()->reset_success_msgs();
@@ -130,6 +135,11 @@ abstract class PHS_Step extends PHS_Registry
         return PHS_Setup_layout::get_instance()->reset_error_msgs();
     }
 
+    public function reset_notice_msgs()
+    {
+        return PHS_Setup_layout::get_instance()->reset_notice_msgs();
+    }
+
     public function add_success_msg( $msg )
     {
         return PHS_Setup_layout::get_instance()->add_success_msg( $msg );
@@ -138,5 +148,10 @@ abstract class PHS_Step extends PHS_Registry
     public function add_error_msg( $msg )
     {
         return PHS_Setup_layout::get_instance()->add_error_msg( $msg );
+    }
+
+    public function add_notice_msg( $msg )
+    {
+        return PHS_Setup_layout::get_instance()->add_notice_msg( $msg );
     }
 }

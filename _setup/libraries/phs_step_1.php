@@ -27,6 +27,9 @@ class PHS_Step_1 extends PHS_Step
 
     public function load_current_configuration()
     {
+        if( $this->config_file_loaded() )
+            return true;
+
         $config_file = PHS_SETUP_CONFIG_DIR.$this->get_config_file();
         if( !@file_exists( $config_file ) )
             return false;
@@ -79,29 +82,32 @@ class PHS_Step_1 extends PHS_Step
             if( empty( $phs_domain_path ) )
                 $phs_domain_path = '/';
 
-            $defines_arr = array(
-                'PHS_PATH' => $phs_path,
-                'PHS_DEFAULT_DOMAIN' => $phs_domain,
-                'PHS_DEFAULT_SSL_DOMAIN' => $phs_ssl_domain,
-                'PHS_DEFAULT_COOKIE_DOMAIN' => $phs_cookie_domain,
-                'PHS_DEFAULT_PORT' => $phs_port,
-                'PHS_DEFAULT_SSL_PORT' => $phs_ssl_port,
-                'PHS_DEFAULT_DOMAIN_PATH' => $phs_domain_path,
-            );
-
-            $config_params = array(
-                'defines' => $defines_arr,
-            );
-
-            if( $this->save_step_config_file( $config_params ) )
-                $this->add_success_msg( 'Config file saved with success. Redirecting to next step...' );
-
-            else
+            if( $this->has_error_msgs() )
             {
-                if( $this->has_error() )
-                    $this->add_error_msg( $this->get_error_message() );
+                $defines_arr = array(
+                    'PHS_PATH' => $phs_path,
+                    'PHS_DEFAULT_DOMAIN' => $phs_domain,
+                    'PHS_DEFAULT_SSL_DOMAIN' => $phs_ssl_domain,
+                    'PHS_DEFAULT_COOKIE_DOMAIN' => $phs_cookie_domain,
+                    'PHS_DEFAULT_PORT' => $phs_port,
+                    'PHS_DEFAULT_SSL_PORT' => $phs_ssl_port,
+                    'PHS_DEFAULT_DOMAIN_PATH' => $phs_domain_path,
+                );
+
+                $config_params = array(
+                    'defines' => $defines_arr,
+                );
+
+                if( $this->save_step_config_file( $config_params ) )
+                    $this->add_success_msg( 'Config file saved with success. Redirecting to next step...' );
+
                 else
-                    $this->add_error_msg( 'Error saving config file for current step.' );
+                {
+                    if( $this->has_error() )
+                        $this->add_error_msg( $this->get_error_message() );
+                    else
+                        $this->add_error_msg( 'Error saving config file for current step.' );
+                }
             }
         }
 
@@ -109,7 +115,7 @@ class PHS_Step_1 extends PHS_Step
         {
             if( $this->config_file_loaded() )
             {
-                $this->add_success_msg( 'Existing config file loaded...' );
+                $this->add_notice_msg( 'Existing config file loaded...' );
 
                 $phs_path = PHS_PATH;
                 $phs_domain = PHS_DEFAULT_DOMAIN;

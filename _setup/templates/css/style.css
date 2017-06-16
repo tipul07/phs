@@ -15,3 +15,4 @@ fieldset { padding: .35em .625em .75em; margin: 0 2px; border: 1px solid silver;
 .notification_container ul { margin: 0; }
 .notification_error { border: 1px solid red; border-radius: 5px; color: red; }
 .notification_success { border: 1px solid green; border-radius: 5px; color: green; }
+.notification_notice { border: 1px solid #807e00; border-radius: 5px; color: #807e00; }

@@ -169,6 +169,14 @@ function db_query( $query, $connection = false )
     return $qid;
 }
 
+function db_last_error( $connection = false )
+{
+    if( !($db_instance = PHS_db::db( $connection )) )
+        return false;
+
+    return $db_instance->get_error();
+}
+
 function db_fetch_assoc( $qid, $connection = false )
 {
     if( !($db_instance = PHS_db::db( $connection )) )
