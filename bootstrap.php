@@ -1,6 +1,11 @@
 <?php
 
-    define( 'PHS_VERSION', '1.0.1.54' );
+    if( !defined( 'PHS_PATH' ) )
+        exit;
+
+    include_once( PHS_PATH.'system/functions.php' );
+
+    define( 'PHS_VERSION', phs_version() );
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -17,43 +22,7 @@ if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) or !is_array( $PHS_DEFAULT_CRY
     exit;
 }
 
-define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
-define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_SSL_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
-
-define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
-define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
-
-// Root folders
-define( 'PHS_SETUP_DIR', PHS_PATH.'_setup/' );
-define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
-define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
-define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
-
-// If logging dir is not setup in main.php or config/*, default location is in system/logs/
-define( 'PHS_DEFAULT_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
-
-// If uploads dir is not setup in main.php or config/*, default location is in _uploads/
-define( 'PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/' );
-
-// Second level folders
-define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
-define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
-
-define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
-define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
-define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
-define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
-define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
-define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
-define( 'PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/' );
-
-// These paths will need a www pair, but after bootstrap
-define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
-define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
-
-// name of directory where email templates are stored (either theme relative or plugin relative)
-// eg. (themes/default/emails or plugins/accounts/templates/emails)
-define( 'PHS_EMAILS_DIRS', 'emails' );
+phs_init_before_bootstrap();
 
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );

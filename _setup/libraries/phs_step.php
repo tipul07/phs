@@ -63,9 +63,42 @@ abstract class PHS_Step extends PHS_Registry
                           '//'."\n\n" );
         }
 
-        foreach( $params['defines'] as $define_key => $define_val )
+        foreach( $params['defines'] as $define_key => $definition_info )
         {
-            @fputs( $fil, 'define( \''.$define_key.'\', \''.str_replace( '\'', '\\\'', $define_val ).'\' );'."\n" );
+            if( !is_array( $definition_info ) )
+                $definition_info = array( 'value' => $definition_info );
+
+            if( !isset( $definition_info['value'] )
+            and !isset( $definition_info['raw'] )
+            and !isset( $definition_info['line_comment'] )
+            and !isset( $definition_info['block_comment'] ) )
+                continue;
+
+            if( isset( $definition_info['line_comment'] )
+             or isset( $definition_info['block_comment'] ) )
+            {
+                if( isset( $definition_info['line_comment'] ) )
+                    @fputs( $fil, '// '.str_replace( "\n", '', $definition_info['line_comment'] ).' '."\n" );
+
+                else
+                {
+                    @fputs( $fil, "\n\n".
+                                '//'."\n".
+                                '// '.trim( str_replace( "\n", "\n// ", $definition_info['block_comment'] ) )."\n".
+                                '//'."\n".
+                                "\n" );
+                    continue;
+                }
+            }
+
+            if( isset( $definition_info['value'] ) )
+                $define_val = '\''.str_replace( '\'', '\\\'', $definition_info['value'] ).'\'';
+            else
+                $define_val = $definition_info['raw'];
+
+            @fputs( $fil, 'define( \''.$define_key.'\', '.$define_val.' );'.
+                          (isset( $definition_info['quick_comment'] )?' // '.str_replace( "\n", '', $definition_info['quick_comment'] ):'').
+                          "\n" );
         }
 
         @fputs( $fil, "\n\n" );

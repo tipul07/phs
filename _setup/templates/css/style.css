@@ -8,7 +8,7 @@ body { font-family: 'Open Sans', 'Segoe UI', Arial, Helvetica, 'Trebuchet MS', s
 fieldset.form-group label { float: left; margin-top: 5px; color: #555; font-family: "Segoe UI", Helvetica, Arial, Verdana, sans-serif; }
 label { display: inline-block; max-width: 100%; margin-bottom: 5px; font-weight: 700; }
 form fieldset { max-width: 100%; border: 0; line-height: 24px; vertical-align: middle; }
-form fieldset input { border: 2px solid grey; padding: 5px; border-radius: 3px; }
+form fieldset input, form fieldset select { border: 2px solid grey; padding: 5px; border-radius: 3px; background-color: white; }
 fieldset { padding: .35em .625em .75em; margin: 0 2px; border: 1px solid silver; }
 
 .notification_container { max-width: 68.5em; padding: 5px; margin: 0 auto 10px auto; }

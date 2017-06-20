@@ -71,6 +71,7 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_encdec.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_interface.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_class.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_params.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_line_params.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_hooks.php' );

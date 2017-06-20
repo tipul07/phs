@@ -12,6 +12,91 @@ if( !defined( 'DATETIME_T_FORMAT' ) )
 use \phs\PHS_db;
 use \phs\libraries\PHS_Model;
 
+function phs_version()
+{
+    return '1.0.1.54';
+}
+
+function phs_init_before_bootstrap()
+{
+    static $did_definitions = null;
+
+    if( !defined( 'PHS_PATH' )
+     or !defined( 'PHS_DEFAULT_DOMAIN' )
+     or !defined( 'PHS_DEFAULT_PORT' )
+     or !defined( 'PHS_DEFAULT_SSL_DOMAIN' )
+     or !defined( 'PHS_DEFAULT_SSL_PORT' )
+     or !defined( 'PHS_DEFAULT_DOMAIN_PATH' ) )
+        return false;
+
+    if( $did_definitions !== null )
+        return true;
+
+    $did_definitions = true;
+
+    if( !defined( 'PHS_DEFAULT_FULL_PATH_WWW' ) )
+        define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!=''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
+    if( !defined( 'PHS_DEFAULT_FULL_SSL_PATH_WWW' ) )
+        define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_SSL_DOMAIN.(PHS_DEFAULT_SSL_PORT!=''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
+
+    if( !defined( 'PHS_DEFAULT_HTTP' ) )
+        define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
+    if( !defined( 'PHS_DEFAULT_HTTPS' ) )
+        define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
+
+    // Root folders
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+        define( 'PHS_SETUP_DIR', PHS_PATH.'_setup/' );
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+        define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+        define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+        define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
+
+    // If logging dir is not setup in main.php or config/*, default location is in system/logs/
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+        define( 'PHS_DEFAULT_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+
+    // If uploads dir is not setup in main.php or config/*, default location is in _uploads/
+    if( !defined( 'PHS_DEFAULT_UPLOADS_DIR' ) )
+        define( 'PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+
+    // Second level folders
+    if( !defined( 'PHS_CORE_DIR' ) )
+        define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
+    if( !defined( 'PHS_LIBRARIES_DIR' ) )
+        define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
+
+    if( !defined( 'PHS_CORE_MODEL_DIR' ) )
+        define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
+    if( !defined( 'PHS_CORE_CONTROLLER_DIR' ) )
+        define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
+    if( !defined( 'PHS_CORE_VIEW_DIR' ) )
+        define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
+    if( !defined( 'PHS_CORE_ACTION_DIR' ) )
+        define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
+    if( !defined( 'PHS_CORE_PLUGIN_DIR' ) )
+        define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
+    if( !defined( 'PHS_CORE_SCOPE_DIR' ) )
+        define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
+    if( !defined( 'PHS_CORE_LIBRARIES_DIR' ) )
+        define( 'PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/' );
+
+    // These paths will need a www pair, but after bootstrap
+    if( !defined( 'PHS_THEMES_DIR' ) )
+        define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
+    if( !defined( 'PHS_LANGUAGES_DIR' ) )
+        define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
+
+    // name of directory where email templates are stored (either theme relative or plugin relative)
+    // eg. (themes/default/emails or plugins/accounts/templates/emails)
+    if( !defined( 'PHS_EMAILS_DIRS' ) )
+        define( 'PHS_EMAILS_DIRS', 'emails' );
+
+    return true;
+}
+
 function generate_guid()
 {
     return sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',

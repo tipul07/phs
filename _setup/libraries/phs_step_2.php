@@ -167,7 +167,7 @@ class PHS_Step_2 extends PHS_Step
             if( empty( $phs_db_charset ) )
                 $phs_db_charset = '';
 
-            if( !empty( $phs_db_driver_settings ) )
+            if( empty( $phs_db_driver_settings ) )
                 $phs_db_driver_settings = '';
             elseif( !@json_decode( $phs_db_driver_settings, true ) )
                 $this->add_error_msg( 'Please provide a valid JSON for driver settings.' );
@@ -216,7 +216,9 @@ class PHS_Step_2 extends PHS_Step
                 'PHS_DB_DATABASE' => $phs_db_database,
                 'PHS_DB_PREFIX' => $phs_db_prefix,
                 'PHS_DB_PORT' => $phs_db_port,
-                'PHS_DB_TIMEZONE' => 'date( \'P\' )',
+                'PHS_DB_TIMEZONE' => array(
+                    'raw' => 'date( \'P\' )',
+                ),
                 'PHS_DB_CHARSET' => $phs_db_charset,
                 'PHS_DB_USE_PCONNECT' => ($phs_db_use_pconnect?'true':'false'),
                 'PHS_DB_DRIVER_SETTINGS' => (empty( $phs_db_driver_settings )?'':@json_encode( @json_decode( $phs_db_driver_settings, true ) )),
@@ -227,7 +229,12 @@ class PHS_Step_2 extends PHS_Step
             );
 
             if( $this->save_step_config_file( $config_params ) )
+            {
                 $this->add_success_msg( 'Config file saved with success. Redirecting to next step...' );
+
+                if( ($setup_instance = $this->setup_instance()) )
+                    $setup_instance->goto_next_step();
+            }
 
             else
             {
@@ -256,8 +263,6 @@ class PHS_Step_2 extends PHS_Step
                 $phs_db_driver_settings = PHS_DB_DRIVER_SETTINGS;
             } else
             {
-                $phs_path = PHS_SETUP_PHS_PATH;
-
                 $phs_db_driver = PHS_db::DB_DRIVER_MYSQLI;
                 $phs_db_hostname = 'localhost';
                 $phs_db_username = '';

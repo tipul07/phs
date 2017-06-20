@@ -12,8 +12,6 @@ if( !defined( 'PHS_DB_DIE_ON_ERROR' ) )
     define( 'PHS_DB_DIE_ON_ERROR', true );
 if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
     define( 'PHS_DB_CLOSE_AFTER_QUERY', false );
-if( !defined( 'PHS_DB_USE_PCONNECT' ) )
-    define( 'PHS_DB_USE_PCONNECT', true );
 
 // Define any common database connections (if required)
 // if( !PHS_db::db_drivers_init() )

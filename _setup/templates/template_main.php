@@ -21,6 +21,7 @@ use \phs\libraries\PHS_Hooks;
 </style>
 <body>
 <div id="container">
+    <small>PHS v<?php echo phs_version()?></small>
     <div id="content">
         <?php
         if( ($notifications_arr = $this->get_context( 'notifications' ))
@@ -47,5 +48,6 @@ use \phs\libraries\PHS_Hooks;
         </div>
     </div>
 </div>
+<small>PHS v<?php echo phs_version()?></small>
 </body>
 </html>

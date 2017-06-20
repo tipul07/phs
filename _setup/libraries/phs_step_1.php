@@ -38,6 +38,9 @@ class PHS_Step_1 extends PHS_Step
         include( $config_file );
         ob_end_clean();
 
+        if( defined( 'PHS_PATH' ) )
+            phs_init_before_bootstrap();
+
         $this->config_file_loaded( true );
 
         return true;
@@ -82,7 +85,7 @@ class PHS_Step_1 extends PHS_Step
             if( empty( $phs_domain_path ) )
                 $phs_domain_path = '/';
 
-            if( $this->has_error_msgs() )
+            if( !$this->has_error_msgs() )
             {
                 $defines_arr = array(
                     'PHS_PATH' => $phs_path,
@@ -92,6 +95,31 @@ class PHS_Step_1 extends PHS_Step
                     'PHS_DEFAULT_PORT' => $phs_port,
                     'PHS_DEFAULT_SSL_PORT' => $phs_ssl_port,
                     'PHS_DEFAULT_DOMAIN_PATH' => $phs_domain_path,
+
+                    array( 'block_comment' => 'Session definition' ),
+                    'PHS_DEFAULT_SESSION_DIR' => array(
+                        'raw' => 'PHS_PATH.\'sess/\'',
+                    ),
+                    'PHS_DEFAULT_SESSION_NAME' => array(
+                        'value' => 'PHS_SESS',
+                        'quick_comment' => 'Rename this if you use more sites on same domain...',
+                    ),
+                    'PHS_DEFAULT_SESSION_COOKIE_LIFETIME' => array(
+                        'raw' => 2678400,
+                        'quick_comment' => '31 days by default',
+                    ),
+                    'PHS_DEFAULT_SESSION_COOKIE_PATH' => '/',
+                    'PHS_DEFAULT_SESSION_AUTOSTART' => array(
+                        'raw' => 'false',
+                    ),
+
+                    array( 'block_comment' => 'Misc dirs...' ),
+                    'PHS_FRAMEWORK_LOGS_DIR' => array(
+                        'raw' => 'PHS_PATH.\'system/logs/\'',
+                    ),
+                    'PHS_FRAMEWORK_UPLOADS_DIR' => array(
+                        'raw' => 'PHS_PATH.\'_uploads/\'',
+                    ),
                 );
 
                 $config_params = array(
@@ -99,7 +127,12 @@ class PHS_Step_1 extends PHS_Step
                 );
 
                 if( $this->save_step_config_file( $config_params ) )
+                {
                     $this->add_success_msg( 'Config file saved with success. Redirecting to next step...' );
+
+                    if( ($setup_instance = $this->setup_instance()) )
+                        $setup_instance->goto_next_step();
+                }
 
                 else
                 {

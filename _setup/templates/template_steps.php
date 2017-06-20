@@ -2,12 +2,15 @@
     /** @var \phs\setup\libraries\PHS_Setup_view $this */
 
     /** @var \phs\setup\libraries\PHS_Setup $setup_obj */
-    if( ($setup_obj = $this->get_context( 'phs_setup_obj' )) )
+    if( !($setup_obj = $this->get_context( 'phs_setup_obj' )) )
     {
-        ?>
-        <h1>Step <?php echo $setup_obj->current_step().' / '.$setup_obj->max_steps()?></h1>
-        <?php
+        echo 'Couldn\'t obtain setup instance...';
+        exit;
     }
+
+    ?>
+    <h1>Step <?php echo $setup_obj->current_step().' / '.$setup_obj->max_steps()?></h1>
+    <?php
 
     echo ' &raquo; ';
     for( $view_steps = 1; $view_steps <= $setup_obj->max_steps(); $view_steps++ )
@@ -26,7 +29,7 @@
 
         if( $step_passed )
         {
-            ?><a href=""><?php
+            ?><a href="index.php?forced_step=<?php echo $view_steps?>"><?php
         }
 
         if( !empty( $step_details ) )
@@ -46,6 +49,15 @@
             ?></a><?php
         }
     }
+
+    if( $setup_obj->all_steps_passed() )
+    {
+        ?>
+        ... <a href="index.php">Completed!</a>
+        <?php
+    }
+
+    echo '<br/>';
 
     /** @var \phs\setup\libraries\PHS_Step $step_obj */
     if( ($step_obj = $this->get_context( 'step_instance' ))

@@ -4,6 +4,7 @@
     $this->set_context( 'page_title', 'Step 1' );
 ?>
 <form id="phs_setup_step1" name="phs_setup_step1" method="post">
+<input type="hidden" name="foobar" value="1" />
 <fieldset class="form-group">
     <label for="phs_path"><?php echo $this->_pt( 'PHS Root path' )?></label>
     <div class="lineform_line">

@@ -49,8 +49,6 @@ define( 'PHS_DB_DRIVER_SETTINGS', @json_encode( array( 'sql_mode' => '-ONLY_FULL
 //     define( 'PHS_DB_DIE_ON_ERROR', true );
 // if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
 //     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
-// if( !defined( 'PHS_DB_USE_PCONNECT' ) )
-//     define( 'PHS_DB_USE_PCONNECT', true );
 
 // Define other specific database settings (if required)
 // $mysql_settings = array();

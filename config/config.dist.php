@@ -97,8 +97,6 @@ define( 'PHS_SESSION_AUTOSTART', false );
 //     define( 'PHS_DB_DIE_ON_ERROR', true );
 // if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
 //     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
-// if( !defined( 'PHS_DB_USE_PCONNECT' ) )
-//     define( 'PHS_DB_USE_PCONNECT', true );
 
 // Define domain specific database settings (if required)
 // $mysql_settings = array();
