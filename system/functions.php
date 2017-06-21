@@ -1,9 +1,5 @@
 <?php
 
-if( (!defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ))
-and !defined( 'PHS_VERSION' ) )
-    exit;
-
 if( !defined( 'DATETIME_T_EMPTY' ) )
     define( 'DATETIME_T_EMPTY', '0000-00-00T00:00:00' );
 if( !defined( 'DATETIME_T_FORMAT' ) )
