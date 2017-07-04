@@ -14,7 +14,7 @@ class PHS_Plugin_Foobar extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.7';
+        return '1.0.10';
     }
 
     /**

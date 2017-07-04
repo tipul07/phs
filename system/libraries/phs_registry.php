@@ -297,6 +297,46 @@ class PHS_Registry extends PHS_Language
         return @array_keys( $return_arr );
     }
 
+    /**
+     * Checks if provided arrays values are same (order is not checked)
+     * Values MUST BE SCALARS!!!
+     *
+     * @param array $arr1
+     * @param array $arr2
+     *
+     * @return bool True is arrays hold same values (ignoring position in array)
+     */
+    public static function arrays_have_same_values( $arr1, $arr2 )
+    {
+        if( !is_array( $arr1 ) or !is_array( $arr2 ) )
+            return false;
+
+        if( empty( $arr1 ) and empty( $arr2 ) )
+            return true;
+
+        if( empty( $arr1 ) or empty( $arr2 )
+         or count( $arr1 ) != count( $arr2 ) )
+            return false;
+
+        $new_arr1 = array();
+        foreach( $arr1 as $val )
+        {
+            if( !is_scalar( $val ) )
+                return false;
+
+            $new_arr1[$val] = true;
+        }
+
+        foreach( $arr2 as $val )
+        {
+            if( !is_scalar( $val )
+             or empty( $new_arr1[$val] ) )
+                return false;
+        }
+
+        return true;
+    }
+
     public static function extract_strings_from_comma_separated( $str, $params = false )
     {
         if( !is_string( $str ) )

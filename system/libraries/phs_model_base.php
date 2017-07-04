@@ -58,7 +58,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
           DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
 
-    const T_DETAILS_KEY = '{details}';
+    const T_DETAILS_KEY = '{details}', EXTRA_INDEXES_KEY = '{indexes}';
 
     const RECORD_NEW_INSERT_KEY = '{new_in_db}';
 
@@ -96,7 +96,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      */
     final public static function get_model_base_version()
     {
-        return '1.0.1';
+        return '1.0.3';
     }
 
     /**
@@ -143,6 +143,23 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $db_connection = $this->get_db_connection( $params );
 
         return db_prefix( $db_connection );
+    }
+
+    /**
+     * Returns database name for provided database connection
+     *
+     * @param bool|array $params Flow parameters
+     *
+     * @return string Connection tables prefix
+     */
+    public function get_db_database( $params = false )
+    {
+        if( !($params = $this->fetch_default_flow_params( $params )) )
+            return '';
+
+        $db_connection = $this->get_db_connection( $params );
+
+        return db_database( $db_connection );
     }
 
     /**
@@ -333,7 +350,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Parses flow parameters if anything special should be done for count query and returns modified parameters array
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Flow parameters array
      */
@@ -345,7 +362,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Prepares parameters common to _count and _list methods
      *
-     * @param array|false $params Parameters in the flow
+     * @param array|bool $params Parameters in the flow
      *
      * @return array Flow parameters array
      */
@@ -548,7 +565,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $this->reset_error();
 
         if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         or !($flow_database_name = $this->get_db_database( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
@@ -582,6 +600,40 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             }
         }
 
+        // Get extra indexes...
+        if( ($qid = db_query( 'SELECT * FROM information_schema.statistics '.
+                              ' WHERE '.
+                              ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
+                              ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
+        {
+            while( ($index_arr = db_fetch_assoc( $qid )) )
+            {
+                if( !is_array( $index_arr )
+                 or empty( $index_arr['INDEX_NAME'] )
+                 or empty( $index_arr['COLUMN_NAME'] ) )
+                    continue;
+
+                if( empty( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY] )
+                 or !is_array( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY] ) )
+                    self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY] = array();
+
+                if( empty( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
+                 or !is_array( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
+                    self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = array();
+
+                if( empty( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
+                 or !is_array( self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
+                    self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = array();
+
+                self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
+
+                if( empty( $index_arr['NON_UNIQUE'] ) )
+                    self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
+                else
+                    self::$tables_arr[$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
+            }
+        }
+
         return self::$tables_arr[$flow_table_name];
     }
 
@@ -608,6 +660,32 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
 
         return $table_definition[$field];
+    }
+
+    public function check_extra_index_exists( $index_name, $flow_params = false, $force = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( !($table_definition = $this->get_table_columns_as_definition( $flow_params, $force ))
+         or !is_array( $table_definition ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t get definition for table %s.', $flow_table_name ) );
+            return false;
+        }
+
+        if( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
+         or !array_key_exists( $index_name, $table_definition[self::EXTRA_INDEXES_KEY] ) )
+            return false;
+
+        return $table_definition[self::EXTRA_INDEXES_KEY][$index_name];
     }
 
     public function check_installation()
@@ -733,6 +811,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         );
     }
 
+    static public function default_table_extra_index_arr()
+    {
+        return array(
+            'unique' => false,
+            'fields' => array(),
+        );
+    }
+
     public static function fields_changed( $field1_arr, $field2_arr )
     {
         if( !($field1_arr = self::validate_field( $field1_arr ))
@@ -837,6 +923,38 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         return $details_arr;
+    }
+
+    public static function validate_table_extra_indexes( $indexes_arr )
+    {
+        if( empty( $indexes_arr ) or !is_array( $indexes_arr ) )
+            return array();
+
+        $new_indexes = array();
+        foreach( $indexes_arr as $index_name => $index_arr )
+        {
+            if( empty( $index_arr ) or !is_array( $index_arr ) )
+                continue;
+
+            $new_indexes[$index_name] = self::validate_table_extra_index( $index_arr );
+        }
+
+        return $new_indexes;
+    }
+
+    public static function validate_table_extra_index( $index_arr )
+    {
+        $def_values = self::default_table_extra_index_arr();
+        if( empty( $index_arr ) or !is_array( $index_arr ) )
+            return $def_values;
+
+        foreach( $def_values as $key => $val )
+        {
+            if( !array_key_exists( $key, $index_arr ) )
+                $index_arr[$key] = $val;
+        }
+
+        return $index_arr;
     }
 
     public function get_definition( $params = false )
@@ -964,6 +1082,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             {
                 $this->_definition[$params['table_name']][$field_name] = self::validate_table_details( $field_arr );
                 continue;
+            } elseif( $field_name == self::EXTRA_INDEXES_KEY )
+            {
+                $this->_definition[$params['table_name']][$field_name] = self::validate_table_extra_indexes( $field_arr );
+                continue;
             }
 
             if( !($new_field_arr = self::validate_field( $field_arr )) )
@@ -977,6 +1099,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( empty( $this->_definition[$params['table_name']][self::T_DETAILS_KEY] ) )
             $this->_definition[$params['table_name']][self::T_DETAILS_KEY] = self::default_table_details_arr();
+        if( empty( $this->_definition[$params['table_name']][self::EXTRA_INDEXES_KEY] ) )
+            $this->_definition[$params['table_name']][self::EXTRA_INDEXES_KEY] = array();
 
         return true;
     }
@@ -1166,7 +1290,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $data_arr = array();
         foreach( $table_fields as $field_name => $field_details )
         {
-            if( $field_name == self::T_DETAILS_KEY )
+            if( $field_name == self::T_DETAILS_KEY
+             or $field_name == self::EXTRA_INDEXES_KEY )
                 continue;
             
             if( isset( $field_details['default'] ) )
@@ -2098,6 +2223,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $field_details = self::validate_array( $field_details, self::default_field_arr() );
 
         if( $field_name == self::T_DETAILS_KEY
+         or $field_name == self::EXTRA_INDEXES_KEY
          or empty( $field_details ) or !is_array( $field_details )
          or !($type_details = self::valid_field_type( $field_details['type'] ))
          or !($field_details = $this->validate_field( $field_details )) )
@@ -2159,6 +2285,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( empty( $field_name )
          or $field_name == self::T_DETAILS_KEY
+         or $field_name == self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          or empty( $field_details ) or !is_array( $field_details )
          or !($field_details = self::validate_field( $field_details ))
@@ -2234,6 +2361,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( empty( $field_name )
          or $field_name == self::T_DETAILS_KEY
+         or $field_name == self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
          or empty( $field_details ) or !is_array( $field_details )
@@ -2336,6 +2464,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( empty( $field_name )
          or $field_name == self::T_DETAILS_KEY
+         or $field_name == self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
@@ -2463,10 +2592,184 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        if( !$this->create_table_extra_indexes( $flow_params ) )
+            return false;
+
         // Re-cache table structure...
         $this->get_table_columns_as_definition( $flow_params, true );
 
         PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return true;
+    }
+
+    protected function create_table_extra_indexes( $flow_params )
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id())
+         or empty( $this->_definition ) or !is_array( $this->_definition )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or empty( $flow_params['table_name'] )
+         or empty( $this->_definition[$flow_params['table_name']] )
+         or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+            return false;
+
+        $table_definition = $this->_definition[$flow_params['table_name']];
+
+        if( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
+         or !is_array( $table_definition[self::EXTRA_INDEXES_KEY] )
+         or !($database_name = $this->get_db_database( $flow_params )) )
+            return true;
+
+        foreach( $table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
+        {
+            if( !$this->create_table_extra_index( $index_name, $index_arr, $flow_params ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    public function create_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $indexes_array ) or !is_array( $indexes_array ) )
+            return true;
+
+        foreach( $indexes_array as $index_name => $index_arr )
+        {
+            if( empty( $index_arr ) or !is_array( $index_arr ) )
+                continue;
+
+            if( !$this->create_table_extra_index( $index_name, $index_arr, $flow_params ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    public function create_table_extra_index( $index_name, $index_arr, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id())
+         or empty( $index_name )
+         or empty( $index_arr ) or !is_array( $index_arr )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or !($index_arr = $this->validate_table_extra_index( $index_arr ))
+         or empty( $index_arr['fields'] ) or !is_array( $index_arr['fields'] )
+         or empty( $flow_params['table_name'] )
+         or empty( $this->_definition[$flow_params['table_name']] )
+         or !($full_table_name = $this->get_flow_table_name( $flow_params ))
+         or !($database_name = $this->get_db_database( $flow_params )) )
+        {
+            PHS_Logger::logf( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        $fields_str = '';
+        foreach( $index_arr['fields'] as $field_name )
+        {
+            $fields_str .= ($fields_str!=''?',':'').'`'.$field_name.'`';
+        }
+
+        // $sql =
+        //     'SELECT IF ('.
+        //         ' EXISTS( '.
+        //             'SELECT DISTINCT index_name FROM information_schema.statistics '.
+        //             ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
+        //             ' AND index_name LIKE \''.$index_name.'\''.
+        //         ' )'.
+        //     ' ,\'SELECT \'\'index exists\'\' junk;\' '.
+        //     ' ,\'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.');\''.
+        //     ') INTO @a;'."\n".
+        //     'USE \''.$database_name.'\';'."\n".
+        //     'PREPARE stmt1 FROM @a;'."\n".
+        //     'EXECUTE stmt1;'."\n".
+        //     'DEALLOCATE PREPARE stmt1;'."\n";
+        //
+        // if( !db_query( $sql, $db_connection ) )
+        // {
+        //     PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        //
+        //     $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
+        //     return false;
+        // }
+
+        if( ($qid = db_query( 'SELECT DISTINCT index_name '.
+                               ' FROM information_schema.statistics '.
+                               ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
+                               ' AND index_name LIKE \''.$index_name.'\'', $db_connection ))
+        and @mysqli_num_rows( $qid ) )
+        {
+            PHS_Logger::logf( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Extra index %s for table %s for model %s already exists.', $index_name, $full_table_name, $this->instance_id() ) );
+            return false;
+        }
+
+        if( !db_query( 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection ) )
+        {
+            PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function delete_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $indexes_array ) or !is_array( $indexes_array ) )
+            return true;
+
+        foreach( $indexes_array as $index_name => $index_arr )
+        {
+            if( empty( $index_arr ) or !is_array( $index_arr ) )
+                continue;
+
+            if( !$this->delete_table_extra_index( $index_name, $flow_params ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    public function delete_table_extra_index( $index_name, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id())
+         or empty( $index_name )
+         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         or empty( $flow_params['table_name'] )
+         or !($full_table_name = $this->get_flow_table_name( $flow_params ))
+         or !($database_name = $this->get_db_database( $flow_params )) )
+        {
+            PHS_Logger::logf( 'Error deleting extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error deleting extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
+        {
+            PHS_Logger::logf( 'Error deleting extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
+            return false;
+        }
 
         return true;
     }
@@ -2555,7 +2858,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $found_old_field_names_arr = array();
         foreach( $table_definition as $field_name => $field_definition )
         {
-            if( empty( $field_definition['old_names'] ) or !is_array( $field_definition['old_names'] ) )
+            if( $field_name == self::T_DETAILS_KEY
+             or $field_name == self::EXTRA_INDEXES_KEY
+             or !is_array( $field_definition )
+             or empty( $field_definition['old_names'] ) or !is_array( $field_definition['old_names'] ) )
                 continue;
 
             foreach( $field_definition['old_names'] as $old_field_name )
@@ -2629,7 +2935,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         // First we add or remove missing fields
         foreach( $table_definition as $field_name => $field_definition )
         {
-            if( $field_name == self::T_DETAILS_KEY )
+            if( $field_name == self::T_DETAILS_KEY
+             or $field_name == self::EXTRA_INDEXES_KEY )
                 continue;
 
             $field_extra_params = array();
@@ -2639,7 +2946,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
             if( empty( $db_table_definition[$field_name] ) )
             {
-                // Field doesn't existin in db structure...
+                // Field doesn't exist in in db structure...
                 // Check if we must rename it...
                 if( !empty( $old_field_names_arr[$field_name] ) )
                 {
@@ -2704,6 +3011,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         foreach( $db_table_definition as $field_name => $junk )
         {
             if( $field_name == self::T_DETAILS_KEY
+             or $field_name == self::EXTRA_INDEXES_KEY
              or !empty( $fields_found_in_old_structure[$field_name] ) )
                 continue;
 
@@ -2717,6 +3025,56 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 }
 
                 return false;
+            }
+        }
+
+        // Check extra indexes...
+        if( !empty( $table_definition[self::EXTRA_INDEXES_KEY] )
+         or !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
+        {
+            if( !empty( $table_definition[self::EXTRA_INDEXES_KEY] )
+            and empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
+            {
+                // new extra indexes
+                if( !$this->create_table_extra_indexes( $flow_params ) )
+                    return false;
+            } elseif( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
+                  and !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
+            {
+                // delete exiting extra indexes
+                if( !$this->delete_table_extra_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
+                    return false;
+            } else
+            {
+                // do the diff on extra indexes...
+                $current_indexes = array();
+                foreach( $db_table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
+                {
+                    if( empty( $index_arr['fields'] ) or !is_array( $index_arr['fields'] ) )
+                        $index_arr['fields'] = array();
+
+                    if( array_key_exists( $index_name, $table_definition[self::EXTRA_INDEXES_KEY] )
+                    and !empty( $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
+                    and is_array( $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
+                    and !($index_arr['unique'] xor $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['unique'])
+                    and self::arrays_have_same_values( $index_arr['fields'], $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] ) )
+                    {
+                        $current_indexes[$index_name] = true;
+                        continue;
+                    }
+
+                    $this->delete_table_extra_index( $index_name, $flow_params );
+                }
+
+                // add new extra indexes after we did the diff with exiting ones...
+                foreach( $table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
+                {
+                    if( !empty( $current_indexes[$index_name] ) )
+                        continue;
+
+                    if( !$this->create_table_extra_index( $index_name, $index_arr, $flow_params ) )
+                        return false;
+                }
             }
         }
 

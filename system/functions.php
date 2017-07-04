@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.0.1.54';
+    return '1.0.1.55';
 }
 
 function phs_init_before_bootstrap()
@@ -362,6 +362,16 @@ function db_prefix( $connection = false )
         return '';
 
     return $db_settings['prefix'];
+}
+
+function db_database( $connection = false )
+{
+    if( !($db_settings = db_settings( $connection ))
+     or !is_array( $db_settings )
+     or empty( $db_settings['database'] ) )
+        return '';
+
+    return $db_settings['database'];
 }
 
 function db_dump( $dump_params, $connection = false )

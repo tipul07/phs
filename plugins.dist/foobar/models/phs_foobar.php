@@ -14,7 +14,7 @@ class PHS_Model_Foobar extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.3';
+        return '1.0.6';
     }
 
     /**
@@ -79,6 +79,13 @@ class PHS_Model_Foobar extends PHS_Model
                         'charset' => 'utf8',
                         'collate' => 'utf8_general_ci',
                         'comment' => 'A foobar model',
+                    ),
+
+                    self::EXTRA_INDEXES_KEY => array(
+                        'pid_route' => array(
+                            'unique' => true,
+                            'fields' => array( 'pid', 'route', 'last_error' ),
+                        ),
                     ),
 
                     'id' => array(
