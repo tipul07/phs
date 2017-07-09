@@ -227,28 +227,44 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         self::scan_for_language_files( $languages_dir );
     }
 
-    public function get_library_full_path( $library )
+    public function get_library_full_path( $library, $params = false )
     {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['path_in_lib_dir'] ) )
+            $params['path_in_lib_dir'] = '';
+        else
+            $params['path_in_lib_dir'] = trim( str_replace( '.', '', $params['path_in_lib_dir'] ), '\\/' ).'/';
+
         $library = self::safe_escape_library_name( $library );
         if( empty( $library )
          or !($dir_path = $this->instance_plugin_path())
-         or !@is_dir( $dir_path.self::LIBRARIES_DIR )
-         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php' ) )
+         or !@is_dir( $dir_path.self::LIBRARIES_DIR.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
+         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
             return false;
 
-        return $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php';
+        return $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
-    public function get_library_full_www( $library )
+    public function get_library_full_www( $library, $params = false )
     {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['path_in_lib_dir'] ) )
+            $params['path_in_lib_dir'] = '';
+        else
+            $params['path_in_lib_dir'] = trim( str_replace( '.', '', $params['path_in_lib_dir'] ), '\\/' ).'/';
+
         $library = self::safe_escape_library_name( $library );
         if( empty( $library )
          or !($dir_path = $this->instance_plugin_path())
-         or !@is_dir( $dir_path.self::LIBRARIES_DIR )
-         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$library.'.php' ) )
+         or !@is_dir( $dir_path.self::LIBRARIES_DIR.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
+         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
             return false;
 
-        return $this->instance_plugin_www().self::LIBRARIES_DIR.'/'.$library.'.php';
+        return $this->instance_plugin_www().self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
     public function load_library( $library, $params = false )
@@ -266,6 +282,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $params['init_params'] = false;
         if( empty( $params['as_singleton'] ) )
             $params['as_singleton'] = true;
+        if( empty( $params['path_in_lib_dir'] ) )
+            $params['path_in_lib_dir'] = '';
 
         if( !($library = self::safe_escape_library_name( $library )) )
         {
@@ -277,7 +295,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         and !empty( $this->_libraries_instances[$library] ) )
             return $this->_libraries_instances[$library];
 
-        if( !($file_path = $this->get_library_full_path( $library )) )
+        if( !($file_path = $this->get_library_full_path( $library, array( 'path_in_lib_dir' => $params['path_in_lib_dir'] ) )) )
         {
             $this->set_error( self::ERR_LIBRARY, self::_t( 'Couldn\'t load library [%s] from plugin [%s]', $library, $this->instance_plugin_name() ) );
             return false;
@@ -314,7 +332,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $location_details = $library_instance::get_library_default_location_paths();
         $location_details['library_file'] = $file_path;
         $location_details['library_path'] = @dirname( $file_path );
-        $location_details['library_www'] = @dirname( $this->get_library_full_www( $library ) );
+        $location_details['library_www'] = @dirname( $this->get_library_full_www( $library, array( 'path_in_lib_dir' => $params['path_in_lib_dir'] ) ) );
 
         if( !$library_instance->set_library_location_paths( $location_details ) )
         {
