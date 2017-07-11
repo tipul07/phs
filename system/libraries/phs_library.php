@@ -81,4 +81,11 @@ abstract class PHS_Library extends PHS_Registry
         return $plugins_settings;
     }
 
+    final public function quick_render_template_for_buffer( $template, $template_data = false )
+    {
+        if( !($plugin_obj = $this->get_plugin_instance()) )
+            return '';
+
+        return $plugin_obj->quick_render_template_for_buffer( $template, $template_data );
+    }
 }
