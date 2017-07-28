@@ -2,14 +2,14 @@
 
 namespace phs\libraries;
 
-//! \version 1.70
+//! \version 1.71
 
 class PHS_params
 {
     const ERR_OK = 0, ERR_PARAMS = 1;
 
     const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7,
-          T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12;
+          T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13;
 
     const FLOAT_PRECISION = 10;
 
@@ -193,6 +193,7 @@ class PHS_params
             break;
 
             case self::T_BOOL:
+            case self::T_NUMERIC_BOOL:
                 if( is_string( $val ) )
                 {
                     if( empty( $extra['trim_before'] ) )
@@ -201,14 +202,19 @@ class PHS_params
                     $low_val = strtolower( $val );
 
                     if( $low_val == 'true' )
-                        return true;
+                        $val = true;
                     elseif( $low_val == 'false' )
-                        return false;
+                        $val = false;
                 }
 
-                return (!empty( $val )?true:false);
+                if( $type == self::T_BOOL )
+                    return (!empty( $val )?true:false);
+                elseif( $type == self::T_NUMERIC_BOOL )
+                    return (!empty( $val )?1:0);
             break;
         }
+
+        return null;
     }
 
     static function _gp( $v, $type = self::T_ASIS, $extra = false )

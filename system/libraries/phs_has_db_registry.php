@@ -18,7 +18,8 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
      */
     public function get_db_registry_details( $force = false )
     {
-        if( !empty( $this->_db_registry_details ) )
+        if( empty( $force )
+        and !empty( $this->_db_registry_details ) )
             return $this->_db_registry_details;
 
         if( !$this->_load_plugins_instance()
@@ -38,7 +39,8 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
      */
     public function get_db_registry( $force = false )
     {
-        if( $this->_db_registry !== false )
+        if( empty( $force )
+        and $this->_db_registry !== false )
             return $this->_db_registry;
 
         if( !$this->_load_plugins_instance() )

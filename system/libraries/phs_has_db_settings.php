@@ -163,7 +163,8 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
      */
     public function get_db_details( $force = false )
     {
-        if( !empty( $this->_db_details ) )
+        if( empty( $force )
+        and !empty( $this->_db_details ) )
             return $this->_db_details;
 
         if( !$this->_load_plugins_instance()
@@ -183,7 +184,8 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
      */
     public function get_db_settings( $force = false )
     {
-        if( !empty( $this->_db_settings ) )
+        if( empty( $force )
+        and !empty( $this->_db_settings ) )
             return $this->_db_settings;
 
         if( !$this->_load_plugins_instance()
