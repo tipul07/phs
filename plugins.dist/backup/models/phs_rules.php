@@ -36,14 +36,14 @@ class PHS_Model_Rules extends PHS_Model
 
     const DAY_ALL = 0, DAY_MONDAY = 1, DAY_TUESDAY = 2, DAY_WEDNESDAY = 3, DAY_THURSDAY = 4, DAY_FRIDAY = 5, DAY_SATURDAY = 6, DAY_SUNDAY = 7;
 
-    const BACKUP_TARGET_ALL = ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
+    // const BACKUP_TARGET_ALL = ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
 
     /**
      * @return string Returns version of model
      */
     public function get_model_version()
     {
-        return '1.0.5';
+        return '1.0.6';
     }
 
     /**
@@ -60,6 +60,11 @@ class PHS_Model_Rules extends PHS_Model
     function get_main_table_name()
     {
         return 'backup_rules';
+    }
+
+    public function get_all_targets()
+    {
+        return ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
     }
 
     final public function get_statuses( $lang = false )
@@ -1656,12 +1661,12 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if( empty( $params['fields']['target'] ) )
-            $params['fields']['target'] = self::BACKUP_TARGET_ALL;
+            $params['fields']['target'] = $this->get_all_targets();
 
         elseif( is_array( $params['fields']['target'] ) )
         {
             if( !($target_bits = $this->targets_arr_to_bits( $params['fields']['target'] )) )
-                $target_bits = self::BACKUP_TARGET_ALL;
+                $target_bits = $this->get_all_targets();
 
             $params['fields']['target'] = $target_bits;
         } else
@@ -1848,12 +1853,12 @@ class PHS_Model_Rules extends PHS_Model
         if( isset( $params['fields']['target'] ) )
         {
             if( empty( $params['fields']['target'] ) )
-                $params['fields']['target'] = self::BACKUP_TARGET_ALL;
+                $params['fields']['target'] = $this->get_all_targets();
 
             elseif( is_array( $params['fields']['target'] ) )
             {
                 if( !($target_bits = $this->targets_arr_to_bits( $params['fields']['target'] )) )
-                    $target_bits = self::BACKUP_TARGET_ALL;
+                    $target_bits = $this->get_all_targets();
 
                 $params['fields']['target'] = $target_bits;
             } else

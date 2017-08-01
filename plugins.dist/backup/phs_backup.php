@@ -30,7 +30,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.8';
+        return '1.0.9';
     }
 
     /**
@@ -255,7 +255,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $rule_fields['title'] = $this->_pt( 'Weekly Backup (%s)', $rules_days[$backup_rules_model::DAY_SUNDAY] );
         $rule_fields['location'] = '';
         $rule_fields['hour'] = 4;
-        $rule_fields['target'] = $backup_rules_model::BACKUP_TARGET_ALL;
+        $rule_fields['target'] = $backup_rules_model->get_all_targets();
         $rule_fields['status'] = $backup_rules_model::STATUS_ACTIVE;
 
         $rule_params_arr = $flow_params;
@@ -268,7 +268,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $rule_fields['title'] = $this->_pt( 'Daily Backup' );
         $rule_fields['location'] = '';
         $rule_fields['hour'] = 4;
-        $rule_fields['target'] = $backup_rules_model::BACKUP_TARGET_ALL;
+        $rule_fields['target'] = $backup_rules_model->get_all_targets();
         $rule_fields['status'] = $backup_rules_model::STATUS_INACTIVE;
 
         $rule_params_arr = $flow_params;
