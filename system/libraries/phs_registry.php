@@ -56,6 +56,41 @@ class PHS_Registry extends PHS_Language
     }
 
     /**
+     * This is usually used when we have a numeric array holding records from database (eg. values returned by get_list() method on models.
+     * If we want to get from $a[0]['name'], $a[1]['name'] => $a['name'][0], $a['name'][1] which is easier to work with (eg. implode all names)
+     *
+     * @param array $provided_arr Array to be walked
+     * @param array $keys_arr Keys to be translated
+     *
+     * @return array Array with first keys keys from $keys_arr and second set of keys first set of keys from $strings_arr
+     */
+    public function extract_array_keys( $provided_arr, $keys_arr )
+    {
+        if( empty( $provided_arr ) or !is_array( $provided_arr ) )
+            return array();
+
+        if( empty( $keys_arr ) or !is_array( $keys_arr ) )
+            return $provided_arr;
+
+        $return_arr = array();
+        foreach( $provided_arr as $key => $val_arr )
+        {
+            if( !is_array( $val_arr ) )
+                continue;
+
+            foreach( $keys_arr as $ret_key )
+            {
+                if( !isset( $provided_arr[$key][$ret_key] ) )
+                    continue;
+
+                $return_arr[$ret_key][$key] = $provided_arr[$key][$ret_key];
+            }
+        }
+
+        return $return_arr;
+    }
+
+    /**
      * Translate an array to provided language. It is expected that $strings_arr is an array of arrays and $keys_arr are keys inside "leafs" arrays.
      * This is useful when defining statuses, types, etc arrays inside models which contains texts which normally should be translated.
      * Check $STATUSES_ARR found in built-in models to understand.
