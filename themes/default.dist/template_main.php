@@ -370,7 +370,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                                                                                     ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
                             </div>
                             <div style="float: right; right: 10px;">
-                                <input type="submit" name="submit" class="btn btn-primary btn-medium submit-protection" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
+                                <input type="submit" name="do_submit" class="btn btn-primary btn-medium submit-protection" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
                             <div class="clearfix"></div>
                         </div>
                     </form>
