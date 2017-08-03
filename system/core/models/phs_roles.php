@@ -26,7 +26,7 @@ class PHS_Model_Roles extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -1096,6 +1096,39 @@ class PHS_Model_Roles extends PHS_Model
                                ' FROM `'.$roles_units_table.'` '.
                                ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
                                ' WHERE `'.$roles_units_links_table.'`.role_id = \''.intval( $role_id ).'\'', $this->get_db_connection( $flow_params_ru ) ))
+         or !@mysqli_num_rows( $qid ) )
+            return array();
+
+        $return_arr = array();
+        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            $return_arr[] = $slug_arr['slug'];
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Gets role units slugs for provided roles. Roles can be passed as single slug, array of slugs or array of ids
+     *
+     * @param string|array $roles_slugs signle slug or array of role slugs / ids
+     *
+     * @return array|bool False on error or an array of slugs for provided roles
+     */
+    public function get_role_units_slugs_from_roles_slugs( $roles_slugs )
+    {
+        if( !is_array( $roles_slugs ) )
+            $roles_slugs = array( $roles_slugs );
+
+        if( !($flow_params_ru = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) ))
+         or !($flow_params_rul = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
+         or !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
+         or !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
+         or !($ids_arr = $this->roles_list_to_ids( $roles_slugs ))
+         or !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
+                               ' FROM `'.$roles_units_table.'` '.
+                               ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
+                               ' WHERE `'.$roles_units_links_table.'`.role_id IN (\''.implode( '\', \'', $ids_arr ).'\')', $this->get_db_connection( $flow_params_ru ) ))
          or !@mysqli_num_rows( $qid ) )
             return array();
 

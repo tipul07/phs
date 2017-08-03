@@ -582,11 +582,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
             $user_db_data = $accounts_model->get_empty_data();
 
-            if( !($units_slugs_arr = PHS_Roles::get_role_role_units_slugs( PHS_Roles::ROLE_GUEST )) )
-                $units_slugs_arr = array();
 
-            $user_db_data[$accounts_model::ROLES_USER_KEY] = array( PHS_Roles::ROLE_GUEST );
-            $user_db_data[$accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
+            $roles_slugs_arr = array();
+            $role_units_slugs_arr = array();
+            if( ($guest_roles = $this->get_guest_roles_and_role_units()) )
+            {
+                $roles_slugs_arr = $guest_roles['roles_slugs'];
+                $role_units_slugs_arr = $guest_roles['role_units_slugs'];
+            }
+
+            $user_db_data[$accounts_model::ROLES_USER_KEY] = $roles_slugs_arr;
+            $user_db_data[$accounts_model::ROLE_UNITS_USER_KEY] = $role_units_slugs_arr;
 
             $hook_args['user_db_data'] = $user_db_data;
 
@@ -606,11 +612,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
             $user_db_data = $accounts_model->get_empty_data();
 
-            if( !($units_slugs_arr = PHS_Roles::get_role_role_units_slugs( PHS_Roles::ROLE_GUEST )) )
-                $units_slugs_arr = array();
+            $roles_slugs_arr = array();
+            $role_units_slugs_arr = array();
+            if( ($guest_roles = $this->get_guest_roles_and_role_units()) )
+            {
+                $roles_slugs_arr = $guest_roles['roles_slugs'];
+                $role_units_slugs_arr = $guest_roles['role_units_slugs'];
+            }
 
-            $user_db_data[$accounts_model::ROLES_USER_KEY] = array( PHS_Roles::ROLE_GUEST );
-            $user_db_data[$accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
+            $user_db_data[$accounts_model::ROLES_USER_KEY] = $roles_slugs_arr;
+            $user_db_data[$accounts_model::ROLE_UNITS_USER_KEY] = $role_units_slugs_arr;
 
             $hook_args['user_db_data'] = $user_db_data;
 
@@ -631,6 +642,27 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $check_result = $hook_args;
 
         return $hook_args;
+    }
+
+    public function get_guest_roles_and_role_units()
+    {
+        $guest_roles = array( PHS_Roles::ROLE_GUEST );
+
+        $hook_params = array();
+        $hook_params['guest_roles'] = $guest_roles;
+
+        if( ($hook_params = PHS_Hooks::trigger_captcha_display( $hook_params ))
+        and !empty( $hook_params['guest_roles'] ) )
+            $guest_roles = self::array_merge_unique_values( $guest_roles, $hook_params['guest_roles'] );
+
+        if( empty( $guest_roles )
+         or !($units_slugs_arr = PHS_Roles::get_role_units_slugs_from_roles_slugs( $guest_roles )) )
+            $units_slugs_arr = array();
+
+        return array(
+            'roles_slugs' => $guest_roles,
+            'role_units_slugs' => $units_slugs_arr,
+        );
     }
 
 }

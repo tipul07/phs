@@ -47,6 +47,9 @@ class PHS_Hooks extends PHS_Registry
          // Captcha hooks
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
+         // Roles hooks
+         H_GUEST_ROLES_SLUGS = 'phs_guest_roles_slugs',
+
          // User account hooks
          H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
          // triggered to get list of roles to assign to new users
@@ -64,7 +67,7 @@ class PHS_Hooks extends PHS_Registry
          // triggered after user logs in successfully
          H_USERS_AFTER_LOGIN = 'phs_users_after_login',
 
-         // Layout triggers
+         // Layout hooks
          H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
          H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
 
@@ -163,6 +166,14 @@ class PHS_Hooks extends PHS_Registry
         return self::validate_array_recursive( array(
             'data_arr' => array(),
             'flow_params' => false,
+        ), self::default_common_hook_args() );
+    }
+
+    // Default hook parameters sent for hooks related to guest roles
+    public static function default_guest_roles_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'guest_roles' => array(),
         ), self::default_common_hook_args() );
     }
 
@@ -331,6 +342,29 @@ class PHS_Hooks extends PHS_Registry
         and self::arr_has_error( $hook_args['hook_errors'] ) )
         {
             self::st_copy_error_from_array( $hook_args['hook_errors'] );
+            return false;
+        }
+
+        return $hook_args;
+    }
+
+    public static function trigger_guest_roles( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_guest_roles_hook_args() );
+
+        // If we don't have hooks registered, we don't use captcha
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_GUEST_ROLES_SLUGS, $hook_args )) === null )
+            return false;
+
+        if( is_array( $hook_args )
+        and !empty( $hook_args['guest_roles'] ) )
+        {
+            if( !@headers_sent() )
+            {
+                header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
+                exit;
+            }
+
             return false;
         }
 
