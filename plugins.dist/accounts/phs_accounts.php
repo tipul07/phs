@@ -646,23 +646,30 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function get_guest_roles_and_role_units()
     {
+        static $resulting_roles = false;
+
+        if( !empty( $resulting_roles ) )
+            return $resulting_roles;
+
         $guest_roles = array( PHS_Roles::ROLE_GUEST );
 
         $hook_params = array();
         $hook_params['guest_roles'] = $guest_roles;
 
-        if( ($hook_params = PHS_Hooks::trigger_captcha_display( $hook_params ))
-        and !empty( $hook_params['guest_roles'] ) )
+        if( ($hook_params = PHS_Hooks::trigger_guest_roles( $hook_params ))
+        and !empty( $hook_params['guest_roles'] ) and is_array( $hook_params['guest_roles'] ) )
             $guest_roles = self::array_merge_unique_values( $guest_roles, $hook_params['guest_roles'] );
 
         if( empty( $guest_roles )
          or !($units_slugs_arr = PHS_Roles::get_role_units_slugs_from_roles_slugs( $guest_roles )) )
             $units_slugs_arr = array();
 
-        return array(
+        $resulting_roles = array(
             'roles_slugs' => $guest_roles,
             'role_units_slugs' => $units_slugs_arr,
         );
+
+        return $resulting_roles;
     }
 
 }

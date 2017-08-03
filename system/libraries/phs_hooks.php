@@ -356,18 +356,6 @@ class PHS_Hooks extends PHS_Registry
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_GUEST_ROLES_SLUGS, $hook_args )) === null )
             return false;
 
-        if( is_array( $hook_args )
-        and !empty( $hook_args['guest_roles'] ) )
-        {
-            if( !@headers_sent() )
-            {
-                header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
-                exit;
-            }
-
-            return false;
-        }
-
         return $hook_args;
     }
 
