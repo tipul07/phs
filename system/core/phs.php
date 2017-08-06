@@ -353,7 +353,9 @@ final class PHS extends PHS_Registry
 
         if( empty( $theme )
          or !($theme = PHS_Instantiable::safe_escape_theme_name( $theme ))
-         or !@is_dir( PHS_THEMES_DIR . $theme ) or !@is_readable( PHS_THEMES_DIR . $theme ) )
+         or !@file_exists( PHS_THEMES_DIR . $theme )
+         or !@is_dir( PHS_THEMES_DIR . $theme )
+         or !@is_readable( PHS_THEMES_DIR . $theme ) )
         {
             self::st_set_error( self::ERR_THEME, self::_t( 'Theme %s doesn\'t exist or directory is not readable.', ($theme?$theme:'N/A') ) );
             return false;
@@ -372,7 +374,9 @@ final class PHS extends PHS_Registry
         if( !($theme = self::valid_theme( $theme )) )
             return false;
 
-        if( !@is_dir( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR ) or !@is_readable( PHS_THEMES_DIR . $theme ) )
+        if( !@file_exists( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR )
+         or !@is_dir( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR )
+         or !@is_readable( PHS_THEMES_DIR . $theme ) )
             return false;
 
         if( !@is_readable( PHS_THEMES_DIR . $theme. '/' . PHS_Instantiable::LANGUAGES_DIR ) )

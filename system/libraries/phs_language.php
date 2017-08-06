@@ -782,6 +782,18 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFINED_LANGUAGES[$lang];
     }
 
+    private function _loading_language( $loading = null )
+    {
+        static $is_loading = false;
+
+        if( $loading === null )
+            return $is_loading;
+
+        $is_loading = (!empty( $loading )?true:false);
+
+        return $is_loading;
+    }
+
     /**
      * Loads provided CSV files in 'files' index of language definition array for language $lang
      *
@@ -797,9 +809,13 @@ class PHS_Language_Container extends PHS_Error
         if( !self::st_get_multi_language_enabled() )
             return true;
 
+        $this->_loading_language( true );
+
         if( !($lang = self::st_valid_language( $lang ))
          or !($lang_details = self::get_defined_language( $lang )) )
         {
+            $this->_loading_language( false );
+
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined or has no files to be loaded.' );
             return false;
         }
@@ -811,7 +827,10 @@ class PHS_Language_Container extends PHS_Error
         and !empty( $theme_language_paths['path'] ) )
         {
             if( !$this->scan_for_language_files( $theme_language_paths['path'] ) )
+            {
+                $this->_loading_language( false );
                 return false;
+            }
         }
 
         if( ($current_theme = PHS::get_theme())
@@ -820,7 +839,10 @@ class PHS_Language_Container extends PHS_Error
         and !empty( $theme_language_paths['path'] ) )
         {
             if( !$this->scan_for_language_files( $theme_language_paths['path'] ) )
+            {
+                $this->_loading_language( false );
                 return false;
+            }
         }
 
         self::st_restore_errors( $old_static_error );
@@ -828,6 +850,8 @@ class PHS_Language_Container extends PHS_Error
         // After theme directories were scanned start loading files...
         if( !($lang_details = self::get_defined_language( $lang )) )
         {
+            $this->_loading_language( false );
+
             $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined or has no files to be loaded.' );
             return false;
         }
@@ -838,12 +862,17 @@ class PHS_Language_Container extends PHS_Error
             foreach( $lang_details['files'] as $file )
             {
                 if( !$this->load_language_file( $file, $lang, $force ) )
+                {
+                    $this->_loading_language( false );
                     return false;
+                }
             }
         }
 
         if( !empty( self::$_RELOAD_LANGUAGES[$lang] ) )
             unset( self::$_RELOAD_LANGUAGES[$lang] );
+
+        $this->_loading_language( false );
 
         return true;
     }
@@ -1094,6 +1123,7 @@ class PHS_Language_Container extends PHS_Error
 
         if( self::st_get_multi_language_enabled()
         and !empty( $lang )
+        and !$this->_loading_language()
         and (!self::language_loaded( $lang )
             or $this->should_reload_language_files( $lang )
             ) )
