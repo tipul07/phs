@@ -209,6 +209,7 @@ define( 'PHS_CORE_LIBRARIES_WWW', $base_url.'system/core/libraries/' );
 
 define( 'PHS_THEMES_WWW', $base_url.'themes/' );
 define( 'PHS_LANGUAGES_WWW', $base_url.'languages/' );
+define( 'PHS_UPLOADS_WWW', $base_url.'_uploads/' );
 
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.php' );
