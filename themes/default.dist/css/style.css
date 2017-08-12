@@ -138,7 +138,7 @@ a:hover, a:active { outline: 0; }
 
 /* 1.5 - Page Layout */
 #container { min-height:100%; max-width: 100%; position:relative; }
-#header { width: 100%; background: url("../images/header_bg.png") top left repeat-x; min-width: 750px; padding: 1em 0; border-bottom: 1px dotted #0aa5b4
+#header { width: 100%; background: url("../images/header_bg.png") top left repeat-x; min-width: 750px; padding: 1em 0; border-bottom: 1px dotted #0aa5b4;
 	box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1); -webkit-box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1); }
 #content { padding: 0 0 13em 0;  background: #F0F0F0  url('data:image/gif;base64,R0lGODlhBQAFAIAAAOLi4vDw8CH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4zLWMwMTEgNjYuMTQ1NjYxLCAyMDEyLzAyLzA2LTE0OjU2OjI3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M2IChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpBMDNCRTNFOTg3QTYxMUU2ODkxNEUxRURBMDA3MzE2RCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpBMDNCRTNFQTg3QTYxMUU2ODkxNEUxRURBMDA3MzE2RCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkEwM0JFM0U3ODdBNjExRTY4OTE0RTFFREEwMDczMTZEIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkEwM0JFM0U4ODdBNjExRTY4OTE0RTFFREEwMDczMTZEIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEAAAAAAAsAAAAAAUABQAAAgWMjwbJUQA7'); }
 #footer { width:100%; min-width: 750px; position:absolute; bottom: 1em; left:0;  margin: 0 auto; background: url("../images/footer_bg.png") top left repeat-x; }
@@ -270,9 +270,6 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #menu ul li:hover > ul { display: block; }
 #menu ul li ul li > a { font-size: 14px !important; white-space: nowrap; line-height:36px;}
 #menu ul li ul li ul { position: absolute; top:10px; left:200px; display: none; z-index: 1000; }
-
-
-
 
 .jqcheckbox-checkbox span.mark { background-color: transparent !important; }
 

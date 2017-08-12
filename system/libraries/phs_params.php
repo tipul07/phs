@@ -307,6 +307,11 @@ class PHS_params
         return self::set_type( $_POST[$v], $type, $extra );
     }
 
+    /**
+     * @param string $v
+     *
+     * @return array|null
+     */
     static function _f( $v )
     {
         if( !isset( $_FILES[$v] ) or $_FILES[$v]['name'] == '' )

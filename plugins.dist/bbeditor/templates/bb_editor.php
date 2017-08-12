@@ -157,7 +157,7 @@ var phs_bb_editor = phs_bb_editor || {
         PHS_JSEN.createAjaxDialog( {
             width: 1000,
             height: 800,
-            suffix: "phs_document",
+            suffix: "phs_bbeditor_document",
             resizable: true,
 
             title: "<?php echo $this->_e( $this->_pt( 'Document preview' ) )?>",

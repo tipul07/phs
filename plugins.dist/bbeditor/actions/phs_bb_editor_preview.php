@@ -40,23 +40,12 @@ class PHS_Action_Bb_editor_preview extends PHS_Action
             return $action_result;
         }
 
-        /** @var \phs\plugins\s2p_documents\PHS_Plugin_S2p_documents $s2p_documents_plugin */
-        if( !($s2p_documents_plugin = PHS::load_plugin( 's2p_documents' )) )
-        {
-            $action_result['buffer'] = $this->_pt( 'Couldn\'t load Smart2Pay documents plugin.' );
-            return $action_result;
-        }
-
-        if( !PHS_Roles::user_has_role_units( $current_user, $s2p_documents_plugin::ROLEU_MANAGE_DOCUMENTS ) )
-        {
-            $action_result['buffer'] = $this->_pt( 'You don\'t have rights to manage documents.' );
-            return $action_result;
-        }
+        //! TODO: Add hook to check rights on document preview
 
         /** @var \phs\plugins\bbeditor\PHS_Plugin_Bbeditor $bbeditor_plugin */
         if( !($bbeditor_plugin = $this->get_plugin_instance()) )
         {
-            $action_result['buffer'] = $this->_pt( 'Couldn\'t load libraries plugin.' );
+            $action_result['buffer'] = $this->_pt( 'Couldn\'t load bbeditor plugin.' );
             return $action_result;
         }
 

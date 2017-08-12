@@ -17,5 +17,5 @@ use \phs\PHS_ajax;
 .phs_bb_preview table { width: 100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
 .ui-dialog .ui-dialog-content { padding: 0 !important; overflow: hidden; }
 </style>
-<!--<div class="phs_bb_preview">--><?php //echo $bb_text?><!--</div>-->
-<div style="height:100%; width:100%;overflow: scroll;"><?php echo form_str( $bb_text )?></div>
+bububububu
+<div style="height:100%; width:100%;overflow: scroll;"><?php echo $bb_text?></div>

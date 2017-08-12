@@ -38,160 +38,163 @@ class Bbcode extends PHS_Library
     {
         parent::__construct( $error_no, $error_msg, $error_debug_msg, $static_instance );
 
-        array(
-            'b' => array(
-                'title' => 'Bold',
-                'attributes' => array(),
-                'html' => '<b>{TAG_VALUE}</b>',
-                'public' => true,
-                'template' => '[b]{CONTENT}[/b]',
-                'editor_button' => '<i class="fa fa-bold" aria-hidden="true"></i>',
-            ),
-            'i' => array(
-                'title' => 'Italic',
-                'attributes' => array(),
-                'html' => '<i>{TAG_VALUE}</i>',
-                'public' => true,
-                'template' => '[i]{CONTENT}[/i]',
-                'editor_button' => '<i class="fa fa-italic" aria-hidden="true"></i>',
-            ),
-            'u' => array(
-                'title' => 'Underline',
-                'attributes' => array(),
-                'html' => '<u>{TAG_VALUE}</u>',
-                'public' => true,
-                'template' => '[u]{CONTENT}[/u]',
-                'editor_button' => '<i class="fa fa-underline" aria-hidden="true"></i>',
-            ),
-            'p' => array(
-                'title' => 'Paragraph',
-                'attributes' => array( 'align' => '', ),
-                'html' => '<p{TAG_ATTRIBUTES}>{TAG_VALUE}</p>',
-                'public' => true,
-                'template' => '[p]{CONTENT}[/p]',
-                'editor_button' => '<i class="fa fa-paragraph" aria-hidden="true"></i>',
-            ),
-            'link' => array(
-                'title' => 'Link',
-                'attributes' => array( 'href' => '', 'name' => '', 'title' => '', 'target' => '' ),
-                'mandatory_attributes' => array( 'href' ),
-                'html' => '<a{TAG_ATTRIBUTES}>{TAG_VALUE}</a>',
-                'public' => true,
-                'template' => '[link href="" title=""]{CONTENT}[/link]',
-                'editor_button' => '<i class="fa fa-link" aria-hidden="true"></i>',
-            ),
-            'img' => array(
-                'title' => 'Image',
-                'attributes' => array( 'src' => '', 'title' => '', 'width' => '', 'height' => '', ),
-                'mandatory_attributes' => array( 'src' ),
-                'html' => '<img{TAG_ATTRIBUTES} />',
-                'public' => true,
-                'template' => '[img src="" title="" width="" height=""]{CONTENT}[/img]',
-                'editor_button' => '<i class="fa fa-picture-o" aria-hidden="true"></i>',
-            ),
-            'olist' => array(
-                'title' => 'Ordered list',
-                'attributes' => array(),
-                'html' => '<ol>{TAG_VALUE}</ol>',
-                'public' => true,
-                'template' => '[olist]'."\n".
-                    '[li]Item 1[/li]'."\n".
-                    '[li]Item 2[/li]'."\n".
-                    '[/olist]',
-                'editor_button' => '<i class="fa fa-list-ol" aria-hidden="true"></i>',
-            ),
-            'ulist' => array(
-                'title' => 'Unordered list',
-                'attributes' => array(),
-                'html' => '<ul>{TAG_VALUE}</ul>',
-                'public' => true,
-                'template' => '[ulist]'."\n".
-                    '[li]Item 1[/li]'."\n".
-                    '[li]Item 2[/li]'."\n".
-                    '[/ulist]',
-                'editor_button' => '<i class="fa fa-list-ul" aria-hidden="true"></i>',
-            ),
-            'li' => array(
-                'title' => 'List item',
-                'attributes' => array(),
-                'html' => '<li>{TAG_VALUE}</li>',
-                'public' => false,
-                'template' => '[li]Item[/li]',
-            ),
-            'table' => array(
-                'title' => 'Table',
-                'attributes' => array( 'width' => '', 'border' => 0, 'cellspacing' => 0, 'cellpadding' => 0 ),
-                'html' => '<table{TAG_ATTRIBUTES}>{TAG_VALUE}</table>',
-                'public' => true,
-                'template' => '[table]'."\n".
-                    '[thead][tr][th align="center"]Column 1[/th][th align="center"]Column 2[/th][/tr][/thead]'."\n".
-                    '[tbody]'."\n".
-                    '[tr][td]Item 1,1[/td][td]Item 2,1[/td][/tr]'."\n".
-                    '[tr][td]Item 1,2[/td][td]Item 2,2[/td][/tr]'."\n".
-                    '[/tbody]'."\n".
-                    '[/table]',
-                'editor_button' => '<i class="fa fa-table" aria-hidden="true"></i>',
-            ),
-            'thead' => array(
-                'title' => 'Table header',
-                'attributes' => array(),
-                'html' => '<thead{TAG_ATTRIBUTES}>{TAG_VALUE}</thead>',
-                'public' => false,
-                'template' => '[thead][/thead]',
-            ),
-            'tbody' => array(
-                'title' => 'Table body',
-                'attributes' => array(),
-                'html' => '<tbody{TAG_ATTRIBUTES}>{TAG_VALUE}</tbody>',
-                'public' => false,
-                'template' => '[tbody][/tbody]',
-            ),
-            'tr' => array(
-                'title' => 'Table row',
-                'attributes' => array(),
-                'html' => '<tr{TAG_ATTRIBUTES}>{TAG_VALUE}</tr>',
-                'public' => false,
-                'template' => '[tr][/tr]',
-            ),
-            'th' => array(
-                'title' => 'Header cell',
-                'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', ),
-                'html' => '<th{TAG_ATTRIBUTES}>{TAG_VALUE}</th>',
-                'public' => false,
-                'template' => '[th align="center"]Item[/th]',
-            ),
-            'td' => array(
-                'title' => 'Table cell',
-                'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', 'bgcolor' => '', 'color' => '' ),
-                'html' => '<td{TAG_ATTRIBUTES}>{TAG_VALUE}</td>',
-                'public' => false,
-                'template' => '[td align="center"]Item[/td]',
-            ),
-            'registry' => array(
-                'title' => 'Registry value',
-                'attributes' => array( 'key' => '', 'default' => '', 'prefix' => '', 'suffix' => '', 'empty' => false ),
-                'callback' => array( $this, 'bb_registry_render' ),
-                'public' => true,
-                'template' => '[registry key="" /]',
-                'editor_button' => '<i class="fa fa-bookmark" aria-hidden="true"></i>',
-            ),
-            'callback' => array(
-                'title' => 'Callback function',
-                'attributes' => array( 'func' => '', 'lang' => '' ),
-                'callback' => array( $this, 'bb_callback_render' ),
-                'public' => true,
-                'template' => '[callback func=""][/callback]',
-                'editor_button' => '<i class="fa fa-code" aria-hidden="true"></i>',
-            ),
-            'do_preview' => array(
-                'title' => 'Preview document',
-                'attributes' => array(),
-                'public' => true,
-                'functionality_tag' => true,
-                'editor_button' => '<i class="fa fa-eye" aria-hidden="true"></i>',
-                'js_click_function' => 'phs_bb_editor.do_preview( \'{ATTRS.ID}\' )',
-            ),
-        );
+        if( empty( self::$BB_CODES ) )
+        {
+            self::$BB_CODES = array(
+                'b' => array(
+                    'title' => 'Bold',
+                    'attributes' => array(),
+                    'html' => '<b>{TAG_VALUE}</b>',
+                    'public' => true,
+                    'template' => '[b]{CONTENT}[/b]',
+                    'editor_button' => '<i class="fa fa-bold" aria-hidden="true"></i>',
+                ),
+                'i' => array(
+                    'title' => 'Italic',
+                    'attributes' => array(),
+                    'html' => '<i>{TAG_VALUE}</i>',
+                    'public' => true,
+                    'template' => '[i]{CONTENT}[/i]',
+                    'editor_button' => '<i class="fa fa-italic" aria-hidden="true"></i>',
+                ),
+                'u' => array(
+                    'title' => 'Underline',
+                    'attributes' => array(),
+                    'html' => '<u>{TAG_VALUE}</u>',
+                    'public' => true,
+                    'template' => '[u]{CONTENT}[/u]',
+                    'editor_button' => '<i class="fa fa-underline" aria-hidden="true"></i>',
+                ),
+                'p' => array(
+                    'title' => 'Paragraph',
+                    'attributes' => array( 'align' => '', ),
+                    'html' => '<p{TAG_ATTRIBUTES}>{TAG_VALUE}</p>',
+                    'public' => true,
+                    'template' => '[p]{CONTENT}[/p]',
+                    'editor_button' => '<i class="fa fa-paragraph" aria-hidden="true"></i>',
+                ),
+                'link' => array(
+                    'title' => 'Link',
+                    'attributes' => array( 'href' => '', 'name' => '', 'title' => '', 'target' => '' ),
+                    'mandatory_attributes' => array( 'href' ),
+                    'html' => '<a{TAG_ATTRIBUTES}>{TAG_VALUE}</a>',
+                    'public' => true,
+                    'template' => '[link href="" title=""]{CONTENT}[/link]',
+                    'editor_button' => '<i class="fa fa-link" aria-hidden="true"></i>',
+                ),
+                'img' => array(
+                    'title' => 'Image',
+                    'attributes' => array( 'src' => '', 'title' => '', 'width' => '', 'height' => '', ),
+                    'mandatory_attributes' => array( 'src' ),
+                    'html' => '<img{TAG_ATTRIBUTES} />',
+                    'public' => true,
+                    'template' => '[img src="" title="" width="" height=""]{CONTENT}[/img]',
+                    'editor_button' => '<i class="fa fa-picture-o" aria-hidden="true"></i>',
+                ),
+                'olist' => array(
+                    'title' => 'Ordered list',
+                    'attributes' => array(),
+                    'html' => '<ol>{TAG_VALUE}</ol>',
+                    'public' => true,
+                    'template' => '[olist]'."\n".
+                        '[li]Item 1[/li]'."\n".
+                        '[li]Item 2[/li]'."\n".
+                        '[/olist]',
+                    'editor_button' => '<i class="fa fa-list-ol" aria-hidden="true"></i>',
+                ),
+                'ulist' => array(
+                    'title' => 'Unordered list',
+                    'attributes' => array(),
+                    'html' => '<ul>{TAG_VALUE}</ul>',
+                    'public' => true,
+                    'template' => '[ulist]'."\n".
+                        '[li]Item 1[/li]'."\n".
+                        '[li]Item 2[/li]'."\n".
+                        '[/ulist]',
+                    'editor_button' => '<i class="fa fa-list-ul" aria-hidden="true"></i>',
+                ),
+                'li' => array(
+                    'title' => 'List item',
+                    'attributes' => array(),
+                    'html' => '<li>{TAG_VALUE}</li>',
+                    'public' => false,
+                    'template' => '[li]Item[/li]',
+                ),
+                'table' => array(
+                    'title' => 'Table',
+                    'attributes' => array( 'width' => '', 'border' => 0, 'cellspacing' => 0, 'cellpadding' => 0 ),
+                    'html' => '<table{TAG_ATTRIBUTES}>{TAG_VALUE}</table>',
+                    'public' => true,
+                    'template' => '[table]'."\n".
+                        '[thead][tr][th align="center"]Column 1[/th][th align="center"]Column 2[/th][/tr][/thead]'."\n".
+                        '[tbody]'."\n".
+                        '[tr][td]Item 1,1[/td][td]Item 2,1[/td][/tr]'."\n".
+                        '[tr][td]Item 1,2[/td][td]Item 2,2[/td][/tr]'."\n".
+                        '[/tbody]'."\n".
+                        '[/table]',
+                    'editor_button' => '<i class="fa fa-table" aria-hidden="true"></i>',
+                ),
+                'thead' => array(
+                    'title' => 'Table header',
+                    'attributes' => array(),
+                    'html' => '<thead{TAG_ATTRIBUTES}>{TAG_VALUE}</thead>',
+                    'public' => false,
+                    'template' => '[thead][/thead]',
+                ),
+                'tbody' => array(
+                    'title' => 'Table body',
+                    'attributes' => array(),
+                    'html' => '<tbody{TAG_ATTRIBUTES}>{TAG_VALUE}</tbody>',
+                    'public' => false,
+                    'template' => '[tbody][/tbody]',
+                ),
+                'tr' => array(
+                    'title' => 'Table row',
+                    'attributes' => array(),
+                    'html' => '<tr{TAG_ATTRIBUTES}>{TAG_VALUE}</tr>',
+                    'public' => false,
+                    'template' => '[tr][/tr]',
+                ),
+                'th' => array(
+                    'title' => 'Header cell',
+                    'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', ),
+                    'html' => '<th{TAG_ATTRIBUTES}>{TAG_VALUE}</th>',
+                    'public' => false,
+                    'template' => '[th align="center"]Item[/th]',
+                ),
+                'td' => array(
+                    'title' => 'Table cell',
+                    'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', 'bgcolor' => '', 'color' => '' ),
+                    'html' => '<td{TAG_ATTRIBUTES}>{TAG_VALUE}</td>',
+                    'public' => false,
+                    'template' => '[td align="center"]Item[/td]',
+                ),
+                'registry' => array(
+                    'title' => 'Registry value',
+                    'attributes' => array( 'key' => '', 'default' => '', 'prefix' => '', 'suffix' => '', 'empty' => false ),
+                    'callback' => array( $this, 'bb_registry_render' ),
+                    'public' => true,
+                    'template' => '[registry key="" /]',
+                    'editor_button' => '<i class="fa fa-bookmark" aria-hidden="true"></i>',
+                ),
+                'callback' => array(
+                    'title' => 'Callback function',
+                    'attributes' => array( 'func' => '', 'lang' => '' ),
+                    'callback' => array( $this, 'bb_callback_render' ),
+                    'public' => true,
+                    'template' => '[callback func=""][/callback]',
+                    'editor_button' => '<i class="fa fa-code" aria-hidden="true"></i>',
+                ),
+                'do_preview' => array(
+                    'title' => 'Preview document',
+                    'attributes' => array(),
+                    'public' => true,
+                    'functionality_tag' => true,
+                    'editor_button' => '<i class="fa fa-eye" aria-hidden="true"></i>',
+                    'js_click_function' => 'phs_bb_editor.do_preview( \'{ATTRS.ID}\' )',
+                ),
+            );
+        }
     }
 
     public function bb_registry_render( $params_arr )
