@@ -73,6 +73,14 @@ class Bbcode extends PHS_Library
                     'template' => '[p]{CONTENT}[/p]',
                     'editor_button' => '<i class="fa fa-paragraph" aria-hidden="true"></i>',
                 ),
+                'br' => array(
+                    'title' => 'New line',
+                    'attributes' => array(),
+                    'html' => '<br />',
+                    'public' => true,
+                    'template' => '[br/]',
+                    'editor_button' => '<i class="fa fa-exchange" aria-hidden="true"></i>',
+                ),
                 'link' => array(
                     'title' => 'Link',
                     'attributes' => array( 'href' => '', 'name' => '', 'title' => '', 'target' => '' ),
@@ -912,6 +920,7 @@ class Bbcode extends PHS_Library
 
         if( empty( $params['allow_html_code'] ) )
             $params['allow_html_code'] = false;
+
         // Internally set...
         if( empty( $params['recurring_level'] ) )
             $params['recurring_level'] = 0;
