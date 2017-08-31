@@ -14,13 +14,15 @@ class Mailchimp extends PHS_Library
     /** @var \phs\plugins\mailchimp\PHS_Plugin_Mailchimp $_mailchimp_plugin */
     private $_mailchimp_plugin = false;
 
-    private $_settings = array();
+    private $_api_settings = array();
+    private $_api_params = array();
 
     public function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
     {
         parent::__construct( $error_no, $error_msg, $error_debug_msg, $static_instance );
 
         $this->reset_api_settings();
+        $this->reset_api_params();
     }
 
     private function _load_dependencies()
@@ -28,7 +30,7 @@ class Mailchimp extends PHS_Library
         $this->reset_error();
 
         if( empty( $this->_mailchimp_plugin )
-         or !($this->_mailchimp_plugin = PHS::load_plugin( 'mailchimp' )) )
+        and !($this->_mailchimp_plugin = PHS::load_plugin( 'mailchimp' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading MailChimp plugin.' ) );
             return false;
@@ -37,13 +39,23 @@ class Mailchimp extends PHS_Library
         return true;
     }
 
+    public function get_member_hash( $email )
+    {
+        return md5( strtolower( $email ) );
+    }
+
     public function get_default_api_settings()
     {
         return array(
             'base_url' => 'api.mailchimp.com/3.0/',
             'dc_server' => '',
             'api_key' => '',
+        );
+    }
 
+    public function get_default_api_params()
+    {
+        return array(
             'rest_url' => '',
             // GET, POST, DELETE, etc...
             'http_method' => 'GET',
@@ -53,50 +65,96 @@ class Mailchimp extends PHS_Library
 
     public function reset_api_settings()
     {
-        $this->_settings = $this->get_default_api_settings();
+        $this->_api_settings = $this->get_default_api_settings();
     }
 
+    public function reset_api_params()
+    {
+        $this->_api_params = $this->get_default_api_params();
+    }
 
     public function api_settings( $key = null, $val = null )
     {
         if( $key === null and $val === null )
-            return $this->_settings;
+            return $this->_api_settings;
 
         if( $val === null )
         {
             if( !is_array( $key ) )
             {
                 if( !is_scalar( $key )
-                 or !isset( $this->_settings[$key] ) )
+                 or !isset( $this->_api_settings[$key] ) )
                     return null;
 
-                return $this->_settings[$key];
+                return $this->_api_settings[$key];
             }
 
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !isset( $this->_settings[$kkey] ) )
+                 or !isset( $this->_api_settings[$kkey] ) )
                     continue;
 
-                $this->_settings[$kkey] = $kval;
+                $this->_api_settings[$kkey] = $kval;
             }
 
             return true;
         }
 
         if( !is_scalar( $key )
-         or !isset( $this->_settings[$key] ) )
+         or !isset( $this->_api_settings[$key] ) )
             return null;
 
-        $this->_settings[$key] = $val;
+        $this->_api_settings[$key] = $val;
+
+        return true;
+    }
+
+    public function get_api_params()
+    {
+        return $this->_api_params;
+    }
+
+    private function _api_params( $key = null, $val = null )
+    {
+        if( $key === null and $val === null )
+            return $this->_api_params;
+
+        if( $val === null )
+        {
+            if( !is_array( $key ) )
+            {
+                if( !is_scalar( $key )
+                 or !isset( $this->_api_params[$key] ) )
+                    return null;
+
+                return $this->_api_params[$key];
+            }
+
+            foreach( $key as $kkey => $kval )
+            {
+                if( !is_scalar( $kkey )
+                 or !isset( $this->_api_params[$kkey] ) )
+                    continue;
+
+                $this->_api_params[$kkey] = $kval;
+            }
+
+            return true;
+        }
+
+        if( !is_scalar( $key )
+         or !isset( $this->_api_params[$key] ) )
+            return null;
+
+        $this->_api_params[$key] = $val;
 
         return true;
     }
 
     public function can_connect()
     {
-        if( empty( $this->_settings['dc_server'] ) or empty( $this->_settings['api_key'] ) )
+        if( empty( $this->_api_settings['dc_server'] ) or empty( $this->_api_settings['api_key'] ) )
             return false;
 
         return true;
@@ -108,7 +166,7 @@ class Mailchimp extends PHS_Library
 
         if( empty( $list_arr ) or !is_array( $list_arr ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide list parameters.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide MailChimp list details.' ) );
             return false;
         }
 
@@ -133,7 +191,7 @@ class Mailchimp extends PHS_Library
         }
 
         if( empty( $list_arr['permission_reminder'] ) )
-            $list_arr['permission_reminder'] = $this->_pt( 'You\'re receiving this email because you signed up for updates from our site %s.', PHS_SITE_NAME );
+            $list_arr['permission_reminder'] = $this->_pt( 'You are receiving this email because you opted in via %s site.', PHS_SITE_NAME );
 
         if( empty( $list_arr['campaign_defaults'] ) or !is_array( $list_arr['campaign_defaults'] ) )
             $list_arr['campaign_defaults'] = array();
@@ -165,8 +223,8 @@ class Mailchimp extends PHS_Library
         else
             $list_arr['email_type_option'] = (!empty( $list_arr['email_type_option'] )?true:false);
 
-        $this->api_settings( 'rest_url', 'lists' );
-        $this->api_settings( 'http_method', 'POST' );
+        $this->_api_params( 'rest_url', 'lists' );
+        $this->_api_params( 'http_method', 'POST' );
 
         if( !($api_response = $this->_do_call( $list_arr ))
          or empty( $api_response['json_response_arr'] ) )
@@ -191,14 +249,98 @@ class Mailchimp extends PHS_Library
             return false;
         }
 
-        $this->api_settings( 'rest_url', 'lists/'.$list_id );
-        $this->api_settings( 'http_method', 'GET' );
+        $this->_api_params( 'rest_url', 'lists/'.$list_id );
+        $this->_api_params( 'http_method', 'GET' );
 
         if( !($api_response = $this->_do_call())
          or empty( $api_response['json_response_arr'] ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining details about MailChimp list.' ) );
+
+            return false;
+        }
+
+        return $api_response['json_response_arr'];
+    }
+
+    public function add_member_to_list( $list_id, $member_arr )
+    {
+        $this->reset_error();
+
+        $list_id = trim( $list_id );
+        if( empty( $list_id ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a MailChimp list ID.' ) );
+            return false;
+        }
+
+        if( empty( $member_arr ) or !is_array( $member_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide MailChimp member details.' ) );
+            return false;
+        }
+
+        if( empty( $member_arr['email_address'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide member email address.' ) );
+            return false;
+        }
+
+        // html or text
+        if( empty( $member_arr['email_type'] ) )
+            $member_arr['email_type'] = 'html';
+
+        // subscribed, unsubscribed, cleaned, pending
+        if( empty( $member_arr['status'] ) )
+            $member_arr['status'] = 'subscribed';
+
+        if( empty( $member_arr['language'] ) )
+            $member_arr['language'] = self::get_current_language();
+
+        if( empty( $member_arr['vip'] ) )
+            $member_arr['vip'] = false;
+
+        $this->_api_params( 'rest_url', 'lists/'.$list_id.'/members/'.$this->get_member_hash( $member_arr['email_address'] ) );
+        $this->_api_params( 'http_method', 'PUT' );
+
+        if( !($api_response = $this->_do_call( $member_arr ))
+         or empty( $api_response['json_response_arr'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error adding member to MailChimp list.' ) );
+
+            return false;
+        }
+
+        return $api_response['json_response_arr'];
+    }
+
+    public function get_list_member_details( $list_id, $email_address )
+    {
+        $this->reset_error();
+
+        $list_id = trim( $list_id );
+        if( empty( $list_id ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a MailChimp list ID.' ) );
+            return false;
+        }
+
+        if( empty( $email_address ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide MailChimp member email address.' ) );
+            return false;
+        }
+
+        $this->_api_params( 'rest_url', 'lists/'.$list_id.'/members/'.$this->get_member_hash( $email_address ) );
+        $this->_api_params( 'http_method', 'GET' );
+
+        if( !($api_response = $this->_do_call())
+         or empty( $api_response['json_response_arr'] ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining details of MailChimp member.' ) );
 
             return false;
         }
@@ -243,20 +385,24 @@ class Mailchimp extends PHS_Library
         if( empty( $params['ok_http_code'] ) )
             $params['ok_http_code'] = 200;
 
-        $dc_server = trim( trim( $this->_settings['dc_server'] ), './' );
-        $base_url = trim( trim( $this->_settings['base_url'] ), './' );
-        $rest_url = trim( trim( $this->_settings['rest_url'] ), './' );
+        $dc_server = trim( trim( $this->_api_settings['dc_server'] ), './' );
+        $base_url = trim( trim( $this->_api_settings['base_url'] ), './' );
+        $rest_url = trim( trim( $this->_api_params['rest_url'] ), './' );
 
         $api_url = 'https://'.$dc_server.'.'.$base_url.'/'.$rest_url;
 
         $api_params = array();
-        $api_params['userpass'] = array( 'user' => 'something', 'pass' => $this->_settings['api_key'] );
+        $api_params['http_method'] = $this->_api_params['http_method'];
+        $api_params['userpass'] = array( 'user' => 'something', 'pass' => $this->_api_settings['api_key'] );
         $api_params['header_keys_arr'] = array(
             'Content-Type' => 'application/json',
         );
 
         if( !empty( $payload_str ) )
+        {
             $api_params['raw_post_str'] = $payload_str;
+            $this->_api_params( 'payload', $payload_str );
+        }
 
         if( !($response = PHS_utils::quick_curl( $api_url, $api_params ))
          or empty( $response['http_code'] ) )
@@ -279,7 +425,7 @@ class Mailchimp extends PHS_Library
             PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $mailchimp_plugin::LOG_CHANNEL );
 
             if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload, $mailchimp_plugin::LOG_CHANNEL );
+                PHS_Logger::logf( 'Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'MailChimp server responded with an error.' ) );
             return false;
