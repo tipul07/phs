@@ -2,9 +2,7 @@
 
 namespace phs\plugins\bbeditor\libraries;
 
-use \phs\PHS;
 use \phs\libraries\PHS_Library;
-use \phs\plugins\s2p_companies\models\PHS_Model_Companies;
 
 class Bbcode extends PHS_Library
 {

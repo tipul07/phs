@@ -2,15 +2,7 @@
 
 namespace phs\plugins\bbeditor;
 
-use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\PHS_session;
-use \phs\PHS_crypt;
-use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Plugin;
-use \phs\libraries\PHS_Hooks;
-use \phs\libraries\PHS_line_params;
-use phs\plugins\s2p_libraries\libraries\S2P_Countries;
 
 class PHS_Plugin_Bbeditor extends PHS_Plugin
 {
@@ -48,7 +40,7 @@ class PHS_Plugin_Bbeditor extends PHS_Plugin
     }
 
     /**
-     * Returns an instance of S2P_Bbcode class
+     * Returns an instance of Bbcode class
      *
      * @return bool|\phs\plugins\bbeditor\libraries\Bbcode
      */

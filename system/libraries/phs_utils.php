@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.31
+ *  \version 1.32
  */
 
 class PHS_utils extends PHS_Language
@@ -13,11 +13,6 @@ class PHS_utils extends PHS_Language
     const ERR_DIRECTORY = 1;
 
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
-
-    function __construct()
-    {
-        parent::__construct();
-    }
 
     static function parse_period( $seconds_span, $params = false )
     {
@@ -942,7 +937,10 @@ class PHS_utils extends PHS_Language
            @curl_setopt( $ch, CURLOPT_HTTPHEADER, $params['header_arr'] );
 
         if( !empty( $params['user_agent'] ) )
-            curl_setopt( $ch, CURLOPT_USERAGENT, $params['user_agent'] );
+            @curl_setopt( $ch, CURLOPT_USERAGENT, $params['user_agent'] );
+
+        if( !empty( $params['http_method'] ) and is_string( $params['http_method'] ) )
+            @curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $params['http_method'] );
 
         @curl_setopt( $ch, CURLOPT_URL, $url );
         @curl_setopt( $ch, CURLOPT_HEADER, 0 );
@@ -965,11 +963,16 @@ class PHS_utils extends PHS_Language
 
         $response = array(
             'response' => $curl_response,
+            'http_code' => 0,
             'request_details' => @curl_getinfo( $ch ),
             'request_error_msg' => @curl_error( $ch ),
             'request_error_no' => @curl_errno( $ch ),
             'request_params' => $return_params,
         );
+
+        if( !empty( $response['request_details'] ) and is_array( $response['request_details'] )
+        and isset( $response['request_details']['http_code'] ) )
+            $response['http_code'] = $response['request_details']['http_code'];
 
         @curl_close( $ch );
 
