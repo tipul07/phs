@@ -300,6 +300,19 @@ final class PHS extends PHS_Registry
         return $hook_args['session_db_data'];
     }
 
+    public static function account_structure( $account_data )
+    {
+        $hook_args = PHS_Hooks::default_account_structure_hook_args();
+        $hook_args['account_data'] = $account_data;
+
+        if( !($hook_result = PHS_Hooks::trigger_account_structure( $hook_args ))
+         or empty( $hook_result['account_structure'] )
+         or !is_array( $hook_result['account_structure'] ) )
+            return false;
+
+        return $hook_result['account_structure'];
+    }
+
     private static function _current_user_trigger( $force = false )
     {
         static $hook_result = false;

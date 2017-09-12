@@ -19,7 +19,21 @@ and $accounts_plugin->plugin_active() )
         array(
             'chained_hook' => true,
             'stop_chain' => false,
-            'priority' => 10,
+            'priority' => 0,
+        )
+    );
+
+    PHS::register_hook(
+        // $hook_name
+        PHS_Hooks::H_USER_ACCOUNT_STRUCTURE,
+        // $hook_callback = null
+        array( $accounts_plugin, 'get_account_structure' ),
+        // $hook_extra_args = null
+        PHS_Hooks::default_account_structure_hook_args(),
+        array(
+            'chained_hook' => true,
+            'stop_chain' => false,
+            'priority' => 0,
         )
     );
 

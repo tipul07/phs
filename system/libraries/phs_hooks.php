@@ -52,6 +52,8 @@ class PHS_Hooks extends PHS_Registry
 
          // User account hooks
          H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
+         // triggered to obtain an account structure for a given int, array (obtained from database) or false (for guest accounts)
+         H_USER_ACCOUNT_STRUCTURE = 'phs_user_account_structure',
          // triggered to get list of roles to assign to new users
          H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
          // triggered to manage user fields at registration
@@ -213,6 +215,17 @@ class PHS_Hooks extends PHS_Registry
             'session_db_data' => false,
             // How many seconds since session expired (0 - session didn't expired)
             'session_expired_secs' => 0,
+        ), self::default_common_hook_args() );
+    }
+
+    // Used to get account structure (including roles) Account data can be empty or an empty structure (a guest empty structure)
+    public static function default_account_structure_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            // Account id or array to be transformed into account structure (input)
+            'account_data' => false,
+            // Account structure (from database or empty strcuture for guests)
+            'account_structure' => false,
         ), self::default_common_hook_args() );
     }
 
@@ -378,6 +391,16 @@ class PHS_Hooks extends PHS_Registry
 
             return false;
         }
+
+        return $hook_args;
+    }
+
+    public static function trigger_account_structure( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_structure_hook_args() );
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_ACCOUNT_STRUCTURE, $hook_args )) === null )
+            return false;
 
         return $hook_args;
     }
