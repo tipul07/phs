@@ -23,7 +23,7 @@
                 ?>
                 <fieldset class="form-group">
                     <label for="nick"><?php echo $this->_pt( 'Username' ) ?></label>
-                    <?php echo form_str( $this->context_var( 'nick' ) ) ?>
+                    <div class="lineform_line"><?php echo form_str( $this->context_var( 'nick' ) ) ?></div>
                 </fieldset>
                 <?php
             }
