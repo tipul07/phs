@@ -4,11 +4,11 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 ?>
-<div style="min-width:600px;max-width:800px;margin: 0 auto;">
+<div style=";max-width:800px;margin: 0 auto;">
     <form id="forgot_form" name="forgot_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container" style="width: 550px;">
+        <div class="form_container">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Forgot password' )?></h3>
@@ -17,7 +17,7 @@
             <fieldset class="form-group">
                 <label for="email"><?php echo $this->_pt( 'Email' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" style="width: 260px;" /><br/>
+                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" /><br/>
                 <small><?php echo $this->_pt( 'Provide email address of your account' )?></small>
                 </div>
             </fieldset>
@@ -33,7 +33,7 @@
                     <label for="vcode"><?php echo $this->_pt( 'Validation code' ) ?></label>
                     <div class="lineform_line">
                     <?php echo $captcha_buf; ?><br/>
-                    <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="width: 160px;" />
+                    <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="max-width: 160px;" />
                     </div>
                 </fieldset>
                 <?php

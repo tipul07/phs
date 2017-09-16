@@ -13,8 +13,7 @@
     if( !($back_page = $this->context_var( 'back_page' )) )
         $back_page = '';
 ?>
-<!-- BEGIN: main -->
-<div style="min-width:600px;max-width:800px;margin: 0 auto;">
+<div style="max-width:800px;margin: 0 auto;">
     <form id="login_form" name="login_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
@@ -24,7 +23,7 @@
         }
         ?>
 
-        <div class="form_container" style="width: 450px;">
+        <div class="form_container responsive">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Login' )?></h3>
@@ -33,14 +32,14 @@
             <fieldset class="form-group">
                 <label for="nick"><?php echo (empty( $no_nickname_only_email )?$this->_pt( 'Username' ):$this->_pt( 'Email' ))?></label>
                 <div class="lineform_line">
-                <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" style="width: 260px;" />
+                <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass" name="pass" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" />
+                <input type="password" id="pass" name="pass" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" />
                 </div>
             </fieldset>
 
@@ -68,5 +67,3 @@
 </div>
 
 <div class="clearfix"></div>
-<p>&nbsp;</p>
-<!-- END: main -->

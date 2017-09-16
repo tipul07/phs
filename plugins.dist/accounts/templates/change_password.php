@@ -13,11 +13,11 @@
      or !is_array( $url_extra_args ) )
         $url_extra_args = false;
 ?>
-<div style="min-width:650px;max-width:1000px;margin: 0 auto;">
+<div style="max-width:1000px;margin: 0 auto;">
     <form id="change_password_form" name="change_password_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), $url_extra_args )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive" style="width: 550px;">
+        <div class="form_container responsive">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Change Password' )?></h3>
@@ -37,7 +37,7 @@
                 <fieldset class="form-group">
                     <label for="pass"><?php echo $this->_pt( 'Current Password' )?></label>
                     <div class="lineform_line">
-                    <input type="password" id="pass" name="pass" class="form-control" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" style="width: 260px;" required="required" />
+                    <input type="password" id="pass" name="pass" class="form-control" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" required="required" />
                     </div>
                 </fieldset>
                 <?php
@@ -47,7 +47,7 @@
             <fieldset class="form-group">
                 <label for="pass1"><?php echo $this->_pt( 'New Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass1" name="pass1" class="form-control" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" style="width: 260px;" required="required" /><br/>
+                <input type="password" id="pass1" name="pass1" class="form-control" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" required="required" /><br/>
                 <small><?php
 
                 echo $this->_pt( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
@@ -75,7 +75,7 @@
             <fieldset class="form-group">
                 <label for="pass2"><?php echo $this->_pt( 'Confirm Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass2" name="pass2" class="form-control" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" style="width: 260px;" required="required" />
+                <input type="password" id="pass2" name="pass2" class="form-control" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" required="required" />
                 </div>
             </fieldset>
 
@@ -88,9 +88,7 @@
                 {
                     ?>
                     <fieldset>
-                        <a href="<?php echo PHS::url( array(
-                                                              'p' => 'accounts', 'a' => 'edit_profile'
-                                                      ) ) ?>"><?php echo $this->_pt( 'Edit Profile' ) ?></a>
+                        <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ) ) ?>"><?php echo $this->_pt( 'Edit Profile' ) ?></a>
                     </fieldset>
                     <?php
                 }

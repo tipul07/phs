@@ -3,9 +3,9 @@
 
     use \phs\PHS;
 ?>
-<div style="min-width:600px;max-width:800px;margin: 0 auto;">
+<div style="max-width:800px;margin: 0 auto;">
 
-    <div class="form_container" style="width: 450px;">
+    <div class="form_container responsive">
 
         <section class="heading-bordered">
             <h3><?php echo $this->_pt( 'Confirmation action failed' )?></h3>

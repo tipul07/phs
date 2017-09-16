@@ -7,11 +7,11 @@
     if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
 ?>
-<div style="min-width:650px;max-width:1000px;margin: 0 auto;">
+<div style="max-width:1000px;margin: 0 auto;">
     <form id="edit_profile_form" name="edit_profile_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive" style="width: 650px;">
+        <div class="form_container responsive">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Edit Profile' )?></h3>
@@ -36,7 +36,7 @@
                 if( empty( $no_nickname_only_email ) )
                 {
                     ?>
-                    <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) ) ?>" style="width: 260px;"/>
+                    <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) ) ?>" />
                     <?php
                 } else
                 {
@@ -55,7 +55,7 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="width: 60px;" /><br/>
+                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="max-width: 60px;" /><br/>
                 <small><?php echo $this->_pt( 'eg. Mr., Ms., Mss., etc' )?></small>
                 </div>
             </fieldset>
@@ -63,27 +63,27 @@
             <fieldset class="form-group">
                 <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->context_var( 'fname' ) )?>" style="width: 260px;" />
+                <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->context_var( 'fname' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->context_var( 'lname' ) )?>" style="width: 260px;" />
+                <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->context_var( 'lname' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->context_var( 'phone' ) )?>" style="width: 260px;" />
+                <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->context_var( 'phone' ) )?>" />
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="company"><?php echo $this->_pt( 'Company' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->context_var( 'company' ) )?>" style="width: 260px;" />
+                <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->context_var( 'company' ) )?>" />
                 </div>
             </fieldset>
 
