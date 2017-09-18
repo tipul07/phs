@@ -272,15 +272,15 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
         }
         ?>
-            <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
-            <?php
-            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_CONTACT_US ) )
-            {
-                ?><li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) ) ?>"><?php echo $this::_t( 'Contact Us' ) ?></a></li><?php
-            }
-            ?>
-            <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
-            <?php
+        <li><a href="<?php echo PHS::url()?>"><?php echo $this::_t( 'Home' )?></a></li>
+        <?php
+        if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_CONTACT_US ) )
+        {
+            ?><li><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) ) ?>"><?php echo $this::_t( 'Contact Us' ) ?></a></li><?php
+        }
+        ?>
+        <li><a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a></li>
+        <?php
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_AFTER_LEFT_MENU, PHS_Hooks::default_buffer_hook_args() ))
         and is_array( $hook_args )
@@ -300,6 +300,19 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         <ul>
         <?php
 
+        if( !empty( $user_logged_in ) )
+        {
+            ?>
+            <li class="welcome_msg"><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
+            <?php
+
+            if( !empty( $accounts_model )
+            and $accounts_model->acc_is_operator( $cuser_arr ) )
+            {
+                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
+            }
+        }
+
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args() ))
         and is_array( $hook_args )
         and !empty( $hook_args['buffer'] ) )
@@ -307,15 +320,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 
         if( !empty( $user_logged_in ) )
         {
-            ?>
-            <li class="welcome_msg"><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
-
-            <?php
-            if( !empty( $accounts_model )
-            and $accounts_model->acc_is_operator( $cuser_arr ) )
-            {
-                ?><li><a href="<?php echo PHS::url( array( 'p' => 'admin' ) ) ?>"><?php echo $this::_t( 'Admin Menu' ) ?></a></li><?php
-            }
             ?>
             <li><a href="<?php echo PHS::url( array(
                                                   'p' => 'accounts',
