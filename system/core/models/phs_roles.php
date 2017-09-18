@@ -891,6 +891,9 @@ class PHS_Model_Roles extends PHS_Model
             return false;
 
         if( !is_array( $roles_arr ) )
+            $roles_arr = array( $roles_arr );
+
+        if( empty( $roles_arr ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'No roles provided to unlink from account.' ) );
             return false;
@@ -907,7 +910,7 @@ class PHS_Model_Roles extends PHS_Model
 
         if( !empty( $role_ids )
         and (!($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
-             or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\' AND role_unit_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params ) )
+             or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$account_arr['id'].'\' AND role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params ) )
             ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink roles from account.' ) );
