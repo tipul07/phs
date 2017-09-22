@@ -501,9 +501,19 @@ class PHS_file_upload extends PHS_Registry
 
         $finfo = $source_arr['upload_file'];
 
-        if( !is_array( $finfo ) or empty( $finfo['name'] ) or empty( $finfo['size'] ) or $finfo['size'] <= 0 )
+        if( !is_array( $finfo ) or empty( $finfo['name'] ) or !isset( $finfo['size'] ) )
         {
-            $this->set_error( self::ERR_NO_SOURCE, self::_t( 'Unknown source file.' ) );
+            $this->set_error( self::ERR_NO_SOURCE, self::_t( 'Invalid source file provided for upload.' ) );
+            $this->_update_copy_result( array(
+                    'error_no' => self::ERR_NO_SOURCE,
+                    'error_msg' => self::_t( 'Unknown source file.' ),
+                ));
+            return false;
+        }
+
+        if( empty( $finfo['size'] ) or $finfo['size'] <= 0 )
+        {
+            $this->set_error( self::ERR_NO_SOURCE, self::_t( 'PHP file uploading size limit might be reached.' ) );
             $this->_update_copy_result( array(
                     'error_no' => self::ERR_NO_SOURCE,
                     'error_msg' => self::_t( 'Unknown source file.' ),
