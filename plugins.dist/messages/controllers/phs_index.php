@@ -32,7 +32,7 @@ class PHS_Controller_Index extends PHS_Controller
                 return $this->execute_foobar_action( $action_result );
             }
 
-            /** @var \phs\plugins\s2p_companies\PHS_Plugin_S2p_companies $plugin_obj */
+            /** @var \phs\plugins\messages\PHS_Plugin_Messages $plugin_obj */
             if( !($plugin_obj = $this->get_plugin_instance()) )
             {
                 PHS_Notifications::add_warning_notice( $this->_pt( 'Couldn\'t obtain plugin instance.' ) );

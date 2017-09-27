@@ -11,7 +11,7 @@ class PHS_Plugin_Bbeditor extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
