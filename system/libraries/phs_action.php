@@ -31,7 +31,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         {
             $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
                 'action_obj' => $this,
-                'controller_obj' => $this->_controller_obj,
+                'controller_obj' => &$this->_controller_obj,
             ) );
         }
 
@@ -39,7 +39,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         {
             $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
                 'action_obj' => $this,
-                'controller_obj' => $this->_controller_obj,
+                'controller_obj' => &$this->_controller_obj,
             ) );
         }
     }
@@ -86,6 +86,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         return array(
             // Action "content"
+            'action_data' => array(), // Data which was used when running action
             'buffer' => '',
             'ajax_result' => false,
             'ajax_only_result' => false,
@@ -156,6 +157,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         if( empty( $action_result['buffer'] ) )
             $action_result['buffer'] = '';
+
+        $action_result['action_data'] = $view_obj->get_all_view_vars();
 
         return $action_result;
     }

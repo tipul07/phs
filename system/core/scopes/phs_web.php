@@ -39,13 +39,6 @@ class PHS_Scope_Web extends PHS_Scope
             exit;
         }
 
-        $view_params = array();
-        $view_params['action_obj'] = $action_obj;
-        $view_params['controller_obj'] = $controller_obj;
-        $view_params['parent_plugin_obj'] = (!empty( $action_obj )?$action_obj->get_plugin_instance():false);
-        $view_params['plugin'] = (!empty( $action_obj )?$action_obj->instance_plugin_name():false);
-        $view_params['as_singleton'] = false;
-
         // send custom headers as we will echo page content here...
         if( !@headers_sent() )
         {
@@ -73,6 +66,14 @@ class PHS_Scope_Web extends PHS_Scope
 
         else
         {
+            $view_params = array();
+            $view_params['action_obj'] = $action_obj;
+            $view_params['controller_obj'] = $controller_obj;
+            $view_params['parent_plugin_obj'] = (!empty( $action_obj )?$action_obj->get_plugin_instance():false);
+            $view_params['plugin'] = (!empty( $action_obj )?$action_obj->instance_plugin_name():false);
+            $view_params['template_data'] = (!empty( $action_result['action_data'] )?$action_result['action_data']:false);
+            $view_params['as_singleton'] = false;
+
             if( !($view_obj = PHS_View::init_view( $action_result['page_template'], $view_params )) )
             {
                 if( self::st_has_error() )
@@ -87,11 +88,6 @@ class PHS_Scope_Web extends PHS_Scope
                 $action_result['page_settings']['page_title'] = '';
 
             $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title']!=''?' - ':'').PHS_SITE_NAME;
-
-            if( !($view_data = $view_obj->get_context( $view_obj::VIEW_CONTEXT_DATA_KEY )) )
-                $view_data = array();
-
-            $view_obj->set_context( $view_obj::VIEW_CONTEXT_DATA_KEY, self::validate_array( $view_data, array( 'action_result' => $action_result ) ) );
 
             echo $view_obj->render();
         }

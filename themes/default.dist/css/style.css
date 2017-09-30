@@ -263,9 +263,9 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #menu ul { list-style-type:none; z-index: 1000; margin-bottom: 0; padding: 0; }
 #menu ul li { float: left; position: relative; }
 #menu ul li:hover {  }
-#menu ul li > a { font-size: 14px !important; padding: 0 20px; line-height: 38px; display: block; text-decoration:none; text-wrap: none; transition: all 0.1s ease-in-out; transition: background-color 0.2s ease-in-out}
+#menu ul li > a { font-size: 14px !important; padding: 0 20px; line-height: 38px; display: block; text-decoration:none; text-wrap: none; transition: all 0.1s ease-in-out; }
 #menu ul li > a:hover { font-size: 14px !important; text-wrap: none; }
-#menu ul li li { float: none; position: relative; text-wrap: none; padding-left: 1Sem; transition: all 0.2s;}
+#menu ul li li { float: none; position: relative; text-wrap: none; padding-left: 1em; transition: all 0.2s;}
 #menu ul ul { position: absolute; top: 38px; left:0; display: none; padding: 1em 1em 1em 0; z-index: 1000; min-width: 15em;  }
 #menu ul li:hover > ul { display: block; }
 #menu ul li ul li > a { font-size: 14px !important; white-space: nowrap; line-height:36px;}

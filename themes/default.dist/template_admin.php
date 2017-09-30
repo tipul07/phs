@@ -23,7 +23,8 @@
     if( !($cuser_arr = PHS::current_user()) )
         $cuser_arr = false;
 
-    $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
+    // $action_result = $this::validate_array( $this->context_var( 'action_result' ), PHS_Action::default_action_result() );
+    $action_result = $this->get_action_result();
 
     $summary_mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
     $summary_mail_hook_args['summary_container_id'] = 'messages-summary-container';

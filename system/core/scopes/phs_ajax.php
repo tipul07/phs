@@ -29,6 +29,27 @@ class PHS_Scope_Ajax extends PHS_Scope
         if( !isset( $action_result['ajax_result'] ) )
             $action_result['ajax_result'] = false;
 
+        // send custom headers as we will echo page content here...
+        if( !@headers_sent() )
+        {
+            if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+            {
+                foreach( $action_result['custom_headers'] as $key => $val )
+                {
+                    if( empty( $key ) )
+                        continue;
+
+                    $header_str = $key;
+                    if( !is_null( $val ) )
+                        $header_str .= ': '.$val;
+
+                    @header( $header_str );
+                }
+            }
+
+            @header( 'X-Powered-By: PHS-'.PHS_VERSION );
+        }
+
         if( $action_result['buffer'] != '' )
         {
             @header( 'Content-Type: text/html' );

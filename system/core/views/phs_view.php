@@ -212,7 +212,7 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         if( !empty( $params['template_data'] ) )
-            $view_obj->set_context( self::VIEW_CONTEXT_DATA_KEY, $params['template_data'] );
+            $view_obj->set_view_var( $params['template_data'] );
 
         return $view_obj;
     }
@@ -257,6 +257,19 @@ class PHS_View extends PHS_Signal_and_slot
     public function get_action()
     {
         return $this->_action;
+    }
+
+    /**
+     * @return array If current view has an action associated, return it's action result
+     */
+    public function get_action_result()
+    {
+        $default_action_result = PHS_Action::default_action_result();
+        /** @var \phs\libraries\PHS_Action $action */
+        if( !($action = $this->get_action()) )
+            return $default_action_result;
+
+        return self::validate_array( $action->get_action_result(), $default_action_result );
     }
 
     public function get_theme()
@@ -625,13 +638,56 @@ class PHS_View extends PHS_Signal_and_slot
         return $subview_obj->render( $template );
     }
 
-    public function context_var( $key )
+    public function get_all_view_vars()
+    {
+        if( !($vars_arr = $this->get_context( self::VIEW_CONTEXT_DATA_KEY )) )
+            $vars_arr = array();
+
+        return $vars_arr;
+    }
+
+    public function view_var( $key )
     {
         if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY ))
          or !isset( $_VIEW_CONTEXT[$key] ) )
             return false;
 
         return $_VIEW_CONTEXT[$key];
+    }
+
+    public function set_view_var( $key, $val = null )
+    {
+        if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY )) )
+            $_VIEW_CONTEXT = array();
+
+        if( $val === null )
+        {
+            if( !is_array( $key ) )
+                return false;
+
+            foreach( $key as $kkey => $kval )
+            {
+                if( !is_scalar( $kkey ) )
+                    continue;
+
+                $_VIEW_CONTEXT[$kkey] = $kval;
+            }
+        } else
+        {
+            if( !is_scalar( $key ) )
+                return false;
+
+            $_VIEW_CONTEXT[$key] = $val;
+        }
+
+        $this->set_context( self::VIEW_CONTEXT_DATA_KEY, $_VIEW_CONTEXT );
+
+        return true;
+    }
+
+    public function context_var( $key )
+    {
+        return $this->view_var( $key );
     }
 
     public function render( $template = false, $force_theme = false )
