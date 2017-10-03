@@ -45,6 +45,10 @@
         $scope_arr = array();
 
     $per_page_options_arr = array( 20, 50, 100 );
+
+    $columns_count = 0;
+    if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+        $columns_count = count( $columns_arr );
 ?>
 <div class="list_container">
     <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post">
@@ -189,10 +193,8 @@
 	<div>
 	<table style="min-width:100%;margin-bottom:5px;" class="tgrid">
 	<?php
-	$columns_count = 0;
-	if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+	if( !empty( $columns_count ) )
 	{
-		$columns_count = count( $columns_arr );
 		?>
 		<thead>
 		<tr>
