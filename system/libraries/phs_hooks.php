@@ -310,6 +310,8 @@ class PHS_Hooks extends PHS_Registry
             'reply_email' => '',
             'subject' => '',
 
+            'attach_files' => array(),
+
             'also_send' => true,
             'send_as_noreply' => true,
             'with_priority' => false,

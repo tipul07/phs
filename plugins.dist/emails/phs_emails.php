@@ -16,6 +16,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
 {
     const ERR_VALIDATION = 40000, ERR_TEMPLATE = 40001, ERR_SEND = 40002;
 
+    const MAX_ATTACHMENT_FILE_SIZE = 20971520; // 20 Mb
+
     const DEFAULT_ROUTE = 'default';
 
     const UNCHANGED_SMTP_PASS = '**********';
@@ -270,6 +272,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $routes_settings[$route];
     }
 
+    public static function default_file_attachment()
+    {
+        return array(
+            'file' => '',
+            'file_name' => '',
+            'content_type' => 'application/octet-stream',
+            'transfer_encoding' => 'base64',
+            'content_disposition' => 'attachment', // attachment or inline
+            'file_attachment_buffer' => '',
+        );
+    }
+
     public function init_email_hook_args( $hook_args )
     {
         $this->reset_error();
@@ -406,6 +420,34 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $hook_args['email_html_body'] = $email_html_body;
 
+        $attach_files = array();
+        if( !empty( $hook_args['attach_files'] ) and is_array( $hook_args['attach_files'] ) )
+        {
+            $default_file_details = self::default_file_attachment();
+            foreach( $hook_args['attach_files'] as $file_details )
+            {
+                if( empty( $file_details ) or !is_array( $file_details ) )
+                    continue;
+
+                if( !empty( $file_details['file_attachment_buffer'] ) )
+                    continue;
+
+                $file_details = self::validate_array( $file_details, $default_file_details );
+                if( empty( $file_details['file'] ) or !@file_exists( $file_details['file'] ) )
+                    continue;
+
+                if( empty( $file_details['file_name'] ) )
+                    $file_details['file_name'] = @basename( $file_details['file'] );
+
+                if( empty( $file_details['content_disposition'] )
+                 or !in_array( $file_details['content_disposition'], array( 'attachment', 'inline' ) ) )
+                    $file_details['content_disposition'] = 'attachment';
+
+                $attach_files[] = $file_details;
+            }
+        }
+        $hook_args['attach_files'] = $attach_files;
+
         if( !empty( $hook_args['also_send'] ) )
         {
             if( !($new_hook_args = $this->send_email( $hook_args )) )
@@ -501,8 +543,54 @@ class PHS_Plugin_Emails extends PHS_Plugin
                                   '--' . $mime_boundary . "\n" .
                                   'Content-Type: text/html; charset=UTF-8' . "\n" .
                                   'Content-Transfer-Encoding: 7bit' . "\n\n" .
-                                  $hook_args['email_html_body'] . "\n\n" .
-                                  '--' . $mime_boundary . '--' . "\n";
+                                  $hook_args['email_html_body'] . "\n\n";
+
+        $attach_files = array();
+        if( !empty( $hook_args['attach_files'] ) and is_array( $hook_args['attach_files'] ) )
+        {
+            $valid_attachments = false;
+            foreach( $hook_args['attach_files'] as $file_details )
+            {
+                if( empty( $file_details ) or !is_array( $file_details )
+                 or empty( $file_details['file'] ) or !@file_exists( $file_details['file'] ) )
+                    continue;
+
+                $valid_attachments = true;
+
+                if( !empty( $file_details['file_attachment_buffer'] ) )
+                    $hook_args['full_body'] .= $file_details['file_attachment_buffer'];
+
+                else
+                {
+                    if( ($file_size = @filesize( $file_details['file'] )) === false
+                     or intval( $file_size ) > self::MAX_ATTACHMENT_FILE_SIZE
+                     or !($file_content = @file_get_contents( $file_details['file'] )) )
+                    {
+                        $this->set_error( self::ERR_SEND, $this->_pt( 'Couldn\'t read attachment file.' ) );
+
+                        $hook_args['hook_errors'] = self::validate_array( $this->get_error(), PHS_Error::default_error_array() );
+
+                        return $hook_args;
+                    }
+
+                    if( $file_details['transfer_encoding'] == 'base64' )
+                        $file_content = base64_encode( $file_content );
+
+                    $file_details['file_attachment_buffer'] = '--' . $mime_boundary . "\n" .
+                        'Content-Type: '.$file_details['content_type'].';'."\n\t".' name="'.$file_details['file_name'].'"'."\n".
+                        'Content-Transfer-Encoding: '.$file_details['transfer_encoding']."\n".
+                        'Content-Disposition: '.$file_details['content_disposition'].';'."\n\t".' filename="'.$file_details['file_name'].'"'."\n\n".
+                        chunk_split( $file_content );
+
+                    $hook_args['full_body'] .= $file_details['file_attachment_buffer'];
+                }
+
+                $attach_files[] = $file_details;
+            }
+        }
+        $hook_args['attach_files'] = $attach_files;
+
+        $hook_args['full_body'] .= '--' . $mime_boundary . "--\n\n";
 
         $hook_args['internal_vars']['full_headers'] = $final_headers_arr;
 
