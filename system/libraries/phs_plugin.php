@@ -1422,7 +1422,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     final public function default_plugin_details_fields()
     {
         return array(
-            'id' => '',
+            'id' => '', // full instance id $instance_type.':'.$plugin_name.':'.$instance_name
+            'plugin_name' => false, // default consider plugin as core plugin (short plugin name)
+            'vendor_id' => '', // unique vendor identifier
+            'vendor_name' => '', // readable vendor name
             'name' => '',
             'description' => '',
             'script_version' => '0.0.0',
@@ -1432,6 +1435,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_installed' => false,
             'is_upgradable' => false,
             'is_core' => false,
+            'is_always_active' => false,
+            'is_distribution' => false,
             'db_details' => false,
             'models' => array(),
             'settings_arr' => array(),
@@ -1442,6 +1447,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         return array(
             'id' => PHS_Instantiable::CORE_PLUGIN,
+            'plugin_name' => false,
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => self::_t( 'CORE Framework' ),
             'description' => self::_t( 'CORE functionality' ),
             'script_version' => PHS_VERSION,
@@ -1451,6 +1459,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_installed' => true,
             'is_upgradable' => false,
             'is_core' => true,
+            'is_always_active' => true,
+            'is_distribution' => true,
             'db_details' => false,
             'models' => PHS::get_core_models(),
             'settings_arr' => array(),
@@ -1465,6 +1475,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details = self::validate_array( $this->get_plugin_details(), $this->default_plugin_details_fields() );
 
         $plugin_details['id'] = $this->instance_id();
+        $plugin_details['plugin_name'] = $this->instance_plugin_name();
 
         if( empty( $plugin_details['name'] ) )
             $plugin_details['name'] = $this->instance_name();
@@ -1480,6 +1491,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $plugin_details['is_upgradable'] = ($plugin_details['db_version'] != $plugin_details['script_version']);
             $plugin_details['is_core'] = (!empty( $db_details['is_core'] )?true:false);
         }
+
+        $plugin_details['is_always_active'] = in_array( $plugin_details['plugin_name'], PHS::get_always_active_plugins() );
+        $plugin_details['is_distribution'] = in_array( $plugin_details['plugin_name'], PHS::get_distribution_plugins() );
 
         $plugin_details['settings_arr'] = $this->get_plugin_settings();
 

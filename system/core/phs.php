@@ -43,6 +43,7 @@ final class PHS extends PHS_Registry
     private static $_BACKGROUND_SCRIPT = '_bg';
     private static $_AGENT_SCRIPT = '_agent_bg';
     private static $_AJAX_SCRIPT = '_ajax';
+    private static $_API_SCRIPT = '_api';
 
     function __construct()
     {
@@ -55,14 +56,20 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications', 'backup' );
+        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' );
+    }
+
+    public static function get_always_active_plugins()
+    {
+        // These plugins cannot be inacivated as they provide basic functionality for the platform
+        return array( 'accounts', 'admin', 'captcha', 'emails', 'notifications' );
     }
 
     public static function get_core_models()
     {
         // !!! Don't change order of models here unless you know what you'r doing !!!
         // Models should be placed in this array after their dependencies (eg. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return array( 'agent_jobs', 'bg_jobs', 'roles' );
+        return array( 'agent_jobs', 'bg_jobs', 'roles', 'api_keys' );
     }
 
     /**
@@ -159,7 +166,7 @@ final class PHS extends PHS_Registry
     /**
      * Returns request full hostname (based on this system will check for custom configuration files)
      *
-     * @return string Returns request full hostname (based on this system will check for custom configuration files)
+     * @return array Returns array with request full hostname and port (based on this system will check for custom configuration files)
      */
     public static function get_request_host_config()
     {
@@ -568,49 +575,78 @@ final class PHS extends PHS_Registry
      * or
      * {plugin}-{action} Controller will be 'index'
      *
-     * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
+     * @param string|array|bool $route If a non empty string, method will try parsing provided route, if an array will try paring array, otherwise exract route from context
+     * @param bool $use_short_names If we need short names for plugin, controller and action in returned keys (eg. p, c, a)
      * @return bool|array Returns true on success or false on error
      */
-    public static function parse_route( $route = false )
+    public static function parse_route( $route = false, $use_short_names = false )
     {
         self::st_reset_error();
+
+        $plugin = false;
+        $controller = '';
+        $action = '';
+        $force_https = false;
 
         $route_parts = array();
         if( !empty( $route ) )
         {
-            if( strstr( $route, '-' ) !== false )
+            if( is_array( $route ) )
             {
-                if( !($route_parts_tmp = explode( '-', $route, 2 ))
-                 or empty( $route_parts_tmp[0] ) )
+                if( !empty( $route['plugin'] ) )
+                    $plugin = $route['plugin'];
+                elseif( !empty( $route['p'] ) )
+                    $plugin = $route['p'];
+
+                if( !empty( $route['controller'] ) )
+                    $controller = $route['controller'];
+                elseif( !empty( $route['c'] ) )
+                    $controller = $route['c'];
+
+                if( !empty( $route['action'] ) )
+                    $action = $route['action'];
+                elseif( !empty( $route['a'] ) )
+                    $action = $route['a'];
+
+                if( !empty( $route['force_https'] ) )
+                    $force_https = true;
+                elseif( !empty( $route['force_https'] ) )
+                    $force_https = true;
+            } else
+            {
+                if( strstr( $route, '-' ) !== false )
+                {
+                    if( !($route_parts_tmp = explode( '-', $route, 2 ))
+                     or empty( $route_parts_tmp[0] ) )
+                    {
+                        self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t obtain route.' ) );
+                        return false;
+                    }
+
+                    $route_parts[0] = $route_parts_tmp[0];
+                    $route_parts[1] = self::ROUTE_DEFAULT_CONTROLLER;
+                    $route_parts[2] = (!empty( $route_parts_tmp[1] )?$route_parts_tmp[1]:'');
+                } elseif( !($route_parts = explode( '/', $route, 3 )) )
                 {
                     self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t obtain route.' ) );
                     return false;
                 }
 
-                $route_parts[0] = $route_parts_tmp[0];
-                $route_parts[1] = self::ROUTE_DEFAULT_CONTROLLER;
-                $route_parts[2] = (!empty( $route_parts_tmp[1] )?$route_parts_tmp[1]:'');
-            } elseif( !($route_parts = explode( '/', $route, 3 )) )
-            {
-                self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t obtain route.' ) );
-                return false;
+                $rp_count = count( $route_parts );
+                if( $rp_count == 1 )
+                {
+                    $action = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
+                } elseif( $rp_count == 2 )
+                {
+                    $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
+                    $action = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
+                } elseif( $rp_count == 3 )
+                {
+                    $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
+                    $controller = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
+                    $action = (!empty( $route_parts[2] )?trim( $route_parts[2] ):'');
+                }
             }
-        }
-
-        $plugin = false;
-        $rp_count = count( $route_parts );
-        if( $rp_count == 1 )
-        {
-            $action = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
-        } elseif( $rp_count == 2 )
-        {
-            $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
-            $action = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
-        } elseif( $rp_count == 3 )
-        {
-            $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
-            $controller = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
-            $action = (!empty( $route_parts[2] )?trim( $route_parts[2] ):'');
         }
 
         if( empty( $controller ) )
@@ -627,10 +663,19 @@ final class PHS extends PHS_Registry
             return false;
         }
 
+        if( $use_short_names )
+            return array(
+                'p' => $plugin,
+                'c' => $controller,
+                'a' => $action,
+                'force_https' => $force_https,
+            );
+
         return array(
             'plugin' => $plugin,
             'controller' => $controller,
             'action' => $action,
+            'force_https' => $force_https,
         );
     }
 
@@ -672,18 +717,12 @@ final class PHS extends PHS_Registry
             $params['action_accepts_scopes'] = $action_accepts_scopes_arr;
         }
 
-
-        $route_parts = false;
-        if( is_string( $route )
-        and !($route_parts = self::parse_route( $route )) )
+        if( !($route_parts = self::parse_route( $route, false )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t parse route.' ) );
             return false;
         }
-
-        if( is_array( $route ) )
-            $route_parts = $route;
 
         if( empty( $route_parts ) or !is_array( $route_parts ) )
         {
@@ -693,12 +732,7 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        if( !isset( $route_parts['plugin'] ) )
-            $route_parts['plugin'] = false;
-        if( !isset( $route_parts['controller'] ) )
-            $route_parts['controller'] = false;
-        if( !isset( $route_parts['action'] ) )
-            $route_parts['action'] = false;
+        $route_parts = self::validate_route_from_parts( $route_parts, false );
 
         /** @var bool|\phs\libraries\PHS_Plugin $plugin_obj */
         $plugin_obj = false;
@@ -713,7 +747,7 @@ final class PHS extends PHS_Registry
         /** @var bool|\phs\libraries\PHS_Controller $controller_obj */
         $controller_obj = false;
         if( !empty( $route_parts['controller'] )
-        and !($controller_obj = self::load_controller( $route_parts['controller'], $plugin_obj->instance_plugin_name() )) )
+        and !($controller_obj = self::load_controller( $route_parts['controller'], ($plugin_obj?$plugin_obj->instance_plugin_name():false) )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate controller from route.' ) );
@@ -722,37 +756,44 @@ final class PHS extends PHS_Registry
 
         /** @var bool|\phs\libraries\PHS_Action $action_obj */
         $action_obj = false;
-        if( empty( $route_parts['action'] )
-         or !($action_obj = self::load_action( $route_parts['action'], $plugin_obj->instance_plugin_name() )) )
+        if( !empty( $route_parts['action'] )
+         or !($action_obj = self::load_action( $route_parts['action'], ($plugin_obj?$plugin_obj->instance_plugin_name():false) )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate action from route.' ) );
             return false;
         }
 
-        if( !($controller_scopes_arr = $controller_obj->allowed_scopes()) )
-            $scopes_check_arr = $action_obj->allowed_scopes();
-
-        elseif( !($scopes_check_arr = $action_obj->allowed_scopes()) )
-            $scopes_check_arr = $controller_scopes_arr;
-
-        else
-            $scopes_check_arr = self::array_merge_unique_values( $controller_scopes_arr, $scopes_check_arr );
-
-        if( !empty( $params['action_accepts_scopes'] )
-        and !empty( $scopes_check_arr )
-        and is_array( $scopes_check_arr ) )
+        if( empty( $action_obj ) )
         {
-            foreach( $params['action_accepts_scopes'] as $scope )
-            {
-                if( !in_array( $scope, $scopes_check_arr ) )
-                {
-                    $scope_title = '(???)';
-                    if( ($scope_details = PHS_Scope::valid_scope( $scope )) )
-                        $scope_title = $scope_details['title'];
+            self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate action from route.' ) );
+            return false;
+        }
 
-                    self::st_set_error( self::ERR_ROUTE, self::_t( 'Action %s is not ment to run in scope %s.', $route_parts['action'], $scope_title ) );
-                    return false;
+        if( !empty( $params['action_accepts_scopes'] ) )
+        {
+            if( empty( $controller_obj )
+             or !($controller_scopes_arr = $controller_obj->allowed_scopes()) )
+                $controller_scopes_arr = array();
+
+            if( !($action_scopes_arr = $action_obj->allowed_scopes()) )
+                $action_scopes_arr = array();
+
+            $scopes_check_arr = self::array_merge_unique_values( $controller_scopes_arr, $action_scopes_arr );
+
+            if( !empty( $scopes_check_arr ) )
+            {
+                foreach( $params['action_accepts_scopes'] as $scope )
+                {
+                    if( !in_array( $scope, $scopes_check_arr ) )
+                    {
+                        $scope_title = '(???)';
+                        if( ($scope_details = PHS_Scope::valid_scope( $scope )) )
+                            $scope_title = $scope_details['title'];
+
+                        self::st_set_error( self::ERR_ROUTE, self::_t( 'Action %s is not ment to run in scope %s.', $route_parts['action'], $scope_title ) );
+                        return false;
+                    }
                 }
             }
         }
@@ -779,12 +820,21 @@ final class PHS extends PHS_Registry
         if( empty( $route ) )
             $route = self::extract_route();
 
-        if( !($route_parts = self::parse_route( $route )) )
+        if( !($route_parts = self::parse_route( $route, false )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t parse route.' ) );
             return false;
         }
+
+        // Let plugins change API provided route in actual plugin, controller, action route (if required)
+        $hook_args = PHS_Hooks::default_phs_route_hook_args();
+        $hook_args['original_route'] = $route_parts;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['altered_route'] ) and is_array( $hook_args['altered_route'] ) )
+            $route_parts = PHS::parse_route( $hook_args['altered_route'], false );
 
         self::set_data( self::ROUTE_PLUGIN, $route_parts['plugin'] );
         self::set_data( self::ROUTE_CONTROLLER, $route_parts['controller'] );
@@ -891,6 +941,26 @@ final class PHS extends PHS_Registry
         return self::$_AJAX_SCRIPT.'.php';
     }
 
+    /**
+     * Change default api script (default is _api). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New api script (default is _api). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function api_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_API_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_API_SCRIPT = $script;
+        return self::$_API_SCRIPT.'.php';
+    }
+
     public static function get_background_path()
     {
         return PHS_PATH.self::background_script();
@@ -931,6 +1001,22 @@ final class PHS extends PHS_Registry
             $base_url .= '/';
 
         return $base_url.self::ajax_script();
+    }
+
+    public static function get_api_path()
+    {
+        return PHS_PATH.self::api_script();
+    }
+
+    public static function get_api_url( $force_https = false )
+    {
+        if( !($base_url = self::get_base_url( $force_https )) )
+            return false;
+
+        if( substr( $base_url, -1 ) != '/' )
+            $base_url .= '/';
+
+        return $base_url.self::api_script();
     }
 
     public static function current_url()
@@ -987,19 +1073,13 @@ final class PHS extends PHS_Registry
         if( empty( $parts ) or !is_array( $parts ) )
             $parts = array();
 
-        if( empty( $parts['p'] ) )
-            $parts['p'] = false;
-        if( empty( $parts['c'] ) )
-            $parts['c'] = false;
-        if( empty( $parts['a'] ) )
-            $parts['a'] = self::ROUTE_DEFAULT_ACTION;
+        $parts = self::validate_route_from_parts( $parts, true );
 
         if( (!empty( $parts['p'] ) and !self::safe_escape_route_parts( $parts['p'] ))
          or (!empty( $parts['c'] ) and !self::safe_escape_route_parts( $parts['c'] ))
          or (!empty( $parts['a'] ) and !self::safe_escape_route_parts( $parts['a'] )) )
             return false;
 
-        $route = false;
         if( !empty( $parts['c'] ) )
         {
             if( empty( $parts['p'] ) )
@@ -1017,10 +1097,38 @@ final class PHS extends PHS_Registry
         return $route;
     }
 
-    public static function url( $params = false, $args = false, $extra = false )
+    public static function validate_route_from_parts( $route_arr, $use_short_names = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $route_arr ) or !is_array( $route_arr ) )
+            $route_arr = array();
+
+        if( empty( $route_arr['force_https'] ) )
+            $route_arr['force_https'] = false;
+
+        if( $use_short_names )
+        {
+            if( empty( $route_arr['p'] ) )
+                $route_arr['p'] = false;
+            if( empty( $route_arr['c'] ) )
+                $route_arr['c'] = false;
+            if( empty( $route_arr['a'] ) )
+                $route_arr['a'] = self::ROUTE_DEFAULT_ACTION;
+        } else
+        {
+            if( empty( $route_arr['plugin'] ) )
+                $route_arr['plugin'] = false;
+            if( empty( $route_arr['controller'] ) )
+                $route_arr['controller'] = false;
+            if( empty( $route_arr['action'] ) )
+                $route_arr['action'] = self::ROUTE_DEFAULT_ACTION;
+        }
+
+        return $route_arr;
+    }
+
+    public static function url( $route_arr = false, $args = false, $extra = false )
+    {
+        $route_arr = self::validate_route_from_parts( $route_arr, true );
 
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
@@ -1028,23 +1136,26 @@ final class PHS extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
-        if( empty( $params['force_https'] ) )
-            $params['force_https'] = false;
-        if( empty( $params['p'] ) )
-            $params['p'] = false;
-        if( empty( $params['c'] ) )
-            $params['c'] = false;
-        if( empty( $params['a'] ) )
-            $params['a'] = self::ROUTE_DEFAULT_ACTION;
-
         if( empty( $extra['raw_params'] ) )
-            $extra['raw_params'] = false;
+            $extra['raw_params'] = array();
 
-        if( !($route = self::route_from_parts( $params )) )
+        // Changed raw_params to raw_args (backward compatibility)
+        if( empty( $extra['raw_args'] ) )
+            $extra['raw_args'] = $extra['raw_params'];
+
+        if( empty( $extra['skip_formatters'] ) )
+            $extra['skip_formatters'] = false;
+        else
+            $extra['skip_formatters'] = (!empty( $extra['skip_formatters'] ));
+
+        if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
+            $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
+
+        if( !($route = self::route_from_parts( $route_arr )) )
             return '#invalid_path['.
-                   (!empty( $params['p'] )?$params['p']:'').'::'.
-                   (!empty( $params['c'] )?$params['c']:'').'::'.
-                   (!empty( $params['a'] )?$params['a']:'').']';
+                   (!empty( $route_arr['p'] )?$route_arr['p']:'').'::'.
+                   (!empty( $route_arr['c'] )?$route_arr['c']:'').'::'.
+                   (!empty( $route_arr['a'] )?$route_arr['a']:'').']';
 
         $new_args = array();
         $new_args[self::ROUTE_PARAM] = $route;
@@ -1058,34 +1169,47 @@ final class PHS extends PHS_Registry
         if( !($query_string = @http_build_query( $new_args )) )
             $query_string = '';
 
-        if( !empty( $extra['raw_params'] ) and is_array( $extra['raw_params'] ) )
+        if( !empty( $extra['raw_args'] ) and is_array( $extra['raw_args'] ) )
         {
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
-            // eg. $extra['raw_params'] might be an id passed as javascript function parameter
-            if( ($raw_query = array_to_query_string( $extra['raw_params'], array( 'raw_encode_values' => false ) )) )
+            // eg. $extra['raw_args'] might be an id passed as javascript function parameter
+            if( ($raw_query = array_to_query_string( $extra['raw_args'], array( 'raw_encode_values' => false ) )) )
                 $query_string .= ($query_string!=''?'&':'').$raw_query;
         }
-
-        //$hook_params = array(
-        //  'args' => $new_args,
-        //  'params' => $params,
-        //);
-        //
-        //if( ($hook_result = self::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_params ))
-        //
-        //H_URL_PARAMS
-
-        if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
-            $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
 
         switch( $extra['for_scope'] )
         {
             default:
-                return self::get_interpret_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
+                $stock_url = self::get_interpret_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+            break;
 
             case PHS_Scope::SCOPE_AJAX:
-                return self::get_ajax_url( $params['force_https'] ).($query_string!=''?'?'.$query_string:'');
+                $stock_url = self::get_ajax_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+            break;
+
+            case PHS_Scope::SCOPE_API:
+                $stock_url = self::get_api_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+            break;
         }
+
+        $final_url = $stock_url;
+
+        // Let plugins change API provided route in actual plugin, controller, action route (if required)
+        $hook_args = PHS_Hooks::default_url_rewrite_hook_args();
+        $hook_args['route_arr'] = $route_arr;
+        $hook_args['args'] = $args;
+        $hook_args['raw_args'] = $extra['raw_args'];
+
+        $hook_args['stock_args'] = $new_args;
+        $hook_args['stock_query_string'] = $query_string;
+        $hook_args['stock_url'] = $stock_url;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['new_url'] ) and is_string( $hook_args['new_url'] ) )
+            $final_url = $hook_args['new_url'];
+
+        return $final_url;
     }
 
     public static function relative_url( $url )
@@ -1151,15 +1275,22 @@ final class PHS extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_route_details_for_url()
+    public static function get_route_details_for_url( $use_short_names = true )
     {
         if( !($route_arr = self::get_route_details()) )
             return false;
 
+        if( $use_short_names )
+            return array(
+                'p' => $route_arr[self::ROUTE_PLUGIN],
+                'c' => $route_arr[self::ROUTE_CONTROLLER],
+                'a' => $route_arr[self::ROUTE_ACTION],
+            );
+
         return array(
-            'p' => $route_arr[self::ROUTE_PLUGIN],
-            'c' => $route_arr[self::ROUTE_CONTROLLER],
-            'a' => $route_arr[self::ROUTE_ACTION],
+            'plugin' => $route_arr[self::ROUTE_PLUGIN],
+            'controller' => $route_arr[self::ROUTE_CONTROLLER],
+            'action' => $route_arr[self::ROUTE_ACTION],
         );
     }
 
@@ -1207,7 +1338,7 @@ final class PHS extends PHS_Registry
             self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER] ) );
         }
 
-        elseif( !($action_result = $controller_obj->execute_action( $route_details[self::ROUTE_ACTION] )) )
+        elseif( !($action_result = $controller_obj->run_action( $route_details[self::ROUTE_ACTION] )) )
         {
             if( $controller_obj->has_error() )
                 self::st_copy_error( $controller_obj );
@@ -1217,7 +1348,8 @@ final class PHS extends PHS_Registry
 
         else
         {
-            if( !empty( $action_result['scope'] )
+            if( is_array( $action_result )
+            and !empty( $action_result['scope'] )
             and $action_result['scope'] != PHS_Scope::current_scope() )
                 PHS_Scope::current_scope( $action_result['scope'] );
 
@@ -1243,6 +1375,10 @@ final class PHS extends PHS_Registry
 
         if( empty( $scope_obj ) )
             return false;
+
+        if( is_array( $action_result )
+        and !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+            $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], array( 'trim_keys' => true ) );
 
         return $scope_obj->generate_response( $action_result );
     }

@@ -29,6 +29,8 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Cookie acceptance notice',
             'description' => 'In some countries end-user has to be warned that current site is using cookies. This plugin displays this warning.',
         );

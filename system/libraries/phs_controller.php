@@ -37,7 +37,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    public function scope_is_allowed( $scope )
+    final public function scope_is_allowed( $scope )
     {
         $this->reset_error();
 
@@ -61,7 +61,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    public function execute_action( $action, $plugin = null )
+    final public function run_action( $action, $plugin = null )
     {
         PHS::running_controller( $this );
 
@@ -76,13 +76,28 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         if( ($current_scope = PHS_Scope::current_scope())
         and !$this->scope_is_allowed( $current_scope ) )
         {
-            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Controller not allowed to run in current scope.' ) );
-            return false;
+            if( !($emulated_scope = PHS_Scope::emulated_scope())
+             or !$this->scope_is_allowed( $emulated_scope ) )
+            {
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Controller not allowed to run in current scope.' ) );
+                return false;
+            }
         }
 
         if( $plugin === null )
             $plugin = $this->instance_plugin_name();
 
+        return $this->_execute_action( $action, $plugin );
+    }
+
+    /**
+     * @param string $action Action to be loaded and executed
+     * @param bool|string $plugin false means core plugin, string is name of plugin
+     *
+     * @return bool|array Returns false on error or an action array on success
+     */
+    protected function _execute_action( $action, $plugin )
+    {
         self::st_reset_error();
 
         /** @var \phs\libraries\PHS_Action $action_obj */

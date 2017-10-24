@@ -22,6 +22,9 @@ class PHS_Scope_Ajax extends PHS_Scope
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
+        // if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+        //     $action_result['custom_headers'] = self::merge_array_assoc_insensitive();
+
         $full_buffer = PHS_params::_gp( PHS_ajax::PARAM_FB_KEY, PHS_params::T_INT );
 
         if( !isset( $action_result['buffer'] ) )

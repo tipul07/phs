@@ -166,7 +166,13 @@ class PHS_Action_Agent_job_edit extends PHS_Action
 
                     $action_result = self::default_action_result();
 
-                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_edit' ), array( 'aid' => $agent_job_arr['id'], 'changes_saved' => 1 ) );
+                    $url_params = array();
+                    $url_params['changes_saved'] = 1;
+                    $url_params['aid'] = $agent_job_arr['id'];
+                    if( !empty( $back_page ) )
+                        $url_params['back_page'] = $back_page;
+
+                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_edit' ), $url_params );
 
                     return $action_result;
                 } else

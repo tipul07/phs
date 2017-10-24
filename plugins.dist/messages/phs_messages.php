@@ -43,6 +43,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Internal Messages',
             'description' => 'Create internal messages between user accounts. Supports messages user to user, level, role or role unit.',
         );

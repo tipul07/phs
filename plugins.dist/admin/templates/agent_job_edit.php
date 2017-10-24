@@ -42,7 +42,7 @@
         }
         ?>
 
-        <div class="form_container responsive" style="width: 740px;">
+        <div class="form_container responsive" style="width: 100%;">
 
             <?php
             if( !empty( $back_page ) )

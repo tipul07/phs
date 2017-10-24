@@ -215,8 +215,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return self::default_action_result();
         }
 
-        //echo self::var_dump( $paginator_params['columns_arr'], array( 'max_level' => 3 ) );
-
         $init_went_ok = true;
         if( !$this->_paginator->set_columns( $paginator_params['columns_arr'] )
          or (!empty( $paginator_params['filters_arr'] ) and !$this->_paginator->set_filters( $paginator_params['filters_arr'] ))

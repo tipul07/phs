@@ -64,7 +64,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    public function scope_is_allowed( $scope )
+    final public function scope_is_allowed( $scope )
     {
         $this->reset_error();
 
@@ -91,6 +91,11 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'ajax_result' => false,
             'ajax_only_result' => false,
             'custom_headers' => array(), // key - value headers...
+
+            // This is specific to API calls.
+            // When generating response, API class will check this array first, then ajax_result, then will check if we have an api_buffer set
+            'api_json_result_array' => false,
+            'api_buffer' => '', // we don't use buffer as it might contain html returned in web scope
 
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...
@@ -197,13 +202,15 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         $default_result = self::default_action_result();
 
-        if( ($allowed_scopes = $this->allowed_scopes())
-        and is_array( $allowed_scopes )
-        and ($current_scope = PHS_Scope::current_scope())
-        and !in_array( $current_scope, $allowed_scopes ) )
+        if( ($current_scope = PHS_Scope::current_scope())
+        and !$this->scope_is_allowed( $current_scope ) )
         {
-            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Action not allowed to run in current scope.' ) );
-            return false;
+            if( !($emulated_scope = PHS_Scope::emulated_scope())
+             or !$this->scope_is_allowed( $emulated_scope ) )
+            {
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Action not allowed to run in current scope.' ) );
+                return false;
+            }
         }
 
         if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_BEFORE_RUN, array(

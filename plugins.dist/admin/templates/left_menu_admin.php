@@ -10,6 +10,8 @@ use \phs\libraries\PHS_Roles;
     $can_manage_plugins = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_PLUGINS );
     $can_list_agent_jobs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_AGENT_JOBS );
     $can_manage_agent_jobs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS );
+    $can_list_api_keys = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_API_KEYS );
+    $can_manage_api_keys = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_API_KEYS );
     $can_list_roles = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES );
     $can_manage_roles = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES );
     $can_list_accounts = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS );
@@ -17,6 +19,7 @@ use \phs\libraries\PHS_Roles;
     $can_view_logs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_VIEW_LOGS );
 
     if( !$can_list_plugins and !$can_manage_plugins
+    and !$can_list_api_keys and !$can_manage_api_keys
     and !$can_list_agent_jobs and !$can_manage_agent_jobs
     and !$can_list_roles and !$can_manage_roles
     and !$can_list_accounts and !$can_manage_accounts )
@@ -91,6 +94,29 @@ if( $can_list_agent_jobs or $can_manage_agent_jobs )
             <li><a href="<?php echo PHS::url( array(
                                                       'a' => 'agent_jobs_list', 'p' => 'admin'
                                               ) ) ?>"><?php echo $this::_t( 'List agent jobs' ) ?></a></li>
+        </ul>
+    </li>
+    <?php
+}
+if( $can_list_api_keys or $can_manage_api_keys )
+{
+    ?>
+    <li><?php echo $this::_t( 'API Keys' ) ?>
+        <ul>
+            <?php
+            if( $can_manage_api_keys )
+            {
+                ?>
+                <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'api_key_add', 'p' => 'admin'
+                                                  ) ) ?>"><?php echo $this::_t( 'Add API key' ) ?></a>
+                </li>
+                <?php
+            }
+            ?>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'api_keys_list', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'List API keys' ) ?></a></li>
         </ul>
     </li>
     <?php

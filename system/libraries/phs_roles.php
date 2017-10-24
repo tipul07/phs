@@ -17,6 +17,7 @@ class PHS_Roles extends PHS_Registry
           ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
           ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
           ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
+          ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
           ROLEU_VIEW_LOGS = 'phs_view_logs';
 
     /** @var bool|\phs\system\core\models\PHS_Model_Roles $_role_model  */

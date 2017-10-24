@@ -23,6 +23,8 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'MailChimp integration',
             'description' => 'This plugin implements a library to be used when connecting to a MailChimp account. Plugin implements API communication with MailChimp servers.',
         );

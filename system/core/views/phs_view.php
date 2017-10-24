@@ -32,6 +32,9 @@ class PHS_View extends PHS_Signal_and_slot
     /** @var PHS_Action|bool */
     protected $_action = false;
 
+    /** @var PHS_View|bool */
+    protected $_parent_view = false;
+
     public function instance_type()
     {
         return self::INSTANCE_TYPE_VIEW;
@@ -208,6 +211,7 @@ class PHS_View extends PHS_Signal_and_slot
                 self::st_copy_error( $view_obj );
             else
                 self::st_set_error( self::ERR_INIT_VIEW, self::_t( 'Error setting up view instance.' ) );
+
             return false;
         }
 
@@ -243,6 +247,19 @@ class PHS_View extends PHS_Signal_and_slot
         return true;
     }
 
+    public function set_parent_view( $view_obj )
+    {
+        if( $view_obj !== false
+        and !($view_obj instanceof PHS_View) )
+        {
+            $this->set_error( self::ERR_BAD_ACTION, self::_t( 'Not a view instance.' ) );
+            return false;
+        }
+
+        $this->_parent_view = $view_obj;
+        return true;
+    }
+
     /**
      * @return bool|\phs\libraries\PHS_Controller Controller that "owns" this view or false if no controller
      */
@@ -257,6 +274,14 @@ class PHS_View extends PHS_Signal_and_slot
     public function get_action()
     {
         return $this->_action;
+    }
+
+    /**
+     * @return bool|PHS_View View that "owns" this sub-view or false if no parent view
+     */
+    public function get_parent_view()
+    {
+        return $this->_parent_view;
     }
 
     /**
@@ -419,6 +444,22 @@ class PHS_View extends PHS_Signal_and_slot
         {
             $plugin_path = $this->_controller->instance_plugin_path();
             $plugin_www = $this->_controller->instance_plugin_www();
+
+            if( @file_exists( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language )
+            and @is_dir( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language ) )
+                $this->_template_dirs[$plugin_path . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language . '/']
+                    = $plugin_www . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language . '/';
+
+            $this->_template_dirs[$plugin_path . PHS_Instantiable::TEMPLATES_DIR . '/'] = $plugin_www . PHS_Instantiable::TEMPLATES_DIR . '/';
+        }
+
+        if( !empty( $this->_action )
+        and !$this->_action->instance_is_core()
+        and @file_exists( $this->_action->instance_plugin_path() . '/' . PHS_Instantiable::TEMPLATES_DIR )
+        and @is_dir( $this->_action->instance_plugin_path() . '/' . PHS_Instantiable::TEMPLATES_DIR ) )
+        {
+            $plugin_path = $this->_action->instance_plugin_path();
+            $plugin_www = $this->_action->instance_plugin_www();
 
             if( @file_exists( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language )
             and @is_dir( $plugin_path . '/' . PHS_Instantiable::TEMPLATES_DIR . '/' . $current_language ) )
@@ -635,6 +676,8 @@ class PHS_View extends PHS_Signal_and_slot
         else
             $subview_obj->set_theme( $this->get_theme() );
 
+        $subview_obj->set_parent_view( $this );
+
         return $subview_obj->render( $template );
     }
 
@@ -646,6 +689,13 @@ class PHS_View extends PHS_Signal_and_slot
         return $vars_arr;
     }
 
+    /**
+     * Retrieve view variable
+     *
+     * @param string $key What variable to retrieve
+     *
+     * @return bool|mixed Variable value
+     */
     public function view_var( $key )
     {
         if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY ))
@@ -657,6 +707,9 @@ class PHS_View extends PHS_Signal_and_slot
 
     public function set_view_var( $key, $val = null )
     {
+        if( ($parent_view = $this->get_parent_view()) )
+            $parent_view->set_view_var( $key, $val );
+
         if( !($_VIEW_CONTEXT = $this->get_context( self::VIEW_CONTEXT_DATA_KEY )) )
             $_VIEW_CONTEXT = array();
 
@@ -685,6 +738,13 @@ class PHS_View extends PHS_Signal_and_slot
         return true;
     }
 
+    /**
+     * Backwards compatibility
+     *
+     * @param string $key What variable to retrieve
+     *
+     * @return bool|mixed Variable value
+     */
     public function context_var( $key )
     {
         return $this->view_var( $key );

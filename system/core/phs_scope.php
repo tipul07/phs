@@ -9,7 +9,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 {
     const ERR_ACTION = 20000;
 
-    const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow';
+    const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow', SCOPE_EMULATION_FLOW_KEY = 'scope_emulation_flow';
 
     const SCOPE_VAR_PREFIX = '__scp_pre_';
 
@@ -146,6 +146,28 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
+    public static function emulated_scope( $scope = null )
+    {
+        if( $scope === null )
+        {
+            if( !($emulated_scope = self::get_data( self::SCOPE_EMULATION_FLOW_KEY )) )
+                return false;
+
+            return $emulated_scope;
+        }
+
+        if( $scope !== false )
+        {
+            $scope = intval( $scope );
+            if( !self::valid_scope( $scope ) )
+                return false;
+        }
+
+        self::set_data( self::SCOPE_EMULATION_FLOW_KEY, $scope );
+
+        return $scope;
+    }
+
     public static function spawn_scope_instance( $scope = null )
     {
         if( $scope === null )
@@ -200,30 +222,8 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 
-        // if( !in_array( self::current_scope(), array( self::SCOPE_AGENT, self::SCOPE_BACKGROUND ) )
-        // and !@headers_sent() )
-        // {
-        //     if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
-        //     {
-        //         foreach( $action_result['custom_headers'] as $key => $val )
-        //         {
-        //             if( empty( $key ) )
-        //                 continue;
-        //
-        //             $header_str = $key;
-        //             if( !is_null( $val ) )
-        //                 $header_str .= ': '.$val;
-        //
-        //             @header( $header_str );
-        //         }
-        //     }
-        //
-        //     @header( 'X-Powered-By: PHS-'.PHS_VERSION );
-        // }
-
         PHS::set_data( PHS::PHS_END_TIME, microtime( true ) );
 
         return $action_result;
     }
-
 }

@@ -39,6 +39,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Backup Plugin',
             'description' => 'Manages backing up framework database and files.',
         );

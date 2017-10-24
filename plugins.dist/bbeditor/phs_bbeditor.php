@@ -20,6 +20,8 @@ class PHS_Plugin_Bbeditor extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Simple BB code editor',
             'description' => 'If you need a simple text editor which only changes text formatting this is the one to use.',
         );

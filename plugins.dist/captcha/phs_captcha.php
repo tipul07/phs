@@ -36,6 +36,8 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Captcha Plugin',
             'description' => 'Handles all captcha functionality where required.',
         );

@@ -12,7 +12,7 @@ class PHS_Controller_Index extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function execute_action( $action, $plugin = null )
+    protected function _execute_action( $action, $plugin = null )
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
@@ -43,7 +43,7 @@ class PHS_Controller_Index extends PHS_Controller
             return $this->execute_foobar_action();
         }
 
-        if( !($action_result = parent::execute_action( $action, $plugin )) )
+        if( !($action_result = parent::_execute_action( $action, $plugin )) )
             return false;
 
         $action_result['page_template'] = 'template_admin';

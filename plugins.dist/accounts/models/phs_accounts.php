@@ -1587,39 +1587,39 @@ class PHS_Model_Accounts extends PHS_Model
                     }
                 }
 
-                if( !empty( $params['all_role_units'] ) and is_array( $params['all_role_units'] ) )
-                {
-                    // if( ($all_roles_groups = $roles_model->get_roles_ids_for_roles_units_list_grouped( $params['all_role_units'] ))
-                    // and is_array( $all_roles_groups ) )
-                    // {
-                    //     $extra_sql = '';
-                    //     foreach( $all_roles_groups as $role_unit_id => $roles_arr )
-                    //     {
-                    //         if( empty( $roles_arr ) or !is_array( $roles_arr ) )
-                    //             continue;
-                    //
-                    //         $extra_sql .= ($extra_sql!=''?' AND ':'').' `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $roles_arr ).')';
-                    //     }
-                    //
-                    //     if( $extra_sql != '' )
-                    //     {
-                    //         if( empty( $roles_users_joined ) )
-                    //             $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
-                    //
-                    //         $roles_users_joined = true;
-                    //
-                    //         $params['fields'][] = array(
-                    //             'raw' => '('.$extra_sql.')',
-                    //         );
-                    //     }
-                    //
-                    //     // if( empty( $params['all_roles'] ) or !is_array( $params['all_roles'] ) )
-                    //     //     $params['all_roles'] = $all_roles;
-                    //     //
-                    //     // else
-                    //     //     $params['all_roles'] = array_merge( $params['all_roles'], $all_roles );
-                    // }
-                }
+                // if( !empty( $params['all_role_units'] ) and is_array( $params['all_role_units'] ) )
+                // {
+                //     if( ($all_roles_groups = $roles_model->get_roles_ids_for_roles_units_list_grouped( $params['all_role_units'] ))
+                //     and is_array( $all_roles_groups ) )
+                //     {
+                //         $extra_sql = '';
+                //         foreach( $all_roles_groups as $role_unit_id => $roles_arr )
+                //         {
+                //             if( empty( $roles_arr ) or !is_array( $roles_arr ) )
+                //                 continue;
+                //
+                //             $extra_sql .= ($extra_sql!=''?' AND ':'').' `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $roles_arr ).')';
+                //         }
+                //
+                //         if( $extra_sql != '' )
+                //         {
+                //             if( empty( $roles_users_joined ) )
+                //                 $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
+                //
+                //             $roles_users_joined = true;
+                //
+                //             $params['fields'][] = array(
+                //                 'raw' => '('.$extra_sql.')',
+                //             );
+                //         }
+                //
+                //         // if( empty( $params['all_roles'] ) or !is_array( $params['all_roles'] ) )
+                //         //     $params['all_roles'] = $all_roles;
+                //         //
+                //         // else
+                //         //     $params['all_roles'] = array_merge( $params['all_roles'], $all_roles );
+                //     }
+                // }
 
                 if( !empty( $params['one_of_role'] )
                 and ($one_of_role_ids = $roles_model->roles_list_to_ids( $params['one_of_role'] ))
@@ -1636,19 +1636,19 @@ class PHS_Model_Accounts extends PHS_Model
                     );
                 }
 
-                if( !empty( $params['all_roles'] )
-                and ($all_roles_ids = $roles_model->roles_list_to_ids( $params['all_roles'] ))
-                and is_array( $all_roles_ids ))
-                {
-                    // if( empty( $roles_users_joined ) )
-                    //     $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
-                    //
-                    // $roles_users_joined = true;
-                    //
-                    // $params['fields'][] = array(
-                    //     'raw' => '(`'.$roles_users_table.'`.user_id = `'.$model_table.'`.id AND `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $all_roles_ids ).'))',
-                    // );
-                }
+                // if( !empty( $params['all_roles'] )
+                // and ($all_roles_ids = $roles_model->roles_list_to_ids( $params['all_roles'] ))
+                // and is_array( $all_roles_ids ))
+                // {
+                //     if( empty( $roles_users_joined ) )
+                //         $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
+                //
+                //     $roles_users_joined = true;
+                //
+                //     $params['fields'][] = array(
+                //         'raw' => '(`'.$roles_users_table.'`.user_id = `'.$model_table.'`.id AND `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $all_roles_ids ).'))',
+                //     );
+                // }
             }
         }
 

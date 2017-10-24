@@ -3,9 +3,11 @@
 namespace phs\plugins\admin;
 
 use \phs\PHS;
+use \phs\PHS_api;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Roles;
+use \phs\libraries\PHS_params;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
@@ -14,7 +16,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.4';
+        return '1.0.6';
     }
 
     /**
@@ -23,6 +25,8 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Administration Plugin',
             'description' => 'Handles all administration actions.',
         );
@@ -31,6 +35,27 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_models()
     {
         return array();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get_settings_structure()
+    {
+        return array(
+            'allow_api_calls' => array(
+                'display_name' => $this->_pt( 'Allow API calls' ),
+                'display_hint' => $this->_pt( 'Are API calls allowed to this platform?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
+            'api_can_simulate_web' => array(
+                'display_name' => $this->_pt( 'API calls WEB emulation' ),
+                'display_hint' => $this->_pt( 'Allow API calls to simulate a normal web call by interpreting JSON body as POST variables. (should send %s=1 as query parameter)', PHS_api::PARAM_WEB_SIMULATION ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
+        );
     }
 
     /**
@@ -88,6 +113,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'description' => 'Allow user to list agent jobs',
                     ),
 
+                    // API keys...
+                    PHS_Roles::ROLEU_LIST_API_KEYS => array(
+                        'name' => 'List API keys',
+                        'description' => 'Allow user to list API keys',
+                    ),
+
                     // Logs...
                     PHS_Roles::ROLEU_VIEW_LOGS => array(
                         'name' => 'View system logs',
@@ -135,6 +166,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_LIST_AGENT_JOBS => array(
                         'name' => 'List agent jobs',
                         'description' => 'Allow user to list agent jobs',
+                    ),
+
+                    // API keys...
+                    PHS_Roles::ROLEU_MANAGE_API_KEYS => array(
+                        'name' => 'Manage API keys',
+                        'description' => 'Allow user to manage API keys',
+                    ),
+                    PHS_Roles::ROLEU_LIST_API_KEYS => array(
+                        'name' => 'List API keys',
+                        'description' => 'Allow user to list API keys',
                     ),
 
                     // Logs...

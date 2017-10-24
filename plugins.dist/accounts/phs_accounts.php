@@ -38,6 +38,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => $this->_pt( 'Accounts Management' ),
             'description' => $this->_pt( 'Handles all functionality related to user accounts.' ),
         );
@@ -189,7 +191,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( !($db_details = $this->get_current_user_db_details())
          or empty( $db_details['session_db_data'] )
-         or ! is_array( $db_details['session_db_data'] )
+         or !is_array( $db_details['session_db_data'] )
          or empty( $db_details['session_db_data']['id'] )
          or empty( $db_details['session_db_data']['auid'] ) )
             return true;

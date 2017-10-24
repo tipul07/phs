@@ -192,6 +192,84 @@ class PHS_Registry extends PHS_Language
         return $arr1;
     }
 
+    public static function unify_array_insensitive( $arr1, $params = false )
+    {
+        if( empty( $arr1 ) or !is_array( $arr1 ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['use_newer_values'] ) )
+            $params['use_newer_values'] = true;
+        else
+            $params['use_newer_values'] = (!empty( $params['use_newer_values'] ));
+        if( !isset( $params['trim_keys'] ) )
+            $params['trim_keys'] = false;
+        else
+            $params['trim_keys'] = (!empty( $params['trim_keys'] ));
+
+        $lower_to_raw_arr = array();
+        foreach( $arr1 as $key => $val )
+        {
+            if( !empty( $params['trim_keys'] ) )
+                $key = trim( $key );
+
+            $lower_key = strtolower( $key );
+
+            if( isset( $lower_to_raw_arr[$lower_key] ) )
+            {
+                if( empty( $params['use_newer_key_case'] ) )
+                    $key = $lower_to_raw_arr[$lower_key];
+                elseif( isset( $arr1[$lower_to_raw_arr[$lower_key]] ) )
+                    unset( $arr1[$lower_to_raw_arr[$lower_key]] );
+            }
+
+            $arr1[$key] = $val;
+
+            $lower_to_raw_arr[$lower_key] = $key;
+        }
+
+        return $arr1;
+    }
+
+    public static function array_lowercase_keys( $arr1, $params = false )
+    {
+        if( empty( $arr1 ) or !is_array( $arr1 ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['trim_keys'] ) )
+            $params['trim_keys'] = false;
+        else
+            $params['trim_keys'] = (!empty( $params['trim_keys'] ));
+
+        $new_array = array();
+        foreach( $arr1 as $key => $val )
+        {
+            if( !empty( $params['trim_keys'] ) )
+                $key = trim( $key );
+
+            $lower_key = strtolower( $key );
+
+            $new_array[$lower_key] = $val;
+        }
+
+        return $new_array;
+    }
+
+    public static function merge_array_assoc_insensitive( $arr1, $arr2, $params = false )
+    {
+        if( empty( $arr1 ) or !is_array( $arr1 ) )
+            return $arr2;
+        if( empty( $arr2 ) or !is_array( $arr2 ) )
+            return $arr1;
+
+        return self::unify_array_insensitive( self::merge_array_assoc( $arr1, $arr2 ), $params );
+    }
+
     public static function merge_array_assoc_recursive( $arr1, $arr2 )
     {
         if( empty( $arr1 ) or !is_array( $arr1 ) )
@@ -384,6 +462,10 @@ class PHS_Registry extends PHS_Language
             $params['trim_parts'] = true;
         if( !isset( $params['dump_empty_parts'] ) )
             $params['dump_empty_parts'] = true;
+        if( !isset( $params['to_lowercase'] ) )
+            $params['to_lowercase'] = false;
+        if( !isset( $params['to_uppercase'] ) )
+            $params['to_uppercase'] = false;
 
         $str_arr = explode( ',', $str );
         $return_arr = array();
@@ -395,6 +477,11 @@ class PHS_Registry extends PHS_Language
             if( !empty( $params['dump_empty_parts'] )
             and $str_part == '' )
                 continue;
+
+            if( !empty( $params['to_lowercase'] ) )
+                $str_part = strtolower( $str_part );
+            if( !empty( $params['to_uppercase'] ) )
+                $str_part = strtoupper( $str_part );
 
             $return_arr[] = $str_part;
         }
@@ -458,6 +545,54 @@ class PHS_Registry extends PHS_Language
                 continue;
 
             $return_arr[] = $int_part;
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Get all values in string that can be cast to non-empty integers.
+     *
+     * @param array $arr Array to be checked
+     *
+     * @return array
+     */
+    public static function extract_strings_from_array( $arr, $params = false )
+    {
+        if( empty( $arr ) or !is_array( $arr ) )
+            return array();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['trim_parts'] ) )
+            $params['trim_parts'] = true;
+        if( !isset( $params['dump_empty_parts'] ) )
+            $params['dump_empty_parts'] = true;
+        if( !isset( $params['to_lowercase'] ) )
+            $params['to_lowercase'] = false;
+        if( !isset( $params['to_uppercase'] ) )
+            $params['to_uppercase'] = false;
+
+        $return_arr = array();
+        foreach( $arr as $key => $str_part )
+        {
+            if( !empty( $params['trim_parts'] ) )
+                $str_part = trim( $str_part );
+
+            if( !empty( $params['dump_empty_parts'] )
+            and $str_part == '' )
+                continue;
+
+            if( !empty( $params['to_lowercase'] ) )
+                $str_part = strtolower( $str_part );
+            if( !empty( $params['to_uppercase'] ) )
+                $str_part = strtoupper( $str_part );
+
+            if( is_string( $key ) )
+                $return_arr[$key] = $str_part;
+            else
+                $return_arr[] = $str_part;
         }
 
         return $return_arr;

@@ -28,6 +28,8 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Generic Notifications Banner',
             'description' => 'This plugin will display notifications buffered using PHS_Notifications class in main template.',
         );

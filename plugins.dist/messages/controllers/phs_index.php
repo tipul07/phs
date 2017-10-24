@@ -13,7 +13,7 @@ class PHS_Controller_Index extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function execute_action( $action, $plugin = null )
+    protected function _execute_action( $action, $plugin = null )
     {
         if( PHS_Scope::current_scope() != PHS_Scope::SCOPE_BACKGROUND )
         {
@@ -48,7 +48,7 @@ class PHS_Controller_Index extends PHS_Controller
             }
         }
 
-        if( !($action_result = parent::execute_action( $action, $plugin )) )
+        if( !($action_result = parent::_execute_action( $action, $plugin )) )
             return false;
 
         $action_result['page_template'] = 'template_main';

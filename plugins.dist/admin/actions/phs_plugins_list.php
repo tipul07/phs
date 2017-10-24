@@ -88,8 +88,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
             $record_arr = array();
             $record_arr['id'] = $core_details['id'];
-            $record_arr['is_installed'] = true;
-            $record_arr['is_core'] = true;
+            $record_arr['plugin_name'] = $core_details['plugin_name'];
+            $record_arr['vendor_id'] = $core_details['vendor_id'];
+            $record_arr['vendor_name'] = $core_details['vendor_name'];
             $record_arr['name'] = $core_details['name'];
             $record_arr['description'] = $core_details['description'];
             $record_arr['version'] = $core_details['db_version'].' / '.$core_details['script_version'];
@@ -97,6 +98,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             $record_arr['status_date'] = date( PHS_Model::DATETIME_DB, @filemtime( PHS_PATH.'bootstrap.php' ) );
             $record_arr['cdate'] = $record_arr['status_date'];
             $record_arr['models'] = ((!empty( $core_details['models'] ) and is_array( $core_details['models'] ))?$core_details['models']:array());
+            $record_arr['is_installed'] = true;
+            $record_arr['is_core'] = true;
+            $record_arr['is_always_active'] = $core_details['is_always_active'];
+            $record_arr['is_distribution'] = $core_details['is_distribution'];
 
             $records_arr[] = $record_arr;
         }
@@ -130,9 +135,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 $record_arr = array();
                 $record_arr['id'] = $plugin_info_arr['id'];
-                $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
-                $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
-                $record_arr['is_core'] = $plugin_info_arr['is_core'];
+                $record_arr['plugin_name'] = $plugin_info_arr['plugin_name'];
+                $record_arr['vendor_id'] = $plugin_info_arr['vendor_id'];
+                $record_arr['vendor_name'] = $plugin_info_arr['vendor_name'];
                 $record_arr['name'] = $plugin_info_arr['name'];
                 $record_arr['description'] = $plugin_info_arr['description'];
                 $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
@@ -140,9 +145,18 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr['status_date'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status_date']:null);
                 $record_arr['cdate'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['cdate']:null);
                 $record_arr['models'] = ((!empty( $plugin_info_arr['models'] ) and is_array( $plugin_info_arr['models'] ))?$plugin_info_arr['models']:array());
+                $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
+                $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
+                $record_arr['is_core'] = $plugin_info_arr['is_core'];
+                $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
+                $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
+
+                if( !empty( $scope_arr['fvendor'] )
+                and stristr( $record_arr['name'], $scope_arr['fvendor'] ) === false )
+                    continue;
 
                 if( !empty( $scope_arr['fplugin'] )
-                and stristr( $record_arr['name'], $scope_arr['fplugin'] ) === false )
+                and stristr( $record_arr['vendor_name'], $scope_arr['fplugin'] ) === false )
                     continue;
 
                 if( !empty( $scope_arr['fstatus'] )
@@ -174,8 +188,17 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     {
         if( !($current_user = PHS::user_logged_in()) )
         {
-            $this->set_error( self::ERR_ACTION, $this->_pt( 'You should login first...' ) );
-            return false;
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
+
+            $action_result = self::default_action_result();
+
+            $args = array(
+                'back_page' => PHS::current_url()
+            );
+
+            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+
+            return $action_result;
         }
 
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_PLUGINS ) )
@@ -202,9 +225,17 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         $filters_arr = array(
             array(
                 'display_name' => $this->_pt( 'Plugin' ),
-                'display_hint' => $this->_pt( 'All records containing this value' ),
+                'display_hint' => $this->_pt( 'All plugins for which name contains this value' ),
                 'var_name' => 'fplugin',
                 'record_field' => 'plugin',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ),
+            array(
+                'display_name' => $this->_pt( 'Vendor' ),
+                'display_hint' => $this->_pt( 'All plugins from specified vendor' ),
+                'var_name' => 'fvendor',
+                'record_field' => 'vendor_name',
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
             ),
@@ -225,6 +256,13 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'display_callback' => array( $this, 'display_plugin_name' ),
                 'extra_style' => 'vertical-align: middle;',
                 'extra_records_style' => 'vertical-align: middle;',
+                'sortable' => false,
+            ),
+            array(
+                'column_title' => $this->_pt( 'Vendor' ),
+                'record_field' => 'vendor_name',
+                'extra_style' => 'vertical-align: middle;text-align:center;',
+                'extra_records_style' => 'vertical-align: middle;text-align:center;',
                 'sortable' => false,
             ),
             array(
@@ -424,13 +462,20 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                    or empty( $instance_details['instance_type'] )
-                    or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or empty( $instance_details['instance_type'] )
+                 or empty( $instance_details['plugin_name'] )
+                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
 
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot uninstall this plugin.' ) );
                     return false;
                 }
 
@@ -523,12 +568,19 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
+                 or empty( $instance_details['plugin_name'] )
                  or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
 
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot uninstall plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot uninstall this plugin.' ) );
                     return false;
                 }
 
@@ -574,12 +626,19 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
+                 or empty( $instance_details['plugin_name'] )
                  or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
 
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete plugin. Invalid plugin ID.' ) );
+                    return false;
+                }
+
+                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete this plugin.' ) );
                     return false;
                 }
 
@@ -634,6 +693,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <?php
         }
         if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        and empty( $params['record']['is_always_active'] )
         and $this->_paginator_model->is_inactive( $params['record'] ) )
         {
             ?>
@@ -652,7 +712,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ?>
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
             <?php
-            if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN )
+            if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+            and empty( $params['record']['is_always_active'] ) )
             {
                 ?>
                 <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' ) ?>"></i></a>
@@ -661,6 +722,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        and empty( $params['record']['is_always_active'] )
         and empty( $params['record']['is_installed'] )
         and empty( $params['record']['is_core'] ) )
         {

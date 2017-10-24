@@ -23,6 +23,8 @@ class PHS_Plugin_Foobar extends PHS_Plugin
     public function get_plugin_details()
     {
         return array(
+            'vendor_id' => 'phs',
+            'vendor_name' => 'PHS',
             'name' => 'Foobar Plugin',
             'description' => 'This is a foobar plugin...',
         );

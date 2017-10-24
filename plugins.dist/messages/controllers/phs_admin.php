@@ -12,7 +12,7 @@ class PHS_Controller_Admin extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function execute_action( $action, $plugin = null )
+    protected function _execute_action( $action, $plugin = null )
     {
         if( !($current_user = PHS::user_logged_in()) )
         {
@@ -58,7 +58,7 @@ class PHS_Controller_Admin extends PHS_Controller
             return $this->execute_foobar_action();
         }
 
-        if( !($action_result = parent::execute_action( $action, $plugin )) )
+        if( !($action_result = parent::_execute_action( $action, $plugin )) )
             return false;
 
         $action_result['page_template'] = 'template_admin';
