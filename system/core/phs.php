@@ -1346,8 +1346,13 @@ final class PHS extends PHS_Registry
                 self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].', $route_details[self::ROUTE_ACTION] ) );
         }
 
-        else
-        {
+        // else
+        // {
+
+            $controller_error_arr = self::st_get_error();
+
+            self::st_reset_error();
+
             if( is_array( $action_result )
             and !empty( $action_result['scope'] )
             and $action_result['scope'] != PHS_Scope::current_scope() )
@@ -1358,7 +1363,9 @@ final class PHS extends PHS_Registry
                 if( !self::st_has_error() )
                     self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
             }
-        }
+
+            $scope_error_arr = self::st_get_error();
+        // }
 
         if( !empty( $params['die_on_error'] ) and self::st_has_error() )
         {
@@ -1380,7 +1387,17 @@ final class PHS extends PHS_Registry
         and !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], array( 'trim_keys' => true ) );
 
-        return $scope_obj->generate_response( $action_result );
+        $scope_response = $scope_obj->generate_response( $action_result );
+
+        if( self::arr_has_error( $controller_error_arr ) )
+            self::st_copy_error_from_array( $controller_error_arr );
+        elseif( self::arr_has_error( $scope_error_arr ) )
+            self::st_copy_error_from_array( $scope_error_arr );
+
+        if( self::st_has_error() )
+            return false;
+
+        return $scope_response;
     }
 
     public static function platform_debug_data()
