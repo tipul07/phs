@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\PHS_api;
 
     /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
     /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
@@ -107,6 +107,14 @@
                 ?>
                 <div class="clearfix"></div>
                 <br/><small><?php echo $this->_pt( 'Tick only methods which you want to deny access to.' )?></small>
+                </div>
+            </fieldset>
+
+            <fieldset class="form-group">
+                <label for="allow_sw"><?php echo $this->_pt( 'Allow Simulating Web' )?>:</label>
+                <div class="lineform_line">
+                    <input type="checkbox" id="allow_sw" name="allow_sw" value="1" rel="skin_checkbox" <?php echo ($this->view_var( 'allow_sw' )?'checked="checked"':'')?> />
+                    <br/><small><?php echo $this->_pt( 'If ticked, API key will be allowed to access actions which are normally available in web scope (by sending %s=1 in GET).', PHS_api::PARAM_WEB_SIMULATION )?></small>
                 </div>
             </fieldset>
 

@@ -49,7 +49,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     abstract public function get_scope_type();
 
-    abstract public function process_action_result( $action_result );
+    abstract public function process_action_result( $action_result, $static_error_arr = false );
 
     public function instance_type()
     {
@@ -195,8 +195,10 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $one_scope;
     }
 
-    public function generate_response( $action_result = false )
+    public function generate_response( $action_result = false, $static_error_arr = false )
     {
+        $this->reset_error();
+
         /** @var \phs\libraries\PHS_Action $action_obj */
         if( !($action_obj = PHS::running_action()) )
             $action_obj = false;
@@ -218,7 +220,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 
-        $action_result = $this->process_action_result( $action_result );
+        $action_result = $this->process_action_result( $action_result, $static_error_arr );
 
         $action_result = self::validate_array( $action_result, $default_action_result );
 

@@ -16,7 +16,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     /**
@@ -46,6 +46,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
             'allow_api_calls' => array(
                 'display_name' => $this->_pt( 'Allow API calls' ),
                 'display_hint' => $this->_pt( 'Are API calls allowed to this platform?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
+            'allow_api_calls_over_http' => array(
+                'display_name' => $this->_pt( 'Allow HTTP API calls' ),
+                'display_hint' => $this->_pt( 'Allow API calls over HTTP? If this checkbox is not ticked only HTTPS calls will be accepted.' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => false,
             ),

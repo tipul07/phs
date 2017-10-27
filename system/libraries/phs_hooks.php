@@ -148,11 +148,15 @@ class PHS_Hooks extends PHS_Registry
             // Instantiated API instance. If no plugin picks up PHS_Hooks::H_API_REQUEST_INIT hook call \phs\PHS_api class instance will be used
             'api_obj' => false,
 
-            // This is an API route (NOT necessary PHS route) This can be translated from aliases into a PHS route (if required) by plugins
-            // If no plugin alters this, it will be considered a PHS route
+            // This is an API route (NOT a PHS route) This can be translated by plugins in other routes (change action which will be run in the end)
+            // If no plugin alters this, API class will check all API defined routes to obtain a PHS route
+            // (array)
             'api_route' => false,
 
-            // After obtaining API route, base class will trigger a hook for all plugins to transform this API route in PHS route
+            // Plugins should set this to an API tokenized path (see PHS_api::tokenize_api_route()) (array)
+            'altered_api_route' => false,
+
+            // PHS route to action to be run for current API request
             'phs_route' => false,
 
             'action_obj' => false,

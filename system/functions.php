@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.0.2.0';
+    return '1.0.2.1';
 }
 
 function phs_init_before_bootstrap()
@@ -133,7 +133,7 @@ function request_ip()
         $guessed_ip = validate_ip( $_SERVER['HTTP_CLIENT_IP'] );
 
     if( empty( $guessed_ip )
-        and !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) )
+    and !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) )
         $guessed_ip = validate_ip( $_SERVER['HTTP_X_FORWARDED_FOR'] );
 
     if( empty( $guessed_ip ) )

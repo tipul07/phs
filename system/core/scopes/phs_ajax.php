@@ -18,7 +18,7 @@ class PHS_Scope_Ajax extends PHS_Scope
         return self::SCOPE_AJAX;
     }
 
-    public function process_action_result( $action_result )
+    public function process_action_result( $action_result, $static_error_arr = false )
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
@@ -31,6 +31,17 @@ class PHS_Scope_Ajax extends PHS_Scope
             $action_result['buffer'] = '';
         if( !isset( $action_result['ajax_result'] ) )
             $action_result['ajax_result'] = false;
+
+        if( !empty( $action_result['request_login'] ) )
+        {
+            $args = array();
+            if( !empty( $action_result['redirect_to_url'] ) )
+                $args['back_page'] = $action_result['redirect_to_url'];
+            else
+                $args['back_page'] = PHS::current_url();
+
+            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+        }
 
         // send custom headers as we will echo page content here...
         if( !@headers_sent() )

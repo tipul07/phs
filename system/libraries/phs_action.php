@@ -97,6 +97,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'api_json_result_array' => false,
             'api_buffer' => '', // we don't use buffer as it might contain html returned in web scope
 
+            // If current action requires a logged in user set this to true.
+            // Logging in is dependent on used scope (on API we should return Unauthenticated header, on web we redirect to login page, etc)
+            'request_login' => false,
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...
 
@@ -276,11 +279,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         $hook_args['action_result'] = $action_result;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args ))
-        and is_array( $hook_args ) )
-        {
-            if( !empty( $hook_args['action_result'] ) )
-                $action_result = $hook_args['action_result'];
-        }
+        and is_array( $hook_args )
+        and !empty( $hook_args['action_result'] ) )
+            $action_result = $hook_args['action_result'];
 
         $this->set_action_result( $action_result );
 

@@ -2,8 +2,8 @@
 
 namespace phs;
 
+use \phs\PHS_api;
 use \phs\libraries\PHS_Registry;
-use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
 
@@ -43,6 +43,9 @@ abstract class PHS_api_base extends PHS_Registry
 
     /** @var bool|array $my_flow Instance API flow  */
     protected $my_flow = false;
+
+    /** @var bool|array $_framework_settings API settings set in admin plugin settings */
+    protected static $_framework_settings = array();
 
     /**
      * @return bool|array Returns true if custom authentication is ok or false if authentication failed
@@ -85,6 +88,7 @@ abstract class PHS_api_base extends PHS_Registry
 
             'original_api_route' => false,
             'final_api_route' => false,
+            'phs_route' => false,
 
             // Values used in HTTP Authorization header (not necessary an user and password in the system)
             'api_user' => '',
@@ -92,6 +96,8 @@ abstract class PHS_api_base extends PHS_Registry
 
             // Any information related to API Key used in the request (any API implementation will use this as required)
             'api_key_data' => false,
+            // In case API key wants to consider this request authenticated as a specific user (from users table), put users.id value here...
+            'api_key_user_id' => 0,
 
             // User under which API actions are taken
             'api_account_data' => false,
@@ -212,13 +218,6 @@ abstract class PHS_api_base extends PHS_Registry
     {
         $this->reset_error();
 
-        $allow_web_simulation = false;
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        if( ($admin_plugin = PHS::load_plugin( 'admin' ))
-        and ($admin_plugin_settings = $admin_plugin->get_plugin_settings())
-        and !empty( $admin_plugin_settings['api_can_simulate_web'] ) )
-            $allow_web_simulation = true;
-
         if( empty( $init_params ) or !is_array( $init_params ) )
             $init_params = array();
 
@@ -233,7 +232,7 @@ abstract class PHS_api_base extends PHS_Registry
 
         $this->init_query_params[self::PARAM_USING_REWRITE] = (!empty( $this->raw_query_params[self::PARAM_USING_REWRITE] ));
 
-        if( empty( $allow_web_simulation ) )
+        if( !PHS_api::framework_api_can_simulate_web() )
             $this->init_query_params[self::PARAM_WEB_SIMULATION] = false;
         else
             $this->init_query_params[self::PARAM_WEB_SIMULATION] = (!empty( $this->raw_query_params[self::PARAM_WEB_SIMULATION] ));
@@ -355,71 +354,67 @@ abstract class PHS_api_base extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
-        if( !($final_api_route = PHS::parse_route( $this->get_api_route(), true )) )
+        if( ($final_api_route = PHS_api::tokenize_api_route( $this->get_api_route() )) === false )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_RUN_ROUTE );
-            else
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route.' ) );
-
+            $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route.' ) );
             return false;
         }
 
         if( PHS::st_debugging_mode() )
-        {
-            if( !($route_str = PHS::route_from_parts( $final_api_route )) )
-                $route_str = 'N/A';
-
-            PHS_Logger::logf( 'Request route ['.$route_str.']', PHS_Logger::TYPE_API );
-        }
+            PHS_Logger::logf( 'Request route ['.implode( '/', $final_api_route ).']', PHS_Logger::TYPE_API );
 
         $this->api_flow_value( 'original_api_route', $final_api_route );
 
-        // Let plugins change API provided route in actual plugin, controller, action route (if required)
-        // Usually plugins should use (for simplicity) PHS_api::register_api_route()
+        // Let plugins change API provided route
         $hook_args = PHS_Hooks::default_api_hook_args();
         $hook_args['api_obj'] = $this;
         $hook_args['api_route'] = $final_api_route;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
         and is_array( $hook_args )
-        and !empty( $hook_args['phs_route'] ) and is_array( $hook_args['phs_route'] ) )
+        and !empty( $hook_args['altered_api_route'] ) and is_array( $hook_args['altered_api_route'] ) )
         {
-            $final_api_route = PHS::validate_route_from_parts( $hook_args['phs_route'], true );
-
-            if( PHS::st_debugging_mode() )
+            if( !($final_api_route = PHS_api::validate_tokenized_api_route( $hook_args['altered_api_route'] )) )
             {
-                if( !($route_str = PHS::route_from_parts( $final_api_route )) )
-                    $route_str = 'N/A';
-
-                PHS_Logger::logf( 'Route after hook call ['.$route_str.']', PHS_Logger::TYPE_API );
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Invalid API route obtained from plugins.' ) );
+                return false;
             }
-        }
-
-        if( ($api_route = PHS_api::get_phs_route_from_api_route( $final_api_route, $this->http_method() )) )
-        {
-            $final_api_route = PHS::validate_route_from_parts( $api_route, true );
-
-            if( PHS::st_debugging_mode() )
-            {
-                if( !($route_str = PHS::route_from_parts( $final_api_route )) )
-                    $route_str = 'N/A';
-
-                PHS_Logger::logf( 'Route alias ['.$route_str.']', PHS_Logger::TYPE_API );
-            }
-        }
-
-        if( PHS::st_debugging_mode() )
-        {
-            if( !($route_str = PHS::route_from_parts( $final_api_route )) )
-                $route_str = 'N/A';
-
-            PHS_Logger::logf( 'Final route ['.$route_str.']', PHS_Logger::TYPE_API );
         }
 
         $this->api_flow_value( 'final_api_route', $final_api_route );
 
-        PHS::set_route( $final_api_route );
+        if( PHS::st_debugging_mode() )
+            PHS_Logger::logf( 'Final API route ['.implode( '/', $final_api_route ).']', PHS_Logger::TYPE_API );
+
+        if( !($phs_route = PHS_api::get_phs_route_from_api_route( $final_api_route, $this->http_method() )) )
+        {
+            if( PHS::st_debugging_mode() )
+                PHS_Logger::logf( 'No PHS route matched API route.', PHS_Logger::TYPE_API );
+
+            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route ), true )) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_RUN_ROUTE );
+                else
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route into a framework route.' ) );
+
+                return false;
+            }
+        }
+
+        $phs_route = PHS::validate_route_from_parts( $phs_route, true );
+
+        if( PHS::st_debugging_mode() )
+        {
+            if( !($route_str = PHS::route_from_parts( $phs_route )) )
+                $route_str = 'N/A';
+
+            PHS_Logger::logf( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
+        }
+
+        $this->api_flow_value( 'phs_route', $phs_route );
+
+        PHS::set_route( $phs_route );
 
         if( !$this->_before_route_run() )
         {
@@ -467,6 +462,11 @@ abstract class PHS_api_base extends PHS_Registry
         }
 
         $this->api_flow_value( 'api_key_data', $apikey_arr );
+
+        if( !empty( $apikey_arr['uid'] ) )
+            $this->api_flow_value( 'api_key_user_id', intval( $apikey_arr['uid'] ) );
+        else
+            $this->api_flow_value( 'api_key_user_id', 0 );
 
         return $apikey_arr;
     }
@@ -690,6 +690,69 @@ abstract class PHS_api_base extends PHS_Registry
         $this->my_flow['content_type'] = strtoupper( trim( $type ) );
 
         return $this->my_flow['content_type'];
+    }
+
+    public function api_user_account_id()
+    {
+        if( empty( $this->my_flow ) )
+            $this->my_flow = $this->_default_api_flow();
+
+        return $this->my_flow['api_key_user_id'];
+    }
+
+    public static function default_framework_api_settings()
+    {
+        return array(
+            'allow_api_calls' => false,
+            'allow_api_calls_over_http' => false,
+            'api_can_simulate_web' => false,
+        );
+    }
+
+    public static function get_framework_api_settings()
+    {
+        if( !empty( self::$_framework_settings ) )
+            return self::$_framework_settings;
+
+        self::$_framework_settings = self::default_framework_api_settings();
+
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        if( !($admin_plugin = PHS::load_plugin( 'admin' ))
+         or !($admin_plugin_settings = $admin_plugin->get_plugin_settings()) )
+            return self::$_framework_settings;
+
+        self::$_framework_settings['allow_api_calls'] = (!empty( $admin_plugin_settings['allow_api_calls'] ));
+        self::$_framework_settings['allow_api_calls_over_http'] = (!empty( $admin_plugin_settings['allow_api_calls_over_http'] ));
+        self::$_framework_settings['api_can_simulate_web'] = (!empty( $admin_plugin_settings['api_can_simulate_web'] ));
+
+        return self::$_framework_settings;
+    }
+
+    public static function framework_allows_api_calls()
+    {
+        if( !($settings = self::get_framework_api_settings())
+         or !is_array( $settings ) )
+            return false;
+
+        return (!empty( $settings['allow_api_calls'] ));
+    }
+
+    public static function framework_allows_api_calls_over_http()
+    {
+        if( !($settings = self::get_framework_api_settings())
+         or !is_array( $settings ) )
+            return false;
+
+        return (!empty( $settings['allow_api_calls_over_http'] ));
+    }
+
+    public static function framework_api_can_simulate_web()
+    {
+        if( !($settings = self::get_framework_api_settings())
+         or !is_array( $settings ) )
+            return false;
+
+        return (!empty( $settings['api_can_simulate_web'] ));
     }
 
     public function send_header_response( $code, $msg = false )

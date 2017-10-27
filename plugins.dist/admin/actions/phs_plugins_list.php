@@ -47,11 +47,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
             $action_result = self::default_action_result();
 
-            $args = array(
-                    'back_page' => PHS::current_url()
-            );
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }
@@ -192,11 +188,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
             $action_result = self::default_action_result();
 
-            $args = array(
-                'back_page' => PHS::current_url()
-            );
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }

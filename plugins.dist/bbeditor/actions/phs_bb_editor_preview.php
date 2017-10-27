@@ -31,11 +31,7 @@ class PHS_Action_Bb_editor_preview extends PHS_Action
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
-            $args = array(
-                'back_page' => PHS::current_url()
-            );
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }

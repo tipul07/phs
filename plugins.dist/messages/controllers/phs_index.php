@@ -23,11 +23,7 @@ class PHS_Controller_Index extends PHS_Controller
 
                 $action_result = PHS_Action::default_action_result();
 
-                $args = array(
-                    'back_page' => PHS::current_url()
-                );
-
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+                $action_result['request_login'] = true;
 
                 return $this->execute_foobar_action( $action_result );
             }

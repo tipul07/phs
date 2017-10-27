@@ -14,7 +14,7 @@ class PHS_Scope_Web extends PHS_Scope
         return self::SCOPE_WEB;
     }
 
-    public function process_action_result( $action_result )
+    public function process_action_result( $action_result, $static_error_arr = false )
     {
         /** @var \phs\libraries\PHS_Action $action_obj */
         if( !($action_obj = PHS::running_action()) )
@@ -25,6 +25,17 @@ class PHS_Scope_Web extends PHS_Scope
 
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
+        if( !empty( $action_result['request_login'] ) )
+        {
+            $args = array();
+            if( !empty( $action_result['redirect_to_url'] ) )
+                $args['back_page'] = $action_result['redirect_to_url'];
+            else
+                $args['back_page'] = PHS::current_url();
+
+            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+        }
+
         if( !empty( $action_result['redirect_to_url'] )
         and !@headers_sent() )
         {
@@ -33,7 +44,7 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         if( empty( $action_obj )
-        and !empty( $action_result['page_template'] ) )
+        and empty( $action_result['page_template'] ) )
         {
             echo 'No running action to render page template.';
             exit;
@@ -60,7 +71,10 @@ class PHS_Scope_Web extends PHS_Scope
             @header( 'X-Powered-By: PHS-'.PHS_VERSION );
         }
 
-        if( empty( $action_obj )
+        if( self::arr_has_error( $static_error_arr ) )
+            echo self::arr_get_error_message( $static_error_arr );
+
+        elseif( empty( $action_obj )
          or empty( $action_result['page_template'] ) )
             echo $action_result['buffer'];
 

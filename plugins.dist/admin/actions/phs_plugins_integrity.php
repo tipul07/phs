@@ -29,9 +29,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }

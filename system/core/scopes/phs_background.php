@@ -15,7 +15,7 @@ class PHS_Scope_Background extends PHS_Scope
         return self::SCOPE_BACKGROUND;
     }
 
-    public function process_action_result( $action_result )
+    public function process_action_result( $action_result, $static_error_arr = false )
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
@@ -37,6 +37,9 @@ class PHS_Scope_Background extends PHS_Scope
 
             PHS_Logger::logf( ucfirst( $notification_type ).' notifications:'."\n".implode( "\n", $notifications_arr ), PHS_Logger::TYPE_BACKGROUND );
         }
+
+        if( !empty( $action_result['request_login'] ) )
+            PHS_Logger::logf( 'Script required login action, but we are in a background script...', PHS_Logger::TYPE_BACKGROUND );
 
         if( !empty( $action_result['redirect_to_url'] ) )
             PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...', PHS_Logger::TYPE_BACKGROUND );

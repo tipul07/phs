@@ -31,7 +31,7 @@ class PHS_Action_View_message extends PHS_Action
 
             $action_result = self::default_action_result();
 
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }

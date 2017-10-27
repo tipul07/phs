@@ -80,6 +80,9 @@ final class PHS extends PHS_Registry
         if( self::$inited )
             return;
 
+        if( empty( $_SERVER ) )
+            $_SERVER = array();
+
         self::reset_registry();
 
         self::set_data( self::PHS_START_TIME, microtime( true ) );
@@ -156,7 +159,8 @@ final class PHS extends PHS_Registry
      */
     public static function detect_secure_request()
     {
-        if( isset( $_SERVER['HTTPS'] )
+        if( !empty( $_SERVER )
+        and isset( $_SERVER['HTTPS'] )
         and ($_SERVER['HTTPS'] == 'on' or $_SERVER['HTTPS'] == '1') )
             return true;
 
@@ -170,6 +174,9 @@ final class PHS extends PHS_Registry
      */
     public static function get_request_host_config()
     {
+        if( empty( $_SERVER ) )
+            $_SERVER = array();
+
         if( empty( $_SERVER['SERVER_NAME'] ) )
             $server_name = 'default';
         else
@@ -1038,6 +1045,9 @@ final class PHS extends PHS_Registry
 
     public static function current_page_query_string_as_array( $params = false )
     {
+        if( empty( $_SERVER ) )
+            $_SERVER = array();
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
@@ -1346,58 +1356,53 @@ final class PHS extends PHS_Registry
                 self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].', $route_details[self::ROUTE_ACTION] ) );
         }
 
-        // else
-        // {
+        $controller_error_arr = self::st_get_error();
 
-            $controller_error_arr = self::st_get_error();
+        self::st_reset_error();
 
-            self::st_reset_error();
+        if( is_array( $action_result )
+        and !empty( $action_result['scope'] )
+        and $action_result['scope'] != PHS_Scope::current_scope() )
+            PHS_Scope::current_scope( $action_result['scope'] );
 
-            if( is_array( $action_result )
-            and !empty( $action_result['scope'] )
-            and $action_result['scope'] != PHS_Scope::current_scope() )
-                PHS_Scope::current_scope( $action_result['scope'] );
+        if( !($scope_obj = PHS_Scope::get_scope_instance()) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
 
-            if( !($scope_obj = PHS_Scope::get_scope_instance()) )
+            if( !empty( $params['die_on_error'] ) )
             {
-                if( !self::st_has_error() )
-                    self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error spawning scope instance.' ) );
+                $error_msg = self::st_get_error_message();
+
+                PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
+
+                echo 'Error spawining scope.';
+                exit;
             }
 
-            $scope_error_arr = self::st_get_error();
-        // }
+            return false;
+        }
 
-        if( !empty( $params['die_on_error'] ) and self::st_has_error() )
+        if( !empty( $action_result ) and is_array( $action_result )
+        and !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+            $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], array( 'trim_keys' => true ) );
+
+        $scope_action_result = $scope_obj->generate_response( $action_result, $controller_error_arr );
+
+        if( self::st_has_error()
+         or $scope_obj->has_error() )
         {
             if( self::st_has_error() )
                 $error_msg = self::st_get_error_message();
             else
-                $error_msg = self::_t( 'Couldn\'t instantiate scope object.' );
+                $error_msg = $scope_obj->get_error_message();
 
             PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
-            echo $error_msg;
 
-            exit;
+            return false;
         }
 
-        if( empty( $scope_obj ) )
-            return false;
-
-        if( is_array( $action_result )
-        and !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
-            $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], array( 'trim_keys' => true ) );
-
-        $scope_response = $scope_obj->generate_response( $action_result );
-
-        if( self::arr_has_error( $controller_error_arr ) )
-            self::st_copy_error_from_array( $controller_error_arr );
-        elseif( self::arr_has_error( $scope_error_arr ) )
-            self::st_copy_error_from_array( $scope_error_arr );
-
-        if( self::st_has_error() )
-            return false;
-
-        return $scope_response;
+        return $scope_action_result;
     }
 
     public static function platform_debug_data()

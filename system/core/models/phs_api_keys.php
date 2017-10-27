@@ -20,7 +20,7 @@ class PHS_Model_Api_keys extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -267,6 +267,11 @@ class PHS_Model_Api_keys extends PHS_Model
         if( empty( $params['fields']['api_secret'] ) )
             $params['fields']['api_secret'] = $this->generate_random_api_secret();
 
+        if( empty( $params['fields']['allow_sw'] ) )
+            $params['fields']['allow_sw'] = 0;
+        else
+            $params['fields']['allow_sw'] = 1;
+
         $cdate = date( self::DATETIME_DB );
 
         if( empty( $params['fields']['status'] )
@@ -296,6 +301,14 @@ class PHS_Model_Api_keys extends PHS_Model
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide an API secret.' ) );
             return false;
+        }
+
+        if( array_key_exists( 'allow_sw', $params['fields'] ) )
+        {
+            if( !empty( $params['fields']['allow_sw'] ) )
+                $params['fields']['allow_sw'] = 1;
+            else
+                $params['fields']['allow_sw'] = 0;
         }
 
         if( !empty( $params['fields']['status'] )
@@ -397,6 +410,10 @@ class PHS_Model_Api_keys extends PHS_Model
                         'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                         'comment' => 'Comma separated methods'
+                    ),
+                    'allow_sw' => array(
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => '2',
                     ),
                     'allowed_ips' => array(
                         'type' => self::FTYPE_TEXT,

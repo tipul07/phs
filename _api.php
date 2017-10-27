@@ -13,16 +13,16 @@
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_params;
 
-    $allow_web_calls = false;
-    /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-    if( ($admin_plugin = PHS::load_plugin( 'admin' ))
-    and ($admin_plugin_settings = $admin_plugin->get_plugin_settings())
-    and !empty( $admin_plugin_settings['allow_api_calls'] ) )
-        $allow_web_calls = true;
-
-    if( empty( $allow_web_calls ) )
+    if( !PHS_api::framework_allows_api_calls() )
     {
         PHS_api::http_header_response( PHS_api::H_CODE_SERVICE_UNAVAILABLE );
+        exit;
+    }
+
+    if( !PHS::is_secured_request()
+    and !PHS_api::framework_allows_api_calls_over_http() )
+    {
+        PHS_api::http_header_response( PHS_api::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
         exit;
     }
 

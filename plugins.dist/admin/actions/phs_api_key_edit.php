@@ -35,11 +35,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
 
             $action_result = self::default_action_result();
 
-            $args = array(
-                'back_page' => PHS::current_url()
-            );
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }
@@ -112,6 +108,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
         $autocomplete_uid = PHS_params::_p( 'autocomplete_uid', PHS_params::T_NOHTML );
         $api_key = PHS_params::_p( 'api_key', PHS_params::T_NOHTML );
         $api_secret = PHS_params::_p( 'api_secret', PHS_params::T_NOHTML );
+        $allow_sw = PHS_params::_p( 'allow_sw', PHS_params::T_NUMERIC_BOOL );
         if( !($allowed_methods = PHS_params::_p( 'allowed_methods', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ) )) )
             $allowed_methods = array();
         if( !($denied_methods = PHS_params::_p( 'denied_methods', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ) )) )
@@ -129,6 +126,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $autocomplete_uid = $users_autocomplete_action->format_data( false, false );
             $api_key = $apikey_arr['api_key'];
             $api_secret = $apikey_arr['api_secret'];
+            $allow_sw = (!empty( $apikey_arr['allow_sw'] )?1:0);
 
             if( empty( $apikey_arr['allowed_methods'] ) )
                 $allowed_methods = array();
@@ -198,6 +196,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $edit_arr['uid'] = $uid;
             $edit_arr['api_key'] = $api_key;
             $edit_arr['api_secret'] = $api_secret;
+            $edit_arr['allow_sw'] = $allow_sw;
             $edit_arr['allowed_methods'] = (!empty( $allowed_methods )?implode( ',', $allowed_methods ):'');
             $edit_arr['denied_methods'] = (!empty( $denied_methods )?implode( ',', $denied_methods ):'');
 
@@ -235,6 +234,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             'autocomplete_uid' => $autocomplete_uid,
             'api_key' => $api_key,
             'api_secret' => $api_secret,
+            'allow_sw' => $allow_sw,
             'allowed_methods' => $allowed_methods,
             'denied_methods' => $denied_methods,
 

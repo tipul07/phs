@@ -2,6 +2,7 @@
 
 namespace phs\system\core\scopes;
 
+use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\PHS_api;
@@ -16,8 +17,16 @@ class PHS_Scope_Api extends PHS_Scope
         return self::SCOPE_API;
     }
 
-    public function process_action_result( $action_result )
+    public function process_action_result( $action_result, $static_error_arr = false )
     {
+        // We have already an error from flow before initiating scope class
+        if( !empty( $static_error_arr )
+        and self::arr_has_error( $static_error_arr ) )
+        {
+            PHS_api::http_header_response( PHS_api::H_CODE_INTERNAL_SERVER_ERROR, self::arr_get_error_message( $static_error_arr ) );
+            exit;
+        }
+
         if( !($api_obj = PHS_api::global_api_instance()) )
             $api_obj = false;
 
@@ -32,6 +41,13 @@ class PHS_Scope_Api extends PHS_Scope
                 $api_headers = array();
 
             $api_flow_arr = $api_obj->api_flow_value();
+
+            if( !empty( $action_result['request_login'] )
+            and !$api_obj->api_user_account_id() )
+            {
+                PHS_api::http_header_response( PHS_api::H_CODE_UNAUTHORIZED );
+                exit;
+            }
         } else
             $api_headers = array();
 

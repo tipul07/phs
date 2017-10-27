@@ -44,11 +44,7 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
 
             $action_result = self::default_action_result();
 
-            $args = array(
-                    'back_page' => PHS::current_url()
-            );
-
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['request_login'] = true;
 
             return $action_result;
         }
@@ -168,6 +164,14 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                 'extra_style' => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
                 'display_callback' => array( $this, 'display_apikey_account' ),
+            ),
+            array(
+                'column_title' => $this->_pt( 'Simulate Web' ),
+                'record_field' => 'allow_sw',
+                'display_key_value' => array( 0 => $this->_pt( 'No' ), 1 => $this->_pt( 'Yes' ) ),
+                'invalid_value' => $this->_pt( '??' ),
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ),
             array(
                 'column_title' => $this->_pt( 'Status' ),
