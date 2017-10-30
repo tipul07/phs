@@ -231,6 +231,13 @@
 
     <title><?php echo $action_result['page_settings']['page_title']?></title>
     <?php echo $action_result['page_settings']['page_in_header']?>
+<?php
+
+if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_PAGE_HEAD, PHS_Hooks::default_buffer_hook_args() ))
+and is_array( $hook_args )
+and !empty( $hook_args['buffer'] ) )
+    echo $hook_args['buffer'];
+?>
 </head>
 
 <body<?php echo (($page_body_class = PHS::page_settings( 'page_body_class' ))?' class="'.$page_body_class.'" ':'').$action_result['page_body_extra_tags']?>>

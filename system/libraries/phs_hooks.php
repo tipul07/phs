@@ -76,6 +76,7 @@ class PHS_Hooks extends PHS_Registry
          H_USERS_AFTER_LOGIN = 'phs_users_after_login',
 
          // Layout hooks
+         H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
          H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
          H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
 
@@ -87,6 +88,7 @@ class PHS_Hooks extends PHS_Registry
          H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
          H_ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
 
+         H_MAIN_TEMPLATE_PAGE_HEAD = 'phs_main_template_page_head',
          H_MAIN_TEMPLATE_PAGE_START = 'phs_main_template_page_start',
          H_MAIN_TEMPLATE_PAGE_END = 'phs_main_template_page_end',
 
