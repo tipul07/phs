@@ -1,6 +1,6 @@
 <?php
 
-// /version 1.26
+// /version 1.30
 
     include( '../../../main.php' );
 
@@ -16,7 +16,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.26,
+        version: 1.30,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -669,6 +669,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 onclose           : null,
                 onbeforeclose     : null,
                 onsuccess         : null,
+                onfailed          : null,
 
                 dialog_full_options : null
             };
@@ -758,8 +759,19 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
-                            dialog_obj.html( "<?php echo PHS_Language::_te( 'Error ontaining dialogue body. Please try again.' )?>" );
-                            dialog_obj.dialog( "open" );
+                            if( dialog_obj )
+                            {
+                                dialog_obj.html( "<?php echo PHS_Language::_te( 'Error ontaining dialogue body. Please try again.' )?>" );
+                                dialog_obj.dialog( "open" );
+                            }
+
+                            if( options.onfailed )
+                            {
+                                if( jQuery.isFunction( options.onfailed ) )
+                                    options.onfailed();
+                                else if( typeof options.onfailed == "string" )
+                                    eval( options.onfailed );
+                            }
                         }
                     };
 
