@@ -266,7 +266,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     </div>
 </div>
 <div id="container">
-    <!-- BEGIN: page_header -->
     <div id="menu-left-pane" class="menu-pane">
         <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
@@ -541,8 +540,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         </div>
     </header>
 
-    <!-- END: page_header -->
-
     <div id="content">
         <div id="main_content"><?php
 }
@@ -559,7 +556,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     ?></div>
 
     <footer id="footer">
-        <!-- BEGIN: page_footer -->
         <div id="footer_content">
             <div class="footerlinks">
                 <?php
@@ -585,7 +581,6 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
             ?>
             <div><?php echo PHS_SITE_NAME.' (v'.PHS_SITEBUILD_VERSION.')'?> &copy; <?php echo date( 'Y' ).' '.$this::_t( 'All rights reserved.' ).$debug_str?> &nbsp;</div>
         </div>
-        <!-- END: page_footer -->
     </footer>
     <div class="clearfix"></div>
     </div>

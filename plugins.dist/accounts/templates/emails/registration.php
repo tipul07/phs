@@ -24,7 +24,7 @@ or copy and paste the link below in your browser:<br/>
     {
         ?>
         <br/>
-        As your password was generated, you will receive an email after activation with your password.<br/><?php
+        As your password was generated, you will receive an email with your password after activation.<br/><?php
     }
 ?>
 <br/>
