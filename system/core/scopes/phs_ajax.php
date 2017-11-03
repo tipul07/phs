@@ -22,9 +22,6 @@ class PHS_Scope_Ajax extends PHS_Scope
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
-        // if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
-        //     $action_result['custom_headers'] = self::merge_array_assoc_insensitive();
-
         $full_buffer = PHS_params::_gp( PHS_ajax::PARAM_FB_KEY, PHS_params::T_INT );
 
         if( !isset( $action_result['buffer'] ) )
@@ -46,6 +43,7 @@ class PHS_Scope_Ajax extends PHS_Scope
         // send custom headers as we will echo page content here...
         if( !@headers_sent() )
         {
+            $result_headers = array();
             if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             {
                 foreach( $action_result['custom_headers'] as $key => $val )
@@ -53,15 +51,24 @@ class PHS_Scope_Ajax extends PHS_Scope
                     if( empty( $key ) )
                         continue;
 
-                    $header_str = $key;
                     if( !is_null( $val ) )
-                        $header_str .= ': '.$val;
-
-                    @header( $header_str );
+                        $result_headers[$key] = $val;
+                    else
+                        $result_headers[$key] = '';
                 }
             }
 
-            @header( 'X-Powered-By: PHS-'.PHS_VERSION );
+            $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
+
+            $result_headers = self::unify_array_insensitive( $result_headers, array( 'trim_keys' => true ) );
+
+            foreach( $result_headers as $key => $val )
+            {
+                if( $val == '' )
+                    @header( $key );
+                else
+                    @header( $key.': '.$val );
+            }
         }
 
         if( $action_result['buffer'] != '' )

@@ -3,6 +3,8 @@
 namespace phs\plugins\accounts;
 
 use \phs\PHS;
+use \phs\PHS_api;
+use \phs\PHS_Scope;
 use \phs\PHS_session;
 use \phs\PHS_crypt;
 use \phs\libraries\PHS_params;
@@ -648,29 +650,45 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
             return $hook_args;
 
-        if( !($skey_value = PHS_session::_g( self::session_key() ))
-         or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ) )) )
+        // Check if we are in API scope and we have a valid API instance...
+        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API
+        and ($api_obj = PHS_api::global_api_instance()) )
         {
-            $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
-            $hook_args['user_db_data'] = $this->get_empty_account_structure();
+            if( !($account_id = $api_obj->api_user_account_id())
+             or !($user_db_details = $accounts_model->get_details( $account_id ))
+             or !$accounts_model->is_active( $user_db_details ) )
+            {
+                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
-            return $hook_args;
-        }
-
-        if( empty( $online_db_details['uid'] )
-         or !($user_db_details = $accounts_model->get_details( $online_db_details['uid'] ))
-         or !$accounts_model->is_active( $user_db_details )
-        )
+                return $hook_args;
+            }
+        } else
         {
-            $accounts_model->hard_delete( $online_db_details, array( 'table_name' => 'online' ) );
+            if( !($skey_value = PHS_session::_g( self::session_key() ))
+             or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ) )) )
+            {
+                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
-            // session expired?
-            $hook_args['session_expired_secs'] = seconds_passed( $online_db_details['idle'] );
+                return $hook_args;
+            }
 
-            $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
-            $hook_args['user_db_data'] = $this->get_empty_account_structure();
+            if( empty( $online_db_details['uid'] )
+             or !($user_db_details = $accounts_model->get_details( $online_db_details['uid'] ))
+             or !$accounts_model->is_active( $user_db_details )
+            )
+            {
+                $accounts_model->hard_delete( $online_db_details, array( 'table_name' => 'online' ) );
 
-            return $hook_args;
+                // session expired?
+                $hook_args['session_expired_secs'] = seconds_passed( $online_db_details['idle'] );
+
+                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['user_db_data'] = $this->get_empty_account_structure();
+
+                return $hook_args;
+            }
         }
 
         if( !($units_slugs_arr = PHS_Roles::get_user_role_units_slugs( $user_db_details )) )

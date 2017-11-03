@@ -53,6 +53,7 @@ class PHS_Scope_Web extends PHS_Scope
         // send custom headers as we will echo page content here...
         if( !@headers_sent() )
         {
+            $result_headers = array();
             if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             {
                 foreach( $action_result['custom_headers'] as $key => $val )
@@ -60,15 +61,24 @@ class PHS_Scope_Web extends PHS_Scope
                     if( empty( $key ) )
                         continue;
 
-                    $header_str = $key;
                     if( !is_null( $val ) )
-                        $header_str .= ': '.$val;
-
-                    @header( $header_str );
+                        $result_headers[$key] = $val;
+                    else
+                        $result_headers[$key] = '';
                 }
             }
 
-            @header( 'X-Powered-By: PHS-'.PHS_VERSION );
+            $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
+
+            $result_headers = self::unify_array_insensitive( $result_headers, array( 'trim_keys' => true ) );
+
+            foreach( $result_headers as $key => $val )
+            {
+                if( $val == '' )
+                    @header( $key );
+                else
+                    @header( $key.': '.$val );
+            }
         }
 
         if( self::arr_has_error( $static_error_arr ) )

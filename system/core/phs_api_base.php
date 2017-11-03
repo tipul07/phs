@@ -72,6 +72,19 @@ abstract class PHS_api_base extends PHS_Registry
         return true;
     }
 
+    /**
+     * Override this method in case you want to envelope each response in a "standard" response structure
+     *
+     * @param array|null $response_arr Response which should be enveloped
+     * @param array|bool $errors_arr Any errors that should be added in envelope in case we don't have access to PHS_Notifications class
+     *
+     * @return bool|array Return response envelope array or false on error
+     */
+    public function create_response_envelope( $response_arr, $errors_arr = false )
+    {
+        return $response_arr;
+    }
+
     protected function _default_api_flow()
     {
         return array(

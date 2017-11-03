@@ -2055,8 +2055,9 @@ final class PHS extends PHS_Registry
         if( !error_reporting() )
             return true;
 
-        echo '<pre>'.self::st_debug_call_backtrace().'</pre>';
+        $backtrace_str = self::st_debug_call_backtrace();
 
+        $error_type = 'Unknown error type';
         switch( $errno )
         {
             case E_ERROR:
@@ -2064,30 +2065,99 @@ final class PHS extends PHS_Registry
                 // end all buffers
                 while( @ob_end_flush() );
 
-                echo "<strong>ERROR</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
-                exit(1);
+                $error_type = 'error';
             break;
 
             case E_WARNING:
             case E_USER_WARNING:
-                echo "<strong>WARNING</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
+                $error_type = 'warning';
             break;
 
             case E_NOTICE:
             case E_USER_NOTICE:
-                echo "<strong>NOTICE</strong> [$errno] ($errfile:$errline) $errstr<br />\n";
-            break;
-
-            default:
-                echo "Unknown error type: [$errno] ($errfile:$errline) $errstr<br />\n";
+                $error_type = 'notice';
             break;
         }
+
+        if( !@class_exists( '\\phs\\PHS_Scope', false ) )
+        {
+            echo $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n";
+            echo $backtrace_str."\n";
+        } else
+        {
+            $current_scope = PHS_Scope::current_scope();
+            switch( $current_scope )
+            {
+                default:
+                case PHS_Scope::SCOPE_AJAX:
+                case PHS_Scope::SCOPE_WEB:
+                    echo '<strong>'.$error_type.'</strong> ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr.'<br/>'."\n";
+                    echo '<pre>'.$backtrace_str.'</pre>';
+                break;
+
+                case PHS_Scope::SCOPE_API:
+
+                    if( self::st_debugging_mode() )
+                    {
+                        if( !@class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+                            $error_arr = array(
+                                'backtrace' => $backtrace_str,
+                                'error_code' => $errno,
+                                'error_file' => $errfile,
+                                'error_line' => $errline,
+                                'response_status' => array(
+                                    'success_messages' => array(),
+                                    'warning_messages' => array(),
+                                    'error_messages' => array( $errstr ),
+                                )
+                            );
+                        else
+                            $error_arr = array(
+                                'backtrace' => $backtrace_str,
+                                'error_code' => $errno,
+                                'error_file' => $errfile,
+                                'error_line' => $errline,
+                                'response_status' => array(
+                                    'success_messages' => \phs\libraries\PHS_Notifications::notifications_success(),
+                                    'warning_messages' => \phs\libraries\PHS_Notifications::notifications_warnings(),
+                                    'error_messages' => array_merge( \phs\libraries\PHS_Notifications::notifications_errors(), array( $errstr ) ),
+                                )
+                            );
+                    } else
+                    {
+                        $error_arr = array(
+                            'error_code' => -1,
+                            'response_status' => array(
+                                'success_messages' => array(),
+                                'warning_messages' => array(),
+                                'error_messages' => array( 'Internal error' ),
+                            )
+                        );
+                    }
+
+                    echo @json_encode( $error_arr );
+
+                    exit;
+                break;
+
+                case PHS_Scope::SCOPE_AGENT:
+                case PHS_Scope::SCOPE_BACKGROUND:
+                    PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str );
+                break;
+            }
+        }
+
+        if( @class_exists( '\\phs\\PHS_Logger', false ) )
+            PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str, PHS_Logger::TYPE_DEBUG );
+
+        if( $errno == E_ERROR or $errno == E_USER_ERROR )
+            exit( 1 );
 
         return true;
     }
 
     public static function tick_handler()
     {
-        var_dump( PHS::st_debug_call_backtrace( 1 ) );
+        var_dump( self::st_debug_call_backtrace( 1 ) );
     }
 }

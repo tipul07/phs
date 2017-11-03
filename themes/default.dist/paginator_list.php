@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-
+    use \phs\PHS_Scope;
     use \phs\libraries\PHS_params;
 
     /** @var \phs\libraries\PHS_Paginator $paginator_obj */
@@ -49,6 +49,29 @@
     $columns_count = 0;
     if( !empty( $columns_arr ) and is_array( $columns_arr ) )
         $columns_count = count( $columns_arr );
+
+    $is_api_scope = (PHS_Scope::current_scope() != PHS_Scope::SCOPE_API?false:true);
+    $api_listing_arr = array();
+
+    //
+    // Begin output caching so we don't send HTML to scopes which don't need it
+    //
+    if( $is_api_scope )
+    {
+        ob_start();
+        $api_listing_arr = $paginator_obj->default_api_listing_response();
+        $api_listing_arr['offset'] = $paginator_obj->pagination_params( 'offset' );
+        $api_listing_arr['records_per_page'] = $paginator_obj->pagination_params( 'records_per_page' );
+        $api_listing_arr['total_records'] = $paginator_obj->pagination_params( 'total_records' );
+        $api_listing_arr['listing_records_count'] = $paginator_obj->pagination_params( 'listing_records_count' );
+        $api_listing_arr['page'] = $paginator_obj->pagination_params( 'page' );
+        $api_listing_arr['max_pages'] = $paginator_obj->pagination_params( 'max_pages' );
+        $api_listing_arr['filters']['sort'] = $paginator_obj->pagination_params( 'sort' );
+        $api_listing_arr['filters']['sort_by'] = $paginator_obj->pagination_params( 'sort_by' );
+    }
+    //
+    //
+    //
 ?>
 <div class="list_container">
     <form id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>" method="post">
@@ -193,7 +216,8 @@
 	<div>
 	<table style="min-width:100%;margin-bottom:5px;" class="tgrid">
 	<?php
-	if( !empty( $columns_count ) )
+	if( !$is_api_scope
+    and !empty( $columns_count ) )
 	{
 		?>
 		<thead>
@@ -270,7 +294,8 @@
 
 	?><tbody><?php
 
-	if( !empty( $columns_count )
+	if( !$is_api_scope
+    and !empty( $columns_count )
 	and !empty( $flow_params_arr['table_after_headers_callback'] )
 	and is_callable( $flow_params_arr['table_after_headers_callback'] ) )
 	{
@@ -318,13 +343,15 @@
 		{
 			?><tr><?php
 
+            $api_record = array();
+
 			foreach( $columns_arr as $column_arr )
 			{
 			    if( empty( $column_arr ) or !is_array( $column_arr ) )
 			        continue;
 
                 $cell_render_params                   = $paginator_obj->default_cell_render_call_params();
-                $cell_render_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
+                $cell_render_params['request_render_type'] = (!$is_api_scope?$paginator_obj::CELL_RENDER_HTML:$paginator_obj::CELL_RENDER_JSON);
                 $cell_render_params['page_index']     = $knti;
                 $cell_render_params['list_index']     = $offset + $knti;
                 $cell_render_params['columns_count']  = $columns_count;
@@ -338,12 +365,29 @@
                 if( !($cell_content = $paginator_obj->render_column_for_record( $cell_render_params )) )
                     $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
 
-				?><td class="<?php echo $column_arr['extra_records_classes']?>" <?php if (!empty($column_arr['extra_records_style'])) echo 'style="'.$column_arr['extra_records_style'].'"'?>><?php echo $cell_content?></td><?php
+				if( $is_api_scope )
+                {
+                    if( !empty( $column_arr['record_db_field'] ) )
+                        $field_name = $column_arr['record_db_field'];
+                    else
+                        $field_name = $column_arr['record_field'];
+
+                    $field_name = str_replace( '`', '', str_replace( '.', '_', $field_name ) );
+
+                    $api_record[$field_name] = $cell_content;
+                } else
+                {
+                    ?><td class="<?php echo $column_arr['extra_records_classes']?>" <?php if (!empty($column_arr['extra_records_style'])) echo 'style="'.$column_arr['extra_records_style'].'"'?>><?php echo $cell_content?></td><?php
+                }
 			}
+
+            if( $is_api_scope )
+                $api_listing_arr['list'][] = $api_record;
 
 			?></tr><?php
 
-			if( !empty( $flow_params_arr['after_record_callback'] )
+			if( !$is_api_scope
+            and !empty( $flow_params_arr['after_record_callback'] )
 			and is_callable( $flow_params_arr['after_record_callback'] ) )
 			{
 				$callback_params                   = $paginator_obj->default_cell_render_call_params();
@@ -362,7 +406,8 @@
 		}
 	}
 
-	if( !empty( $columns_count )
+	if( !$is_api_scope
+    and !empty( $columns_count )
 	and !empty( $flow_params_arr['table_before_footer_callback'] )
 	and is_callable( $flow_params_arr['table_before_footer_callback'] ) )
 	{
@@ -385,7 +430,8 @@
 		<?php
 	}
 
-	if( $pagination_arr['max_pages'] > 1 )
+	if( !$is_api_scope
+    and $pagination_arr['max_pages'] > 1 )
 	{
 		$page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['page_var_name'];
 
@@ -448,7 +494,7 @@
 		</td>
 		</tr>
 		<?php
-	} else
+	} elseif( !$is_api_scope )
     {
 		?>
 		<tr class="list_info_row">
@@ -474,7 +520,8 @@
 
 	<?php
 
-	if( !empty( $columns_count )
+	if( !$is_api_scope
+    and !empty( $columns_count )
 	and !empty( $flow_params_arr['after_table_callback'] )
 	and is_callable( $flow_params_arr['after_table_callback'] ) )
 	{
@@ -489,7 +536,8 @@
 		echo $cell_content;
 	}
 
-	if( !empty( $flow_params_arr['display_bottom_bulk_actions'] )
+	if( !$is_api_scope
+    and !empty( $flow_params_arr['display_bottom_bulk_actions'] )
 	and !empty( $bulk_select_name )
 	and !empty( $bulk_actions ) )
 	{
@@ -649,19 +697,34 @@ if( !function_exists( 'display_js_functionality' ) )
         }
     }
 }
-
-display_js_functionality( $this, $paginator_obj );
-
-    if( !empty( $flow_params_arr['after_full_list_callback'] )
-    and is_callable( $flow_params_arr['after_full_list_callback'] ) )
+    if( !$is_api_scope )
     {
-        $callback_params = $paginator_obj->default_others_render_call_params();
-        $callback_params['columns'] = $columns_arr;
-        $callback_params['filters'] = $filters_arr;
+        display_js_functionality( $this, $paginator_obj );
 
-        if( ($end_list_content = @call_user_func( $flow_params_arr['after_full_list_callback'], $callback_params )) === false
-         or $end_list_content === null )
-            $end_list_content = '[' . $this::_t( 'Render after full list call failed.' ) . ']';
+        if( !empty( $flow_params_arr['after_full_list_callback'] )
+        and is_callable( $flow_params_arr['after_full_list_callback'] ) )
+        {
+            $callback_params = $paginator_obj->default_others_render_call_params();
+            $callback_params['columns'] = $columns_arr;
+            $callback_params['filters'] = $filters_arr;
 
-        echo $end_list_content;
+            if( ($end_list_content = @call_user_func( $flow_params_arr['after_full_list_callback'], $callback_params )) === false
+             or $end_list_content === null )
+                $end_list_content = '[' . $this::_t( 'Render after full list call failed.' ) . ']';
+
+            echo $end_list_content;
+        }
     }
+
+//
+// END output caching so we don't send HTML to scopes which don't need it
+//
+if( $is_api_scope )
+{
+    ob_end_clean();
+
+    return $api_listing_arr;
+}
+//
+//
+//

@@ -2,7 +2,8 @@
 
 namespace phs;
 
-use phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Hooks;
 
@@ -527,6 +528,42 @@ class PHS_api extends PHS_api_base
         }
 
         return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function create_response_envelope( $response_arr, $errors_arr = false )
+    {
+        if( !is_array( $response_arr ) )
+            $response_arr = array();
+
+        if( (!array_key_exists( 'response_status', $response_arr )
+            or $response_arr['response_status'] !== null
+            ) )
+        {
+            if( @class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+                $status_data = array(
+                    'success_messages' => PHS_Notifications::notifications_success(),
+                    'warning_messages' => PHS_Notifications::notifications_warnings(),
+                    'error_messages' => PHS_Notifications::notifications_errors(),
+                );
+            else
+            {
+                if( empty( $errors_arr ) or !is_array( $errors_arr ) )
+                    $errors_arr = array();
+
+                $status_data = array(
+                    'success_messages' => array(),
+                    'warning_messages' => array(),
+                    'error_messages' => $errors_arr,
+                );
+            }
+
+            $response_arr['response_status'] = $status_data;
+        }
+
+        return $response_arr;
     }
 }
 

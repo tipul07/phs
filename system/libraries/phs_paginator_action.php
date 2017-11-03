@@ -276,20 +276,38 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 }
             }
 
+            if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
+            {
+                // Prepare API response
+                $action_result = PHS_Action::default_action_result();
+
+                if( !($json_result = $this->_paginator->get_listing_result())
+                 or !is_array( $json_result ) )
+                    $json_result = array();
+
+                $action_result['api_json_result_array'] = $json_result;
+
+                return $action_result;
+            }
+
             $data = array(
-                'filters' => $this->_paginator->get_filters_buffer(),
-                'listing' => $this->_paginator->get_listing_buffer(),
+                'filters' => $this->_paginator->get_filters_result(),
+                'listing' => $this->_paginator->get_listing_result(),
                 'paginator_params' => $this->_paginator->pagination_params(),
                 'flow_params' => $this->_paginator->flow_params(),
             );
         }
 
         if( empty( $data ) )
+        {
+            PHS_Notifications::add_error_notice( self::_t( 'Error rendering paginator details.' ) );
+
             $data = array(
                 'paginator_params' => array(),
                 'filters' => self::_t( 'Something went wrong...' ),
                 'listing' => '',
             );
+        }
 
         return $this->quick_render_template( 'paginator_default_template', $data );
     }

@@ -2,6 +2,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Paginator extends PHS_Registry
@@ -63,6 +64,23 @@ class PHS_Paginator extends PHS_Registry
             return false;
 
         return true;
+    }
+
+    public function default_api_listing_response()
+    {
+        return array(
+            'offset' => 0,
+            'records_per_page' => 0,
+            'total_records' => 0,
+            'listing_records_count' => 0,
+            'page' => 0,
+            'max_pages' => 0,
+            'filters' => array(
+                'sort' => 1,
+                'sort_by' => '',
+            ),
+            'list' => array(),
+        );
     }
 
     public function default_others_render_call_params()
@@ -1094,7 +1112,7 @@ class PHS_Paginator extends PHS_Registry
         return true;
     }
 
-    public function get_filters_buffer()
+    public function get_filters_result()
     {
         if( empty( $this->_originals ) )
             $this->extract_filters_scope();
@@ -1102,9 +1120,16 @@ class PHS_Paginator extends PHS_Registry
         if( !($filters_buffer = $this->render_template( 'paginator_filters' )) )
         {
             if( $this->has_error() )
-                $filters_buffer = $this->get_error_message();
+                $filters_buffer = self::_t( 'Error obtaining filters buffer.' ).' - '.$this->get_error_message();
+
             else
-                $filters_buffer = self::_t( 'Error obtaining filters buffer.' );
+            {
+                // Allow empty buffer for listing (for scopes which don't need an output buffer)
+                if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
+                    $filters_buffer = array();
+                else
+                    $filters_buffer = '';
+            }
         }
 
         return $filters_buffer;
@@ -1799,7 +1824,7 @@ class PHS_Paginator extends PHS_Registry
         return $cell_content;
     }
 
-    public function get_listing_buffer()
+    public function get_listing_result()
     {
         if( empty( $this->_originals ) )
             $this->extract_filters_scope();
@@ -1830,10 +1855,19 @@ class PHS_Paginator extends PHS_Registry
 
         if( !($listing_buffer = $this->render_template( 'paginator_list' )) )
         {
+            echo 'error';
+
             if( $this->has_error() )
-                $listing_buffer = $this->get_error_message();
+                $listing_buffer = self::_t( 'Error obtaining listing buffer.' ).' - '.$this->get_error_message();
+
             else
-                $listing_buffer = self::_t( 'Error obtaining listing buffer.' );
+            {
+                // Allow empty buffer for listing (for scopes which don't need an output buffer)
+                if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
+                    $listing_buffer = array();
+                else
+                    $listing_buffer = '';
+            }
         }
 
         return $listing_buffer;
@@ -1841,7 +1875,15 @@ class PHS_Paginator extends PHS_Registry
 
     public function get_full_buffer()
     {
-        return $this->get_filters_buffer().$this->get_listing_buffer();
+        if( !($listing_buffer = $this->get_listing_result())
+         or !is_string( $listing_buffer ) )
+            $listing_buffer = '';
+
+        if( !($filters_buffer = $this->get_filters_result())
+         or !is_string( $filters_buffer ) )
+            $filters_buffer = '';
+
+        return $filters_buffer.$listing_buffer;
     }
 
     final public function render_template( $template, $template_data = false )
@@ -1865,7 +1907,12 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        if( ($buffer = $view_obj->render()) === false )
+        $rendering_params = false;
+        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
+            $rendering_params = array( 'only_string_result' => false );
+
+        // in API scope return could be an array to place in response
+        if( ($buffer = $view_obj->render( false, false, $rendering_params )) === false )
         {
             if( $view_obj->has_error() )
                 $this->copy_error( $view_obj );

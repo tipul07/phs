@@ -428,15 +428,17 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
         $cdate = date( self::DATETIME_DB );
 
-        $check_arr = array();
-        $check_arr['handler'] = $params['fields']['handler'];
-        $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
-
-        if( !empty( $params['fields']['handler'] )
-        and $this->get_details_fields( $check_arr ) )
+        if( !empty( $params['fields']['handler'] ) )
         {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Handler already defined in database.' ) );
-            return false;
+            $check_arr = array();
+            $check_arr['handler'] = $params['fields']['handler'];
+            $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+
+            if( $this->get_details_fields( $check_arr ) )
+            {
+                $this->set_error( self::ERR_EDIT, self::_t( 'Handler already defined in database.' ) );
+                return false;
+            }
         }
 
         if( !empty( $params['fields']['status'] )

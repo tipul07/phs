@@ -750,7 +750,7 @@ class PHS_View extends PHS_Signal_and_slot
         return $this->view_var( $key );
     }
 
-    public function render( $template = false, $force_theme = false )
+    public function render( $template = false, $force_theme = false, $params = false )
     {
         if( $template !== false )
         {
@@ -769,6 +769,14 @@ class PHS_View extends PHS_Signal_and_slot
 
         $resulting_buf = '';
 
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['only_string_result'] ) )
+            $params['only_string_result'] = true;
+        else
+            $params['only_string_result'] = (!empty( $params['only_string_result'] ));
+
         // sanity check...
         if( !empty( $this->_template_file )
         and @file_exists( $this->_template_file ) )
@@ -777,10 +785,16 @@ class PHS_View extends PHS_Signal_and_slot
             if( !($resulting_buf = include( $this->_template_file )) )
                 $resulting_buf = '';
 
-            if( !is_string( $resulting_buf ) )
-                $resulting_buf = '';
+            if( empty( $params['only_string_result'] ) )
+                ob_end_clean();
 
-            $resulting_buf .= ob_get_clean();
+            else
+            {
+                if( !is_string( $resulting_buf ) )
+                    $resulting_buf = '';
+
+                $resulting_buf .= ob_get_clean();
+            }
         }
 
         return $resulting_buf;

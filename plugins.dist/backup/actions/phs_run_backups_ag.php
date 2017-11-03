@@ -62,7 +62,7 @@ class PHS_Action_Run_backups_ag extends PHS_Action
             if( empty( $copy_result['failed_copy_result_ids'] ) or !is_array( $copy_result['failed_copy_result_ids'] ) )
                 $copy_result['failed_copy_result_ids'] = array();
 
-            PHS_Logger::logf( 'Copied '.$copy_result['results_deleted'].' results, '.
+            PHS_Logger::logf( 'Copied '.$copy_result['results_copied'].' results, '.
                               count( $copy_result['failed_copy_result_ids'] ).' copy actions failed: '.
                               (empty( $copy_result['failed_copy_result_ids'] )?'N/A':implode( ', ', $copy_result['failed_copy_result_ids'] )).'.', $backup_plugin::LOG_CHANNEL );
         }

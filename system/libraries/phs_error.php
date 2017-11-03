@@ -796,8 +796,9 @@ class PHS_Error
 
     //! @brief Returns function/method call backtrace. Used for static calls
     /**
-     *  Used for debugging calls to functions or methods.
-     *  @return string Method will return a string representing function/method calls.
+     * Used for debugging calls to functions or methods.
+     * @param int $lvl Recurring level when backtracing
+     * @return string Method will return a string representing function/method calls.
      */
     public static function st_debug_call_backtrace( $lvl = 0 )
     {

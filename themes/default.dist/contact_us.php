@@ -17,21 +17,21 @@
             <fieldset class="form-group">
                 <label for="email"><?php echo $this::_t( 'Email' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" />
+                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'email' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="subject"><?php echo $this::_t( 'Subject' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="subject" name="subject" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'subject' ) )?>" />
+                <input type="text" id="subject" name="subject" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'subject' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="body"><?php echo $this::_t( 'Message' )?></label>
                 <div class="lineform_line">
-                <textarea id="body" name="body" class="form-control" required="required" style="width: 351px; height: 300px;"><?php echo $this->context_var( 'body' )?></textarea>
+                <textarea id="body" name="body" class="form-control" required="required" style="width: 351px; height: 300px;"><?php echo $this->view_var( 'body' )?></textarea>
                 </div>
             </fieldset>
 
@@ -47,7 +47,7 @@
                         <label for="vcode"><?php echo $this::_t( 'Validation code' ) ?></label>
                         <div class="lineform_line">
                         <?php echo $captcha_buf; ?><br/>
-                        <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="max-width: 160px;" />
+                        <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'vcode' ) )?>" style="max-width: 160px;" />
                         </div>
                     </fieldset>
                     <?php

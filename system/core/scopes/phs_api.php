@@ -90,33 +90,6 @@ class PHS_Scope_Api extends PHS_Scope
             }
         }
 
-        $json_array = false;
-        if( is_array( $action_result['api_json_result_array'] ) )
-            $json_array = $action_result['api_json_result_array'];
-        elseif( is_array( $action_result['ajax_result'] ) )
-            $json_array = $action_result['ajax_result'];
-
-        if( !empty( $json_array )
-         or PHS_Notifications::have_errors_or_warnings_notifications() )
-        {
-            if( empty( $json_array ) )
-                $json_array = array();
-
-            if( !isset( $json_array['response_status'] ) )
-            {
-                $status_data = array(
-                    'success_messages' => PHS_Notifications::notifications_success(),
-                    'warning_messages' => PHS_Notifications::notifications_warnings(),
-                    'error_messages' => PHS_Notifications::notifications_errors(),
-                );
-
-                $json_array['response_status'] = $status_data;
-            }
-
-            // we assume Content-Type header was set by action
-            $action_result['api_buffer'] = @json_encode( $json_array );
-        }
-
         // If we don't have a Content-Type header set, just set is as application/json (default API response)
         if( empty( $lowercase_api_headers['content-type'] )
         and !@headers_sent() )
@@ -135,6 +108,30 @@ class PHS_Scope_Api extends PHS_Scope
                 if( !($lowercase_api_headers = $api_obj->response_headers( false )) )
                     $lowercase_api_headers = array();
             }
+        }
+
+        if( !isset( $action_result['api_buffer'] ) or $action_result['api_buffer'] === '' )
+        {
+            $json_array = false;
+            // Check for specific API reponse
+            if( is_array( $action_result['api_json_result_array'] ) )
+                $json_array = $action_result['api_json_result_array'];
+            // CHeck if we have an AJAX response to convert it in API response
+            elseif( is_array( $action_result['ajax_result'] ) )
+                $json_array = $action_result['ajax_result'];
+
+            if( empty( $json_array ) )
+                $json_array = array();
+
+            $errors_arr = array();
+            if( PHS_Notifications::have_notifications_errors() )
+                $errors_arr = PHS_Notifications::notifications_errors();
+
+            if( ($new_json_response = $api_obj->create_response_envelope( $json_array, $errors_arr )) )
+                $json_array = $new_json_response;
+
+            // we assume Content-Type header was set by action
+            $action_result['api_buffer'] = @json_encode( $json_array );
         }
 
         if( $action_result['api_buffer'] != '' )
