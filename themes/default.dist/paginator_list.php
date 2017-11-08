@@ -36,7 +36,7 @@
         $bulk_actions = array();
     if( !($filters_arr = $paginator_obj->get_filters()) )
         $filters_arr = array();
-    if( !($columns_arr = $paginator_obj->get_columns()) )
+    if( !($columns_arr = $paginator_obj->get_columns_for_scope()) )
         $columns_arr = array();
     if( !($records_arr = $paginator_obj->get_records()) )
         $records_arr = array();
@@ -47,10 +47,11 @@
     $per_page_options_arr = array( 20, 50, 100 );
 
     $columns_count = 0;
+    $current_scope = PHS_Scope::current_scope();
     if( !empty( $columns_arr ) and is_array( $columns_arr ) )
         $columns_count = count( $columns_arr );
 
-    $is_api_scope = (PHS_Scope::current_scope() != PHS_Scope::SCOPE_API?false:true);
+    $is_api_scope = ($current_scope != PHS_Scope::SCOPE_API?false:true);
     $api_listing_arr = array();
 
     //
@@ -350,33 +351,44 @@
 			    if( empty( $column_arr ) or !is_array( $column_arr ) )
 			        continue;
 
-                $cell_render_params                   = $paginator_obj->default_cell_render_call_params();
+                $cell_render_params = $paginator_obj->default_cell_render_call_params();
                 $cell_render_params['request_render_type'] = (!$is_api_scope?$paginator_obj::CELL_RENDER_HTML:$paginator_obj::CELL_RENDER_JSON);
-                $cell_render_params['page_index']     = $knti;
-                $cell_render_params['list_index']     = $offset + $knti;
-                $cell_render_params['columns_count']  = $columns_count;
-                $cell_render_params['record']         = $record_arr;
-                $cell_render_params['column']         = $column_arr;
-                $cell_render_params['table_field']    = false;
+                $cell_render_params['page_index'] = $knti;
+                $cell_render_params['list_index'] = $offset + $knti;
+                $cell_render_params['columns_count'] = $columns_count;
+                $cell_render_params['record'] = $record_arr;
+                $cell_render_params['column'] = $column_arr;
+                $cell_render_params['table_field'] = false;
                 $cell_render_params['preset_content'] = '';
-                $cell_render_params['model_obj']      = $model_obj;
-                $cell_render_params['paginator_obj']  = $paginator_obj;
+                $cell_render_params['model_obj'] = $model_obj;
+                $cell_render_params['paginator_obj'] = $paginator_obj;
+                $cell_render_params['for_scope'] = $current_scope;
 
-                if( !($cell_content = $paginator_obj->render_column_for_record( $cell_render_params )) )
-                    $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
+                $cell_content = $paginator_obj->render_column_for_record( $cell_render_params );
 
 				if( $is_api_scope )
                 {
-                    if( !empty( $column_arr['record_db_field'] ) )
-                        $field_name = $column_arr['record_db_field'];
-                    else
-                        $field_name = $column_arr['record_field'];
+                    if( ($api_pair = $paginator_obj->format_api_export( $cell_content, $column_arr, $current_scope )) )
+                    {
+                        $api_field_name = $api_pair['key'];
+                        $api_field_content = $api_pair['value'];
+                    } else
+                    {
+                        if( !($field_name = $paginator_obj->get_column_name( $column_arr, $current_scope )) )
+                            continue;
 
-                    $field_name = str_replace( '`', '', str_replace( '.', '_', $field_name ) );
+                        $api_field_name = $field_name;
+                        $api_field_content = $cell_content;
+                    }
 
-                    $api_record[$field_name] = $cell_content;
+                    $api_field_name = str_replace( '`', '', str_replace( '.', '_', $api_field_name ) );
+
+                    $api_record[$api_field_name] = $api_field_content;
                 } else
                 {
+                    if( $cell_content === null )
+                        $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
+
                     ?><td class="<?php echo $column_arr['extra_records_classes']?>" <?php if (!empty($column_arr['extra_records_style'])) echo 'style="'.$column_arr['extra_records_style'].'"'?>><?php echo $cell_content?></td><?php
                 }
 			}
@@ -390,12 +402,13 @@
             and !empty( $flow_params_arr['after_record_callback'] )
 			and is_callable( $flow_params_arr['after_record_callback'] ) )
 			{
-				$callback_params                   = $paginator_obj->default_cell_render_call_params();
+				$callback_params = $paginator_obj->default_cell_render_call_params();
                 $callback_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
-				$callback_params['page_index']     = $knti;
-				$callback_params['list_index']     = $offset + $knti;
-				$callback_params['columns_count']  = $columns_count;
-				$callback_params['record']         = $record_arr;
+				$callback_params['page_index'] = $knti;
+				$callback_params['list_index'] = $offset + $knti;
+				$callback_params['columns_count'] = $columns_count;
+				$callback_params['record'] = $record_arr;
+				$callback_params['for_scope'] = $current_scope;
 
 				if( ($row_content = @call_user_func( $flow_params_arr['after_record_callback'], $callback_params )) !== false
 				and $row_content !== null )

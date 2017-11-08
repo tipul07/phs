@@ -105,6 +105,7 @@ class PHS_Paginator extends PHS_Registry
             'model_obj' => false,
             'paginator_obj' => false,
             'extra_callback_params' => false,
+            'for_scope' => false,
         );
     }
 
@@ -264,12 +265,11 @@ class PHS_Paginator extends PHS_Registry
          or (empty( $params['column']['record_field'] ) and empty( $params['column']['record_db_field'] )) )
             return false;
 
-        if( !empty( $params['column']['record_db_field'] ) )
-            $field_name = $params['column']['record_db_field'];
-        else
-            $field_name = $params['column']['record_field'];
+        if( !($field_name = $this->get_column_name( $params['column'], $params['for_scope'] )) )
+            $field_name = false;
 
-        if( !array_key_exists( $field_name, $params['record'] ) )
+        if( empty( $field_name )
+         or !array_key_exists( $field_name, $params['record'] ) )
             return false;
 
         if( !($date_time = is_db_date( $params['record'][$field_name] ))
@@ -624,6 +624,44 @@ class PHS_Paginator extends PHS_Registry
         $this->_records_arr = $records_arr;
     }
 
+    public function format_api_export( $value, $column_arr, $for_scope = false )
+    {
+        if( empty( $column_arr ) or !is_array( $column_arr )
+         or empty( $column_arr['api_export'] ) or !is_array( $column_arr['api_export'] ) )
+            return false;
+
+        $api_export = self::validate_array( $column_arr['api_export'], $this->default_api_export_fields() );
+
+        if( ($new_value = PHS_params::set_type( $value, $api_export['type'], $api_export['type_extra'] )) !== null )
+            $value = $new_value;
+
+        elseif( $api_export['invalid_value'] !== null )
+            $value = $api_export['invalid_value'];
+
+        if( !empty( $api_export['field_name'] ) )
+            $field_name = $api_export['field_name'];
+        else
+            $field_name = $this->get_column_name( $column_arr, $for_scope );
+
+        return array(
+            'key' => $field_name,
+            'value' => $value,
+        );
+    }
+
+    public function default_api_export_fields()
+    {
+        return array(
+            // if left empty, resulting field name will be used
+            'field_name' => '',
+            // if left empty, resulting field name will be used
+            'invalid_value' => null,
+            // to what should be the value formatted
+            'type' => PHS_params::T_ASIS,
+            'type_extra' => false,
+        );
+    }
+
     public function default_column_fields()
     {
         return array(
@@ -634,6 +672,11 @@ class PHS_Paginator extends PHS_Registry
             'record_db_field' => '',
             // 'record_field' is always what we send to database...
             'record_field' => '',
+            // Special for API scope. Check if we have a key defined in record and use directly that value as output
+            'record_api_field' => '',
+
+            // Tells how to export record field to api reponse (if required)
+            'api_export' => false,
 
             // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
             // 'checkbox_name': string used to form input name, if empty 'key' will be used as 'checkbox_name' ({form_prefix}{checkbox_name}_chck)
@@ -655,9 +698,15 @@ class PHS_Paginator extends PHS_Registry
             // in case field is a date what format should the date be displayed in?
             'date_format' => '',
             // What should be displayed if value in column is not something valid
-            'invalid_value' => '',
+            'invalid_value' => null,
+            // For which scopes to hide the column (array of scopes)
+            'hide_for_scopes' => false,
+            // Show this column only for provided scopes (array of scopes)
+            'show_for_scopes' => false,
+            // Header columns styling
             'extra_style' => '',
             'extra_classes' => '',
+            // Record lines styling
             'extra_records_style' => '',
             'extra_records_classes' => '',
         );
@@ -704,6 +753,37 @@ class PHS_Paginator extends PHS_Registry
     public function get_columns()
     {
         return $this->_columns_definition_arr;
+    }
+
+    public function get_columns_for_scope( $scope = false )
+    {
+        $columns_arr = $this->get_columns();
+
+        if( $scope === false )
+            $scope = PHS_Scope::current_scope();
+
+        if( !PHS_Scope::valid_scope( $scope ) )
+            return $columns_arr;
+
+        $scope_columns_arr = $columns_arr;
+        if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+        {
+            $scope_columns_arr = array();
+            foreach( $columns_arr as $column_arr )
+            {
+                if( (!empty( $column_arr['hide_for_scopes'] ) and is_array( $column_arr['hide_for_scopes'] )
+                        and in_array( $scope, $column_arr['hide_for_scopes'] ))
+                    or
+                    (!empty( $column_arr['show_for_scopes'] ) and is_array( $column_arr['show_for_scopes'] )
+                        and !in_array( $scope, $column_arr['show_for_scopes'] ))
+                )
+                    continue;
+
+                $scope_columns_arr[] = $column_arr;
+            }
+        }
+
+        return $scope_columns_arr;
     }
 
     public static function default_filter_fields()
@@ -941,6 +1021,7 @@ class PHS_Paginator extends PHS_Registry
         if( !($flow_params_arr = $this->flow_params()) )
             $flow_params_arr = $this->default_flow_params();
 
+        // Allow filters even on hidden columns
         if( !($columns_arr = $this->get_columns())
          or !is_array( $columns_arr ) )
             $columns_arr = array();
@@ -1202,12 +1283,18 @@ class PHS_Paginator extends PHS_Registry
     {
         $this->reset_error();
 
-        if( !($columns_arr = $this->get_columns())
+        $export_action_scope = PHS_Scope::SCOPE_WEB;
+
+        if( !($columns_arr = $this->get_columns_for_scope( $export_action_scope ))
          or !is_array( $columns_arr ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'No columns defined for paginator. Export failed.' ) );
             return false;
         }
+
+        $columns_count = 0;
+        if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+            $columns_count = count( $columns_arr );
 
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -1277,7 +1364,7 @@ class PHS_Paginator extends PHS_Registry
         $record_data = $this->default_export_record_data();
 
         if( empty( $params['ignore_headers'] )
-        and ($header_arr = $this->get_columns_header_as_array()) )
+        and ($header_arr = $this->get_columns_header_as_array( $export_action_scope )) )
         {
             $record_data['is_header'] = true;
             $record_data['record_arr'] = $header_arr;
@@ -1331,17 +1418,22 @@ class PHS_Paginator extends PHS_Registry
         // Record count starts from 1 (header is 0)
         $record_count = 0;
 
+        //
+        // !!! Force Web scope for exporting
+        //
+
         $cell_render_params = $this->default_cell_render_call_params();
         $cell_render_params['request_render_type'] = $params['request_render_type'];
-        $cell_render_params['page_index']     = 0;
-        $cell_render_params['list_index']     = 0;
-        $cell_render_params['columns_count']  = count( $columns_arr );
-        $cell_render_params['record']         = false;
-        $cell_render_params['column']         = false;
-        $cell_render_params['table_field']    = false;
+        $cell_render_params['page_index'] = 0;
+        $cell_render_params['list_index'] = 0;
+        $cell_render_params['columns_count'] = count( $columns_arr );
+        $cell_render_params['record'] = false;
+        $cell_render_params['column'] = false;
+        $cell_render_params['table_field'] = false;
         $cell_render_params['preset_content'] = '';
-        $cell_render_params['model_obj']      = $this->get_model();
-        $cell_render_params['paginator_obj']  = $this;
+        $cell_render_params['model_obj'] = $this->get_model();
+        $cell_render_params['paginator_obj'] = $this;
+        $cell_render_params['for_scope'] = $export_action_scope;
 
         $fields_filters = false;
 
@@ -1386,10 +1478,10 @@ class PHS_Paginator extends PHS_Registry
 
                 $cell_render_params['column'] = $column_arr;
 
-                if( !($field_name = $this->get_column_name( $column_arr )) )
+                if( !($field_name = $this->get_column_name( $column_arr, PHS_Scope::SCOPE_WEB )) )
                     $field_name = false;
 
-                if( !($cell_content = $this->render_column_for_record( $cell_render_params )) )
+                if( ($cell_content = $this->render_column_for_record( $cell_render_params )) === null )
                     $cell_content = '!'.$this::_t( 'Failed rendering cell' ).'!';
 
                 if( $field_name !== false )
@@ -1460,9 +1552,12 @@ class PHS_Paginator extends PHS_Registry
         return $return_arr;
     }
 
-    public function get_columns_header_as_array()
+    public function get_columns_header_as_array( $scope = false )
     {
-        if( !($columns_arr = $this->get_columns())
+        if( $scope === false )
+            $scope = PHS_Scope::current_scope();
+
+        if( !($columns_arr = $this->get_columns_for_scope( $scope ))
          or !is_array( $columns_arr ) )
             return array();
 
@@ -1687,13 +1782,20 @@ class PHS_Paginator extends PHS_Registry
         return true;
     }
 
-    public function get_column_name( $column_arr )
+    public function get_column_name( $column_arr, $for_scope = false )
     {
         if( empty( $column_arr ) or !is_array( $column_arr ) )
             return false;
 
+        if( $for_scope === false )
+            $for_scope = PHS_Scope::current_scope();
+
         $column_name = false;
-        if( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
+        if( $for_scope == PHS_Scope::SCOPE_API
+        and !empty( $column_arr['record_api_field'] ) )
+            $column_name = $column_arr['record_api_field'];
+
+        elseif( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
         {
             if( !empty( $column_arr['record_db_field'] ) )
                 $column_name = $column_arr['record_db_field'];
@@ -1723,7 +1825,7 @@ class PHS_Paginator extends PHS_Registry
         if( !($model_obj = $this->get_model()) )
             $model_obj = false;
 
-        if( !($field_name = $this->get_column_name( $column_arr )) )
+        if( !($field_name = $this->get_column_name( $column_arr, $render_params['for_scope'] )) )
             $field_name = false;
 
         $field_exists_in_record = false;
@@ -1731,46 +1833,52 @@ class PHS_Paginator extends PHS_Registry
         and array_key_exists( $field_name, $record_arr ) )
             $field_exists_in_record = true;
 
-        $cell_content = false;
+        $cell_content = null;
         if( empty( $column_arr['record_field'] )
         and empty( $column_arr['record_db_field'] )
+        and empty( $column_arr['record_api_field'] )
         and empty( $column_arr['display_callback'] ) )
             $cell_content = '!'.self::_t( 'Bad column setup' ).'!';
 
-        elseif( !empty( $column_arr['display_key_value'] )
+        elseif( $render_params['for_scope'] != PHS_Scope::SCOPE_API
+             or empty( $field_exists_in_record ) )
+        {
+            if( !empty( $column_arr['display_key_value'] )
             and is_array( $column_arr['display_key_value'] )
             and !empty( $field_name )
             and isset( $record_arr[$field_name] )
             and isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
-            $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
+                $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
 
-        elseif( !empty( $model_obj )
-            and !empty( $field_name )
-            and $field_exists_in_record
-            and ($field_details = $model_obj->table_field_details( $field_name ))
-            and is_array( $field_details ) )
-        {
-            switch( $field_details['type'] )
+            elseif( !empty( $model_obj )
+                and !empty( $field_name )
+                and $field_exists_in_record
+                and ($field_details = $model_obj->table_field_details( $field_name ))
+                and is_array( $field_details ) )
             {
-                case $model_obj::FTYPE_DATETIME:
-                case $model_obj::FTYPE_DATE:
-                    if( empty_db_date( $record_arr[$field_name] ) )
-                    {
-                        $cell_content = false;
-                        if( empty( $column_arr['invalid_value'] ) )
-                            $column_arr['invalid_value'] = self::_t( 'N/A' );
-                    } elseif( !empty( $column_arr['date_format'] ) )
-                        $cell_content = @date( $column_arr['date_format'], parse_db_date( $record_arr[$field_name] ) );
-                break;
+                switch( $field_details['type'] )
+                {
+                    case $model_obj::FTYPE_DATETIME:
+                    case $model_obj::FTYPE_DATE:
+                        if( empty_db_date( $record_arr[$field_name] ) )
+                        {
+                            $cell_content = null;
+                            if( empty( $column_arr['invalid_value'] ) )
+                                $column_arr['invalid_value'] = self::_t( 'N/A' );
+                        } elseif( !empty( $column_arr['date_format'] ) )
+                            $cell_content = @date( $column_arr['date_format'], parse_db_date( $record_arr[$field_name] ) );
+                    break;
+                }
             }
         }
 
-        if( $cell_content === false
+        if( $cell_content === null
         and !empty( $field_name )
         and $field_exists_in_record )
             $cell_content = $record_arr[$field_name];
 
-        if( !empty( $column_arr['display_callback'] ) )
+        if( ($cell_content === null or $render_params['for_scope'] != PHS_Scope::SCOPE_API)
+        and !empty( $column_arr['display_callback'] ) )
         {
             if( !@is_callable( $column_arr['display_callback'] ) )
                 $cell_content = '!'.self::_t( 'Cell callback failed.' ).'!';
@@ -1785,7 +1893,7 @@ class PHS_Paginator extends PHS_Registry
 
                 $cell_callback_params = $render_params;
                 $cell_callback_params['table_field'] = $field_details;
-                $cell_callback_params['preset_content'] = ($cell_content === false?'':$cell_content);
+                $cell_callback_params['preset_content'] = ($cell_content === null?'':$cell_content);
                 $cell_callback_params['extra_callback_params'] = (!empty( $column_arr['extra_callback_params'] )?$column_arr['extra_callback_params']:false);
 
                 if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
@@ -1795,7 +1903,8 @@ class PHS_Paginator extends PHS_Registry
         }
 
         // Allow display_callback parameter on checkbox fields...
-        if( $this->get_checkbox_name_for_column( $column_arr ) )
+        if( $render_params['for_scope'] != PHS_Scope::SCOPE_API
+        and $this->get_checkbox_name_for_column( $column_arr ) )
         {
             if( empty( $field_name )
              or !isset( $record_arr[$field_name] )
@@ -1805,20 +1914,18 @@ class PHS_Paginator extends PHS_Registry
 
             $cell_callback_params = $render_params;
             $cell_callback_params['table_field'] = $field_details;
-            $cell_callback_params['preset_content'] = ($cell_content === false?'':$cell_content);
+            $cell_callback_params['preset_content'] = ($cell_content === null?'':$cell_content);
 
             if( ($checkbox_content = $this->display_checkbox_column( $cell_callback_params )) !== false
             and $checkbox_content !== null and is_string( $checkbox_content ) )
                 $cell_content = $checkbox_content;
         }
 
-        if( empty( $cell_content )
-         or !is_string( $cell_content ) )
+        //if( empty( $cell_content )
+        if( $cell_content === null )
         {
-            if( !empty( $column_arr['invalid_value'] ) )
+            if( $column_arr['invalid_value'] !== null )
                 $cell_content = $column_arr['invalid_value'];
-            else
-                $cell_content = '(???)';
         }
 
         return $cell_content;
@@ -1855,8 +1962,6 @@ class PHS_Paginator extends PHS_Registry
 
         if( !($listing_buffer = $this->render_template( 'paginator_list' )) )
         {
-            echo 'error';
-
             if( $this->has_error() )
                 $listing_buffer = self::_t( 'Error obtaining listing buffer.' ).' - '.$this->get_error_message();
 
