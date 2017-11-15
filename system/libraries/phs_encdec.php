@@ -146,10 +146,10 @@ class PHS_encdec extends PHS_Language
             {
                 $ch_privatei = 0;
                 if( isset( $this->encoded_private_key[$privatei] ) )
-                    $ch_privatei = $this->encoded_private_key[$privatei];
+                    $ch_privatei = ord( $this->encoded_private_key[$privatei] );
                 $ch_internali = 0;
                 if( isset( $internal_key[$internali] ) )
-                    $ch_internali = $internal_key[$internali];
+                    $ch_internali = ord( $internal_key[$internali] );
 
                 //                  max 94    +  max 70      +        max 70       => max 234
                 $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
@@ -207,10 +207,10 @@ class PHS_encdec extends PHS_Language
             {
                 $ch_privatei = 0;
                 if( isset( $this->encoded_private_key[$privatei] ) )
-                    $ch_privatei = $this->encoded_private_key[$privatei];
+                    $ch_privatei = ord( $this->encoded_private_key[$privatei] );
                 $ch_internali = 0;
                 if( isset( $internal_key[$internali] ) )
-                    $ch_internali = $internal_key[$internali];
+                    $ch_internali = ord( $internal_key[$internali] );
 
                 //                     max 94 +     max 70   +    max 70       => max 234
                 $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
