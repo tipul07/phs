@@ -764,7 +764,7 @@ final class PHS extends PHS_Registry
         /** @var bool|\phs\libraries\PHS_Action $action_obj */
         $action_obj = false;
         if( !empty( $route_parts['action'] )
-         or !($action_obj = self::load_action( $route_parts['action'], ($plugin_obj?$plugin_obj->instance_plugin_name():false) )) )
+        and !($action_obj = self::load_action( $route_parts['action'], ($plugin_obj?$plugin_obj->instance_plugin_name():false) )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_ROUTE, self::_t( 'Couldn\'t instantiate action from route.' ) );
