@@ -123,28 +123,28 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
-    public function acc_is_admin( $user_data )
+    public function acc_is_admin( $user_data, $strict = false )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or !self::is_admin( $user_arr['level'] ) )
+         or !self::is_admin( $user_arr['level'], $strict ) )
             return false;
 
         return $user_arr;
     }
 
-    public function acc_is_operator( $user_data )
+    public function acc_is_operator( $user_data, $strict = false )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or !self::is_operator( $user_arr['level'] ) )
+         or !self::is_operator( $user_arr['level'], $strict ) )
             return false;
 
         return $user_arr;
     }
 
-    public function acc_is_member( $user_data )
+    public function acc_is_member( $user_data, $strict = false )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or !self::is_member( $user_arr['level'] ) )
+         or !self::is_member( $user_arr['level'], $strict ) )
             return false;
 
         return $user_arr;
