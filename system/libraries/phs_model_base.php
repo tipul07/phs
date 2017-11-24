@@ -1581,7 +1581,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         if( !($validation_arr = $this->validate_data_for_fields( $params ))
-         or empty( $validation_arr['data_arr'] ) )
+         or !isset( $validation_arr['data_arr'] ) or !is_array( $validation_arr['data_arr'] ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_EDIT, self::_t( 'Error validating parameters.' ) );
@@ -1590,6 +1590,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $full_table_name = $this->get_flow_table_name( $params );
         $db_connection = $this->get_db_connection( $params );
+
+        $new_existing_arr = $existing_arr;
 
         $edit_arr = $validation_arr['data_arr'];
         if( !empty( $edit_arr )

@@ -142,7 +142,8 @@ class PHS_Action_Edit_profile extends PHS_Action
         if( !empty( $do_submit ) )
         {
             $edit_arr = array();
-            $edit_arr['email'] = $email;
+            if( empty( $plugin_settings['no_nickname_only_email'] ) )
+                $edit_arr['email'] = $email;
 
             $edit_details_arr = array();
             $edit_details_arr['title'] = $title;

@@ -4,7 +4,7 @@
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
 
-    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+    if( !($no_nickname_only_email = $this->view_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
 ?>
 <div style="max-width:1000px;margin: 0 auto;">
@@ -23,7 +23,7 @@
                 ?>
                 <fieldset class="form-group">
                     <label for="nick"><?php echo $this->_pt( 'Username' ) ?></label>
-                    <div class="lineform_line"><?php echo form_str( $this->context_var( 'nick' ) ) ?></div>
+                    <div class="lineform_line"><?php echo form_str( $this->view_var( 'nick' ) ) ?></div>
                 </fieldset>
                 <?php
             }
@@ -36,16 +36,16 @@
                 if( empty( $no_nickname_only_email ) )
                 {
                     ?>
-                    <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) ) ?>" />
+                    <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'email' ) ) ?>" />
                     <?php
                 } else
                 {
-                    echo $this->context_var( 'email' );
+                    echo $this->view_var( 'email' );
                 }
                 ?><br/>
                 <?php
-                if( !$this->context_var( 'email_verified' ) )
-                    echo $this->_pt( 'Email is %s', '<span style="color: red;">'.$this->_pt( 'NOT VERIFIED' ).'</span>. <a href="'.$this->context_var( 'verify_email_link' ).'">'.$this->_pt( 'Send verification email' ).'</a>' );
+                if( !$this->view_var( 'email_verified' ) )
+                    echo $this->_pt( 'Email is %s', '<span style="color: red;">'.$this->_pt( 'NOT VERIFIED' ).'</span>. <a href="'.$this->view_var( 'verify_email_link' ).'">'.$this->_pt( 'Send verification email' ).'</a>' );
                 else
                     echo $this->_pt( 'Email is %s', '<span style="color: green;">'.$this->_pt( 'VERIFIED' ).'</span>.' );
                 ?>
@@ -55,7 +55,7 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="max-width: 60px;" /><br/>
+                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="max-width: 60px;" /><br/>
                 <small><?php echo $this->_pt( 'eg. Mr., Ms., Mss., etc' )?></small>
                 </div>
             </fieldset>
@@ -63,27 +63,27 @@
             <fieldset class="form-group">
                 <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->context_var( 'fname' ) )?>" />
+                <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->view_var( 'fname' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->context_var( 'lname' ) )?>" />
+                <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->view_var( 'lname' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->context_var( 'phone' ) )?>" />
+                <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->view_var( 'phone' ) )?>" />
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="company"><?php echo $this->_pt( 'Company' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->context_var( 'company' ) )?>" />
+                <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->view_var( 'company' ) )?>" />
                 </div>
             </fieldset>
 
