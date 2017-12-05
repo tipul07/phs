@@ -49,7 +49,8 @@ class PHS_Action_Registration_email_bg extends PHS_Action
         if( ($hook_results = PHS_Hooks::trigger_email( $hook_args )) === null )
             return self::default_action_result();
 
-        if( !$hook_results )
+        if( empty( $hook_results ) or !is_array( $hook_results )
+         or empty( $hook_results['send_result'] ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_SEND_EMAIL );

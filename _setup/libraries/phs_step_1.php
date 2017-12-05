@@ -56,6 +56,7 @@ class PHS_Step_1 extends PHS_Step
         $phs_domain = PHS_params::_p( 'phs_domain', PHS_params::T_NOHTML );
         $phs_ssl_domain = PHS_params::_p( 'phs_ssl_domain', PHS_params::T_NOHTML );
         $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
+        $phs_session_name = PHS_params::_p( 'phs_session_name', PHS_params::T_NOHTML );
         $phs_port = PHS_params::_p( 'phs_port', PHS_params::T_NOHTML );
         $phs_ssl_port = PHS_params::_p( 'phs_ssl_port', PHS_params::T_NOHTML );
         $phs_domain_path = PHS_params::_p( 'phs_domain_path', PHS_params::T_NOHTML );
@@ -69,6 +70,10 @@ class PHS_Step_1 extends PHS_Step
 
             if( empty( $phs_domain ) )
                 $this->add_error_msg( 'Please provide PHS Domain.' );
+
+            if( empty( $phs_session_name )
+             or preg_match( '@[^a-zA-Z0-9_]@', $phs_session_name ) )
+                $this->add_error_msg( 'Please provide a valid PHS Session Name.' );
 
             if( empty( $phs_ssl_domain ) )
                 $phs_ssl_domain = $phs_domain;
@@ -101,7 +106,7 @@ class PHS_Step_1 extends PHS_Step
                         'raw' => 'PHS_PATH.\'sess/\'',
                     ),
                     'PHS_DEFAULT_SESSION_NAME' => array(
-                        'value' => 'PHS_SESS',
+                        'value' => $phs_session_name,
                         'quick_comment' => 'Rename this if you use more sites on same domain...',
                     ),
                     'PHS_DEFAULT_SESSION_COOKIE_LIFETIME' => array(
@@ -123,7 +128,9 @@ class PHS_Step_1 extends PHS_Step
                 );
 
                 $config_params = array(
-                    'defines' => $defines_arr,
+                    array(
+                        'defines' => $defines_arr,
+                    ),
                 );
 
                 if( $this->save_step_config_file( $config_params ) )
@@ -154,6 +161,7 @@ class PHS_Step_1 extends PHS_Step
                 $phs_domain = PHS_DEFAULT_DOMAIN;
                 $phs_ssl_domain = PHS_DEFAULT_SSL_DOMAIN;
                 $phs_cookie_domain = PHS_DEFAULT_COOKIE_DOMAIN;
+                $phs_session_name = PHS_DEFAULT_SESSION_NAME;
                 $phs_port = PHS_DEFAULT_PORT;
                 $phs_ssl_port = PHS_DEFAULT_SSL_PORT;
                 $phs_domain_path = PHS_DEFAULT_DOMAIN_PATH;
@@ -166,6 +174,7 @@ class PHS_Step_1 extends PHS_Step
                     $phs_domain = $domain_settings['domain'];
                     $phs_ssl_domain = $domain_settings['ssl_domain'];
                     $phs_cookie_domain = $domain_settings['cookie_domain'];
+                    $phs_session_name = 'PHS_SESS';
                     $phs_port = $domain_settings['port'];
                     $phs_ssl_port = $domain_settings['ssl_port'];
                     $phs_domain_path = $domain_settings['domain_path'];
@@ -177,6 +186,7 @@ class PHS_Step_1 extends PHS_Step
         $data['phs_domain'] = $phs_domain;
         $data['phs_ssl_domain'] = $phs_ssl_domain;
         $data['phs_cookie_domain'] = $phs_cookie_domain;
+        $data['phs_session_name'] = $phs_session_name;
         $data['phs_port'] = $phs_port;
         $data['phs_ssl_port'] = $phs_ssl_port;
         $data['phs_domain_path'] = $phs_domain_path;

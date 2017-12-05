@@ -124,7 +124,9 @@ class PHS_Action_Contact_us extends PHS_Action
                     $hook_args['to'] = $email_address;
                     $hook_args['to_name'] = self::_t( 'Site Contact' );
 
-                    if( !($hook_results = PHS_Hooks::trigger_email( $hook_args )) )
+                    if( !($hook_results = PHS_Hooks::trigger_email( $hook_args ))
+                     or !is_array( $hook_results )
+                     or empty( $hook_results['send_result'] ) )
                         PHS_Logger::logf( self::_t( 'Error sending email from contact form to [%s].', $email_address, PHS_Logger::TYPE_DEBUG ) );
                     else
                         $email_failed = false;

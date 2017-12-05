@@ -452,7 +452,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         if( !empty( $hook_args['also_send'] ) )
         {
-            if( !($new_hook_args = $this->send_email( $hook_args )) )
+            if( !($new_hook_args = $this->send_email( $hook_args ))
+             or empty( $new_hook_args['send_result'] ) )
             {
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_SEND, $this->_pt( 'Error sending email.' ) );

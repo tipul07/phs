@@ -40,6 +40,15 @@
 </fieldset>
 
 <fieldset class="form-group">
+    <label for="phs_session_name"><?php echo $this->_pt( 'PHS Session Name' )?></label>
+    <div class="lineform_line">
+        <input type="text" id="phs_session_name" name="phs_session_name" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_session_name' ) )?>" placeholder="PHS_SESS" style="width: 350px;" /><br/>
+        <small>In case this framework will serve more sites on same domain, each site should have its own session name (if you don't want them to share sessions).
+               Use only alpha numeric and _ characters.</small>
+    </div>
+</fieldset>
+
+<fieldset class="form-group">
     <label for="phs_port"><?php echo $this->_pt( 'PHS Port' )?><br/><small><?php echo $this->_pt( 'for "normal" requests (HTTP)' )?></small></label>
     <div class="lineform_line">
         <input type="text" id="phs_port" name="phs_port" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_port' ) )?>" placeholder="<?php echo $this->_pt( 'If 80, leave blank' )?>" style="width: 120px;" /><br/>

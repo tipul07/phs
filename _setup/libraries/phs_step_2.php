@@ -225,7 +225,9 @@ class PHS_Step_2 extends PHS_Step
             );
 
             $config_params = array(
-                'defines' => $defines_arr,
+                array(
+                    'defines' => $defines_arr,
+                ),
             );
 
             if( $this->save_step_config_file( $config_params ) )

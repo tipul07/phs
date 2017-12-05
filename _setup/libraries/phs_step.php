@@ -25,6 +25,49 @@ abstract class PHS_Step extends PHS_Registry
         $this->setup_instance( $setup_inst );
     }
 
+    private function _save_common_config_line_details_before( $fil, $line_arr )
+    {
+        if( empty( $fil )
+         or empty( $line_arr ) or !is_array( $line_arr ) )
+            return false;
+
+        $did_write_something = false;
+
+        if( isset( $line_arr['line_comment'] ) )
+        {
+            $did_write_something = true;
+            @fputs( $fil, '// '.str_replace( "\n", '', $line_arr['line_comment'] ).' '."\n" );
+        }
+
+        if( isset( $line_arr['block_comment'] ) )
+        {
+            $did_write_something = true;
+            @fputs( $fil, "\n\n".
+                        '//'."\n".
+                        '// '.trim( str_replace( "\n", "\n// ", $line_arr['block_comment'] ) )."\n".
+                        '//'."\n".
+                        "\n" );
+        }
+
+        return $did_write_something;
+    }
+
+    private function _save_common_config_line_details_after( $fil, $line_arr )
+    {
+        if( empty( $fil )
+         or empty( $line_arr ) or !is_array( $line_arr ) )
+            return false;
+
+        $did_write_something = false;
+        if( isset( $line_arr['quick_comment'] ) )
+        {
+            $did_write_something = true;
+            @fputs( $fil, ' // '.str_replace( "\n", '', $line_arr['quick_comment'] ) );
+        }
+
+        return $did_write_something;
+    }
+
     protected function save_step_config_file( $params )
     {
         $this->reset_error();
@@ -32,12 +75,6 @@ abstract class PHS_Step extends PHS_Registry
         if( empty( $params ) or !is_array( $params ) )
         {
             $this->set_error( self::ERR_PARAMETERS, 'Invalid parameters sent to save config file method.' );
-            return false;
-        }
-
-        if( empty( $params['defines'] ) or !is_array( $params['defines'] ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, 'Nothing to save in the file.' );
             return false;
         }
 
@@ -63,42 +100,81 @@ abstract class PHS_Step extends PHS_Registry
                           '//'."\n\n" );
         }
 
-        foreach( $params['defines'] as $define_key => $definition_info )
+        foreach( $params as $definition_block )
         {
-            if( !is_array( $definition_info ) )
-                $definition_info = array( 'value' => $definition_info );
-
-            if( !isset( $definition_info['value'] )
-            and !isset( $definition_info['raw'] )
-            and !isset( $definition_info['line_comment'] )
-            and !isset( $definition_info['block_comment'] ) )
+            if( empty( $definition_block ) or !is_array( $definition_block ) )
                 continue;
 
-            if( isset( $definition_info['line_comment'] )
-             or isset( $definition_info['block_comment'] ) )
+            foreach( $definition_block as $block_type => $block_arr )
             {
-                if( isset( $definition_info['line_comment'] ) )
-                    @fputs( $fil, '// '.str_replace( "\n", '', $definition_info['line_comment'] ).' '."\n" );
-
-                else
-                {
-                    @fputs( $fil, "\n\n".
-                                '//'."\n".
-                                '// '.trim( str_replace( "\n", "\n// ", $definition_info['block_comment'] ) )."\n".
-                                '//'."\n".
-                                "\n" );
+                if( empty( $block_arr )
+                 or !in_array( $block_type, array( 'defines', 'raw' ) ) )
                     continue;
+
+                switch( $block_type )
+                {
+                    case 'raw':
+                        if( !is_array( $block_arr ) )
+                            $block_arr = array( 'value' => $block_arr );
+
+                        $did_write_something = false;
+
+                        if( $this->_save_common_config_line_details_before( $fil, $block_arr ) )
+                            $did_write_something = true;
+
+                        if( isset( $block_arr['value'] ) )
+                        {
+                            $did_write_something = true;
+                            @fputs( $fil, $block_arr['value'] );
+                        }
+
+                        if( $this->_save_common_config_line_details_after( $fil, $block_arr ) )
+                            $did_write_something = true;
+
+                        if( $did_write_something )
+                            @fputs( $fil, "\n" );
+                    break;
+
+                    case 'defines':
+                        if( empty( $block_arr ) or !is_array( $block_arr ) )
+                            continue;
+
+                        foreach( $block_arr as $define_key => $definition_info )
+                        {
+                            if( !is_array( $definition_info ) )
+                                $definition_info = array( 'value' => $definition_info );
+
+                            if( !isset( $definition_info['value'] )
+                            and !isset( $definition_info['raw'] )
+                            and !isset( $definition_info['line_comment'] )
+                            and !isset( $definition_info['block_comment'] ) )
+                                continue;
+
+                            $did_write_something = false;
+
+                            if( $this->_save_common_config_line_details_before( $fil, $definition_info ) )
+                                $did_write_something = true;
+
+                            if( isset( $definition_info['value'] ) or isset( $definition_info['raw'] ) )
+                            {
+                                $did_write_something = true;
+                                if( isset( $definition_info['value'] ) )
+                                    $define_val = '\''.str_replace( '\'', '\\\'', $definition_info['value'] ).'\'';
+                                else
+                                    $define_val = $definition_info['raw'];
+
+                                @fputs( $fil, 'define( \''.$define_key.'\', '.$define_val.' );' );
+                            }
+
+                            if( $this->_save_common_config_line_details_after( $fil, $definition_info ) )
+                                $did_write_something = true;
+
+                            if( $did_write_something )
+                                @fputs( $fil, "\n" );
+                        }
+                    break;
                 }
             }
-
-            if( isset( $definition_info['value'] ) )
-                $define_val = '\''.str_replace( '\'', '\\\'', $definition_info['value'] ).'\'';
-            else
-                $define_val = $definition_info['raw'];
-
-            @fputs( $fil, 'define( \''.$define_key.'\', '.$define_val.' );'.
-                          (isset( $definition_info['quick_comment'] )?' // '.str_replace( "\n", '', $definition_info['quick_comment'] ):'').
-                          "\n" );
         }
 
         @fputs( $fil, "\n\n" );
