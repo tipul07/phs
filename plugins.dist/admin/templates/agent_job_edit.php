@@ -4,7 +4,7 @@
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
 
-    if( !($agent_routes = $this->context_var( 'agent_routes' )) )
+    if( !($agent_routes = $this->view_var( 'agent_routes' )) )
         $agent_routes = array();
 
     if( !($plugins_arr = array_keys( $agent_routes )) )
@@ -29,11 +29,11 @@
 
     }
 
-    if( !($back_page = $this->context_var( 'back_page' )) )
+    if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'agent_jobs_list' ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="edit_agent_job_form" name="edit_agent_job_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_edit' ), array( 'aid' => $this->context_var( 'aid' ) ) )?>" method="post">
+    <form id="edit_agent_job_form" name="edit_agent_job_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_edit' ), array( 'aid' => $this->view_var( 'aid' ) ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )
@@ -65,7 +65,7 @@
                 <select name="plugin" id="plugin" class="chosen-select" style="width:450px;" onchange="change_plugin()">
                 <option value=""><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
-                $selected_plugin = $this->context_var( 'plugin' );
+                $selected_plugin = $this->view_var( 'plugin' );
                 /** @var \phs\libraries\PHS_Plugin $plugin_instance */
                 foreach( $routes_structure_arr as $plugin_name => $plugin_data )
                 {
@@ -83,7 +83,7 @@
             <?php
             $we_have_controller = false;
             if( !empty( $selected_plugin )
-            and ($selected_controller = $this->context_var( 'controller' ))
+            and ($selected_controller = $this->view_var( 'controller' ))
             and !empty( $routes_structure_arr[$selected_plugin] )
             and is_array( $routes_structure_arr[$selected_plugin] ) )
                 $we_have_controller = true;
@@ -117,7 +117,7 @@
             <?php
             $we_have_action = false;
             if( !empty( $selected_plugin ) and !empty( $selected_controller )
-            and ($selected_action = $this->context_var( 'action' ))
+            and ($selected_action = $this->view_var( 'action' ))
             and !empty( $routes_structure_arr[$selected_plugin] )
             and is_array( $routes_structure_arr[$selected_plugin] )
             and !empty( $routes_structure_arr[$selected_plugin][$selected_controller] )
@@ -156,7 +156,7 @@
                     <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'Handler should be unique as it will identify agent job.' )?>"></i>
                 </label>
                 <div class="lineform_line">
-                <input type="text" id="handler" name="handler" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'handler' ) )?>" style="width: 450px;" autocomplete="off" />
+                <input type="text" id="handler" name="handler" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'handler' ) )?>" style="width: 450px;" autocomplete="off" />
                 </div>
             </fieldset>
 
@@ -167,7 +167,7 @@
                     <br/><small>(JSON string - optional)</small>
                 </label>
                 <div class="lineform_line">
-                    <textarea id="params" name="params" class="form-control" style="width: 450px;height:100px;"><?php echo form_str( $this->context_var( 'params' ) )?></textarea>
+                    <textarea id="params" name="params" class="form-control" style="width: 450px;height:100px;"><?php echo form_str( $this->view_var( 'params' ) )?></textarea>
                 </div>
             </fieldset>
 
@@ -177,7 +177,7 @@
                     <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'Once how many seconds should this job run. Minimum interval depends on interval set for _agent.php script to run in crontab.' )?>"></i>
                 </label>
                 <div class="lineform_line">
-                <input type="text" id="timed_seconds" name="timed_seconds" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'timed_seconds' ) )?>" style="width: 150px;" autocomplete="off" /> (<?php echo $this->_pt( 'seconds' )?>)
+                <input type="text" id="timed_seconds" name="timed_seconds" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'timed_seconds' ) )?>" style="width: 150px;" autocomplete="off" /> (<?php echo $this->_pt( 'seconds' )?>)
                 </div>
             </fieldset>
 
@@ -187,7 +187,7 @@
                     <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'This agent job will stop agent from advancing to next job untill it is finished.' )?>"></i>
                 </label>
                 <div class="lineform_line">
-                <input type="checkbox" value="1" name="run_async" id="run_async" rel="skin_checkbox" <?php echo $this->context_var( 'run_async' )?> />
+                <input type="checkbox" value="1" name="run_async" id="run_async" rel="skin_checkbox" <?php echo $this->view_var( 'run_async' )?> />
                 </div>
             </fieldset>
 
@@ -300,7 +300,7 @@ function update_handler()
     handler_obj.val( handler_val );
 }
 <?php
-if( !$this->context_var( 'foobar' ) )
+if( !$this->view_var( 'foobar' ) )
 {
     ?>
 $(document).ready(function(){

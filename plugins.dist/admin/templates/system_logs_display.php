@@ -4,21 +4,21 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
-    if( !($log_file = $this->context_var( 'log_file' ))
-     or !($log_full_file = $this->context_var( 'log_full_file' ))
+    if( !($log_file = $this->view_var( 'log_file' ))
+     or !($log_full_file = $this->view_var( 'log_full_file' ))
      or !@file_exists( $log_full_file ) )
         return $this->_pt( 'Log file not provided or invalid.' );
 
     if( !($file_size = @filesize( $log_full_file )) )
         $file_size = 0;
 
-    if( !($HOOK_LOG_ACTIONS = $this->context_var( 'HOOK_LOG_ACTIONS' )) )
+    if( !($HOOK_LOG_ACTIONS = $this->view_var( 'HOOK_LOG_ACTIONS' )) )
         $HOOK_LOG_ACTIONS = false;
 
-    if( !($log_lines = $this->context_var( 'log_lines' )) )
+    if( !($log_lines = $this->view_var( 'log_lines' )) )
         $log_lines = 20;
 
-    if( !($log_file_buffer = $this->context_var( 'log_file_buffer' )) )
+    if( !($log_file_buffer = $this->view_var( 'log_file_buffer' )) )
         $log_file_buffer = '';
 ?>
 <fieldset class="form-group">

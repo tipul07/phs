@@ -4,9 +4,9 @@
     use \phs\PHS;
     use \phs\PHS_ajax;
 
-    if( !($logging_files_arr = $this->context_var( 'logging_files_arr' )) )
+    if( !($logging_files_arr = $this->view_var( 'logging_files_arr' )) )
         $logging_files_arr = array();
-    if( !($log_lines = $this->context_var( 'log_lines' )) )
+    if( !($log_lines = $this->view_var( 'log_lines' )) )
         $log_lines = 20;
 ?>
 <div style="margin: 0 auto;">
@@ -26,7 +26,7 @@
                 <select name="log_file" id="log_file" class="chosen-select" style="width:350px;">
                 <option value=""><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
-                $selected_log_file = $this->context_var( 'log_file' );
+                $selected_log_file = $this->view_var( 'log_file' );
                 $full_filename = '';
                 /** @var \phs\libraries\PHS_Plugin $plugin_instance */
                 foreach( $logging_files_arr as $file )
@@ -48,7 +48,7 @@
                 ?>
                 </select>
                 <?php echo $this->_pt( 'lines' )?>
-                <input type="text" name="log_lines" id="log_lines" value="<?php echo form_str( $this->context_var( 'log_lines' ) )?>" class="form-control" style="width:100px;" />
+                <input type="text" name="log_lines" id="log_lines" value="<?php echo form_str( $this->view_var( 'log_lines' ) )?>" class="form-control" style="width:100px;" />
                 <input type="button" id="do_submit" name="do_submit" class="btn btn-primary" value="<?php echo $this->_pte( 'View file' )?>" onclick="refresh_log_view()" />
                 </div>
             </fieldset>

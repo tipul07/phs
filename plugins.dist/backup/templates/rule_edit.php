@@ -6,30 +6,30 @@
 
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
     /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-    if( !($backup_plugin = $this->context_var( 'backup_plugin' ))
-     or !($rules_model = $this->context_var( 'rules_model' )) )
+    if( !($backup_plugin = $this->view_var( 'backup_plugin' ))
+     or !($rules_model = $this->view_var( 'rules_model' )) )
         return $this->_pt( 'Couldn\'t load backup plugin.' );
 
-    if( !($target_arr = $this->context_var( 'target_arr' )) )
+    if( !($target_arr = $this->view_var( 'target_arr' )) )
         $target_arr = array();
-    if( !($days_arr = $this->context_var( 'days_arr' )) )
+    if( !($days_arr = $this->view_var( 'days_arr' )) )
         $days_arr = array();
-    if( !($ftp_settings = $this->context_var( 'ftp_settings' )) )
+    if( !($ftp_settings = $this->view_var( 'ftp_settings' )) )
         $ftp_settings = array();
 
-    if( !($plugin_location = $this->context_var( 'plugin_location' )) )
+    if( !($plugin_location = $this->view_var( 'plugin_location' )) )
         $plugin_location = array();
-    if( !($rule_location = $this->context_var( 'rule_location' )) )
+    if( !($rule_location = $this->view_var( 'rule_location' )) )
         $rule_location = array();
-    if( !($rule_days = $this->context_var( 'rule_days' )) )
+    if( !($rule_days = $this->view_var( 'rule_days' )) )
         $rule_days = array();
-    if( !($targets_arr = $this->context_var( 'targets_arr' )) )
+    if( !($targets_arr = $this->view_var( 'targets_arr' )) )
         $targets_arr = array();
-    if( !($days_options_arr = $this->context_var( 'days_options_arr' )) )
+    if( !($days_options_arr = $this->view_var( 'days_options_arr' )) )
         $days_options_arr = array();
-    if( !($copy_results_arr = $this->context_var( 'copy_results_arr' )) )
+    if( !($copy_results_arr = $this->view_var( 'copy_results_arr' )) )
         $copy_results_arr = array();
-    if( !($ftp_connection_modes_arr = $this->context_var( 'ftp_connection_modes_arr' )) )
+    if( !($ftp_connection_modes_arr = $this->view_var( 'ftp_connection_modes_arr' )) )
         $ftp_connection_modes_arr = array();
 
     $error_msg = '';
@@ -51,11 +51,11 @@
     else
         $stats_str = $this->_pt( 'Total space: %s, Free space: %s', format_filesize( $stats_arr['total_space'] ), format_filesize( $stats_arr['free_space'] ) );
 
-    if( !($back_page = $this->context_var( 'back_page' )) )
+    if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'backup', 'a' => 'rules_list' ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="edit_rule_form" name="edit_rule_form" action="<?php echo PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), array( 'rid' => $this->context_var( 'rid' ) ) )?>" method="post">
+    <form id="edit_rule_form" name="edit_rule_form" action="<?php echo PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), array( 'rid' => $this->view_var( 'rid' ) ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )
@@ -80,14 +80,14 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="location"><?php echo $this->_pt( 'Location' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->context_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->view_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
                 <br/>
                 <small>
                 <?php
@@ -118,7 +118,7 @@
                 <select name="hour" id="hour" class="chosen-select" style="min-width:150px;">
                 <option value="-1"><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
-                $selected_hour = $this->context_var( 'hour' );
+                $selected_hour = $this->view_var( 'hour' );
                 for( $hour = 0; $hour < 24; $hour++ )
                 {
                     ?><option value="<?php echo $hour?>" <?php echo (($selected_hour !== false and $selected_hour==$hour)?'selected="selected"':'')?>><?php echo ($hour<10?'0':'').$hour?></option><?php
@@ -177,9 +177,9 @@
             </fieldset>
 
             <?php
-            if( ($selected_delete_after_days = $this->context_var( 'delete_after_days' )) === false )
+            if( ($selected_delete_after_days = $this->view_var( 'delete_after_days' )) === false )
                 $selected_delete_after_days = 0;
-            if( !($cdelete_after_days = $this->context_var( 'cdelete_after_days' ))
+            if( !($cdelete_after_days = $this->view_var( 'cdelete_after_days' ))
              or $cdelete_after_days < 0 )
                 $cdelete_after_days = 1;
 
@@ -211,7 +211,7 @@
             </fieldset>
 
             <?php
-            if( ($selected_copy_results = $this->context_var( 'copy_results' )) === false )
+            if( ($selected_copy_results = $this->view_var( 'copy_results' )) === false )
                 $selected_copy_results = 0;
             ?>
             <fieldset class="form-group">

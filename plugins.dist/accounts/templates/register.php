@@ -4,14 +4,14 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
-    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+    if( !($no_nickname_only_email = $this->view_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
 ?>
-<div style="max-width:1000px;margin: 0 auto;">
+<div>
     <form id="register_form" name="register_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive">
+        <div class="form_container">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Register an account' )?></h3>
@@ -24,7 +24,7 @@
                 <fieldset class="form-group">
                     <label for="nick"><?php echo $this->_pt( 'Username' ) ?></label>
                     <div class="lineform_line">
-                    <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'nick' ) ) ?>" />
+                    <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'nick' ) ) ?>" />
                     </div>
                 </fieldset>
                 <?php
@@ -34,19 +34,19 @@
             <fieldset class="form-group">
                 <label for="email"><?php echo $this->_pt( 'Email' )?></label>
                 <div class="lineform_line">
-                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'email' ) )?>" />
+                <input type="text" id="email" name="email" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'email' ) )?>" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="pass1"><?php echo $this->_pt( 'Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass1" name="pass1" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" /><br/>
+                <input type="password" id="pass1" name="pass1" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'pass1' ) )?>" /><br/>
                 <small><?php
 
-                echo $this->_pt( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
+                echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
 
-                $pass_regexp = $this->context_var( 'password_regexp' );
+                $pass_regexp = $this->view_var( 'password_regexp' );
                 if( !empty( $pass_regexp ) )
                 {
                     echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
@@ -69,7 +69,7 @@
             <fieldset class="form-group">
                 <label for="pass2"><?php echo $this->_pt( 'Confirm password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass2" name="pass2" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" />
+                <input type="password" id="pass2" name="pass2" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'pass2' ) )?>" />
                 </div>
             </fieldset>
 
@@ -84,7 +84,7 @@
                     <label for="vcode"><?php echo $this->_pt( 'Validation code' ) ?></label>
                     <div class="lineform_line">
                     <?php echo $captcha_buf; ?><br/>
-                    <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'vcode' ) )?>" style="max-width: 160px;" />
+                    <input type="text" id="vcode" name="vcode" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'vcode' ) )?>" style="max-width: 160px;" />
                     </div>
                 </fieldset>
                 <?php
@@ -106,4 +106,3 @@
         </div>
     </form>
 </div>
-<div class="clearfix"></div>

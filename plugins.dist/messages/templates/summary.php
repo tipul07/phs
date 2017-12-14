@@ -8,17 +8,17 @@
 
     /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
     /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-    if( !($messages_model = $this->context_var( 'messages_model' ))
-     or !($messages_plugin = $this->context_var( 'messages_plugin' )) )
+    if( !($messages_model = $this->view_var( 'messages_model' ))
+     or !($messages_plugin = $this->view_var( 'messages_plugin' )) )
         return $this->_pt( 'Couldn\'t load dependencies.' );
 
-    if( !($summary_container_id = $this->context_var( 'summary_container_id' )) )
+    if( !($summary_container_id = $this->view_var( 'summary_container_id' )) )
         $summary_container_id = '';
-    if( !($messages_new = $this->context_var( 'messages_new' )) )
+    if( !($messages_new = $this->view_var( 'messages_new' )) )
         $messages_new = 0;
-    if( !($messages_count = $this->context_var( 'messages_count' )) )
+    if( !($messages_count = $this->view_var( 'messages_count' )) )
         $messages_count = 0;
-    if( !($messages_list = $this->context_var( 'messages_list' )) )
+    if( !($messages_list = $this->view_var( 'messages_list' )) )
         $messages_list = array();
 
     $current_user = PHS::current_user();

@@ -11,17 +11,17 @@
     /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
     /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-    if( !($result_arr = $this->context_var( 'result_data' ))
-     or !($rule_arr = $this->context_var( 'rule_data' ))
-     or !($results_model = $this->context_var( 'results_model' ))
-     or !($rules_model = $this->context_var( 'rules_model' ))
-     or !($backup_plugin = $this->context_var( 'backup_plugin' )) )
+    if( !($result_arr = $this->view_var( 'result_data' ))
+     or !($rule_arr = $this->view_var( 'rule_data' ))
+     or !($results_model = $this->view_var( 'results_model' ))
+     or !($rules_model = $this->view_var( 'rules_model' ))
+     or !($backup_plugin = $this->view_var( 'backup_plugin' )) )
         return $this->_pt( 'Could\'t loaded required resources for this view.' );
 
-    if( !($result_files_arr = $this->context_var( 'result_files_arr' )) )
+    if( !($result_files_arr = $this->view_var( 'result_files_arr' )) )
         $result_files_arr = array();
 
-    if( !($back_page = $this->context_var( 'back_page' )) )
+    if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = '';
 
     $current_scope = PHS_Scope::current_scope();

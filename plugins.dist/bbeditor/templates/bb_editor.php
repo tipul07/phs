@@ -6,11 +6,11 @@ use \phs\PHS_ajax;
     /** @var \phs\system\core\views\PHS_View $this */
 
     /** @var \phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */
-    if( !($bb_code_obj = $this->context_var( 'bb_code_obj' ))
+    if( !($bb_code_obj = $this->view_var( 'bb_code_obj' ))
      or !($theme_arr = $bb_code_obj->get_current_theme()) )
         return $this->_pt( 'Couldn\'t initialize BB code editor.' );
 
-    if( !($bb_editor_attributes = $this->context_var( 'bb_editor_attributes' )) )
+    if( !($bb_editor_attributes = $this->view_var( 'bb_editor_attributes' )) )
         $bb_editor_attributes = array();
 ?>
 <style>
@@ -86,7 +86,7 @@ use \phs\PHS_ajax;
         ?></div><?php
     }
 ?>
-<textarea id="<?php echo $bb_editor_attributes['id']?>" name="<?php echo $bb_editor_attributes['name']?>" class="<?php echo $bb_editor_attributes['class']?>" placeholder="<?php echo form_str( $bb_editor_attributes['placeholder'] )?>" style="<?php echo $bb_editor_attributes['style']?>"><?php echo $this->context_var( 'bb_text' )?></textarea>
+<textarea id="<?php echo $bb_editor_attributes['id']?>" name="<?php echo $bb_editor_attributes['name']?>" class="<?php echo $bb_editor_attributes['class']?>" placeholder="<?php echo form_str( $bb_editor_attributes['placeholder'] )?>" style="<?php echo $bb_editor_attributes['style']?>"><?php echo $this->view_var( 'bb_text' )?></textarea>
 </div>
 <div class="clearfix"></div>
 <script type="text/javascript">

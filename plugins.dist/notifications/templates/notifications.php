@@ -4,11 +4,11 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
-    if( !($notifications_arr = $this->context_var( 'notifications' )) )
+    if( !($notifications_arr = $this->view_var( 'notifications' )) )
         $notifications_arr = PHS_Hooks::default_notifications_hook_args();
-    if( !($display_channels = $this->context_var( 'display_channels' )) )
+    if( !($display_channels = $this->view_var( 'display_channels' )) )
         $display_channels = array();
-    if( !($output_ajax_placeholders = $this->context_var( 'output_ajax_placeholders' )) )
+    if( !($output_ajax_placeholders = $this->view_var( 'output_ajax_placeholders' )) )
         $output_ajax_placeholders = false;
 
 if( (empty( $display_channels ) or in_array( 'success', $display_channels ))

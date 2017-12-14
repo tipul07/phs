@@ -1,20 +1,20 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 
-    if( !($filters_buffer = $this->context_var( 'filters' )) )
+    if( !($filters_buffer = $this->view_var( 'filters' )) )
         $filters_buffer = '';
-    if( !($listing_buffer = $this->context_var( 'listing' )) )
+    if( !($listing_buffer = $this->view_var( 'listing' )) )
         $listing_buffer = '';
-    if( !($paginator_params = $this->context_var( 'paginator_params' )) )
+    if( !($paginator_params = $this->view_var( 'paginator_params' )) )
         $paginator_params = array();
-	if( !($flow_params = $this->context_var( 'flow_params' )) )
+	if( !($flow_params = $this->view_var( 'flow_params' )) )
 		$flow_params = array();		
 ?>
 <div class="form_container">
 <?php	
-    if( !($paginator_params = $this->context_var( 'paginator_params' )) )
+    if( !($paginator_params = $this->view_var( 'paginator_params' )) )
         $paginator_params = array();
-    if( !($flow_params = $this->context_var( 'flow_params' )) )
+    if( !($flow_params = $this->view_var( 'flow_params' )) )
         $flow_params = array();
 ?>
 <section class="heading-bordered">

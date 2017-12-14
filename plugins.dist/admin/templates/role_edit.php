@@ -5,19 +5,19 @@
     use \phs\libraries\PHS_utils;
 
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = $this->context_var( 'plugins_model' )) )
+    if( !($plugins_model = $this->view_var( 'plugins_model' )) )
         return $this->_pt( 'Couldn\'t load plugins model.' );
 
-    if( !($ru_slugs = $this->context_var( 'ru_slugs' )) )
+    if( !($ru_slugs = $this->view_var( 'ru_slugs' )) )
         $ru_slugs = array();
-    if( !($role_units_by_slug = $this->context_var( 'role_units_by_slug' )) )
+    if( !($role_units_by_slug = $this->view_var( 'role_units_by_slug' )) )
         $role_units_by_slug = array();
 
-    if( !($back_page = $this->context_var( 'back_page' )) )
+    if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'roles_list' ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="edit_role_form" name="edit_role_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_edit' ), array( 'rid' => $this->context_var( 'rid' ) ) )?>" method="post">
+    <form id="edit_role_form" name="edit_role_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'role_edit' ), array( 'rid' => $this->view_var( 'rid' ) ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )
@@ -42,21 +42,21 @@
             <fieldset class="form-group">
                 <label for="name"><?php echo $this->_pt( 'Name' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="name" name="name" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'name' ) )?>" style="width: 260px;" autocomplete="off" />
+                <input type="text" id="name" name="name" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'name' ) )?>" style="width: 260px;" autocomplete="off" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="slug"><?php echo $this->_pt( 'Slug' )?>:</label>
                 <div class="lineform_line">
-                <?php echo $this->context_var( 'slug' )?>
+                <?php echo $this->view_var( 'slug' )?>
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="description"><?php echo $this->_pt( 'Description' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="description" name="description" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'description' ) )?>" style="width: 400px;" autocomplete="off" />
+                <input type="text" id="description" name="description" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'description' ) )?>" style="width: 400px;" autocomplete="off" />
                 </div>
             </fieldset>
 

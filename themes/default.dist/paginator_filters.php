@@ -5,7 +5,7 @@
     use \phs\libraries\PHS_params;
 
     /** @var \phs\libraries\PHS_Paginator $paginator_obj */
-    if( !($paginator_obj = $this->context_var( 'paginator' )) )
+    if( !($paginator_obj = $this->view_var( 'paginator' )) )
     {
         echo $this->_pt( 'Rendered from outside of paginator.' );
         return;

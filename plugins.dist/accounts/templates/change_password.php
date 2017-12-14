@@ -7,9 +7,9 @@
     if( !($current_user = PHS::user_logged_in()) )
         $current_user = false;
 
-    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+    if( !($no_nickname_only_email = $this->view_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
-    if( !($url_extra_args = $this->context_var( 'url_extra_args' ))
+    if( !($url_extra_args = $this->view_var( 'url_extra_args' ))
      or !is_array( $url_extra_args ) )
         $url_extra_args = false;
 ?>
@@ -30,14 +30,14 @@
                 <fieldset class="form-group">
                     <label for="nick"><?php echo (empty( $no_nickname_only_email )?$this->_pt( 'Username' ):$this->_pt( 'Email' ))?></label>
                     <div class="lineform_line">
-                    <?php echo form_str( $this->context_var( 'nick' ) )?>
+                    <?php echo form_str( $this->view_var( 'nick' ) )?>
                     </div>
                 </fieldset>
 
                 <fieldset class="form-group">
                     <label for="pass"><?php echo $this->_pt( 'Current Password' )?></label>
                     <div class="lineform_line">
-                    <input type="password" id="pass" name="pass" class="form-control" value="<?php echo form_str( $this->context_var( 'pass' ) )?>" required="required" />
+                    <input type="password" id="pass" name="pass" class="form-control" value="<?php echo form_str( $this->view_var( 'pass' ) )?>" required="required" />
                     </div>
                 </fieldset>
                 <?php
@@ -47,12 +47,12 @@
             <fieldset class="form-group">
                 <label for="pass1"><?php echo $this->_pt( 'New Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass1" name="pass1" class="form-control" value="<?php echo form_str( $this->context_var( 'pass1' ) )?>" required="required" /><br/>
+                <input type="password" id="pass1" name="pass1" class="form-control" value="<?php echo form_str( $this->view_var( 'pass1' ) )?>" required="required" /><br/>
                 <small><?php
 
-                echo $this->_pt( 'Password should be at least %s characters.', $this->context_var( 'min_password_length' ) );
+                echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
 
-                $pass_regexp = $this->context_var( 'password_regexp' );
+                $pass_regexp = $this->view_var( 'password_regexp' );
                 if( !empty( $pass_regexp ) )
                 {
                     echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
@@ -75,7 +75,7 @@
             <fieldset class="form-group">
                 <label for="pass2"><?php echo $this->_pt( 'Confirm Password' )?></label>
                 <div class="lineform_line">
-                <input type="password" id="pass2" name="pass2" class="form-control" value="<?php echo form_str( $this->context_var( 'pass2' ) )?>" required="required" />
+                <input type="password" id="pass2" name="pass2" class="form-control" value="<?php echo form_str( $this->view_var( 'pass2' ) )?>" required="required" />
                 </div>
             </fieldset>
 

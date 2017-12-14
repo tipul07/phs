@@ -13,7 +13,7 @@
         </section>
 
         <fieldset>
-            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->view_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
         </fieldset>
 
     </div>

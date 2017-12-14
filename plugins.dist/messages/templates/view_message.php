@@ -9,26 +9,26 @@
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
     /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
     /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-    if( !($messages_model = $this->context_var( 'messages_model' ))
-     or !($accounts_model = $this->context_var( 'accounts_model' ))
-     or !($roles_model = $this->context_var( 'roles_model' ))
-     or !($messages_plugin = $this->context_var( 'messages_plugin' ))
-     or !($message_arr = $this->context_var( 'message_arr' ))
+    if( !($messages_model = $this->view_var( 'messages_model' ))
+     or !($accounts_model = $this->view_var( 'accounts_model' ))
+     or !($roles_model = $this->view_var( 'roles_model' ))
+     or !($messages_plugin = $this->view_var( 'messages_plugin' ))
+     or !($message_arr = $this->view_var( 'message_arr' ))
      or !$messages_model::is_full_message_data( $message_arr )
-     or !($thread_arr = $this->context_var( 'thread_arr' ))
+     or !($thread_arr = $this->view_var( 'thread_arr' ))
      or !$messages_model::is_full_message_data( $thread_arr )
      or !($current_user = PHS::user_logged_in()) )
         return $this->_pt( 'Couldn\'t initialize required parameters for current view.' );
 
-    if( !($thread_messages_arr = $this->context_var( 'thread_messages_arr' )) )
+    if( !($thread_messages_arr = $this->view_var( 'thread_messages_arr' )) )
         $thread_messages_arr = array();
-    if( !($dest_types = $this->context_var( 'dest_types' )) )
+    if( !($dest_types = $this->view_var( 'dest_types' )) )
         $dest_types = array();
-    if( !($user_levels = $this->context_var( 'user_levels' )) )
+    if( !($user_levels = $this->view_var( 'user_levels' )) )
         $user_levels = array();
-    if( !($roles_arr = $this->context_var( 'roles_arr' )) )
+    if( !($roles_arr = $this->view_var( 'roles_arr' )) )
         $roles_arr = array();
-    if( !($roles_units_arr = $this->context_var( 'roles_units_arr' )) )
+    if( !($roles_units_arr = $this->view_var( 'roles_units_arr' )) )
         $roles_units_arr = array();
 
     $messages_before = 0;

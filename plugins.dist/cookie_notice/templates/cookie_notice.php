@@ -4,13 +4,13 @@
     use \phs\PHS_ajax;
 
     /** @var \phs\plugins\cookie_notice\PHS_Plugin_Cookie_notice $plugin_obj */
-    if( !($plugin_obj = $this->context_var( 'plugin_obj' ))
+    if( !($plugin_obj = $this->view_var( 'plugin_obj' ))
      or $plugin_obj->agreed_cookies() )
         return '';
 
-    if( !($rejection_url = $this->context_var( 'rejection_url' )) )
+    if( !($rejection_url = $this->view_var( 'rejection_url' )) )
         $rejection_url = '';
-    if( !($read_more_url = $this->context_var( 'read_more_url' )) )
+    if( !($read_more_url = $this->view_var( 'read_more_url' )) )
         $read_more_url = '';
 ?>
 <div id="phs_cookie_policy_agreement">

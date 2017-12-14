@@ -4,9 +4,9 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
-    if( !($hook_args = $this->context_var( 'hook_args' )) )
+    if( !($hook_args = $this->view_var( 'hook_args' )) )
         $hook_args = array();
-    if( !($settings_arr = $this->context_var( 'settings_arr' )) )
+    if( !($settings_arr = $this->view_var( 'settings_arr' )) )
         $settings_arr = array();
 
     $url_params = array();

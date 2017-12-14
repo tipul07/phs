@@ -6,28 +6,28 @@
 
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
     /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-    if( !($backup_plugin = $this->context_var( 'backup_plugin' ))
-     or !($rules_model = $this->context_var( 'rules_model' )) )
+    if( !($backup_plugin = $this->view_var( 'backup_plugin' ))
+     or !($rules_model = $this->view_var( 'rules_model' )) )
         return $this->_pt( 'Couldn\'t load backup plugin.' );
 
-    if( !($target_arr = $this->context_var( 'target_arr' )) )
+    if( !($target_arr = $this->view_var( 'target_arr' )) )
         $target_arr = array();
-    if( !($days_arr = $this->context_var( 'days_arr' )) )
+    if( !($days_arr = $this->view_var( 'days_arr' )) )
         $days_arr = array();
-    if( !($ftp_settings = $this->context_var( 'ftp_settings' )) )
+    if( !($ftp_settings = $this->view_var( 'ftp_settings' )) )
         $ftp_settings = array();
 
-    if( !($rule_location = $this->context_var( 'rule_location' )) )
+    if( !($rule_location = $this->view_var( 'rule_location' )) )
         $rule_location = array();
-    if( !($rule_days = $this->context_var( 'rule_days' )) )
+    if( !($rule_days = $this->view_var( 'rule_days' )) )
         $rule_days = array();
-    if( !($targets_arr = $this->context_var( 'targets_arr' )) )
+    if( !($targets_arr = $this->view_var( 'targets_arr' )) )
         $targets_arr = array();
-    if( !($days_options_arr = $this->context_var( 'days_options_arr' )) )
+    if( !($days_options_arr = $this->view_var( 'days_options_arr' )) )
         $days_options_arr = array();
-    if( !($copy_results_arr = $this->context_var( 'copy_results_arr' )) )
+    if( !($copy_results_arr = $this->view_var( 'copy_results_arr' )) )
         $copy_results_arr = array();
-    if( !($ftp_connection_modes_arr = $this->context_var( 'ftp_connection_modes_arr' )) )
+    if( !($ftp_connection_modes_arr = $this->view_var( 'ftp_connection_modes_arr' )) )
         $ftp_connection_modes_arr = array();
 
     $error_msg = '';
@@ -62,14 +62,14 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="location"><?php echo $this->_pt( 'Location' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->context_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->view_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
                 <br/><small><?php echo $this->_pt( 'Leave blank to use location set in plugin settings%s.', (!empty( $rule_location['location_path'] )?' ('.$rule_location['location_path'].')':'') )?></small>
                 <?php
                 if( !empty( $error_msg ) )
@@ -89,7 +89,7 @@
                 <select name="hour" id="hour" class="chosen-select" style="min-width:150px;">
                 <option value="-1"><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
-                $selected_hour = $this->context_var( 'hour' );
+                $selected_hour = $this->view_var( 'hour' );
                 for( $hour = 0; $hour < 24; $hour++ )
                 {
                     ?><option value="<?php echo $hour?>" <?php echo (($selected_hour !== false and $selected_hour==$hour)?'selected="selected"':'')?>><?php echo ($hour<10?'0':'').$hour?></option><?php
@@ -147,9 +147,9 @@
                 </div>
             </fieldset>
             <?php
-                if( ($selected_delete_after_days = $this->context_var( 'delete_after_days' )) === false )
+                if( ($selected_delete_after_days = $this->view_var( 'delete_after_days' )) === false )
                     $selected_delete_after_days = 0;
-                if( !($cdelete_after_days = $this->context_var( 'cdelete_after_days' ))
+                if( !($cdelete_after_days = $this->view_var( 'cdelete_after_days' ))
                     or $cdelete_after_days < 0 )
                     $cdelete_after_days = 1;
 
@@ -181,7 +181,7 @@
             </fieldset>
 
             <?php
-                if( ($selected_copy_results = $this->context_var( 'copy_results' )) === false )
+                if( ($selected_copy_results = $this->view_var( 'copy_results' )) === false )
                     $selected_copy_results = 0;
             ?>
             <fieldset class="form-group">

@@ -1,7 +1,7 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 
-    if( !($current_user = $this->context_var( 'current_user' )) )
+    if( !($current_user = $this->view_var( 'current_user' )) )
         $current_user = array( 'nick' => $this->_pt( 'N/A' ) );
 ?>
 <div style="max-width:800px;margin: 0 20px;">
@@ -15,7 +15,7 @@
 
         <fieldset>
         <p><?php echo $this->_pt( 'You are in admin section of %s site.', PHS_SITE_NAME )?></p>
-        <p><?php echo $this->_pt( 'Currently logged in %s - %s.', $current_user['nick'], $this->context_var( 'user_level' ) )?></p>
+        <p><?php echo $this->_pt( 'Currently logged in %s - %s.', $current_user['nick'], $this->view_var( 'user_level' ) )?></p>
         </fieldset>
 
     </div>

@@ -5,12 +5,12 @@
     use \phs\libraries\PHS_utils;
 
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-    if( !($plugins_model = $this->context_var( 'plugins_model' )) )
+    if( !($plugins_model = $this->view_var( 'plugins_model' )) )
         return $this->_pt( 'Couldn\'t load plugins model.' );
 
-    if( !($ru_slugs = $this->context_var( 'ru_slugs' )) )
+    if( !($ru_slugs = $this->view_var( 'ru_slugs' )) )
         $ru_slugs = array();
-    if( !($role_units_by_slug = $this->context_var( 'role_units_by_slug' )) )
+    if( !($role_units_by_slug = $this->view_var( 'role_units_by_slug' )) )
         $role_units_by_slug = array();
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
@@ -26,14 +26,14 @@
             <fieldset class="form-group">
                 <label for="name"><?php echo $this->_pt( 'Name' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="name" name="name" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'name' ) )?>" style="width: 260px;" autocomplete="off" />
+                <input type="text" id="name" name="name" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'name' ) )?>" style="width: 260px;" autocomplete="off" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="slug"><?php echo $this->_pt( 'Slug' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="slug" name="slug" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'slug' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
+                <input type="text" id="slug" name="slug" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'slug' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
                 <small><?php echo $this->_pt( 'Slug should be unique. Once role is defined you cannot change this slug.' )?></small>
                 </div>
             </fieldset>
@@ -41,7 +41,7 @@
             <fieldset class="form-group">
                 <label for="description"><?php echo $this->_pt( 'Description' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="description" name="description" class="form-control" required="required" value="<?php echo form_str( $this->context_var( 'description' ) )?>" style="width: 400px;" autocomplete="off" />
+                <input type="text" id="description" name="description" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'description' ) )?>" style="width: 400px;" autocomplete="off" />
                 </div>
             </fieldset>
 

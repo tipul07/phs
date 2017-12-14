@@ -6,28 +6,28 @@
     use \phs\libraries\PHS_Instantiable;
     use \phs\libraries\PHS_Plugin;
 
-    if( !($form_data = $this->context_var( 'form_data' )) )
+    if( !($form_data = $this->view_var( 'form_data' )) )
         $form_data = array();
 
     /** @var \phs\libraries\PHS_Plugin $plugin_obj */
     $plugin_obj = false;
     if( (empty( $form_data['pid'] ) or $form_data['pid'] != PHS_Instantiable::CORE_PLUGIN)
-    and !($plugin_obj = $this->context_var( 'plugin_obj' )) )
+    and !($plugin_obj = $this->view_var( 'plugin_obj' )) )
         return $this->_pt( 'Plugin ID is invalid or plugin was not found.' );
 
-    if( !($back_page = $this->context_var( 'back_page' )) )
+    if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
-    if( !($settings_fields = $this->context_var( 'settings_fields' )) )
+    if( !($settings_fields = $this->view_var( 'settings_fields' )) )
         $settings_fields = array();
-    if( !($modules_with_settings = $this->context_var( 'modules_with_settings' )) )
+    if( !($modules_with_settings = $this->view_var( 'modules_with_settings' )) )
         $modules_with_settings = array();
 
-    if( !($plugin_settings = $this->context_var( 'db_settings' )) )
+    if( !($plugin_settings = $this->view_var( 'db_settings' )) )
         $plugin_settings = array();
 
-    if( !($db_version = $this->context_var( 'db_version' )) )
+    if( !($db_version = $this->view_var( 'db_version' )) )
         $db_version = '0.0.0';
-    if( !($script_version = $this->context_var( 'script_version' )) )
+    if( !($script_version = $this->view_var( 'script_version' )) )
         $script_version = '0.0.0';
 
     if( empty( $plugin_obj ) )

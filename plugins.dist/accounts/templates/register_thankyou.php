@@ -4,10 +4,10 @@
     use \phs\PHS;
     use \phs\libraries\PHS_Hooks;
 
-    if( !($no_nickname_only_email = $this->context_var( 'no_nickname_only_email' )) )
+    if( !($no_nickname_only_email = $this->view_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
 
-    $nick = ($no_nickname_only_email?$this->context_var( 'email' ):$this->context_var( 'nick' ));
+    $nick = ($no_nickname_only_email?$this->view_var( 'email' ):$this->view_var( 'nick' ));
 ?>
 <div style="max-width:800px;margin: 0 auto;">
 
@@ -21,7 +21,7 @@
             <p><?php echo $this->_pt( 'Hello %s.', '<strong>'.$nick.'</strong>' );?></p>
             <p><?php echo $this->_pt( 'You successfully registered your account. However, before using your account you must activate it.' )?></p>
             <p><?php echo $this->_pt( 'We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.',
-                                      '<strong>'.$this->context_var( 'email' ).'</strong>' )?></p>
+                                      '<strong>'.$this->view_var( 'email' ).'</strong>' )?></p>
         </fieldset>
 
         <fieldset>

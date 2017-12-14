@@ -13,7 +13,7 @@
 
         <fieldset>
             <?php
-            if( !($nick = $this->context_var( 'nick' )) )
+            if( !($nick = $this->view_var( 'nick' )) )
                 $nick = $this->_pt( 'there' );
             ?>
             <p><?php echo $this->_pt( 'Hello %s.', '<strong>'.$nick.'</strong>' );?></p>
@@ -21,7 +21,7 @@
         </fieldset>
 
         <fieldset>
-            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->context_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
+            <a href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $this->view_var( 'nick' ) ) )?>"><?php echo $this->_pt( 'Go to login page' )?></a>
         </fieldset>
 
     </div>

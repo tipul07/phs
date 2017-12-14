@@ -4,11 +4,11 @@
     use \phs\PHS;
     use \phs\PHS_ajax;
 
-    if( !($plugin_names_arr = $this->context_var( 'plugin_names_arr' )) )
+    if( !($plugin_names_arr = $this->view_var( 'plugin_names_arr' )) )
         $plugin_names_arr = array();
-    if( !($check_plugin = $this->context_var( 'check_plugin' )) )
+    if( !($check_plugin = $this->view_var( 'check_plugin' )) )
         $check_plugin = '';
-    if( !($PLUGIN_NAME_ALL = $this->context_var( 'PLUGIN_NAME_ALL' )) )
+    if( !($PLUGIN_NAME_ALL = $this->view_var( 'PLUGIN_NAME_ALL' )) )
         $PLUGIN_NAME_ALL = '_all_';
 ?>
 <div style="margin: 0 auto;">
