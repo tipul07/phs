@@ -37,7 +37,7 @@
 
     $current_user = PHS::user_logged_in();
 ?>
-<div style="min-width:100%;max-width:1000px;margin: 0 auto;">
+<div>
     <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $form_data['pid'] ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
         <?php
@@ -46,7 +46,7 @@
             ?><input type="hidden" name="back_page" value="<?php echo form_str( safe_url( $back_page ) )?>" /><?php
         }
         ?>
-        <div class="form_container responsive" style="width: 850px;">
+        <div class="form_container responsive">
 
             <?php
             if( !empty( $back_page ) )
@@ -83,7 +83,7 @@
                 ?>
                 <div class="lineform">
                     <label for="selected_module"><?php echo $this->_pt( 'Settings for' )?>: </label>
-                    <select name="selected_module" id="selected_module" class="chosen-select-nosearch" onchange="document.plugin_settings_form.submit()" style="width:260px;">
+                    <select name="selected_module" id="selected_module" class="chosen-select-nosearch" onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
                     <option value=""><?php echo $plugin_info['name'].(!empty( $plugin_obj )?' ('.$plugin_obj->instance_type().')':'')?></option>
                     <?php
                     foreach( $modules_with_settings as $model_id => $model_arr )

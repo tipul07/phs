@@ -111,6 +111,16 @@ class PHS_Hooks extends PHS_Registry
         );
     }
 
+    public static function reset_common_hook_args( $hook_args )
+    {
+        if( empty( $hook_args ) or !is_array( $hook_args ) )
+            return self::validate_array( $hook_args, self::default_common_hook_args() );
+
+        $hook_args['hook_errors'] = self::default_error_array();
+
+        return $hook_args;
+    }
+
     public static function default_url_rewrite_hook_args()
     {
         return self::validate_array_recursive( array(
@@ -391,6 +401,17 @@ class PHS_Hooks extends PHS_Registry
         ), self::default_common_hook_args() );
     }
 
+    public static function reset_email_hook_args( $hook_args )
+    {
+        if( empty( $hook_args ) or !is_array( $hook_args ) )
+            return self::default_init_email_hook_args();
+
+        // in case hook arguments are cascaded...
+        $hook_args['send_result'] = false;
+
+        return self::reset_common_hook_args( $hook_args );
+    }
+
     public static function default_captcha_check_hook_args()
     {
         return self::validate_array_recursive( array(
@@ -409,14 +430,14 @@ class PHS_Hooks extends PHS_Registry
     {
         self::st_reset_error();
 
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_init_email_hook_args() );
+        $hook_args = self::reset_email_hook_args( self::validate_array( $hook_args, PHS_Hooks::default_init_email_hook_args() ) );
 
         // If we don't have hooks registered, we don't use captcha
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_EMAIL_INIT, $hook_args )) === null )
             return null;
 
         if( is_array( $hook_args )
-        and !empty( $hook_args['hook_errors'] )
+        and !empty( $hook_args['hook_errors'] ) and is_array( $hook_args['hook_errors'] )
         and self::arr_has_error( $hook_args['hook_errors'] ) )
         {
             self::st_copy_error_from_array( $hook_args['hook_errors'] );

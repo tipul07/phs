@@ -6,12 +6,12 @@ use \phs\libraries\PHS_Library;
 
 /*! \file phs_smtp.php
  *  \brief Contains PHS_smtp class (send emails trough smtp)
- *  \version 1.08
+ *  \version 1.10
  */
 
 class PHS_smtp extends PHS_Library
 {
-    const CLASS_VERSION = '1.08';
+    const CLASS_VERSION = '1.10';
 
     //! /descr Class was initialised succesfully
     const ERR_CONNECT = 1, ERR_AUTHENTICATION = 2, ERR_EMAIL_DETAILS = 3, ERR_NOT_EXPECTED = 4,
@@ -148,6 +148,8 @@ class PHS_smtp extends PHS_Library
 
     public function send( $params = false )
     {
+        $this->reset_error();
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
@@ -158,7 +160,7 @@ class PHS_smtp extends PHS_Library
          or empty( $email_details['to_email'] ) or empty( $email_details['from_email'] )
          or (empty( $email_details['body_html'] ) and empty( $email_details['body_txt'] ) and empty( $email_details['body_full'] )) )
         {
-            $this->set_error( self::ERR_EMAIL_DETAILS, 'Please provide email details' );
+            $this->set_error( self::ERR_EMAIL_DETAILS, 'Please provide email details.' );
             return false;
         }
 

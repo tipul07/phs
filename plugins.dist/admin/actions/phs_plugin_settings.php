@@ -176,12 +176,24 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $new_settings_arr = array();
         foreach( $settings_fields as $field_name => $field_details )
         {
+            if( !empty( $field_details['ignore_field_value'] ) )
+                continue;
+
             if( empty( $field_details['editable'] ) )
             {
-                if( isset( $db_settings[$field_name] ) )
+                // Check if default values have changed (upgrading plugin might change default value)
+                if( isset( $default_settings[$field_name] ) and isset( $db_settings[$field_name] )
+                and $default_settings[$field_name] != $db_settings[$field_name] )
+                    $new_settings_arr[$field_name] = $default_settings[$field_name];
+
+                // if we have something in database use that value
+                elseif( isset( $db_settings[$field_name] ) )
                     $new_settings_arr[$field_name] = $db_settings[$field_name];
+
+                // This is a new non-editable value, save default value to db
                 elseif( isset( $default_settings[$field_name] ) )
                     $new_settings_arr[$field_name] = $default_settings[$field_name];
+
                 continue;
             }
 
@@ -222,7 +234,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             foreach( $settings_fields as $field_name => $field_details )
             {
-                if( empty( $field_details['custom_save'] )
+                if( !empty( $field_details['ignore_field_value'] )
+                 or empty( $field_details['custom_save'] )
                  or !@is_callable( $field_details['custom_save'] ) )
                     continue;
 

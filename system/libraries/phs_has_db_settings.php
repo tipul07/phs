@@ -77,6 +77,9 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
             // this function should return value to be used for current field in settings array
             // If method returns null and static error is set, statitc error message will be used to display error
             'custom_save' => false,
+            // If this field is not supposed to be a value to be saved in database, but a placeholder
+            // for a functionality with a custom rendering
+            'ignore_field_value' => false,
 
             'extra_style' => '',
             'extra_classes' => '',

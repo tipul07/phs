@@ -470,7 +470,7 @@ abstract class PHS_api_base extends PHS_Registry
          or !($apikeys_model = PHS::load_model( 'api_keys' ))
          or !($apikey_arr = $apikeys_model->get_details_fields( array( 'api_key' => $apikey ) )) )
         {
-            $this->set_error( self::ERR_APIKEY, $this->_pt( '' ) );
+            $this->set_error( self::ERR_APIKEY, $this->_pt( 'Api key not found in database.' ) );
             return false;
         }
 
