@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.32
+ *  \version 1.33
  */
 
 class PHS_utils extends PHS_Language
@@ -62,8 +62,6 @@ class PHS_utils extends PHS_Language
                         $return_arr[] = $minutes.' '.($minutes>1?self::_t( 'minutes' ):self::_t( 'minute' ));
                     elseif( !empty( $seconds ) )
                         $return_arr[] = $seconds.' '.($seconds>1?self::_t( 'seconds' ):self::_t( 'second' ));
-
-                    return implode( ', ', $return_arr );
                 } else
                 {
                     $return_arr = array();
@@ -79,9 +77,12 @@ class PHS_utils extends PHS_Language
                         $return_arr[] = $minutes.' '.($minutes>1?self::_t( 'minutes' ):self::_t( 'minute' ));
                     if( !empty( $seconds ) )
                         $return_arr[] = $seconds.' '.($seconds>1?self::_t( 'seconds' ):self::_t( 'second' ));
-
-                    return implode( ', ', $return_arr );
                 }
+
+                if( empty( $return_arr ) )
+                    $return_arr[] = '0 '.self::_t( 'seconds' );
+
+                return implode( ', ', $return_arr );
             break;
 
             case self::PERIOD_SECONDS:

@@ -131,6 +131,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 'display_name' => 'Test sending emails',
                 'custom_renderer' => array( $this, 'display_test_sending_emails' ),
                 'default' => false,
+                'ignore_field_value' => true,
             ),
         );
     }

@@ -298,7 +298,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'column_title' => $this->_pt( 'Actions' ),
                 'display_callback' => array( $this, 'display_actions' ),
                 'extra_style' => 'vertical-align: middle;width:100px;',
-                'extra_records_style' => 'vertical-align: middle;text-align:right;',
+                'extra_records_style' => 'vertical-align: middle;text-align:right;white-space: nowrap;',
                 'sortable' => false,
             ),
         );
