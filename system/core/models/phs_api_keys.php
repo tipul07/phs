@@ -20,7 +20,7 @@ class PHS_Model_Api_keys extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -390,6 +390,11 @@ class PHS_Model_Api_keys extends PHS_Model
                     'uid' => array(
                         'type' => self::FTYPE_INT,
                         'index' => true,
+                    ),
+                    'title' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
                     ),
                     'api_key' => array(
                         'type' => self::FTYPE_VARCHAR,

@@ -51,6 +51,14 @@
             </fieldset>
 
             <fieldset class="form-group">
+                <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
+                <div class="lineform_line">
+                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" autocomplete="off" />
+                <br/><small><?php echo $this->_pt( 'Short description for this API key' )?></small>
+                </div>
+            </fieldset>
+
+            <fieldset class="form-group">
                 <label for="api_key"><?php echo $this->_pt( 'API Key' )?>:</label>
                 <div class="lineform_line">
                 <input type="text" id="api_key" name="api_key" class="form-control" value="<?php echo form_str( $this->view_var( 'api_key' ) )?>" autocomplete="off" />

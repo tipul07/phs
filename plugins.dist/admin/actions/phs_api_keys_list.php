@@ -127,10 +127,10 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
 
         $filters_arr = array(
             array(
-                'display_name' => $this->_pt( 'Name' ),
+                'display_name' => $this->_pt( 'Title' ),
                 'display_hint' => $this->_pt( 'All records containing this value' ),
-                'var_name' => 'fname',
-                'record_field' => 'name',
+                'var_name' => 'ftitle',
+                'record_field' => 'title',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
@@ -151,6 +151,13 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                 'record_field' => 'id',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:50px;max-width:80px;',
+                'extra_records_style' => 'text-align:center;',
+            ),
+            array(
+                'column_title' => $this->_pt( 'Title' ),
+                'record_field' => 'title',
+                'invalid_value' => $this->_pt( 'N/A' ),
+                'extra_style' => 'text-align:left;',
                 'extra_records_style' => 'text-align:center;',
             ),
             array(

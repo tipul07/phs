@@ -106,6 +106,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $uid = PHS_params::_p( 'uid', PHS_params::T_INT );
         $autocomplete_uid = PHS_params::_p( 'autocomplete_uid', PHS_params::T_NOHTML );
+        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $api_key = PHS_params::_p( 'api_key', PHS_params::T_NOHTML );
         $api_secret = PHS_params::_p( 'api_secret', PHS_params::T_NOHTML );
         $allow_sw = PHS_params::_p( 'allow_sw', PHS_params::T_NUMERIC_BOOL );
@@ -124,6 +125,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
 
             $uid = $apikey_arr['uid'];
             $autocomplete_uid = $users_autocomplete_action->format_data( false, false );
+            $title = $apikey_arr['title'];
             $api_key = $apikey_arr['api_key'];
             $api_secret = $apikey_arr['api_secret'];
             $allow_sw = (!empty( $apikey_arr['allow_sw'] )?1:0);
@@ -194,6 +196,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $edit_arr = array();
             $edit_arr['added_by_uid'] = $current_user['id'];
             $edit_arr['uid'] = $uid;
+            $edit_arr['title'] = $title;
             $edit_arr['api_key'] = $api_key;
             $edit_arr['api_secret'] = $api_secret;
             $edit_arr['allow_sw'] = $allow_sw;
@@ -232,6 +235,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             'back_page' => $back_page,
             'uid' => $uid,
             'autocomplete_uid' => $autocomplete_uid,
+            'title' => $title,
             'api_key' => $api_key,
             'api_secret' => $api_secret,
             'allow_sw' => $allow_sw,
