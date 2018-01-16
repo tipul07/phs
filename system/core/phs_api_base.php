@@ -99,9 +99,10 @@ abstract class PHS_api_base extends PHS_Registry
             'api_method' => 'get',
             'content_type' => 'application/json',
 
-            'original_api_route' => false,
-            'final_api_route' => false,
+            'original_api_route_tokens' => false,
+            'final_api_route_tokens' => false,
             'phs_route' => false,
+            'api_route' => false,
 
             // Values used in HTTP Authorization header (not necessary an user and password in the system)
             'api_user' => '',
@@ -263,10 +264,8 @@ abstract class PHS_api_base extends PHS_Registry
         return trim( $route_str, '/- ' );
     }
 
-    public function api_authentication( $credentials_arr = false )
+    public function set_api_credentials( $credentials_arr = false )
     {
-        $this->reset_error();
-
         $new_credentials_arr = array(
             'api_user' => '',
             'api_pass' => '',
@@ -286,6 +285,21 @@ abstract class PHS_api_base extends PHS_Registry
         }
 
         $this->api_flow_value( $new_credentials_arr );
+    }
+
+    public function get_api_credentials()
+    {
+        return array(
+            'api_user' => $this->api_flow_value( 'api_user' ),
+            'api_pass' => $this->api_flow_value( 'api_pass' ),
+        );
+    }
+
+    public function api_authentication( $credentials_arr = false )
+    {
+        $this->reset_error();
+
+        $this->set_api_credentials( $credentials_arr );
 
         return $this->_check_api_authentication();
     }
@@ -367,44 +381,50 @@ abstract class PHS_api_base extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
-        if( ($final_api_route = PHS_api::tokenize_api_route( $this->get_api_route() )) === false )
+        if( ($final_api_route_tokens = PHS_api::tokenize_api_route( $this->get_api_route() )) === false )
         {
             $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route.' ) );
             return false;
         }
 
         if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Request route ['.implode( '/', $final_api_route ).']', PHS_Logger::TYPE_API );
+            PHS_Logger::logf( 'Request API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
 
-        $this->api_flow_value( 'original_api_route', $final_api_route );
+        $this->api_flow_value( 'original_api_route_tokens', $final_api_route_tokens );
 
-        // Let plugins change API provided route
+        // Let plugins change provided API route tokens
         $hook_args = PHS_Hooks::default_api_hook_args();
         $hook_args['api_obj'] = $this;
-        $hook_args['api_route'] = $final_api_route;
+        $hook_args['api_route_tokens'] = $final_api_route_tokens;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
         and is_array( $hook_args )
-        and !empty( $hook_args['altered_api_route'] ) and is_array( $hook_args['altered_api_route'] ) )
+        and !empty( $hook_args['altered_api_route_tokens'] ) and is_array( $hook_args['altered_api_route_tokens'] ) )
         {
-            if( !($final_api_route = PHS_api::validate_tokenized_api_route( $hook_args['altered_api_route'] )) )
+            if( !($final_api_route_tokens = PHS_api::validate_tokenized_api_route( $hook_args['altered_api_route_tokens'] )) )
             {
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Invalid API route obtained from plugins.' ) );
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Invalid API route tokens obtained from plugins.' ) );
                 return false;
             }
         }
 
-        $this->api_flow_value( 'final_api_route', $final_api_route );
+        $this->api_flow_value( 'final_api_route_tokens', $final_api_route_tokens );
 
         if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Final API route ['.implode( '/', $final_api_route ).']', PHS_Logger::TYPE_API );
+            PHS_Logger::logf( 'Final API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
 
-        if( !($phs_route = PHS_api::get_phs_route_from_api_route( $final_api_route, $this->http_method() )) )
+        $phs_route = false;
+        $api_route = false;
+        if( ($matched_route = PHS_api::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
+        {
+            $phs_route = $matched_route['phs_route'];
+            $api_route = $matched_route['api_route'];
+        } else
         {
             if( PHS::st_debugging_mode() )
                 PHS_Logger::logf( 'No PHS route matched API route.', PHS_Logger::TYPE_API );
 
-            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route ), true )) )
+            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
             {
                 if( self::st_has_error() )
                     $this->copy_static_error( self::ERR_RUN_ROUTE );
@@ -426,8 +446,68 @@ abstract class PHS_api_base extends PHS_Registry
         }
 
         $this->api_flow_value( 'phs_route', $phs_route );
+        $this->api_flow_value( 'api_route', $api_route );
 
         PHS::set_route( $phs_route );
+
+        // Check if we should have authentication...
+        // If we didn't find an API route, we found a "standard" route to be run which requires authentication
+        // If we have a matching API route check if API route requires authentication, custom authentication or no authentication at all
+        if( empty( $api_route ) or !is_array( $api_route ) )
+        {
+            if( !$this->_check_api_authentication() )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+
+                return false;
+            }
+        } elseif( !empty( $api_route['authentication_required'] ) )
+        {
+            if( empty( $api_route['authentication_callback'] ) )
+            {
+                if( !$this->_check_api_authentication() )
+                {
+                    if( !$this->has_error() )
+                        $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+
+                    return false;
+                }
+            } else
+            {
+                if( !@is_callable( $api_route['authentication_callback'] ) )
+                {
+                    if( !($route_str = PHS::route_from_parts( $phs_route )) )
+                        $route_str = 'N/A';
+
+                    PHS_Logger::logf( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
+
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+                    return false;
+                }
+
+                $callback_params = self::default_api_authentication_callback_params();
+                $callback_params['api_obj'] = $this;
+                $callback_params['api_route'] = $api_route;
+                $callback_params['phs_route'] = $phs_route;
+
+                if( ($result = @call_user_func( $api_route['authentication_callback'], $callback_params )) === null
+                 or $result === false )
+                {
+                    if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
+                    {
+                        $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );
+                        return false;
+                    }
+
+                    exit;
+                }
+            }
+        } else
+        {
+            if( PHS::st_debugging_mode() )
+                PHS_Logger::logf( 'Authentication not required!', PHS_Logger::TYPE_API );
+        }
 
         if( !$this->_before_route_run() )
         {
@@ -711,6 +791,24 @@ abstract class PHS_api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
 
         return $this->my_flow['api_key_user_id'];
+    }
+
+    public static function default_api_authentication_callback_params()
+    {
+        return array(
+            'api_obj' => false,
+            'api_route' => false,
+            'phs_route' => false,
+        );
+    }
+
+    public static function default_api_authentication_callback_response()
+    {
+        return array(
+            'api_obj' => false,
+            'api_route' => false,
+            'phs_route' => false,
+        );
     }
 
     public static function default_framework_api_settings()

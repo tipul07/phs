@@ -103,21 +103,8 @@
         }
     }
 
-    if( !$api_obj->api_authentication() )
-    {
-        if( $api_obj->has_error() )
-            $error_msg = $api_obj->get_error_message();
-        else
-            $error_msg = PHS_api::_t( 'Authentication failed.' );
+    $api_obj->set_api_credentials();
 
-        PHS_Logger::logf( 'Error setting response protocol in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-        PHS_api::generic_error( $error_msg );
-
-        exit;
-    }
-
-    // $run_result is an action result
     if( !($action_result = $api_obj->run_route()) )
     {
         if( $api_obj->has_error() )

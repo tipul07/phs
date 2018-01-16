@@ -162,6 +162,14 @@ class PHS_api extends PHS_api_base
             'get_params' => array(),
             'post_params' => array(),
 
+            // If API route doesn't require authentication to run put this to true
+            'authentication_required' => true,
+            // If API route requires special API authentication you can define here what method/function to call to do the authentication
+            // Method receives as parameters an array (like PHS_api_base::default_api_authentication_callback_params()) and should return false
+            // in case authentication failed or it can safetly send headers back to browser and exit directly
+            // !!! If authetication passes it MUST return true
+            'authentication_callback' => false,
+
             // for documentation / errors
             'name' => '',
             'description' => '',
@@ -282,7 +290,7 @@ class PHS_api extends PHS_api_base
      * @param array $tokenized_api_route A tokenized API route
      * @param string $method Method used in request (eg. get, post, delete, etc)
      *
-     * @return bool
+     * @return bool|array
      */
     public static function get_phs_route_from_api_route( $tokenized_api_route, $method = 'get' )
     {
@@ -306,7 +314,12 @@ class PHS_api extends PHS_api_base
         foreach( self::$_api_routes as $api_route )
         {
             if( ($phs_route = self::check_route_for_tokenized_api_route( $api_route, $tokenized_api_route, $method, true )) )
-                return $phs_route;
+            {
+                return array(
+                    'phs_route' => $phs_route,
+                    'api_route' => $api_route,
+                );
+            }
         }
 
         return false;
@@ -418,7 +431,7 @@ class PHS_api extends PHS_api_base
             if( ($request_body = $this::get_php_input())
             and ($json_arr = @json_decode( $request_body, true )) )
             {
-                // In case we run in an environment where $_POST is not a global variable
+                // In case we run in an environment where $_POST is not defined
                 global $_POST;
 
                 if( empty( $_POST ) or !is_array( $_POST ) )
