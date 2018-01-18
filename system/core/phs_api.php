@@ -551,9 +551,8 @@ class PHS_api extends PHS_api_base
         if( !is_array( $response_arr ) )
             $response_arr = array();
 
-        if( (!array_key_exists( 'response_status', $response_arr )
-            or $response_arr['response_status'] !== null
-            ) )
+        if( !array_key_exists( 'response_status', $response_arr )
+         or is_array( $response_arr['response_status'] ) )
         {
             if( @class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
                 $status_data = array(
@@ -573,8 +572,16 @@ class PHS_api extends PHS_api_base
                 );
             }
 
-            $response_arr['response_status'] = $status_data;
+            if( empty( $response_arr['response_status'] ) )
+                $response_arr['response_status'] = array();
+
+            $response_arr['response_status'] = self::validate_array( $response_arr['response_status'], $status_data );
         }
+
+        // Check if we should remove response_status key from response
+        if( array_key_exists( 'response_status', $response_arr )
+        and $response_arr['response_status'] === null )
+            unset( $response_arr['response_status'] );
 
         return $response_arr;
     }
