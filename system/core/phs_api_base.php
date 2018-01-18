@@ -871,6 +871,20 @@ abstract class PHS_api_base extends PHS_Registry
         return self::http_header_response( $code, $msg, $this->http_protocol() );
     }
 
+    public static function get_request_body_as_json_array()
+    {
+        static $json_arr = false;
+
+        if( $json_arr !== false )
+            return $json_arr;
+
+        if( !($request_body = PHS_api::get_php_input())
+         or !($json_arr = @json_decode( $request_body, true )) )
+            return array();
+
+        return $json_arr;
+    }
+
     public static function get_php_input()
     {
         static $input = false;
