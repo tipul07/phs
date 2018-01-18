@@ -2139,7 +2139,10 @@ final class PHS extends PHS_Registry
                     }
 
                     if( !@headers_sent() )
+                    {
+                        @header( 'HTTP/1.1 500 Application error' );
                         @header( 'Content-Type: application/json' );
+                    }
 
                     echo @json_encode( $error_arr );
 
