@@ -422,7 +422,7 @@ abstract class PHS_api_base extends PHS_Registry
         } else
         {
             if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'No PHS route matched API route.', PHS_Logger::TYPE_API );
+                PHS_Logger::logf( 'No defined API route matched request.', PHS_Logger::TYPE_API );
 
             if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
             {

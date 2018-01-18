@@ -1383,6 +1383,11 @@ final class PHS extends PHS_Registry
             return false;
         }
 
+        // Don't display technical stuff to end-user...
+        if( !PHS::st_debugging_mode()
+        and self::arr_has_error( $controller_error_arr ) )
+            $controller_error_arr = self::arr_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error serving request.' ) );
+
         if( !empty( $action_result ) and is_array( $action_result )
         and !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
             $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], array( 'trim_keys' => true ) );
