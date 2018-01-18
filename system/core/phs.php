@@ -2126,7 +2126,10 @@ final class PHS extends PHS_Registry
                     } else
                     {
                         $error_arr = array(
+                            'backtrace' => '',
                             'error_code' => -1,
+                            'error_file' => @basename( $errfile ),
+                            'error_line' => $errline,
                             'response_status' => array(
                                 'success_messages' => array(),
                                 'warning_messages' => array(),
@@ -2134,6 +2137,9 @@ final class PHS extends PHS_Registry
                             )
                         );
                     }
+
+                    if( !@headers_sent() )
+                        @header( 'Content-Type: application/json' );
 
                     echo @json_encode( $error_arr );
 
