@@ -58,8 +58,13 @@ class PHS_params
             break;
 
             case self::T_DATE:
-            case self::T_TIMESTAMP:
                 if( !empty( $val ) and @strtotime( $val ) !== false )
+                    return true;
+            break;
+
+            case self::T_TIMESTAMP:
+                if( !empty( $val )
+                and (is_numeric( $val ) or @strtotime( $val ) !== false) )
                     return true;
             break;
 
@@ -193,7 +198,16 @@ class PHS_params
                 if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
 
-                if( empty( $val ) or ($val = @strtotime( $val )) === false or $val === -1 )
+                if( empty( $val ) )
+                    $val = 0;
+
+                elseif( is_numeric( $val ) )
+                    $val = intval( $val );
+
+                elseif( ($val = @strtotime( $val )) === false or $val === -1 )
+                    $val = 0;
+
+                if( $val < 0 )
                     $val = 0;
 
                 return $val;
