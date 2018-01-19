@@ -2,14 +2,14 @@
 
 namespace phs\libraries;
 
-//! \version 1.71
+//! \version 1.80
 
 class PHS_params
 {
     const ERR_OK = 0, ERR_PARAMS = 1;
 
     const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7,
-          T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13;
+          T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13, T_TIMESTAMP = 14;
 
     const FLOAT_PRECISION = 10;
 
@@ -21,7 +21,7 @@ class PHS_params
     {
         return array(
             self::T_ASIS, self::T_INT, self::T_FLOAT, self::T_ALPHANUM, self::T_SAFEHTML, self::T_NOHTML, self::T_EMAIL,
-            self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, );
+            self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, self::T_NUMERIC_BOOL, self::T_TIMESTAMP, );
     }
 
     static function valid_type( $type )
@@ -58,6 +58,7 @@ class PHS_params
             break;
 
             case self::T_DATE:
+            case self::T_TIMESTAMP:
                 if( !empty( $val ) and @strtotime( $val ) !== false )
                     return true;
             break;
@@ -184,6 +185,16 @@ class PHS_params
                     if( !empty( $extra['format'] ) )
                         $val = @date( $extra['format'], $val );
                 }
+
+                return $val;
+            break;
+
+            case self::T_TIMESTAMP:
+                if( empty( $extra['trim_before'] ) )
+                    $val = trim( $val );
+
+                if( empty( $val ) or ($val = @strtotime( $val )) === false or $val === -1 )
+                    $val = 0;
 
                 return $val;
             break;
