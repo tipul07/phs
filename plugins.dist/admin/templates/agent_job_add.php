@@ -151,7 +151,7 @@
                     <br/><small>(JSON string - optional)</small>
                 </label>
                 <div class="lineform_line">
-                    <textarea id="params" name="params" class="form-control" style="width: 450px;height:100px;"><?php echo form_str( $this->view_var( 'params' ) )?></textarea>
+                    <textarea id="params" name="params" class="form-control" style="width: 450px;height:100px;"><?php echo textarea_str( $this->view_var( 'params' ) )?></textarea>
                 </div>
             </fieldset>
 

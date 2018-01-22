@@ -225,7 +225,7 @@
             <label for="body"><?php echo $this->_pt( 'Body' )?></label>
             <div class="lineform_line">
                 <textarea id="body" name="body" class="form-control" required="required"
-                       placeholder="<?php echo $this->_pt( 'Message body...' )?>" style="width: 560px;height:400px;"><?php echo form_str( $this->view_var( 'body' ) )?></textarea>
+                       placeholder="<?php echo $this->_pt( 'Message body...' )?>" style="width: 560px;height:400px;"><?php echo textarea_str( $this->view_var( 'body' ) )?></textarea>
             </div>
         </fieldset>
 

@@ -405,6 +405,11 @@ function form_str( $str )
     return str_replace( '"', '&quot;', $str );
 }
 
+function textarea_str( $str )
+{
+    return str_replace( array( '<', '>' ), array( '&lt;', '&gt;' ), $str );
+}
+
 function make_sure_is_filename( $str )
 {
     if( !is_string( $str ) )

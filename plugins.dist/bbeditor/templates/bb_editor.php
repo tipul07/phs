@@ -86,7 +86,7 @@ use \phs\PHS_ajax;
         ?></div><?php
     }
 ?>
-<textarea id="<?php echo $bb_editor_attributes['id']?>" name="<?php echo $bb_editor_attributes['name']?>" class="<?php echo $bb_editor_attributes['class']?>" placeholder="<?php echo form_str( $bb_editor_attributes['placeholder'] )?>" style="<?php echo $bb_editor_attributes['style']?>"><?php echo $this->view_var( 'bb_text' )?></textarea>
+<textarea id="<?php echo $bb_editor_attributes['id']?>" name="<?php echo $bb_editor_attributes['name']?>" class="<?php echo $bb_editor_attributes['class']?>" placeholder="<?php echo form_str( $bb_editor_attributes['placeholder'] )?>" style="<?php echo $bb_editor_attributes['style']?>"><?php echo textarea_str( $this->view_var( 'bb_text' ) )?></textarea>
 </div>
 <div class="clearfix"></div>
 <script type="text/javascript">
