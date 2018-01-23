@@ -5,7 +5,9 @@ namespace phs\system\core\scopes;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Hooks;
 use \phs\system\core\views\PHS_View;
+use \phs\libraries\PHS_Logger;
 
 class PHS_Scope_Web extends PHS_Scope
 {
@@ -41,6 +43,19 @@ class PHS_Scope_Web extends PHS_Scope
         {
             @header( 'Location: '.$action_result['redirect_to_url'] );
             exit;
+        }
+
+        $hook_args = PHS_Hooks::default_page_location_hook_args();
+        $hook_args['page_template'] = $action_result['page_template'];
+        $hook_args['page_template_args'] = $action_result['action_data'];
+
+        if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_WEB_TEMPLATE_RENDERING, $hook_args ))
+        and is_array( $new_hook_args ) )
+        {
+            if( !empty( $new_hook_args['new_page_template'] ) )
+                $action_result['page_template'] = $new_hook_args['new_page_template'];
+            if( isset( $new_hook_args['new_page_template_args'] ) and $new_hook_args['new_page_template_args'] !== false )
+                $action_result['action_data'] = $new_hook_args['new_page_template_args'];
         }
 
         if( empty( $action_obj )
@@ -113,7 +128,30 @@ class PHS_Scope_Web extends PHS_Scope
 
             $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title']!=''?' - ':'').PHS_SITE_NAME;
 
-            echo $view_obj->render();
+            if( ($result_buffer = $view_obj->render()) === false )
+            {
+                if( $view_obj->has_error() )
+                    $error_msg = $view_obj->get_error_message();
+                else
+                {
+                    if( !is_string( $action_result['page_template'] ) )
+                    {
+                        ob_start();
+                        var_dump( $action_result['page_template'] );
+                        $template_str = ob_get_clean();
+                    } else
+                        $template_str = $action_result['page_template'];
+
+                    $error_msg = 'Error rendering action result in template ['.$template_str.']';
+                }
+
+                PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+
+                echo self::_t( 'Error rendering page template.' );
+                exit;
+            }
+
+            echo $result_buffer;
         }
 
         return true;

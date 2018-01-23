@@ -7,6 +7,7 @@ use \phs\libraries\PHS_Signal_and_slot;
 use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Language;
+use \phs\libraries\PHS_Logger;
 
 class PHS_View extends PHS_Signal_and_slot
 {
@@ -545,7 +546,7 @@ class PHS_View extends PHS_Signal_and_slot
          or empty( $template_details['full_path'] ) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Template [%s] not found.', $this->_template ) );
+                $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Template [%s] not found, theme [%s].', $this->_template, $this->_theme ) );
             return false;
         }
 
@@ -765,7 +766,16 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         if( !$this->_get_template_path() )
+        {
+            if( self::st_debugging_mode() )
+                PHS_Logger::logf( 'Template [%s, file: %s] not found using theme [%s].',
+                    (!empty( $this->_template )?$this->_template:'N/A'),
+                    (!empty( $this->_template_file )?$this->_template_file:'N/A'),
+                    $this->get_theme(),
+                    PHS_Logger::TYPE_DEBUG );
+
             return false;
+        }
 
         $resulting_buf = '';
 

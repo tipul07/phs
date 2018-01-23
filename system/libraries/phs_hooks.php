@@ -76,6 +76,7 @@ class PHS_Hooks extends PHS_Registry
          H_USERS_AFTER_LOGIN = 'phs_users_after_login',
 
          // Layout hooks
+         H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
          H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
          H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
          H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
