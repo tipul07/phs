@@ -123,6 +123,11 @@ final class PHS_session extends PHS_Registry
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
+        if( !isset( $params['alter_globals'] ) )
+            $params['alter_globals'] = true;
+        else
+            $params['alter_globals'] = (!empty( $params['alter_globals'] )?true:false);
+
         if( !isset( $params['expire_secs'] ) )
             $params['expire_secs'] = 0;
         else
@@ -136,7 +141,19 @@ final class PHS_session extends PHS_Registry
         else
             $params['httponly'] = (!empty( $params['httponly'] )?true:false);
 
-        return @setcookie( $name, $val, time() + $params['expire_secs'], $params['path'], PHS_DOMAIN, $params['httponly'] );
+        if( $params['expire_secs'] < 0 )
+            return self::delete_cookie( $name, $params );
+
+        if( !@setcookie( $name, $val, time() + $params['expire_secs'], $params['path'], PHS_DOMAIN, $params['httponly'] ) )
+            return false;
+
+        if( !empty( $params['alter_globals'] ) )
+        {
+            $_COOKIE[$name] = $val;
+            $_REQUEST[$name] = $val;
+        }
+
+        return true;
     }
 
     public static function delete_cookie( $name, $params = false )
@@ -164,6 +181,11 @@ final class PHS_session extends PHS_Registry
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
+        if( !isset( $params['alter_globals'] ) )
+            $params['alter_globals'] = true;
+        else
+            $params['alter_globals'] = (!empty( $params['alter_globals'] )?true:false);
+
         if( !isset( $params['path'] ) )
             $params['path'] = '/';
 
@@ -172,7 +194,18 @@ final class PHS_session extends PHS_Registry
         else
             $params['httponly'] = (!empty( $params['httponly'] )?true:false);
 
-        return @setcookie( $name, '', time() - 90000, $params['path'], PHS_DOMAIN, $params['httponly'] );
+        if( !@setcookie( $name, '', time() - 90000, $params['path'], PHS_DOMAIN, $params['httponly'] ) )
+            return false;
+
+        if( !empty( $params['alter_globals'] ) )
+        {
+            if( isset( $_COOKIE[$name] ) )
+                unset( $_COOKIE[$name] );
+            if( isset( $_REQUEST[$name] ) )
+                unset( $_REQUEST[$name] );
+        }
+
+        return true;
     }
 
     public static function get_cookie( $name )
