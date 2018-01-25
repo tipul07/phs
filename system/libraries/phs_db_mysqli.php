@@ -293,7 +293,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_CONNECT,
                                  'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!=''?' (with password)':'').(!empty( $conn_settings['use_pconnect'] )?' (using permanent)':'').'.',
-                                 'cannot connect',
+                                 'Cannot connect to database server.',
                                  $connection_name );
             return false;
         }
@@ -501,7 +501,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.(is_string( $format )?htmlspecialchars( $format ):print_r( $format, true )).(is_array( $fields )?' - ['.count( $fields ).' parameters passed]':''),
-                                 'malformed query',
+                                 'Bad query format.',
                                  $connection_name );
             if( $this->close_after_query )
                 $this->close();
@@ -563,7 +563,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_CONNECT,
                 'Cannot acces <b>'.$conn_settings['database'].'</b> database with user <b>'.$conn_settings['user'].'</b>.',
-                'cannot select db.',
+                'Cannot select database.',
                 $connection_name );
             $this->close();
             return false;
@@ -577,7 +577,7 @@ class PHS_db_mysqli extends PHS_db_class
             $this->set_my_error( self::ERR_QUERY,
                                  'Error on query: '.(is_string( $query )?htmlspecialchars( $query ):print_r( $query, true ))."\n".
                                  'MySQL error: ['.@mysqli_error( $this->connection_id[$connection_name] ).']',
-                                 'query error',
+                                 'Error running query.',
                                  $connection_name );
             if( $this->close_after_query )
                 $this->close( $connection_name );
@@ -628,7 +628,7 @@ class PHS_db_mysqli extends PHS_db_class
             {
                 $this->set_my_error( self::ERR_QUERY,
                                      'Unknown stored query (with connection: <b>'.(is_string( $connection_name )?htmlspecialchars( $connection_name ):print_r( $connection_name, true )).'</b>)',
-                                     'query error',
+                                     'Query error.',
                                      $connection_name );
                 return false;
             }
@@ -642,7 +642,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Stored query not found: <b>'.(is_string( $qname )?htmlspecialchars( $qname ):print_r( $qname, true )).'</b>',
-                                 'query error',
+                                 'Query error.',
                                  $connection_name );
             return false;
         }
@@ -660,7 +660,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.@htmlspecialchars( $query_info['query'] ).(is_array( $qparams )?' - ['.count( $qparams ).' parameters passed]':''),
-                                 'malformed query',
+                                 'Bad format for query.',
                                  $connection_name );
             if( $this->close_after_query )
                 $this->close( $connection_name );
@@ -701,7 +701,7 @@ class PHS_db_mysqli extends PHS_db_class
             {
                 $this->set_my_error( self::ERR_QUERY,
                                      'Unknown stored query (with connection: <b>'.(is_string( $connection_name )?htmlspecialchars( $connection_name ):print_r( $connection_name, true )).'</b>)',
-                                     'query error',
+                                     'Query error.',
                                      $connection_name );
                 return false;
             }
@@ -715,7 +715,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Stored query not found: <b>'.(is_string( $qname )?htmlspecialchars( $qname ):print_r( $qname, true )).'</b>',
-                                 'query error',
+                                 'Query error.',
                                  $connection_name );
             return false;
         }
@@ -733,7 +733,7 @@ class PHS_db_mysqli extends PHS_db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.@htmlspecialchars( $query_info['query'] ).(is_array( $qparams )?' - ['.count( $qparams ).' parameters passed]':''),
-                                 'malformed query',
+                                 'Bad format for query.',
                                  $connection_name );
             if( $this->close_after_query )
                 $this->close();

@@ -432,6 +432,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
+        db_supress_errors( $this->get_db_connection( $flow_params ) );
         if( (self::$tables_arr === false or !empty( $force ))
         and ($qid = db_query( 'SHOW TABLES', $this->get_db_connection( $flow_params ) )) )
         {
@@ -447,6 +448,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 self::$tables_arr[$table_arr[0]][self::T_DETAILS_KEY] = $this->parse_mysql_table_details( $table_arr[0] );
             }
         }
+
+        db_restore_errors_state( $this->get_db_connection( $flow_params ) );
 
         if( is_array( self::$tables_arr )
         and array_key_exists( $flow_table_name, self::$tables_arr ) )
