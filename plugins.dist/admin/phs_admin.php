@@ -227,4 +227,18 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $hook_args;
     }
 
+    public function trigger_web_template_rendering( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_page_location_hook_args() );
+
+        if( !empty( $hook_args ) and !empty( $hook_args['page_template'] ) )
+        {
+            if( $hook_args['page_template'] == 'template_admin' )
+            {
+                PHS::set_theme( 'default' );
+            }
+        }
+
+        return $hook_args;
+    }
 }
