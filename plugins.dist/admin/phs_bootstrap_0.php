@@ -21,19 +21,23 @@ and $admin_plugin->plugin_active() )
         )
     );
 
-    // Set "default" as current theme for admin section
-    PHS::register_hook(
-        // $hook_name
-        PHS_Hooks::H_WEB_TEMPLATE_RENDERING,
-        // $hook_callback = null
-        array( $admin_plugin, 'trigger_web_template_rendering' ),
-        // $hook_extra_args = null
-        PHS_Hooks::default_page_location_hook_args(),
-        array(
-            'chained_hook' => true,
-            'stop_chain' => false,
-            'priority' => 0,
-        )
-    );
+    if( ($settings_arr = $admin_plugin->get_plugin_settings())
+    and !empty( $settings_arr['default_theme_in_admin'] ) )
+    {
+        // Set "default" as current theme for admin section
+        PHS::register_hook(
+            // $hook_name
+            PHS_Hooks::H_WEB_TEMPLATE_RENDERING,
+            // $hook_callback = null
+            array( $admin_plugin, 'trigger_web_template_rendering' ),
+            // $hook_extra_args = null
+            PHS_Hooks::default_page_location_hook_args(),
+            array(
+                'chained_hook' => true,
+                'stop_chain' => false,
+                'priority' => 0,
+            )
+        );
+    }
 
 }

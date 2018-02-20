@@ -616,7 +616,7 @@ class PHS_Paginator extends PHS_Registry
     {
         $this->reset_records();
 
-        if( empty( $records_arr ) or !is_array( $records_arr ) )
+        if( !is_array( $records_arr ) )
             return;
 
         $this->pagination_params( 'listing_records_count', count( $records_arr ) );

@@ -43,6 +43,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_settings_structure()
     {
         return array(
+            'default_theme_in_admin' => array(
+                'display_name' => $this->_pt( 'Default theme in admin' ),
+                'display_hint' => $this->_pt( 'Should framework use default theme in admin section?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
             'allow_api_calls' => array(
                 'display_name' => $this->_pt( 'Allow API calls' ),
                 'display_hint' => $this->_pt( 'Are API calls allowed to this platform?' ),

@@ -459,7 +459,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                 $debug_str = ' </br><span class="debug_str">'.$debug_data['db_queries_count'].' queries, '.
                              ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
                              ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s, '.
-                             ' peek mem: '.format_filesize( $debug_data['memory_peak'] ).
+                             ' peak mem: '.format_filesize( $debug_data['memory_peak'] ).
                              '</span>';
             }
             ?>

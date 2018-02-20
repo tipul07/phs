@@ -66,6 +66,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 return false;
         }
 
+        if( !($scope_arr = $this->_paginator->get_scope())
+         or !is_array( $scope_arr ) )
+            $scope_arr = array();
+
         if( PHS_params::_g( 'unknown_plugin', PHS_params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Plugin ID is invalid or plugin was not found.' ) );
 
@@ -75,7 +79,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             $page = 0;
 
         $count_offset = 0;
-        if( !$page )
+        if( !$page
+        and empty( $scope_arr ) )
         {
             $count_offset = 1;
             // if on first page add core as plugin on first record...
@@ -102,25 +107,24 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             $records_arr[] = $record_arr;
         }
 
+        if( !($dir_entries = $this->_paginator_model->cache_all_dir_details())
+         or !is_array( $dir_entries ) )
+            $dir_entries = array();
 
-        if( ($dir_entries = $this->_paginator_model->cache_all_dir_details())
-        and is_array( $dir_entries ) )
+        $this->_paginator->set_records_count( count( $dir_entries ) + 1 );
+
+        if( !empty( $dir_entries ) )
         {
-            $this->_paginator->set_records_count( count( $dir_entries ) + $count_offset );
-
             $offset = $this->_paginator->pagination_params( 'offset' );
             $records_per_page = $this->_paginator->pagination_params( 'records_per_page' );
-
-            if( !($scope_arr = $this->_paginator->get_scope())
-             or !is_array( $scope_arr ) )
-                $scope_arr = array();
 
             /**
              * @var string $plugin_dir
              * @var \phs\libraries\PHS_Plugin $plugin_instance
              */
-            $knti = $count_offset - 1;
+            $knti = 1; // including core...
             $on_this_page = $count_offset;
+            $add_records = true;
             foreach( $dir_entries as $plugin_dir => $plugin_instance )
             {
                 if( !($plugin_info_arr = $plugin_instance->get_plugin_info()) )
@@ -147,12 +151,12 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
                 $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
 
-                if( !empty( $scope_arr['fvendor'] )
-                and stristr( $record_arr['name'], $scope_arr['fvendor'] ) === false )
+                if( !empty( $scope_arr['fplugin'] )
+                and stristr( $record_arr['name'], $scope_arr['fplugin'] ) === false )
                     continue;
 
-                if( !empty( $scope_arr['fplugin'] )
-                and stristr( $record_arr['vendor_name'], $scope_arr['fplugin'] ) === false )
+                if( !empty( $scope_arr['fvendor'] )
+                and stristr( $record_arr['vendor_name'], $scope_arr['fvendor'] ) === false )
                     continue;
 
                 if( !empty( $scope_arr['fstatus'] )
@@ -160,16 +164,24 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     continue;
 
                 $knti++;
-                if( $on_this_page == $records_per_page )
-                    break;
 
-                if( $offset > $knti )
+                if( $on_this_page == $records_per_page )
+                {
+                    $add_records = false;
+                    continue;
+                }
+
+                if( $offset > $knti - 1 )
                     continue;
 
-                $records_arr[] = $record_arr;
-
-                $on_this_page++;
+                if( $add_records )
+                {
+                    $records_arr[] = $record_arr;
+                    $on_this_page++;
+                }
             }
+
+            $this->_paginator->set_records_count( $knti - (empty( $scope_arr )?0:1) );
         }
 
         $this->_paginator->set_records( $records_arr );
@@ -227,7 +239,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'display_name' => $this->_pt( 'Vendor' ),
                 'display_hint' => $this->_pt( 'All plugins from specified vendor' ),
                 'var_name' => 'fvendor',
-                'record_field' => 'vendor_name',
+                'record_field' => 'plugin',
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
             ),
