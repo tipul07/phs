@@ -1396,7 +1396,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
                     if( empty( $params['fields'][$field_name]['raw_field'] )
                     and array_key_exists( 'value', $params['fields'][$field_name] ) )
-                        $field_value['value'] = self::validate_field_value( $params['fields'][$field_name]['value'], $field_name, $field_details );;
+                        $field_value['value'] = self::validate_field_value( $params['fields'][$field_name]['value'], $field_name, $field_details );
                 }
 
                 $data_arr[$field_name] = $field_value;

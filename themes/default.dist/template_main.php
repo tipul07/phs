@@ -267,7 +267,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
 </div>
 <div id="container">
     <div id="menu-left-pane" class="menu-pane">
-        <div class="main-menu-pane-close-button" style="float: right; "><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
+        <div class="main-menu-pane-close-button" style="float: right;"><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
         <div class="clearfix"></div>
 
         <ul>
