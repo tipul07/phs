@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.2.3' );
+define( 'PHS_KNOWN_VERSION', '1.0.2.4' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -90,6 +90,9 @@ define( 'PHS_FRAMEWORK_LOGS_DIR', PHS_PATH.'system/logs/' );
 
 // Default framework uploads dir... (you can setup upload dir per domain in config/* files by defining PHS_UPLOADS_DIR)
 define( 'PHS_FRAMEWORK_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+
+// Default framework assets dir... (you can setup assets dir per domain in config/* files by defining PHS_ASSETS_DIR)
+define( 'PHS_FRAMEWORK_ASSETS_DIR', PHS_PATH.'assets/' );
 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
 if( !defined( 'PHS_DEFAULT_THEME' ) )

@@ -1554,7 +1554,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( !($existing_arr = $this->data_to_array( $existing_data, $params ))
          or !array_key_exists( $params['table_index'], $existing_arr ) )
         {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Exiting record not found in database.' ) );
+            $this->set_error( self::ERR_EDIT, self::_t( 'Existing record not found in database.' ) );
             return false;
         }
 
@@ -3046,7 +3046,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             } elseif( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
                   and !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
             {
-                // delete exiting extra indexes
+                // delete existing extra indexes
                 if( !$this->delete_table_extra_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
                     return false;
             } else
@@ -3071,7 +3071,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                     $this->delete_table_extra_index( $index_name, $flow_params );
                 }
 
-                // add new extra indexes after we did the diff with exiting ones...
+                // add new extra indexes after we did the diff with existing ones...
                 foreach( $table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
                 {
                     if( !empty( $current_indexes[$index_name] ) )

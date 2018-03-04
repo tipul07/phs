@@ -283,7 +283,7 @@ Couldn't parse parameters for database insert.,Impossibile analizzare i parametr
 Error validating parameters.,Errore durante la convalida dei parametri.
 Failed saving information to database.,Impossibile salvare le informazioni nel database.
 Failed actions after database insert.,Le attività sono fallite dopo l'inserimento del database.
-Exiting record not found in database.,La registrazione di uscita non è statat trovata nel database.
+Existing record not found in database.,La registrazione di uscita non è statat trovata nel database.
 Couldn't parse parameters for database edit.,Impossibile analizzare i parametri per modificare il database.
 Failed actions after database edit.,Le attività sono fallite dopo la modifica del database.
 Record doesn't have table index as key in result.,La registrazione non ha l'indice nella tabella come chiave del risultato.

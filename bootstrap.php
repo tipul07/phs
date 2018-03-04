@@ -86,6 +86,15 @@ if( !defined( 'PHS_UPLOADS_DIR' ) )
         define( 'PHS_UPLOADS_DIR', PHS_DEFAULT_UPLOADS_DIR );
 }
 
+// Assets directory
+if( !defined( 'PHS_ASSETS_DIR' ) )
+{
+    if( defined( 'PHS_FRAMEWORK_ASSETS_DIR' ) )
+        define( 'PHS_ASSETS_DIR', PHS_FRAMEWORK_ASSETS_DIR );
+    else
+        define( 'PHS_ASSETS_DIR', PHS_DEFAULT_ASSETS_DIR );
+}
+
 // Default loggin settings (change if required in main.php)
 if( !defined( 'PHS_LOGS_DIR' ) )
 {

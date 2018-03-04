@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.0.2.3';
+    return '1.0.2.4';
 }
 
 function phs_init_before_bootstrap()
@@ -57,6 +57,10 @@ function phs_init_before_bootstrap()
     // If uploads dir is not setup in main.php or config/*, default location is in _uploads/
     if( !defined( 'PHS_DEFAULT_UPLOADS_DIR' ) )
         define( 'PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+
+    // If assets dir is not setup in main.php or config/*, default location is in assets/
+    if( !defined( 'PHS_DEFAULT_ASSETS_DIR' ) )
+        define( 'PHS_DEFAULT_ASSETS_DIR', PHS_PATH.'assets/' );
 
     // Second level folders
     if( !defined( 'PHS_CORE_DIR' ) )
