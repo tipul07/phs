@@ -144,7 +144,7 @@ Send verification email,Invia E-mail di verifica
 Email is %s,L'e-mail è %s
 VERIFIED,VERIFICATO
 Title,Titolo
-"eg. Mr., Ms., Mss., etc","ad es. Sig., Sig.ra, Sig.na, ecc"
+"eg. Mr., Ms., Mrs., etc","ad es. Sig., Sig.ra, Sig.na, ecc"
 First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono

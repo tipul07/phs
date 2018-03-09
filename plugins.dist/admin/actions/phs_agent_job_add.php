@@ -105,7 +105,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
                 $job_extra_arr = array();
                 // Plugin must be empty string to tell system this is an user-defined agent job...
                 $job_extra_arr['plugin'] = '';
-                $job_extra_arr['active'] = 1;
+                $job_extra_arr['status'] = $agent_jobs_model::STATUS_ACTIVE;
                 $job_extra_arr['run_async'] = (!empty( $run_async )?1:0);
 
                 if( ($new_role = PHS_Agent::add_job( $handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr )) )

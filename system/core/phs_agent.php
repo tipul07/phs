@@ -263,11 +263,6 @@ class PHS_Agent extends PHS_Registry
         else
             $extra['run_async'] = (!empty( $extra['run_async'] )?true:false);
 
-        if( !isset( $extra['active'] ) )
-            $extra['active'] = 1;
-        else
-            $extra['active'] = (!empty( $extra['active'] )?1:0);
-
         // This tells if job was added by plugin or is an user defined job
         if( empty( $extra['plugin'] ) or !is_string( $extra['plugin'] ) )
             $extra['plugin'] = '';
@@ -283,6 +278,10 @@ class PHS_Agent extends PHS_Registry
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
             return false;
         }
+
+        if( empty( $extra['status'] )
+         or !$agent_jobs_model->valid_status( $extra['status'] ) )
+            $extra['status'] = $agent_jobs_model::STATUS_INACTIVE;
 
         if( ($existing_job = $agent_jobs_model->get_details_fields( array( 'handler' => $handler ) )) )
         {
@@ -315,7 +314,7 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['params'] = (!empty( $params )?@json_encode( $params ):null);
             $insert_arr['timed_seconds'] = $once_every_seconds;
             $insert_arr['run_async'] = ($extra['run_async']?1:0);
-            $insert_arr['status'] = ($extra['active']?$agent_jobs_model::STATUS_ACTIVE:$agent_jobs_model::STATUS_INACTIVE);
+            $insert_arr['status'] = $extra['status'];
             $insert_arr['plugin'] = $extra['plugin'];
 
             if( !($job_arr = $agent_jobs_model->insert( array( 'fields' => $insert_arr ) ))

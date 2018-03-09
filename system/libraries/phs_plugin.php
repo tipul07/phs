@@ -126,7 +126,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *      'params' => false|array( 'param1' => 'value1', 'param2' => 'value2', ... ), // any required parameters
      *      'run_async' => 1, // tells if job should run in paralel with agent_bg script or agent_bg script should
      *      'timed_seconds' => 3600, // interval in seconds. Once how many seconds should this route be executed
-     *      'active' => 1, // (0/1 tells if job is active)
      *   ),
      *   ...
      * );
@@ -653,7 +652,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'params' => null,
             'run_async' => 1,
             'timed_seconds' => 0,
-            'active' => 1,
         );
     }
 
@@ -698,6 +696,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
          or !is_array( $agent_jobs_definition ) )
             return true;
 
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
         $agent_job_structure = self::agent_job_structure();
         foreach( $agent_jobs_definition as $handle => $agent_job_arr )
         {
@@ -723,11 +728,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             else
                 $agent_job_arr['run_async'] = 1;
 
-            if( empty( $agent_job_arr['active'] ) )
-                $agent_job_arr['active'] = 0;
-            else
-                $agent_job_arr['active'] = 1;
-
             if( empty( $agent_job_arr['route'] )
              or !is_array( $agent_job_arr['route'] ) )
             {
@@ -741,7 +741,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $job_extra_arr = array();
             $job_extra_arr['title'] = $agent_job_arr['title'];
             $job_extra_arr['run_async'] = $agent_job_arr['run_async'];
-            $job_extra_arr['active'] = $agent_job_arr['active'];
+            $job_extra_arr['status'] = ($this->plugin_active()?$agent_jobs_model::STATUS_ACTIVE:$agent_jobs_model::STATUS_SUSPENDED);
             $job_extra_arr['plugin'] = $this->instance_plugin_name();
 
             if( !($role_unit = PHS_Agent::add_job( $handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr )) )

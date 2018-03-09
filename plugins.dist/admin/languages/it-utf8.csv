@@ -12,7 +12,7 @@ Email,E-mail
 Password should pass regular expresion: ,La password deve avere la seguente caratteristica :
 Password should pass regular expresion: %s.,La password deve avere la seguente caratteristica: %s.
 Title,Titolo
-"eg. Mr., Ms., Mss., etc","ad es. Sig., Sig.ra, Sig.na, ecc"
+"eg. Mr., Ms., Mrs., etc","ad es. Sig., Sig.ra, Sig.na, ecc"
 First Name,Nome
 Last Name,Cognome
 Phone Number,Numero di telefono

@@ -56,7 +56,7 @@
                 <label for="title"><?php echo $this->_pt( 'Title' )?></label>
                 <div class="lineform_line">
                 <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="max-width: 60px;" /><br/>
-                <small><?php echo $this->_pt( 'eg. Mr., Ms., Mss., etc' )?></small>
+                <small><?php echo $this->_pt( 'eg. Mr., Ms., Mrs., etc' )?></small>
                 </div>
             </fieldset>
 
