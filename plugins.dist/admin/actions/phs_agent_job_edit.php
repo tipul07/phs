@@ -89,6 +89,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             $agent_routes = array();
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
+        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $plugin = PHS_params::_p( 'plugin', PHS_params::T_NOHTML );
         $controller = PHS_params::_p( 'controller', PHS_params::T_NOHTML );
         $action = PHS_params::_p( 'action', PHS_params::T_NOHTML );
@@ -108,6 +109,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                 $action = $route_parts['action'];
             }
 
+            $title = $agent_job_arr['title'];
             $handler = $agent_job_arr['handler'];
             $params = (!empty( $agent_job_arr['params'] )?$agent_job_arr['params']:'');
             $timed_seconds = $agent_job_arr['timed_seconds'];
@@ -151,11 +153,11 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                     $params_arr = array();
 
                 $job_extra_arr = array();
-                // Plugin must be empty string to tell system this is an user-defined agent job...
+                $job_extra_arr['title'] = $title;
                 $job_extra_arr['plugin'] = $agent_job_arr['plugin'];
                 $job_extra_arr['run_async'] = (!empty( $run_async )?1:0);
 
-                if( ($new_role = PHS_Agent::add_job( $handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr )) )
+                if( ($new_agent_job = PHS_Agent::add_job( $handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr )) )
                 {
                     PHS_Notifications::add_success_notice( $this->_pt( 'Agent job details saved...' ) );
 
@@ -184,6 +186,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             'back_page' => $back_page,
             'aid' => $agent_job_arr['id'],
             'foobar' => $foobar,
+            'title' => $title,
             'plugin' => $plugin,
             'controller' => $controller,
             'action' => $action,

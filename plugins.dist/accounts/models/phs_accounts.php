@@ -1083,7 +1083,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( !empty( $params['fields']['email'] )
         and !empty( $accounts_settings['email_unique'] ) )
         {
-            $check_arr         = array();
+            $check_arr = array();
             $check_arr['email'] = $params['fields']['email'];
 
             if( $this->get_details_fields( $check_arr ) )

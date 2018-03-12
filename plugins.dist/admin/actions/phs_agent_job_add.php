@@ -60,6 +60,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
             $agent_routes = array();
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
+        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $plugin = PHS_params::_p( 'plugin', PHS_params::T_NOHTML );
         $controller = PHS_params::_p( 'controller', PHS_params::T_NOHTML );
         $action = PHS_params::_p( 'action', PHS_params::T_NOHTML );
@@ -103,6 +104,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
                     $params_arr = array();
 
                 $job_extra_arr = array();
+                $job_extra_arr['title'] = $title;
                 // Plugin must be empty string to tell system this is an user-defined agent job...
                 $job_extra_arr['plugin'] = '';
                 $job_extra_arr['status'] = $agent_jobs_model::STATUS_ACTIVE;
@@ -129,6 +131,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
 
         $data = array(
             'foobar' => $foobar,
+            'title' => $title,
             'plugin' => $plugin,
             'controller' => $controller,
             'action' => $action,

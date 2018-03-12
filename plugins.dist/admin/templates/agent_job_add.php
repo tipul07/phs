@@ -33,11 +33,21 @@
     <form id="add_agent_job_form" name="add_agent_job_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_add' ) )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
-        <div class="form_container responsive" style="width: 740px;">
+        <div class="form_container responsive" style="width: 100%;">
 
             <section class="heading-bordered">
                 <h3><?php echo $this->_pt( 'Add Agent Job' )?></h3>
             </section>
+
+            <fieldset class="form-group">
+                <label for="handler">
+                    <?php echo $this->_pt( 'Title' )?>
+                    <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'User friendly title describing this agent job.' )?>"></i>
+                </label>
+                <div class="lineform_line">
+                    <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'title' ) )?>" autocomplete="off" />
+                </div>
+            </fieldset>
 
             <fieldset class="form-group">
             <small><?php echo $this::_t( 'Only plugins, controllers and actions which support agent scope will be shown.' )?></small>
@@ -46,7 +56,7 @@
             <fieldset class="form-group">
                 <label for="plugin"><?php echo $this->_pt( 'Plugin' )?></label>
                 <div class="lineform_line">
-                <select name="plugin" id="plugin" class="chosen-select" style="width:450px;" onchange="change_plugin()">
+                <select name="plugin" id="plugin" class="chosen-select" style="width:100%;" onchange="change_plugin()">
                 <option value=""><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
                 $selected_plugin = $this->view_var( 'plugin' );
@@ -79,7 +89,7 @@
             <fieldset id="controller_container" class="form-group" style="display:<?php echo (!empty( $we_have_controller )?'block':'none')?>;">
                 <label for="controller"><?php echo $this->_pt( 'Controller' )?></label>
                 <div class="lineform_line">
-                <select name="controller" id="controller" class="chosen-select" style="width:450px;" onchange="change_controller()">
+                <select name="controller" id="controller" class="chosen-select" style="width:100%;" onchange="change_controller()">
                 <option value=""><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
                 if( !empty( $we_have_controller ) )
@@ -115,7 +125,7 @@
             <fieldset id="action_container" class="form-group" style="display:<?php echo (!empty( $we_have_action )?'block':'none')?>;">
                 <label for="action"><?php echo $this->_pt( 'Action' )?></label>
                 <div class="lineform_line">
-                <select name="action" id="action" class="chosen-select" style="width:450px;" onchange="change_action()">
+                <select name="action" id="action" class="chosen-select" style="width:100%;" onchange="change_action()">
                 <option value=""><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
                 if( !empty( $we_have_action ) )
@@ -140,7 +150,7 @@
                     <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'Handler should be unique as it will identify agent job.' )?>"></i>
                 </label>
                 <div class="lineform_line">
-                <input type="text" id="handler" name="handler" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'handler' ) )?>" style="width: 450px;" autocomplete="off" />
+                <input type="text" id="handler" name="handler" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'handler' ) )?>" autocomplete="off" />
                 </div>
             </fieldset>
 
@@ -151,7 +161,7 @@
                     <br/><small>(JSON string - optional)</small>
                 </label>
                 <div class="lineform_line">
-                    <textarea id="params" name="params" class="form-control" style="width: 450px;height:100px;"><?php echo textarea_str( $this->view_var( 'params' ) )?></textarea>
+                    <textarea id="params" name="params" class="form-control" style="height:100px;"><?php echo textarea_str( $this->view_var( 'params' ) )?></textarea>
                 </div>
             </fieldset>
 
