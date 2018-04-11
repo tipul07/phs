@@ -41,13 +41,13 @@ function phs_init_before_bootstrap()
         define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
 
     // Root folders
-    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+    if( !defined( 'PHS_SETUP_DIR' ) )
         define( 'PHS_SETUP_DIR', PHS_PATH.'_setup/' );
-    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+    if( !defined( 'PHS_CONFIG_DIR' ) )
         define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
-    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+    if( !defined( 'PHS_SYSTEM_DIR' ) )
         define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
-    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
+    if( !defined( 'PHS_PLUGINS_DIR' ) )
         define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
 
     // If logging dir is not setup in main.php or config/*, default location is in system/logs/

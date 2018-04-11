@@ -295,6 +295,52 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
+     * @return bool|array
+     */
+    final public function instance_plugin_themes_email_templates_pairs()
+    {
+        if( $this->instance_is_core()
+         or !($plugin_name = $this->instance_plugin_name())
+         or !($prefix_path = $this->instance_plugin_path())
+         or !($prefix_www = $this->instance_plugin_www()) )
+            return false;
+
+        $current_lang = PHS::get_current_language();
+
+        $pairs_arr = array();
+        if( ($theme = PHS::get_theme()) )
+        {
+            if( !empty( $current_lang )
+            and @file_exists( PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang )
+            and @is_dir( PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang ) )
+                $pairs_arr[PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/'] =
+                    PHS_THEMES_WWW.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+
+            if( @file_exists( PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS )
+            and @is_dir( PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS ) )
+                $pairs_arr[PHS_THEMES_DIR.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'] =
+                    PHS_THEMES_WWW.$theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+        }
+
+        if( ($default_theme = PHS::get_default_theme())
+        and $default_theme != $theme )
+        {
+            if( !empty( $current_lang )
+            and @file_exists( PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang )
+            and @is_dir( PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang ) )
+                $pairs_arr[PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/'] =
+                    PHS_THEMES_WWW.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+
+            if( @file_exists( PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS )
+            and @is_dir( PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS ) )
+                $pairs_arr[PHS_THEMES_DIR.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'] =
+                    PHS_THEMES_WWW.$default_theme.'/plugins/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+        }
+
+        return $pairs_arr;
+    }
+
+    /**
      * @param string $instance_type What kind of instance is this
      * @param string $instance_name Part of class name after predefined prefix (eg. phs_model_ for models, phs_controller_ for controller etc)
      * @param string|bool $plugin_name Plugin name or false meaning core class

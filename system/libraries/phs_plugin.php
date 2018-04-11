@@ -347,12 +347,19 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function email_template_resource_from_file( $file )
     {
-        return array(
+        if( !($init_arr = $this->instance_plugin_themes_email_templates_pairs()) )
+            $init_arr = array();
+
+        $template_arr = array(
             'file' => $file,
-            'extra_paths' => array(
-                PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() ),
-            ),
+            'extra_paths' => $init_arr,
         );
+
+        $template_arr['extra_paths'][] = array(
+            PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() )
+        );
+
+        return $template_arr;
     }
 
     public function template_resource_from_file( $file )
