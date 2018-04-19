@@ -332,7 +332,7 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    private function run_job( $job_data, $extra = false )
+    public function run_job( $job_data, $extra = false )
     {
         $this->reset_error();
 
@@ -366,9 +366,26 @@ class PHS_Agent extends PHS_Registry
             return false;
         }
 
+        if( empty( $extra['force_run'] )
+        and $agent_jobs_model->job_is_running( $job_arr )
+        and !$agent_jobs_model->job_is_stalling( $job_arr ) )
+        {
+            $this->set_error( self::ERR_RUN_JOB, self::_t( 'Agent job not active.' ) );
+            return false;
+        }
+
+        $run_async = false;
+        if( $agent_jobs_model->job_runs_async( $job_arr['run_async'] ) )
+            $run_async = true;
+
+        // Make sure we are not launching job from front-end...
+        if( !in_array( PHS_Scope::current_scope(), array( PHS_Scope::SCOPE_AGENT, PHS_Scope::SCOPE_BACKGROUND, ) ) )
+            $run_async = true;
+
         $cmd_extra = array();
-        $cmd_extra['async_task'] = ($job_arr['run_async']?true:false);
+        $cmd_extra['async_task'] = $run_async;
         $cmd_extra['agent_jobs_model'] = $agent_jobs_model;
+        $cmd_extra['force_run'] = $extra['force_run'];
 
         if( !($cmd_parts = $this->get_job_command( $job_arr, $cmd_extra ))
          or empty( $cmd_parts['cmd'] ) )
@@ -402,6 +419,11 @@ class PHS_Agent extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        if( empty( $extra['force_run'] ) )
+            $extra['force_run'] = false;
+        else
+            $extra['force_run'] = true;
+
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !empty( $extra['agent_jobs_model'] ) )
             $agent_jobs_model = $extra['agent_jobs_model'];
@@ -427,7 +449,7 @@ class PHS_Agent extends PHS_Registry
 
         $pub_key = microtime( true );
 
-        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.PHS_crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
+        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.PHS_crypt::quick_encode( $job_arr['id'].'::'.(!empty( $extra['force_run'] )?'1':'0').'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
 
         if( strtolower( substr( PHP_OS, 0, 3 ) ) == 'win' )
         {
@@ -581,12 +603,12 @@ class PHS_Agent extends PHS_Registry
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !($decrypted_data = PHS_crypt::quick_decode( $crypted_data ))
-         or !($decrypted_parts = explode( '::', $decrypted_data, 2 ))
-         or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] )
+         or !($decrypted_parts = explode( '::', $decrypted_data, 3 ))
+         or empty( $decrypted_parts[0] ) or !isset( $decrypted_parts[1] ) or empty( $decrypted_parts[2] )
          or !($job_id = intval( $decrypted_parts[0] ))
          or !($agent_jobs_model = PHS::load_model( 'agent_jobs' ))
          or !($job_arr = $agent_jobs_model->get_details( $job_id ))
-         or $decrypted_parts[1] != md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
+         or $decrypted_parts[2] != md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
         {
             PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_AGENT );
             return false;
@@ -595,6 +617,7 @@ class PHS_Agent extends PHS_Registry
         return array(
             'job_data' => $job_arr,
             'pub_key' => $pub_key,
+            'force_run' => (!empty( $decrypted_parts[1] )?true:false),
             'agent_jobs_model' => $agent_jobs_model,
         );
     }

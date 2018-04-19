@@ -319,6 +319,16 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return true;
     }
 
+    public function job_runs_async( $job_data )
+    {
+        if( empty( $job_data )
+         or !($job_arr = $this->data_to_array( $job_data ))
+         or empty( $job_arr['run_async'] ) )
+            return false;
+
+        return true;
+    }
+
     public function job_is_running( $job_data )
     {
         if( empty( $job_data )

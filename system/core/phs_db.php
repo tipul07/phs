@@ -11,9 +11,10 @@ final class PHS_db extends PHS_Registry
 
     const DB_DEFAULT_CONNECTION = 'db_default_connection', DB_SETTINGS = 'db_settings', DB_MYSQLI_INSTANCE = 'db_mysqli_instance';
 
-    const DB_DRIVER_MYSQLI = 'mysqli';
+    const DB_DRIVER_MYSQLI = 'mysqli';//, DB_DRIVER_MONGO = 'mongo';
     private static $KNOWN_DB_DRIVERS = array(
         self::DB_DRIVER_MYSQLI => 'MySQLi',
+        //self::DB_DRIVER_MONGO => 'Mongo',
     );
 
     private static $inited = false;

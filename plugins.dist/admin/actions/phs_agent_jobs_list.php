@@ -8,6 +8,7 @@ use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_utils;
+use phs\PHS_Agent;
 
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
 class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
@@ -159,6 +160,15 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'default' => '',
             ),
             array(
+                'display_name' => $this->_pt( 'Plugin' ),
+                'display_hint' => $this->_pt( 'All records containing this value at plugin field' ),
+                'var_name' => 'fplugin',
+                'record_field' => 'plugin',
+                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ),
+            array(
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
@@ -185,19 +195,13 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( 'Route' ),
                 'record_field' => 'route',
-                //'display_key_value' => $countries_arr,
                 'invalid_value' => $this->_pt( 'N/A' ),
+                'display_callback' => array( $this, 'display_route_column' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Plugin' ),
                 'record_field' => 'plugin',
-                //'display_key_value' => $countries_arr,
                 'invalid_value' => $this->_pt( 'N/A' ),
-            ),
-            array(
-                'column_title' => $this->_pt( 'Interval' ),
-                'record_field' => 'timed_seconds',
-                'display_callback' => array( $this, 'display_timed_seconds' ),
             ),
             array(
                 'column_title' => $this->_pt( 'Status' ),
@@ -210,6 +214,15 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             array(
                 'column_title' => $this->_pt( 'Next run' ),
                 'record_field' => 'timed_action',
+                'display_callback' => array( $this, 'display_timed_seconds' ),
+                'date_format' => 'd-m-Y H:i',
+                'invalid_value' => $this->_pt( 'Invalid' ),
+                'extra_classes' => 'date_th',
+                'extra_records_classes' => 'date',
+            ),
+            array(
+                'column_title' => $this->_pt( 'Last action' ),
+                'record_field' => 'last_action',
                 'display_callback' => array( &$this->_paginator, 'pretty_date' ),
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
@@ -231,7 +244,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'column_title' => $this->_pt( 'Actions' ),
                 'display_callback' => array( $this, 'display_actions' ),
                 'sortable' => false,
-				'extra_style' => 'width:120px;',
+				'extra_style' => 'width:150px;',
 				'extra_classes' => 'actions_th',
 				'extra_records_classes' => 'actions',
             )
@@ -492,13 +505,13 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
                  
                 if( empty( $action['action_params'] )
-                 or !($address_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate address. Agent job not found in database.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate agent job. Agent job not found in database.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->act_activate( $address_arr ) )
+                if( !$this->_paginator_model->act_activate( $agent_job_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
@@ -526,17 +539,58 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
 
                 if( empty( $action['action_params'] )
-                 or !($address_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate address. Agent job not found in database.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate agent job. Agent job not found in database.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->act_inactivate( $address_arr ) )
+                if( !$this->_paginator_model->act_inactivate( $agent_job_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
-           break;
+            break;
+
+            case 'do_manually_run':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] == 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Agent job started with success.' ) );
+                    elseif( $action['action_result'] == 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Running agent job failed. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
+                    return false;
+                }
+
+                if( !empty( $action['action_params'] ) )
+                    $action['action_params'] = intval( $action['action_params'] );
+
+                if( empty( $action['action_params'] )
+                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot run agent job. Agent job not found in database.' ) );
+                    return false;
+                }
+
+                /** @var \phs\PHS_Agent $agent_obj */
+                if( !($agent_obj = new PHS_Agent()) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot instantiate agent class.' ) );
+                    return false;
+                }
+
+                if( !$agent_obj->run_job( $agent_job_arr, array( 'force_run' => true ) ) )
+                    $action_result_params['action_result'] = 'failed';
+                else
+                    $action_result_params['action_result'] = 'success';
+            break;
 
             case 'do_delete':
                 if( !empty( $action['action_result'] ) )
@@ -560,13 +614,13 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     $action['action_params'] = intval( $action['action_params'] );
 
                 if( empty( $action['action_params'] )
-                 or !($address_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete address. Agent job not found in database.' ) );
                     return false;
                 }
 
-                if( !$this->_paginator_model->act_delete( $address_arr ) )
+                if( !$this->_paginator_model->act_delete( $agent_job_arr ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
@@ -615,6 +669,46 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
+    public function display_route_column( $params )
+    {
+        if( empty( $params )
+         or !is_array( $params )
+         or empty( $params['record'] ) or !is_array( $params['record'] )
+         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+            return false;
+
+        $paginator_obj = $this->_paginator;
+        $paginator_model = $this->_paginator_model;
+
+        if( empty( $agent_job['route'] ) )
+            $agent_job['route'] = $this->_pt( 'N/A' );
+
+        $cell_str = '';
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    $cell_str = $agent_job['route'];
+                break;
+
+                case $paginator_obj::CELL_RENDER_HTML:
+
+                    if( $paginator_model->job_is_running( $agent_job ) )
+                        $cell_str .= '<strong>'.$this->_pt( 'Running' ).'</strong>';
+
+                    if( $paginator_model->job_is_stalling( $agent_job ) )
+                        $cell_str .= ' - <span style="color:red;">'.$this->_pt( 'Stalling' ).'</span>';
+
+                    $cell_str = $agent_job['route'].($cell_str!=''?'<br/>':'').$cell_str;
+                break;
+            }
+        }
+
+        return $cell_str;
+    }
+
     public function display_timed_seconds( $params )
     {
         if( empty( $params )
@@ -625,23 +719,28 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
         $paginator_obj = $this->_paginator;
 
+        $pretty_params = array();
+        $pretty_params['date_format'] = (!empty( $params['column']['date_format'] )?$params['column']['date_format']:false);
+        $pretty_params['request_render_type'] = (!empty( $params['request_render_type'] )?$params['request_render_type']:false);
+
+        $cell_str = $this->_paginator->pretty_date_independent( $agent_job['timed_action'], $pretty_params );
+
         if( empty( $params['record']['timed_seconds'] ) )
             $params['record']['timed_seconds'] = 0;
 
         $runs_every_x_str = $this->_pt( 'Runs every %s', PHS_utils::parse_period( $params['record']['timed_seconds'] ) );
 
-        $cell_str = '';
         if( !empty( $params['request_render_type'] ) )
         {
             switch( $params['request_render_type'] )
             {
                 case $paginator_obj::CELL_RENDER_JSON:
                 case $paginator_obj::CELL_RENDER_TEXT:
-                    $cell_str = $params['record']['timed_seconds'].'s - '.$runs_every_x_str;
+                    $cell_str .= ', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
                 break;
 
                 case $paginator_obj::CELL_RENDER_HTML:
-                    $cell_str = '<span title="'.self::_e( $runs_every_x_str ).'">'.$params['record']['timed_seconds'].'s</span>';
+                    $cell_str .= '<br/><span title="'.self::_e( $runs_every_x_str ).'">'.$params['record']['timed_seconds'].'s</span>';
                 break;
             }
         }
@@ -673,6 +772,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         $job_is_active = $this->_paginator_model->job_is_active( $agent_job );
         $job_is_suspended = $this->_paginator_model->job_is_suspended( $agent_job );
 
+        $job_is_running = $this->_paginator_model->job_is_running( $agent_job );
+        $job_is_stalling = $this->_paginator_model->job_is_stalling( $agent_job );
+
         ob_start();
         if( !$job_is_suspended )
         {
@@ -690,6 +792,13 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_agent_jobs_list_inactivate( '<?php echo $agent_job['id']?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate agent job' )?>"></i></a>
+            <?php
+        }
+        if( !$job_is_running
+         or $job_is_stalling )
+        {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_manually_run( '<?php echo $agent_job['id']?>', <?php echo ($job_is_running?'true':'false')?> )"><i class="fa fa-fast-forward action-icons" <?php echo ($job_is_stalling?'style="color:red !important;"':'')?> title="<?php echo $this->_pt( 'Manually run agent job' )?>"></i></a>
             <?php
         }
 
@@ -768,6 +877,23 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 $url_params = array();
                 $url_params['action'] = array(
                     'action' => 'do_delete',
+                    'action_params' => '" + id + "',
+                )
+                ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
+            }
+        }
+        function phs_agent_jobs_list_manually_run( id, is_running )
+        {
+            var note_str = '';
+            if( is_running )
+                note_str = "\n<?php echo self::_e( 'NOTE: Job is still running! You should run this job only if you know what you\'r doing!!!', '"' )?>";
+
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to manually run this agent job?', '"' )?>" + note_str ) )
+            {
+                <?php
+                $url_params = array();
+                $url_params['action'] = array(
+                    'action' => 'do_manually_run',
                     'action_params' => '" + id + "',
                 )
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";

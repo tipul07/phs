@@ -36,6 +36,7 @@
 
     $run_job_extra = array();
     $run_job_extra['agent_jobs_model'] = (!empty( $parsed_input['agent_jobs_model'] )?$parsed_input['agent_jobs_model']:false);
+    $run_job_extra['force_run'] = (!empty( $parsed_input['force_run'] )?true:false);
 
     if( !($run_result = PHS_Agent::bg_run_job( $job_arr, $run_job_extra )) )
     {

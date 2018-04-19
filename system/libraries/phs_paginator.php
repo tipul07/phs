@@ -256,6 +256,51 @@ class PHS_Paginator extends PHS_Registry
         $this->reset_records();
     }
 
+    public function pretty_date_independent( $date, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['date_format'] ) )
+            $params['date_format'] = false;
+        if( empty( $params['request_render_type'] ) )
+            $params['request_render_type'] = false;
+
+        if( empty( $date )
+         or !($date_time = is_db_date( $date ))
+         or empty_db_date( $date ) )
+            return false;
+
+        if( !empty( $params['date_format'] ) )
+            $date_str = @date( $params['date_format'], parse_db_date( $date_time ) );
+        else
+            $date_str = $date;
+
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case self::CELL_RENDER_JSON:
+                case self::CELL_RENDER_TEXT:
+                    return $date_str;
+                    break;
+            }
+        }
+
+        // force indexes for language xgettext parser
+        self::_t( 'in %s' );
+        self::_t( '%s ago' );
+
+        if( ($seconds_ago = seconds_passed( $date_time )) < 0 )
+            // date in future
+            $lang_index = 'in %s';
+        else
+            // date in past
+            $lang_index = '%s ago';
+
+        return '<span title="'.self::_t( $lang_index, PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+    }
+
     public function pretty_date( $params )
     {
         if( !($params = self::validate_array( $params, $this->default_cell_render_call_params() ))
@@ -272,38 +317,14 @@ class PHS_Paginator extends PHS_Registry
          or !array_key_exists( $field_name, $params['record'] ) )
             return false;
 
-        if( !($date_time = is_db_date( $params['record'][$field_name] ))
-         or empty_db_date( $params['record'][$field_name] ) )
+        $pretty_params = array();
+        $pretty_params['date_format'] = (!empty( $params['column']['date_format'] )?$params['column']['date_format']:false);
+        $pretty_params['request_render_type'] = (!empty( $params['request_render_type'] )?$params['request_render_type']:false);
+
+        if( !($date_str = $this->pretty_date_independent( $params['record'][$field_name], $pretty_params )) )
             return (!empty($params['column']['invalid_value']) ? $params['column']['invalid_value'] : self::_t( 'N/A' ));
 
-        if( !empty( $params['column']['date_format'] ) )
-            $date_str = @date( $params['column']['date_format'], parse_db_date( $date_time ) );
-        else
-            $date_str = $params['record'][$field_name];
-
-        if( !empty( $params['request_render_type'] ) )
-        {
-            switch( $params['request_render_type'] )
-            {
-                case self::CELL_RENDER_JSON:
-                case self::CELL_RENDER_TEXT:
-                    return $date_str;
-                break;
-            }
-        }
-
-        // force indexes for language xgettext parser
-        self::_t( 'in %s' );
-        self::_t( '%s ago' );
-
-        if( ($seconds_ago = seconds_passed( $date_time )) < 0 )
-            // date in future
-            $lang_index = 'in %s';
-        else
-            // date in past
-            $lang_index = '%s ago';
-
-        return '<span title="'.self::_t( $lang_index, PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+        return $date_str;
     }
 
     public function get_checkbox_name_format()
@@ -438,7 +459,7 @@ class PHS_Paginator extends PHS_Registry
     }
 
     /**
-     * @param array $action array with 'action' key saying what action should be taken and 'action_params' key action parameters
+     * @param string|array|bool $action array with 'action' key saying what action should be taken and 'action_params' key action parameters
      *
      * @return array|bool Array with parameters to be passed in get for action or false if no action
      */
