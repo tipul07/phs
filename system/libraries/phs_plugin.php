@@ -355,9 +355,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'extra_paths' => $init_arr,
         );
 
-        $template_arr['extra_paths'][] = array(
-            PHS::relative_path( $this->instance_plugin_email_templates_path() ) => PHS::relative_url( $this->instance_plugin_email_templates_www() )
-        );
+        $template_arr['extra_paths'][PHS::relative_path( $this->instance_plugin_email_templates_path() )]
+            = PHS::relative_url( $this->instance_plugin_email_templates_www() );
 
         return $template_arr;
     }
