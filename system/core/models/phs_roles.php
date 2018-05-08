@@ -924,8 +924,6 @@ class PHS_Model_Roles extends PHS_Model
      * Un-links all roles from one account.
      *
      * @param array|int $account_data Account id or account array
-     * @param array $roles_arr Roles passed as slugs, id or role array
-     * @param bool|array $params Functionality parameters
      *
      * @return bool
      */
@@ -956,9 +954,7 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * Un-links roles from accounts.
      *
-     * @param array|int $account_data Account id or account array
-     * @param array $roles_arr Roles passed as slugs, id or role array
-     * @param bool|array $params Functionality parameters
+     * @param array|int $role_data Role id or role array
      *
      * @return bool
      */

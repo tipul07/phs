@@ -83,7 +83,8 @@ class PHS_Action_User_add extends PHS_Action
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
         $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
         $level = PHS_params::_p( 'level', PHS_params::T_INT );
-        $account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
+        if( !($account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) )) )
+            $account_roles_slugs = array();
         $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
         $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
         $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );

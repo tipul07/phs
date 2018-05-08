@@ -850,6 +850,12 @@ class PHS_Model_Accounts extends PHS_Model
         if( $this->is_deleted( $account_arr ) )
             return $account_arr;
 
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['unlink_roles'] ) )
+            $params['unlink_roles'] = false;
+
         $edit_arr = array();
         $edit_arr['nick'] = $account_arr['nick'].'-DELETED-'.time();
         $edit_arr['email'] = $account_arr['email'].'-DELETED-'.time();
@@ -858,7 +864,13 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params = array();
         $edit_params['fields'] = $edit_arr;
 
-        return $this->edit( $account_arr, $edit_params );
+        if( !($new_account_arr = $this->edit( $account_arr, $edit_params )) )
+            return false;
+
+        if( !empty( $params['unlink_roles'] ) )
+            PHS_Roles::unlink_all_roles_from_user( $account_arr );
+
+        return $new_account_arr;
     }
 
     public function send_confirmation_email( $account_data, $params = false )
@@ -1129,6 +1141,8 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( empty( $params['{users_details}'] ) or !is_array( $params['{users_details}'] ) )
             $params['{users_details}'] = false;
+        if( empty( $params['{account_roles}'] ) or !is_array( $params['{account_roles}'] ) )
+            $params['{account_roles}'] = false;
 
         if( empty( $params['{send_confirmation_email}'] ) )
             $params['{send_confirmation_email}'] = false;
@@ -1184,7 +1198,10 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, $hook_args ))
         and is_array( $extra_roles_arr ) and !empty( $extra_roles_arr['roles_arr'] ) )
-            $roles_arr = self::merge_array_assoc( $extra_roles_arr['roles_arr'], $roles_arr );
+            $roles_arr = self::array_merge_unique_values( $extra_roles_arr['roles_arr'], $roles_arr );
+
+        if( !empty( $params['{account_roles}'] ) and is_array( $params['{account_roles}'] ) )
+            $roles_arr = self::array_merge_unique_values( $params['{account_roles}'], $roles_arr );
 
         PHS_Roles::link_roles_to_user( $insert_arr, $roles_arr );
 

@@ -32,14 +32,14 @@
         </section>
 
         <fieldset class="form-group">
-            <label for="nick"><?php echo $this->_pt( 'Username' )?>:</label>
+            <label for="nick"><?php echo $this->_pt( 'Username' )?></label>
             <div class="lineform_line">
             <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'nick' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="pass"><?php echo $this->_pt( 'Password' )?>:</label>
+            <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
             <div class="lineform_line">
             <input type="password" id="pass" name="pass" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'pass' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
             <small><?php
@@ -67,14 +67,14 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="email"><?php echo $this->_pt( 'Email' )?>:</label>
+            <label for="email"><?php echo $this->_pt( 'Email' )?></label>
             <div class="lineform_line">
             <input type="text" id="email" name="email" class="form-control" <?php echo (!empty( $accounts_plugin_settings['email_mandatory'] )?'required="required"':'')?> value="<?php echo form_str( $this->view_var( 'email' ) )?>" style="width: 260px;" autocomplete="off" />
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="level"><?php echo $this->_pt( 'Level' )?>:</label>
+            <label for="level"><?php echo $this->_pt( 'Level' )?></label>
             <div class="lineform_line">
             <select name="level" id="level" class="chosen-select-nosearch" style="width:260px;">
                 <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
@@ -96,11 +96,12 @@
             <div class="lineform_line">
             <div id="account_current_roles"></div>
             <a href="javascript:void(0)" onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
+            <br/><small><?php echo $this->_pt( 'If no roles are provided, roles will be set depending on selected level.' )?></small>
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
+            <label for="title"><?php echo $this->_pt( 'Title' )?></label>
             <div class="lineform_line">
             <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 60px;" autocomplete="off" /><br/>
             <small><?php echo $this::_t( 'eg. Mr., Ms., Mrs., etc' )?></small>
@@ -108,28 +109,28 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="fname"><?php echo $this->_pt( 'First Name' )?>:</label>
+            <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
             <div class="lineform_line">
             <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->view_var( 'fname' ) )?>" style="width: 260px;" autocomplete="off" />
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="lname"><?php echo $this->_pt( 'Last Name' )?>:</label>
+            <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
             <div class="lineform_line">
             <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->view_var( 'lname' ) )?>" style="width: 260px;" autocomplete="off" />
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="phone"><?php echo $this->_pt( 'Phone Number' )?>:</label>
+            <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
             <div class="lineform_line">
             <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->view_var( 'phone' ) )?>" style="width: 260px;" autocomplete="off" />
             </div>
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="company"><?php echo $this->_pt( 'Company' )?>:</label>
+            <label for="company"><?php echo $this->_pt( 'Company' )?></label>
             <div class="lineform_line">
             <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->view_var( 'company' ) )?>" style="width: 260px;" autocomplete="off" />
             </div>

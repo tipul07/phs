@@ -193,6 +193,24 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
+    public static function unlink_all_roles_from_user( $account_data )
+    {
+        self::st_reset_error();
+
+        if( !self::load_dependencies() )
+            return false;
+
+        $role_model = self::$_role_model;
+
+        if( $role_model->unlink_all_roles_from_user( $account_data ) === false )
+        {
+            self::st_copy_error( $role_model );
+            return false;
+        }
+
+        return true;
+    }
+
     public static function register_role( $params )
     {
         self::st_reset_error();
