@@ -77,6 +77,7 @@ class PHS_Hooks extends PHS_Registry
 
          // Layout hooks
          H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
+         H_WEB_SUBVIEW_RENDERING = 'phs_web_subview_rendering',
          H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
          H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
          H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',

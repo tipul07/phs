@@ -8,6 +8,7 @@ use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Language;
 use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Hooks;
 
 class PHS_View extends PHS_Signal_and_slot
 {
@@ -613,11 +614,11 @@ class PHS_View extends PHS_Signal_and_slot
         return $resource;
     }
 
-    public function set_template( $template )
+    public function set_template( $template, $params = false )
     {
         $this->reset_error();
 
-        if( !($template_structure = self::validate_template_resource( $template )) )
+        if( !($template_structure = self::validate_template_resource( $template, $params )) )
         {
             $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid template structure.' ) );
             return false;
@@ -648,7 +649,8 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         $this->_template = $template_structure['file'];
-        return true;
+
+        return $template_structure;
     }
 
     public function set_theme( $theme )
@@ -670,16 +672,52 @@ class PHS_View extends PHS_Signal_and_slot
 
     public function sub_view( $template, $force_theme = false )
     {
+        $this->reset_error();
+
         $subview_obj = clone $this;
 
-        if( !empty( $force_theme ) )
-            $subview_obj->set_theme( $force_theme );
+        if( empty( $force_theme ) )
+            $view_theme = $this->get_theme();
         else
-            $subview_obj->set_theme( $this->get_theme() );
+            $view_theme = $force_theme;
+
+        if( !$subview_obj->set_theme( $view_theme ) )
+        {
+            if( $subview_obj->has_error() )
+                $this->copy_error( $subview_obj );
+            else
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error setting theme for provided sub-view.' ) );
+
+            return false;
+        }
 
         $subview_obj->set_parent_view( $this );
 
-        return $subview_obj->render( $template );
+        $template_params = array();
+        $template_params['theme'] = $view_theme;
+
+        if( !($subview_template = $subview_obj->set_template( $template, $template_params ))
+         or ($subview_buffer = $subview_obj->render( $template )) === false )
+        {
+            if( $subview_obj->has_error() )
+                $this->copy_error( $subview_obj );
+            else
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error rendering sub-view template.' ) );
+
+            return false;
+        }
+
+        $hook_args = PHS_Hooks::default_buffer_hook_args();
+        $hook_args['buffer_data'] = $subview_obj->get_full_data();
+        $hook_args['buffer'] = $subview_buffer;
+
+        if( !empty( $subview_template['file'] )
+        and ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_WEB_SUBVIEW_RENDERING.'_'.$subview_template['file'], $hook_args ))
+        and is_array( $hook_args )
+        and isset( $hook_args['buffer'] ) and is_string( $hook_args['buffer'] ) )
+            $subview_buffer = $hook_args['buffer'];
+
+        return $subview_buffer;
     }
 
     public function get_all_view_vars()

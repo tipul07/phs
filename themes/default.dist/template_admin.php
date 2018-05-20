@@ -43,64 +43,15 @@
 ?><!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>" lang="<?php echo PHS_Language::get_current_language_key( 'browser_lang' )?>">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=<?php echo PHS_Language::get_current_language_key( 'browser_charset' )?>" />
-    <meta name="HandheldFriendly"   content="true" />
-    <meta name="MobileOptimized"    content="320" />
-    <meta name="viewport"           content="user-scalable=no, width=device-width, initial-scale=1.0" />
-    <meta name="title"              content="<?php echo $action_result['page_settings']['page_title']?>" />
-    <meta name="description"        content="<?php echo $action_result['page_settings']['page_description']?>" />
-    <meta name="keywords"           content="<?php echo $action_result['page_settings']['page_keywords']?>" />
-    <meta name="copyright"          content="Copyright <?php echo date( 'Y' ).' - '.PHS_SITE_NAME?>. All Right Reserved." />
-    <meta name="author"             content="PHS Framework" />
-    <meta name="revisit-after"      content="1 days" />
+<?php
 
-    <?php
-    if( ($favicon_url = $this->get_resource_url( 'images/favicon.ico' ))
-    and ($favicon_file = $this->get_resource_path( 'images/favicon.ico' ))
-    and @file_exists( $favicon_file ) )
-    {
-        ?><link href="<?php echo $favicon_url?>" rel="shortcut icon" /><?php
-    }
+    echo $this->sub_view( 'template_admin_head_meta' );
 
-    elseif( ($favicon_url = $this->get_resource_url( 'images/favicon.png' ))
-    and ($favicon_file = $this->get_resource_path( 'images/favicon.png' ))
-    and @file_exists( $favicon_file ) )
-    {
-        ?><link href="<?php echo $favicon_url?>" rel="shortcut icon" /><?php
-    }
-    ?>
+    echo $this->sub_view( 'template_admin_head_css' );
 
-    <link href="<?php echo $this->get_resource_url( 'jquery-ui.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'jquery-ui.theme.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'jquery.checkbox.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'chosen.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'font-awesome/css/font-awesome.min.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/bootstrap.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/lightbox.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/style.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/style-colors.css' )?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo $this->get_resource_url( 'css/extra.css' )?>" rel="stylesheet" type="text/css" />
+    echo $this->sub_view( 'template_admin_head_js' );
 
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery-ui.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.validate.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jquery.checkbox.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/chosen.jquery.js' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/bootstrap.js' )?>"></script>
-
-    <script  src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
-
-    <?php
-        if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
-        and ($datepicker_lang_file = $this->get_resource_path( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))
-        and @file_exists( $datepicker_lang_file ) )
-        {
-            ?><script type="text/javascript" src="<?php echo $jq_datepicker_lang_url?>"></script><?php
-        }
-    ?>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/jsen.js.php' )?>"></script>
-    <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/base.js.php' )?>"></script>
-
+?>
     <script type="text/javascript">
         function phs_refresh_input_skins()
         {
