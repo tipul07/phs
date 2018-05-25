@@ -21,10 +21,7 @@
             $accounts_plugin_settings = array();
     }
 
-    if( !($user_logged_in = PHS::user_logged_in()) )
-        $user_logged_in = false;
-    if( !($cuser_arr = PHS::current_user()) )
-        $cuser_arr = false;
+    $cuser_arr = PHS::user_logged_in();
 
     // $action_result = $this::validate_array( $this->view_var( 'action_result' ), PHS_Action::default_action_result() );
     $action_result = $this->get_action_result();
@@ -258,7 +255,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         <ul>
         <?php
 
-        if( !empty( $user_logged_in ) )
+        if( !empty( $cuser_arr ) )
         {
             ?>
             <li class="welcome_msg"><?php echo $this::_t( 'Hello %s', $cuser_arr['nick'] ) ?></li>
@@ -276,7 +273,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
         and !empty( $hook_args['buffer'] ) )
             echo $hook_args['buffer'];
 
-        if( !empty( $user_logged_in ) )
+        if( !empty( $cuser_arr ) )
         {
             ?>
             <li><a href="<?php echo PHS::url( array(
@@ -414,7 +411,7 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
                         <li><a href="<?php echo PHS::url()?>" onfocus="this.blur();"><?php echo $this::_t( 'Home' )?></a></li>
 
                         <?php
-                        if( empty( $user_logged_in ) )
+                        if( empty( $cuser_arr ) )
                         {
                             if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT, PHS_Hooks::default_buffer_hook_args() ))
                             and is_array( $hook_args )

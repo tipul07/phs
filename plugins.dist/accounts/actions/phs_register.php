@@ -40,6 +40,14 @@ class PHS_Action_Register extends PHS_Action
             return self::default_action_result();
         }
 
+        $cuser_arr = PHS::account_structure( PHS::user_logged_in() );
+
+        if( !PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_REGISTER ) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Registration is closed for this site.' ) );
+            return self::default_action_result();
+        }
+
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
         $email = PHS_params::_pg( 'email', PHS_params::T_EMAIL );

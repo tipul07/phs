@@ -3,6 +3,7 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Roles;
 
     if( !($remember_me_session_minutes = $this->view_var( 'remember_me_session_minutes' )) )
         $remember_me_session_minutes = 0;
@@ -58,8 +59,17 @@
 
         <div class="login_form_actions">
             <a class="forgot_pass" href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this->_pt( 'Forgot password' )?></a>
-            <span class="separator">|</span>
-            <a class="register_acc" href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this->_pt( 'Register an account' )?></a>
+            <?php
+            $cuser_arr = PHS::account_structure( PHS::user_logged_in() );
+
+            if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_REGISTER ) )
+            {
+                ?>
+                <span class="separator">|</span>
+                <a class="register_acc" href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this->_pt( 'Register an account' )?></a>
+                <?php
+            }
+            ?>
         </div>
     </form>
 </div>
