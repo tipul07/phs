@@ -732,7 +732,7 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 			color: #f7cf61;
 			}
 			
-		.main-menu-pane-close-button { font-size: 1.7em;  }
+		.main-menu-pane-close-button { font-size: 1.7em; width: 100%; }
 		.main-menu-pane-close-button a { color: white; }
 		.main-menu-pane-close-button a:hover { text-decoration: none; color: white; }	
 		
