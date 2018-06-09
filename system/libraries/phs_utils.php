@@ -980,54 +980,115 @@ class PHS_utils extends PHS_Language
         return $response;
     }
 
-    static function xml_to_array( $buf, $params = false )
+    public static function xml_parse_node_attributes( $attr_str, $params = false )
     {
-        $reg_exp = "/<(\w+)[^>]*>(.*?)<\/\\1>/s";
-        preg_match_all( $reg_exp, $buf, $match );
+        if( empty( $attr_str ) or !is_string( $attr_str ) )
+            return false;
 
-        if( !is_array( $params ) )
+        if( empty( $params ) or !is_array( $params ) )
             $params = array();
-        if( !isset( $params['keys_to_lowercase'] ) )
-            $params['keys_to_lowercase'] = true;
 
-        $array = array();
-        foreach( $match[1] as $key => $val )
+        if( !isset( $params['attributes_to_lowercase'] ) )
+            $params['attributes_to_lowercase'] = false;
+
+        $reg_exp = "/(\S+)=(\"[^\"]*\"|'[^']*'|[^\s])/Um";
+        preg_match_all( $reg_exp, $attr_str, $matches, PREG_SET_ORDER );
+
+        $attrs_arr = array();
+        foreach( $matches as $match_arr )
         {
+            if( empty( $match_arr[1] ) or !isset( $match_arr[2] ) )
+                continue;
+
             if( !empty( $params['keys_to_lowercase'] ) )
-                $val = strtolower( $val );
+                $key = strtolower( $match_arr[1] );
+            else
+                $key = $match_arr[1];
 
-            if( preg_match( $reg_exp, $match[2][$key] ) )
-            {
-                if( !isset( $array[$val] ) )
-                    $array[$val] = self::xml_to_array( $match[2][$key], $params );
-
-                else
-                {
-                    if( !isset( $array[$val][0] ) or !is_array( $array[$val][0] ) )
-                    {
-                        $tmp_array = $array[$val];
-                        unset( $array[$val] );
-                        $array[$val] = array( 0 => $tmp_array );
-                    }
-
-                    $array[$val][] = self::xml_to_array( $match[2][$key], $params );
-                }
-            } else
-            {
-                if( !isset( $array[$val] ) )
-                    $array[$val] = $match[2][$key];
-
-                else
-                {
-                    if( !isset( $array[$val][0] ) or !is_array( $array[$val][0] ) )
-                        $array[$val] = array( 0 => $array[$val] );
-
-                    $array[$val][] = $match[2][$key];
-                }
-            }
+            $attrs_arr[$key] = trim( $match_arr[2], '\'"' );
         }
 
-        return $array;
+        return $attrs_arr;
+    }
+
+    public static function xml_to_array( $buf, $params = false )
+    {
+        if( empty( $buf ) )
+            return array();
+
+        //$reg_exp = "/<(\w+)[^>]*>(.*?)<\/\\1>/s";
+        $reg_exp = "/<([a-zA-Z0-9_\-]+)(\s+[^>]*|)>(.*)<\/\\1>/Usmi";
+        preg_match_all( $reg_exp, $buf, $matches, PREG_SET_ORDER );
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( !isset( $params['keys_to_lowercase'] ) )
+            $params['keys_to_lowercase'] = false;
+        if( !isset( $params['attributes_to_lowercase'] ) )
+            $params['attributes_to_lowercase'] = $params['keys_to_lowercase'];
+
+        $return_arr = false;
+        foreach( $matches as $key => $match_arr )
+        {
+            if( empty( $match_arr ) or !is_array( $match_arr )
+             or empty( $match_arr[1] ) )
+                continue;
+
+            if( !empty( $params['keys_to_lowercase'] ) )
+                $key = strtolower( $match_arr[1] );
+            else
+                $key = $match_arr[1];
+
+            $node_arr = array();
+            // check content
+            if( isset( $match_arr[3] )
+            and ($node_content = trim( $match_arr[3] )) !== '' )
+            {
+                if( !($node_arr = self::xml_to_array( trim( $match_arr[3] ) )) )
+                    $node_arr = array( '#' => $match_arr[3] );
+
+                else
+                {
+                    if( !is_array( $node_arr ) )
+                        $node_arr = array( '#' => $node_arr );
+
+                    elseif( !isset( $node_arr['#'] ) )
+                        $node_arr['#'] = '';
+                }
+            }
+
+            // check attributes
+            if( !empty( $match_arr[2] )
+            and ($attributes_arr = self::xml_parse_node_attributes( $match_arr[2] )) )
+            {
+                if( !is_array( $node_arr ) )
+                    $node_arr = array( '#' => $node_arr );
+
+                foreach( $attributes_arr as $attr_key => $attr_val )
+                {
+                    if( !empty( $params['attributes_to_lowercase'] ) )
+                        $attr_key = strtolower( $attr_key );
+
+                    $node_arr['@'.$attr_key] = $attr_val;
+                }
+            }
+
+            if( isset( $return_arr[$key] ) )
+            {
+                if( empty( $return_arr[$key][0] ) or !is_array( $return_arr[$key][0] ) )
+                    $return_arr[$key] = array( 0 => $return_arr[$key] );
+
+                $return_arr[$key][] = $node_arr;
+            } else
+                $return_arr[$key] = $node_arr;
+        }
+
+        if( $return_arr === false
+        and $buf !== '' )
+            return $buf;
+
+        return $return_arr;
     }
 
     //! Parses an array and returns XML string
