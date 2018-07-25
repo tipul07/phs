@@ -16,7 +16,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.7';
+        return '1.0.8';
     }
 
     /**
@@ -46,6 +46,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
             'default_theme_in_admin' => array(
                 'display_name' => $this->_pt( 'Default theme in admin' ),
                 'display_hint' => $this->_pt( 'Should framework use default theme in admin section?' ),
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
+            'current_theme_as_default_in_admin' => array(
+                'display_name' => $this->_pt( 'Current theme as default' ),
+                'display_hint' => $this->_pt( 'If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)' ),
                 'type' => PHS_params::T_BOOL,
                 'default' => false,
             ),
@@ -239,9 +245,15 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
         if( !empty( $hook_args ) and !empty( $hook_args['page_template'] ) )
         {
-            if( $hook_args['page_template'] == 'template_admin' )
+            if( $hook_args['page_template'] == 'template_admin'
+            and ($current_theme = PHS::get_theme()) != 'default'
+            and ($settings_arr = $this->get_plugin_settings()) )
             {
                 PHS::set_theme( 'default' );
+
+                if( !empty( $settings_arr['current_theme_as_default_in_admin'] )
+                and !empty( $current_theme ) )
+                    PHS::set_defaut_theme( $current_theme );
             }
         }
 
