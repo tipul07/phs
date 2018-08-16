@@ -51,80 +51,108 @@
     echo $this->sub_view( 'template_admin_head_js' );
 
 ?>
-    <script type="text/javascript">
-        function phs_refresh_input_skins()
-        {
-            $('input:checkbox[rel="skin_chck_big"]').checkbox({cls:'jqcheckbox-big', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-            $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-            $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-            $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
+<script type="text/javascript">
+function phs_refresh_input_skins()
+{
+    $('input:checkbox[rel="skin_chck_big"]').checkbox({cls:'jqcheckbox-big', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
+    $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
+    $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
+    $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
 
-            $(".chosen-select").chosen( { disable_search_threshold: 7 } );
-            $(".chosen-select-nosearch").chosen({disable_search: true});
-            $(".ui-button").button();
-            $("*[title]").not(".no-title-skinning").tooltip();
+    $(".chosen-select").chosen( { disable_search_threshold: 7 } );
+    $(".chosen-select-nosearch").chosen({disable_search: true});
+    $(".ui-button").button();
+    $("*[title]").not(".no-title-skinning").tooltip();
+}
+
+function ignore_hidden_required( obj )
+{
+    var form_obj = $(obj).parents('form:first');
+
+    if( form_obj && form_obj[0]
+     && typeof document.createElement( 'input' ).checkValidity == 'function'
+     && form_obj[0].checkValidity() ) {
+        return;
+    }
+
+    form_obj.find( 'input,textarea,select' ).filter('[required]:hidden').removeAttr('required');
+}
+
+$(document).ready(function(){
+
+    phs_refresh_input_skins();
+
+    $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
+
+    $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
+    $('.dismissible-close').on( 'click', function( event ){
+        $(this).parent().slideUp();
+    });
+
+    $('.submit-protection').on('click', function( event ){
+
+        ignore_hidden_required( this );
+
+        var form_obj = $(this).parents('form:first');
+
+        if( form_obj && form_obj[0]
+         && typeof document.createElement( 'input' ).checkValidity == 'function'
+         && !form_obj[0].checkValidity() ) {
+            return;
         }
 
-        $(document).ready(function(){
-            
-            phs_refresh_input_skins();
+        var msg = $( this ).data( 'protectionTitle' );
+        if( typeof msg == 'undefined' || !msg )
+            msg = '';
 
-            $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
+        show_submit_protection( msg );
+    });
 
-            $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
-            $('.dismissible-close').on( 'click', function( event ){
-                $(this).parent().slideUp();
-            });
+    $(document).on('click', '.ignore_hidden_required', function(){
 
-            $('.submit-protection').on('click', function( event ){
+        var form_obj = $(this).parents('form:first');
 
-                var form_obj = $(this).parents('form:first');
-
-                if( form_obj && form_obj[0]
-                 && typeof document.createElement( 'input' ).checkValidity == 'function'
-                 && !form_obj[0].checkValidity() ) {
-                    return;
-                }
-
-                var msg = $( this ).data( 'protectionTitle' );
-                if( typeof msg == 'undefined' || !msg )
-                    msg = '';
-
-                show_submit_protection( msg );
-            });
-        });
-    </script>
-
-    <script type="text/javascript">
-        function open_messages_summary_menu_pane()
-        {
-            close_menu_panes();
-            $('#messages-summary-container' ).fadeToggle();
+        if( form_obj && form_obj[0]
+         && typeof document.createElement( 'input' ).checkValidity == 'function'
+         && form_obj[0].checkValidity() ) {
+            return;
         }
-        function close_messages_summary_menu_pane()
-        {
-            $('#messages-summary-container' ).hide();
-        }
-        function open_login_menu_pane()
-        {
-            $('#login_popup').slideToggle();
-        }
-        function open_right_menu_pane()
-        {
-            $('#menu-right-pane' ).fadeToggle();
-            $('#menu-left-pane' ).hide();
-        }
-        function open_left_menu_pane()
-        {
-            $('#menu-right-pane' ).hide();
-            $('#menu-left-pane' ).fadeToggle();
-        }
-        function close_menu_panes()
-        {
-            $('#menu-right-pane' ).hide();
-            $('#menu-left-pane' ).hide();
-        }
-    </script>
+
+        form_obj.find( 'input,textarea,select' ).filter('[required]:hidden').removeAttr('required');
+    });
+});
+</script>
+
+<script type="text/javascript">
+function open_messages_summary_menu_pane()
+{
+    close_menu_panes();
+    $('#messages-summary-container' ).fadeToggle();
+}
+function close_messages_summary_menu_pane()
+{
+    $('#messages-summary-container' ).hide();
+}
+function open_login_menu_pane()
+{
+    $('#login_popup').slideToggle();
+}
+function open_right_menu_pane()
+{
+    $('#menu-right-pane' ).fadeToggle();
+    $('#menu-left-pane' ).hide();
+}
+function open_left_menu_pane()
+{
+    $('#menu-right-pane' ).hide();
+    $('#menu-left-pane' ).fadeToggle();
+}
+function close_menu_panes()
+{
+    $('#menu-right-pane' ).hide();
+    $('#menu-left-pane' ).hide();
+}
+</script>
 
     <title><?php echo $action_result['page_settings']['page_title']?></title>
     <?php echo $action_result['page_settings']['page_in_header']?>
