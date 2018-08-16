@@ -11,6 +11,9 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
     private $_action = false;
+    //! Tells if running controller should choose admin template if Scope should display a layout
+    /** @var bool $_is_admin_controller */
+    private $_is_admin_controller = false;
 
     public function instance_type()
     {
@@ -30,6 +33,16 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     public function allowed_scopes()
     {
         return array();
+    }
+
+    public function is_admin_controller( $is_admin = null )
+    {
+        if( $is_admin === null )
+            return $this->_is_admin_controller;
+
+        $this->_is_admin_controller = (!empty( $is_admin )?true:false);
+
+        return $this->_is_admin_controller;
     }
 
     /**
@@ -121,6 +134,13 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
             return false;
         }
+
+        // If page template is still "front-end" and controller told us it is an admin controller change page template
+        // with default admin template
+        if( $this->is_admin_controller()
+        and is_array( $action_result )
+        and !empty( $action_result['page_template'] ) and $action_result['page_template'] == 'template_main' )
+            $action_result['page_template'] = 'template_admin';
 
         return $action_result;
     }

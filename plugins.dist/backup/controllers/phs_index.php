@@ -14,6 +14,8 @@ class PHS_Controller_Index extends PHS_Controller
      */
     protected function _execute_action( $action, $plugin = null )
     {
+        $this->is_admin_controller( true );
+
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {

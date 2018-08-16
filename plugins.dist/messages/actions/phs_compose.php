@@ -267,7 +267,12 @@ class PHS_Action_Compose extends PHS_Action
 
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'compose' ), array( 'mid' => $new_message['message']['id'], 'message_queued' => 1 ) );
+                if( $this->is_admin_controller() )
+                    $redirect_path = array( 'p' => 'messages', 'c' => 'admin', 'a' => 'compose' );
+                else
+                    $redirect_path = array( 'p' => 'messages', 'a' => 'compose' );
+
+                $action_result['redirect_to_url'] = PHS::url( $redirect_path, array( 'mid' => $new_message['message']['id'], 'message_queued' => 1 ) );
 
                 return $action_result;
             } else

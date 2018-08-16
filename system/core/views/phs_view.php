@@ -262,6 +262,11 @@ class PHS_View extends PHS_Signal_and_slot
         return true;
     }
 
+    public function is_admin_controller()
+    {
+        return ($this->_controller and $this->_controller->is_admin_controller()?true:false);
+    }
+
     /**
      * @return bool|\phs\libraries\PHS_Controller Controller that "owns" this view or false if no controller
      */

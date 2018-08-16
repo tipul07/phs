@@ -1202,7 +1202,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             case self::FTYPE_SMALLINT:
             case self::FTYPE_MEDIUMINT:
             case self::FTYPE_INT:
-                $value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr );
+                if( ($value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr )) === null )
+                    $value = 0;
             break;
 
             case self::FTYPE_BIGINT:
@@ -1239,7 +1240,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
                 $phs_params_arr['digits'] = $digits;
 
-                $value = PHS_params::set_type( $value, PHS_params::T_FLOAT, $phs_params_arr );
+                if( ($value = PHS_params::set_type( $value, PHS_params::T_FLOAT, $phs_params_arr )) === null )
+                    $value = 0;
             break;
 
             case self::FTYPE_ENUM:

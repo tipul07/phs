@@ -306,4 +306,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return $this->_controller_obj;
     }
 
+    public function is_admin_controller()
+    {
+        return ($this->_controller_obj and $this->_controller_obj->is_admin_controller()?true:false);
+    }
+
 }

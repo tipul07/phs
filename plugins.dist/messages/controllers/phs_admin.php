@@ -14,6 +14,8 @@ class PHS_Controller_Admin extends PHS_Controller
      */
     protected function _execute_action( $action, $plugin = null )
     {
+        $this->is_admin_controller( true );
+
         if( !($current_user = PHS::user_logged_in()) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
