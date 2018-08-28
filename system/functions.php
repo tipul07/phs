@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.0.3.0';
+    return '1.0.3.1';
 }
 
 function phs_init_before_bootstrap()
@@ -252,6 +252,36 @@ function db_query( $query, $connection = false )
     }
 
     return $qid;
+}
+
+function db_test_connection( $connection = false )
+{
+    if( !($db_instance = PHS_db::db( $connection )) )
+    {
+        if( PHS_db::st_debugging_mode() )
+            PHS_db::st_throw_error();
+
+        elseif( PHS_DB_SILENT_ERRORS )
+            return false;
+
+        if( PHS_DB_DIE_ON_ERROR )
+            exit;
+
+        return false;
+    }
+
+    if( !$db_instance->test_connection( $connection ) )
+    {
+        if( $db_instance->display_errors() )
+        {
+            $error = $db_instance->get_error();
+            echo $error['display_error'];
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 function db_last_error( $connection = false )
