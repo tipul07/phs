@@ -43,6 +43,14 @@ class PHS_Hooks extends PHS_Registry
          // Messages hooks
          H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
          H_MSG_SINGLE_DISPLAY_TYPES_ACTIONS = 'phs_messages_single_types_actions',
+         // Alter write message form
+         H_MSG_RENDER_WRITE_FORM = 'phs_messages_render_write_form',
+         // Used before sending messages to users
+         H_MSG_BEFORE_MESSAGES = 'phs_messages_before_messages',
+         // Used after messages were sent to users
+         H_MSG_MESSAGES_SENT = 'phs_messages_messages_sent',
+         // If any plugin wants to set custom settings for current message that was written
+         H_MSG_MESSAGES_CUSTOM_SETTINGS = 'phs_messages_custom_settings',
 
          // Captcha hooks
          H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
@@ -225,6 +233,21 @@ class PHS_Hooks extends PHS_Registry
         ), self::default_common_hook_args() );
     }
 
+    public static function default_message_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            'message_data' => false,
+            'reply_message_data' => false,
+            'followup_message_data' => false,
+            'thread_message_data' => false,
+            'body_data' => false,
+            'author_data' => false,
+            'write_params' => false,
+            'custom_settings' => array(),
+            'message_results' => array(),
+        ), self::default_common_hook_args() );
+    }
+
     public static function default_single_types_actions_hook_args()
     {
         return self::validate_array_recursive( array(
@@ -312,6 +335,8 @@ class PHS_Hooks extends PHS_Registry
     public static function default_buffer_hook_args()
     {
         return self::validate_array_recursive( array(
+            // in case we are triggering this in a view which matters for requested buffer
+            'view_obj' => false,
             'concatenate_buffer' => 'buffer',
             'buffer_data' => array(),
             'buffer' => '',

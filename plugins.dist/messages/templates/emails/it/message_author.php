@@ -14,6 +14,17 @@ Ciao <?php echo $email_vars['author_nick']?>,<br/>
 <br/>
 Il <?php echo $email_vars['message_date']?> hai inviato un nuovo messaggio interno con questo oggetto "<?php echo $email_vars['message_subject']?>".<br/>
 <br/>
+<?php
+if( !empty( $email_vars['message_body'] ) )
+{
+    ?>
+    <hr width="100%" size="1" />
+    <?php echo nl2br( str_replace( '  ', ' &nbsp;', $email_vars['message_body'] ) )?>
+    <hr width="100%" size="1" />
+    <br/>
+    <?php
+}
+?>
 Per vedere questo messaggio, clicca su questo link: <a href="<?php echo $email_vars['message_link']?>"><?php echo $email_vars['message_link']?></a><br/>
 <br/>
 Hai bisogno di aiuto? <a href="<?php echo $email_vars['contact_us_link']?>">Contattaci!</a><br/>

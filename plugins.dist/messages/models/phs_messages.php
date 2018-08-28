@@ -2,6 +2,7 @@
 
 namespace phs\plugins\messages\models;
 
+use phs\libraries\PHS_line_params;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\PHS_bg_jobs;
@@ -12,6 +13,8 @@ use \phs\libraries\PHS_Logger;
 
 class PHS_Model_Messages extends PHS_Model
 {
+    const CUSTOM_SETTINGS_KEY = '{custom_settings}';
+
     const ERR_READ = 10000, ERR_WRITE = 10001;
 
     const DEST_TYPE_USERS_IDS = 1, DEST_TYPE_HANDLERS = 2, DEST_TYPE_USERS = 3, DEST_TYPE_LEVEL = 4,
@@ -51,7 +54,7 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.1.0';
     }
 
     /**
@@ -386,6 +389,9 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
+        if( ($new_message_arr = $this->populate_message_custom_settings( $message_arr )) )
+            $message_arr = $new_message_arr;
+
         $return_arr = self::default_full_message_data();
         $return_arr['message'] = $message_arr;
         $return_arr['message_user'] = $message_user_arr;
@@ -397,6 +403,41 @@ class PHS_Model_Messages extends PHS_Model
         );
 
         return $return_arr;
+    }
+
+    public function populate_message_custom_settings( $message_data )
+    {
+        if( !($msg_flow = $this->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
+         or !($message_arr = $this->data_to_array( $message_data, $msg_flow )) )
+            return false;
+
+        if( !isset( $message_arr[self::CUSTOM_SETTINGS_KEY] ) )
+        {
+            if( empty( $message_arr['custom_settings'] ) )
+                $custom_settings_arr = array();
+            else
+                $custom_settings_arr = PHS_line_params::parse_string( $message_arr['custom_settings'] );
+
+            $message_arr[self::CUSTOM_SETTINGS_KEY] = $custom_settings_arr;
+        }
+
+        return $message_arr;
+    }
+
+    public function get_message_custom_settings( $message_data, $key = false )
+    {
+        if( !($message_arr = $this->populate_message_custom_settings( $message_data )) )
+            return null;
+
+        if( $key !== false )
+        {
+            if( !isset( $message_arr[self::CUSTOM_SETTINGS_KEY][$key] ) )
+                return null;
+
+            return $message_arr[self::CUSTOM_SETTINGS_KEY][$key];
+        }
+
+        return $message_arr[self::CUSTOM_SETTINGS_KEY];
     }
 
     public function full_data_to_array( $full_message_data, $account_data = false, $params = false )
@@ -439,12 +480,17 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
+        if( ($new_message_arr = $this->populate_message_custom_settings( $message_arr )) )
+            $message_arr = $new_message_arr;
+
         $return_arr = self::default_full_message_data();
         $return_arr['message'] = $message_arr;
 
+        $accounts_model = self::$_accounts_model;
+
         $account_arr = false;
         if( !empty( $account_data )
-        and !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
+        and !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t load account data of the message.' ) );
             return false;
@@ -509,7 +555,8 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
-        if( !empty( $full_message_arr['message_user']['is_author'] ) )
+        if( empty( $full_message_arr['message_user'] )
+         or !empty( $full_message_arr['message_user']['is_author'] ) )
             return false;
 
         return $full_message_arr;
@@ -564,10 +611,28 @@ class PHS_Model_Messages extends PHS_Model
             ) )
             return false;
 
-        if( !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr ))
-         or !$this->account_is_destination( $full_message_arr, $account_arr )
+        if( !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr )) )
+        {
+            if( empty( $account_arr )
+             or !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+             or !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr, array( 'ignore_user_message' => true ) )) )
+            {
+                $this->reset_error();
+                return false;
+            }
+        }
+
+        if( empty( $full_message_arr )
          or empty( $full_message_arr['message']['from_uid'] )
          or empty( $full_message_arr['message']['can_reply'] ) )
+        {
+            $this->reset_error();
+            return false;
+        }
+
+        if( !empty( $account_arr )
+        and !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+        and !$this->account_is_destination( $full_message_arr, $account_arr ) )
         {
             $this->reset_error();
             return false;
@@ -600,9 +665,27 @@ class PHS_Model_Messages extends PHS_Model
             ) )
             return false;
 
-        if( !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr ))
-         or !$this->account_is_author( $full_message_arr, $account_arr )
+        if( !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr )) )
+        {
+            if( empty( $account_arr )
+             or !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+             or !($full_message_arr = $this->full_data_to_array( $record_data, $account_arr, array( 'ignore_user_message' => true ) )) )
+            {
+                $this->reset_error();
+                return false;
+            }
+        }
+
+        if( empty( $full_message_arr )
          or empty( $full_message_arr['message']['from_uid'] ) )
+        {
+            $this->reset_error();
+            return false;
+        }
+
+        if( !empty( $account_arr )
+        and !PHS_Roles::user_has_role_units( $account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+        and !$this->account_is_author( $full_message_arr, $account_arr ) )
         {
             $this->reset_error();
             return false;
@@ -1115,6 +1198,14 @@ class PHS_Model_Messages extends PHS_Model
         return $destination_str;
     }
 
+    public function prepare_custom_settings_arr( $settings_arr )
+    {
+        if( empty( $settings_arr ) or !is_array( $settings_arr ) )
+            $settings_arr = array();
+
+        return PHS_line_params::to_string( $settings_arr );
+    }
+
     public function write_message( $params )
     {
         $this->reset_error();
@@ -1149,6 +1240,9 @@ class PHS_Model_Messages extends PHS_Model
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a subject for this message.' ) );
             return false;
         }
+
+        if( empty( $params['custom_settings'] ) or !is_array( $params['custom_settings'] ) )
+            $params['custom_settings'] = array();
 
         if( empty( $params['reply_message'] ) )
             $params['reply_message'] = false;
@@ -1466,6 +1560,23 @@ class PHS_Model_Messages extends PHS_Model
             break;
         }
 
+        $hook_args = PHS_Hooks::default_message_hook_args();
+        $hook_args['message_data'] = $message_fields;
+        $hook_args['reply_message_data'] = $reply_message;
+        $hook_args['followup_message_data'] = $followup_message;
+        $hook_args['author_data'] = $account_arr;
+        $hook_args['write_params'] = $params;
+        $hook_args['custom_settings'] = $params['custom_settings'];
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MSG_MESSAGES_CUSTOM_SETTINGS, $hook_args ))
+        and ($hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_message_hook_args() ))
+        and !empty( $hook_args['custom_settings'] ) and is_array( $hook_args['custom_settings'] ) )
+            $message_fields['custom_settings'] = $hook_args['custom_settings'];
+        else
+            $message_fields['custom_settings'] = $params['custom_settings'];
+
+        $message_fields['custom_settings'] = $this->prepare_custom_settings_arr( $message_fields['custom_settings'] );
+
         $m_insert = $m_flow_params;
         $m_insert['fields'] = $message_fields;
 
@@ -1553,14 +1664,14 @@ class PHS_Model_Messages extends PHS_Model
         $messages_plugin = self::$_messages_plugin;
         $roles_model = self::$_roles_model;
 
-        if( !($settings_arr = $this->get_plugin_settings())
-         or !isset( $settings_arr['send_emails'] ) )
-        {
-            if( empty( $settings_arr ) or !is_array( $settings_arr ) )
-                $settings_arr = array();
 
+        if( !($settings_arr = $this->get_plugin_settings()) )
+            $settings_arr = array();
+
+        if( !isset( $settings_arr['send_emails'] ) )
             $settings_arr['send_emails'] = true;
-        }
+        if( empty( $settings_arr['include_body'] ) )
+            $settings_arr['include_body'] = false;
 
         if( !($m_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
          or !($mu_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) ))
@@ -1582,7 +1693,6 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         $author_arr = false;
-        $author_handle = '';
         if( !empty( $message_arr['from_uid'] )
         and !($author_arr = $accounts_model->get_details( $message_arr['from_uid'] )) )
         {
@@ -1594,6 +1704,20 @@ class PHS_Model_Messages extends PHS_Model
             $author_handle = '['.$this->_pt( 'Unknown author' ).']';
 
         $thread_id = $message_arr['id'];
+
+        $message_body = false;
+        if( !empty( $message_arr['body_id'] ) )
+        {
+            if( !($message_body = $this->get_details( $message_arr['body_id'], $mb_flow_params )) )
+            {
+                $this->hard_delete( $message_arr, $m_flow_params );
+
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Couldn\'t find message body in database.' ) );
+                return false;
+            }
+        }
+
+        $reply_message = false;
         if( !empty( $message_arr['reply_id'] ) )
         {
             if( !($reply_message = $this->get_details( $message_arr['reply_id'], $m_flow_params )) )
@@ -1609,6 +1733,7 @@ class PHS_Model_Messages extends PHS_Model
             $thread_id = $reply_message['thread_id'];
         }
 
+        $followup_message = false;
         if( !empty( $message_arr['followup_id'] ) )
         {
             if( !($followup_message = $this->get_details( $message_arr['followup_id'], $m_flow_params )) )
@@ -1622,6 +1747,16 @@ class PHS_Model_Messages extends PHS_Model
             }
 
             $thread_id = $followup_message['thread_id'];
+        }
+
+        $thread_message = false;
+        if( !empty( $thread_id ) )
+        {
+            if( $thread_id == $message_arr['id'] )
+                $thread_message = $message_arr;
+
+            elseif( !($thread_message = $this->get_details( $thread_id, $m_flow_params )) )
+                $thread_message = false;
         }
 
         if( !db_query( 'UPDATE `' . $this->get_flow_table_name( $m_flow_params ) . '` '.
@@ -1834,6 +1969,7 @@ class PHS_Model_Messages extends PHS_Model
                         'author_nick' => $author_arr['nick'],
                         'message_date' => $message_date,
                         'message_subject' => $message_arr['subject'],
+                        'message_body' => ((!empty( $settings_arr['include_body'] ) and !empty( $message_body ))?strip_tags( $message_body['body'] ):false),
                         'message_link' => PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $mu_details_arr['id'] ) ),
                         'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
                     );
@@ -1904,6 +2040,7 @@ class PHS_Model_Messages extends PHS_Model
                         'author_handle' => $author_handle,
                         'message_date' => $message_date,
                         'message_subject' => $message_arr['subject'],
+                        'message_body' => ((!empty( $settings_arr['include_body'] ) and !empty( $message_body ))?strip_tags( $message_body['body'] ):false),
                         'message_link' => PHS::url( array( 'p' => 'messages', 'a' => 'view_message' ), array( 'muid' => $mu_details_arr['id'] ) ),
                         'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
                     );
@@ -1937,6 +2074,18 @@ class PHS_Model_Messages extends PHS_Model
 
         $return_arr['email_sent_to_destination'] = $email_sent_to_destination;
 
+        $hook_args = PHS_Hooks::default_message_hook_args();
+        $hook_args['message_data'] = $message_arr;
+        $hook_args['reply_message_data'] = $reply_message;
+        $hook_args['followup_message_data'] = $followup_message;
+        $hook_args['thread_message_data'] = $thread_message;
+        $hook_args['body_data'] = ((!empty( $settings_arr['include_body'] ) and !empty( $message_body ))?$message_body:false);
+        $hook_args['author_data'] = $author_arr;
+        $hook_args['write_params'] = $params;
+        $hook_args['message_results'] = $return_arr;
+
+        PHS::trigger_hooks( PHS_Hooks::H_MSG_MESSAGES_SENT, $hook_args );
+
         return $return_arr;
     }
 
@@ -1964,6 +2113,8 @@ class PHS_Model_Messages extends PHS_Model
             $params['fields']['dest_id'] = 0;
         if( empty( $params['fields']['dest_str'] ) )
             $params['fields']['dest_str'] = '';
+        if( empty( $params['fields']['custom_settings'] ) )
+            $params['fields']['custom_settings'] = '';
 
         if( empty( $params['fields']['importance'] )
          or !$this->valid_importance( $params['fields']['importance'] ) )
@@ -2154,6 +2305,12 @@ class PHS_Model_Messages extends PHS_Model
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
                         'comment' => 'User can reply to this message',
+                    ),
+                    'custom_settings' => array(
+                        'type' => self::FTYPE_TEXT,
+                        'nullable' => true,
+                        'default' => null,
+                        'comment' => 'Other plugins settings'
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,

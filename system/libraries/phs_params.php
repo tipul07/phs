@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-//! \version 1.80
+//! \version 1.81
 
 class PHS_params
 {
@@ -244,10 +244,12 @@ class PHS_params
 
     static function _gp( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( isset( $_GET[$v] ) )
-            $var = $_GET[$v];
-        elseif( isset( $_POST[$v] ) )
+        if( !empty( $_POST )
+        and isset( $_POST[$v] ) )
             $var = $_POST[$v];
+        elseif( !empty( $_GET )
+            and isset( $_GET[$v] ) )
+            $var = $_GET[$v];
         else
             return null;
 
@@ -256,9 +258,11 @@ class PHS_params
 
     static function _pg( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( isset( $_POST[$v] ) )
+        if( !empty( $_POST )
+        and isset( $_POST[$v] ) )
             $var = $_POST[$v];
-        elseif( isset( $_GET[$v] ) )
+        elseif( !empty( $_GET )
+            and isset( $_GET[$v] ) )
             $var = $_GET[$v];
         else
             return null;
@@ -277,35 +281,35 @@ class PHS_params
             switch( $from[0] )
             {
                 case 'g':
-                    if( isset( $_GET[$v] ) )
+                    if( !empty( $_GET ) and isset( $_GET[$v] ) )
                         return self::_g( $v, $type, $extra );
                 break;
                 case 'p':
-                    if( isset( $_POST[$v] ) )
+                    if( !empty( $_POST ) and isset( $_POST[$v] ) )
                         return self::_p( $v, $type, $extra );
                 break;
                 case 's':
-                    if( isset( $_SESSION[$v] ) )
+                    if( !empty( $_SESSION ) and isset( $_SESSION[$v] ) )
                         return self::_s( $v, $type, $extra );
                 break;
                 case 'f':
-                    if( isset( $_FILES[$v] ) )
+                    if( !empty( $_FILES ) and isset( $_FILES[$v] ) )
                         return self::_f( $v );
                 break;
                 case 'c':
-                    if( isset( $_COOKIE[$v] ) )
+                    if( !empty( $_COOKIE ) and isset( $_COOKIE[$v] ) )
                         return self::_c( $v, $type, $extra );
                 break;
                 case 'r':
-                    if( isset( $_REQUEST[$v] ) )
+                    if( !empty( $_REQUEST ) and isset( $_REQUEST[$v] ) )
                         return self::_r( $v, $type, $extra );
                 break;
                 case 'e':
-                    if( isset( $_ENV[$v] ) )
+                    if( !empty( $_ENV ) and isset( $_ENV[$v] ) )
                         return self::_e( $v, $type, $extra );
                 break;
                 case 'v':
-                    if( isset( $_SERVER[$v] ) )
+                    if( !empty( $_SERVER ) and isset( $_SERVER[$v] ) )
                         return self::_v( $v, $type, $extra );
                 break;
             }
@@ -318,7 +322,8 @@ class PHS_params
 
     static function _g( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( !isset( $_GET[$v] ) )
+        if( empty( $_GET )
+         or !isset( $_GET[$v] ) )
             return null;
 
         return self::set_type( $_GET[$v], $type, $extra );
@@ -326,7 +331,8 @@ class PHS_params
 
     static function _p( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( !isset( $_POST[$v] ) )
+        if( empty( $_POST )
+         or !isset( $_POST[$v] ) )
             return null;
 
         return self::set_type( $_POST[$v], $type, $extra );
@@ -339,7 +345,8 @@ class PHS_params
      */
     static function _f( $v )
     {
-        if( !isset( $_FILES[$v] ) or $_FILES[$v]['name'] == '' )
+        if( empty( $_FILES )
+         or !isset( $_FILES[$v] ) or $_FILES[$v]['name'] == '' )
             return null;
 
         return $_FILES[$v];

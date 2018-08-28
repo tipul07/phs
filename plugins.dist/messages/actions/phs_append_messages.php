@@ -89,8 +89,7 @@ class PHS_Action_Append_messages extends PHS_Action
 
         if( empty( $muid )
          or !($user_message = $messages_model->get_details( $muid, $mu_flow_params ))
-         or empty( $user_message['message_id'] )
-         or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user )) )
+         or empty( $user_message['message_id'] ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load message details.' ) );
 
@@ -99,6 +98,24 @@ class PHS_Action_Append_messages extends PHS_Action
             //$action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'unknown_message' => 1 ) );
 
             return $action_result;
+        }
+
+        if( !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user )) )
+        {
+            if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_VIEW_ALL_MESSAGES )
+             or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user, array( 'ignore_user_message' => true ) )) )
+            {
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load message details.' ) );
+
+                $action_result = self::default_action_result();
+
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'unknown_message' => 1 ) );
+
+                return $action_result;
+            }
+
+            if( empty( $message_arr['message_user'] ) )
+                $message_arr['message_user'] = $user_message;
         }
 
         if( empty( $message_arr['message']['thread_id'] )
@@ -153,6 +170,7 @@ class PHS_Action_Append_messages extends PHS_Action
                     $author_handle = '['.$this->_pt( 'Unknown author' ).']';
 
                 $data = array(
+                    'muid' => $muid,
                     'message_arr' => $message_arr,
                     'author_handle' => $author_handle,
 

@@ -27,14 +27,16 @@ class PHS_Plugin_Messages extends PHS_Plugin
           ROLEU_WRITE_MESSAGE = 'phs_messages_write',
           ROLEU_HANDLER_CHANGE = 'phs_messages_handler_change', ROLEU_HANDLER_AUTOCOMPLETE = 'phs_messages_handler_autocomplete',
           ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous',
-          ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt';
+          ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt',
+          ROLEU_SET_TYPE_IN_COMPOSE = 'phs_messages_type_in_compose',
+          ROLEU_VIEW_ALL_MESSAGES = 'phs_messages_view_all_messages', ROLEU_CAN_REPLY_TO_ALL = 'phs_messages_can_reply_to_all';
 
     /**
      * @return string Returns version of model
      */
     public function get_plugin_version()
     {
-        return '1.0.2';
+        return '1.1.0';
     }
 
     /**
@@ -180,6 +182,12 @@ class PHS_Plugin_Messages extends PHS_Plugin
                 'type' => PHS_params::T_BOOL,
                 'default' => true,
             ),
+            'include_body' => array(
+                'display_name' => 'Body message in email',
+                'display_hint' => 'When sending email alert, also include body of the message in the email',
+                'type' => PHS_params::T_BOOL,
+                'default' => false,
+            ),
         );
     }
 
@@ -249,6 +257,18 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SEND_ANONYMOUS] = array(
             'name' => 'Send as anonymous',
             'description' => 'Allow user to send messages with no option to see who wrote them (will appear as system messages)',
+        );
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SET_TYPE_IN_COMPOSE] = array(
+            'name' => 'Message type in compose',
+            'description' => 'Allow user to change message type as parameter in compose form (for special messages)',
+        );
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_VIEW_ALL_MESSAGES] = array(
+            'name' => 'View all messages',
+            'description' => 'Allow user to view all messages (not only threads user is involved in)',
+        );
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_CAN_REPLY_TO_ALL] = array(
+            'name' => 'Reply to all messages',
+            'description' => 'Allow user to reply to all messages (not only threads user is involved in)',
         );
 
         return $return_arr;

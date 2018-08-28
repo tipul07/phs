@@ -1719,6 +1719,10 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $params['extra_sql'] = '';
         if( empty( $params['order_by'] ) )
             $params['order_by'] = '';
+        if( !isset( $params['return_query_string'] ) )
+            $params['return_query_string'] = false;
+        else
+            $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
 
         if( !isset( $params['limit'] )
          or $params['result_type'] == 'single' )
@@ -1736,16 +1740,26 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         $db_connection = $this->get_db_connection( $params );
 
-        if( !($params = $this->get_query_fields( $params ))
-         or !($qid = db_query( 'SELECT '.$params['details'].
-                               ' FROM '.$this->get_flow_table_name( $params ).
-                               ' WHERE '.$params['extra_sql'].
-                               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-                               (isset( $params['limit'] )?' LIMIT 0, '.$params['limit']:''), $db_connection ))
-         or !($item_count = db_num_rows( $qid, $db_connection )) )
+        if( !($params = $this->get_query_fields( $params )) )
+            return false;
+
+        $sql = 'SELECT '.$params['details'].
+               ' FROM '.$this->get_flow_table_name( $params ).
+               ' WHERE '.$params['extra_sql'].
+               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
+               (isset( $params['limit'] )?' LIMIT 0, '.$params['limit']:'');
+
+        $qid = false;
+        $item_count = 0;
+
+        if( empty( $params['return_query_string'] )
+        and (!($qid = db_query( $sql, $db_connection ))
+                or !($item_count = db_num_rows( $qid, $db_connection ))
+            ) )
             return false;
 
         $return_arr = array();
+        $return_arr['query'] = $sql;
         $return_arr['params'] = $params;
         $return_arr['qid'] = $qid;
         $return_arr['item_count'] = $item_count;
@@ -1763,8 +1777,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     {
         if( !($params = $this->fetch_default_flow_params( $params ))
          or !($common_arr = $this->get_details_common( $constrain_arr, $params ))
-         or !is_array( $common_arr ) or empty( $common_arr['qid'] ) )
+         or !is_array( $common_arr )
+         or (empty( $params['return_query_string'] ) and empty( $common_arr['qid'] )) )
             return false;
+
+        if( !empty( $params['return_query_string'] ) )
+            return $common_arr;
 
         if( !empty( $common_arr['params'] ) )
             $params = $common_arr['params'];
@@ -1957,21 +1975,36 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( empty( $params['extra_sql'] ) )
             $params['extra_sql'] = '';
 
+        if( !isset( $params['return_query_string'] ) )
+            $params['return_query_string'] = false;
+        else
+            $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
+
         $db_connection = $this->get_db_connection( $params );
 
         $distinct_str = '';
         if( $params['count_field'] != '*' )
             $distinct_str = 'DISTINCT ';
 
+        $sql = 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '.
+               ' FROM `'.$this->get_flow_table_name( $params ).'` '.
+               $params['join_sql'].
+               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
+               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
+               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'');
+
+        if( !empty( $params['return_query_string'] ) )
+        {
+            $return_arr = array();
+            $return_arr['query'] = $sql;
+            $return_arr['params'] = $params;
+
+            return $return_arr;
+        }
+
         $ret = 0;
-        if( ($qid = db_query( 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '.
-                              ' FROM `'.$this->get_flow_table_name( $params ).'` '.
-                              $params['join_sql'].
-                              (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
-                              (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
-                              (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:''), $db_connection
-            ))
-            and ($result = db_fetch_assoc( $qid, $db_connection )) )
+        if( ($qid = db_query( $sql, $db_connection ))
+        and ($result = db_fetch_assoc( $qid, $db_connection )) )
         {
             $ret = $result['total_enregs'];
         }
@@ -2014,6 +2047,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $db_connection = $this->get_db_connection( $params );
         $full_table_name = $this->get_flow_table_name( $params );
 
+        if( !isset( $params['return_query_string'] ) )
+            $params['return_query_string'] = false;
+        else
+            $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
+
         // Field which will be used as key in result array (be sure is unique)
         if( empty( $params['arr_index_field'] ) )
             $params['arr_index_field'] = $params['table_index'];
@@ -2027,20 +2065,29 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
         if( ($params = $this->get_count_list_common_params( $params )) === false
          or ($params = $this->get_list_prepare_params( $params )) === false
-         or ($params = $this->get_query_fields( $params )) === false
-         or !($qid = db_query( 'SELECT '.$params['db_fields'].' '.
-                              ' FROM `'.$full_table_name.'` '.
-                              $params['join_sql'].
-                              (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
-                              (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
-                              (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
-                              (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-                              ' LIMIT '.$params['offset'].', '.$params['enregs_no'], $db_connection
-                ))
-        or !($rows_number = db_num_rows( $qid, $db_connection )) )
+         or ($params = $this->get_query_fields( $params )) === false )
+            return false;
+
+        $sql = 'SELECT '.$params['db_fields'].' '.
+               ' FROM `'.$full_table_name.'` '.
+               $params['join_sql'].
+               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
+               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
+               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
+               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
+               ' LIMIT '.$params['offset'].', '.$params['enregs_no'];
+
+        $qid = false;
+        $rows_number = 0;
+
+        if( empty( $params['return_query_string'] )
+        and (!($qid = db_query( $sql, $db_connection ))
+                or !($rows_number = db_num_rows( $qid, $db_connection ))
+            ) )
             return false;
 
         $return_arr = array();
+        $return_arr['query'] = $sql;
         $return_arr['params'] = $params;
         $return_arr['qid'] = $qid;
         $return_arr['item_count'] = $rows_number;
@@ -2053,8 +2100,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $this->reset_error();
 
         if( !($common_arr = $this->get_list_common( $params ))
-         or !is_array( $common_arr ) or empty( $common_arr['qid'] ) )
+         or !is_array( $common_arr ) or empty( $common_arr['qid'] )
+         or (empty( $params['return_query_string'] ) and empty( $common_arr['qid'] )) )
             return false;
+
+        if( !empty( $params['return_query_string'] ) )
+            return $common_arr;
 
         if( !empty( $params['get_query_id'] ) )
             return $common_arr['qid'];

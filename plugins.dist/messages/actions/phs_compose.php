@@ -80,10 +80,21 @@ class PHS_Action_Compose extends PHS_Action
 
         if( !empty( $reply_to_muid ) and empty( $reply_message ) )
         {
-            if( !($reply_user_message = $messages_model->data_to_array( $reply_to_muid, $mu_flow_params ))
-             or empty( $reply_user_message['message_id'] )
-             or !($reply_message = $messages_model->full_data_to_array( $reply_user_message['message_id'], $current_user )) )
+            if( !($reply_user_message = $messages_model->get_details( $reply_to_muid, $mu_flow_params ))
+             or empty( $reply_user_message['message_id'] ) )
                 $reply_message = false;
+
+            elseif( !($reply_message = $messages_model->full_data_to_array( $reply_user_message['message_id'], $current_user )) )
+            {
+                if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+                 or !($reply_message = $messages_model->full_data_to_array( $reply_user_message['message_id'], $current_user, array( 'ignore_user_message' => true ) )) )
+                    $reply_message = false;
+            }
+
+            if( !empty( $reply_message )
+            and !empty( $reply_user_message )
+            and empty( $reply_message['message_user'] ) )
+                $reply_message['message_user'] = $reply_user_message;
         }
 
         if( !empty( $reply_message )
@@ -101,10 +112,21 @@ class PHS_Action_Compose extends PHS_Action
 
         if( !empty( $follow_up_muid ) and empty( $followup_message ) )
         {
-            if( !($followup_user_message = $messages_model->data_to_array( $follow_up_muid, $mu_flow_params ))
-             or empty( $followup_user_message['message_id'] )
-             or !($followup_message = $messages_model->full_data_to_array( $followup_user_message['message_id'], $current_user )) )
+            if( !($followup_user_message = $messages_model->get_details( $follow_up_muid, $mu_flow_params ))
+             or empty( $followup_user_message['message_id'] ) )
                 $followup_message = false;
+
+            elseif( !($followup_message = $messages_model->full_data_to_array( $followup_user_message['message_id'], $current_user )) )
+            {
+                if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL )
+                 or !($followup_message = $messages_model->full_data_to_array( $followup_user_message['message_id'], $current_user, array( 'ignore_user_message' => true ) )) )
+                    $followup_message = false;
+            }
+
+            if( !empty( $followup_message )
+            and !empty( $followup_user_message )
+            and empty( $followup_message['message_user'] ) )
+                $followup_message['message_user'] = $followup_user_message;
         }
 
         if( !empty( $followup_message )
@@ -146,6 +168,20 @@ class PHS_Action_Compose extends PHS_Action
         $cannot_reply = PHS_params::_pg( 'cannot_reply', PHS_params::T_INT );
         $do_submit = PHS_params::_p( 'do_submit' );
 
+        $msg_type = false;
+        $msg_type_id = false;
+        if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE ) )
+        {
+            $msg_type = PHS_params::_gp( 'msg_type', PHS_params::T_NOHTML );
+            $msg_type_id = PHS_params::_gp( 'msg_type_id', PHS_params::T_INT );
+
+            if( !$messages_model->valid_type( $msg_type ) )
+            {
+                $msg_type = false;
+                $msg_type_id = false;
+            }
+        }
+
         if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION ) )
             $cannot_reply = 0;
 
@@ -172,12 +208,13 @@ class PHS_Action_Compose extends PHS_Action
                     $appending_handlers = '';
                     if( !empty( $reply_to_all )
                     and $reply_message['message']['dest_type'] == $messages_model::DEST_TYPE_HANDLERS
-                    and ($handlers_parts = self::extract_strings_from_comma_separated( $reply_message['message']['dest_str'] ))
+                    and ($handlers_parts = self::extract_strings_from_comma_separated( $reply_message['message']['dest_str'], array( 'trim_parts' => true ) ))
                     and ($current_user_handler = $messages_model->get_account_message_handler( $current_user )) )
                     {
+                        $current_user_handler_lower = strtolower( trim( $current_user_handler ) );
                         foreach( $handlers_parts as $user_handle )
                         {
-                            if( $current_user_handler == $user_handle )
+                            if( $current_user_handler_lower == strtolower( $user_handle ) )
                                 continue;
 
                             $appending_handlers .= ($appending_handlers!=''?', ':'').$user_handle;
@@ -191,7 +228,7 @@ class PHS_Action_Compose extends PHS_Action
                 $subject = $reply_message['message']['subject'];
 
                 $re_str = $this->_pt( 'Re: ' );
-                if( strtolower( substr( $subject, 0, 4 ) ) != strtolower( $re_str ) )
+                if( strtolower( substr( $subject, 0, strlen( $re_str ) ) ) != strtolower( $re_str ) )
                     $subject = $re_str.$subject;
             }
         }
@@ -260,6 +297,12 @@ class PHS_Action_Compose extends PHS_Action
             $message_params['dest_type_role'] = $dest_type_role;
             $message_params['dest_type_role_unit'] = $dest_type_role_unit;
             $message_params['can_reply'] = ($cannot_reply?0:1);
+            if( $msg_type !== false
+            and PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE ) )
+            {
+                $message_params['type'] = $msg_type;
+                $message_params['type_id'] = $msg_type_id;
+            }
 
             if( ($new_message = $messages_model->write_message( $message_params )) )
             {
@@ -292,6 +335,9 @@ class PHS_Action_Compose extends PHS_Action
             'followup_message' => $followup_message,
             'follow_up' => $follow_up,
             'follow_up_muid' => $follow_up_muid,
+
+            'msg_type' => $msg_type,
+            'msg_type_id' => $msg_type_id,
 
             'subject' => $subject,
             'dest_type' => $dest_type,

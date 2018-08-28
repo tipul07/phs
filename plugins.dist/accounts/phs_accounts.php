@@ -31,7 +31,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -654,11 +654,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API
         and ($api_obj = PHS_api::global_api_instance()) )
         {
+            $online_db_details = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+
             if( !($account_id = $api_obj->api_user_account_id())
              or !($user_db_details = $accounts_model->get_details( $account_id ))
              or !$accounts_model->is_active( $user_db_details ) )
             {
-                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['session_db_data'] = $online_db_details;
                 $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
                 return $hook_args;

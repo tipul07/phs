@@ -45,6 +45,7 @@ class PHS_Action_View_message extends PHS_Action
 
         /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
         if( !($messages_model = PHS::load_model( 'messages', 'messages' ))
+         or !($m_flow_params = $messages_model->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
          or !($mu_flow_params = $messages_model->fetch_default_flow_params( array( 'table_name' => 'messages_users' ) )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load messages model.' ) );
@@ -65,12 +66,29 @@ class PHS_Action_View_message extends PHS_Action
             return self::default_action_result();
         }
 
+        $mid = PHS_params::_g( 'mid', PHS_params::T_INT );
         $muid = PHS_params::_g( 'muid', PHS_params::T_INT );
 
-        if( empty( $muid )
-         or !($user_message = $messages_model->data_to_array( $muid, $mu_flow_params ))
-         or empty( $user_message['message_id'] )
-         or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user )) )
+        $user_message = false;
+        if( !empty( $mid ) and empty( $muid )
+        and ($top_message_arr = $messages_model->get_details( $mid, $m_flow_params )) )
+        {
+            $params_arr = array();
+            $params_arr['order_by'] = ' (user_id = \''.$current_user['id'].'\') DESC, cdate DESC';
+
+            $constrain_arr = array();
+            $constrain_arr['message_id'] = $mid;
+
+            if( !($user_message = $messages_model->get_details_fields( $constrain_arr, $params_arr ))
+             or empty( $user_message['message_id'] ) )
+                $user_message = false;
+        }
+
+        if( empty( $user_message )
+        and (empty( $muid )
+            or !($user_message = $messages_model->data_to_array( $muid, $mu_flow_params ))
+            or empty( $user_message['message_id'] )
+            ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load message details.' ) );
 
@@ -79,6 +97,24 @@ class PHS_Action_View_message extends PHS_Action
             $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'unknown_message' => 1 ) );
 
             return $action_result;
+        }
+
+        if( !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user )) )
+        {
+            if( !PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_VIEW_ALL_MESSAGES )
+             or !($message_arr = $messages_model->full_data_to_array( $user_message['message_id'], $current_user, array( 'ignore_user_message' => true ) )) )
+            {
+                PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load message details.' ) );
+
+                $action_result = self::default_action_result();
+
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'unknown_message' => 1 ) );
+
+                return $action_result;
+            }
+
+            if( empty( $message_arr['message_user'] ) )
+                $message_arr['message_user'] = $user_message;
         }
 
         if( $message_arr['message']['thread_id'] == $message_arr['message']['id'] )
@@ -112,6 +148,7 @@ class PHS_Action_View_message extends PHS_Action
             $author_handle = '['.$this->_pt( 'Unknown author' ).']';
 
         $data = array(
+            'muid' => $muid,
             'thread_arr' => $thread_arr,
             'message_arr' => $message_arr,
             'author_handle' => $author_handle,

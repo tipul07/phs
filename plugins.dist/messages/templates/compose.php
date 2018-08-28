@@ -3,6 +3,7 @@
 
     use \phs\PHS;
     use \phs\libraries\PHS_Roles;
+    use \phs\libraries\PHS_Hooks;
 
     if( !($dest_types = $this->view_var( 'dest_types' )) )
         $dest_types = array();
@@ -57,9 +58,28 @@
     else
         $compose_path = array( 'p' => 'messages', 'a' => 'compose' );
 
+    $msg_type = false;
+    $msg_type_id = false;
+    if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE ) )
+    {
+        if( !($msg_type = $this->view_var( 'msg_type' )) )
+            $msg_type = false;
+        if( !($msg_type_id = $this->view_var( 'msg_type_id' )) )
+            $msg_type_id = false;
+    }
+
 ?>
 <form id="compose_message_form" name="compose_message_form" action="<?php echo PHS::url( $compose_path, $url_args_arr )?>" method="post">
     <input type="hidden" name="foobar" value="1" />
+    <?php
+    if( $msg_type !== false )
+    {
+        ?>
+        <input type="hidden" name="msg_type" value="<?php echo form_str( $msg_type )?>" />
+        <input type="hidden" name="msg_type_id" value="<?php echo form_str( $msg_type_id )?>" />
+        <?php
+    }
+    ?>
 
     <div class="form_container">
 
@@ -224,6 +244,15 @@
         </fieldset>
         <?php
         }
+
+        $hook_args = PHS_Hooks::default_buffer_hook_args();
+        $hook_args['view_obj'] = $this;
+        $hook_args['buffer_data'] = $this->get_all_view_vars();
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_MSG_RENDER_WRITE_FORM, $hook_args ))
+        and is_array( $hook_args )
+        and !empty( $hook_args['buffer'] ) )
+            echo $hook_args['buffer'];
         ?>
 
         <fieldset class="form-group">

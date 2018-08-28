@@ -31,6 +31,11 @@
     if( !($roles_units_arr = $this->view_var( 'roles_units_arr' )) )
         $roles_units_arr = array();
 
+    if( !empty( $message_arr['message_user']['id'] ) )
+        $muid = $message_arr['message_user']['id'];
+    elseif( !($muid = $this->view_var( 'muid' )) )
+        $muid = 0;
+
     $messages_before = 0;
     $messages_before_new = 0;
     $messages_after = 0;
@@ -155,7 +160,7 @@ function _load_messages( html_container, location, offset )
     var ajax_params = {
         cache_response: false,
         method: 'post',
-        url_data: { muid: '<?php echo $message_arr['message_user']['id']?>', location: location, max_messages: max_messages, offset: offset },
+        url_data: { muid: '<?php echo $muid?>', location: location, max_messages: max_messages, offset: offset },
         data_type: 'json',
 
         onsuccess: function( response, status, ajax_obj ) {
