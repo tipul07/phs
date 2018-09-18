@@ -3,10 +3,11 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\libraries\PHS_utils;
 
 class PHS_po_format extends PHS_Registry
 {
-    const ERR_PO_FILE = 1, ERR_INPUT_BUFFER = 2, ERR_LANGUAGE_FILE = 3;
+    const ERR_PO_FILE = 1, ERR_INPUT_BUFFER = 2, ERR_LANGUAGE_FILE = 3, ERR_EXPORT = 4;
 
     const PLUGINS_DIST_DIRNAME = 'plugins.dist', THEME_DIST_DIRNAME = 'default.dist';
 
@@ -131,6 +132,105 @@ class PHS_po_format extends PHS_Registry
         }
 
         return $return_arr;
+    }
+
+    public function export_csv_from_po( $po_file, $params = false )
+    {
+        $this->reset_error();
+
+        if( !$this->set_filename( $po_file ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PO_FILE, self::_t( 'Couldn\'t read PO file or it is empty.' ) );
+
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['csv_line_delimiter'] ) )
+            $params['csv_line_delimiter'] = "\n";
+        if( empty( $params['csv_column_delimiter'] ) )
+            $params['csv_column_delimiter'] = ',';
+        if( empty( $params['csv_column_enclosure'] ) )
+            $params['csv_column_enclosure'] = '"';
+        if( empty( $params['csv_column_escape'] ) )
+            $params['csv_column_escape'] = '"';
+
+        if( !isset( $params['export_to_output'] ) )
+            $params['export_to_output'] = true;
+        else
+            $params['export_to_output'] = (!empty( $params['export_to_output'] )?true:false);
+
+        if( empty( $params['export_to_filename'] ) )
+            $params['export_to_filename'] = false;
+
+        $csv_real_file = false;
+        $csv_dir = false;
+        if( !empty( $params['export_to_filename'] )
+        and (!is_string( $params['export_to_filename'] )
+            or !($csv_real_file = @realpath( $params['export_to_filename'] ))
+            or !($csv_dir = trim( @dirname( $csv_real_file ), '/\\' ))
+            or !@is_dir( $csv_dir ) or !@is_writable( $csv_dir )
+            ) )
+        {
+            $this->set_error( self::ERR_EXPORT, self::_t( 'Please provide a valid export csv filename and make sure directory is writable.' ) );
+            return false;
+        }
+
+        if( empty( $params['language'] ) )
+        {
+            if( ($guessed_language = $this->guess_language_from_header())
+            and !empty( $guessed_language['guessed_language'] ) )
+                $params['language'] = $guessed_language['guessed_language'];
+        }
+
+        if( empty( $params['language'] )
+         or !($lang_details = self::get_defined_language( $params['language'] )) )
+            $params['language'] = false;
+
+        $this->_reset_parsed_indexes();
+
+        $this->parsed_language = $params['language'];
+
+        $csv_f = false;
+        if( !empty( $csv_real_file ) )
+        {
+            if( !($csv_f = @fopen( $csv_real_file, 'w' )) )
+            {
+                $this->set_error( self::ERR_EXPORT, self::_t( 'Couldn\'t open export csv filename for writing.' ) );
+                return false;
+            }
+        }
+
+        while( ($translation_arr = $this->extract_po_translation()) )
+        {
+            if( empty( $translation_arr['index'] ) )
+                continue;
+
+            if( !isset( $translation_arr['translation'] ) )
+                $translation_arr['translation'] = '';
+
+            $csv_line = PHS_utils::csv_line( array( $translation_arr['index'], $translation_arr['translation'] ),
+                                             $params['csv_line_delimiter'], $params['csv_column_delimiter'],
+                                             $params['csv_column_enclosure'], $params['csv_column_escape'] );
+
+            if( !empty( $csv_f ) )
+            {
+                @fputs( $csv_f, $csv_line );
+                @fflush( $csv_f );
+            } else
+                echo $csv_line;
+        }
+
+        if( !empty( $csv_f ) )
+        {
+            @fflush( $csv_f );
+            @fclose( $csv_f );
+        }
+
+        return true;
     }
 
     public function update_language_files( $po_file, $params = false )
@@ -295,23 +395,13 @@ class PHS_po_format extends PHS_Registry
     {
         $this->reset_error();
 
-        if( empty( $po_file )
-         or !is_string( $po_file )
-         or !@file_exists( $po_file ) )
+        if( !$this->set_filename( $po_file ) )
         {
-            $this->set_error( self::ERR_PO_FILE, self::_t( 'PO file not found.' ) );
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PO_FILE, self::_t( 'Couldn\'t read PO file or it is empty.' ) );
+
             return false;
         }
-
-        if( !($contents = @file_get_contents( $po_file ))
-         or !$this->set_buffer( $contents ) )
-        {
-            $this->set_error( self::ERR_PO_FILE, self::_t( 'Couldn\'t read PO file content.' ) );
-            return false;
-        }
-
-        // Try releasing string from memory...
-        unset( $contents );
 
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -630,7 +720,8 @@ class PHS_po_format extends PHS_Registry
             $this->_li++;
 
             if( substr( $line_str, 0, 5 ) == 'msgid'
-             or substr( $line_str, 0, 6 ) == 'msgstr' )
+             or substr( $line_str, 0, 6 ) == 'msgstr'
+             or substr( $line_str, 0, 1 ) == '#' )
                 continue;
 
             if( $line_str === ''
