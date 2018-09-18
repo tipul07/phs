@@ -166,18 +166,18 @@ class PHS_po_format extends PHS_Registry
         if( empty( $params['export_to_filename'] ) )
             $params['export_to_filename'] = false;
 
-        $csv_real_file = false;
         $csv_dir = false;
         if( !empty( $params['export_to_filename'] )
         and (!is_string( $params['export_to_filename'] )
-            or !($csv_real_file = @realpath( $params['export_to_filename'] ))
-            or !($csv_dir = trim( @dirname( $csv_real_file ), '/\\' ))
+            or !($csv_dir = rtrim( @dirname( $params['export_to_filename'] ), '/\\' ))
             or !@is_dir( $csv_dir ) or !@is_writable( $csv_dir )
             ) )
         {
             $this->set_error( self::ERR_EXPORT, self::_t( 'Please provide a valid export csv filename and make sure directory is writable.' ) );
             return false;
         }
+
+        $csv_real_file = $params['export_to_filename'];
 
         if( empty( $params['language'] ) )
         {
