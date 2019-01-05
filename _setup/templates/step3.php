@@ -96,7 +96,7 @@
 <fieldset class="form-group">
     <label for="phs_php_cli_path"><?php echo $this->_pt( 'PHP CLI Binary Path' )?></label>
     <div class="lineform_line">
-        <input type="text" id="phs_php_cli_path" name="phs_php_cli_path" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_php_cli_path' ) )?>" placeholder="1.0.0" style="width: 350px;" /><br/>
+        <input type="text" id="phs_php_cli_path" name="phs_php_cli_path" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_php_cli_path' ) )?>" placeholder="<?php echo form_str( $this->_pt( 'Full path to PHP CLI' ) )?>" style="width: 350px;" /><br/>
         <small><?php echo $this->_pt( 'Full system path to PHP CLI binary file. This will be used when launching background tasks or agent tasks.' )?></small>
     </div>
 </fieldset>
