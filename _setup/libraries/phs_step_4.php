@@ -183,7 +183,7 @@ class PHS_Step_4 extends PHS_Step
         $internal_keys_arr = array();
         for( $i = 0; $i < 34; $i++ )
         {
-            $internal_keys_arr = md5( rand( 0, PHP_INT_MAX ).microtime().rand( 0, PHP_INT_MAX ) );
+            $internal_keys_arr[] = md5( rand( 0, PHP_INT_MAX ).microtime().rand( 0, PHP_INT_MAX ) );
         }
 
         return $internal_keys_arr;
