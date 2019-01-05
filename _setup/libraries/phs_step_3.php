@@ -62,6 +62,9 @@ class PHS_Step_3 extends PHS_Step
         $phs_contact_email = PHS_params::_p( 'phs_contact_email', PHS_params::T_NOHTML );
         $phs_sitebuild_version = PHS_params::_p( 'phs_sitebuild_version', PHS_params::T_NOHTML );
         $phs_debug_mode = PHS_params::_p( 'phs_debug_mode', PHS_params::T_INT );
+        $phs_php_cli_path = PHS_params::_p( 'phs_php_cli_path', PHS_params::T_NOHTML );
+
+        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
 
         if( !($all_timezones_arr = @timezone_identifiers_list()) )
             $all_timezones_arr = array();
@@ -87,8 +90,6 @@ class PHS_Step_3 extends PHS_Step
         and !empty( $phs_site_timezone ) and in_array( $phs_site_timezone, $all_timezones_arr ) )
             @date_default_timezone_set( $phs_site_timezone );
 
-        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
-
         if( !empty( $do_submit ) )
         {
             if( !empty( $all_timezones_arr )
@@ -97,6 +98,11 @@ class PHS_Step_3 extends PHS_Step
 
             if( empty( $phs_site_name ) )
                 $this->add_error_msg( 'Please provide Site Name.' );
+
+            if( empty( $phs_php_cli_path )
+             or !@file_exists( $phs_php_cli_path )
+             or !@is_executable( $phs_php_cli_path ) )
+                $this->add_error_msg( 'Please provide PHP CLI Binary Path.' );
 
             if( empty( $phs_contact_email )
              or !($contact_emails_arr = self::extract_strings_from_comma_separated( $phs_contact_email, array( 'trim_parts' => true, 'dump_empty_parts' => true ) )) )
@@ -121,7 +127,10 @@ class PHS_Step_3 extends PHS_Step
                         'value' => phs_version(),
                         'line_comment' => 'PHS version at the time of installation. bootstrap.php will announce that main.php has to be updated',
                     ),
-                    'PHS_SITEBUILD_VERSION' => trim( $phs_sitebuild_version ),
+                    'PHS_SITEBUILD_VERSION' => array(
+                        'value' => trim( $phs_sitebuild_version ),
+                        'line_comment' => 'Site build version',
+                    ),
 
                     'PHS_DEFAULT_SITE_NAME' => array(
                         'value' => $phs_site_name,
@@ -144,6 +153,11 @@ class PHS_Step_3 extends PHS_Step
 
                     'PHS_DEBUG_THROW_ERRORS' => array(
                         'raw' => 'false',
+                    ),
+
+                    'PHP_EXEC' => array(
+                        'line_comment' => 'PHP CLI binary executable full path',
+                        'value' => $phs_php_cli_path,
                     ),
                 );
 
@@ -193,9 +207,10 @@ class PHS_Step_3 extends PHS_Step
 
                 $phs_site_name = PHS_DEFAULT_SITE_NAME;
                 $phs_contact_email = PHS_CONTACT_EMAIL;
-                $phs_site_timezone = PHS_DEFAULT_SITE_TIMEZONE;
+                $phs_site_timezone = (defined( 'PHS_DEFAULT_SITE_TIMEZONE' )?constant( 'PHS_DEFAULT_SITE_TIMEZONE' ):'');
                 $phs_sitebuild_version = PHS_SITEBUILD_VERSION;
                 $phs_debug_mode = (PHS_DEBUG_MODE?1:0);
+                $phs_php_cli_path = (defined( 'PHP_EXEC' )?constant( 'PHP_EXEC' ):'');
 
                 if( !empty( $phs_site_timezone )
                 and ($timezone_parts = explode( '/', $phs_site_timezone, 2 )) )
@@ -209,6 +224,7 @@ class PHS_Step_3 extends PHS_Step
                 $phs_contact_email = '';
                 $phs_sitebuild_version = '1.0.0';
                 $phs_debug_mode = 1;
+                $phs_php_cli_path = '';
 
                 $phs_timezone_continent = 'Europe';
                 $phs_timezone_city = 'London';
@@ -221,6 +237,7 @@ class PHS_Step_3 extends PHS_Step
         $data['phs_timezone_city'] = $phs_timezone_city;
         $data['phs_site_timezone'] = $phs_site_timezone;
         $data['phs_debug_mode'] = $phs_debug_mode;
+        $data['phs_php_cli_path'] = $phs_php_cli_path;
 
         $data['phs_site_name'] = $phs_site_name;
         $data['phs_contact_email'] = $phs_contact_email;

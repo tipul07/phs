@@ -9,21 +9,10 @@
 <form id="phs_setup_step2" name="phs_setup_step2" method="post">
 <input type="hidden" name="foobar" value="1" />
 <fieldset class="form-group">
-    <label for="phs_db_driver"><?php echo $this->_pt( 'DB Driver' )?></label>
+    <label><?php echo $this->_pt( 'DB Driver' )?></label>
     <div class="lineform_line">
-        <select id="phs_db_driver" name="phs_db_driver">
-        <option value=""> - Choose - </option>
-        <?php
-        if( !($selected_driver = $this->get_context( 'phs_db_driver' )) )
-            $selected_driver = '';
-
-        foreach( $db_drivers_arr as $driver_id => $driver_name )
-        {
-            ?><option value="<?php echo $driver_id?>" <?php echo ($selected_driver==$driver_id?'selected="selected"':'')?>><?php echo $driver_name?></option><?php
-        }
-        ?>
-        </select><br/>
-        <small>Absolute path on server to root of PHS framework.</small>
+        <?php echo $this->_pt( 'MySQLi' );?>
+        <small><?php echo $this->_pt( 'Default MySQLi driver connection settings. PHS uses a MySQL database structure, so it requires a MySQL server.' )?></small>
     </div>
 </fieldset>
 

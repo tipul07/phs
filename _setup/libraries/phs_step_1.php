@@ -125,6 +125,9 @@ class PHS_Step_1 extends PHS_Step
                     'PHS_FRAMEWORK_UPLOADS_DIR' => array(
                         'raw' => 'PHS_PATH.\'_uploads/\'',
                     ),
+                    'PHS_FRAMEWORK_ASSETS_DIR' => array(
+                        'raw' => 'PHS_PATH.\'assets/\'',
+                    ),
                 );
 
                 $config_params = array(

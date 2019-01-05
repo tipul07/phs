@@ -121,11 +121,7 @@ class PHS_Step_2 extends PHS_Step
         if( empty( $data ) or !is_array( $data ) )
             $data = array();
 
-        if( !($db_drivers_arr = PHS_db::known_db_drivers()) )
-            $db_drivers_arr = array();
-
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $phs_db_driver = PHS_params::_p( 'phs_db_driver', PHS_params::T_NOHTML );
         $phs_db_hostname = PHS_params::_p( 'phs_db_hostname', PHS_params::T_NOHTML );
         $phs_db_username = PHS_params::_p( 'phs_db_username', PHS_params::T_NOHTML );
         $phs_db_password = PHS_params::_p( 'phs_db_password', PHS_params::T_NOHTML );
@@ -142,10 +138,6 @@ class PHS_Step_2 extends PHS_Step
 
         if( !empty( $do_test_connection ) or !empty( $do_submit ) )
         {
-            if( empty( $phs_db_driver )
-                or !PHS_db::valid_db_driver( $phs_db_driver ) )
-                $this->add_error_msg( 'Please provide a valid DB driver.' );
-
             if( empty( $phs_db_hostname ) )
                 $this->add_error_msg( 'Please provide a valid DB hostname.' );
 
@@ -178,7 +170,7 @@ class PHS_Step_2 extends PHS_Step
         {
             // Define special connection with provided settings...
             $mysql_settings = array();
-            $mysql_settings['driver'] = $phs_db_driver;
+            $mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
             $mysql_settings['host'] = $phs_db_hostname;
             $mysql_settings['user'] = $phs_db_username;
             $mysql_settings['password'] = $phs_db_password;
@@ -209,7 +201,7 @@ class PHS_Step_2 extends PHS_Step
         and !$this->has_error_msgs() )
         {
             $defines_arr = array(
-                'PHS_DB_DRIVER' => $phs_db_driver,
+                'PHS_DB_DRIVER' => PHS_db::DB_DRIVER_MYSQLI,
                 'PHS_DB_HOSTNAME' => $phs_db_hostname,
                 'PHS_DB_USERNAME' => $phs_db_username,
                 'PHS_DB_PASSWORD' => $phs_db_password,
@@ -253,7 +245,6 @@ class PHS_Step_2 extends PHS_Step
             {
                 $this->add_notice_msg( 'Existing config file loaded...' );
 
-                $phs_db_driver = PHS_DB_DRIVER;
                 $phs_db_hostname = PHS_DB_HOSTNAME;
                 $phs_db_username = PHS_DB_USERNAME;
                 $phs_db_password = PHS_DB_PASSWORD;
@@ -265,7 +256,6 @@ class PHS_Step_2 extends PHS_Step
                 $phs_db_driver_settings = PHS_DB_DRIVER_SETTINGS;
             } else
             {
-                $phs_db_driver = PHS_db::DB_DRIVER_MYSQLI;
                 $phs_db_hostname = 'localhost';
                 $phs_db_username = '';
                 $phs_db_password = '';
@@ -278,7 +268,6 @@ class PHS_Step_2 extends PHS_Step
             }
         }
 
-        $data['phs_db_driver'] = $phs_db_driver;
         $data['phs_db_hostname'] = $phs_db_hostname;
         $data['phs_db_username'] = $phs_db_username;
         $data['phs_db_password'] = $phs_db_password;
@@ -288,8 +277,6 @@ class PHS_Step_2 extends PHS_Step
         $data['phs_db_charset'] = $phs_db_charset;
         $data['phs_db_use_pconnect'] = $phs_db_use_pconnect;
         $data['phs_db_driver_settings'] = $phs_db_driver_settings;
-
-        $data['db_drivers_arr'] = $db_drivers_arr;
 
         return PHS_Setup_layout::get_instance()->render( 'step2', $data );
     }
