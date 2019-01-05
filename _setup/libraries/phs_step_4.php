@@ -121,7 +121,7 @@ class PHS_Step_4 extends PHS_Step
                 }
 
                 $crypt_internal_keys_raw_str .=
-                    ');'."\n".
+                    ');'."\n\n";
 
                 $config_params = array(
                     array(
