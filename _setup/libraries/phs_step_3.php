@@ -224,7 +224,8 @@ class PHS_Step_3 extends PHS_Step
                 $phs_contact_email = '';
                 $phs_sitebuild_version = '1.0.0';
                 $phs_debug_mode = 1;
-                $phs_php_cli_path = '';
+                if( !($phs_php_cli_path = @system( 'which php' )) )
+                    $phs_php_cli_path = '/var/bin/php';
 
                 $phs_timezone_continent = 'Europe';
                 $phs_timezone_city = 'London';
