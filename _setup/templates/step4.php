@@ -25,7 +25,7 @@
         for( $i = 0; $i < 34; $i++ )
         {
             ?>
-            <div style="width:40px;float;left;"><?php echo ($i+1).'. '?></div>
+            <div style="width:40px;float:left;"><?php echo ($i+1).'. '?></div>
             <div style="float:left;"><input type="text" class="form-control" style="width: 350px;"
                    id="phs_crypt_internal_keys_arr<?php echo $i?>" name="phs_crypt_internal_keys_arr[]"
                    value="<?php echo (!empty( $phs_crypt_internal_keys_arr[$i] )?form_str( $phs_crypt_internal_keys_arr[$i] ):'')?>" />
