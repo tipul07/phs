@@ -40,8 +40,22 @@
 
 <fieldset>
     <div class="lineform_line">
+        <input type="hidden" name="do_generate_keys" value="0" />
+        <input type="button" id="do_generate_keys_btn" name="do_generate_keys_btn" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Generate keys' )?>" onclick="do_generate_new_keys()" />
         <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Continue' )?>" />
     </div>
 </fieldset>
 
 </form>
+<script type="text/javascript">
+function do_generate_new_keys()
+{
+    if( !confirm( "<?php echo $this->_pte( 'Are you sure you want to generate new Crypto Internal Keys Array?' )?>" ) )
+        return false;
+
+    document.phs_setup_step4.do_generate_keys.value = 1;
+    document.phs_setup_step4.submit();
+
+    return true;
+}
+</script>

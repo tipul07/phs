@@ -73,6 +73,7 @@ class PHS_Step_4 extends PHS_Step
             $data = array();
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
+        $do_generate_keys = PHS_params::_p( 'do_generate_keys', PHS_params::T_INT );
         $phs_crypt_key = PHS_params::_p( 'phs_crypt_key', PHS_params::T_ASIS );
         $phs_crypt_internal_keys_arr = PHS_params::_p( 'phs_crypt_internal_keys_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
 
@@ -82,6 +83,9 @@ class PHS_Step_4 extends PHS_Step
          or !is_array( $phs_crypt_internal_keys_arr )
          or count( $phs_crypt_internal_keys_arr ) != 34 )
             $phs_crypt_internal_keys_arr = array();
+
+        if( !empty( $do_generate_keys ) )
+            $phs_crypt_internal_keys_arr = $this->_generate_crypto_internal_keys_array();
 
         if( !empty( $do_submit ) )
         {
@@ -113,6 +117,7 @@ class PHS_Step_4 extends PHS_Step
                 $crypt_internal_keys_raw_str =
                     "\n".
                     '// !!! DO NOT CHANGE THESE UNLESS YOU KNOW WHAT YOU\'R DOING !!!'."\n".
+                    'global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;'."\n".
                     '$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = array('."\n";
 
                 foreach( $phs_crypt_internal_keys_arr as $internal_key_str )
