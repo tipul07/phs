@@ -375,7 +375,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         $run_async = false;
-        if( $agent_jobs_model->job_runs_async( $job_arr['run_async'] ) )
+        if( $agent_jobs_model->job_runs_async( $job_arr ) )
             $run_async = true;
 
         // Make sure we are not launching job from front-end...

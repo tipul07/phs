@@ -235,8 +235,10 @@ class PHS_Model_Agent_jobs extends PHS_Model
         else
             $next_time = parse_db_date( $job_arr['is_running'] );
 
+        // Remove one minute to be sure we'r not at the limit with few seconds (time which took to bootstrap agent job)
+        // One minute doesn't affect time unit at which scripts can run as linux crontab can run at minimum every minute
         if( !empty( $job_arr['timed_seconds'] ) )
-            $next_time += intval( $job_arr['timed_seconds'] );
+            $next_time += intval( $job_arr['timed_seconds'] ) - 60;
 
         $edit_arr = array();
         $edit_arr['pid'] = 0;
@@ -313,7 +315,8 @@ class PHS_Model_Agent_jobs extends PHS_Model
         }
 
         if( !$this->job_is_running( $job_arr )
-         or (!empty( $settings_arr['minutes_to_stall'] ) and floor( parse_db_date( $job_arr['last_action'] ) / 60 ) < $settings_arr['minutes_to_stall']) )
+         or (!empty( $settings_arr['minutes_to_stall'] ) and !empty( $job_arr['last_action'] )
+                and floor( seconds_passed( $job_arr['last_action'] ) / 60 ) > $settings_arr['minutes_to_stall']) )
             return false;
 
         return true;
