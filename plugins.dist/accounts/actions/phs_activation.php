@@ -10,6 +10,11 @@ use \phs\PHS_Scope;
 
 class PHS_Action_Activation extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_ACTIVATION );
+    }
 
     /**
      * Returns an array of scopes in which action is allowed to run

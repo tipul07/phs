@@ -13,6 +13,11 @@ use \phs\libraries\PHS_Roles;
 
 class PHS_Action_Register extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_REGISTER );
+    }
 
     public function allowed_scopes()
     {

@@ -12,6 +12,12 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
 {
     const ERR_UNKNOWN_ACCOUNT = 40000, ERR_SEND_EMAIL = 40001;
 
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_CHANGE_PASSWORD );
+    }
+
     public function allowed_scopes()
     {
         return array( PHS_Scope::SCOPE_BACKGROUND );
@@ -24,8 +30,8 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
         if( !($params = PHS_bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['uid'] )
-         or !($accounts_plugin = PHS::load_plugin( $this->instance_plugin_name() ))
-         or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
+         or !($accounts_plugin = $this->get_plugin_instance())
+         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          or !($accounts_settings = $this->get_plugin_settings())
          or !is_array( $accounts_settings )
          or empty( $accounts_settings['announce_pass_change'] )

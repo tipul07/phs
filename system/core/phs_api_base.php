@@ -277,6 +277,26 @@ abstract class PHS_api_base extends PHS_Registry
             $new_credentials_arr['api_pass'] = (isset( $credentials_arr['api_pass'] )?$credentials_arr['api_pass']:'');
         } else
         {
+            if( empty( $_SERVER['PHP_AUTH_USER'] ) and empty( $_SERVER['PHP_AUTH_PW'] )
+            and !empty( $_SERVER['HTTP_AUTHORIZATION'] )
+            and strtolower( substr( $_SERVER['HTTP_AUTHORIZATION'], 0, 5 ) ) == 'basic'
+            and ($auth_arr = explode(':', @base64_decode( trim( substr( $_SERVER['HTTP_AUTHORIZATION'], 6 ) ) ) ))
+            and count( $auth_arr ) == 2 )
+            {
+                $_SERVER['PHP_AUTH_USER'] = $auth_arr[0];
+                $_SERVER['PHP_AUTH_PW'] = $auth_arr[1];
+            }
+
+            if( empty( $_SERVER['PHP_AUTH_USER'] ) and empty( $_SERVER['PHP_AUTH_PW'] )
+            and !empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] )
+            and strtolower( substr( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 0, 5 ) ) == 'basic'
+            and ($auth_arr = explode(':', @base64_decode( trim( substr( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6 ) ) ) ))
+            and count( $auth_arr ) == 2 )
+            {
+                $_SERVER['PHP_AUTH_USER'] = $auth_arr[0];
+                $_SERVER['PHP_AUTH_PW'] = $auth_arr[1];
+            }
+
             if( isset( $_SERVER['PHP_AUTH_USER'] ) )
                 $new_credentials_arr['api_user'] = $_SERVER['PHP_AUTH_USER'];
 

@@ -105,6 +105,7 @@ class PHS_params
 
                 if( $val != '' )
                     $val = intval( $val );
+
                 return $val;
             break;
 

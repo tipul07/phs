@@ -11,6 +11,11 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Change_password extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_CHANGE_PASSWORD, self::ACT_ROLE_PASSWORD_EXPIRED, );
+    }
 
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -80,6 +85,8 @@ class PHS_Action_Change_password extends PHS_Action
                 $accounts_settings['min_password_length'] = 8;
         }
 
+        if( PHS_params::_g( 'password_expired', PHS_params::T_INT ) )
+            PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired. For security reasons, please change it.' ) );
         if( PHS_params::_g( 'password_changed', PHS_params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
 
@@ -155,6 +162,7 @@ class PHS_Action_Change_password extends PHS_Action
             'url_extra_args' => $url_extra_args,
             'nick' => (!empty( $current_user )?$current_user['nick']:'N/A'),
             'pass' => $pass,
+            'accounts_settings' => $accounts_settings,
             'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
             'min_password_length' => $accounts_settings['min_password_length'],
             'password_regexp' => $accounts_settings['password_regexp'],

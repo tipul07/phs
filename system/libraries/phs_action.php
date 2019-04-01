@@ -12,6 +12,24 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
     const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
+    const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
+          ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password', ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired',
+          ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password', ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language';
+    private static $_action_roles = array();
+    private static $_custom_action_roles = array();
+    private static $_builtin_action_roles = array(
+        self::ACT_ROLE_PAGE => array( 'title' => 'Common page' ),
+        self::ACT_ROLE_LOGIN => array( 'title' => 'Login' ),
+        self::ACT_ROLE_LOGOUT => array( 'title' => 'Logout' ),
+        self::ACT_ROLE_REGISTER => array( 'title' => 'Register' ),
+        self::ACT_ROLE_ACTIVATION => array( 'title' => 'Activation' ),
+        self::ACT_ROLE_CHANGE_PASSWORD => array( 'title' => 'Change password' ),
+        self::ACT_ROLE_PASSWORD_EXPIRED => array( 'title' => 'Password expired' ),
+        self::ACT_ROLE_FORGOT_PASSWORD => array( 'title' => 'Forgot Password' ),
+        self::ACT_ROLE_EDIT_PROFILE => array( 'title' => 'Edit profile' ),
+        self::ACT_ROLE_CHANGE_LANGUAGE => array( 'title' => 'Change language' ),
+    );
+
     /** @var PHS_Controller */
     private $_controller_obj = null;
 
@@ -42,6 +60,102 @@ abstract class PHS_Action extends PHS_Signal_and_slot
                 'controller_obj' => &$this->_controller_obj,
             ) );
         }
+    }
+
+    final public static function default_action_role_definition_array()
+    {
+        return array(
+            'title' => '',
+        );
+    }
+
+    final public static function get_action_roles()
+    {
+        if( !empty( self::$_action_roles ) )
+            return self::$_action_roles;
+
+        self::$_action_roles = self::merge_array_assoc( self::$_custom_action_roles, self::$_builtin_action_roles );
+
+        return self::$_action_roles;
+    }
+
+    final public static function valid_action_role( $role_key )
+    {
+        if( !($roles_arr = self::get_action_roles())
+         or empty( $roles_arr[$role_key] ) )
+            return false;
+
+        return $roles_arr[$role_key];
+    }
+
+    final public function define_action_role( $role_key, $role_arr )
+    {
+        if( ($defined_role = $this->valid_action_role( $role_key )) )
+            return $defined_role;
+
+        $role_arr = self::merge_array_assoc( $role_arr, self::default_action_role_definition_array() );
+
+        self::$_custom_action_roles[$role_key] = $role_arr;
+
+        self::$_action_roles = array();
+
+        self::get_action_roles();
+
+        return $role_arr;
+    }
+
+    /**
+     * @return array Returns roles that current action have
+     */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_PAGE );
+    }
+
+    /**
+     * Checks if current action has provided role(s)
+     *
+     * @param array|int $role_check action role (int) or action roles (array of ints) to be checked
+     * @param array|bool $params Method extra parameters
+     *
+     * @return array|bool Return false if provided roles are not for current action or a list of matching action roles
+     */
+    final public function action_role_is( $role_check, $params = false )
+    {
+        if( !is_array( $role_check ) )
+            $role_check = array( $role_check );
+
+        if( !($action_roles = $this->action_roles()) )
+            $action_roles = array( self::ACT_ROLE_PAGE );
+
+        if( !is_array( $action_roles ) )
+            $action_roles = array( $action_roles );
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        // Action has all provided roles
+        if( empty( $params['all_provided'] ) )
+            $params['all_provided'] = false;
+        else
+            $params['all_provided'] = (!empty( $params['all_provided'] )?true:false);
+
+        $return_arr = array();
+        foreach( $role_check as $role_key )
+        {
+            if( ($role_arr = self::valid_action_role( $role_key ))
+            and in_array( $role_key, $action_roles ) )
+            {
+                $return_arr[$role_key] = $role_arr;
+                continue;
+            }
+
+            // Role is not for current action
+            if( !empty( $params['all_provided'] ) )
+                return false;
+        }
+
+        return (empty( $return_arr )?false:$return_arr);
     }
 
     public function instance_type()
@@ -97,6 +211,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             'api_json_result_array' => false,
             'api_buffer' => '', // we don't use buffer as it might contain html returned in web scope
 
+            // In case we activate password expiration, and password expired, set this to true to tell current scope current user password
+            // did expire. Current scope will decide what to do when password is expired. (in agent or background scopes it will not have an impact)
+            'password_expired' => false,
             // If current action requires a logged in user set this to true.
             // Logging in is dependent on used scope (on API we should return Unauthenticated header, on web we redirect to login page, etc)
             'request_login' => false,

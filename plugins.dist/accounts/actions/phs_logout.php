@@ -10,6 +10,11 @@ use \phs\PHS_Scope;
 
 class PHS_Action_Logout extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_LOGOUT );
+    }
 
     /**
      * Returns an array of scopes in which action is allowed to run

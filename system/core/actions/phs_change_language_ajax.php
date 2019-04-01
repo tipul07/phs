@@ -9,6 +9,12 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Change_language_ajax extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_CHANGE_LANGUAGE, );
+    }
+
     /**
      * @inheritdoc
      */

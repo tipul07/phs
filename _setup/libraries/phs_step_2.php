@@ -57,17 +57,17 @@ class PHS_Step_2 extends PHS_Step
             return false;
         }
 
-        PHS_db::default_db_connection( PHS_SETUP_DB_CONNECTION );
+        PHS_db::default_db_connection( PHS_DB_DRIVER, PHS_SETUP_DB_CONNECTION );
 
         return true;
     }
 
-    public function test_db_connection( $mysql_settings, $connection_name = false )
+    public function test_db_connection( $db_settings, $connection_name = false )
     {
         if( empty( $connection_name ) )
             $connection_name = 'phs_tmp_db_connection_'.microtime( true );
 
-        if( !PHS_db::add_db_connection( $connection_name, $mysql_settings ) )
+        if( !($settings_arr = PHS_db::add_db_connection( $connection_name, $db_settings )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_CREATE_CONNECTION );
@@ -84,13 +84,13 @@ class PHS_Step_2 extends PHS_Step
         if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
             define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
 
-        if( !db_query( 'SHOW TABLES;', $connection_name ) )
+        if( !db_test_connection( $connection_name ) )
         {
             if( ($error_arr = db_last_error( $connection_name ))
             and self::arr_has_error( $error_arr ) )
                 $this->copy_error_from_array( $error_arr, self::ERR_CREATE_CONNECTION );
             else
-                $this->set_error( self::ERR_CREATE_CONNECTION, 'Error running a query in database with current settings.' );
+                $this->set_error( self::ERR_CREATE_CONNECTION, 'Database connection failed with current settings.' );
 
             return false;
         }

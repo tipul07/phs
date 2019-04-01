@@ -13,6 +13,11 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Forgot extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_FORGOT_PASSWORD );
+    }
 
     public function allowed_scopes()
     {

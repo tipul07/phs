@@ -1,0 +1,28 @@
+
+# /
+/main.inc.php
+/main.php
+/php_errors.log
+/sess
+/.htaccess
+
+# /_uploads/
+/_uploads/*
+
+# /assets/
+/assets/*
+
+# /languages/en.dist/
+/languages/en.dist/*_bk*.csv
+
+# /languages/it.dist/
+/languages/it.dist/*_bk*.csv
+
+# /plugins/
+/plugins/*
+
+# /system/logs/
+/system/logs/*
+
+# /themes/
+/themes/*

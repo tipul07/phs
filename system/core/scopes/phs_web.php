@@ -6,8 +6,10 @@ use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
-use \phs\system\core\views\PHS_View;
 use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Notifications;
+use \phs\system\core\views\PHS_View;
 
 class PHS_Scope_Web extends PHS_Scope
 {
@@ -26,6 +28,31 @@ class PHS_Scope_Web extends PHS_Scope
             $controller_obj = false;
 
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
+
+        if( ($expiration_arr = PHS::current_user_password_expiration())
+        and !empty( $expiration_arr['is_expired'] ) )
+        {
+            if( $action_obj->action_role_is( array( $action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
+                                                                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED ) ) )
+                $in_special_page = true;
+            else
+                $in_special_page = false;
+
+            if( !$in_special_page )
+                PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired %s ago. For security reasons, please <a href="%s">change your password</a>.',
+                                                                   PHS_utils::parse_period( $expiration_arr['expired_for_seconds'] ),
+                                                                   PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), array( 'password_expired' => 1 ) ) ) );
+
+            if( empty( $expiration_arr['show_only_warning'] )
+            and !empty( $action_obj )
+            and !$in_special_page )
+            {
+                $args = array();
+                $args['password_expired'] = 1;
+
+                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), $args );
+            }
+        }
 
         if( !empty( $action_result['request_login'] ) )
         {

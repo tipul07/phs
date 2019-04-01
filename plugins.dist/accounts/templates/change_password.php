@@ -7,6 +7,9 @@
     if( !($current_user = PHS::user_logged_in()) )
         $current_user = false;
 
+    if( !($accounts_settings = $this->view_var( 'accounts_settings' )) )
+        $accounts_settings = array();
+
     if( !($no_nickname_only_email = $this->view_var( 'no_nickname_only_email' )) )
         $no_nickname_only_email = false;
     if( !($url_extra_args = $this->view_var( 'url_extra_args' ))
@@ -53,7 +56,10 @@
                 echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
 
                 $pass_regexp = $this->view_var( 'password_regexp' );
-                if( !empty( $pass_regexp ) )
+                if( !empty( $accounts_settings['password_regexp_explanation'] ) )
+                    echo ' '.$this->_pt( $accounts_settings['password_regexp_explanation'] );
+
+                elseif( !empty( $pass_regexp ) )
                 {
                     echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
 

@@ -11,6 +11,11 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Edit_profile extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_EDIT_PROFILE );
+    }
 
     /**
      * Returns an array of scopes in which action is allowed to run

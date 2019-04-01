@@ -12,6 +12,12 @@ class PHS_Action_Verify_email_bg extends PHS_Action
 {
     const ERR_UNKNOWN_ACCOUNT = 40000, ERR_SEND_EMAIL = 40001;
 
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_ACTIVATION );
+    }
+
     public function allowed_scopes()
     {
         return array( PHS_Scope::SCOPE_BACKGROUND );

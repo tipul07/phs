@@ -327,6 +327,15 @@ final class PHS extends PHS_Registry
         return $hook_result['account_structure'];
     }
 
+    public static function current_user_password_expiration( $force = false )
+    {
+        if( !($hook_args = self::_current_user_trigger( $force ))
+         or empty( $hook_args['password_expired_data'] ) or !is_array( $hook_args['password_expired_data'] ) )
+            return PHS_Hooks::default_password_expiration_data();
+
+        return self::validate_array_recursive( $hook_args['password_expired_data'], PHS_Hooks::default_password_expiration_data() );
+    }
+
     private static function _current_user_trigger( $force = false )
     {
         static $hook_result = false;
@@ -1588,7 +1597,7 @@ final class PHS extends PHS_Registry
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
      * @param string|bool $plugin Plugin where model is located (false means a core model)
      *
-     * @return false|\phs\libraries\PHS_Model Returns false on error or an instance of loaded model
+     * @return false|\phs\libraries\PHS_Model_Mysqli Returns false on error or an instance of loaded model
      */
     public static function load_model( $model, $plugin = false )
     {

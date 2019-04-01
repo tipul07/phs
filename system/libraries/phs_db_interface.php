@@ -7,13 +7,15 @@ interface PHS_db_interface
     // Getter and setter for connection settings
     public function connection_settings( $connection_name, $mysql_settings = false );
 
+    public function test_connection( $connection_name = false );
+
     /**
      * Do the query and return query ID
      *
-     * @param $query
-     * @param bool $connection_name
+     * @param string|array $query
+     * @param bool|string $connection_name
      *
-     * @return bool|\mysqli_result
+     * @return bool|\mysqli_result|\MongoDB\Driver\WriteResult
      */
     public function query( $query, $connection_name = false );
 

@@ -2,6 +2,7 @@
 
 namespace phs\plugins\accounts\actions;
 
+use phs\libraries\PHS_utils;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
@@ -11,6 +12,11 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Login extends PHS_Action
 {
+    /** @inheritdoc */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_LOGIN );
+    }
 
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -84,6 +90,8 @@ class PHS_Action_Login extends PHS_Action
             $plugin_settings['session_expire_minutes_remember'] = 43200; // 30 days
         if( empty( $plugin_settings['session_expire_minutes_normal'] ) )
             $plugin_settings['session_expire_minutes_normal'] = 0; // till browser closes
+        if( empty( $plugin_settings['block_after_expiration'] ) )
+            $plugin_settings['block_after_expiration'] = 0; // hardcoded block
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !empty( $do_submit )

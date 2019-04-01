@@ -2,7 +2,6 @@
 
 namespace phs\plugins\accounts\models;
 
-use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\PHS_crypt;
 use \phs\PHS_bg_jobs;
@@ -10,10 +9,14 @@ use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_utils;
 
 class PHS_Model_Accounts extends PHS_Model
 {
     const ERR_LOGIN = 10001, ERR_EMAIL = 10002;
+
+    const PASSWORDS_ALGO = 'sha256';
 
     const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
 
@@ -52,7 +55,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.4';
     }
 
     /**
@@ -60,7 +63,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'users', 'online' );
+        return array( 'users', 'online', 'users_pass_history', );
     }
 
     /**
@@ -70,6 +73,22 @@ class PHS_Model_Accounts extends PHS_Model
     {
         return 'users';
     }
+
+    //
+    // Custom updates
+    //
+    protected function custom_after_update( $old_version, $new_version )
+    {
+        if( @version_compare( $old_version, '1.0.3', '<=' )
+        and @version_compare( $new_version, '1.0.4', '>=' )
+        and !$this->_update_to_104_or_higher() )
+            return false;
+
+        return true;
+    }
+    //
+    // END Custom updates
+    //
 
     //
     //  Level checks
@@ -476,7 +495,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $all_statuses[$status];
     }
 
-    public static function generate_password( $len = 10 )
+    public static function generate_password( $len = 10, $params = false )
     {
         $hook_args = PHS_Hooks::default_common_hook_args();
         $hook_args['length'] = $len;
@@ -487,17 +506,97 @@ class PHS_Model_Accounts extends PHS_Model
         and is_array( $new_hook_args ) and !empty( $new_hook_args['generated_pass'] ) )
             return $new_hook_args['generated_pass'];
 
-        $dict = '!ac5d#befgh9ij1kl2mn*q3(pr)4s_t-6u=vw7xy,8z.'; // all lower characters
-        $dict_len = strlen( $dict );
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['percents'] ) or !is_array( $params['percents'] ) )
+            $params['percents'] = array( 'spacial_chars' => 10, 'digits_chars' => 20, 'normal_chars' => 70, );
+
+        if( !isset( $params['percents']['spacial_chars'] ) )
+            $params['percents']['spacial_chars'] = 10;
+        if( !isset( $params['percents']['digits_chars'] ) )
+            $params['percents']['digits_chars'] = 20;
+        if( !isset( $params['percents']['normal_chars'] ) )
+            $params['percents']['normal_chars'] = 70;
+
+        $spacial_chars_perc = intval( $params['percents']['spacial_chars'] );
+        $digits_chars_perc = intval( $params['percents']['digits_chars'] );
+        $normal_chars_perc = intval( $params['percents']['normal_chars'] );
+
+        if( $spacial_chars_perc + $digits_chars_perc + $normal_chars_perc > 100 )
+        {
+            $spacial_chars_perc = 10;
+            $digits_chars_perc = 20;
+            $normal_chars_perc = 70;
+        }
+
+        $special_chars_dict = '!@#%^&*()_-+}{:;?/.,;';
+        $digits_dict = '123456789';
+        $letters_dict = 'abcdbefghklmnqprstuvwxyz';
+        $special_chars_dict_len = strlen( $special_chars_dict );
+        $digits_dict_len = strlen( $digits_dict );
+        $letters_dict_len = strlen( $letters_dict );
+
+        $uppercase_chars = 0;
+        $special_chars = 0;
+        $digit_chars = 0;
 
         $ret = '';
         for( $ret_len = 0; $ret_len < $len; $ret_len++ )
         {
-            $ch = substr( $dict, mt_rand( 0, $dict_len - 1 ), 1 );
-            if( mt_rand( 0, 100 ) > 50 )
+            $uppercase_char = false;
+            // 10% spacial char, 20% digit, 70% letter
+            $dict_index = mt_rand( 0, 100 );
+            if( $dict_index <= $spacial_chars_perc )
+            {
+                $current_dict = $special_chars_dict;
+                $dict_len = $special_chars_dict_len;
+                $special_chars++;
+            } elseif( $dict_index <= $spacial_chars_perc + $digits_chars_perc )
+            {
+                $current_dict = $digits_dict;
+                $dict_len = $digits_dict_len;
+                $digit_chars++;
+            } else
+            {
+                $current_dict = $letters_dict;
+                $dict_len = $letters_dict_len;
+                if( mt_rand( 0, 100 ) > 50 )
+                {
+                    $uppercase_char = true;
+                    $uppercase_chars++;
+                }
+            }
+
+            $ch = substr( $current_dict, mt_rand( 0, $dict_len - 1 ), 1 );
+            if( $uppercase_char )
                 $ch = strtoupper( $ch );
 
             $ret .= $ch;
+        }
+
+        // Add a special char if none was added already
+        if( !$special_chars )
+        {
+            $ch = substr( $special_chars_dict, mt_rand( 0, $special_chars_dict_len - 1 ), 1 );
+            // 50% in front or in back of the result
+            if( mt_rand( 0, 100 ) > 50 )
+                $ret .= $ch;
+            else
+                $ret = $ch.$ret;
+        }
+
+        // Add a special char if none was added already
+        while( $digit_chars < 2 )
+        {
+            $ch = substr( $digits_dict, mt_rand( 0, $digits_dict_len - 1 ), 1 );
+            // 50% in front or in back of the result
+            if( mt_rand( 0, 100 ) > 50 )
+                $ret .= $ch;
+            else
+                $ret = $ch.$ret;
+
+            $digit_chars++;
         }
 
         return $ret;
@@ -515,14 +614,25 @@ class PHS_Model_Accounts extends PHS_Model
         and is_array( $new_hook_args ) and !empty( $new_hook_args['encoded_pass'] ) )
             return $new_hook_args['encoded_pass'];
 
-        return md5( $salt.'_'.$pass );
+        return @hash( self::PASSWORDS_ALGO, $salt.'_'.$pass, false );
+    }
+
+    public function raw_check_pass( $acc_pass, $acc_salt, $pass )
+    {
+        if( empty( $acc_pass ) or empty( $acc_salt )
+         or empty( $pass )
+         or !($encoded_pass = self::encode_pass( $pass, $acc_salt ))
+         or !@hash_equals( $acc_pass, $encoded_pass ) )
+            return false;
+
+        return true;
     }
 
     public function check_pass( $account_data, $pass )
     {
         if( !($account_arr = $this->data_to_array( $account_data ))
          or !isset( $account_arr['pass_salt'] )
-         or self::encode_pass( $pass, $account_arr['pass_salt'] ) != $account_arr['pass'] )
+         or !$this->raw_check_pass( $account_arr['pass'], $account_arr['pass_salt'], $pass ) )
             return false;
 
         return $account_arr;
@@ -566,6 +676,190 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $clean_pass;
+    }
+
+    public function is_password_expired( $account_data, $params = false )
+    {
+        $return_arr = PHS_Hooks::default_password_expiration_data();
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data ))
+         or $this->is_deleted( $account_arr )
+         or !($settings_arr = $this->get_plugin_settings())
+         or !is_array( $settings_arr )
+         or empty( $settings_arr['expire_passwords_days'] )
+         or ($expire_days = intval( $settings_arr['expire_passwords_days'] )) <= 0 )
+            return $return_arr;
+
+        $now_time = time();
+
+        // block_after_expiration in hours
+        if( empty( $settings_arr['block_after_expiration'] ) )
+            $settings_arr['block_after_expiration'] = 0;
+        else
+            $settings_arr['block_after_expiration'] = intval( $settings_arr['block_after_expiration'] );
+
+        $block_after_seconds = -1;
+        if( $settings_arr['block_after_expiration'] != -1 )
+            $block_after_seconds = $settings_arr['block_after_expiration'] * 3600;
+
+        $expire_seconds = $expire_days * 86400;
+
+        if( empty( $account_arr['last_pass_change'] )
+         or empty_db_date( $account_arr['last_pass_change'] ) )
+            // in case password was never changed, consider password is expired and force user to change password
+            $last_pass_change_time = $now_time - $expire_seconds - $block_after_seconds - 3600;
+        else
+            $last_pass_change_time = parse_db_date( $account_arr['last_pass_change'] );
+
+        $expiration_time = $last_pass_change_time + $expire_seconds;
+
+        $expired_for_seconds = 0;
+        if( $expiration_time < $now_time )
+            $expired_for_seconds = $now_time - $expiration_time;
+
+        $return_arr['is_expired'] = ($expired_for_seconds > 0?true:false);
+        $return_arr['show_only_warning'] = (($block_after_seconds == -1 or $expired_for_seconds < $block_after_seconds)?true:false);
+        $return_arr['pass_expires_seconds'] = $expiration_time;
+        $return_arr['last_pass_change_seconds'] = $last_pass_change_time;
+        $return_arr['expiration_days'] = $expire_days;
+        $return_arr['expired_for_seconds'] = $expired_for_seconds;
+        $return_arr['account_data'] = $account_arr;
+
+        return $return_arr;
+    }
+
+    private function _add_account_password_to_history( $account_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_history' ) ))
+         or !($uph_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain flow params.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( (empty( $params['{accounts_settings}'] )
+                and !($params['{accounts_settings}'] = $this->get_plugin_settings())
+            ) or !is_array( $params['{accounts_settings}'] ) )
+            $params['{accounts_settings}'] = array();
+
+        $accounts_settings = $params['{accounts_settings}'];
+
+        if( empty( $accounts_settings['passwords_history_count'] )
+         or !($history_count = intval( $accounts_settings['passwords_history_count'] )) )
+        {
+            // delete extra records
+            db_query( 'DELETE FROM `'.$uph_table_name.'`'.
+                      ' WHERE uid = \''.$account_arr['id'].'\'', $flow_params['db_connection'] );
+
+            return true;
+        }
+
+        if( ($qid = db_query( 'SELECT COUNT(*) AS total_history_records '.
+                              ' FROM `'.$uph_table_name.'`'.
+                              ' WHERE uid = \''.$account_arr['id'].'\'', $flow_params['db_connection'] ))
+        and ($record_arr = @mysqli_fetch_assoc( $qid ))
+        and ($records_to_delete = $record_arr['total_history_records'] - $history_count + 1) > 0 )
+        {
+            // delete extra records
+            db_query( 'DELETE FROM `'.$uph_table_name.'`'.
+                      ' WHERE uid = \''.$account_arr['id'].'\' ORDER BY cdate ASC LIMIT '.$records_to_delete, $flow_params['db_connection'] );
+        }
+
+        $changed_by_uid = 0;
+        if( ($changed_account_arr = PHS::user_logged_in()) )
+            $changed_by_uid = $changed_account_arr['id'];
+
+        $insert_fields_arr = array();
+        $insert_fields_arr['uid'] = $account_arr['id'];
+        $insert_fields_arr['changed_by_uid'] = $changed_by_uid;
+        $insert_fields_arr['pass_salt'] = $account_arr['pass_salt'];
+        $insert_fields_arr['pass'] = $account_arr['pass'];
+        $insert_fields_arr['pass_clear'] = $account_arr['pass_clear'];
+        $insert_fields_arr['cdate'] = date( self::DATETIME_DB );
+
+        $insert_arr = $flow_params;
+        $insert_arr['fields'] = $insert_fields_arr;
+
+        if( !($history_arr = $this->insert( $insert_arr )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error saving password history data.' ) );
+            return false;
+        }
+
+        return $history_arr;
+    }
+
+    public function is_password_in_history( $account_data, $pass, $params = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_history' ) ))
+         or !($uph_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain flow params.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( (empty( $params['{accounts_settings}'] )
+                and !($params['{accounts_settings}'] = $this->get_plugin_settings())
+            ) or !is_array( $params['{accounts_settings}'] ) )
+            $params['{accounts_settings}'] = array();
+
+        $accounts_settings = $params['{accounts_settings}'];
+
+        if( empty( $accounts_settings['passwords_history_count'] )
+         or !($history_count = intval( $accounts_settings['passwords_history_count'] ))
+         or !($qid = db_query( 'SELECT * '.
+                              ' FROM `'.$uph_table_name.'`'.
+                              ' WHERE uid = \''.$account_arr['id'].'\' '.
+                              ' ORDER BY cdate DESC LIMIT 0, '.$history_count, $flow_params['db_connection'] ))
+         or !@mysqli_num_rows( $qid ) )
+            return false;
+
+        $return_arr = array();
+        $return_arr['history_count'] = $history_count;
+        $return_arr['oldest_password_date_timestamp'] = false;
+        $return_arr['matched_history_data'] = false;
+
+        while( ($history_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( empty( $return_arr['oldest_password_date_timestamp'] ) )
+                $return_arr['oldest_password_date_timestamp'] = parse_db_date( $history_arr['cdate'] );
+
+            if( !empty( $history_arr['pass'] )
+            and !empty( $history_arr['pass_salt'] )
+            and $this->raw_check_pass( $history_arr['pass'], $history_arr['pass_salt'], $pass ) )
+            {
+                $return_arr['matched_history_data'] = $history_arr;
+
+                return $return_arr;
+            }
+        }
+
+        return false;
     }
 
     public function clear_idler_sessions()
@@ -1067,7 +1361,10 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['password_regexp'] )
             and !@preg_match( $accounts_settings['password_regexp'], $params['fields']['pass'] ) )
             {
-                if( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
+                if( !empty( $accounts_settings['password_regexp_explanation'] ) )
+                    $this->set_error( self::ERR_INSERT, $this->_pt( $accounts_settings['password_regexp_explanation'] ) );
+
+                elseif( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
                 and !empty( $regexp_parts[1] ) )
                 {
                     if( empty( $regexp_parts[2] ) )
@@ -1353,8 +1650,15 @@ class PHS_Model_Accounts extends PHS_Model
          or !is_array( $accounts_settings ) )
             $accounts_settings = array();
 
+        $params['{password_was_changed}'] = false;
         if( !empty( $params['fields']['pass'] ) )
         {
+            if( $this->check_pass( $existing_data, $params['fields']['pass'] ) )
+            {
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in the past. Please provide another one.' ) );
+                return false;
+            }
+
             if( !empty( $accounts_settings['min_password_length'] )
             and strlen( $params['fields']['pass'] ) < $accounts_settings['min_password_length'] )
             {
@@ -1365,7 +1669,13 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['password_regexp'] )
             and !@preg_match( $accounts_settings['password_regexp'], $params['fields']['pass'] ) )
             {
-                if( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
+                var_dump( $accounts_settings['password_regexp'] );
+                var_dump( $params['fields']['pass'] );
+                
+                if( !empty( $accounts_settings['password_regexp_explanation'] ) )
+                    $this->set_error( self::ERR_EDIT, $this->_pt( $accounts_settings['password_regexp_explanation'] ) );
+
+                elseif( ($regexp_parts = explode( '/', $accounts_settings['password_regexp'] ))
                 and !empty( $regexp_parts[1] ) )
                 {
                     if( empty( $regexp_parts[2] ) )
@@ -1380,9 +1690,36 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
 
-            $params['fields']['pass_salt'] = self::generate_password( (! empty($accounts_settings['pass_salt_length']) ? $accounts_settings['pass_salt_length'] + 3 : 8) );
+            if( ($history_details = $this->is_password_in_history( $existing_data, $params['fields']['pass'] )) )
+            {
+                if( !empty( $history_details['history_count'] )
+                and !empty( $history_details['oldest_password_date_timestamp'] ) )
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in last %s, one of last %s passwords. Please provide another one.',
+                                                                  PHS_utils::parse_period( abs( time() - $history_details['oldest_password_date_timestamp'] ), array( 'only_big_part' => true ) ),
+                                                                  $history_details['history_count'] ) );
+                else
+                    $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in the past. Please provide another one.' ) );
+
+                return false;
+            }
+
+            $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
             $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
             $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
+            $params['fields']['last_pass_change'] = date( self::DATETIME_DB );
+
+            $params['{password_was_changed}'] = true;
+        }
+
+        if( empty( $params['{password_was_changed}'] ) )
+        {
+            // make sure passwords fields are not set if password will not be changed
+            if( isset( $params['fields']['pass_salt'] ) )
+                unset( $params['fields']['pass_salt'] );
+            if( isset( $params['fields']['pass_clear'] ) )
+                unset( $params['fields']['pass_clear'] );
+            if( isset( $params['fields']['pass'] ) )
+                unset( $params['fields']['pass'] );
         }
 
         if( isset( $params['fields']['email'] )
@@ -1511,12 +1848,25 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( !empty( $edit_arr['pass'] )
-        and !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
-        and !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
+        if( !empty( $params['{password_was_changed}'] ) )
         {
-            // send password changed email...
-            PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'pass_changed_email_bg' ), array( 'uid' => $existing_data['id'] ) );
+            $history_params = array();
+            $history_params['{accounts_settings}'] = $params['{accounts_settings}'];
+
+            // save old password to history
+            if( !$this->_add_account_password_to_history( $existing_data, $history_params ) )
+            {
+                PHS_Logger::logf( 'Couldn\'t save user #'.$existing_data['id'].' password to history: ['.$this->get_error_message().']', PHS_Logger::TYPE_ERROR );
+
+                $this->reset_error();
+            }
+
+            if( !empty( $params['{accounts_settings}'] ) and is_array( $params['{accounts_settings}'] )
+            and !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
+            {
+                // send password changed email...
+                PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'pass_changed_email_bg' ), array( 'uid' => $existing_data['id'] ) );
+            }
         }
 
         if( !empty( $params['{activate_after_registration}'] )
@@ -1524,6 +1874,26 @@ class PHS_Model_Accounts extends PHS_Model
         {
             $this->send_confirmation_email( $existing_data );
         }
+
+        // As we announce account action, we should have updated values...
+        $structure_hook_args = PHS_Hooks::default_account_structure_hook_args();
+        $structure_hook_args['account_data'] = $existing_data['id'];
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
+        if( ($plugin_obj = $this->get_plugin_instance())
+        and ($account_structure = $plugin_obj->get_account_structure( $structure_hook_args ))
+        and !empty( $account_structure['account_structure'] ) )
+            $existing_data = $account_structure['account_structure'];
+
+        $hook_args = PHS_Hooks::default_account_action_hook_args();
+        $hook_args['account_data'] = $existing_data;
+        $hook_args['action_alias'] = 'edit';
+        $hook_args['action_params'] = $params;
+        $hook_args['route'] = PHS::get_route_details();
+
+        if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
+        and !empty( $result_arr['account_data'] ) )
+            $existing_data = $result_arr['account_data'];
 
         return $existing_data;
     }
@@ -1672,6 +2042,80 @@ class PHS_Model_Accounts extends PHS_Model
         return $params;
     }
 
+    //
+    // region Version Updates
+    //
+    private function _update_to_104_or_higher()
+    {
+        $this->reset_error();
+
+        // Make sure we don't throw errors here...
+        $st_throwing_errors = PHS::st_throw_errors();
+        $throwing_errors = $this->throw_errors();
+        $this->throw_errors( false );
+        PHS::st_throw_errors( false );
+
+        // Changed passwords encoding function from md5 to sha256
+        if( @function_exists( 'hash_algos' )
+        and !in_array( self::PASSWORDS_ALGO, (array)@hash_algos() ) )
+        {
+            $this->set_error( self::ERR_SERVER, $this->_pt( '%s hash algorithm not available on this server.', self::PASSWORDS_ALGO ) );
+            $this->throw_errors( $throwing_errors );
+            PHS::st_throw_errors( $st_throwing_errors );
+            return false;
+        }
+
+        // we work with low level queries so we don't trigger functionalities from model...
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+         or !($user_table_name = $this->get_flow_table_name( $flow_params ))
+         or !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying users from database.' ) );
+            $this->throw_errors( $throwing_errors );
+            PHS::st_throw_errors( $st_throwing_errors );
+            return false;
+        }
+
+        if( !($users_count = @mysqli_num_rows( $qid )) )
+            return true;
+
+        PHS_Logger::logf( 'Converting passwords from md5 to sha256 for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
+
+        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( empty( $users_arr['pass_clear'] )
+             or !($pass_clear = PHS_crypt::quick_decode( $users_arr['pass_clear'] )) )
+            {
+                PHS_Logger::logf( 'Couldn\'t convert password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                continue;
+            }
+
+            // Already converted...
+            if( $this->check_pass( $users_arr, $pass_clear ) )
+                continue;
+
+            $edit_arr = array();
+            $edit_arr['pass'] = self::encode_pass( $pass_clear, $users_arr['pass_salt'] );
+
+            if( !($sql = db_quick_edit( $user_table_name, $edit_arr, $flow_params['db_connection'] ))
+             or !db_query( $sql.' WHERE id = \''.$users_arr['id'].'\'', $flow_params['db_connection'] ) )
+            {
+                PHS_Logger::logf( 'Couldn\'t save converted password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                continue;
+            }
+        }
+
+        PHS_Logger::logf( 'FINISHED Converting passwords.', PHS_Logger::TYPE_MAINTENANCE );
+
+        $this->throw_errors( $throwing_errors );
+        PHS::st_throw_errors( $st_throwing_errors );
+
+        return true;
+    }
+    //
+    // endregion Version Updates
+    //
+
     /**
      * @inheritdoc
      */
@@ -1709,7 +2153,7 @@ class PHS_Model_Accounts extends PHS_Model
                     ),
                     'pass' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '50',
+                        'length' => '100',
                         'nullable' => true,
                     ),
                     'pass_clear' => array(
@@ -1757,6 +2201,10 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                     ),
+                    'last_pass_change' => array(
+                        'type' => self::FTYPE_DATETIME,
+                        'index' => false,
+                    ),
                     'lastlog' => array(
                         'type' => self::FTYPE_DATETIME,
                         'index' => false,
@@ -1765,6 +2213,46 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_VARCHAR,
                         'index' => false,
                         'length' => '50',
+                        'nullable' => true,
+                    ),
+                    'cdate' => array(
+                        'type' => self::FTYPE_DATETIME,
+                    ),
+                );
+            break;
+
+            case 'users_pass_history':
+                $return_arr = array(
+                    self::T_DETAILS_KEY => array(
+                        'comment' => 'Users passwords history',
+                    ),
+
+                    'id' => array(
+                        'type' => self::FTYPE_INT,
+                        'primary' => true,
+                        'auto_increment' => true,
+                    ),
+                    'uid' => array(
+                        'type' => self::FTYPE_INT,
+                        'index' => true,
+                    ),
+                    'changed_by_uid' => array(
+                        'type' => self::FTYPE_INT,
+                        'index' => true,
+                    ),
+                    'pass_salt' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '50',
+                        'nullable' => true,
+                    ),
+                    'pass' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '100',
+                        'nullable' => true,
+                    ),
+                    'pass_clear' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '150',
                         'nullable' => true,
                     ),
                     'cdate' => array(

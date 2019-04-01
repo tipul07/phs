@@ -839,7 +839,7 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
         }
 
-        if( !db_query( 'DELETE FROM `'.$table_name.'` WHERE instance_id = \''.$instance_id.'\' LIMIT 1' ) )
+        if( !db_query( 'DELETE FROM `'.$table_name.'` WHERE instance_id = \''.$instance_id.'\' LIMIT 1', $flow_params['db_connection'] ) )
         {
             PHS_Logger::logf( 'Error deleting registry entry for instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 

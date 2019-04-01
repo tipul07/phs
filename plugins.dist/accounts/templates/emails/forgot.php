@@ -13,7 +13,7 @@ if( empty( $email_vars ) or !is_array( $email_vars ) )
 Hi <?php echo $email_vars['nick']?>,<br/>
 <br/>
 We received a request to reset your account password.<br/>
-In order to change you password please click here: <a target="_blank" href="<?php echo $email_vars['forgot_link']?>">Confirm Registration</a>
+In order to change your password please click here: <a target="_blank" href="<?php echo $email_vars['forgot_link']?>">Reset password</a>
 <br/>
 or copy and paste the link below in your browser:<br/>
 <br/>

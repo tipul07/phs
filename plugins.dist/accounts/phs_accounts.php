@@ -31,7 +31,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.2';
+        return '1.0.4';
     }
 
     /**
@@ -102,7 +102,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             // password regular expression (leave empty if not wanted)
             'password_regexp' => array(
                 'display_name' => $this->_pt( 'Password reg-exp' ),
-                'display_hint' => $this->_pt( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this.' ),
+                'display_hint' => $this->_pt( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.' ),
+                'type' => PHS_params::T_ASIS,
+                'default' => '',
+            ),
+            'password_regexp_explanation' => array(
+                'display_name' => $this->_pt( 'Password explanation' ),
+                'display_hint' => $this->_pt( 'Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.' ),
                 'type' => PHS_params::T_ASIS,
                 'default' => '',
             ),
@@ -111,6 +117,24 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 'display_hint' => $this->_pt( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
                 'type' => PHS_params::T_INT,
                 'default' => 8,
+            ),
+            'expire_passwords_days' => array(
+                'display_name' => $this->_pt( 'Expire passwords days' ),
+                'display_hint' => $this->_pt( 'After how many days should passwords expire (0 - no expiration)' ),
+                'type' => PHS_params::T_INT,
+                'default' => 0,
+            ),
+            'passwords_history_count' => array(
+                'display_name' => $this->_pt( 'Old passwords history' ),
+                'display_hint' => $this->_pt( 'When changing password, keep a history of older passwords and don\'t allow using an old one as the new password. (0 - no history)' ),
+                'type' => PHS_params::T_INT,
+                'default' => 0,
+            ),
+            'block_after_expiration' => array(
+                'display_name' => $this->_pt( 'Block expired accounts time' ),
+                'display_hint' => $this->_pt( 'After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don\'t block, only alerts)' ),
+                'type' => PHS_params::T_INT,
+                'default' => 0,
             ),
             'announce_pass_change' => array(
                 'display_name' => $this->_pt( 'Announce password change' ),
@@ -647,7 +671,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $check_result;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
             return $hook_args;
 
         // Check if we are in API scope and we have a valid API instance...
@@ -703,6 +727,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $hook_args['session_db_data'] = $online_db_details;
         $hook_args['user_db_data'] = $user_db_details;
+
+        // Password expiration (if required)...
+        if( !($hook_args['password_expired_data'] = $accounts_model->is_password_expired( $user_db_details )) )
+            $hook_args['password_expired_data'] = PHS_Hooks::default_user_db_details_hook_args();
+        // END Password expiration (if required)...
 
         $check_result = $hook_args;
 

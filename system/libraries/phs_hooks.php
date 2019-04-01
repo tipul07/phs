@@ -68,6 +68,8 @@ class PHS_Hooks extends PHS_Registry
          H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
          // triggered to obtain an account structure for a given int, array (obtained from database) or false (for guest accounts)
          H_USER_ACCOUNT_STRUCTURE = 'phs_user_account_structure',
+         // triggered when an action is performed on provided account (insert, edit, etc)
+         H_USER_ACCOUNT_ACTION = 'phs_user_account_action',
          // triggered to get list of roles to assign to new users
          H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
          // triggered to manage user fields at registration
@@ -310,6 +312,19 @@ class PHS_Hooks extends PHS_Registry
         ), self::default_common_hook_args() );
     }
 
+    public static function default_password_expiration_data()
+    {
+        return array(
+            'is_expired' => false,
+            'show_only_warning' => false,
+            'pass_expires_seconds' => 0,
+            'last_pass_change_seconds' => 0,
+            'expiration_days' => 0,
+            'expired_for_seconds' => 0,
+            'account_data' => false,
+        );
+    }
+
     public static function default_user_db_details_hook_args()
     {
         return self::validate_array_recursive( array(
@@ -318,6 +333,8 @@ class PHS_Hooks extends PHS_Registry
             'session_db_data' => false,
             // How many seconds since session expired (0 - session didn't expired)
             'session_expired_secs' => 0,
+            // Details about password expiration
+            'password_expired_data' => self::default_password_expiration_data(),
         ), self::default_common_hook_args() );
     }
 
@@ -329,6 +346,22 @@ class PHS_Hooks extends PHS_Registry
             'account_data' => false,
             // Account structure (from database or empty strcuture for guests)
             'account_structure' => false,
+        ), self::default_common_hook_args() );
+    }
+
+    // Used to make extra actions on an account (including roles) Account data can be empty or an empty structure (a guest empty structure)
+    public static function default_account_action_hook_args()
+    {
+        return self::validate_array_recursive( array(
+            // Account id on which action was taken
+            // We provide id as account was changed and you should normally
+            'account_data' => false,
+            // string which represents what action was performed on provided account
+            'action_alias' => false,
+            // Parameters used for action (if any)
+            'action_params' => false,
+            // current route for which action was taken
+            'route' => false,
         ), self::default_common_hook_args() );
     }
 
@@ -464,7 +497,7 @@ class PHS_Hooks extends PHS_Registry
 
         $hook_args = self::reset_email_hook_args( self::validate_array( $hook_args, PHS_Hooks::default_init_email_hook_args() ) );
 
-        // If we don't have hooks registered, we don't use captcha
+        // If we don't have hooks registered, we don't send emails...
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_EMAIL_INIT, $hook_args )) === null )
             return null;
 
@@ -483,7 +516,7 @@ class PHS_Hooks extends PHS_Registry
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_guest_roles_hook_args() );
 
-        // If we don't have hooks registered, we don't use captcha
+        // If we don't have hooks registered, guest users don't have role slugs...
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_GUEST_ROLES_SLUGS, $hook_args )) === null )
             return false;
 
@@ -494,21 +527,33 @@ class PHS_Hooks extends PHS_Registry
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_db_details_hook_args() );
 
-        // If we don't have hooks registered, we don't use captcha
+        // If we don't have hooks registered, we don't have user management...
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_args )) === null )
             return false;
 
-        if( is_array( $hook_args )
-        and !empty( $hook_args['session_expired_secs'] ) )
+        if( is_array( $hook_args ) )
         {
-            if( !@headers_sent() )
+            if( !empty( $hook_args['session_expired_secs'] ) )
             {
-                header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
-                exit;
-            }
+                if( !@headers_sent() )
+                {
+                    header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
+                    exit;
+                }
 
-            return false;
+                return false;
+            }
         }
+
+        return $hook_args;
+    }
+
+    public static function trigger_account_action( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() );
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_ACCOUNT_ACTION, $hook_args )) === null )
+            return false;
 
         return $hook_args;
     }

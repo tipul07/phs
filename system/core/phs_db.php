@@ -4,17 +4,19 @@ namespace phs;
 
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_db_mysqli;
+use \phs\libraries\PHS_db_mongo;
 
 final class PHS_db extends PHS_Registry
 {
     const ERR_DATABASE = 2000;
 
-    const DB_DEFAULT_CONNECTION = 'db_default_connection', DB_SETTINGS = 'db_settings', DB_MYSQLI_INSTANCE = 'db_mysqli_instance';
+    const DB_DEFAULT_CONNECTION = 'db_default_connection', DB_DEFAULT_DRIVER = 'db_default_driver', DB_SETTINGS = 'db_settings',
+          DB_MYSQLI_INSTANCE = 'db_mysqli_instance', DB_MONGO_INSTANCE = 'db_mongo_instance';
 
-    const DB_DRIVER_MYSQLI = 'mysqli';//, DB_DRIVER_MONGO = 'mongo';
+    const DB_DRIVER_MYSQLI = 'mysqli', DB_DRIVER_MONGO = 'mongo';
     private static $KNOWN_DB_DRIVERS = array(
         self::DB_DRIVER_MYSQLI => 'MySQLi',
-        //self::DB_DRIVER_MONGO => 'Mongo',
+        self::DB_DRIVER_MONGO => 'Mongo',
     );
 
     private static $inited = false;
@@ -69,14 +71,10 @@ final class PHS_db extends PHS_Registry
             return false;
         }
 
-        $default_settings = self::get_default_db_connection_settings_arr();
-        foreach( $default_settings as $key => $val )
-        {
-            if( !array_key_exists( $key, $settings_arr ) )
-                $settings_arr[$key] = $val;
-        }
+        $settings_arr = self::validate_array( $settings_arr, self::get_default_db_connection_settings_arr() );
 
-        if( !self::valid_db_driver( $settings_arr['driver'] ) )
+        if( empty( $settings_arr['driver'] )
+         or !self::valid_db_driver( $settings_arr['driver'] ) )
         {
             self::st_set_error( self::ERR_DATABASE,
                                 self::_t( 'Invalid database driver' ),
@@ -109,10 +107,10 @@ final class PHS_db extends PHS_Registry
 
         self::set_data( self::DB_SETTINGS, $existing_db_settings );
 
-        if( !self::default_db_connection() )
-            self::default_db_connection( $connection_name );
+        if( !self::default_db_connection( $settings_arr['driver'] ) )
+            self::default_db_connection( $settings_arr['driver'], $connection_name );
 
-        return true;
+        return $settings_arr;
     }
 
     /**
@@ -166,17 +164,49 @@ final class PHS_db extends PHS_Registry
         return $return_arr;
     }
 
-    public static function default_db_connection( $connection_name = false )
+    public static function default_db_connection( $driver = false, $connection_name = false )
     {
-        if( $connection_name === false )
-            return self::get_data( self::DB_DEFAULT_CONNECTION );
+        if( $driver === false )
+            $driver = self::default_db_driver();
 
-        if( !self::db_connection_exists( $connection_name ) )
+        if( $connection_name === false )
+        {
+            if( !($default_connection_arr = self::get_data( self::DB_DEFAULT_CONNECTION ))
+             or !is_array( $default_connection_arr ) )
+                $default_connection_arr = array();
+
+            if( empty( $default_connection_arr[$driver] ) )
+                return false;
+
+            return $default_connection_arr[$driver];
+        }
+
+        if( !($settings_arr = self::get_db_connection( $connection_name ))
+         or !is_array( $settings_arr ) )
             return false;
 
-        self::set_data( self::DB_DEFAULT_CONNECTION, $connection_name );
+        if( !($default_connection_arr = self::get_data( self::DB_DEFAULT_CONNECTION ))
+         or !is_array( $default_connection_arr ) )
+            $default_connection_arr = array();
+
+        $default_connection_arr[$settings_arr['driver']] = $connection_name;
+
+        self::set_data( self::DB_DEFAULT_CONNECTION, $default_connection_arr );
 
         return $connection_name;
+    }
+
+    public static function default_db_driver( $driver = false )
+    {
+        if( $driver === false )
+            return self::get_data( self::DB_DEFAULT_DRIVER );
+
+        if( !self::valid_db_driver( $driver ) )
+            return false;
+
+        self::set_data( self::DB_DEFAULT_DRIVER, $driver );
+
+        return $driver;
     }
 
     /**
@@ -272,7 +302,7 @@ final class PHS_db extends PHS_Registry
                         if( $db_instance )
                             self::st_copy_error( $db_instance );
                         else
-                            self::st_set_error( self::ERR_DATABASE, self::_t( 'Database initialization error.' ) );
+                            self::st_set_error( self::ERR_DATABASE, self::_t( 'Database initialization error (MySQLi driver).' ) );
 
                         return false;
                     }
@@ -285,6 +315,33 @@ final class PHS_db extends PHS_Registry
                     $db_instance->close_after_query( PHS_DB_CLOSE_AFTER_QUERY );
 
                     self::set_data( self::DB_MYSQLI_INSTANCE, $db_instance );
+                }
+            break;
+
+            case self::DB_DRIVER_MONGO:
+                /** @var PHS_db_mongo $db_instance */
+                if( !($db_instance = self::get_data( self::DB_MONGO_INSTANCE )) )
+                {
+                    include_once( PHS_LIBRARIES_DIR . 'phs_db_mongo.php' );
+
+                    if( !($db_instance = new PHS_db_mongo())
+                     or $db_instance->has_error() )
+                    {
+                        if( $db_instance )
+                            self::st_copy_error( $db_instance );
+                        else
+                            self::st_set_error( self::ERR_DATABASE, self::_t( 'Database initialization error (Mongo driver).' ) );
+
+                        return false;
+                    }
+
+                    $on_debugging_mode = self::st_debugging_mode();
+
+                    $db_instance->display_errors( ($on_debugging_mode and !PHS_DB_SILENT_ERRORS) );
+                    $db_instance->die_on_errors( PHS_DB_DIE_ON_ERROR );
+                    $db_instance->debug_errors( $on_debugging_mode );
+
+                    self::set_data( self::DB_MONGO_INSTANCE, $db_instance );
                 }
             break;
 
