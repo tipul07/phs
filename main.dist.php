@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.4.1' );
+define( 'PHS_KNOWN_VERSION', '1.0.4.2' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -30,7 +30,6 @@ define( 'PHS_DEFAULT_SSL_PORT', '' ); // https port (if applicable) if using def
 define( 'PHS_DEFAULT_DOMAIN_PATH', 'url/path/to/root/' ); // tells the path from domain to get to root URL of the platform
 
 // Default database settings (these settings will be used when creating default database connection)
-define( 'PHS_DB_DRIVER', 'mysqli' );
 define( 'PHS_DB_HOSTNAME', 'localhost' );
 define( 'PHS_DB_USERNAME', 'dbuser' );
 define( 'PHS_DB_PASSWORD', 'dbpass' );

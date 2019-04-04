@@ -11,7 +11,7 @@
 <fieldset class="form-group">
     <label><?php echo $this->_pt( 'DB Driver' )?></label>
     <div class="lineform_line">
-        <?php echo $this->_pt( 'MySQLi' );?>
+        <?php echo $this->_pt( 'MySQLi' );?><br/>
         <small><?php echo $this->_pt( 'Default MySQLi driver connection settings. PHS uses a MySQL database structure, so it requires a MySQL server.' )?></small>
     </div>
 </fieldset>

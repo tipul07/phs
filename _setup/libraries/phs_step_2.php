@@ -29,7 +29,7 @@ class PHS_Step_2 extends PHS_Step
 
         // Define special connection with provided settings...
         $mysql_settings = array();
-        $mysql_settings['driver'] = PHS_DB_DRIVER;
+        $mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
         $mysql_settings['host'] = PHS_DB_HOSTNAME;
         $mysql_settings['user'] = PHS_DB_USERNAME;
         $mysql_settings['password'] = PHS_DB_PASSWORD;
@@ -57,7 +57,7 @@ class PHS_Step_2 extends PHS_Step
             return false;
         }
 
-        PHS_db::default_db_connection( PHS_DB_DRIVER, PHS_SETUP_DB_CONNECTION );
+        PHS_db::default_db_connection( PHS_db::DB_DRIVER_MYSQLI, PHS_SETUP_DB_CONNECTION );
 
         return true;
     }
@@ -201,7 +201,6 @@ class PHS_Step_2 extends PHS_Step
         and !$this->has_error_msgs() )
         {
             $defines_arr = array(
-                'PHS_DB_DRIVER' => PHS_db::DB_DRIVER_MYSQLI,
                 'PHS_DB_HOSTNAME' => $phs_db_hostname,
                 'PHS_DB_USERNAME' => $phs_db_username,
                 'PHS_DB_PASSWORD' => $phs_db_password,

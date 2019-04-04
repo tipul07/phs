@@ -149,7 +149,7 @@ if( PHS::st_debugging_mode() )
 // Default database settings
 //
 $mysql_settings = array();
-$mysql_settings['driver'] = PHS_DB_DRIVER;
+$mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
 $mysql_settings['host'] = PHS_DB_HOSTNAME;
 $mysql_settings['user'] = PHS_DB_USERNAME;
 $mysql_settings['password'] = PHS_DB_PASSWORD;
@@ -174,6 +174,8 @@ if( !is_array( $mysql_settings['driver_settings'] ) )
     $mysql_settings['driver_settings'] = array();
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
+
+PHS_db::default_db_driver( PHS_db::DB_DRIVER_MYSQLI );
 
 if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {

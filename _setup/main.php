@@ -60,12 +60,15 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_roles.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_instantiable.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_plugin.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_base.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mysqli.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mongo.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
