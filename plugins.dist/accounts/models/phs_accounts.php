@@ -1669,9 +1669,6 @@ class PHS_Model_Accounts extends PHS_Model
             if( !empty( $accounts_settings['password_regexp'] )
             and !@preg_match( $accounts_settings['password_regexp'], $params['fields']['pass'] ) )
             {
-                var_dump( $accounts_settings['password_regexp'] );
-                var_dump( $params['fields']['pass'] );
-                
                 if( !empty( $accounts_settings['password_regexp_explanation'] ) )
                     $this->set_error( self::ERR_EDIT, $this->_pt( $accounts_settings['password_regexp_explanation'] ) );
 
