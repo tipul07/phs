@@ -1419,18 +1419,19 @@ class PHS_Model_Accounts extends PHS_Model
                 $params['fields']['pass_generated'] = 1;
         }
 
+        $now_date = date( self::DATETIME_DB );
+
         if( empty( $params['fields']['pass_salt'] ) )
             $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
         $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
         $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
-
-        $now_date = date( self::DATETIME_DB );
+        $params['fields']['last_pass_change'] = $now_date;
 
         $params['fields']['status_date'] = $now_date;
 
         if( empty( $params['fields']['cdate'] ) or empty_db_date( $params['fields']['cdate'] ) )
-            $params['fields']['cdate'] = date( self::DATETIME_DB );
+            $params['fields']['cdate'] = $now_date;
         else
             $params['fields']['cdate'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['cdate'] ) );
 
