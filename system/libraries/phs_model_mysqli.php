@@ -2216,6 +2216,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                     $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_name.' = \''.db_escape( $field_val, $db_connection ).'\' ';
             } else
             {
+                // If we don\'t have value key set, it means array passed is an array of values
+                if( !isset( $field_val['value'] )
+                and !isset( $field_val['raw'] )
+                and !isset( $field_val['raw_value'] ) )
+                    $field_val = array( 'value' => $field_val );
+
                 if( !isset( $field_val['raw'] ) )
                     $field_val['raw'] = false;
                 if( empty( $field_val['field'] ) )
@@ -2226,21 +2232,47 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                     $field_val['value'] = false;
                 if( !isset( $field_val['raw_value'] ) )
                     $field_val['raw_value'] = false;
+                // Use linkage function used in current linkage (by default) if more values are provided
+                if( !isset( $field_val['linkage_func'] )
+                 or !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
+                    $field_val['linkage_func'] = false;
 
                 if( !empty( $field_val['raw'] ) )
                     $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').$field_val['raw'];
 
                 elseif( $field_val['value'] !== false or $field_val['raw_value'] !== false )
                 {
+                    $check_value = false;
                     $field_val['check'] = trim( $field_val['check'] );
                     if( $field_val['raw_value'] !== false )
                         $check_value = $field_val['raw_value'];
+
                     elseif( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )
                         $check_value = $field_val['value'];
-                    else
+
+                    elseif( !is_array( $field_val['value'] ) )
                         $check_value = '\''.db_escape( $field_val['value'], $db_connection ).'\'';
 
-                    $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_val['field'].' '.$field_val['check'].' '.$check_value.' ';
+                    if( !empty( $check_value ) )
+                        $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_val['field'].' '.$field_val['check'].' '.$check_value.' ';
+
+                    elseif( is_array( $field_val['value'] )
+                        and !empty( $field_val['value'] ) )
+                    {
+                        // If linkage function is not provided for same field, we assume we should check if field is one of
+                        // provided values so we should use OR in linkage
+                        if( $field_val['linkage_func'] === false )
+                            $field_val['linkage_func'] = 'OR';
+                        else
+                            $field_val['linkage_func'] = $linkage_func;
+
+                        $linkage_str = '';
+                        foreach( $field_val['value'] as $field_arr_val )
+                            $linkage_str .= (!empty( $linkage_str )?' '.$field_val['linkage_func'].' ':'').' '.$field_val['field'].' '.$field_val['check'].' \''.db_escape( $field_arr_val, $db_connection ).'\' ';
+
+                        if( !empty( $linkage_str ) )
+                            $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').'('.$linkage_str.')';
+                    }
                 }
             }
         }
