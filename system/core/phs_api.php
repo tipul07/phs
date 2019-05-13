@@ -162,7 +162,7 @@ class PHS_api extends PHS_api_base
             'get_params' => array(),
             'post_params' => array(),
 
-            // If API route doesn't require authentication to run put this to true
+            // If API route doesn't require authentication to run put this to false
             'authentication_required' => true,
             // If API route requires special API authentication you can define here what method/function to call to do the authentication
             // Method receives as parameters an array (like PHS_api_base::default_api_authentication_callback_params()) and should return false
@@ -470,7 +470,7 @@ class PHS_api extends PHS_api_base
         }
 
         if( !($apikey_arr = $this->get_apikey_by_apikey( $api_user ))
-         or $apikey_arr['api_secret'] != $api_pass )
+         or (string)$apikey_arr['api_secret'] !== (string)$api_pass )
         {
             if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
             {
