@@ -457,6 +457,14 @@ class PHS_Error
     }
 
     /**
+     * @return string Always returns short version error message
+     */
+    public function get_simple_error_message()
+    {
+        return $this->error_simple_msg;
+    }
+
+    /**
      * @return int Returns error code
      */
     public function get_error_code()
@@ -540,6 +548,11 @@ class PHS_Error
         return self::get_error_static_instance()->get_error_message();
     }
 
+    public static function st_get_simple_error_message()
+    {
+        return self::get_error_static_instance()->get_simple_error_message();
+    }
+
     public static function arr_get_error_code( $err_arr )
     {
         $err_arr = self::validate_error_arr( $err_arr );
@@ -553,6 +566,13 @@ class PHS_Error
 
         if( self::st_debugging_mode() )
             return $err_arr['error_debug_msg'];
+
+        return $err_arr['error_simple_msg'];
+    }
+
+    public static function arr_get_simple_error_message( $err_arr )
+    {
+        $err_arr = self::validate_error_arr( $err_arr );
 
         return $err_arr['error_simple_msg'];
     }

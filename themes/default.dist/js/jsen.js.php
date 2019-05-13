@@ -1,6 +1,6 @@
 <?php
 
-// /version 1.30
+// /version 1.31
 
     include( '../../../main.php' );
 
@@ -16,7 +16,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.30,
+        version: 1.31,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -347,21 +347,25 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             for( var i = 0; i < error_arr.length; i++ )
             {
-                container_obj = false;
-                appendto_obj = false;
+                var container_obj = false;
+                var appendto_obj = false;
 
-                if( !error_arr[i].highlight_classes || typeof error_arr[i].highlight_classes != "object" )
+                if( typeof error_arr[i].highlight_classes === "undefined"
+                 || !error_arr[i].highlight_classes
+                 || typeof error_arr[i].highlight_classes != "object" )
                     error_arr[i].highlight_classes = [];
 
-                container_name_id = '';
-                container_div_id = '';
+                var container_name_id = '';
+                var container_div_id = '';
                 if( !error_arr[i].container || !error_arr[i].container.length )
                 {
-                    if( !error_arr[i].appendto || !error_arr[i].appendto.length )
+                    if( typeof error_arr[i].appendto === "undefined"
+                     || !error_arr[i].appendto
+                     || error_arr[i].appendto.length == 0 )
                         continue;
 
                     appendto_obj = $(error_arr[i].appendto);
-                    if( !appendto_obj )
+                    if( appendto_obj.length == 0 )
                         continue;
 
                     container_div_id = "PHS_JSENDiaErr" + this.dialogErrorsDivs;
@@ -370,7 +374,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 else
                 {
                     container_obj = $(error_arr[i].container);
-                    if( !container_obj )
+                    if( container_obj.length == 0 )
                         continue;
 
                     container_name_id = error_arr[i].container;
@@ -388,7 +392,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 var len = 0;
                 var ki = 0;
 
-                if( error_arr[i].highlight_field )
+                if( typeof error_arr[i].highlight_field !== "undefined" )
                 {
                     if( typeof error_arr[i].highlight_field == "object" && error_arr[i].highlight_field.length )
                     {
@@ -399,7 +403,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                             if( $("#" + highlight_id) )
                                 $("#" + highlight_id).addClass( "ui-highlight-error" );
                         }
-                    } else if( $("#" + error_arr[i].highlight_field) )
+                    } else if( $("#" + error_arr[i].highlight_field).length > 0 )
                     {
                         $("#" + error_arr[i].highlight_field).addClass("ui-highlight-error");
                     }
@@ -437,7 +441,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 if( error_arr[i].highlight_classes && typeof error_arr[i].highlight_classes == "object" )
                 {
-                    for( ki = 0; knti < error_arr[i].highlight_classes.length; ki++ )
+                    for( ki = 0; ki < error_arr[i].highlight_classes.length; ki++ )
                     {
                         if( !container_obj.hasClass( error_arr[i].highlight_classes[ki] ) )
                             container_obj.addClass( error_arr[i].highlight_classes[ki] );
@@ -684,7 +688,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
 
             // Create Dialog
-            if( typeof $(options.parent_tag) == "undefined" )
+            if( $(options.parent_tag).length == 0 )
                 options.parent_tag = "body";
 
             $(options.parent_tag).append( '<div id="' + PHS_JSEN.dialogs_prefix + options.suffix + '"></div>' );
@@ -912,7 +916,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 loading_dialog_obj.remove();
 
             // Create Dialog
-            if( typeof $(options.parent_tag) == "undefined" )
+            if( $(options.parent_tag).length == 0 )
                 options.parent_tag = "body";
 
             $(options.parent_tag).append( '<div id="phs_jsen_loading' + options.suffix + '"></div>' );

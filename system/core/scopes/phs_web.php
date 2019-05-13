@@ -33,7 +33,7 @@ class PHS_Scope_Web extends PHS_Scope
         and !empty( $expiration_arr['is_expired'] ) )
         {
             if( $action_obj->action_role_is( array( $action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
-                                                                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED ) ) )
+                                                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED ) ) )
                 $in_special_page = true;
             else
                 $in_special_page = false;

@@ -35,7 +35,8 @@ class PHS_Scope_Ajax extends PHS_Scope
             if( !empty( $action_result['redirect_to_url'] ) )
                 $args['back_page'] = $action_result['redirect_to_url'];
             else
-                $args['back_page'] = PHS::current_url();
+                // we cannot redirect user to same page as we are in an AJAX request...
+                $args['back_page'] = PHS::url();
 
             $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
         }
@@ -103,6 +104,7 @@ class PHS_Scope_Ajax extends PHS_Scope
 
                 $ajax_data['response'] = $action_result['ajax_result'];
                 $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
+                $ajax_data['request_login'] = (!empty($action_result['request_login']) ? true : false);
             }
 
             if( $full_buffer )
