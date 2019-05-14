@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-//! \version 2.0
+//! \version 2.01
 
 class PHS_line_params extends PHS_Language
 {
@@ -17,7 +17,7 @@ class PHS_line_params extends PHS_Language
 
     static function from_string_to_new_line( $str )
     {
-        return str_replace( self::NEW_LINE_REPLACEMENT, "\n", $str );
+        return str_replace( self::NEW_LINE_REPLACEMENT, "\r\n", $str );
     }
 
     /**
