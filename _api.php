@@ -6,6 +6,8 @@
     // HTTP/1.0
     header( 'Pragma: no-cache' );
 
+    define( 'PHS_PREVENT_SESSION', true );
+
     include_once( 'main.php' );
 
     use \phs\PHS;

@@ -656,6 +656,7 @@ class PHS_Model_Api_online extends PHS_Model
             $params['fields']['api_secret'] = $this->generate_api_secret();
 
         $params['fields']['cdate'] = date( self::DATETIME_DB );
+        $params['fields']['last_update'] = $params['fields']['cdate'];
 
         return $params;
     }
