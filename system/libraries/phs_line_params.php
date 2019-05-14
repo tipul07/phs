@@ -2,10 +2,24 @@
 
 namespace phs\libraries;
 
-//! \version 1.57
+//! \version 2.0
 
 class PHS_line_params extends PHS_Language
 {
+    const NEW_LINE_REPLACEMENT = '{{PHS_LP_NL}}';
+
+    static function new_line_in_string( $str )
+    {
+        $str = str_replace( "\r", "\n", str_replace( array( "\r\n", "\n\r" ), "\n", $str ) );
+
+        return str_replace( "\n", self::NEW_LINE_REPLACEMENT, $str );
+    }
+
+    static function from_string_to_new_line( $str )
+    {
+        return str_replace( self::NEW_LINE_REPLACEMENT, "\n", $str );
+    }
+
     /**
      * @param array|string|bool|null|int|float $val Value to be converted to string
      *
@@ -17,10 +31,10 @@ class PHS_line_params extends PHS_Language
             return false;
 
         if( is_array( $val ) )
-            return @json_encode( $val );
+            return self::new_line_in_string( @json_encode( $val ) );
 
         if( is_string( $val ) )
-            return '\''.$val.'\'';
+            return '\''.self::new_line_in_string( $val ).'\'';
 
         if( is_bool( $val ) )
             return (!empty( $val )?'true':'false');
@@ -44,7 +58,7 @@ class PHS_line_params extends PHS_Language
         if( !is_string( $str ) )
             return null;
 
-        if( ($val = @json_decode( $str, true )) !== null )
+        if( ($val = @json_decode( self::from_string_to_new_line( $str ), true )) !== null )
             return $val;
 
         if( is_numeric( $str ) )
@@ -65,7 +79,7 @@ class PHS_line_params extends PHS_Language
         if( $str_lower == 'true' )
             return true;
 
-        return $str;
+        return self::from_string_to_new_line( $str );
     }
 
     /**
