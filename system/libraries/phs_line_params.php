@@ -8,14 +8,14 @@ class PHS_line_params extends PHS_Language
 {
     const NEW_LINE_REPLACEMENT = '{{PHS_LP_NL}}';
 
-    static function new_line_in_string( $str )
+    static public function new_line_in_string( $str )
     {
         $str = str_replace( "\r", "\n", str_replace( array( "\r\n", "\n\r" ), "\n", $str ) );
 
         return str_replace( "\n", self::NEW_LINE_REPLACEMENT, $str );
     }
 
-    static function from_string_to_new_line( $str )
+    static public function from_string_to_new_line( $str )
     {
         return str_replace( self::NEW_LINE_REPLACEMENT, "\r\n", $str );
     }

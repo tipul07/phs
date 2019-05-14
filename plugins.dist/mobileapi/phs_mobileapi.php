@@ -43,7 +43,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
     public function get_models()
     {
-        return array( 'mobileapi_online' );
+        return array( 'api_online' );
     }
 
     /**
