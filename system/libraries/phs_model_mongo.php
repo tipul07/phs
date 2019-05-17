@@ -579,6 +579,11 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
         return true;
     }
 
+    protected function _update_missing_table_for_model( $flow_params )
+    {
+        return $this->_install_table_for_model( $flow_params );
+    }
+
     /**
      * @inheritdoc
      */

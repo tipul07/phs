@@ -87,8 +87,12 @@ class PHS_Action_Change_password extends PHS_Action
 
         if( PHS_params::_g( 'password_expired', PHS_params::T_INT ) )
             PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired. For security reasons, please change it.' ) );
-        if( PHS_params::_g( 'password_changed', PHS_params::T_INT ) )
+        if( ($password_changed = PHS_params::_g( 'password_changed', PHS_params::T_INT )) )
+        {
+            $password_changed = true;
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
+        } else
+            $password_changed = true;
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
@@ -120,7 +124,7 @@ class PHS_Action_Change_password extends PHS_Action
 
                 if( ($new_account = $accounts_model->edit( (!empty( $current_user )?$current_user:$forgot_account_arr), $edit_params_arr )) )
                 {
-                    PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved...' ) );
+                    PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
 
                     $action_result = self::default_action_result();
 
@@ -166,6 +170,7 @@ class PHS_Action_Change_password extends PHS_Action
             'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
             'min_password_length' => $accounts_settings['min_password_length'],
             'password_regexp' => $accounts_settings['password_regexp'],
+            'password_changed' => $password_changed,
         );
 
         return $this->quick_render_template( 'change_password', $data );

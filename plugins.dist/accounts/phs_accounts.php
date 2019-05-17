@@ -31,7 +31,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.4';
+        return '1.1.0';
     }
 
     /**

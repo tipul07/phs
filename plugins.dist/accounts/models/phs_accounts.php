@@ -55,7 +55,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.4';
+        return '1.1.0';
     }
 
     /**
@@ -63,7 +63,8 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'users', 'online', 'users_pass_history', );
+        // 'users_pass_salts' is first so we are sure table is created before changing users table...
+        return array( 'users_pass_salts', 'users', 'online', 'users_pass_history', );
     }
 
     /**
@@ -82,6 +83,16 @@ class PHS_Model_Accounts extends PHS_Model
         if( @version_compare( $old_version, '1.0.3', '<=' )
         and @version_compare( $new_version, '1.0.4', '>=' )
         and !$this->_update_to_104_or_higher() )
+            return false;
+
+        return true;
+    }
+
+    protected function custom_after_missing_tables_update( $old_version, $new_version, $params_arr = false )
+    {
+        if( @version_compare( $old_version, '1.0.4', '<=' )
+        and @version_compare( $new_version, '1.1.0', '>=' )
+        and !$this->_update_to_110_or_higher() )
             return false;
 
         return true;
@@ -631,8 +642,9 @@ class PHS_Model_Accounts extends PHS_Model
     public function check_pass( $account_data, $pass )
     {
         if( !($account_arr = $this->data_to_array( $account_data ))
-         or !isset( $account_arr['pass_salt'] )
-         or !$this->raw_check_pass( $account_arr['pass'], $account_arr['pass_salt'], $pass ) )
+         or !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) ))
+         or !isset( $account_salt_arr['pass_salt'] )
+         or !$this->raw_check_pass( $account_arr['pass'], $account_salt_arr['pass_salt'], $pass ) )
             return false;
 
         return $account_arr;
@@ -1421,11 +1433,11 @@ class PHS_Model_Accounts extends PHS_Model
 
         $now_date = date( self::DATETIME_DB );
 
-        if( empty( $params['fields']['pass_salt'] ) )
-            $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
+        if( empty( $params['{pass_salt}'] ) )
+            $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
         $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
-        $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
+        $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
         $params['fields']['last_pass_change'] = $now_date;
 
         $params['fields']['status_date'] = $now_date;
@@ -1465,11 +1477,27 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{accounts_settings}'] = array();
 
         $insert_arr['{users_details}'] = false;
+        $insert_arr['{pass_salt}'] = false;
 
         if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining account details model instance.' ) );
             return false;
+        }
+
+        if( !empty( $params['{pass_salt}'] ) )
+        {
+            $salt_insert_arr = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) );
+            $salt_insert_arr['fields']['uid'] = $insert_arr['id'];
+            $salt_insert_arr['fields']['pass_salt'] = $params['{pass_salt}'];
+
+            if( !($salt_arr = $this->insert( $salt_insert_arr )) )
+            {
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error saving account password. Please try again.' ) );
+                return false;
+            }
+
+            $insert_arr['{pass_salt}'] = $salt_arr;
         }
 
         if( !empty( $params['{users_details}'] ) and is_array( $params['{users_details}'] ) )
@@ -1701,9 +1729,9 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
 
-            $params['fields']['pass_salt'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
+            $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
             $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
-            $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['fields']['pass_salt'] );
+            $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
             $params['fields']['last_pass_change'] = date( self::DATETIME_DB );
 
             $params['{password_was_changed}'] = true;
@@ -1712,8 +1740,8 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{password_was_changed}'] ) )
         {
             // make sure passwords fields are not set if password will not be changed
-            if( isset( $params['fields']['pass_salt'] ) )
-                unset( $params['fields']['pass_salt'] );
+            if( isset( $params['{pass_salt}'] ) )
+                unset( $params['{pass_salt}'] );
             if( isset( $params['fields']['pass_clear'] ) )
                 unset( $params['fields']['pass_clear'] );
             if( isset( $params['fields']['pass'] ) )
@@ -1848,6 +1876,40 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !empty( $params['{password_was_changed}'] ) )
         {
+            if( !empty( $params['{pass_salt}'] )
+            and ($salt_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) ))
+            and ($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
+            {
+                $check_arr = array();
+                $check_arr['uid'] = $existing_data['id'];
+
+                $fields_arr = array();
+                $fields_arr['pass_salt'] = $params['{pass_salt}'];
+
+                $salt_data_arr = $salt_flow_params;
+                $salt_data_arr['fields'] = $fields_arr;
+
+                if( ($existing_salt_arr = $this->get_details_fields( $check_arr, $salt_flow_params )) )
+                {
+                    if( !($salt_arr = $this->edit( $existing_salt_arr, $salt_data_arr )) )
+                    {
+                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account password. Please try again.' ) );
+                        return false;
+                    }
+                } else
+                {
+                    $salt_data_arr['fields']['uid'] = $existing_data['id'];
+
+                    if( !($salt_arr = $this->insert( $salt_data_arr )) )
+                    {
+                        $this->set_error( self::ERR_EDIT, $this->_pt( 'Error inserting account password. Please try again.' ) );
+                        return false;
+                    }
+                }
+
+                $existing_data['{pass_salt}'] = $salt_arr;
+            }
+
             $history_params = array();
             $history_params['{accounts_settings}'] = $params['{accounts_settings}'];
 
@@ -2110,6 +2172,83 @@ class PHS_Model_Accounts extends PHS_Model
 
         return true;
     }
+
+    private function _update_to_110_or_higher()
+    {
+        $this->reset_error();
+
+        // Make sure we don't throw errors here...
+        $st_throwing_errors = PHS::st_throw_errors();
+        $throwing_errors = $this->throw_errors();
+        $this->throw_errors( false );
+        PHS::st_throw_errors( false );
+
+        // we work with low level queries so we don't trigger functionalities from model...
+        if( !($salt_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) ))
+         or !($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining password salts flow.' ) );
+            $this->throw_errors( $throwing_errors );
+            PHS::st_throw_errors( $st_throwing_errors );
+            return false;
+        }
+
+        // we work with low level queries so we don't trigger functionalities from model...
+        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+         or !($user_table_name = $this->get_flow_table_name( $flow_params ))
+         or !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying users from database.' ) );
+            $this->throw_errors( $throwing_errors );
+            PHS::st_throw_errors( $st_throwing_errors );
+            return false;
+        }
+
+        if( !($users_count = @mysqli_num_rows( $qid )) )
+            return true;
+
+        PHS_Logger::logf( 'Converting passwords salts for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
+
+        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            // Already converted...
+            if( empty( $users_arr['pass_salt'] ) )
+                continue;
+
+            $check_arr = array();
+            $check_arr['uid'] = $users_arr['id'];
+
+            $fields_arr = array();
+            $fields_arr['pass_salt'] = $users_arr['pass_salt'];
+
+            if( ($existing_arr = $this->get_details_fields( $check_arr, $salt_flow_params )) )
+            {
+                if( !($sql = db_quick_edit( $salt_table_name, $fields_arr, $salt_flow_params['db_connection'] ))
+                 or !db_query( $sql.' WHERE id = \''.$existing_arr['id'].'\'', $salt_flow_params['db_connection'] ) )
+                {
+                    PHS_Logger::logf( 'Couldn\'t save converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                    continue;
+                }
+            } else
+            {
+                $fields_arr['uid'] = $users_arr['id'];
+
+                if( !($sql = db_quick_insert( $salt_table_name, $fields_arr, $salt_flow_params['db_connection'] ))
+                 or !($item_id = db_query_insert( $sql, $salt_flow_params['db_connection'] )) )
+                {
+                    PHS_Logger::logf( 'Couldn\'t insert converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                    continue;
+                }
+            }
+        }
+
+        PHS_Logger::logf( 'FINISHED Converting password salts.', PHS_Logger::TYPE_MAINTENANCE );
+
+        $this->throw_errors( $throwing_errors );
+        PHS::st_throw_errors( $st_throwing_errors );
+
+        return true;
+    }
     //
     // endregion Version Updates
     //
@@ -2143,11 +2282,6 @@ class PHS_Model_Accounts extends PHS_Model
                         'length' => '150',
                         'nullable' => true,
                         'index' => true,
-                    ),
-                    'pass_salt' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '50',
-                        'nullable' => true,
                     ),
                     'pass' => array(
                         'type' => self::FTYPE_VARCHAR,
@@ -2238,11 +2372,6 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_INT,
                         'index' => true,
                     ),
-                    'pass_salt' => array(
-                        'type' => self::FTYPE_VARCHAR,
-                        'length' => '50',
-                        'nullable' => true,
-                    ),
                     'pass' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '100',
@@ -2255,6 +2384,29 @@ class PHS_Model_Accounts extends PHS_Model
                     ),
                     'cdate' => array(
                         'type' => self::FTYPE_DATETIME,
+                    ),
+                );
+            break;
+
+            case 'users_pass_salts':
+                $return_arr = array(
+                    self::T_DETAILS_KEY => array(
+                        'comment' => 'Users passwords salt',
+                    ),
+
+                    'id' => array(
+                        'type' => self::FTYPE_INT,
+                        'primary' => true,
+                        'auto_increment' => true,
+                    ),
+                    'uid' => array(
+                        'type' => self::FTYPE_INT,
+                        'index' => true,
+                    ),
+                    'pass_salt' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '50',
+                        'nullable' => true,
                     ),
                 );
             break;

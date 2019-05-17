@@ -159,6 +159,15 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     abstract protected function _update_table_for_model( $flow_params );
 
     /**
+     * Install a missing table provided in flow parameters when updating model
+     *
+     * @param array $flow_params Flow parameters
+     *
+     * @return bool True on success or false on failure
+     */
+    abstract protected function _update_missing_table_for_model( $flow_params );
+
+    /**
      * This method will hard-delete a table from database defined by this model.
      * If you don't want to drop a specific table when model gets uninstalled overwrite this method with an empty method which returns true.
      *
@@ -308,7 +317,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     }
 
     /**
-     * Performs any necessary custom actions when updating model from $old_version to $new_version
+     * Performs any necessary custom actions when updating model from $old_version to $new_version.
+     * This action is performed before changing any database structure
      * Overwrite this method to do particular updates.
      * If this function returns false whole update will stop and error set in this method will be used.
      *
@@ -324,6 +334,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
     /**
      * Performs any necessary custom actions after updating model tables from $old_version to $new_version
+     * This action is performed after all table structure and data was updated
      * Overwrite this method to do particular updates.
      * If this function returns false updating model to last version will stop, model table structure will remain changed tho.
      *
@@ -333,6 +344,23 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      * @return bool true on success, false on failure
      */
     protected function custom_after_update( $old_version, $new_version )
+    {
+        return true;
+    }
+
+    /**
+     * Performs any necessary custom actions after intalling missing tables while updating model from $old_version to $new_version
+     * This action is performed after all missing tables are created
+     * Overwrite this method to do particular updates.
+     * If this function returns false updating model to last version will stop, model table structure will remain changed tho.
+     *
+     * @param string $old_version Old version of plugin
+     * @param string $new_version New version of plugin
+     * @param bool|array $params_arr Functionality parameters
+     *
+     * @return bool true on success, false on failure
+     */
+    protected function custom_after_missing_tables_update( $old_version, $new_version, $params_arr = false )
     {
         return true;
     }
@@ -1272,9 +1300,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /**
      * Update model tables
      *
+     * @param array $params_arr Functionality parameters
+     *
      * @return bool True on success or false on failure
      */
-    final public function update_tables()
+    final public function update_tables( $params_arr )
     {
         $this->reset_error();
 
@@ -1284,10 +1314,20 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( empty( $this->_definition ) or !is_array( $this->_definition ) )
             return true;
 
+        if( empty( $params_arr ) or !is_array( $params_arr ) )
+            $params_arr = array();
+
+        if( empty( $params_arr['created_tables'] ) or !is_array( $params_arr['created_tables'] ) )
+            $params_arr['created_tables'] = array();
+
         PHS_Logger::logf( 'Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         foreach( $this->_definition as $table_name => $table_definition )
         {
+            if( !empty( $params_arr['created_tables'] )
+            and in_array( $table_name, $params_arr['created_tables'] ) )
+                continue;
+
             if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => $table_name ) ))
              or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
             {
@@ -1318,6 +1358,60 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     }
 
     /**
+     * Install missing tables when doing updates on this model
+     *
+     * @return bool|array Array of tables created on success or false on failure
+     */
+    final public function update_missing_tables()
+    {
+        $this->reset_error();
+
+        if( !($model_id = $this->instance_id()) )
+            return false;
+
+        if( empty( $this->_definition ) or !is_array( $this->_definition ) )
+            return array();
+
+        PHS_Logger::logf( 'Installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        $created_tables = array();
+        foreach( $this->_definition as $table_name => $table_definition )
+        {
+            if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => $table_name ) ))
+             or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+            {
+                PHS_Logger::logf( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                continue;
+            }
+
+            if( $this->check_table_exists( $flow_params ) )
+                continue;
+
+            $created_tables[] = $table_name;
+
+            if( !$this->update_missing_table( $flow_params ) )
+            {
+                if( !$this->has_error() )
+                {
+                    $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t update table %s, model %s.', $full_table_name, $model_id ) );
+                    PHS_Logger::logf( 'Couldn\'t install missing table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
+                }
+
+                PHS_Logger::logf( 'FAILED installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+                return false;
+            }
+        }
+
+        // Reset any errors related to generating tables...
+        $this->reset_error();
+
+        PHS_Logger::logf( 'DONE installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        return $created_tables;
+    }
+
+    /**
      * Update a specific model table provided in flow parameters
      *
      * @param array $flow_params Flow parameters
@@ -1329,6 +1423,20 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $this->reset_error();
 
         return $this->_update_table_for_model( $flow_params );
+    }
+
+    /**
+     * Install a missing table provided in flow parameters when updating model
+     *
+     * @param array $flow_params Flow parameters
+     *
+     * @return bool True on success or false on failure
+     */
+    final protected function update_missing_table( $flow_params )
+    {
+        $this->reset_error();
+
+        return $this->_update_missing_table_for_model( $flow_params );
     }
 
     /**
@@ -1527,7 +1635,29 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         // This will only create non-existing tables...
-        if( !$this->update_tables() )
+        if( ($created_tables = $this->update_missing_tables()) === false )
+            return false;
+
+        $custom_after_missing_tables_updates_params = array(
+            'created_tables' => $created_tables,
+        );
+
+        if( !$this->custom_after_missing_tables_update( $old_version, $new_version, $custom_after_missing_tables_updates_params ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after missing tables update functionality failed.' ) );
+
+            PHS_Logger::logf( '!!! Error in model custom after missing tables update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+
+            return false;
+        }
+
+        $update_tables_params = array(
+            'created_tables' => $created_tables,
+        );
+
+        // Update table structure
+        if( !$this->update_tables( $update_tables_params ) )
             return false;
 
         if( !$this->custom_after_update( $old_version, $new_version ) )
