@@ -7,14 +7,8 @@ use \phs\PHS_Scope;
 use \phs\PHS_api;
 use \phs\libraries\PHS_Action;
 
-class PHS_Action_Login extends PHS_Action
+class PHS_Action_Device_update extends PHS_Action
 {
-    /** @inheritdoc */
-    public function action_roles()
-    {
-        return array( self::ACT_ROLE_LOGIN );
-    }
-
     public function allowed_scopes()
     {
         return array( PHS_Scope::SCOPE_API );
@@ -45,27 +39,40 @@ class PHS_Action_Login extends PHS_Action
             exit;
         }
 
-        if( !($request_arr = PHS_api::get_request_body_as_json_array())
-         or empty( $request_arr['nick'] )
-         or empty( $request_arr['pass'] )
-         or empty( $request_arr['device_info'] ) )
+        if( !($session_data = $mobile_plugin::api_session())
+         or empty( $session_data['session_arr'] ) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide credentials.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Not authenticated.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide credentials.' ) );
+                $this->set_error( $api_obj::ERR_API_INIT, $this->_pt( 'Not authenticated.' ) );
                 return false;
             }
 
             exit;
         }
 
-        if( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $request_arr['nick'] ) ))
-         or !$accounts_model->check_pass( $account_arr, $request_arr['pass'] )
-         or !$accounts_model->is_active( $account_arr ) )
+        $session_arr = $session_data['session_arr'];
+
+        if( !($device_arr = $online_model->get_session_device( $session_arr )) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Authentication failed.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_NOT_FOUND, $this->_pt( 'Device not found in database.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Authentication failed.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Device not found in database.' ) );
+                return false;
+            }
+
+            exit;
+        }
+
+        if( !($request_arr = PHS_api::get_request_body_as_json_array())
+         or empty( $request_arr['device_type'] )
+         or empty( $request_arr['device_token'] )
+         or empty( $device_arr['device_type'] ) or $device_arr['device_type'] != $request_arr['device_type']
+         or empty( $device_arr['device_token'] ) or (string)$device_arr['device_token'] !== (string)$request_arr['device_token'] )
+        {
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide device details.' ) ) )
+            {
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide device details.' ) );
                 return false;
             }
 
@@ -83,15 +90,13 @@ class PHS_Action_Login extends PHS_Action
         );
         foreach( $device_info_keys as $field => $def_value )
         {
-            if( !array_key_exists( $field, $request_arr['device_info'] ) )
+            if( !array_key_exists( $field, $request_arr ) )
                 $device_data[$field] = $def_value;
             else
-                $device_data[$field] = $request_arr['device_info'][$field];
+                $device_data[$field] = $request_arr[$field];
         }
 
-        $device_data['uid'] = $account_arr['id'];
-
-        if( !($session_arr = $online_model->generate_session( $device_data, $account_arr['id'] )) )
+        if( !($new_device_arr = $online_model->update_device( $device_data, $device_arr )) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
             {
@@ -102,10 +107,18 @@ class PHS_Action_Login extends PHS_Action
             exit;
         }
 
+        $device_arr = $new_device_arr;
+
+        if( empty( $device_arr['uid'] )
+         or !($account_arr = $accounts_model->get_details( $device_arr['uid'], array( 'table_name' => 'users' ) ))
+         or !$accounts_model->is_active( $account_arr ) )
+            $account_arr = false;
+
         $action_result = self::default_action_result();
 
         $response_arr = array(
             'session_data' => $online_model->export_data_from_session_data( $session_arr ),
+            'device_data' => $online_model->export_data_from_device_data( $device_arr ),
             'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
         );
 

@@ -246,10 +246,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
          or !($session_arr = $online_model->get_session_by_apikey( $api_key, array( 'include_device_data' => true ) ))
          // If we cannot obtain session device might be unlinked from account... ask user to login again...
          or !$online_model->get_session_device( $session_arr )
-         or !$online_model->check_session_authentication( $session_arr, $api_secret )
-         or empty( $session_arr['uid'] )
-         or !($account_arr = $accounts_model->get_details( $session_arr['uid'], array( 'table_name' => 'users' ) ))
-         or !$accounts_model->is_active( $accounts_model ) )
+         or !$online_model->check_session_authentication( $session_arr, $api_secret ) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED ) )
             {
@@ -259,6 +256,11 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
             exit;
         }
+
+        if( empty( $session_arr['uid'] )
+         or !($account_arr = $accounts_model->get_details( $session_arr['uid'], array( 'table_name' => 'users' ) ))
+         or !$accounts_model->is_active( $accounts_model ) )
+            $account_arr = null;
 
         $session_params = array();
         $session_params['session_arr'] = $session_arr;

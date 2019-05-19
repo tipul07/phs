@@ -11,6 +11,8 @@ use \phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Model_Api_online extends PHS_Model
 {
+    const LAT_LONG_DIGITS = 7;
+
     const ERR_SESSION_CREATE = 1;
 
     const DEVICE_KEY = '{device_data}';
@@ -349,13 +351,12 @@ class PHS_Model_Api_online extends PHS_Model
         return $session_arr;
     }
 
-    public function generate_session( $account_id, $device_data )
+    public function generate_session( $device_data, $account_id = 0 )
     {
         $this->reset_error();
 
         $account_id = intval( $account_id );
-        if( empty( $account_id )
-         or empty( $device_data ) or !is_array( $device_data ) )
+        if( empty( $device_data ) or !is_array( $device_data ) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide session details.' ) );
             return false;
@@ -387,9 +388,10 @@ class PHS_Model_Api_online extends PHS_Model
         if( !empty( $session_arr[self::DEVICE_KEY] )
         and !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
         {
+            // AND uid = \''.$account_id.'\'
             // low level query so we don't trigger anything when we delete old sessions
             db_query( 'DELETE FROM `'.$this->get_flow_table_name( $session_flow ).'` '.
-                      ' WHERE device_id = \''.$session_arr[self::DEVICE_KEY]['id'].'\' AND uid = \''.$account_id.'\' '.
+                      ' WHERE device_id = \''.$session_arr[self::DEVICE_KEY]['id'].'\' '.
                       ' AND id != \''.$session_arr['id'].'\'', $this->get_db_connection( $session_flow ) );
         }
 
@@ -445,10 +447,7 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
 
         if( empty( $params['fields']['uid'] ) )
-        {
-            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an account for this session.' ) );
-            return false;
-        }
+            $params['fields']['uid'] = 0;
 
         if( empty( $params['fields']['api_key'] ) )
             $params['fields']['api_key'] = $this->generate_api_key();
@@ -471,12 +470,6 @@ class PHS_Model_Api_online extends PHS_Model
     {
         if( empty( $params ) or !is_array( $params ) )
             return false;
-
-        if( isset( $params['fields']['uid'] ) and empty( $params['fields']['uid'] ) )
-        {
-            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an account for this session.' ) );
-            return false;
-        }
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
@@ -516,15 +509,14 @@ class PHS_Model_Api_online extends PHS_Model
         return $existing_data;
     }
 
-    public function update_session_device( $sesison_data, $device_params )
+    public function update_device( $device_params, $device_data = false )
     {
         $this->reset_error();
 
         if( empty( $device_params ) or !is_array( $device_params )
-         or !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
          or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
         {
-            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t initiate data to update avatar profile location details.' ) );
+            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t initiate device update details.' ) );
             return false;
         }
 
@@ -534,26 +526,15 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        if( empty( $sesison_data )
-         or !($session_arr = $this->data_to_array( $sesison_data, $session_flow )) )
-        {
-            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t find session details in database.' ) );
-            return false;
-        }
-
-        $device_id = 0;
-        if( !empty( $session_arr['device_id'] ) )
-            $device_id = $session_arr['device_id'];
-
         $db_device_arr = false;
-        if( empty( $device_id )
-         or !($db_device_arr = $this->get_details( $device_id, $devices_flow )) )
+        if( empty( $device_data )
+         or !($db_device_arr = $this->data_to_array( $device_data, $devices_flow )) )
             $db_device_arr = false;
 
         // If device from session doesn't match provided type and token, ignore it and search for it in db
         if( !empty( $db_device_arr )
         and ($db_device_arr['device_type'] != $device_params['device_type']
-                or $db_device_arr['device_token'] != $device_params['device_token'])
+                or (string)$db_device_arr['device_token'] !== (string)$device_params['device_token'])
         )
             $db_device_arr = false;
 
@@ -568,11 +549,6 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         $db_fields_device = $device_params;
-
-        // Make sure address is linked to this contact
-        $db_fields_device['uid'] = $session_arr['uid'];
-        $db_fields_device['owner_id'] = $session_arr['uid'];
-        $db_fields_device['session_id'] = $session_arr['id'];
 
         // id field might be null
         if( array_key_exists( 'id', $db_fields_device ) )
@@ -602,6 +578,46 @@ class PHS_Model_Api_online extends PHS_Model
 
                 return false;
             }
+        }
+
+        return $new_device_arr;
+    }
+
+    public function update_session_device( $sesison_data, $device_params )
+    {
+        $this->reset_error();
+
+        if( empty( $device_params ) or !is_array( $device_params )
+         or !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) )) )
+        {
+            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t initiate data to update avatar profile location details.' ) );
+            return false;
+        }
+
+        if( empty( $sesison_data )
+         or !($session_arr = $this->data_to_array( $sesison_data, $session_flow )) )
+        {
+            $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t find session details in database.' ) );
+            return false;
+        }
+
+        $device_id = 0;
+        if( !empty( $session_arr['device_id'] ) )
+            $device_id = $session_arr['device_id'];
+
+        $db_fields_device = $device_params;
+
+        // Make sure address is linked to this contact
+        $db_fields_device['uid'] = $session_arr['uid'];
+        $db_fields_device['owner_id'] = $session_arr['uid'];
+        $db_fields_device['session_id'] = $session_arr['id'];
+
+        if( !($new_device_arr = $this->update_device( $db_fields_device, $device_id )) )
+        {
+            if( $this->has_error() )
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t update session device.' ) );
+
+            return false;
         }
 
         if( empty( $session_arr['device_id'] )
@@ -647,7 +663,7 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $params['fields']['uid'] ) )
             $params['fields']['uid'] = 0;
 
-        if( empty( $params['fields']['owner_id'] ) )
+        if( empty( $params['fields']['owner_id'] ) and !empty( $params['fields']['uid'] ) )
             $params['fields']['owner_id'] = $params['fields']['uid'];
 
         if( empty( $params['fields']['api_key'] ) )
@@ -684,6 +700,11 @@ class PHS_Model_Api_online extends PHS_Model
 
         if( empty( $existing_data['owner_id'] ) and !empty( $params['fields']['uid'] ) )
             $params['fields']['owner_id'] = $params['fields']['uid'];
+
+        if( empty( $params['fields']['lat'] ) )
+            $params['fields']['lat'] = 0;
+        if( empty( $params['fields']['long'] ) )
+            $params['fields']['long'] = 0;
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
@@ -727,6 +748,135 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         return $params;
+    }
+
+    public function distance_from_area_center( $lat1, $long1, $lat2, $long2, $lat, $long )
+    {
+        $center = $this->get_area_center( $lat1, $long1, $lat2, $long2 );
+
+        return $this->distance_between_points( $center['lat'], $center['long'], $lat, $long );
+    }
+
+    public function get_area_center( $lat1, $long1, $lat2, $long2 )
+    {
+        // spare some cycles if points are same
+        if( $lat1 == $lat2 and $long1 == $long2 )
+            return array(
+                'lat' => $lat1,
+                'long' => $long1,
+            );
+
+        $center_y_dist = max( $lat1, $lat2 ) - min( $lat1, $lat2 );
+        $center_x_dist = max( $long1, $long2 ) - min( $long1, $long2 );
+
+        $center_lat = min( $lat1, $lat2 ) + $center_y_dist / 2;
+        $center_long = min( $long1, $long2 ) + $center_x_dist / 2;
+
+        return array(
+            'lat' => $center_lat,
+            'long' => $center_long,
+        );
+    }
+
+    public function distance_between_points( $lat1, $long1, $lat2, $long2 )
+    {
+        // spare some cycles if points are same
+        if( $lat1 == $lat2 and $long1 == $long2 )
+            return 0;
+
+        $earth_radius = 6371;
+
+        $latFrom = deg2rad( $lat1 );
+        $lonFrom = deg2rad( $long1 );
+        $latTo = deg2rad( $lat2 );
+        $lonTo = deg2rad( $long2 );
+
+        $lonDelta = $lonTo - $lonFrom;
+        $a = pow(cos($latTo) * sin($lonDelta), 2) +
+             pow(cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta), 2);
+        $b = sin($latFrom) * sin($latTo) + cos($latFrom) * cos($latTo) * cos($lonDelta);
+
+        $angle = atan2(sqrt($a), $b);
+        return $angle * $earth_radius;
+    }
+
+    public function get_distance_query( $lat, $long, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['distance_field_name'] ) )
+            $params['distance_field_name'] = 'distance';
+        if( empty( $params['table_lat'] ) )
+            $params['table_lat'] = 'lat';
+        if( empty( $params['table_long'] ) )
+            $params['table_long'] = 'long';
+
+        if( !isset( $params['result_in_km'] ) )
+            $params['result_in_km'] = true;
+        else
+            $params['result_in_km'] = (!empty( $params['result_in_km'] )?true:false);
+
+        if( empty( $params['range'] ) )
+            $params['range'] = 0;
+
+        if( $params['result_in_km'] )
+        {
+            $earth_radius = 6371;
+            $one_deg_lat = 111;
+        } else
+        {
+            $earth_radius = 3959;
+            $one_deg_lat = 69;
+        }
+
+        $query_arr = array();
+        $query_arr['range_lat1'] = 0;
+        $query_arr['range_long1'] = 0;
+        $query_arr['range_lat2'] = 0;
+        $query_arr['range_long2'] = 0;
+        $query_arr['extra_sql'] = '';
+        $query_arr['having_sql'] = '';
+
+        // 3959 - miles, 6371 - kilometers = Earth radius
+        $query_arr['db_fields'] = ' ('.$earth_radius.' * acos( cos( radians('.$lat.') ) * cos( radians( '.$params['table_lat'].' ) ) '.
+                               ' * cos( radians( '.$params['table_long'].' ) - radians('.$long.')) + sin(radians('.$lat.')) '.
+                               ' * sin( radians('.$params['table_lat'].')))) AS `'.$params['distance_field_name'].'`';
+
+        if( !empty( $params['range'] ) )
+        {
+            // 1 deg of latitude ~= 69 miles (111km)
+            // 1 deg of longitude ~= cos(latitude)*69
+            // set lon1 = mylon-dist/abs(cos(radians(mylat))*69);
+            // set lon2 = mylon+dist/abs(cos(radians(mylat))*69);
+            // set lat1 = mylat-(dist/69);
+            // set lat2 = mylat+(dist/69);
+            if( ($long_term = abs(cos( deg2rad( $lat ) ) * $one_deg_lat )) )
+            {
+                $range_lat = $params['range'] / $one_deg_lat;
+
+                $lat1 = $lat - $range_lat;
+                $lat2 = $lat + $range_lat;
+
+                $range_long = $params['range'] / $long_term;
+
+                $long1 = $long - $range_long;
+                $long2 = $long + $range_long;
+
+                $query_arr['range_lat1'] = $lat1;
+                $query_arr['range_long1'] = $long1;
+                $query_arr['range_lat2'] = $lat2;
+                $query_arr['range_long2'] = $long2;
+
+                $query_arr['extra_sql'] = ' ('.$params['table_lat'].' BETWEEN '.$lat1.' AND '.$lat2.' '.
+                                          ' AND '.
+                                          ' '.$params['table_long'].' BETWEEN '.$long1.' AND '.$long2.')';
+            }
+
+            $query_arr['having_sql'] = ' `'.$params['distance_field_name'].'` < '.$params['range'];
+        }
+
+        return $query_arr;
     }
 
     /**
@@ -834,6 +984,16 @@ class PHS_Model_Api_online extends PHS_Model
                         'default' => null,
                         'index' => true,
                         'editable' => false,
+                    ),
+                    'lat' => array(
+                        'type' => self::FTYPE_DECIMAL,
+                        'length' => (self::LAT_LONG_DIGITS+3).','.self::LAT_LONG_DIGITS,
+                        'default' => 0,
+                    ),
+                    'long' => array(
+                        'type' => self::FTYPE_DECIMAL,
+                        'length' => (self::LAT_LONG_DIGITS+3).','.self::LAT_LONG_DIGITS,
+                        'default' => 0,
                     ),
                     'last_update' => array(
                         'type' => self::FTYPE_DATETIME,

@@ -12,6 +12,45 @@ and $mobile_plugin->plugin_active() )
 
     PHS_api::register_api_route( array(
             array(
+                'exact_match' => 'devices',
+            ),
+            array(
+                'exact_match' => 'session',
+            ),
+        ),
+        array(
+            'p' => 'mobileapi',
+            'a' => 'device_session',
+        ),
+        array(
+            'method' => 'post',
+            'name' => 'Create session for device',
+            'description' => '3rd party app can anonymously create a session for a device in the system in order to send push notifications.',
+        )
+    );
+
+    PHS_api::register_api_route( array(
+            array(
+                'exact_match' => 'devices',
+            ),
+            array(
+                'exact_match' => 'update',
+            ),
+        ),
+        array(
+            'p' => 'mobileapi',
+            'a' => 'device_update',
+        ),
+        array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
+            'method' => 'post',
+            'name' => 'Update session for device',
+            'description' => '3rd party app can send device updates as required (update location or other variables)',
+        )
+    );
+
+    PHS_api::register_api_route( array(
+            array(
                 'exact_match' => 'users',
             ),
             array(
@@ -23,6 +62,7 @@ and $mobile_plugin->plugin_active() )
             'a' => 'login',
         ),
         array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
             'method' => 'post',
             'name' => '3rd party login',
             'description' => 'Login functionality for 3rd party applications',
@@ -42,6 +82,7 @@ and $mobile_plugin->plugin_active() )
             'a' => 'register',
         ),
         array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
             'method' => 'post',
             'name' => '3rd party registration',
             'description' => 'Registration functionality for 3rd party applications',
@@ -61,6 +102,7 @@ and $mobile_plugin->plugin_active() )
             'a' => 'forgot',
         ),
         array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
             'method' => 'post',
             'name' => '3rd party forgot password',
             'description' => 'Forgot password functionality for 3rd party applications',

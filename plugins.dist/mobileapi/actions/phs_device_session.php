@@ -7,14 +7,8 @@ use \phs\PHS_Scope;
 use \phs\PHS_api;
 use \phs\libraries\PHS_Action;
 
-class PHS_Action_Login extends PHS_Action
+class PHS_Action_Device_session extends PHS_Action
 {
-    /** @inheritdoc */
-    public function action_roles()
-    {
-        return array( self::ACT_ROLE_LOGIN );
-    }
-
     public function allowed_scopes()
     {
         return array( PHS_Scope::SCOPE_API );
@@ -46,26 +40,12 @@ class PHS_Action_Login extends PHS_Action
         }
 
         if( !($request_arr = PHS_api::get_request_body_as_json_array())
-         or empty( $request_arr['nick'] )
-         or empty( $request_arr['pass'] )
-         or empty( $request_arr['device_info'] ) )
+         or empty( $request_arr['device_type'] )
+         or empty( $request_arr['device_token'] ) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide credentials.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide device details.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide credentials.' ) );
-                return false;
-            }
-
-            exit;
-        }
-
-        if( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $request_arr['nick'] ) ))
-         or !$accounts_model->check_pass( $account_arr, $request_arr['pass'] )
-         or !$accounts_model->is_active( $account_arr ) )
-        {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Authentication failed.' ) ) )
-            {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Authentication failed.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide device details.' ) );
                 return false;
             }
 
@@ -83,15 +63,15 @@ class PHS_Action_Login extends PHS_Action
         );
         foreach( $device_info_keys as $field => $def_value )
         {
-            if( !array_key_exists( $field, $request_arr['device_info'] ) )
+            if( !array_key_exists( $field, $request_arr ) )
                 $device_data[$field] = $def_value;
             else
-                $device_data[$field] = $request_arr['device_info'][$field];
+                $device_data[$field] = $request_arr[$field];
         }
 
-        $device_data['uid'] = $account_arr['id'];
+        $device_data['uid'] = 0;
 
-        if( !($session_arr = $online_model->generate_session( $device_data, $account_arr['id'] )) )
+        if( !($session_arr = $online_model->generate_session( $device_data )) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
             {
@@ -106,7 +86,7 @@ class PHS_Action_Login extends PHS_Action
 
         $response_arr = array(
             'session_data' => $online_model->export_data_from_session_data( $session_arr ),
-            'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
+            'account_data' => null,
         );
 
         // trigger hook to populate with other details if required
