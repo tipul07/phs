@@ -29,7 +29,7 @@ class PHS_Model_Api_online extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -187,6 +187,16 @@ class PHS_Model_Api_online extends PHS_Model
             'device_token' => array(
                 'key' => 'device_token',
                 'type' => PHS_params::T_ASIS,
+            ),
+            'lat' => array(
+                'key' => 'lat',
+                'type' => PHS_params::T_FLOAT,
+                'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
+            ),
+            'long' => array(
+                'key' => 'long',
+                'type' => PHS_params::T_FLOAT,
+                'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
             ),
             'last_update' => array(
                 'key' => 'last_update',
@@ -369,6 +379,13 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
+        if( empty( $device_data['device_token'] )
+         or !$this->valid_device_type( $device_data['device_type'] ) )
+        {
+            $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide device details.' ) );
+            return false;
+        }
+
         $sess_fields = array();
         $sess_fields['uid'] = $account_id;
 
@@ -386,6 +403,106 @@ class PHS_Model_Api_online extends PHS_Model
 
         // clean old sessions from same user/device pair...
         if( !empty( $session_arr[self::DEVICE_KEY] )
+        and !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
+        {
+            // AND uid = \''.$account_id.'\'
+            // low level query so we don't trigger anything when we delete old sessions
+            db_query( 'DELETE FROM `'.$this->get_flow_table_name( $session_flow ).'` '.
+                      ' WHERE device_id = \''.$session_arr[self::DEVICE_KEY]['id'].'\' '.
+                      ' AND id != \''.$session_arr['id'].'\'', $this->get_db_connection( $session_flow ) );
+        }
+
+        return $session_arr;
+    }
+
+    public function update_session( $session_data, $device_fields, $account_id = false, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['device_data'] ) )
+            $params['device_data'] = false;
+        if( empty( $params['regenerate_keys'] ) )
+            $params['regenerate_keys'] = false;
+        else
+            $params['regenerate_keys'] = true;
+
+        if( !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
+         or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        {
+            $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Couldn\'t initialize session parameters.' ) );
+            return false;
+        }
+
+        if( empty( $session_data )
+         or !($session_arr = $this->data_to_array( $session_data, $session_flow )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Session details not found in database.' ) );
+
+            return false;
+        }
+
+        if( empty( $params['device_data'] ) )
+            $params['device_data'] = $session_arr['device_id'];
+
+        if( empty( $params['device_data'] )
+         or !($device_arr = $this->data_to_array( $params['device_data'], $devices_flow )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Session details not found in database.' ) );
+
+            return false;
+        }
+
+        if( $account_id !== false )
+        {
+            $account_id = intval( $account_id );
+
+            if( empty( $account_id ) )
+                $account_id = 0;
+        }
+
+        $sess_fields = array();
+        if( $account_id !== false )
+        {
+            if( empty( $device_fields ) or !is_array( $device_fields ) )
+                $device_fields = array();
+
+            $sess_fields['uid'] = $account_id;
+            $device_fields['uid'] = $account_id;
+        }
+
+        if( !empty( $params['regenerate_keys'] ) )
+        {
+            if( empty( $sess_fields['api_key'] ) )
+                $sess_fields['api_key'] = $this->generate_api_key();
+            if( empty( $sess_fields['api_secret'] ) )
+                $sess_fields['api_secret'] = $this->generate_api_secret();
+        }
+
+        // Make sure we have something to update
+        $sess_fields['last_update'] = date( self::DATETIME_DB );
+
+        $edit_arr = $session_flow;
+        if( !empty( $device_fields ) )
+            $edit_arr[self::DEVICE_KEY] = $device_fields;
+        $edit_arr['fields'] = $sess_fields;
+
+        if( !($session_arr = $this->edit( $session_arr, $edit_arr )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Error saving session details in database.' ) );
+
+            return false;
+        }
+
+        // clean old sessions from same user/device pair...
+        // in case we want to have an user logged in only on one device
+        if( false
+        and !empty( $session_arr[self::DEVICE_KEY] )
         and !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
         {
             // AND uid = \''.$account_id.'\'
@@ -498,6 +615,13 @@ class PHS_Model_Api_online extends PHS_Model
     {
         if( !empty( $params[self::DEVICE_KEY] ) and is_array( $params[self::DEVICE_KEY] ) )
         {
+            // Update new updated fields...
+            foreach( $edit_arr as $field => $val )
+            {
+                if( @array_key_exists( $field, $existing_data ) )
+                    $existing_data[$field] = $val;
+            }
+
             // Update session device
             if( !($new_device_arr = $this->update_session_device( $existing_data, $params[self::DEVICE_KEY] )) )
                 return false;

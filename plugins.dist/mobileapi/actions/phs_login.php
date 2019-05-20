@@ -45,6 +45,20 @@ class PHS_Action_Login extends PHS_Action
             exit;
         }
 
+        if( !($session_data = $mobile_plugin::api_session())
+         or empty( $session_data['session_arr'] ) )
+        {
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'No session.' ) ) )
+            {
+                $this->set_error( $api_obj::ERR_API_INIT, $this->_pt( 'No session.' ) );
+                return false;
+            }
+
+            exit;
+        }
+
+        $session_arr = $session_data['session_arr'];
+
         if( !($request_arr = PHS_api::get_request_body_as_json_array())
          or empty( $request_arr['nick'] )
          or empty( $request_arr['pass'] )
@@ -73,34 +87,35 @@ class PHS_Action_Login extends PHS_Action
         }
 
         $device_data = array();
-        $device_info_keys = array(
-            'device_type' => $online_model::DEV_TYPE_UNDEFINED,
-            'device_name' => '',
-            'device_version' => '',
-            'device_token' => '',
-            'lat' => 0,
-            'long' => 0,
-        );
-        foreach( $device_info_keys as $field => $def_value )
+        if( !empty( $request_arr['device_info'] ) )
         {
-            if( !array_key_exists( $field, $request_arr['device_info'] ) )
-                $device_data[$field] = $def_value;
-            else
-                $device_data[$field] = $request_arr['device_info'][$field];
+            $device_info_keys = array(
+                'device_type' => $online_model::DEV_TYPE_UNDEFINED,
+                'device_name' => '',
+                'device_version' => '',
+                'device_token' => '',
+                'lat' => 0,
+                'long' => 0,
+            );
+            foreach( $device_info_keys as $field => $def_value )
+            {
+                if( array_key_exists( $field, $request_arr['device_info'] ) )
+                    $device_data[$field] = $request_arr['device_info'][$field];
+            }
         }
 
-        $device_data['uid'] = $account_arr['id'];
-
-        if( !($session_arr = $online_model->generate_session( $device_data, $account_arr['id'] )) )
+        if( !($new_session_arr = $online_model->update_session( $session_arr, $device_data, $account_arr['id'], array( 'regenerate_keys' => true ) )) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error updating session.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Error generating session.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Error updating session.' ) );
                 return false;
             }
 
             exit;
         }
+
+        $session_arr = $new_session_arr;
 
         $action_result = self::default_action_result();
 

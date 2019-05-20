@@ -25,7 +25,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -248,6 +248,10 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
          or !$online_model->get_session_device( $session_arr )
          or !$online_model->check_session_authentication( $session_arr, $api_secret ) )
         {
+            var_dump( $online_model->get_session_device( $session_arr ) );
+            var_dump( $session_arr );
+
+            echo 'O PULA!!!!';
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED ) )
             {
                 $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );

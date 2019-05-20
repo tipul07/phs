@@ -80,23 +80,26 @@ class PHS_Action_Device_update extends PHS_Action
         }
 
         $device_data = array();
-        $device_info_keys = array(
-            'device_type' => $online_model::DEV_TYPE_UNDEFINED,
-            'device_name' => '',
-            'device_version' => '',
-            'device_token' => '',
-            'lat' => 0,
-            'long' => 0,
-        );
-        foreach( $device_info_keys as $field => $def_value )
+        if( !empty( $request_arr['device_info'] ) )
         {
-            if( !array_key_exists( $field, $request_arr ) )
-                $device_data[$field] = $def_value;
-            else
-                $device_data[$field] = $request_arr[$field];
+            $device_info_keys = array(
+                'device_type' => $online_model::DEV_TYPE_UNDEFINED,
+                'device_name' => '',
+                'device_version' => '',
+                'device_token' => '',
+                'lat' => 0,
+                'long' => 0,
+            );
+            foreach( $device_info_keys as $field => $def_value )
+            {
+                if( array_key_exists( $field, $request_arr['device_info'] ) )
+                    $device_data[$field] = $request_arr['device_info'][$field];
+            }
         }
 
-        if( !($new_device_arr = $online_model->update_device( $device_data, $device_arr )) )
+        $new_device_arr = false;
+        if( !empty( $device_data )
+        and !($new_device_arr = $online_model->update_device( $device_data, $device_arr )) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
             {
@@ -107,7 +110,10 @@ class PHS_Action_Device_update extends PHS_Action
             exit;
         }
 
-        $device_arr = $new_device_arr;
+        if( !empty( $new_device_arr ) )
+            $device_arr = $new_device_arr;
+
+        $session_arr[$online_model::DEVICE_KEY] = $device_arr;
 
         if( empty( $device_arr['uid'] )
          or !($account_arr = $accounts_model->get_details( $device_arr['uid'], array( 'table_name' => 'users' ) ))
@@ -118,7 +124,6 @@ class PHS_Action_Device_update extends PHS_Action
 
         $response_arr = array(
             'session_data' => $online_model->export_data_from_session_data( $session_arr ),
-            'device_data' => $online_model->export_data_from_device_data( $device_arr ),
             'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
         );
 

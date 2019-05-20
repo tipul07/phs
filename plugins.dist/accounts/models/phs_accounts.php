@@ -641,10 +641,17 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function check_pass( $account_data, $pass )
     {
-        if( !($account_arr = $this->data_to_array( $account_data ))
-         or !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) ))
+        if( !($account_arr = $this->data_to_array( $account_data )) )
+            return false;
+
+        $pass_salt = '';
+        if( !empty( $account_arr['pass_salt'] ) )
+            $pass_salt = $account_arr['pass_salt'];
+
+        if( empty( $pass_salt )
+        and (!($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) ))
          or !isset( $account_salt_arr['pass_salt'] )
-         or !$this->raw_check_pass( $account_arr['pass'], $account_salt_arr['pass_salt'], $pass ) )
+         or !$this->raw_check_pass( $account_arr['pass'], $account_salt_arr['pass_salt'], $pass )) )
             return false;
 
         return $account_arr;
