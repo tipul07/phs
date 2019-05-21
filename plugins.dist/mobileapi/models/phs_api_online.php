@@ -825,11 +825,6 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $existing_data['owner_id'] ) and !empty( $params['fields']['uid'] ) )
             $params['fields']['owner_id'] = $params['fields']['uid'];
 
-        if( empty( $params['fields']['lat'] ) )
-            $params['fields']['lat'] = 0;
-        if( empty( $params['fields']['long'] ) )
-            $params['fields']['long'] = 0;
-
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
         return $params;

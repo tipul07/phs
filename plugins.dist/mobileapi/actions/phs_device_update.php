@@ -80,7 +80,7 @@ class PHS_Action_Device_update extends PHS_Action
         }
 
         $device_data = array();
-        if( !empty( $request_arr['device_info'] ) )
+        if( !empty( $request_arr ) )
         {
             $device_info_keys = array(
                 'device_type' => $online_model::DEV_TYPE_UNDEFINED,
@@ -92,8 +92,8 @@ class PHS_Action_Device_update extends PHS_Action
             );
             foreach( $device_info_keys as $field => $def_value )
             {
-                if( array_key_exists( $field, $request_arr['device_info'] ) )
-                    $device_data[$field] = $request_arr['device_info'][$field];
+                if( array_key_exists( $field, $request_arr ) )
+                    $device_data[$field] = $request_arr[$field];
             }
         }
 
