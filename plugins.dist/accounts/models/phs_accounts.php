@@ -2385,6 +2385,11 @@ class PHS_Model_Accounts extends PHS_Model
                         'length' => '100',
                         'nullable' => true,
                     ),
+                    'pass_salt' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '50',
+                        'nullable' => true,
+                    ),
                     'pass_clear' => array(
                         'type' => self::FTYPE_VARCHAR,
                         'length' => '150',
