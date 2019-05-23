@@ -92,7 +92,7 @@ class PHS_Action_Change_password extends PHS_Action
             $password_changed = true;
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
         } else
-            $password_changed = true;
+            $password_changed = false;
 
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
