@@ -36,15 +36,8 @@ function hide_submit_protection()
     }
 }
 
-function show_submit_protection( msg )
+function show_submit_protection( msg, extr_msg )
 {
-    var protection_container_obj = jQuery("#main_submit_protection");
-    if( protection_container_obj )
-    {
-        protection_container_obj.appendTo('body');
-        protection_container_obj.show();
-        protection_container_obj.css({height: document.getElementsByTagName('html')[0].scrollHeight});
-    }
     var protection_message_obj = jQuery("#main_submit_protection_message");
     if( protection_message_obj )
     {
@@ -53,6 +46,28 @@ function show_submit_protection( msg )
 
         protection_message_obj.html( msg );
     }
+    if( typeof extr_msg !== 'undefined' && extr_msg ) {
+        var $protection_extra_msg_obj = jQuery("#main_submit_protection_loading_content");
+        if ( $protection_extra_msg_obj ) 
+        {
+            if ( jQuery('#main_submit_protection_extr_msg').length === 0 ) 
+            {
+                var $extra_msg_obj = jQuery('<div id="main_submit_protection_extr_msg"><div>' + extr_msg + '</div></div>');
+                $protection_extra_msg_obj.append( $extra_msg_obj );
+            }
+            else 
+            {
+                jQuery('#main_submit_protection_extr_msg').html( '<div>' + extr_msg + '</div>');
+            }
+        }
+    }
+    var protection_container_obj = jQuery("#main_submit_protection");
+    if( protection_container_obj )
+    {
+        protection_container_obj.appendTo('body');
+        protection_container_obj.show();
+        //protection_container_obj.css({height: document.getElementsByTagName('html')[0].scrollHeight}); //this is done by CSS
+    }    
 }
 
 function close_dialog( suffix )
