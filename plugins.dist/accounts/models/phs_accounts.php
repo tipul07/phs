@@ -760,7 +760,8 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( empty( $account_data )
-         or !($account_arr = $this->data_to_array( $account_data )) )
+         or !($account_arr = $this->data_to_array( $account_data ))
+         or !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
             return false;
@@ -804,7 +805,7 @@ class PHS_Model_Accounts extends PHS_Model
         $insert_fields_arr = array();
         $insert_fields_arr['uid'] = $account_arr['id'];
         $insert_fields_arr['changed_by_uid'] = $changed_by_uid;
-        $insert_fields_arr['pass_salt'] = $account_arr['pass_salt'];
+        $insert_fields_arr['pass_salt'] = $account_salt_arr['pass_salt'];
         $insert_fields_arr['pass'] = $account_arr['pass'];
         $insert_fields_arr['pass_clear'] = $account_arr['pass_clear'];
         $insert_fields_arr['cdate'] = date( self::DATETIME_DB );
