@@ -85,6 +85,9 @@ class PHS_Action_Change_password extends PHS_Action
                 $accounts_settings['min_password_length'] = 8;
         }
 
+        if( !($external_args = PHS_params::_gp( 'external_args', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_ASIS ) )) )
+            $external_args = array();
+
         if( PHS_params::_g( 'password_expired', PHS_params::T_INT ) )
             PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired. For security reasons, please change it.' ) );
         if( ($password_changed = PHS_params::_g( 'password_changed', PHS_params::T_INT )) )
@@ -128,12 +131,14 @@ class PHS_Action_Change_password extends PHS_Action
 
                     $action_result = self::default_action_result();
 
+                    $args_arr = $external_args;
+                    $args_arr['password_changed'] = 1;
+
                     if( !empty( $current_user ) )
-                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), array( 'password_changed' => 1 ) );
+                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), $args_arr );
+
                     else
                     {
-                        $args_arr = array();
-                        $args_arr['password_changed'] = 1;
                         if( !empty( $forgot_account_arr ) )
                             $args_arr['nick'] = $forgot_account_arr['nick'];
 
@@ -163,6 +168,7 @@ class PHS_Action_Change_password extends PHS_Action
         }
 
         $data = array(
+            'external_args' => $external_args,
             'url_extra_args' => $url_extra_args,
             'nick' => (!empty( $current_user )?$current_user['nick']:'N/A'),
             'pass' => $pass,

@@ -748,6 +748,21 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    private function _get_account_salt_data( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data ))
+         or !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid account.' ) );
+            return false;
+        }
+
+        return $account_salt_arr;
+    }
+
     private function _add_account_password_to_history( $account_data, $params = false )
     {
         $this->reset_error();
@@ -760,11 +775,28 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( empty( $account_data )
-         or !($account_arr = $this->data_to_array( $account_data ))
-         or !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
+         or !($account_arr = $this->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
             return false;
+        }
+
+        $old_pass_salt = '';
+        // If salt was changed we will have salt record in ths key
+        if( !empty( $account_arr['{old_pass_salt}'] ) and is_array( $account_arr['{old_pass_salt}'] )
+        and !empty( $account_arr['{old_pass_salt}']['pass_salt'] ) )
+            $old_pass_salt = $account_arr['{old_pass_salt}']['pass_salt'];
+
+        else
+        {
+            // if nothing was provided, we assume old salt is still in database...
+            if( !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
+                return false;
+            }
+
+            $old_pass_salt = $account_salt_arr['pass_salt'];
         }
 
         if( empty( $params ) or !is_array( $params ) )
@@ -805,7 +837,7 @@ class PHS_Model_Accounts extends PHS_Model
         $insert_fields_arr = array();
         $insert_fields_arr['uid'] = $account_arr['id'];
         $insert_fields_arr['changed_by_uid'] = $changed_by_uid;
-        $insert_fields_arr['pass_salt'] = $account_salt_arr['pass_salt'];
+        $insert_fields_arr['pass_salt'] = $old_pass_salt;
         $insert_fields_arr['pass'] = $account_arr['pass'];
         $insert_fields_arr['pass_clear'] = $account_arr['pass_clear'];
         $insert_fields_arr['cdate'] = date( self::DATETIME_DB );
@@ -1737,6 +1769,14 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
 
+            if( !($old_pass_salt_arr = $this->_get_account_salt_data( $existing_data )) )
+            {
+                // reset any error
+                $this->reset_error();
+                $old_pass_salt_arr = false;
+            }
+
+            $params['{old_pass_salt}'] = $old_pass_salt_arr;
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
             $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
             $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
@@ -1750,6 +1790,8 @@ class PHS_Model_Accounts extends PHS_Model
             // make sure passwords fields are not set if password will not be changed
             if( isset( $params['{pass_salt}'] ) )
                 unset( $params['{pass_salt}'] );
+            if( isset( $params['{old_pass_salt}'] ) )
+                unset( $params['{old_pass_salt}'] );
             if( isset( $params['fields']['pass_clear'] ) )
                 unset( $params['fields']['pass_clear'] );
             if( isset( $params['fields']['pass'] ) )
@@ -1888,8 +1930,18 @@ class PHS_Model_Accounts extends PHS_Model
             and ($salt_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) ))
             and ($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
             {
-                $check_arr = array();
-                $check_arr['uid'] = $existing_data['id'];
+                $old_salt_arr = false;
+                if( !empty( $params['{old_pass_salt}'] ) )
+                    $old_salt_arr = $params['{old_pass_salt}'];
+
+                else
+                {
+                    $check_arr = array();
+                    $check_arr['uid'] = $existing_data['id'];
+
+                    if( !($old_salt_arr = $this->get_details_fields( $check_arr, $salt_flow_params )) )
+                        $old_salt_arr = false;
+                }
 
                 $fields_arr = array();
                 $fields_arr['pass_salt'] = $params['{pass_salt}'];
@@ -1897,9 +1949,9 @@ class PHS_Model_Accounts extends PHS_Model
                 $salt_data_arr = $salt_flow_params;
                 $salt_data_arr['fields'] = $fields_arr;
 
-                if( ($existing_salt_arr = $this->get_details_fields( $check_arr, $salt_flow_params )) )
+                if( !empty( $old_salt_arr ) )
                 {
-                    if( !($salt_arr = $this->edit( $existing_salt_arr, $salt_data_arr )) )
+                    if( !($salt_arr = $this->edit( $old_salt_arr, $salt_data_arr )) )
                     {
                         $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account password. Please try again.' ) );
                         return false;
@@ -1916,6 +1968,7 @@ class PHS_Model_Accounts extends PHS_Model
                 }
 
                 $existing_data['{pass_salt}'] = $salt_arr;
+                $existing_data['{old_pass_salt}'] = $old_salt_arr;
             }
 
             $history_params = array();
