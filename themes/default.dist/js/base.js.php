@@ -101,3 +101,15 @@ function close_loading( suffix )
         PHS_JSEN.closeLoadingDialog( suffix );
     }
 }
+
+(function ($) {
+    //scroll page to an element
+    $.fn.goTo = function () {
+        if (this.length > 0) {
+            $('html, body').animate({
+                scrollTop: ($(this).offset().top - (window.outerHeight / 3)) + 'px'
+            }, 'fast');
+        }
+        return this; // for chaining...
+        };
+})(jQuery);
