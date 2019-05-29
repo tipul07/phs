@@ -55,7 +55,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.1.0';
+        return '1.1.1';
     }
 
     /**
@@ -1215,6 +1215,20 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !empty( $params['unlink_roles'] ) )
             PHS_Roles::unlink_all_roles_from_user( $account_arr );
+
+        /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        if( ($messages_plugin = PHS::load_plugin( 'messages' ))
+        and ($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+        and $accounts_details_model->check_column_exists( $messages_plugin::UD_COLUMN_MSG_HANDLER, array( 'table_name' => 'users_details' ) )
+        and ($user_details = $this->get_account_details( $account_arr ))
+        and !empty( $user_details[$messages_plugin::UD_COLUMN_MSG_HANDLER] ) )
+        {
+            $details_arr = array();
+            $details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER] = $edit_arr['nick'];
+
+            $this->update_user_details( $account_arr, $details_arr );
+        }
 
         return $new_account_arr;
     }
