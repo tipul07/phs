@@ -91,8 +91,6 @@ $(document).ready(function(){
 
     $('.submit-protection').on('click', function( event ){
 
-        ignore_hidden_required( this );
-
         var form_obj = $(this).parents('form:first');
 
         if( form_obj && form_obj[0]
