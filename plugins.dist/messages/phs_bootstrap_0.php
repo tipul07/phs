@@ -25,6 +25,20 @@ and $messages_plugin->plugin_active() )
                 'priority' => 10,
             )
         );
+
+        PHS::register_hook(
+            // $hook_name
+            PHS_Hooks::H_USER_ACCOUNT_ACTION,
+            // $hook_callback = null
+            array( $messages_plugin, 'trigger_account_action' ),
+            // $hook_extra_args = null
+            PHS_Hooks::default_account_action_hook_args(),
+            array(
+                'chained_hook' => true,
+                'stop_chain' => false,
+                'priority' => 10,
+            )
+        );
     }
 
     PHS::register_hook(

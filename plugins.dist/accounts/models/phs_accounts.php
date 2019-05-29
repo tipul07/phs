@@ -1202,6 +1202,16 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['unlink_roles'] ) )
             $params['unlink_roles'] = false;
 
+        $hook_args = PHS_Hooks::default_account_action_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['action_alias'] = 'before_delete';
+        $hook_args['action_params'] = $params;
+        $hook_args['route'] = PHS::get_route_details();
+
+        if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
+        and !empty( $result_arr['account_data'] ) )
+            $account_arr = $result_arr['account_data'];
+
         $edit_arr = array();
         $edit_arr['nick'] = $account_arr['nick'].'-DELETED-'.time();
         $edit_arr['email'] = $account_arr['email'].'-DELETED-'.time();
@@ -1213,24 +1223,23 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($new_account_arr = $this->edit( $account_arr, $edit_params )) )
             return false;
 
+        // Send account as not deleted to roles unlinking method
         if( !empty( $params['unlink_roles'] ) )
             PHS_Roles::unlink_all_roles_from_user( $account_arr );
 
-        /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if( ($messages_plugin = PHS::load_plugin( 'messages' ))
-        and ($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
-        and $accounts_details_model->check_column_exists( $messages_plugin::UD_COLUMN_MSG_HANDLER, array( 'table_name' => 'users_details' ) )
-        and ($user_details = $this->get_account_details( $account_arr ))
-        and !empty( $user_details[$messages_plugin::UD_COLUMN_MSG_HANDLER] ) )
-        {
-            $details_arr = array();
-            $details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER] = $edit_arr['nick'];
+        $account_arr = $new_account_arr;
 
-            $this->update_user_details( $account_arr, $details_arr );
-        }
+        $hook_args = PHS_Hooks::default_account_action_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['action_alias'] = 'after_delete';
+        $hook_args['action_params'] = $params;
+        $hook_args['route'] = PHS::get_route_details();
 
-        return $new_account_arr;
+        if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
+        and !empty( $result_arr['account_data'] ) )
+            $account_arr = $result_arr['account_data'];
+
+        return $account_arr;
     }
 
     public function send_confirmation_email( $account_data, $params = false )

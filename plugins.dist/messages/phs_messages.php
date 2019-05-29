@@ -36,7 +36,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.1.0';
+        return '1.1.1';
     }
 
     /**
@@ -415,6 +415,38 @@ class PHS_Plugin_Messages extends PHS_Plugin
                     self::UD_COLUMN_MSG_HANDLER => self::get_msg_handler_field_definition(),
                 );
             break;
+        }
+
+        return $hook_args;
+    }
+
+    public function trigger_account_action( $hook_args = false )
+    {
+        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() );
+
+        if( empty( $hook_args['account_data'] ) or !is_array( $hook_args['account_data'] )
+         or empty( $hook_args['account_data']['id'] )
+         or $hook_args['action_alias'] !== 'after_delete' )
+            return false;
+
+        $account_arr = $hook_args['account_data'];
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( ($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+        and ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+        and $accounts_details_model->check_column_exists( self::UD_COLUMN_MSG_HANDLER, array( 'table_name' => 'users_details' ) )
+        and ($user_details_arr = $accounts_model->get_account_details( $account_arr ))
+        and !empty( $user_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
+        {
+            $details_arr = array();
+            $details_arr[self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
+
+            if( ($new_account_arr = $accounts_model->update_user_details( $account_arr, $details_arr )) )
+                $account_arr = $new_account_arr;
+
+
+            $hook_args['account_data'] = $account_arr;
         }
 
         return $hook_args;
