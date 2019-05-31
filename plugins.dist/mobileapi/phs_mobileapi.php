@@ -18,14 +18,16 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
     const LOG_CHANNEL = 'mobileapi.log';
 
-    const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data';
+    const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data',
+          // export account and session details to 3rd party apps
+          H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session';
 
     /**
      * @return string Returns version of model
      */
     public function get_plugin_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -94,13 +96,22 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $session_data;
     }
 
+    public static function default_export_account_and_session_hook_args()
+    {
+        return PHS_Hooks::hook_args_definition( array(
+            'account_data' => false,
+            'session_data' => false,
+            'extra_export_fields' => false,
+        ) );
+    }
+
     public static function default_export_account_data_hook_args()
     {
-        return self::validate_array_recursive( array(
+        return PHS_Hooks::hook_args_definition( array(
             'account_data' => false,
             'export_fields' => false,
             'extra_export_fields' => false,
-        ), PHS_Hooks::default_common_hook_args() );
+        ) );
     }
 
     public static function export_data_account_fields()
@@ -211,6 +222,84 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $export_arr;
     }
 
+    public function export_data_account_and_session( $account_data, $session_data )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         or !($online_model = PHS::load_model( 'api_online', 'mobileapi' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load required models.' ) );
+            return false;
+        }
+
+        if( empty( $account_data ) )
+            $account_arr = null;
+
+        elseif( !($account_arr = $accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account details not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $session_data ) )
+            $session_arr = null;
+
+        elseif( !($session_arr = $online_model->data_to_array( $session_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Session details not found in database.' ) );
+            return false;
+        }
+
+        if( !empty( $account_arr ) )
+            $account_arr = $this->export_data_from_account_data( $account_arr );
+        if( !empty( $session_arr ) )
+            $session_arr = $online_model->export_data_from_session_data( $session_arr );
+
+        $export_arr = array(
+            'session_data' => $session_arr,
+            'account_data' => $account_arr,
+        );
+
+        $hook_args = self::default_export_account_and_session_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['session_data'] = $session_arr;
+
+        if( ($hook_result = PHS::trigger_hooks( self::H_EXPORT_ACCOUNT_SESSION, $hook_args ))
+        and is_array( $hook_result ) )
+        {
+            if( !empty( $hook_args['account_data'] )
+            and is_array( $hook_args['account_data'] ) and !empty( $hook_args['account_data']['id'] ) )
+            {
+                $account_arr = $hook_args['account_data'];
+                $export_arr['account_data'] = $account_arr;
+            }
+
+            if( !empty( $hook_args['session_data'] )
+            and is_array( $hook_args['session_data'] ) and !empty( $hook_args['session_data']['id'] ) )
+            {
+                $session_arr = $hook_args['session_data'];
+                $export_arr['session_data'] = $session_arr;
+            }
+
+            // old keys might also be overwritten
+            if( !empty( $hook_args['extra_export_fields'] ) and is_array( $hook_args['extra_export_fields'] ) )
+            {
+                foreach( $hook_args['extra_export_fields'] as $key => $val )
+                {
+                    if( in_array( $key, array( 'account_data', 'session_data' ) ) )
+                        continue;
+
+                    $export_arr[$key] = $val;
+                }
+            }
+        }
+
+        return $export_arr;
+    }
+
     public function do_api_authentication( $params )
     {
         $this->reset_error();
@@ -248,10 +337,6 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
          or !$online_model->get_session_device( $session_arr )
          or !$online_model->check_session_authentication( $session_arr, $api_secret ) )
         {
-            var_dump( $online_model->get_session_device( $session_arr ) );
-            var_dump( $session_arr );
-
-            echo 'O PULA!!!!';
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED ) )
             {
                 $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );

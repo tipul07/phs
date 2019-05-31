@@ -58,6 +58,7 @@ class PHS_Action_Device_session extends PHS_Action
             'device_name' => '',
             'device_version' => '',
             'device_token' => '',
+            'source' => $online_model::SOURCE_NATIVE,
             'lat' => 0,
             'long' => 0,
         );
@@ -84,14 +85,7 @@ class PHS_Action_Device_session extends PHS_Action
 
         $action_result = self::default_action_result();
 
-        $response_arr = array(
-            'session_data' => $online_model->export_data_from_session_data( $session_arr ),
-            'account_data' => null,
-        );
-
-        // trigger hook to populate with other details if required
-
-        $action_result['api_json_result_array'] = $response_arr;
+        $action_result['api_json_result_array'] = $mobile_plugin->export_data_account_and_session( null, $session_arr );
 
         return $action_result;
     }

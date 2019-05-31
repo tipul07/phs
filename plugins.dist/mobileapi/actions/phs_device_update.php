@@ -122,14 +122,7 @@ class PHS_Action_Device_update extends PHS_Action
 
         $action_result = self::default_action_result();
 
-        $response_arr = array(
-            'session_data' => $online_model->export_data_from_session_data( $session_arr ),
-            'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
-        );
-
-        // trigger hook to populate with other details if required
-
-        $action_result['api_json_result_array'] = $response_arr;
+        $action_result['api_json_result_array'] = $mobile_plugin->export_data_account_and_session( $account_arr, $session_arr );
 
         return $action_result;
     }

@@ -313,7 +313,7 @@ class PHS_Registry extends PHS_Language
             return false;
 
         if( empty( $arr ) or !is_array( $arr ) )
-            $arr = array();
+            return $default_arr;
 
         foreach( $default_arr as $key => $val )
         {

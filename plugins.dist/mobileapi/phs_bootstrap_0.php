@@ -10,6 +10,7 @@ and $mobile_plugin->plugin_active() )
 {
     PHS_Logger::define_channel( $mobile_plugin::LOG_CHANNEL );
 
+    // POST /devices/session Create session
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'devices',
@@ -29,6 +30,27 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // GET /devices/session Get session details
+    PHS_api::register_api_route( array(
+            array(
+                'exact_match' => 'devices',
+            ),
+            array(
+                'exact_match' => 'session',
+            ),
+        ),
+        array(
+            'p' => 'mobileapi',
+            'a' => 'device_session_details',
+        ),
+        array(
+            'method' => 'get',
+            'name' => 'Get session details',
+            'description' => '3rd party app can get session details.',
+        )
+    );
+
+    // POST /devices/update Update session
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'devices',
@@ -49,6 +71,7 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // POST /users/login Login an account from 3rd party mobile app
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'users',
@@ -69,6 +92,7 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // POST /users/register Register an account from a 3rd party mobile app
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'users',
@@ -89,6 +113,7 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // POST /users/forgot_password User forgot password request from a 3rd party mobile app
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'users',
@@ -109,6 +134,7 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // GET /users/logout Logout from a 3rd party mobile app
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'users',
@@ -129,6 +155,7 @@ and $mobile_plugin->plugin_active() )
         )
     );
 
+    // GET /users/change_password Request new password from a 3rd party mobile app
     PHS_api::register_api_route( array(
             array(
                 'exact_match' => 'users',
@@ -146,6 +173,27 @@ and $mobile_plugin->plugin_active() )
             'method' => 'post',
             'name' => '3rd party change password',
             'description' => 'Change password functionality for 3rd party applications',
+        )
+    );
+
+    // POST /users/edit Edit account request from a 3rd party mobile app
+    PHS_api::register_api_route( array(
+            array(
+                'exact_match' => 'users',
+            ),
+            array(
+                'exact_match' => 'edit',
+            ),
+        ),
+        array(
+            'p' => 'mobileapi',
+            'a' => 'account_edit',
+        ),
+        array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
+            'method' => 'post',
+            'name' => '3rd party edit account',
+            'description' => 'Change account functionality for 3rd party applications',
         )
     );
 }

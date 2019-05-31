@@ -17,6 +17,14 @@ class PHS_Model_Api_online extends PHS_Model
 
     const DEVICE_KEY = '{device_data}';
 
+    const SOURCE_NATIVE = 'native';
+
+    private static $_sources_arr = array(
+        self::SOURCE_NATIVE => array(
+            'title' => 'Native (PHS)',
+        )
+    );
+
     const DEV_TYPE_ANDROID = 1, DEV_TYPE_IOS = 2, DEV_TYPE_UNDEFINED = 3;
     protected static $DEVICE_TYPES_ARR = array(
         self::DEV_TYPE_ANDROID => array( 'title' => 'Android' ),
@@ -29,7 +37,7 @@ class PHS_Model_Api_online extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**
@@ -46,6 +54,91 @@ class PHS_Model_Api_online extends PHS_Model
     function get_main_table_name()
     {
         return 'mobileapi_online';
+    }
+
+    public function valid_source( $source )
+    {
+        if( empty( self::$_sources_arr ) or !is_array( self::$_sources_arr )
+         or empty( self::$_sources_arr[$source] ) )
+            return false;
+
+        return self::$_sources_arr[$source];
+    }
+
+    public function default_source_definition()
+    {
+        return array(
+            'title' => '',
+        );
+    }
+
+    /**
+     * @param string $source Source name
+     * @param array $source_arr Source definition array
+     *
+     * @return bool true on success, false on error
+     */
+    public function define_source( $source, $source_arr )
+    {
+        if( empty( $source ) or !is_string( $source )
+         or empty( $source_arr ) or !is_array( $source_arr ) )
+            return false;
+
+        $source_arr = self::validate_array( $source_arr, self::default_source_definition() );
+
+        self::$_sources_arr[$source] = $source_arr;
+
+        // Force recaching sources...
+        $this->get_sources_as_key_val( false, true );
+
+        return true;
+    }
+
+    public function get_sources( $lang = false, $force = false )
+    {
+        static $sources_arr = array();
+
+        if( empty( $force )
+        and $lang === false
+        and !empty( $sources_arr ) )
+            return $sources_arr;
+
+        // Let these here so language parser would catch the texts...
+        $this->_pt( 'Native (PHS)' );
+
+        $result_arr = $this->translate_array_keys( self::$_sources_arr, array( 'title' ), $lang );
+
+        if( $lang === false )
+            $sources_arr = $result_arr;
+
+        return $result_arr;
+    }
+
+    final public function get_sources_as_key_val( $lang = false, $force = false )
+    {
+        static $sources_key_val_arr = false;
+
+        if( empty( $force )
+        and $lang === false
+        and $sources_key_val_arr !== false )
+            return $sources_key_val_arr;
+
+        $key_val_arr = array();
+        if( ($sources_arr = $this->get_sources( $lang, $force )) )
+        {
+            foreach( $sources_arr as $key => $val )
+            {
+                if( !is_array( $val ) )
+                    continue;
+
+                $key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        if( $lang === false )
+            $sources_key_val_arr = $key_val_arr;
+
+        return $key_val_arr;
     }
 
     final public function get_device_types( $lang = false )
@@ -187,6 +280,10 @@ class PHS_Model_Api_online extends PHS_Model
             'device_token' => array(
                 'key' => 'device_token',
                 'type' => PHS_params::T_ASIS,
+            ),
+            'source' => array(
+                'key' => 'source',
+                'type' => PHS_params::T_NOHTML,
             ),
             'lat' => array(
                 'key' => 'lat',
@@ -383,6 +480,13 @@ class PHS_Model_Api_online extends PHS_Model
          or !$this->valid_device_type( $device_data['device_type'] ) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide device details.' ) );
+            return false;
+        }
+
+        if( empty( $device_data['source'] )
+         or !$this->valid_source( $device_data['source'] ) )
+        {
+            $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide a valid device source.' ) );
             return false;
         }
 
@@ -1077,6 +1181,12 @@ class PHS_Model_Api_online extends PHS_Model
                     'session_id' => array(
                         'type' => self::FTYPE_INT,
                         'index' => true,
+                    ),
+                    'source' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '255',
+                        'nullable' => true,
+                        'default' => null,
                     ),
                     'device_type' => array(
                         'type' => self::FTYPE_TINYINT,

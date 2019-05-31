@@ -671,11 +671,11 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
 
     final static function default_table_fields_hook_args()
     {
-        return self::validate_array_recursive( array(
+        return PHS_Hooks::hook_args_definition( array(
             'model_id' => '',
             'flow_params' => array(),
             'fields_arr' => array(),
-        ), PHS_Hooks::default_common_hook_args() );
+        ) );
     }
 
     private function _all_fields_definition( $flow_params )
