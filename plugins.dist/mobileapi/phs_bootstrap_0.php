@@ -44,6 +44,7 @@ and $mobile_plugin->plugin_active() )
             'a' => 'device_session_details',
         ),
         array(
+            'authentication_callback' => array( $mobile_plugin, 'do_api_authentication' ),
             'method' => 'get',
             'name' => 'Get session details',
             'description' => '3rd party app can get session details.',
