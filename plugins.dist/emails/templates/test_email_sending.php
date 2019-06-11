@@ -44,7 +44,7 @@
     </div>
 
     <div style="margin-bottom:10px;">
-        <input type="submit" id="do_test_email_sending_submit" name="do_test_email_sending_submit" class="btn btn-success submit-protection" value="<?php echo $this->_pte( 'Send test email' )?>" />
+        <input type="submit" id="do_test_email_sending_submit" name="do_test_email_sending_submit" class="btn btn-success submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Send test email' )?>" />
     </div>
     <?php
 

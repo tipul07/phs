@@ -99,7 +99,7 @@
                                                                                 ) ) ?>"><?php echo $this::_t( 'Forgot Password' ) ?></a>
                         </div>
                         <div style="float: right; right: 10px;">
-                            <input type="submit" name="do_submit" class="btn btn-primary btn-medium submit-protection" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
+                            <input type="submit" name="do_submit" class="btn btn-primary btn-medium submit-protection ignore_hidden_required" value="<?php echo $this::_t( 'Login' ) ?>" /></div>
                         <div class="clearfix"></div>
                     </div>
                 </form>

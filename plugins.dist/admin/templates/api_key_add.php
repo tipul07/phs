@@ -111,7 +111,7 @@
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Add API key' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Add API key' )?>" />
             </fieldset>
 
         </div>

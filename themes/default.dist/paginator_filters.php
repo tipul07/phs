@@ -138,7 +138,7 @@
 
             <div class="clearfix"></div>
             <div>
-                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Filter' )?>" />
+                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Filter' )?>" />
                 <input type="button" onclick="toggle_filters_inputs_and_text()" class="btn btn-primary" value="<?php echo $this->_pte( 'Hide Filters' )?>" style="margin-right:5px;" />
             </div>
             </div>

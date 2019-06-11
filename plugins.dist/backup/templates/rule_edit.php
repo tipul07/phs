@@ -312,7 +312,7 @@
                         </div>
 
                         <div style="margin-bottom:10px;">
-                            <input type="submit" id="do_test_ftp" name="do_test_ftp" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Test connection' )?>" />
+                            <input type="submit" id="do_test_ftp" name="do_test_ftp" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Test connection' )?>" />
                         </div>
                     </div>
                 </div>
@@ -347,7 +347,7 @@ location /backup_location_dir {
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Save changes' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Save changes' )?>" />
             </fieldset>
 
         </div>

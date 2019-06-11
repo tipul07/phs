@@ -42,7 +42,7 @@
     <div class="lineform_line">
         <input type="hidden" name="do_generate_keys" value="0" />
         <input type="button" id="do_generate_keys_btn" name="do_generate_keys_btn" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Generate keys' )?>" onclick="do_generate_new_keys()" />
-        <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection" value="<?php echo $this->_pte( 'Continue' )?>" />
+        <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Continue' )?>" />
     </div>
 </fieldset>
 

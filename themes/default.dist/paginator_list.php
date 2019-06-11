@@ -170,7 +170,7 @@
                 }
                 ?>
             </select>
-            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <?php
 	    }
@@ -578,7 +578,7 @@
                     }
                 ?>
             </select>
-            <input type="submit" class="btn btn-primary btn-small" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <div class="clearfix"></div>
             <?php

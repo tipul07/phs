@@ -52,7 +52,7 @@
             </fieldset>
 
             <fieldset class="login_button">
-                <input type="submit" id="do_submit" name="do_submit" class="btn btn-success btn-medium submit-protection" value="<?php echo $this->_pte( 'Login' )?>" />
+                <input type="submit" id="do_submit" name="do_submit" class="btn btn-success btn-medium submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Login' )?>" />
             </fieldset>
 
         </div>
