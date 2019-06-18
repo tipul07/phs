@@ -2235,7 +2235,8 @@ class PHS_Model_Accounts extends PHS_Model
             }
 
             // Already converted...
-            if( $this->check_pass( $users_arr, $pass_clear ) )
+            if( empty( $users_arr['pass_salt'] )
+             or $this->check_pass( $users_arr, $pass_clear ) )
                 continue;
 
             $edit_arr = array();
