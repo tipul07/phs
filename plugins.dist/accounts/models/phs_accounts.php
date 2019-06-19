@@ -2065,7 +2065,7 @@ class PHS_Model_Accounts extends PHS_Model
                          or !($user_details_table = $account_details_model->get_flow_table_name()) )
                         {
                             PHS::st_restore_errors( $old_error_arr );
-                            continue;
+                            continue 2;
                         }
 
                         $params['db_fields'] .= ', `'.$user_details_table.'`.title AS users_details_title, '.

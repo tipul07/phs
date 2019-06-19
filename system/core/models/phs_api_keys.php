@@ -343,7 +343,7 @@ class PHS_Model_Api_keys extends PHS_Model
                         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
                         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
                          or !($accounts_table = $accounts_model->get_flow_table_name( array( 'table_name' => 'users' ) )) )
-                            continue;
+                            continue 2;
 
                         $params['db_fields'] .= ', `'.$accounts_table.'`.nick AS account_nick, '.
                                                 ' `'.$accounts_table.'`.email AS account_email, '.

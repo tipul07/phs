@@ -953,7 +953,7 @@ class PHS_Model_Api_online extends PHS_Model
 
                         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
                          or !($accounts_table = $accounts_model->get_flow_table_name()) )
-                            continue;
+                            continue 2;
 
                         $params['db_fields'] .= ', `'.$accounts_table.'`.nick AS account_nick, '.
                                                 ' `'.$accounts_table.'`.email AS account_email, '.

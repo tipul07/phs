@@ -1103,7 +1103,7 @@ class PHS_Model_Results extends PHS_Model
                         {
                             if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
                              or !($rules_table = $rules_model->get_flow_table_name( array( 'table_name' => 'backup_rules' ))) )
-                                continue;
+                                continue 2;
 
                             $params['db_fields'] .= ', `'.$rules_table.'`.title AS backup_rules_title, '.
                                 ' `'.$rules_table.'`.hour AS backup_rules_hour, '.
@@ -1123,7 +1123,7 @@ class PHS_Model_Results extends PHS_Model
                         if( $params['table_name'] == 'backup_results_files' )
                         {
                             if( !($results_table = $this->get_flow_table_name( array( 'table_name' => 'backup_results' ))) )
-                                continue;
+                                continue 2;
 
                             $params['db_fields'] .= ', `'.$results_table.'`.rule_id AS backup_results_rule_id, '.
                                 ' `'.$results_table.'`.run_dir AS backup_results_run_dir, '.
