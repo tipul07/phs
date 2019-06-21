@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.33
+ *  \version 1.4
  */
 
 class PHS_utils extends PHS_Language
@@ -21,6 +21,8 @@ class PHS_utils extends PHS_Language
 
         if( empty( $params['only_big_part'] ) )
             $params['only_big_part'] = false;
+        if( empty( $params['big_part_if_zero'] ) )
+            $params['big_part_if_zero'] = false;
         if( empty( $params['show_period'] ) or $params['show_period'] > self::PERIOD_YEARS )
             $params['show_period'] = self::PERIOD_FULL;
         if( empty( $params['start_timestamp'] ) )
@@ -91,29 +93,83 @@ class PHS_utils extends PHS_Language
 
             case self::PERIOD_MINUTES:
                 $minutes_diff = floor( $seconds_span/60 );
+                if( $minutes_diff == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $minutes_diff.' '.($minutes_diff>1?self::_t( 'minutes' ):self::_t( 'minute' ));
             break;
 
             case self::PERIOD_HOURS:
                 $hours_diff = floor( $seconds_span/3600 );
+                if( $hours_diff == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $hours_diff.' '.($hours_diff>1?self::_t( 'hours' ):self::_t( 'hour' ));
             break;
 
             case self::PERIOD_DAYS:
                 $days_diff = floor( $seconds_span/86400 );
+                if( $days_diff == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $days_diff.' '.($days_diff>1?self::_t( 'days' ):self::_t( 'day' ));
             break;
 
             case self::PERIOD_WEEKS:
                 $weeks_diff = floor( $seconds_span/604800 );
+                if( $weeks_diff == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $weeks_diff.' '.($weeks_diff>1?self::_t( 'weeks' ):self::_t( 'week' ));
             break;
 
             case self::PERIOD_MONTHS:
+                if( $months == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $months.' '.($months>1?self::_t( 'months' ):self::_t( 'month' ));
             break;
 
             case self::PERIOD_YEARS:
+                if( $years == 0
+                and !empty( $params['big_part_if_zero'] ) )
+                {
+                    $params['show_period'] = self::PERIOD_FULL;
+                    $params['only_big_part'] = true;
+
+                    return self::parse_period( $seconds_span, $params );
+                }
+
                 return $years.' '.($years>1?self::_t( 'years' ):self::_t( 'year' ));
             break;
         }
