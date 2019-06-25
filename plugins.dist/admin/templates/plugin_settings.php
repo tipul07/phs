@@ -177,7 +177,7 @@
                                             ?>
                                             <div style="margin-bottom:15px;">
                                             <label for="<?php echo $field_id.'_'.$field_value_key?>" style="width:150px !important;"><?php echo $field_value_key?></label>
-                                            <input type="text" id="<?php echo $field_id.'_'.$field_value_key ?>" name="<?php echo $field_name ?>[<?php echo $field_value_key?>]" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value_val )?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="width:250px;<?php echo $field_details['extra_style'] ?>" />
+                                            <input type="text" id="<?php echo $field_id.'_'.$field_value_key ?>" name="<?php echo $field_name ?>[<?php echo $field_value_key?>]" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value_val )?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
                                             </div>
                                             <div class="clearfix"></div>
                                             <?php
@@ -248,6 +248,8 @@
                             if( !empty( $field_details['values_arr'] )
                             and is_array( $field_details['values_arr'] ) )
                             {
+                                if( empty( $field_details['extra_style'] ) )
+                                    $field_details['extra_style'] = 'width:100%';
                                 ?>
                                 <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="chosen-select <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>><?php
 
@@ -272,6 +274,8 @@
                                     break;
 
                                     default:
+                                        if( empty( $field_details['extra_style'] ) )
+                                            $field_details['extra_style'] = 'width:100%';
                                         ?>
                                         <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                                     break;
