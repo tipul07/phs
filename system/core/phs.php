@@ -1926,6 +1926,11 @@ final class PHS extends PHS_Registry
         return $hook_name;
     }
 
+    public static function get_registered_hooks()
+    {
+        return self::$hooks;
+    }
+
     /**
      * Adds a hook in call queue. When a hook is fired, script will call each callback function in order of their
      * priority. Along with standard hook parameters (check each hook definition to see which are these) you can add

@@ -828,6 +828,9 @@ class PHS_Paginator extends PHS_Registry
             'values_arr' => false,
             'extra_style' => '',
             'extra_classes' => '',
+            // In case there are more filters using a single field how should these be linked logically in sql
+            // last filter will overwrite linkage_func of previous filters
+            'linkage_func' => '',
         );
     }
 
@@ -1731,8 +1734,28 @@ class PHS_Paginator extends PHS_Registry
                 $check_value = $scope_arr[$filter_arr['var_name']];
 
             // 'record_field' is always what we send to database...
-            $list_arr['fields'][$filter_arr['record_field']] = $check_value;
-            $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
+            if( isset( $list_arr['fields'][$filter_arr['record_field']] ) )
+            {
+                if( !is_array( $list_arr['fields'][$filter_arr['record_field']] )
+                 or empty( $list_arr['fields'][$filter_arr['record_field']][0] ) )
+                {
+                    $list_arr['fields'][$filter_arr['record_field']] = array( $list_arr['fields'][$filter_arr['record_field']] );
+                    $count_list_arr['fields'][$filter_arr['record_field']] = array( $count_list_arr['fields'][$filter_arr['record_field']] );
+                }
+
+                $list_arr['fields'][$filter_arr['record_field']][] = $check_value;
+                $count_list_arr['fields'][$filter_arr['record_field']][] = $check_value;
+
+                if( !empty( $filter_arr['linkage_func'] ) )
+                {
+                    $list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
+                    $count_list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
+                }
+            } else
+            {
+                $list_arr['fields'][$filter_arr['record_field']] = $check_value;
+                $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
+            }
         }
 
         $this->flow_param( 'did_query_database', true );

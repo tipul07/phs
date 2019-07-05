@@ -450,6 +450,44 @@ class PHS_Registry extends PHS_Language
         return true;
     }
 
+    /**
+     * Tells if provided array has only numeric indexes
+     *
+     * @param array $arr Array to be checked
+     * @param array|bool $params Parameters
+     *
+     * @return bool True is array has only integers as indexes, false if indexes are something else than integers
+     */
+    public static function array_has_numeric_indexes( $arr, $params = false )
+    {
+        if( empty( $arr ) or !is_array( $arr ) )
+            return false;
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        // How many checks to be done. 0 means no limit, traverse whole array
+        if( empty( $params['max_iterations'] ) )
+            $params['max_iterations'] = 0;
+        else
+            $params['max_iterations'] = intval( $params['max_iterations'] );
+
+        $knti = 0;
+        foreach( $arr as $key => $junk )
+        {
+            if( !empty( $params['max_iterations'] )
+            and $params['max_iterations'] <= $knti )
+                break;
+
+            if( (string)intval( $key ) !== (string)$key )
+                return false;
+
+            $knti++;
+        }
+
+        return true;
+    }
+
     public static function extract_strings_from_comma_separated( $str, $params = false )
     {
         if( !is_string( $str ) )

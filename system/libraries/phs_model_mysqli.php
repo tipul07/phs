@@ -2159,6 +2159,115 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return array( 'and', 'or' );
     }
 
+    protected function _get_query_field_value( $field_name, $field_val, $params = false )
+    {
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['db_connection'] ) )
+            $params['db_connection'] = false;
+        if( empty( $params['linkage_func'] ) )
+            $params['linkage_func'] = 'AND';
+
+        $db_connection = $params['db_connection'];
+        $linkage_func = $params['linkage_func'];
+
+        $result_str = '';
+        // check if we have multiple complex values for current fields
+        // This means we have more values set in numeric indexes and linkage_func index (optional) in case we want to change logical linkage function
+        if( is_array( $field_val )
+        and !empty( $field_val[0] ) and is_array( $field_val[0] ) )
+        {
+            $linkage_func = 'OR';
+            if( !empty( $field_val['linkage_func'] )
+            and in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
+                $linkage_func = strtoupper( $field_val['linkage_func'] );
+
+            $recurring_params = $params;
+            $recurring_params['linkage_func'] = $linkage_func;
+
+            $linkage_str = '';
+            foreach( $field_val as $value_index => $value_arr )
+            {
+                // skip non integer indexes
+                if( (string)intval( $value_index ) !== (string)$value_index )
+                    continue;
+
+                if( ($recurring_result = $this->_get_query_field_value( $field_name, $value_arr, $recurring_params )) )
+                    $linkage_str .= (!empty( $linkage_str )?' '.$linkage_func.' ':'').' '.$recurring_result;
+            }
+
+            if( !empty( $linkage_str ) )
+                $result_str = '('.$linkage_str.')';
+        } elseif( !is_array( $field_val ) )
+        {
+            if( $field_val !== false )
+                $result_str = ' '.$field_name.' = \''.db_escape( $field_val, $db_connection ).'\' ';
+        } else
+        {
+            // If we don\'t have value key set, it means array passed is an array of values
+            if( !isset( $field_val['value'] )
+            and !isset( $field_val['raw'] )
+            and !isset( $field_val['raw_value'] ) )
+                $field_val = array( 'value' => $field_val );
+
+            if( !isset( $field_val['raw'] ) )
+                $field_val['raw'] = false;
+            if( empty( $field_val['field'] ) )
+                $field_val['field'] = $field_name;
+            if( empty( $field_val['check'] ) )
+                $field_val['check'] = '=';
+            if( !isset( $field_val['value'] ) )
+                $field_val['value'] = false;
+            if( !isset( $field_val['raw_value'] ) )
+                $field_val['raw_value'] = false;
+            // Use linkage function used in current linkage (by default) if more values are provided
+            if( !isset( $field_val['linkage_func'] )
+             or !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
+                $field_val['linkage_func'] = false;
+
+            if( !empty( $field_val['raw'] ) )
+                $result_str = $field_val['raw'];
+
+            elseif( $field_val['value'] !== false or $field_val['raw_value'] !== false )
+            {
+                $check_value = false;
+                $field_val['check'] = trim( $field_val['check'] );
+                if( $field_val['raw_value'] !== false )
+                    $check_value = $field_val['raw_value'];
+
+                elseif( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )
+                    $check_value = $field_val['value'];
+
+                elseif( !is_array( $field_val['value'] ) )
+                    $check_value = '\''.db_escape( $field_val['value'], $db_connection ).'\'';
+
+                if( !empty( $check_value ) )
+                    $result_str = ' '.$field_val['field'].' '.$field_val['check'].' '.$check_value.' ';
+
+                elseif( is_array( $field_val['value'] )
+                    and !empty( $field_val['value'] ) )
+                {
+                    // If linkage function is not provided for same field, we assume we should check if field is one of
+                    // provided values so we should use OR in linkage
+                    if( $field_val['linkage_func'] === false )
+                        $field_val['linkage_func'] = 'OR';
+                    else
+                        $field_val['linkage_func'] = $linkage_func;
+
+                    $linkage_str = '';
+                    foreach( $field_val['value'] as $field_arr_val )
+                        $linkage_str .= (!empty( $linkage_str )?' '.$field_val['linkage_func'].' ':'').' '.$field_val['field'].' '.$field_val['check'].' \''.db_escape( $field_arr_val, $db_connection ).'\' ';
+
+                    if( !empty( $linkage_str ) )
+                        $result_str = '('.$linkage_str.')';
+                }
+            }
+        }
+
+        return $result_str;
+    }
+
     public function get_query_fields( $params )
     {
         if( empty( $params['fields'] ) or !is_array( $params['fields'] )
@@ -2184,6 +2293,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         if( isset( $params['fields']['{linkage_func}'] ) )
             unset( $params['fields']['{linkage_func}'] );
+
+        $query_field_value_params = array();
+        $query_field_value_params['db_connection'] = $db_connection;
+        $query_field_value_params['linkage_func'] = $linkage_func;
 
         foreach( $params['fields'] as $field_name => $field_val )
         {
@@ -2211,75 +2324,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 continue;
             }
 
+            // Handle field name
             if( !is_numeric( $field_name )
             and strstr( $field_name, '.' ) === false )
                 $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
 
-            if( !is_array( $field_val ) )
-            {
-                if( $field_val !== false )
-                    $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_name.' = \''.db_escape( $field_val, $db_connection ).'\' ';
-            } else
-            {
-                // If we don\'t have value key set, it means array passed is an array of values
-                if( !isset( $field_val['value'] )
-                and !isset( $field_val['raw'] )
-                and !isset( $field_val['raw_value'] ) )
-                    $field_val = array( 'value' => $field_val );
-
-                if( !isset( $field_val['raw'] ) )
-                    $field_val['raw'] = false;
-                if( empty( $field_val['field'] ) )
-                    $field_val['field'] = $field_name;
-                if( empty( $field_val['check'] ) )
-                    $field_val['check'] = '=';
-                if( !isset( $field_val['value'] ) )
-                    $field_val['value'] = false;
-                if( !isset( $field_val['raw_value'] ) )
-                    $field_val['raw_value'] = false;
-                // Use linkage function used in current linkage (by default) if more values are provided
-                if( !isset( $field_val['linkage_func'] )
-                 or !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
-                    $field_val['linkage_func'] = false;
-
-                if( !empty( $field_val['raw'] ) )
-                    $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').$field_val['raw'];
-
-                elseif( $field_val['value'] !== false or $field_val['raw_value'] !== false )
-                {
-                    $check_value = false;
-                    $field_val['check'] = trim( $field_val['check'] );
-                    if( $field_val['raw_value'] !== false )
-                        $check_value = $field_val['raw_value'];
-
-                    elseif( in_array( strtolower( $field_val['check'] ), array( 'in', 'is', 'between' ) ) )
-                        $check_value = $field_val['value'];
-
-                    elseif( !is_array( $field_val['value'] ) )
-                        $check_value = '\''.db_escape( $field_val['value'], $db_connection ).'\'';
-
-                    if( !empty( $check_value ) )
-                        $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' '.$field_val['field'].' '.$field_val['check'].' '.$check_value.' ';
-
-                    elseif( is_array( $field_val['value'] )
-                        and !empty( $field_val['value'] ) )
-                    {
-                        // If linkage function is not provided for same field, we assume we should check if field is one of
-                        // provided values so we should use OR in linkage
-                        if( $field_val['linkage_func'] === false )
-                            $field_val['linkage_func'] = 'OR';
-                        else
-                            $field_val['linkage_func'] = $linkage_func;
-
-                        $linkage_str = '';
-                        foreach( $field_val['value'] as $field_arr_val )
-                            $linkage_str .= (!empty( $linkage_str )?' '.$field_val['linkage_func'].' ':'').' '.$field_val['field'].' '.$field_val['check'].' \''.db_escape( $field_arr_val, $db_connection ).'\' ';
-
-                        if( !empty( $linkage_str ) )
-                            $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').'('.$linkage_str.')';
-                    }
-                }
-            }
+            // Handle field value
+            if( ($field_val_query = $this->_get_query_field_value( $field_name, $field_val, $query_field_value_params )) )
+                $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').$field_val_query;
         }
 
         return $params;
