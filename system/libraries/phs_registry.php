@@ -177,6 +177,50 @@ class PHS_Registry extends PHS_Language
         return true;
     }
 
+    public static function sprintf_all( $str, $args )
+    {
+        if( !is_string( $str ) )
+            return '';
+
+        if( !is_string( $args ) and !is_array( $args ) )
+            return $str;
+
+        if( !is_array( $args ) )
+            $args = array( $args );
+
+        if( !($args_count = count( $args )) )
+            return $str;
+
+        $new_args = array();
+        // in case we don't have numeric indexes for the args array
+        $keys = array_keys( $args );
+        // we will cycle through $args array
+        if( !($perc_s = substr_count( $str, '%s' )) )
+            $perc_s = 0;
+
+        $keyi = 0;
+        $new_args = array();
+        while( $perc_s > 0 )
+        {
+            // safe...
+            if( !isset( $args[$keys[$keyi]] ) )
+                $keyi = 0;
+
+            $new_args[] = $args[$keys[$keyi]];
+
+            $keyi++;
+            if( $keyi >= $args_count )
+                $keyi = 0;
+
+            $perc_s--;
+        }
+
+        if( empty( $new_args ) )
+            return $str;
+
+        return @vsprintf( $str, $new_args );
+    }
+
     public static function merge_array_assoc( $arr1, $arr2 )
     {
         if( empty( $arr1 ) or !is_array( $arr1 ) )

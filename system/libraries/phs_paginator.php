@@ -818,6 +818,8 @@ class PHS_Paginator extends PHS_Registry
             // If this is an array and 'value' key is not provided, script will create a 'value' key with value which coresponds from _scope array.
             // If 'value' key is passed it should contain a %s placeholder which will be replaced with value from _scope array.
             'record_check' => false,
+            // In case record_check parameter refers to other model, provide model to be used
+            'record_check_model' => false,
             'display_name' => '',
             'display_hint' => '',
             'display_placeholder' => '',
@@ -1706,26 +1708,35 @@ class PHS_Paginator extends PHS_Registry
                         $final_value = $scope_arr[$filter_arr['var_name']];
 
                     $check_value = $filter_arr['record_check'];
-                    $check_value['value'] = sprintf( $filter_arr['record_check']['value'], $final_value );
+
+                    // Convert all %s into filter value... Also make sure %% won't be also replaced
+                    $check_value['value'] = self::sprintf_all( $filter_arr['record_check']['value'], $final_value );
                 }
 
                 // more complex linkage...
-                elseif( isset( $filter_arr['record_check']['fields'] )
-                and ($linkage_params = $model_obj->get_query_fields( $filter_arr['record_check'] ))
-                and !empty( $linkage_params['extra_sql'] ) )
+                elseif( isset( $filter_arr['record_check']['fields'] ) )
                 {
-                    if( is_array( $scope_arr[$filter_arr['var_name']] ) )
-                        $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
-                    else
-                        $final_value = $scope_arr[$filter_arr['var_name']];
+                    $check_model_obj = $model_obj;
+                    if( !empty( $filter_arr['record_check_model'] )
+                    and ($filter_arr['record_check_model'] instanceof PHS_Model) )
+                        $check_model_obj = $filter_arr['record_check_model'];
 
-                    while( strstr( $linkage_params['extra_sql'], '%s' ) !== false )
-                        $linkage_params['extra_sql'] = @sprintf( $linkage_params['extra_sql'], $final_value );
+                    if( ($linkage_params = $check_model_obj->get_query_fields( $filter_arr['record_check'] ))
+                    and !empty( $linkage_params['extra_sql'] ) )
+                    {
+                        if( is_array( $scope_arr[$filter_arr['var_name']] ) )
+                            $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
+                        else
+                            $final_value = $scope_arr[$filter_arr['var_name']];
 
-                    $list_arr['extra_sql'] .= $linkage_params['extra_sql'];
-                    $count_list_arr['extra_sql'] .= $linkage_params['extra_sql'];
+                        $linkage_params['extra_sql'] = self::sprintf_all( $linkage_params['extra_sql'], $final_value );
 
-                    continue;
+                        // In case we have complex linkages...
+                        $list_arr['extra_sql'] .= '('.$linkage_params['extra_sql'].')';
+                        $count_list_arr['extra_sql'] .= '('.$linkage_params['extra_sql'].')';
+
+                        continue;
+                    }
                 }
             }
 

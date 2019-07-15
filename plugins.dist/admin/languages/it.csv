@@ -1,6 +1,7 @@
 # !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Welcome...,Benvenuto...
 DONE,FATTO
 Couldn't load accounts plugin.,Impossibile caricare gli accounts plugin.
 Couldn't load accounts model.,Impossibile caricare gli accounts modello.
@@ -274,7 +275,7 @@ Back,Indietro
 Edit job,Modifica la funzione
 Welcome...,Benvenuto...
 You are in admin section of %s site.,Sei nella sezione dell'amministratore di %s sito
-Currently logged in %s - %s.,Attualmente loggato %s -%s.
+Currently logged in %s - %s.,Attualmente loggato %s - %s.
 Users Management,Gestione Utenti
 Manage Users,Gestire gli utenti
 Roles Management,Gestione dei ruoli
