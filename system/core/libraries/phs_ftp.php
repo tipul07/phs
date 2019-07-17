@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Library;
 /*! \file phs_ftp.php
  *  \brief Contains PHS_Ftp class (connect to ftp servers)
  *  \author Andy
- *  \version 1.54
+ *  \version 1.55
  */
 
 class PHS_Ftp extends PHS_Library
@@ -2129,14 +2129,19 @@ class PHS_Ftp extends PHS_Library
             } else
                 $remote_dir = $dir;
 
-            if( !@is_dir( 'ssh2.sftp://'.intval( $this->internal_settings['con'] ).'/'.$remote_dir )
-            and !@ssh2_sftp_mkdir( $this->internal_settings['con'], $remote_dir, $params['dir_rights'], $params['recursive'] ) )
-            {
-                $this->set_error( self::ERR_REMOTE_LOCATION, 'SFTP cannot create remote directory.' );
-                if( empty( $params['skip_callbacks'] ) )
-                    $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => false ) );
-                return false;
-            }
+            // On some systems is_dir() or file_exists() returns false even if directory exists...
+            // In this case if ssh2_sftp_mkdir() returns false we don't know if there was an error while creating the directory or directory already exists
+            // Just assume we created the directory...
+            @ssh2_sftp_mkdir( $this->internal_settings['con'], $remote_dir, $params['dir_rights'], $params['recursive'] );
+
+            // if( !@is_dir( 'ssh2.sftp://'.intval( $this->internal_settings['con'] ).'/'.$remote_dir )
+            // and !@ssh2_sftp_mkdir( $this->internal_settings['con'], $remote_dir, $params['dir_rights'], $params['recursive'] ) )
+            // {
+            //     $this->set_error( self::ERR_REMOTE_LOCATION, 'SFTP cannot create remote directory.' );
+            //     if( empty( $params['skip_callbacks'] ) )
+            //         $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => false ) );
+            //     return false;
+            // }
         }
 
         if( empty( $params['skip_callbacks'] ) )
