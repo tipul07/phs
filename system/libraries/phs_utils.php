@@ -243,7 +243,7 @@ class PHS_utils extends PHS_Language
                 continue;
             }
 
-            $segments_path .= '/'.$dir_segment;
+            $segments_path .= ($segments_path=='/'?'':'/').$dir_segment;
 
             if( @file_exists( $segments_path ) )
             {

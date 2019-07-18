@@ -251,7 +251,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::logf( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::logf( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']['.$this->get_model_driver().']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( $this->_definition[$table_name] ) )
         {
@@ -777,18 +777,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
         switch( $field_details['type'] )
         {
-            case self::FTYPE_TINYINT:
-            case self::FTYPE_SMALLINT:
-            case self::FTYPE_MEDIUMINT:
-            case self::FTYPE_INT:
+            case self::FTYPE_INTEGER:
                 if( ($value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr )) === null )
                     $value = 0;
-            break;
-
-            case self::FTYPE_BIGINT:
-                $value = trim( $value );
-                if( @function_exists( 'bcmul' ) )
-                    $value = bcmul( $value, 1, 0 );
             break;
 
             case self::FTYPE_DATE:
@@ -798,15 +789,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
                     $value = @date( self::DATE_DB, parse_db_date( $value ) );
             break;
 
-            case self::FTYPE_DATETIME:
-                if( empty_db_date( $value ) )
-                    $value = null;
-                else
-                    $value = @date( self::DATETIME_DB, parse_db_date( $value ) );
-            break;
-
-            case self::FTYPE_DECIMAL:
-            case self::FTYPE_FLOAT:
             case self::FTYPE_DOUBLE:
 
                 $digits = 0;
@@ -821,38 +803,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
                 if( ($value = PHS_params::set_type( $value, PHS_params::T_FLOAT, $phs_params_arr )) === null )
                     $value = 0;
-            break;
-
-            case self::FTYPE_ENUM:
-
-                $values_arr = array();
-                if( !empty( $field_details['length'] )
-                and is_string( $field_details['length'] ) )
-                {
-                    $values_arr = explode( ',', $field_details['length'] );
-                    $trim_value = trim( $value );
-                    $lower_value = strtolower( $trim_value );
-                    $value_valid = false;
-                    foreach( $values_arr as $possible_value )
-                    {
-                        $trim_possible_value = trim( $value );
-                        $lower_possible_value = strtolower( $trim_value );
-
-                        if( $value == $possible_value
-                         or $trim_value == $trim_possible_value
-                         or $lower_value == $lower_possible_value )
-                        {
-                            $value_valid = true;
-                            break;
-                        }
-                    }
-
-                    if( empty( $value_valid ) )
-                    {
-                        self::st_set_error( self::ERR_MODEL_FIELDS, self::_t( 'Field %s is not in enum scope.', $field_name ) );
-                        return false;
-                    }
-                }
             break;
         }
 

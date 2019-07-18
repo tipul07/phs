@@ -1,6 +1,7 @@
 <?php
 
     define( 'PHS_INSTALLING_FLOW', true );
+    define( 'PHS_PREVENT_SESSION', true );
 
     include_once( 'main.php' );
 

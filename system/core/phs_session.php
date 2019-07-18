@@ -2,11 +2,14 @@
 
 namespace phs;
 
-use phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_Registry;
+use \phs\libraries\PHS_utils;
 
 final class PHS_session extends PHS_Registry
 {
     const ERR_DOMAIN = 1, ERR_COOKIE = 2;
+
+    const SESS_DIR_LENGTH = 2, SESS_DIR_MAX_SEGMENTS = 4;
 
     const SESS_DATA = 'sess_data',
           SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_AUTOSTART = 'sess_autostart',
@@ -231,19 +234,19 @@ final class PHS_session extends PHS_Registry
             return false;
         }
 
-        @session_set_save_handler(
-            array( 'PHS_session', 'sf_open' ),
-            array( 'PHS_session', 'sf_close' ),
-            array( 'PHS_session', 'sf_read' ),
-            array( 'PHS_session', 'sf_write' ),
-            array( 'PHS_session', 'sf_destroy' ),
-            array( 'PHS_session', 'sf_gc' )
+        session_set_save_handler(
+            array( '\\phs\\PHS_session', 'sf_open' ),
+            array( '\\phs\\PHS_session', 'sf_close' ),
+            array( '\\phs\\PHS_session', 'sf_read' ),
+            array( '\\phs\\PHS_session', 'sf_write' ),
+            array( '\\phs\\PHS_session', 'sf_destroy' ),
+            array( '\\phs\\PHS_session', 'sf_gc' )
         );
 
-        session_save_path( self::get_data( self::SESS_DIR ) );
-        session_cache_limiter( 'nocache' );
-        session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN );
-        session_name( self::get_data( self::SESS_NAME ) );
+        @session_save_path( self::get_data( self::SESS_DIR ) );
+        @session_cache_limiter( 'nocache' );
+        @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN );
+        @session_name( self::get_data( self::SESS_NAME ) );
 
         @register_shutdown_function( array( '\\phs\\PHS_session', 'session_close' ) );
 
@@ -251,9 +254,49 @@ final class PHS_session extends PHS_Registry
 
         self::set_data( self::SESS_STARTED, true );
 
+        // safe...
+        if( empty( $_SESSION ) or !is_array( $_SESSION ) )
+            $_SESSION = array();
+
         self::set_data( self::SESS_DATA, $_SESSION );
 
         return true;
+    }
+
+    public static function get_session_id_dir_as_array( $id )
+    {
+        if( empty( $id ) or !is_string( $id )
+         or !($return_arr = @str_split( $id, self::SESS_DIR_LENGTH ))
+         or !is_array( $return_arr ) )
+            return array();
+
+        if( count( $return_arr ) > self::SESS_DIR_MAX_SEGMENTS )
+            $return_arr = @array_slice( $return_arr, 0, self::SESS_DIR_MAX_SEGMENTS );
+
+        return $return_arr;
+    }
+
+    public static function get_session_id_dir( $id )
+    {
+        if( empty( $id ) or !is_string( $id ) )
+            return '';
+
+        $sess_dir = '';
+        if( ($sess_dir = self::get_data( self::SESS_DIR )) )
+            $sess_dir = rtrim( $sess_dir, '/\\' );
+
+        if( ($id_arr = self::get_session_id_dir_as_array( $id )) )
+            $sess_dir .= '/'.implode( '/', $id_arr );
+
+        return $sess_dir;
+    }
+
+    public static function get_session_id_file_name( $id )
+    {
+        if( !($sess_dir = self::get_session_id_dir( $id )) )
+            return 'sess_'.$id;
+
+        return $sess_dir.'/sess_'.$id;
     }
 
     public static function session_close( $params = false )
@@ -283,7 +326,7 @@ final class PHS_session extends PHS_Registry
             return true;
 
         if( !@is_dir( $path ) )
-            @mkdir( $path, 0775 );
+            PHS_utils::mkdir_tree( $path, array( 'dir_mode' => 0775 ) );
 
         return true;
     }
@@ -298,8 +341,8 @@ final class PHS_session extends PHS_Registry
         if( PHS::prevent_session() )
             return true;
 
-        $sess_file = self::get_data( self::SESS_DIR ).'/sess_'.$id;
-        if( !@file_exists( $sess_file )
+        if( !($sess_file = self::get_session_id_file_name( $id ))
+         or !@file_exists( $sess_file )
          or !($ret_val = @file_get_contents( $sess_file )) )
             $ret_val = '';
 
@@ -311,7 +354,23 @@ final class PHS_session extends PHS_Registry
         if( PHS::prevent_session() )
             return true;
 
-        if( !($fil = @fopen( self::get_data( self::SESS_DIR ).'/sess_'.$id, 'w' )) )
+        if( !($sess_file = self::get_session_id_file_name( $id )) )
+            return false;
+
+        if( !@file_exists( $sess_file )
+        and ($sess_dir = self::get_session_id_dir( $id ))
+        and !@is_dir( $sess_dir ) )
+        {
+            $sess_root = '';
+            if( ($sess_root = self::get_data( self::SESS_DATA )) )
+                $sess_root = rtrim( $sess_root, '/\\' );
+
+            // maybe we should create directory...
+            if( !(PHS_utils::mkdir_tree( $sess_dir, array( 'root' => $sess_root, 'dir_mode' => 0775 ) )) )
+                return false;
+        }
+
+        if( !($fil = @fopen( $sess_file, 'w' )) )
             return false;
 
         @fwrite( $fil, $data );
@@ -326,9 +385,9 @@ final class PHS_session extends PHS_Registry
         if( PHS::prevent_session() )
             return true;
 
-        $file = self::get_data( self::SESS_DIR ).'/sess_'.$id;
-        if( @file_exists( $file ) )
-            @unlink( $file );
+        if( ($sess_file = self::get_session_id_file_name( $id ))
+        and @file_exists( $sess_file ) )
+            @unlink( $sess_file );
 
         return true;
     }
@@ -338,7 +397,14 @@ final class PHS_session extends PHS_Registry
         if( PHS::prevent_session() )
             return true;
 
-        if( ($file_list = @glob( self::get_data( self::SESS_DIR ).'/sess_*' )) )
+        $sess_dir = '';
+        if( ($sess_dir = self::get_data( self::SESS_DIR )) )
+            $sess_dir = rtrim( $sess_dir, '/\\' );
+
+        for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
+            $sess_dir .= '/*';
+
+        if( ($file_list = @glob( $sess_dir.'/sess_*' )) )
         {
             foreach( $file_list as $file )
             {
