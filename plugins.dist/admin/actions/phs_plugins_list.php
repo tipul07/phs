@@ -477,12 +477,6 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
-                {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot uninstall this plugin.' ) );
-                    return false;
-                }
-
                 if( !($plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Couldn\'t instantiate plugin.' ) );
