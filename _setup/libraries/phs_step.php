@@ -137,7 +137,7 @@ abstract class PHS_Step extends PHS_Registry
 
                     case 'defines':
                         if( empty( $block_arr ) or !is_array( $block_arr ) )
-                            continue;
+                            continue 2;
 
                         foreach( $block_arr as $define_key => $definition_info )
                         {
