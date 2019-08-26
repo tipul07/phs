@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 /*! \file phs_utils.php
  *  \brief Contains PHS_utils class (different utility functions...)
- *  \version 1.4
+ *  \version 1.5
  */
 
 class PHS_utils extends PHS_Language
@@ -14,7 +14,14 @@ class PHS_utils extends PHS_Language
 
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
 
-    static function parse_period( $seconds_span, $params = false )
+    /**
+     * @param $seconds_span
+     * @param bool|array $params
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public static function parse_period( $seconds_span, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -28,9 +35,9 @@ class PHS_utils extends PHS_Language
         if( empty( $params['start_timestamp'] ) )
             $params['start_timestamp'] = time();
         else
-            $params['start_timestamp'] = intval( $params['start_timestamp'] );
+            $params['start_timestamp'] = (int)$params['start_timestamp'];
 
-        $seconds_span = intval( $seconds_span );
+        $seconds_span = (int)$seconds_span;
         $nowtime = $params['start_timestamp'];
         $pasttime = $nowtime - $seconds_span;
 
@@ -175,7 +182,13 @@ class PHS_utils extends PHS_Language
         }
     }
 
-    static function check_crawler_request( $params = false )
+    /**
+     * Checks if current request is made by a well known web bot
+     * @param bool|array $params
+     *
+     * @return array
+     */
+    public static function check_crawler_request( $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -190,15 +203,15 @@ class PHS_utils extends PHS_Language
         $return_arr['is_bot'] = false;
         $return_arr['bot_name'] = '';
 
-        if( stristr( $params['user_agent'], 'googlebot' ) !== false )
+        if( false !== stripos( $params['user_agent'], 'googlebot' ) )
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'Google';
-        } elseif( stristr( $params['user_agent'], 'msnbot' ) !== false or stristr( $params['user_agent'], 'msrbot' ) !== false )
+        } elseif( false !== stripos( $params['user_agent'], 'msnbot' ) or false !== stripos( $params['user_agent'], 'msrbot' ) )
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'MSN';
-        } elseif( stristr( $params['user_agent'], 'bingbot' ) !== false or stristr( $params['user_agent'], 'bingpreview' ) !== false )
+        } elseif( false !== stripos( $params['user_agent'], 'bingbot' ) or false !== stripos( $params['user_agent'], 'bingpreview' ) )
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'Bing';
@@ -207,6 +220,12 @@ class PHS_utils extends PHS_Language
         return $return_arr;
     }
 
+    /**
+     * @param string|array $segments
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public static function mkdir_tree( $segments, $params = false )
     {
         self::st_reset_error();
@@ -238,12 +257,12 @@ class PHS_utils extends PHS_Language
         {
             if( empty( $dir_segment ) )
             {
-                if( $segments_path == '' )
+                if( $segments_path === '' )
                     $segments_path .= '/';
                 continue;
             }
 
-            $segments_path .= ($segments_path=='/'?'':'/').$dir_segment;
+            $segments_path .= ($segments_path==='/'?'':'/').$dir_segment;
 
             if( @file_exists( $segments_path ) )
             {
@@ -269,12 +288,18 @@ class PHS_utils extends PHS_Language
         return true;
     }
 
+    /**
+     * @param string $directory
+     * @param bool|array $params
+     *
+     * @return array
+     */
     public static function get_files_recursive( $directory, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
-        if( substr( $directory, -1 ) == '/' )
+        if( substr( $directory, -1 ) === '/' )
             $directory = substr( $directory, 0, -1 );
 
         if( !@file_exists( $directory ) or !@is_dir( $directory ) )
@@ -344,6 +369,12 @@ class PHS_utils extends PHS_Language
         return $found_files;
     }
 
+    /**
+     * @param $directory
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public static function rmdir_tree( $directory, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -361,7 +392,7 @@ class PHS_utils extends PHS_Language
         {
             foreach( $directory_content as $filename )
             {
-                if( $filename == '.' or $filename == '..' )
+                if( $filename === '.' or $filename === '..' )
                     continue;
 
                 if( @is_file( $filename ) or @is_link( $filename ) )
@@ -388,6 +419,12 @@ class PHS_utils extends PHS_Language
         return $return_val;
     }
 
+    /**
+     * @param $file
+     * @param bool|array $params
+     *
+     * @return mixed|string
+     */
     public static function mimetype( $file, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -574,7 +611,7 @@ class PHS_utils extends PHS_Language
         {
             $ret['dirname'] = '';
             $file = explode( '.', $str );
-        } elseif( $dir_file[$knt-1] == '' )
+        } elseif( $dir_file[$knt-1] === '' )
         {
             $ret['dirname'] = implode( '/', array_slice( $dir_file, 0, -1 ) );
             $file = false;
@@ -602,6 +639,11 @@ class PHS_utils extends PHS_Language
         return $ret;
     }
 
+    /**
+     * @param string $str URL to be parsed
+     *
+     * @return array Array with parts of parsed URL
+     */
     public static function myparse_url( $str )
     {
         $ret = array();
@@ -639,7 +681,7 @@ class PHS_utils extends PHS_Language
         {
             $mystr = $res[0];
 
-            if( substr( $mystr, 0, 2 ) == '//' )
+            if( strpos( $mystr, '//' ) === 0 )
             {
                 $ret['scheme'] = '//';
                 $mystr = substr( $mystr, 2 );
@@ -651,12 +693,12 @@ class PHS_utils extends PHS_Language
         $host_present = true;
         // host is not present - only the path might be present
         if( ($dotpos = strpos( $mystr , '.' )) === false
-        and $ret['scheme'] == '' )
+        and $ret['scheme'] === '' )
             $host_present = false;
 
         // no path is present or only a directory name is present
         if( ($slashpos = strpos( $mystr , '/' )) === false
-        and $ret['scheme'] == '' )
+        and $ret['scheme'] === '' )
         {
             $host_present = true;
             $path_present = false;
@@ -671,13 +713,13 @@ class PHS_utils extends PHS_Language
                     // dot is after / so it must be a path
                     $host_present = false;
                     $path_present = true;
-                } elseif( $ret['scheme'] == '' )
+                } elseif( $ret['scheme'] === '' )
                 {
                     // no scheme given, might be a server path...
                     $host_present = false;
                     $path_present = true;
                 }
-            } elseif( $ret['scheme'] == '' )
+            } elseif( $ret['scheme'] === '' )
             {
                 // we don't have any slashes... might be a filename/dir name in current folder
                 $host_present = false;
@@ -693,7 +735,7 @@ class PHS_utils extends PHS_Language
             } else
             {
                 $res = explode( '/', $mystr, 2 );
-                if( isset( $res[1] ) and $res[1] != '' )
+                if( isset( $res[1] ) and $res[1] !== '' )
                     $ret['path'] = $res[1];
                 else
                     $ret['path'] = '';
@@ -705,7 +747,7 @@ class PHS_utils extends PHS_Language
         $user_pass = '';
         if( $host_present )
         {
-            if( strstr( $mystr, '@' ) )
+            if( false !== strpos( $mystr, '@' ) )
             {
                 $res = explode( '@', $mystr, 2 );
                 $user_pass = $res[0];
@@ -717,7 +759,7 @@ class PHS_utils extends PHS_Language
             }
         }
 
-        if( strstr( $host_port, ':' ) )
+        if( false !== strpos( $host_port, ':' ) )
         {
             $res = explode( ':', $host_port, 2 );
             $ret['host'] = $res[0];
@@ -728,10 +770,10 @@ class PHS_utils extends PHS_Language
             $ret['port'] = '';
         }
 
-        if( $user_pass != '' )
+        if( $user_pass !== '' )
         {
             $res = explode( ':', $user_pass, 2 );
-            if( isset( $res[1] ) and $res[1] != '' )
+            if( isset( $res[1] ) and $res[1] !== '' )
                 $ret['pass'] = $res[1];
             else
                 $ret['pass'] = '';
@@ -759,7 +801,7 @@ class PHS_utils extends PHS_Language
 
         $final_url = $url_parts['scheme'];
 
-        if( $url_parts['scheme'] != '//' )
+        if( $url_parts['scheme'] !== '//' )
         {
             $final_url .= (!empty( $url_parts['scheme'] )?':':'').'//';
         }
@@ -775,6 +817,14 @@ class PHS_utils extends PHS_Language
         return $final_url;
     }
 
+    /**
+     * @param string $source Source image file
+     * @param string $destination Destination image file
+     * @param string $watermark Watermark image file
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public static function quick_watermark( $source, $destination, $watermark, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -839,12 +889,12 @@ class PHS_utils extends PHS_Language
         if( empty( $params['width'] ) )
             $params['width'] = 0;
         else
-            $params['width'] = intval( $params['width'] );
+            $params['width'] = (int)$params['width'];
 
         if( empty( $params['height'] ) )
             $params['height'] = 0;
         else
-            $params['height'] = intval( $params['height'] );
+            $params['height'] = (int)$params['height'];
 
         if( !isset( $params['output_details'] ) )
             $params['output_details'] = true;
@@ -890,6 +940,12 @@ class PHS_utils extends PHS_Language
         return $return_val;
     }
 
+    /**
+     * @param string $url URL where we send the request
+     * @param bool|array $params cURL parameters
+     *
+     * @return array|bool cURL result array or false on error
+     */
     public static function quick_curl( $url, $params = false )
     {
         if( !($ch = @curl_init()) )
@@ -910,7 +966,7 @@ class PHS_utils extends PHS_Language
         if( empty( $params['timeout'] ) )
             $params['timeout'] = 30;
         else
-            $params['timeout'] = intval( $params['timeout'] );
+            $params['timeout'] = (int)$params['timeout'];
         if( empty( $params['user_agent'] ) )
             $params['user_agent'] = 'PHS/PHS_utils v'.PHS_VERSION;
         if( empty( $params['extra_get_params'] ) or !is_array( $params['extra_get_params'] ) )
@@ -948,7 +1004,7 @@ class PHS_utils extends PHS_Language
             foreach( $params['post_arr'] as $key => $val )
             {
                 // workaround for '@/local/file' fields...
-                if( substr( $val, 0, 1 ) == '@' )
+                if( substr( $val, 0, 1 ) === '@' )
                 {
                     $post_string = $params['post_arr'];
                     break;
@@ -957,17 +1013,17 @@ class PHS_utils extends PHS_Language
                 $post_string .= $key.'='.utf8_encode( rawurlencode( $val ) ).'&';
             }
 
-            if( is_string( $post_string ) and $post_string != '' )
+            if( is_string( $post_string ) and $post_string !== '' )
                 $post_string = substr( $post_string, 0, -1 );
 
             if( !isset( $params['header_keys_arr']['Content-Type'] ) )
                 $params['header_keys_arr']['Content-Type'] = 'application/x-www-form-urlencoded';
         }
 
-        if( $params['raw_post_str'] != '' )
+        if( $params['raw_post_str'] !== '' )
             $post_string .= $params['raw_post_str'];
 
-        if( $post_string != '' )
+        if( $post_string !== '' )
         {
             @curl_setopt( $ch, CURLOPT_POST, true );
             @curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_string );
@@ -975,7 +1031,7 @@ class PHS_utils extends PHS_Language
 
         if( count( $params['extra_get_params'] ) )
         {
-            if( strstr( $url, '?' ) === false )
+            if( false === strpos( $url, '?' ) )
                 $url .= '?';
 
             foreach( $params['extra_get_params'] as $key => $val )
@@ -1036,6 +1092,12 @@ class PHS_utils extends PHS_Language
         return $response;
     }
 
+    /**
+     * @param string $attr_str String in node to be checked for attributes
+     * @param bool|array $params Parameters to be used
+     *
+     * @return array|bool array of attributes or false on error
+     */
     public static function xml_parse_node_attributes( $attr_str, $params = false )
     {
         if( empty( $attr_str ) or !is_string( $attr_str ) )
@@ -1067,6 +1129,12 @@ class PHS_utils extends PHS_Language
         return $attrs_arr;
     }
 
+    /**
+     * @param string $buf Buffer to be parsed for XML
+     * @param bool|array $params Parameters to be used
+     *
+     * @return bool|array Array with nodes
+     */
     public static function xml_to_array( $buf, $params = false )
     {
         if( empty( $buf ) )
@@ -1160,7 +1228,13 @@ class PHS_utils extends PHS_Language
      * PHS_utils::array_to_xml( $xml_arr, array( 'root_tag' => 'root' ) );
      *
      **/
-    static function array_to_xml( $arr, $params = false )
+    /**
+     * @param array $arr Array of nodes
+     * @param bool|array $params Parameters to be used
+     *
+     * @return string Representation of XML as string
+     */
+    public static function array_to_xml( $arr, $params = false )
     {
         if( empty( $arr ) or !is_array( $arr ) )
             return '';
@@ -1230,7 +1304,7 @@ class PHS_utils extends PHS_Language
                             $content_str = self::array_to_xml( $attr_val, $new_params );
                         else
                             $content_str = self::xml_encode( $attr_val, array( 'xml_encoding' => $params['xml_encoding'] ) );
-                    } elseif( substr( $attr_key, 0, 1 ) == '@' )
+                    } elseif( substr( $attr_key, 0, 1 ) === '@' )
                     {
                         $attr_key = substr( $attr_key, 1 );
                         if( $attr_key === '' )
@@ -1266,7 +1340,14 @@ class PHS_utils extends PHS_Language
         return $return_str;
     }
 
-    static function xml_encode( $string, $params = false )
+    /**
+     * Convert a node content to XML compatible string
+     * @param string $string
+     * @param bool|array $params Parameters to be used
+     *
+     * @return string Converted node content
+     */
+    public static function xml_encode( $string, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -1276,10 +1357,10 @@ class PHS_utils extends PHS_Language
         if( empty( $params['convert_flags'] ) )
             $params['convert_flags'] = false;
 
-        if( !is_string( $string ) or $string == '' )
+        if( !is_string( $string ) or $string === '' )
             return '';
 
-        if( $params['convert_flags'] == false )
+        if( $params['convert_flags'] === false )
         {
             $params['convert_flags'] = constant( 'ENT_QUOTES' );
             $params['convert_flags'] |= constant( 'ENT_SUBSTITUTE' );
@@ -1291,16 +1372,35 @@ class PHS_utils extends PHS_Language
         return @htmlspecialchars( $string, $params['convert_flags'], $params['xml_encoding'] );
     }
 
-    static function csv_column( $str, $delimiter = ',', $enclosure = '"', $escape = '"' )
+    /**
+     * Convert a CSV column content to a CSV compatible string
+     * @param string $str Content of CSV column to be converted
+     * @param string $delimiter
+     * @param string $enclosure
+     * @param string $escape
+     *
+     * @return string Converted string
+     */
+    public static function csv_column( $str, $delimiter = ',', $enclosure = '"', $escape = '"' )
     {
-        if( strstr( $str, $enclosure ) !== false
-         or strstr( $str, $delimiter ) !== false )
+        if( false !== strpos( $str, $enclosure )
+         or false !== strpos( $str, $delimiter ) )
             $str = $enclosure.str_replace( $enclosure, $escape.$enclosure, $str ).$enclosure;
 
         return $str;
     }
 
-    static function csv_line( $line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"' )
+    /**
+     * Convert an array of CSV columns to a CSV string line
+     * @param array $line_arr Columns array to be converted to CSV
+     * @param string $line_delimiter
+     * @param string $delimiter
+     * @param string $enclosure
+     * @param string $escape
+     *
+     * @return string Returns a CSV string line based on provided columns array
+     */
+    public static function csv_line( $line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"' )
     {
         if( empty( $line_arr ) or !is_array( $line_arr ) )
             return '';
