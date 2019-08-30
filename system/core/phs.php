@@ -2007,6 +2007,12 @@ final class PHS extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $hook_name
+     * @param array $hook_args
+     *
+     * @return array|bool|mixed|null
+     */
     public static function trigger_hooks( $hook_name, array $hook_args = array() )
     {
         if( !($hook_name = self::prepare_hook_name( $hook_name ))
