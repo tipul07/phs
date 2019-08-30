@@ -150,57 +150,7 @@
 ###########################################
 ## Deny access to release notes to prevent disclosure of the installed Magento version
 
-    <Files README.md>
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
-
-    <Files VERSION>
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
-
-    <Files "_bg.php">
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
-
-    <Files "_agent.php">
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
-
-    <Files "_agent_bg.php">
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
-
-    <Files "_new_crypt_keys.php">
+    <Files "^(README.md|VERSION|LICENSE|_bg.php|_agent.php|_agent_bg.php|_new_crypt_keys.php)$">
         <IfVersion < 2.4>
             order allow,deny
             deny from all

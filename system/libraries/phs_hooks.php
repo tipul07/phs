@@ -84,6 +84,18 @@ class PHS_Hooks extends PHS_Registry
          H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
          // triggered after user logs in successfully
          H_USERS_AFTER_LOGIN = 'phs_users_after_login',
+         // triggered right when execute() function of login action is called
+         H_USERS_LOGIN_ACTION_START = 'phs_users_login_action_start',
+        // triggered right when execute() function of logout action is called
+         H_USERS_LOGOUT_ACTION_START = 'phs_users_logout_action_start',
+        // triggered right when execute() function of edit profile action is called
+         H_USERS_EDIT_PROFILE_ACTION_START = 'phs_users_edit_profile_action_start',
+        // triggered right when execute() function of change password action is called
+         H_USERS_CHANGE_PASSWORD_ACTION_START = 'phs_users_change_password_action_start',
+        // triggered right when execute() function of forgot password action is called
+         H_USERS_FORGOT_PASSWORD_ACTION_START = 'phs_users_forgot_password_action_start',
+        // triggered right when execute() function of register action is called
+         H_USERS_REGISTER_ACTION_START = 'phs_users_register_action_start',
 
          // Layout hooks
          H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
@@ -116,6 +128,9 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
          H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
 
+    /**
+     * @return array
+     */
     public static function default_common_hook_args()
     {
         return array(
@@ -228,6 +243,8 @@ class PHS_Hooks extends PHS_Registry
     public static function default_action_execute_hook_args()
     {
         return self::hook_args_definition( array(
+            // Tells if execution of action should be stopped and action_result returned by the hook to be used as action result
+            'stop_execution' => false,
             'action_obj' => false,
             'action_result' => PHS_Action::default_action_result(),
         ) );
@@ -500,10 +517,10 @@ class PHS_Hooks extends PHS_Registry
     {
         self::st_reset_error();
 
-        $hook_args = self::reset_email_hook_args( self::validate_array( $hook_args, PHS_Hooks::default_init_email_hook_args() ) );
+        $hook_args = self::reset_email_hook_args( self::validate_array( $hook_args, self::default_init_email_hook_args() ) );
 
         // If we don't have hooks registered, we don't send emails...
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_EMAIL_INIT, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_EMAIL_INIT, $hook_args )) === null )
             return null;
 
         if( is_array( $hook_args )
@@ -519,21 +536,26 @@ class PHS_Hooks extends PHS_Registry
 
     public static function trigger_guest_roles( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_guest_roles_hook_args() );
+        $hook_args = self::validate_array( $hook_args, self::default_guest_roles_hook_args() );
 
         // If we don't have hooks registered, guest users don't have role slugs...
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_GUEST_ROLES_SLUGS, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_GUEST_ROLES_SLUGS, $hook_args )) === null )
             return false;
 
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool|mixed|null
+     */
     public static function trigger_current_user( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_db_details_hook_args() );
+        $hook_args = self::validate_array( $hook_args, self::default_user_db_details_hook_args() );
 
         // If we don't have hooks registered, we don't have user management...
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_DB_DETAILS, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_USER_DB_DETAILS, $hook_args )) === null )
             return false;
 
         if( is_array( $hook_args ) )
@@ -553,11 +575,16 @@ class PHS_Hooks extends PHS_Registry
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool|mixed|null
+     */
     public static function trigger_account_action( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() );
+        $hook_args = self::validate_array( $hook_args, self::default_account_action_hook_args() );
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_ACCOUNT_ACTION, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_USER_ACCOUNT_ACTION, $hook_args )) === null )
             return false;
 
         return $hook_args;
@@ -565,9 +592,9 @@ class PHS_Hooks extends PHS_Registry
 
     public static function trigger_account_structure( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_structure_hook_args() );
+        $hook_args = self::validate_array( $hook_args, self::default_account_structure_hook_args() );
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_USER_ACCOUNT_STRUCTURE, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_USER_ACCOUNT_STRUCTURE, $hook_args )) === null )
             return false;
 
         return $hook_args;
@@ -575,10 +602,10 @@ class PHS_Hooks extends PHS_Registry
 
     public static function trigger_captcha_display( $hook_args )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_captcha_display_hook_args() );
+        $hook_args = self::validate_array( $hook_args, self::default_captcha_display_hook_args() );
 
         // If we don't have hooks registered, we don't use captcha
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_DISPLAY, $hook_args )) === null )
+        if( ($hook_args = PHS::trigger_hooks( self::H_CAPTCHA_DISPLAY, $hook_args )) === null )
             return '';
 
         if( is_array( $hook_args )
@@ -593,15 +620,15 @@ class PHS_Hooks extends PHS_Registry
 
     public static function trigger_captcha_check( $code )
     {
-        $hook_args = self::validate_array( array( 'check_code' => $code ), PHS_Hooks::default_captcha_check_hook_args() );
+        $hook_args = self::validate_array( array( 'check_code' => $code ), self::default_captcha_check_hook_args() );
 
-        return PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_CHECK, $hook_args );
+        return PHS::trigger_hooks( self::H_CAPTCHA_CHECK, $hook_args );
     }
 
     public static function trigger_captcha_regeneration()
     {
-        $hook_args = self::validate_array( array(), PHS_Hooks::default_captcha_regeneration_hook_args() );
+        $hook_args = self::validate_array( array(), self::default_captcha_regeneration_hook_args() );
 
-        return PHS::trigger_hooks( PHS_Hooks::H_CAPTCHA_REGENERATE, $hook_args );
+        return PHS::trigger_hooks( self::H_CAPTCHA_REGENERATE, $hook_args );
     }
 }

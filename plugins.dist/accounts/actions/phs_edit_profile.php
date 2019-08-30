@@ -5,6 +5,7 @@ namespace phs\plugins\accounts\actions;
 use \phs\PHS;
 use \phs\PHS_bg_jobs;
 use \phs\PHS_Scope;
+use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
@@ -32,6 +33,24 @@ class PHS_Action_Edit_profile extends PHS_Action
      */
     public function execute()
     {
+        $action_result = self::default_action_result();
+
+        $hook_args = PHS_Hooks::default_action_execute_hook_args();
+        $hook_args['action_obj'] = $this;
+
+        if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_EDIT_PROFILE_ACTION_START, $hook_args ))
+        and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+        {
+            $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
+
+            if( !empty( $new_hook_args['stop_execution'] ) )
+            {
+                $this->set_action_result( $action_result );
+
+                return $action_result;
+            }
+        }
+
         PHS::page_settings( 'page_title', $this->_pt( 'Edit Profile' ) );
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */

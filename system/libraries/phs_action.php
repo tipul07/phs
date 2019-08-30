@@ -37,7 +37,8 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     private $_action_result = null;
 
     /**
-     * @return bool|string Returns buffer which should be displayed as result of request or false on an error
+     * @return bool|array Returns an array with action result or false on an error
+     * @see PHS_Action::default_action_result()
      */
     abstract public function execute();
 
@@ -351,7 +352,18 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         $hook_args['action_obj'] = $this;
         $hook_args['action_result'] = self::default_action_result();
 
-        PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args );
+        if( ($hook_result = PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args )) )
+        {
+            if( !empty( $hook_result['stop_execution'] )
+            and !empty( $hook_result['action_result'] ) )
+            {
+                $action_result = self::validate_array( $hook_result['action_result'], self::default_action_result() );
+
+                $this->set_action_result( $action_result );
+
+                return $action_result;
+            }
+        }
 
         self::st_reset_error();
 
