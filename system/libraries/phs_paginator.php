@@ -744,7 +744,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $new_columns = array();
-        $default_column_fields = self::default_column_fields();
+        $default_column_fields = $this->default_column_fields();
         foreach( $columns_arr as $column )
         {
             if( empty( $column )
@@ -1200,7 +1200,7 @@ class PHS_Paginator extends PHS_Registry
                     $sort = $default_sort;
             }
 
-            if( empty( $sort ) or strtolower( $sort ) == 'asc' )
+            if( empty( $sort ) or strtolower( $sort ) === 'asc' )
                 $sort = 0;
             else
                 $sort = 1;
@@ -1800,7 +1800,7 @@ class PHS_Paginator extends PHS_Registry
         if( ($db_sort_by = $this->pagination_params( 'db_sort_by' ))
         and is_string( $db_sort_by ) )
         {
-            if( strstr( $db_sort_by, '%s' ) !== false )
+            if( strpos( $db_sort_by, '%s' ) !== false )
             {
                 $db_sort_by = str_replace( '%s', (empty($sort) ? 'ASC' : 'DESC'), $db_sort_by );
                 $sort_type_added = true;
@@ -1811,7 +1811,7 @@ class PHS_Paginator extends PHS_Registry
 
         elseif( ($sort_by = $this->pagination_params( 'sort_by' ))
         and is_string( $sort_by ) )
-            $list_arr['order_by'] = ((strstr( $sort_by, '.' ) === false )?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by;
+            $list_arr['order_by'] = ((strpos( $sort_by, '.' ) === false)?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by;
 
         if( !empty( $list_arr['order_by'] )
         and empty( $sort_type_added ) )

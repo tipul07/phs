@@ -146,7 +146,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( !empty( $common_arr['params'] ) )
             $params = $common_arr['params'];
 
-        if( $params['result_type'] == 'single' )
+        if( $params['result_type'] === 'single' )
             return @mysqli_fetch_assoc( $common_arr['qid'] );
 
         $item_arr = array();
@@ -199,6 +199,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return false;
     }
 
+    /**
+     * @param array $flow_params
+     *
+     * @return bool
+     */
     protected function _install_table_for_model( $flow_params )
     {
         $this->reset_error();
@@ -278,6 +283,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param array $flow_params
+     *
+     * @return bool
+     */
     protected function _update_table_for_model( $flow_params )
     {
         $this->reset_error();
@@ -547,6 +557,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param array $flow_params
+     *
+     * @return bool
+     */
     protected function _update_missing_table_for_model( $flow_params )
     {
         return $this->_install_table_for_model( $flow_params );
@@ -804,7 +819,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 and is_string( $field_details['length'] ) )
                 {
                     $length_arr = explode( ',', $field_details['length'] );
-                    $digits = (!empty( $length_arr[1] )?intval(trim( $length_arr[1] )):0);
+                    $digits = (!empty( $length_arr[1] )?(int)trim( $length_arr[1] ):0);
                 }
 
                 $phs_params_arr['digits'] = $digits;
@@ -2428,6 +2443,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         );
     }
 
+    /**
+     * @param array|bool $params
+     *
+     * @return array|bool
+     */
     protected function get_list_common( $params = false )
     {
         $this->reset_error();
