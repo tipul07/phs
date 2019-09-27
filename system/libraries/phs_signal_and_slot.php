@@ -10,6 +10,9 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
     private $_connections = array();
     private static $signal_backtrace = false;
 
+    /**
+     * @return array
+     */
     final public static function default_signal_response()
     {
         return array(
@@ -22,6 +25,11 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         );
     }
 
+    /**
+     * @param string|bool $instance_id
+     *
+     * @return array|bool|mixed
+     */
     final protected function connected_with( $instance_id = false )
     {
         if( $instance_id === false )
@@ -33,6 +41,13 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         return $this->_connections[$instance_id];
     }
 
+    /**
+     * @param string $class
+     * @param bool|string $plugin_name
+     * @param bool|string $instance_type
+     *
+     * @return bool
+     */
     final public function add_connection( $class, $plugin_name = false, $instance_type = false )
     {
         $this->reset_error();

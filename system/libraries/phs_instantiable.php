@@ -509,7 +509,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_MODEL:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 10 ) ) != 'phs_model_' )
+                 or stripos( $class, 'phs_model_' ) !== 0 )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework models.' ) );
                     return false;
@@ -517,7 +517,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 10 );
 
-                if( $plugin_name == self::CORE_PLUGIN )
+                if( $plugin_name === self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_MODEL_DIR;
                 } else
@@ -531,7 +531,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_CONTROLLER:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 15 ) ) != 'phs_controller_' )
+                 or stripos( $class, 'phs_controller_' ) !== 0 )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework controller.' ) );
                     return false;
@@ -539,7 +539,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = substr( $class, 15 );
 
-                if( $plugin_name == self::CORE_PLUGIN )
+                if( $plugin_name === self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_CONTROLLER_DIR;
                 } else
@@ -553,7 +553,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_ACTION:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 11 ) ) != 'phs_action_' )
+                 or stripos( $class, 'phs_action_' ) !== 0 )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework action.' ) );
                     return false;
@@ -564,7 +564,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 if( empty( $return_arr['instance_name'] ) )
                     $return_arr['instance_name'] = 'index';
 
-                if( $plugin_name == self::CORE_PLUGIN )
+                if( $plugin_name === self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_ACTION_DIR;
                 } else
@@ -578,8 +578,8 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_VIEW:
 
                 if( empty( $class )
-                 or (strtolower( substr( $class, 0, 9 ) ) != 'phs_view_'
-                        and strtolower( $class ) != 'phs_view' ) )
+                 or (stripos( $class, 'phs_view_' ) !== 0
+                        and strtolower( $class ) !== 'phs_view' ) )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework view.' ) );
                     return false;
@@ -590,7 +590,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 if( empty( $return_arr['instance_name'] ) )
                     $return_arr['instance_name'] = 'view';
 
-                if( $plugin_name == self::CORE_PLUGIN )
+                if( $plugin_name === self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_VIEW_DIR;
                 } else
@@ -604,7 +604,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_SCOPE:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 10 ) ) != 'phs_scope_' )
+                 or stripos( $class, 'phs_scope_' ) !== 0 )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework scope.' ) );
                     return false;
@@ -612,7 +612,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = trim( substr( $class, 10 ), '_' );
 
-                if( $plugin_name == self::CORE_PLUGIN )
+                if( $plugin_name === self::CORE_PLUGIN )
                 {
                     $return_arr['instance_path'] = PHS_CORE_SCOPE_DIR;
                 } else
@@ -626,7 +626,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             case self::INSTANCE_TYPE_PLUGIN:
 
                 if( empty( $class )
-                 or strtolower( substr( $class, 0, 11 ) ) != 'phs_plugin_' )
+                 or stripos( $class, 'phs_plugin_' ) !== 0 )
                 {
                     self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework plugin.' ) );
                     return false;
@@ -650,17 +650,17 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if( ($instance_types_arr = self::get_instance_types()) )
         {
-            if( $return_arr['plugin_name'] == self::CORE_PLUGIN )
+            if( $return_arr['plugin_name'] === self::CORE_PLUGIN )
                 $path_prefix = PHS_CORE_DIR;
             else
                 $path_prefix = $return_arr['plugin_path'];
 
             foreach( $instance_types_arr as $type_id => $type_details )
             {
-                $return_arr['plugin_paths'][$type_id] = $path_prefix.$type_details['dir_name'].($type_details['dir_name']!=''?'/':'');
+                $return_arr['plugin_paths'][$type_id] = $path_prefix.$type_details['dir_name'].($type_details['dir_name']!==''?'/':'');
             }
 
-            if( $return_arr['plugin_name'] != self::CORE_PLUGIN )
+            if( $return_arr['plugin_name'] !== self::CORE_PLUGIN )
             {
                 $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix . self::TEMPLATES_DIR . '/';
                 $return_arr['plugin_paths'][self::LANGUAGES_DIR] = $path_prefix . self::LANGUAGES_DIR . '/';
@@ -737,7 +737,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $class_name = array_pop( $class_namespace_path );
 
-        if( empty( $class_namespace_path[0] ) or $class_namespace_path[0] != 'phs'
+        if( empty( $class_namespace_path[0] ) or $class_namespace_path[0] !== 'phs'
          or empty( $class_namespace_path[1] ) or !in_array( $class_namespace_path[1], array( 'plugins', 'system' ) )
          or empty( $class_namespace_path[2] ) )
         {
@@ -749,7 +749,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         $instance_type_dir = (isset( $class_namespace_path[3] )?$class_namespace_path[3]:'');
 
         // Special case for plugin classes used in plugins dirs...
-        if( $class_namespace_path[1] == 'plugins' and !isset( $class_namespace_path[3] ) )
+        if( $class_namespace_path[1] === 'plugins' and !isset( $class_namespace_path[3] ) )
             $instance_type = self::INSTANCE_TYPE_PLUGIN;
         else
             $instance_type = self::validate_instance_type_dir( $instance_type_dir );
@@ -761,11 +761,19 @@ abstract class PHS_Instantiable extends PHS_Registry
         );
     }
 
+    /**
+     * @param string|null $class_name
+     * @param string|bool $plugin_name
+     * @param string|bool $instance_type
+     * @param bool $singleton
+     *
+     * @return bool|mixed|PHS_Instantiable|PHS_Model
+     */
     final public static function get_instance( $class_name = null, $plugin_name = false, $instance_type = false, $singleton = true )
     {
         self::st_reset_error();
 
-        if( is_null( $class_name ) )
+        if( $class_name === null )
         {
             if( !($class_details = self::extract_details_from_full_namespace_name( get_called_class() )) )
                 return false;
