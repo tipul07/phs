@@ -681,7 +681,7 @@ if( !function_exists( 'display_js_functionality' ) )
             {
                 var checkboxes_list = $( "input[type='checkbox'][name='<?php echo @sprintf( $paginator_obj->get_checkbox_name_format(), '" + column + "' )?>[]']" );
 
-                if( !checkboxes_list && !checkboxes_list.length )
+                if( !checkboxes_list || !checkboxes_list.length )
                     return [];
 
                 return checkboxes_list;
