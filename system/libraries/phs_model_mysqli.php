@@ -2512,7 +2512,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $this->reset_error();
 
         if( !($common_arr = $this->get_list_common( $params ))
-         or !is_array( $common_arr ) or empty( $common_arr['qid'] )
+         or !is_array( $common_arr )
          or (empty( $params['return_query_string'] ) and empty( $common_arr['qid'] )) )
             return false;
 
