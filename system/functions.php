@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.0.5.3';
+    return '1.0.6.0';
 }
 
 function phs_init_before_bootstrap()
