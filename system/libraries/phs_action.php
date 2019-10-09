@@ -159,6 +159,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return (empty( $return_arr )?false:$return_arr);
     }
 
+    /**
+     * @return string
+     */
     public function instance_type()
     {
         return self::INSTANCE_TYPE_ACTION;

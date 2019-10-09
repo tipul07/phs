@@ -45,9 +45,9 @@ class PHS_Error
     /** @var bool $supress_backtrace */
     private $suppress_backtrace = false;
 
-    function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
+    public function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
     {
-        $error_no = intval( $error_no );
+        $error_no = (int)$error_no;
         $error_msg = trim( $error_msg );
 
         $this->error_no = $error_no;
@@ -64,14 +64,14 @@ class PHS_Error
     }
 
     /**
-     * Throw exception with error code and error message only if there is an error code diffrent than self::ERR_OK
+     * Throw exception with error code and error message only if there is an error code different than self::ERR_OK
      *
      * @return bool
      * @throws \Exception
      */
     public function throw_error()
     {
-        if( $this->error_no == self::ERR_OK )
+        if( $this->error_no === self::ERR_OK )
             return false;
 
         echo 'Full backtrace:'."\n".
@@ -83,6 +83,10 @@ class PHS_Error
             throw new \Exception( $this->error_simple_msg, $this->error_no );
     }
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     public static function st_throw_error()
     {
         //$error_instance = self::get_error_static_instance();
@@ -105,7 +109,7 @@ class PHS_Error
      **/
     public function has_error()
     {
-        return ($this->error_no != self::ERR_OK);
+        return ($this->error_no !== self::ERR_OK);
     }
 
     public static function st_has_error()
@@ -125,7 +129,7 @@ class PHS_Error
     {
         $err_arr = self::validate_error_arr( $err_arr );
 
-        return ($err_arr['error_no'] != self::ERR_OK);
+        return ($err_arr['error_no'] !== self::ERR_OK);
     }
 
     //! Get number of warnings
@@ -177,6 +181,13 @@ class PHS_Error
         return '('.@get_class( $value ).')';
     }
 
+    /**
+     * Do a var_dump up to a specified level (helps using var_dump on big objects)
+     * @param mixed $var
+     * @param bool|array $params
+     *
+     * @return array|false|\stdClass|string
+     */
     public static function var_dump( $var, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -248,9 +259,9 @@ class PHS_Error
         $backtrace = self::st_debug_call_backtrace();
 
         $error_arr = self::default_error_array();
-        $error_arr['error_no'] = $error_no;
+        $error_arr['error_no'] = (int)$error_no;
         $error_arr['error_simple_msg'] = $error_msg;
-        if( $error_debug_msg != '' )
+        if( $error_debug_msg !== '' )
             $error_arr['error_debug_msg'] = $error_debug_msg;
         else
             $error_arr['error_debug_msg'] = $error_msg;
@@ -320,7 +331,7 @@ class PHS_Error
 
     //! Add a warning message
     /**
-     *   Add a warning message for a speficied tag or as general warning. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
+     *   Add a warning message for a specified tag or as general warning. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
      *
      *   @param string $warning string Warning message
      *   @param bool|string $tag string Add warning for a specific tag (default false). If this is not provided warning will be added as general warning.
@@ -595,14 +606,14 @@ class PHS_Error
         $source_error_arr = self::validate_error_arr( $source_error_arr );
         $error_arr = self::validate_error_arr( $error_arr );
 
-        if( $error_arr['error_msg'] != '' )
-            $source_error_arr['error_msg'] .= ($source_error_arr['error_msg']!=''?"\n\n":'').$error_arr['error_msg'];
-        if( $error_arr['error_simple_msg'] != '' )
-            $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg']!=''?"\n\n":'').$error_arr['error_simple_msg'];
-        if( $error_arr['error_debug_msg'] != '' )
-            $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!=''?"\n\n":'').$error_arr['error_debug_msg'];
-        if( $error_arr['display_error'] != '' )
-            $source_error_arr['display_error'] .= ($source_error_arr['display_error']!=''?"\n\n":'').$error_arr['display_error'];
+        if( $error_arr['error_msg'] !== '' )
+            $source_error_arr['error_msg'] .= ($source_error_arr['error_msg']!==''?"\n\n":'').$error_arr['error_msg'];
+        if( $error_arr['error_simple_msg'] !== '' )
+            $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg']!==''?"\n\n":'').$error_arr['error_simple_msg'];
+        if( $error_arr['error_debug_msg'] !== '' )
+            $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg']!==''?"\n\n":'').$error_arr['error_debug_msg'];
+        if( $error_arr['display_error'] !== '' )
+            $source_error_arr['display_error'] .= ($source_error_arr['display_error']!==''?"\n\n":'').$error_arr['display_error'];
 
         if( !self::arr_has_error( $source_error_arr )
         and self::arr_has_error( $error_arr ) )
@@ -772,7 +783,7 @@ class PHS_Error
 
         if( $limit !== null )
         {
-            $limit = intval( $limit );
+            $limit = (int)$limit;
             if( !($err_info = @array_slice( $err_info, 0, $limit ))
              or !is_array( $err_info ) )
                 return '';
@@ -825,9 +836,14 @@ class PHS_Error
         return self::get_error_static_instance()->debug_call_backtrace( $lvl );
     }
 
+    /**
+     * @param null|bool $mode
+     *
+     * @return bool
+     */
     public function throw_errors( $mode = null )
     {
-        if( is_null( $mode ) )
+        if( $mode === null )
             return $this->throw_errors;
 
         $this->throw_errors = (!empty( $mode )?true:false);
@@ -842,7 +858,7 @@ class PHS_Error
 
     public function debugging_mode( $mode = null )
     {
-        if( is_null( $mode ) )
+        if( $mode === null )
             return $this->debugging_mode;
 
         $this->debugging_mode = (!empty( $mode )?true:false);
@@ -857,7 +873,7 @@ class PHS_Error
 
     public function suppress_backtrace( $mode = null )
     {
-        if( is_null( $mode ) )
+        if( $mode === null )
             return $this->suppress_backtrace;
 
         $this->suppress_backtrace = (!empty( $mode )?true:false);
@@ -870,7 +886,7 @@ class PHS_Error
         return self::get_error_static_instance()->suppress_backtrace( $mode );
     }
 
-    static function get_error_static_instance()
+    public static function get_error_static_instance()
     {
         static $error_instance = false;
 

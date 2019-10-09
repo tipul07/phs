@@ -1243,7 +1243,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
         $plugin_details['version'] = $this->get_model_version();
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details ))
+        if( !($db_details = $plugins_model->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $plugins_model->has_error() )
@@ -1753,7 +1753,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
         $plugin_details['version'] = $this->get_model_version();
 
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )

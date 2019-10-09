@@ -173,103 +173,57 @@ class PHS_Action_Plugin_settings extends PHS_Action
             }
         }
 
-        $new_settings_arr = array();
-        foreach( $settings_fields as $field_name => $field_details )
-        {
-            if( !empty( $field_details['ignore_field_value'] ) )
-                continue;
-
-            if( empty( $field_details['editable'] ) )
-            {
-                // Check if default values have changed (upgrading plugin might change default value)
-                if( isset( $default_settings[$field_name] ) and isset( $db_settings[$field_name] )
-                and $default_settings[$field_name] != $db_settings[$field_name] )
-                    $new_settings_arr[$field_name] = $default_settings[$field_name];
-
-                // if we have something in database use that value
-                elseif( isset( $db_settings[$field_name] ) )
-                    $new_settings_arr[$field_name] = $db_settings[$field_name];
-
-                // This is a new non-editable value, save default value to db
-                elseif( isset( $default_settings[$field_name] ) )
-                    $new_settings_arr[$field_name] = $default_settings[$field_name];
-
-                continue;
-            }
-
-            $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
-
-            if( !empty( $foobar )
-            and $field_details['type'] == PHS_params::T_BOOL )
-                $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
-
-            if( !empty( $field_details['custom_save'] ) )
-                continue;
-
-            switch( $field_details['input_type'] )
-            {
-                default:
-                    $new_settings_arr[$field_name] = $form_data[$field_name];
-                break;
-
-                case PHS_Plugin::INPUT_TYPE_TEMPLATE:
-                break;
-
-                case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
-                    $new_settings_arr[$field_name] = $form_data[$field_name];
-                break;
-
-                case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
-                    if( empty( $default_settings[$field_name] ) )
-                        $new_settings_arr[$field_name] = $form_data[$field_name];
-                    else
-                        $new_settings_arr[$field_name] = self::validate_array_to_new_array( $form_data[$field_name], $default_settings[$field_name] );
-                break;
-            }
-        }
+        $new_settings_arr = $this->_extract_settings_fields_from_submit( $settings_fields, $default_settings, $db_settings, $foobar, $form_data );
 
         if( !empty( $do_submit ) )
         {
             $new_settings_arr = self::validate_array( $new_settings_arr, $db_settings );
 
-            foreach( $settings_fields as $field_name => $field_details )
-            {
-                if( !empty( $field_details['ignore_field_value'] )
-                 or empty( $field_details['custom_save'] )
-                 or !@is_callable( $field_details['custom_save'] ) )
-                    continue;
+            $callback_params = PHS_Plugin::st_default_custom_save_params();
+            $callback_params['plugin_obj'] = $this->_plugin_obj;
+            $callback_params['module_instance'] = $module_instance;
+            $callback_params['form_data'] = $form_data;
 
-                $callback_params = PHS_Plugin::st_default_custom_save_params();
-                $callback_params['plugin_obj'] = $this->_plugin_obj;
-                $callback_params['module_instance'] = $module_instance;
-                $callback_params['field_name'] = $field_name;
-                $callback_params['field_details'] = $field_details;
-                $callback_params['field_value'] = (isset( $new_settings_arr[$field_name] )?$new_settings_arr[$field_name]:null);
-                $callback_params['form_data'] = $form_data;
-                
-                // make sure static error is reset
-                self::st_reset_error();
+            $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit( $settings_fields, $callback_params, $new_settings_arr, $db_settings );
 
-                if( ($save_result = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
-                {
-                    if( is_array( $save_result )
-                    and !empty( $save_result['{new_settings_fields}'] ) and is_array( $save_result['{new_settings_fields}'] ) )
-                    {
-                        foreach( $db_settings as $s_key => $s_val )
-                        {
-                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
-                                $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
-                        }
-                    } else
-                        $new_settings_arr[$field_name] = $save_result;
-                }
-
-                elseif( self::st_has_error() )
-                    PHS_Notifications::add_error_notice( self::st_get_error_message() );
-
-                if( self::st_has_warnings() )
-                    PHS_Notifications::add_warning_notice( self::st_get_warnings() );
-            }
+            // foreach( $settings_fields as $field_name => $field_details )
+            // {
+            //     if( !empty( $field_details['ignore_field_value'] )
+            //      or empty( $field_details['custom_save'] )
+            //      or !@is_callable( $field_details['custom_save'] ) )
+            //         continue;
+            //
+            //     $callback_params = PHS_Plugin::st_default_custom_save_params();
+            //     $callback_params['plugin_obj'] = $this->_plugin_obj;
+            //     $callback_params['module_instance'] = $module_instance;
+            //     $callback_params['field_name'] = $field_name;
+            //     $callback_params['field_details'] = $field_details;
+            //     $callback_params['field_value'] = (isset( $new_settings_arr[$field_name] )?$new_settings_arr[$field_name]:null);
+            //     $callback_params['form_data'] = $form_data;
+            //
+            //     // make sure static error is reset
+            //     self::st_reset_error();
+            //
+            //     if( ($save_result = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
+            //     {
+            //         if( is_array( $save_result )
+            //         and !empty( $save_result['{new_settings_fields}'] ) and is_array( $save_result['{new_settings_fields}'] ) )
+            //         {
+            //             foreach( $db_settings as $s_key => $s_val )
+            //             {
+            //                 if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
+            //                     $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+            //             }
+            //         } else
+            //             $new_settings_arr[$field_name] = $save_result;
+            //     }
+            //
+            //     elseif( self::st_has_error() )
+            //         PHS_Notifications::add_error_notice( self::st_get_error_message() );
+            //
+            //     if( self::st_has_warnings() )
+            //         PHS_Notifications::add_warning_notice( self::st_get_warnings() );
+            // }
 
             if( !PHS_Notifications::have_notifications_errors() )
             {
@@ -296,5 +250,146 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $data['script_version'] = $script_version;
 
         return $this->quick_render_template( 'plugin_settings', $data );
+    }
+
+    private function _extract_custom_save_settings_fields_from_submit( $settings_fields, $init_callback_params, $new_settings_arr, $db_settings )
+    {
+        $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
+        foreach( $settings_fields as $field_name => $field_details )
+        {
+            if( !empty( $field_details['ignore_field_value'] ) )
+                continue;
+
+            if( PHS_Plugin::settings_field_is_group( $field_details ) )
+            {
+                if( null !== ($group_settings = $this->_extract_custom_save_settings_fields_from_submit( $field_details['group_fields'], $init_callback_params, $new_settings_arr, $db_settings )) )
+                    $new_settings_arr = self::merge_array_assoc( $new_settings_arr, $group_settings );
+
+                continue;
+            }
+
+            if( empty( $field_details['custom_save'] )
+             or !@is_callable( $field_details['custom_save'] ) )
+                continue;
+
+            $callback_params = $init_callback_params;
+            $callback_params['field_name'] = $field_name;
+            $callback_params['field_details'] = $field_details;
+            $callback_params['field_value'] = (isset( $new_settings_arr[$field_name] )?$new_settings_arr[$field_name]:null);
+
+            // make sure static error is reset
+            self::st_reset_error();
+            // make sure static warnings are reset
+            self::st_reset_warnings();
+
+            /**
+             * When there is a field in instance settings which has a custom callback for saving data, it will return
+             * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
+             * can be provided
+             */
+            if( ($save_result = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
+            {
+                if( !is_array( $save_result ) )
+                    $new_settings_arr[$field_name] = $save_result;
+
+                else
+                {
+                    $save_result = self::merge_array_assoc( $save_result, $default_custom_save_callback_result );
+                    if( !empty( $save_result['{new_settings_fields}'] ) and is_array( $save_result['{new_settings_fields}'] ) )
+                    {
+                        foreach( $db_settings as $s_key => $s_val )
+                        {
+                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
+                                $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                        }
+                    }
+                }
+            }
+
+            elseif( self::st_has_error() )
+                PHS_Notifications::add_error_notice( self::st_get_error_message() );
+
+            if( self::st_has_warnings() )
+                PHS_Notifications::add_warning_notice( self::st_get_warnings() );
+        }
+
+        return $new_settings_arr;
+    }
+
+    private function _extract_settings_fields_from_submit( $settings_fields, $default_settings, $db_settings, $is_post, &$form_data )
+    {
+        $new_settings_arr = array();
+        foreach( $settings_fields as $field_name => $field_details )
+        {
+            if( !empty( $field_details['ignore_field_value'] ) )
+                continue;
+
+            if( PHS_Plugin::settings_field_is_group( $field_details ) )
+            {
+                if( null !== ($group_settings = $this->_extract_settings_fields_from_submit( $field_details['group_fields'], $default_settings, $db_settings, $is_post, $form_data )) )
+                    $new_settings_arr = self::merge_array_assoc( $new_settings_arr, $group_settings );
+
+                continue;
+            }
+
+            if( null === ($field_value = $this->_extract_field_value_from_submit( $field_name, $field_details, $default_settings, $db_settings, $is_post, $form_data )) )
+                continue;
+
+            $new_settings_arr[$field_name] = $field_value;
+        }
+
+        return $new_settings_arr;
+    }
+
+    private function _extract_field_value_from_submit( $field_name, $field_details, $default_settings, $db_settings, $is_post, &$form_data )
+    {
+        $field_value = null;
+
+        if( empty( $field_details['editable'] ) )
+        {
+            // Check if default values have changed (upgrading plugin might change default value)
+            if( isset( $default_settings[$field_name] ) and isset( $db_settings[$field_name] )
+            and $default_settings[$field_name] !== $db_settings[$field_name] )
+                $field_value = $default_settings[$field_name];
+
+            // if we have something in database use that value
+            elseif( isset( $db_settings[$field_name] ) )
+                $field_value = $db_settings[$field_name];
+
+            // This is a new non-editable value, save default value to db
+            elseif( isset( $default_settings[$field_name] ) )
+                $field_value = $default_settings[$field_name];
+
+            return $field_value;
+        }
+
+        $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
+
+        if( !empty( $is_post )
+        and (int)$field_details['type'] === PHS_params::T_BOOL )
+            $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
+
+        if( !empty( $field_details['custom_save'] ) )
+            return null;
+
+        switch( $field_details['input_type'] )
+        {
+            default:
+            case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
+                $field_value = $form_data[$field_name];
+            break;
+
+            case PHS_Plugin::INPUT_TYPE_TEMPLATE:
+            break;
+
+            case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
+                if( empty( $default_settings[$field_name] ) )
+                    $field_value = $form_data[$field_name];
+                else
+                    $field_value = self::validate_array_to_new_array( $form_data[$field_name], $default_settings[$field_name] );
+            break;
+        }
+
+        return $field_value;
     }
 }

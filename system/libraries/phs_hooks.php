@@ -8,6 +8,9 @@ use \phs\libraries\PHS_Action;
 //! This class define all core hooks (for usability)
 class PHS_Hooks extends PHS_Registry
 {
+    //
+    //region Framework hooks definition
+    //
     const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
 
          // Language hooks
@@ -20,7 +23,8 @@ class PHS_Hooks extends PHS_Registry
          H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
 
          // Plugins hooks
-         H_PLUGIN_SETTINGS = 'phs_plugin_settings', H_PLUGIN_REGISTRY = 'phs_plugin_registry',
+         H_PLUGIN_SETTINGS = 'phs_plugin_settings', H_PLUGIN_OBFUSCATED_SETTINGS_KEYS = 'phs_plugin_obfuscated_settings_keys',
+         H_PLUGIN_REGISTRY = 'phs_plugin_registry',
 
          // Logging hooks
          H_LOG = 'phs_logger',
@@ -127,7 +131,13 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
          H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
          H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
+    //
+    //endregion Framework hooks definition
+    //
 
+    //
+    //region Common hooks functionality
+    //
     /**
      * @return array
      */
@@ -138,11 +148,21 @@ class PHS_Hooks extends PHS_Registry
         );
     }
 
+    /**
+     * @param array $hook_args
+     *
+     * @return array
+     */
     public static function hook_args_definition( $hook_args )
     {
         return self::validate_array_recursive( $hook_args, self::default_common_hook_args() );
     }
 
+    /**
+     * @param array $hook_args
+     *
+     * @return array
+     */
     public static function reset_common_hook_args( $hook_args )
     {
         if( empty( $hook_args ) or !is_array( $hook_args ) )
@@ -152,7 +172,13 @@ class PHS_Hooks extends PHS_Registry
 
         return $hook_args;
     }
+    //
+    //endregion Common hooks functionality
+    //
 
+    //
+    //region URL and routing hooks
+    //
     public static function default_url_rewrite_hook_args()
     {
         return self::hook_args_definition( array(
@@ -212,7 +238,13 @@ class PHS_Hooks extends PHS_Registry
 
         ) );
     }
+    //
+    //endregion URL and routing hooks
+    //
 
+    //
+    //region Paginator hooks
+    //
     public static function default_paginator_action_parameters_hook_args()
     {
         return self::hook_args_definition( array(
@@ -220,7 +252,13 @@ class PHS_Hooks extends PHS_Registry
             'paginator_params' => array(),
         ) );
     }
+    //
+    //endregion Paginator hooks
+    //
 
+    //
+    //region Language hooks
+    //
     public static function default_language_definition_hook_args()
     {
         return self::hook_args_definition( array(
@@ -228,7 +266,13 @@ class PHS_Hooks extends PHS_Registry
             'languages_arr' => array(),
         ) );
     }
+    //
+    //endregion Language hooks
+    //
 
+    //
+    //region Action execution hooks
+    //
     public static function default_page_location_hook_args()
     {
         return self::hook_args_definition( array(
@@ -250,6 +294,40 @@ class PHS_Hooks extends PHS_Registry
         ) );
     }
 
+    public static function default_single_types_actions_hook_args()
+    {
+        return self::hook_args_definition( array(
+            'actions_arr' => array(),
+            'message_data' => false,
+            'destination_str' => '',
+            'author_handle' => '',
+        ) );
+    }
+    //
+    //endregion Action execution hooks
+    //
+
+    //
+    //region Plugin hooks
+    //
+    public static function default_plugin_settings_hook_args()
+    {
+        return self::hook_args_definition( array(
+            // Instance id for which we have these settings values
+            'instance_id' => '',
+            // Current settings (if required)
+            'settings_arr' => array(),
+            // Array with keys which should be obfuscated in settings array
+            'obfucate_keys_arr' => array(),
+        ) );
+    }
+    //
+    //endregion Plugin hooks
+    //
+
+    //
+    //region Internal messages hooks
+    //
     public static function default_message_types_hook_args()
     {
         return self::hook_args_definition( array(
@@ -272,16 +350,28 @@ class PHS_Hooks extends PHS_Registry
         ) );
     }
 
-    public static function default_single_types_actions_hook_args()
+    public static function default_messages_summary_hook_args()
     {
         return self::hook_args_definition( array(
-            'actions_arr' => array(),
-            'message_data' => false,
-            'destination_str' => '',
-            'author_handle' => '',
+            'messages_new' => 0,
+            'messages_count' => 0,
+            'messages_list' => array(),
+            'list_limit' => 5,
+            'summary_container_id' => '',
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+            'summary_buffer' => '',
         ) );
     }
+    //
+    //endregion Internal messages hooks
+    //
 
+    //
+    //region Database model hooks
+    //
     public static function default_model_validate_data_fields_hook_args()
     {
         return self::hook_args_definition( array(
@@ -297,7 +387,13 @@ class PHS_Hooks extends PHS_Registry
             'flow_params' => false,
         ) );
     }
+    //
+    //endregion Database model hooks
+    //
 
+    //
+    //region User account hooks
+    //
     // Default hook parameters sent for hooks related to guest roles
     public static function default_guest_roles_hook_args()
     {
@@ -386,7 +482,13 @@ class PHS_Hooks extends PHS_Registry
             'route' => false,
         ) );
     }
+    //
+    //endregion User account hooks
+    //
 
+    //
+    //region Page buffer hooks
+    //
     public static function default_buffer_hook_args()
     {
         return self::hook_args_definition( array(
@@ -397,23 +499,13 @@ class PHS_Hooks extends PHS_Registry
             'buffer' => '',
         ) );
     }
+    //
+    //endregion Page buffer hooks
+    //
 
-    public static function default_messages_summary_hook_args()
-    {
-        return self::hook_args_definition( array(
-            'messages_new' => 0,
-            'messages_count' => 0,
-            'messages_list' => array(),
-            'list_limit' => 5,
-            'summary_container_id' => '',
-            'template' => array(
-                'file' => '',
-                'extra_paths' => array(),
-            ), // default template
-            'summary_buffer' => '',
-        ) );
-    }
-
+    //
+    //region Notifications hooks
+    //
     public static function default_notifications_hook_args()
     {
         return self::hook_args_definition( array(
@@ -429,24 +521,13 @@ class PHS_Hooks extends PHS_Registry
             'notifications_buffer' => '',
         ) );
     }
+    //
+    //endregion Notifications hooks
+    //
 
-    public static function default_captcha_display_hook_args()
-    {
-        return self::hook_args_definition( array(
-            'template' => array(
-                'file' => '',
-                'extra_paths' => array(),
-            ), // default template
-            'font' => 'default.ttf',
-            'characters_count' => 5,
-            'default_width' => 200,
-            'default_height' => 50,
-            'extra_img_style' => '',
-            'extra_img_attrs' => '',
-            'captcha_buffer' => '',
-        ) );
-    }
-
+    //
+    //region Emailing hooks
+    //
     public static function default_init_email_hook_args()
     {
         return self::hook_args_definition( array(
@@ -498,6 +579,29 @@ class PHS_Hooks extends PHS_Registry
 
         return self::reset_common_hook_args( $hook_args );
     }
+    //
+    //endregion Emailing hooks
+    //
+
+    //
+    //region Captcha hooks
+    //
+    public static function default_captcha_display_hook_args()
+    {
+        return self::hook_args_definition( array(
+            'template' => array(
+                'file' => '',
+                'extra_paths' => array(),
+            ), // default template
+            'font' => 'default.ttf',
+            'characters_count' => 5,
+            'default_width' => 200,
+            'default_height' => 50,
+            'extra_img_style' => '',
+            'extra_img_attrs' => '',
+            'captcha_buffer' => '',
+        ) );
+    }
 
     public static function default_captcha_check_hook_args()
     {
@@ -512,7 +616,17 @@ class PHS_Hooks extends PHS_Registry
         return self::hook_args_definition( array(
         ) );
     }
+    //
+    //endregion Captcha hooks
+    //
 
+    /**
+     * Trigger an email action
+     *
+     * @param array $hook_args
+     *
+     * @return bool|null|array
+     */
     public static function trigger_email( $hook_args )
     {
         self::st_reset_error();
@@ -534,6 +648,11 @@ class PHS_Hooks extends PHS_Registry
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public static function trigger_guest_roles( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, self::default_guest_roles_hook_args() );
@@ -548,7 +667,7 @@ class PHS_Hooks extends PHS_Registry
     /**
      * @param bool|array $hook_args
      *
-     * @return array|bool|mixed|null
+     * @return array|bool
      */
     public static function trigger_current_user( $hook_args = false )
     {
@@ -578,7 +697,7 @@ class PHS_Hooks extends PHS_Registry
     /**
      * @param bool|array $hook_args
      *
-     * @return array|bool|mixed|null
+     * @return array|bool
      */
     public static function trigger_account_action( $hook_args = false )
     {
@@ -590,6 +709,11 @@ class PHS_Hooks extends PHS_Registry
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public static function trigger_account_structure( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, self::default_account_structure_hook_args() );
@@ -600,6 +724,11 @@ class PHS_Hooks extends PHS_Registry
         return $hook_args;
     }
 
+    /**
+     * @param array $hook_args
+     *
+     * @return string
+     */
     public static function trigger_captcha_display( $hook_args )
     {
         $hook_args = self::validate_array( $hook_args, self::default_captcha_display_hook_args() );
@@ -618,6 +747,11 @@ class PHS_Hooks extends PHS_Registry
         return '';
     }
 
+    /**
+     * @param string $code
+     *
+     * @return array|null
+     */
     public static function trigger_captcha_check( $code )
     {
         $hook_args = self::validate_array( array( 'check_code' => $code ), self::default_captcha_check_hook_args() );
@@ -625,6 +759,9 @@ class PHS_Hooks extends PHS_Registry
         return PHS::trigger_hooks( self::H_CAPTCHA_CHECK, $hook_args );
     }
 
+    /**
+     * @return array|null
+     */
     public static function trigger_captcha_regeneration()
     {
         $hook_args = self::validate_array( array(), self::default_captcha_regeneration_hook_args() );

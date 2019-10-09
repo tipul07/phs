@@ -2,12 +2,13 @@
 
 namespace phs\system\core\models;
 
-use phs\libraries\PHS_Hooks;
 use \phs\PHS;
+use \phs\PHS_crypt;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_line_params;
 use \phs\libraries\PHS_Instantiable;
 use \phs\libraries\PHS_logger;
+use \phs\libraries\PHS_Hooks;
 
 class PHS_Model_Plugins extends PHS_Model
 {
@@ -44,7 +45,7 @@ class PHS_Model_Plugins extends PHS_Model
         self::STATUS_INACTIVE => array( 'title' => 'Inactive' ),
     );
 
-    function __construct( $instance_details )
+    public function __construct( $instance_details )
     {
         parent::__construct( $instance_details );
 
@@ -73,7 +74,7 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    function get_main_table_name()
+    public function get_main_table_name()
     {
         return 'plugins';
     }
@@ -121,7 +122,7 @@ class PHS_Model_Plugins extends PHS_Model
         {
             foreach( $new_statuses_arr as $status_id => $status_arr )
             {
-                $status_id = intval( $status_id );
+                $status_id = (int)$status_id;
                 if( empty( $status_id ) )
                     continue;
 
@@ -141,8 +142,9 @@ class PHS_Model_Plugins extends PHS_Model
 
     public function active_status( $status )
     {
+        $status = (int)$status;
         if( !$this->valid_status( $status )
-         or !in_array( $status, array( self::STATUS_ACTIVE ) ) )
+         or !in_array( $status, array( self::STATUS_ACTIVE ), true ) )
             return false;
 
         return true;
@@ -150,8 +152,9 @@ class PHS_Model_Plugins extends PHS_Model
 
     public function inactive_status( $status )
     {
+        $status = (int)$status;
         if( !$this->valid_status( $status )
-         or !in_array( $status, array( self::STATUS_INSTALLED, self::STATUS_INACTIVE ) ) )
+         or !in_array( $status, array( self::STATUS_INSTALLED, self::STATUS_INACTIVE ), true ) )
             return false;
 
         return true;
@@ -193,7 +196,7 @@ class PHS_Model_Plugins extends PHS_Model
     {
         if( empty( $plugin_data )
          or !($plugin_arr = $this->data_to_array( $plugin_data ))
-         or $plugin_arr['status'] != self::STATUS_ACTIVE )
+         or (int)$plugin_arr['status'] !== self::STATUS_ACTIVE )
             return false;
 
         return $plugin_arr;
@@ -213,7 +216,7 @@ class PHS_Model_Plugins extends PHS_Model
     {
         if( empty( $plugin_data )
          or !($plugin_arr = $this->data_to_array( $plugin_data ))
-         or $plugin_arr['status'] != self::STATUS_INACTIVE )
+         or (int)$plugin_arr['status'] !== self::STATUS_INACTIVE )
             return false;
 
         return $plugin_arr;
@@ -223,35 +226,45 @@ class PHS_Model_Plugins extends PHS_Model
     {
         if( empty( $plugin_data )
          or !($plugin_arr = $this->data_to_array( $plugin_data ))
-         or $plugin_arr['status'] != self::STATUS_INSTALLED )
+         or (int)$plugin_arr['status'] !== self::STATUS_INSTALLED )
             return false;
 
         return $plugin_arr;
     }
 
-    public function save_plugins_db_settings( $settings_arr, $instance_id = null )
+    /**
+     * @param array $settings_arr
+     * @param array $obfuscating_keys
+     * @param null|string $instance_id
+     *
+     * @return bool|mixed
+     */
+    public function save_plugins_db_settings( $settings_arr, $obfuscating_keys, $instance_id = null )
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_SETTINGS, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_SETTINGS, self::_t( 'Unknown instance ID.' ) );
             return false;
         }
 
+        if( empty( $obfuscating_keys ) or !is_array( $obfuscating_keys ) )
+            $obfuscating_keys = array();
+
         $plugin_details = array();
         $plugin_details['instance_id'] = $instance_id;
         $plugin_details['settings'] = $settings_arr;
 
-        if( !($db_details = $this->update_db_details( $plugin_details ))
+        if( !($db_details = $this->update_db_details( $plugin_details, $obfuscating_keys ))
          or empty( $db_details['new_data'] ) )
         {
             if( !$this->has_error() )
@@ -266,26 +279,38 @@ class PHS_Model_Plugins extends PHS_Model
         if( isset( self::$db_plugins[$instance_id] ) )
             unset( self::$db_plugins[$instance_id] );
 
-        return $this->get_plugins_db_settings( $instance_id, false, true );
+        return $this->get_plugins_db_settings( $instance_id, false, $obfuscating_keys, true );
     }
 
-    public function get_plugins_db_settings( $instance_id = null, $default_settings = false, $force = false )
+    /**
+     * Get settings from database
+     * @param null|string $instance_id
+     * @param bool|array $default_settings
+     * @param bool|array $obfuscating_keys
+     * @param bool $force
+     *
+     * @return bool|mixed
+     */
+    public function get_plugins_db_settings( $instance_id = null, $default_settings = false, $obfuscating_keys = false, $force = false )
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_SETTINGS, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_SETTINGS, self::_t( 'Unknown instance ID.' ) );
             return false;
         }
+
+        if( empty( $obfuscating_keys ) or !is_array( $obfuscating_keys ) )
+            $obfuscating_keys = array();
 
         if( !empty( $force )
         and isset( self::$plugin_settings[$instance_id] ) )
@@ -305,17 +330,29 @@ class PHS_Model_Plugins extends PHS_Model
             // parse settings in database...
             self::$plugin_settings[$instance_id] = PHS_line_params::parse_string( $db_details['settings'] );
 
+            if( !empty( $obfuscating_keys ) )
+            {
+                foreach( $obfuscating_keys as $ob_key )
+                {
+                    if( array_key_exists( $ob_key, self::$plugin_settings[$instance_id] )
+                    and is_string( self::$plugin_settings[$instance_id][$ob_key] ) )
+                        self::$plugin_settings[$instance_id][$ob_key] = PHS_crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
+                }
+            }
+
             // Merge database settings with default script settings
             if( !empty( $default_settings ) )
                 self::$plugin_settings[$instance_id] = self::validate_array_recursive( self::$plugin_settings[$instance_id], $default_settings );
-
-            $hook_args = PHS_Hooks::default_common_hook_args();
-            $hook_args['settings_arr'] = self::$plugin_settings[$instance_id];
-
-            if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, $hook_args ))
-            and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
-                self::$plugin_settings[$instance_id] = self::validate_array_recursive( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
         }
+
+        // Low level hook for plugin settings (allow only keys that are not present in default plugin settings)
+        $hook_args = PHS_Hooks::default_plugin_settings_hook_args();
+        $hook_args['settings_arr'] = self::$plugin_settings[$instance_id];
+        $hook_args['instance_id'] = $instance_id;
+
+        if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, $hook_args ))
+        and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
+            self::$plugin_settings[$instance_id] = self::validate_array_recursive( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
 
         return self::$plugin_settings[$instance_id];
     }
@@ -324,7 +361,7 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Unknown instance ID.' ) );
@@ -365,14 +402,14 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Unknown instance ID.' ) );
@@ -573,7 +610,7 @@ class PHS_Model_Plugins extends PHS_Model
         foreach( self::$db_plugins as $instance_id => $plugin_arr )
         {
             if( !$this->is_active( $plugin_arr )
-             or $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+             or $plugin_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
              or empty( $plugin_arr['plugin'] ) )
                 continue;
 
@@ -607,7 +644,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         foreach( self::$db_plugins as $instance_id => $plugin_arr )
         {
-            if( $plugin_arr['type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+            if( $plugin_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
              or empty( $plugin_arr['plugin'] ) )
                 continue;
 
@@ -675,14 +712,14 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_INSTANCE, self::_t( 'Unknown instance ID.' ) );
@@ -720,7 +757,14 @@ class PHS_Model_Plugins extends PHS_Model
         return $db_details;
     }
 
-    public function update_db_details( $fields_arr, $update_params = false )
+    /**
+     * @param array $fields_arr
+     * @param bool|array $obfuscating_keys
+     * @param bool|array $update_params
+     *
+     * @return array|bool
+     */
+    public function update_db_details( $fields_arr, $obfuscating_keys = false, $update_params = false )
     {
         if( empty( $fields_arr ) or !is_array( $fields_arr )
          or empty( $fields_arr['instance_id'] )
@@ -771,6 +815,16 @@ class PHS_Model_Plugins extends PHS_Model
             and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
                 $new_fields_arr['settings'] = self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) );
 
+            if( !empty( $obfuscating_keys ) and is_array( $obfuscating_keys ) )
+            {
+                foreach( $obfuscating_keys as $ob_key )
+                {
+                    if( array_key_exists( $ob_key, $new_fields_arr['settings'] )
+                    and is_scalar( $new_fields_arr['settings'][$ob_key] ) )
+                        $new_fields_arr['settings'][$ob_key] = PHS_crypt::quick_encode( $new_fields_arr['settings'][$ob_key] );
+                }
+            }
+
             $new_fields_arr['settings'] = PHS_line_params::to_string( $new_fields_arr['settings'] );
 
             PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
@@ -818,14 +872,14 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Unknown instance ID.' ) );
@@ -865,14 +919,14 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if( $instance_id != null
+        if( $instance_id !== null
         and !self::valid_instance_id( $instance_id ))
         {
             $this->set_error( self::ERR_INSTANCE, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        if( $instance_id == null
+        if( $instance_id === null
         and !($instance_id = $this->instance_id()) )
         {
             $this->set_error( self::ERR_INSTANCE, self::_t( 'Unknown instance ID.' ) );

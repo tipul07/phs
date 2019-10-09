@@ -109,7 +109,7 @@
 
 		function submit_bulk_action( area )
 		{
-			if( area != 'top' && area != 'bottom' )
+			if( area !== 'top' && area !== 'bottom' )
 				return false;
 
 			var bulk_select_obj = $('#<?php echo $bulk_select_name?>' + area);
@@ -649,13 +649,13 @@ if( !function_exists( 'display_js_functionality' ) )
                 }
 
                 var action_display_name = '[Not defined]';
-                if( phs_paginator_bulk_actions[action]['display_name'] != "undefined" )
+                if( phs_paginator_bulk_actions[action]['display_name'] !== "undefined" )
                     action_display_name = phs_paginator_bulk_actions[action]['display_name'];
 
                 var selected_records = -1;
                 var checkboxes_list = [];
-                if( phs_paginator_bulk_actions[action]['checkbox_column'] != "undefined"
-                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]['checkbox_column'] )) )
+                if( phs_paginator_bulk_actions[action]['checkbox_column'] !== "undefined"
+                    && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]['checkbox_column'] )) )
                     selected_records = checkboxes_list.length;
 
                 var confirm_text = "";

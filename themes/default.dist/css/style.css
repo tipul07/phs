@@ -909,7 +909,9 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
     @media screen and ( max-width: 550px ){
         .lineform_line { margin-left: 0 !important; clear: left; }
     }
-
+	.lineformgroup { border-left: 1px solid #eeeeee; padding-left: 5px; }
+	.lineformgroupcontent {}
+	.lineformgrouptrigger { cursor: pointer; }
 
 
 	.list_filters_container,

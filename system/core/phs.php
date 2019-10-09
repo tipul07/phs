@@ -161,7 +161,7 @@ final class PHS extends PHS_Registry
     {
         if( !empty( $_SERVER )
         and isset( $_SERVER['HTTPS'] )
-        and ($_SERVER['HTTPS'] == 'on' or $_SERVER['HTTPS'] == '1') )
+        and ($_SERVER['HTTPS'] === 'on' or $_SERVER['HTTPS'] === '1' or $_SERVER['HTTPS'] === 1) )
             return true;
 
         return false;
@@ -226,6 +226,12 @@ final class PHS extends PHS_Registry
         );
     }
 
+    /**
+     * @param string|array|bool $key
+     * @param mixed|null $val
+     *
+     * @return bool|mixed|null
+     */
     public static function page_settings( $key = false, $val = null )
     {
         if( $key === false )
@@ -383,6 +389,11 @@ final class PHS extends PHS_Registry
         return self::set_data( self::RUNNING_CONTROLLER, $controller_obj );
     }
 
+    /**
+     * @param string $theme
+     *
+     * @return bool|string
+     */
     public static function valid_theme( $theme )
     {
         self::st_reset_error();
@@ -440,6 +451,11 @@ final class PHS extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $theme
+     *
+     * @return bool
+     */
     public static function set_defaut_theme( $theme )
     {
         if( !($theme = self::valid_theme( $theme )) )
@@ -450,6 +466,9 @@ final class PHS extends PHS_Registry
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public static function resolve_theme()
     {
         // First set default so it doesn't get auto-set in set_theme() method
@@ -2011,7 +2030,7 @@ final class PHS extends PHS_Registry
      * @param string $hook_name
      * @param array $hook_args
      *
-     * @return array|bool|mixed|null
+     * @return array|null
      */
     public static function trigger_hooks( $hook_name, array $hook_args = array() )
     {

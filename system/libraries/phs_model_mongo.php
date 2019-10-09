@@ -1235,6 +1235,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
             $params['action'] = 'insert';
 
         $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
+        $hook_params['driver'] = $this->get_model_driver();
         $hook_params['flow_params'] = $params;
         $hook_params['table_fields'] = $table_fields;
 
@@ -1253,7 +1254,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
         foreach( $table_fields as $field_name => $field_details )
         {
             if( empty( $field_details['editable'] )
-            and $params['action'] == 'edit' )
+            and $params['action'] === 'edit' )
                 continue;
 
             if( array_key_exists( $field_name, $params['fields'] ) )
@@ -1275,8 +1276,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
                 $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
             } elseif( isset( $field_details['default'] )
-                  and $params['action'] == 'insert' )
-                // When editting records only passed fields will be saved in database...
+                  and $params['action'] === 'insert' )
+                // When editing records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
         }
 
