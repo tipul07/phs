@@ -15,6 +15,9 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     /** @var bool $_is_admin_controller */
     private $_is_admin_controller = false;
 
+    /**
+     * @return string
+     */
     public function instance_type()
     {
         return self::INSTANCE_TYPE_CONTROLLER;
@@ -62,7 +65,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
 
         if( ($allowed_scopes = $this->allowed_scopes())
         and is_array( $allowed_scopes )
-        and !in_array( $scope, $allowed_scopes ) )
+        and !in_array( $scope, $allowed_scopes, true ) )
             return false;
 
         return true;
@@ -139,7 +142,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         // with default admin template
         if( $this->is_admin_controller()
         and is_array( $action_result )
-        and !empty( $action_result['page_template'] ) and $action_result['page_template'] == 'template_main' )
+        and !empty( $action_result['page_template'] ) and $action_result['page_template'] === 'template_main' )
             $action_result['page_template'] = 'template_admin';
 
         return $action_result;

@@ -52,6 +52,35 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         return array();
     }
 
+    /**
+     * Override this function and return an array with keys in settings which should be obfuscated on save
+     * @return array
+     */
+    public function get_settings_keys_to_obfuscate()
+    {
+        return array();
+    }
+
+    /**
+     * Gathers all keys which should be obfuscated for this instance
+     * @return array
+     */
+    final public function get_all_settings_keys_to_obfuscate()
+    {
+        $obfuscating_keys = $this->get_settings_keys_to_obfuscate();
+
+        // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
+        $hook_args = PHS_Hooks::default_plugin_settings_hook_args();
+        $hook_args['instance_id'] = $this->instance_id();
+        $hook_args['obfucate_keys_arr'] = $obfuscating_keys;
+
+        if( ($obfuscate_keys_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_OBFUSCATED_SETTINGS_KEYS, $hook_args ))
+        and is_array( $obfuscate_keys_arr ) and !empty( $obfuscate_keys_arr['obfucate_keys_arr'] ) )
+            $obfuscating_keys = self::array_merge_unique_values( $obfuscate_keys_arr['obfucate_keys_arr'], $obfuscating_keys );
+
+        return $obfuscating_keys;
+    }
+
     protected function default_settings_field()
     {
         return array(
@@ -83,6 +112,12 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
 
             'extra_style' => '',
             'extra_classes' => '',
+
+            // group settings...
+            // an array containing fields in this group
+            'group_fields' => false,
+            // Should group fold/unfold when displayed in settings interface?
+            'group_foldable' => true,
         );
     }
 
@@ -104,7 +139,7 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         return self::st_default_custom_save_params();
     }
 
-    static public function st_default_custom_save_params()
+    public static function st_default_custom_save_params()
     {
         return array(
             'plugin_obj' => false,
@@ -116,6 +151,24 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         );
     }
 
+    /**
+     * When there is a field in instance settings which has a custom callback for saving data, it will return
+     * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
+     * can be provided
+     * @return array
+     */
+    public static function st_default_custom_save_callback_result()
+    {
+        return array(
+            // fields with values to be saved in instance settings as key/value pairs
+            '{new_settings_fields}' => array(),
+        );
+    }
+
+    /**
+     * Validate settings of this instance
+     * @return array
+     */
     public function validate_settings_structure()
     {
         if( !empty( $this->_settings_structure ) )
@@ -124,19 +177,52 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         $this->_settings_structure = array();
 
         // Validate settings structure
-        if( !($settings_structure_arr = $this->get_settings_structure()) )
+        if( !($settings_structure_arr = $this->get_settings_structure())
+         or !is_array( $settings_structure_arr ) )
             return array();
 
-        $default_settings_field = $this->default_settings_field();
+        if( !($this->_settings_structure = $this->_validate_settings_structure_field( $settings_structure_arr )) )
+            $this->_settings_structure = array();
 
-        foreach( $settings_structure_arr as $key => $settings_field )
+        return $this->_settings_structure;
+    }
+
+    /**
+     * @param array $structure_arr
+     * @return array|bool
+     */
+    protected function _validate_settings_structure_field( $structure_arr )
+    {
+        if( empty( $structure_arr ) or !is_array( $structure_arr ) )
+            return false;
+
+        $default_settings_field = $this->default_settings_field();
+        $settings_structure = array();
+        foreach( $structure_arr as $key => $settings_field )
         {
             $settings_field = self::validate_array_recursive( $settings_field, $default_settings_field );
 
-            $this->_settings_structure[$key] = $settings_field;
+            if( self::settings_field_is_group( $settings_field ) )
+            {
+                $settings_field['group_fields'] = $this->_validate_settings_structure_field( $settings_field['group_fields'] );
+            }
+
+            $settings_structure[$key] = $settings_field;
         }
 
-        return $this->_settings_structure;
+        return $settings_structure;
+    }
+
+    /**
+     * Tells if settings field definition array is for a group
+     * @param array $settings_field
+     *
+     * @return bool
+     */
+    public static function settings_field_is_group( $settings_field )
+    {
+        return (!empty( $settings_field ) and is_array( $settings_field )
+            and !empty( $settings_field['group_fields'] ) and is_array( $settings_field['group_fields'] ));
     }
 
     /**
@@ -150,13 +236,31 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
         if( empty( $this->_settings_structure ) )
             $this->validate_settings_structure();
 
-        $this->_default_settings = array();
-        foreach( $this->_settings_structure as $key => $field_arr )
-        {
-            $this->_default_settings[$key] = $field_arr['default'];
-        }
+        $this->_default_settings = $this->_get_default_settings_for_structure( $this->_settings_structure );
 
         return $this->_default_settings;
+    }
+
+    private function _get_default_settings_for_structure( $structure_arr )
+    {
+        $default_arr = array();
+        foreach( $structure_arr as $field_name => $field_arr )
+        {
+            if( self::settings_field_is_group( $field_arr ) )
+            {
+                if( ($group_default = $this->_get_default_settings_for_structure( $field_arr['group_fields'] )) )
+                    $default_arr = self::merge_array_assoc( $default_arr, $group_default );
+
+                continue;
+            }
+
+            if( !empty( $field_arr['ignore_field_value'] ) )
+                continue;
+
+            $default_arr[$field_name] = $field_arr['default'];
+        }
+
+        return $default_arr;
     }
 
     /**
@@ -192,7 +296,7 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
             return $this->_db_settings;
 
         if( !$this->_load_plugins_instance()
-         or !($db_settings = $this->_plugins_instance->get_plugins_db_settings( $this->instance_id(), $this->get_default_settings(), $force ))
+         or !($db_settings = $this->_plugins_instance->get_plugins_db_settings( $this->instance_id(), $this->get_default_settings(), $this->get_all_settings_keys_to_obfuscate(), $force ))
          or !is_array( $db_settings ) )
             return false;
 
@@ -204,7 +308,7 @@ abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
     public function save_db_settings( $settings_arr )
     {
         if( !$this->_load_plugins_instance()
-         or !($db_settings = $this->_plugins_instance->save_plugins_db_settings( $settings_arr, $this->instance_id() ))
+         or !($db_settings = $this->_plugins_instance->save_plugins_db_settings( $settings_arr, $this->get_all_settings_keys_to_obfuscate(), $this->instance_id() ))
          or !is_array( $db_settings ) )
             return false;
 

@@ -1226,18 +1226,23 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             return array_keys( $default_table_details );
 
         $keys_changed = array();
-        if( strtolower( trim( $details1_arr['engine'] ) ) != strtolower( trim( $details2_arr['engine'] ) ) )
+        if( strtolower( trim( $details1_arr['engine'] ) ) !== strtolower( trim( $details2_arr['engine'] ) ) )
             $keys_changed['engine'] = $details2_arr['engine'];
-        if( strtolower( trim( $details1_arr['charset'] ) ) != strtolower( trim( $details2_arr['charset'] ) ) )
+        if( strtolower( trim( $details1_arr['charset'] ) ) !== strtolower( trim( $details2_arr['charset'] ) ) )
             $keys_changed['charset'] = $details2_arr['charset'];
-        if( strtolower( trim( $details1_arr['collate'] ) ) != strtolower( trim( $details2_arr['collate'] ) ) )
+        if( strtolower( trim( $details1_arr['collate'] ) ) !== strtolower( trim( $details2_arr['collate'] ) ) )
             $keys_changed['collate'] = $details2_arr['collate'];
-        if( trim( $details1_arr['comment'] ) != trim( $details2_arr['comment'] ) )
+        if( trim( $details1_arr['comment'] ) !== trim( $details2_arr['comment'] ) )
             $keys_changed['comment'] = $details2_arr['comment'];
 
         return (!empty( $keys_changed )?$keys_changed:false);
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_definition( $params = false )
     {
         if( !($params = $this->fetch_default_flow_params( $params )) )
@@ -1252,12 +1257,18 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $this->_definition[$params['table_name']];
     }
 
+    /**
+     * @param string $field
+     * @param bool|array $params
+     *
+     * @return array|bool|mixed|null
+     */
     public function table_field_details( $field, $params = false )
     {
         $this->reset_error();
 
         $table = false;
-        if( strstr( $field, '.' ) !== false )
+        if( strpos( $field, '.' ) !== false )
             list( $table, $field ) = explode( '.', $field, 2 );
 
         if( empty( $params ) or !is_array( $params ) )
@@ -1300,6 +1311,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             $params['action'] = 'insert';
 
         $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
+        $hook_params['driver'] = $this->get_model_driver();
         $hook_params['flow_params'] = $params;
         $hook_params['table_fields'] = $table_fields;
 
@@ -1318,7 +1330,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         foreach( $table_fields as $field_name => $field_details )
         {
             if( empty( $field_details['editable'] )
-            and $params['action'] == 'edit' )
+            and $params['action'] === 'edit' )
                 continue;
 
             if( array_key_exists( $field_name, $params['fields'] ) )
@@ -1340,8 +1352,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
             } elseif( isset( $field_details['default'] )
-                  and $params['action'] == 'insert' )
-                // When editting records only passed fields will be saved in database...
+                  and $params['action'] === 'insert' )
+                // When editing records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
         }
 

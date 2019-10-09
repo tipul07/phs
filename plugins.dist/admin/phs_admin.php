@@ -16,7 +16,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_plugin_version()
     {
-        return '1.0.8';
+        return '1.1.0';
     }
 
     /**
@@ -43,37 +43,57 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function get_settings_structure()
     {
         return array(
-            'default_theme_in_admin' => array(
-                'display_name' => $this->_pt( 'Default theme in admin' ),
-                'display_hint' => $this->_pt( 'Should framework use default theme in admin section?' ),
-                'type' => PHS_params::T_BOOL,
-                'default' => false,
+            'themes_settings_group' => array(
+                'display_name' => $this->_pt( 'Theme settings' ),
+                'display_hint' => $this->_pt( 'How should themes inheritance be used.' ),
+                'group_fields' => array(
+                    'default_theme_in_admin' => array(
+                        'display_name' => $this->_pt( 'Default theme in admin' ),
+                        'display_hint' => $this->_pt( 'Should framework use default theme in admin section?' ),
+                        'type' => PHS_params::T_BOOL,
+                        'default' => false,
+                    ),
+                    'current_theme_as_default_in_admin' => array(
+                        'display_name' => $this->_pt( 'Current theme as default' ),
+                        'display_hint' => $this->_pt( 'If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)' ),
+                        'type' => PHS_params::T_BOOL,
+                        'default' => false,
+                    ),
+                ),
             ),
-            'current_theme_as_default_in_admin' => array(
-                'display_name' => $this->_pt( 'Current theme as default' ),
-                'display_hint' => $this->_pt( 'If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)' ),
-                'type' => PHS_params::T_BOOL,
-                'default' => false,
-            ),
-            'allow_api_calls' => array(
-                'display_name' => $this->_pt( 'Allow API calls' ),
-                'display_hint' => $this->_pt( 'Are API calls allowed to this platform?' ),
-                'type' => PHS_params::T_BOOL,
-                'default' => false,
-            ),
-            'allow_api_calls_over_http' => array(
-                'display_name' => $this->_pt( 'Allow HTTP API calls' ),
-                'display_hint' => $this->_pt( 'Allow API calls over HTTP? If this checkbox is not ticked only HTTPS calls will be accepted.' ),
-                'type' => PHS_params::T_BOOL,
-                'default' => false,
-            ),
-            'api_can_simulate_web' => array(
-                'display_name' => $this->_pt( 'API calls WEB emulation' ),
-                'display_hint' => $this->_pt( 'Allow API calls to simulate a normal web call by interpreting JSON body as POST variables. (should send %s=1 as query parameter)', PHS_api::PARAM_WEB_SIMULATION ),
-                'type' => PHS_params::T_BOOL,
-                'default' => false,
+            'api_settings_group' => array(
+                'display_name' => $this->_pt( 'API settings' ),
+                'display_hint' => $this->_pt( 'Settings related to REST API calls made to this platform.' ),
+                'group_fields' => array(
+                    'allow_api_calls' => array(
+                        'display_name' => $this->_pt( 'Allow API calls' ),
+                        'display_hint' => $this->_pt( 'Are API calls allowed to this platform?' ),
+                        'type' => PHS_params::T_BOOL,
+                        'default' => false,
+                    ),
+                    'allow_api_calls_over_http' => array(
+                        'display_name' => $this->_pt( 'Allow HTTP API calls' ),
+                        'display_hint' => $this->_pt( 'Allow API calls over HTTP? If this checkbox is not ticked only HTTPS calls will be accepted.' ),
+                        'type' => PHS_params::T_BOOL,
+                        'default' => false,
+                    ),
+                    'api_can_simulate_web' => array(
+                        'display_name' => $this->_pt( 'API calls WEB emulation' ),
+                        'display_hint' => $this->_pt( 'Allow API calls to simulate a normal web call by interpreting JSON body as POST variables. (should send %s=1 as query parameter)', PHS_api::PARAM_WEB_SIMULATION ),
+                        'type' => PHS_params::T_BOOL,
+                        'default' => false,
+                    ),
+                ),
             ),
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get_settings_keys_to_obfuscate()
+    {
+        return array();
     }
 
     /**

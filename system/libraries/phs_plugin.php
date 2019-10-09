@@ -495,7 +495,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_ACTIVE;
 
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -617,7 +617,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INACTIVE;
 
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -994,7 +994,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
         $plugin_details['version'] = $this->get_plugin_version();
 
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -1408,7 +1408,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['instance_id'] = $this_instance_id;
         $plugin_details['version'] = $this->get_plugin_version();
 
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details ))
+        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
          or empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )

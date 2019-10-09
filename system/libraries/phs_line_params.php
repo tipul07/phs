@@ -8,24 +8,24 @@ class PHS_line_params extends PHS_Language
 {
     const NEW_LINE_REPLACEMENT = '{{PHS_LP_NL}}';
 
-    static public function new_line_in_string( $str )
+    public static function new_line_in_string( $str )
     {
         $str = str_replace( "\r", "\n", str_replace( array( "\r\n", "\n\r" ), "\n", $str ) );
 
         return str_replace( "\n", self::NEW_LINE_REPLACEMENT, $str );
     }
 
-    static public function from_string_to_new_line( $str )
+    public static function from_string_to_new_line( $str )
     {
         return str_replace( self::NEW_LINE_REPLACEMENT, "\r\n", $str );
     }
 
     /**
-     * @param array|string|bool|null|int|float $val Value to be converted to string
+     * @param mixed $val Value to be converted to string
      *
      * @return bool|string String converted value
      */
-    static public function value_to_string( $val )
+    public static function value_to_string( $val )
     {
         if( is_object( $val ) or is_resource( $val ) )
             return false;
@@ -39,7 +39,7 @@ class PHS_line_params extends PHS_Language
         if( is_bool( $val ) )
             return (!empty( $val )?'true':'false');
 
-        if( is_null( $val ) )
+        if( $val === null )
             return 'null';
 
         if( is_numeric( $val ) )
@@ -53,7 +53,7 @@ class PHS_line_params extends PHS_Language
      *
      * @return bool|int|float|null|string Converted value
      */
-    static public function string_to_value( $str )
+    public static function string_to_value( $str )
     {
         if( !is_string( $str ) )
             return null;
@@ -64,19 +64,19 @@ class PHS_line_params extends PHS_Language
         if( is_numeric( $str ) )
             return $str;
 
-        if( ($tch = substr( $str, 0, 1 )) == '\'' or $tch = '"' )
+        if( ($tch = substr( $str, 0, 1 )) === '\'' or $tch = '"' )
             $str = substr( $str, 1 );
-        if( ($tch = substr( $str, -1 )) == '\'' or $tch = '"' )
+        if( ($tch = substr( $str, -1 )) === '\'' or $tch = '"' )
             $str = substr( $str, 0, -1 );
 
         $str_lower = strtolower( $str );
-        if( $str_lower == 'null' )
+        if( $str_lower === 'null' )
             return null;
 
-        if( $str_lower == 'false' )
+        if( $str_lower === 'false' )
             return false;
 
-        if( $str_lower == 'true' )
+        if( $str_lower === 'true' )
             return true;
 
         return self::from_string_to_new_line( $str );
@@ -88,13 +88,13 @@ class PHS_line_params extends PHS_Language
      *
      * @return array|bool
      */
-    static public function parse_string_line( $line_str, $comment_no = 0 )
+    public static function parse_string_line( $line_str, $comment_no = 0 )
     {
         if( !is_string( $line_str ) )
             $line_str = '';
 
         // allow empty lines (keeps file 'styling' same)
-        if( trim( $line_str ) == '' )
+        if( trim( $line_str ) === '' )
             $line_str = '';
 
         $return_arr = array();
@@ -103,7 +103,7 @@ class PHS_line_params extends PHS_Language
         $return_arr['comment_no'] = $comment_no;
 
         $first_char = substr( $line_str, 0, 1 );
-        if( $line_str == '' or $first_char == '#' or $first_char == ';' )
+        if( $line_str === '' or $first_char === '#' or $first_char === ';' )
         {
             $comment_no++;
 
@@ -117,7 +117,7 @@ class PHS_line_params extends PHS_Language
         $line_details = explode( '=', $line_str, 2 );
         $key = trim( $line_details[0] );
 
-        if( $key == '' )
+        if( $key === '' )
             return false;
 
         if( !isset( $line_details[1] ) )
@@ -139,7 +139,7 @@ class PHS_line_params extends PHS_Language
      *
      * @return string String representing converted array of line parameters
      */
-    static public function to_string( $lines_data )
+    public static function to_string( $lines_data )
     {
         if( empty( $lines_data ) or !is_array( $lines_data ) )
             return '';
@@ -154,7 +154,7 @@ class PHS_line_params extends PHS_Language
             $first_line = false;
 
             // In normal cases there cannot be '=' char in key so we interpret that value should just be passed as-it-is
-            if( substr( $key, 0, 1 ) == '=' )
+            if( substr( $key, 0, 1 ) === '=' )
             {
                 $lines_str .= $val;
                 continue;
@@ -175,7 +175,7 @@ class PHS_line_params extends PHS_Language
      *
      * @return array Parse line parameters in an array
      */
-    static public function parse_string( $string )
+    public static function parse_string( $string )
     {
         if( empty( $string )
          or (!is_array( $string ) and !is_string( $string )) )
@@ -192,7 +192,7 @@ class PHS_line_params extends PHS_Language
         foreach( $lines_arr as $line_nr => $line_str )
         {
             if( !($line_data = self::parse_string_line( $line_str, $comment_no ))
-             or !is_array( $line_data ) or !isset( $line_data['key'] ) or $line_data['key'] == '' )
+             or !is_array( $line_data ) or !isset( $line_data['key'] ) or $line_data['key'] === '' )
                 continue;
 
             $return_arr[$line_data['key']] = $line_data['val'];
@@ -208,7 +208,7 @@ class PHS_line_params extends PHS_Language
      *
      * @return array Merged array from parsed parameters
      */
-    static public function update_line_params( $current_data, $append_data )
+    public static function update_line_params( $current_data, $append_data )
     {
         if( empty( $append_data ) or (!is_array( $append_data ) and !is_string( $append_data )) )
             $append_data = array();

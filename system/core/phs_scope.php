@@ -51,19 +51,30 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     abstract public function process_action_result( $action_result, $static_error_arr = false );
 
+    /**
+     * @return string
+     */
     public function instance_type()
     {
         return self::INSTANCE_TYPE_SCOPE;
     }
 
+    /**
+     * @return array
+     */
     public static function get_scopes()
     {
         return self::$SCOPES_ARR;
     }
 
+    /**
+     * @param int $scope
+     *
+     * @return bool|array
+     */
     public static function valid_scope( $scope )
     {
-        $scope = intval( $scope );
+        $scope = (int)$scope;
         if( !($scopes_arr = self::get_scopes()) or empty( $scopes_arr[$scope] ) )
             return false;
 
@@ -81,6 +92,11 @@ abstract class PHS_Scope extends PHS_Instantiable
         );
     }
 
+    /**
+     * @param array $scope_params
+     *
+     * @return array|bool
+     */
     public static function register_scope( array $scope_params )
     {
         self::st_reset_error();
@@ -94,7 +110,7 @@ abstract class PHS_Scope extends PHS_Instantiable
             return false;
         }
 
-        if( empty( $scope_params['plugin'] ) or $scope_params['plugin'] == PHS_Instantiable::CORE_PLUGIN )
+        if( empty( $scope_params['plugin'] ) or $scope_params['plugin'] === PHS_Instantiable::CORE_PLUGIN )
             $scope_params['plugin'] = false;
 
         $scope_key = count( self::$SCOPES_ARR );
@@ -104,9 +120,14 @@ abstract class PHS_Scope extends PHS_Instantiable
         return array( 'scope_key' => $scope_key, 'scope_params' => $scope_params );
     }
 
-    public static function default_scope( $scope = false )
+    /**
+     * @param int|null $scope
+     *
+     * @return bool|int
+     */
+    public static function default_scope( $scope = null )
     {
-        if( $scope === false )
+        if( $scope === null )
         {
             if( !($default_scope = self::get_data( self::DEFAULT_SCOPE_KEY )) )
             {
@@ -118,7 +139,7 @@ abstract class PHS_Scope extends PHS_Instantiable
             return $default_scope;
         }
 
-        $scope = intval( $scope );
+        $scope = (int)$scope;
         if( !self::valid_scope( $scope ) )
             return false;
 
@@ -127,9 +148,14 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    public static function current_scope( $scope = false )
+    /**
+     * @param int|null $scope
+     *
+     * @return bool|int
+     */
+    public static function current_scope( $scope = null )
     {
-        if( $scope === false )
+        if( $scope === null )
         {
             if( !($current_scope = self::get_data( self::SCOPE_FLOW_KEY )) )
                 return self::default_scope();
@@ -137,7 +163,7 @@ abstract class PHS_Scope extends PHS_Instantiable
             return $current_scope;
         }
 
-        $scope = intval( $scope );
+        $scope = (int)$scope;
         if( !self::valid_scope( $scope ) )
             return false;
 
@@ -146,6 +172,11 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
+    /**
+     * @param int|null $scope
+     *
+     * @return bool|int
+     */
     public static function emulated_scope( $scope = null )
     {
         if( $scope === null )
@@ -158,7 +189,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         if( $scope !== false )
         {
-            $scope = intval( $scope );
+            $scope = (int)$scope;
             if( !self::valid_scope( $scope ) )
                 return false;
         }
@@ -168,6 +199,11 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
+    /**
+     * @param int|null $scope
+     *
+     * @return bool|PHS_Scope
+     */
     public static function spawn_scope_instance( $scope = null )
     {
         if( $scope === null )
