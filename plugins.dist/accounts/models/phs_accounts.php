@@ -1139,14 +1139,30 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->edit( $account_arr, $edit_params );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool|mixed
+     */
     public function activate_account( $account_data, $params = false )
     {
+        $this->reset_error();
+
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['prevent_sending_emails'] ) )
+            $params['prevent_sending_emails'] = false;
+        else
+            $params['prevent_sending_emails'] = (!empty( $params['prevent_sending_emails'] )?true:false);
 
         if( $this->is_active( $account_arr ) )
             return $account_arr;
@@ -1155,22 +1171,42 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['status'] = self::STATUS_ACTIVE;
 
         $edit_params = array();
-        if( $this->needs_confirmation_email( $account_arr )
+        if( $params['prevent_sending_emails'] )
+            $edit_params['{activate_after_registration}'] = false;
+
+        elseif( $this->needs_confirmation_email( $account_arr )
         and $this->is_just_registered( $account_arr ) )
             $edit_params['{activate_after_registration}'] = true;
+
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $account_arr, $edit_params );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool|mixed
+     */
     public function inactivate_account( $account_data, $params = false )
     {
+        $this->reset_error();
+
         if( empty( $account_data )
          or !($account_arr = $this->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['prevent_sending_emails'] ) )
+            $params['prevent_sending_emails'] = false;
+        else
+            $params['prevent_sending_emails'] = (!empty( $params['prevent_sending_emails'] )?true:false);
 
         if( $this->is_inactive( $account_arr ) )
             return $account_arr;
@@ -1179,11 +1215,20 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['status'] = self::STATUS_INACTIVE;
 
         $edit_params = array();
+        if( $params['prevent_sending_emails'] )
+            $edit_params['{activate_after_registration}'] = false;
+
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit( $account_arr, $edit_params );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool|mixed
+     */
     public function delete_account( $account_data, $params = false )
     {
         if( empty( $account_data )
@@ -1223,7 +1268,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($new_account_arr = $this->edit( $account_arr, $edit_params )) )
             return false;
 
-        // Send account as not deleted to roles unlinking method
+        // Send account as not deleted to roles un-linking method
         if( !empty( $params['unlink_roles'] ) )
             PHS_Roles::unlink_all_roles_from_user( $account_arr );
 
@@ -1272,6 +1317,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function send_after_registration_email( $account_data, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -1524,7 +1575,7 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * Called right after a successfull insert in database. Some model need more database work after successfully adding records in database or eventually chaining
+     * Called right after a successful insert in database. Some model need more database work after successfully adding records in database or eventually chaining
      * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
      * key-values added in database.
      *
@@ -1738,6 +1789,9 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function get_edit_prepare_params_users( $existing_data, $params )
     {
+        if( !empty( $params['fields']['status'] ) )
+            $params['fields']['status'] = (int)$params['fields']['status'];
+
         if( !($accounts_settings = $this->get_plugin_settings())
          or !is_array( $accounts_settings ) )
             $accounts_settings = array();
@@ -1822,11 +1876,11 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( isset( $params['fields']['email'] )
-        and $params['fields']['email'] != $existing_data['email'] )
+        and (string)$params['fields']['email'] !== (string)$existing_data['email'] )
         {
             // If we delete the account, just skip checks...
             if( empty( $params['fields']['status'] )
-             or $params['fields']['status'] != self::STATUS_DELETED )
+             or $params['fields']['status'] !== self::STATUS_DELETED )
             {
                 if( empty( $params['fields']['email'] )
                  or !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
@@ -1857,11 +1911,11 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( isset( $params['fields']['nick'] )
-        and $params['fields']['nick'] != $existing_data['nick'] )
+        and (string)$params['fields']['nick'] !== (string)$existing_data['nick'] )
         {
             // If we delete the account, just skip checks...
             if( empty( $params['fields']['status'] )
-             or $params['fields']['status'] != self::STATUS_DELETED )
+             or $params['fields']['status'] !== self::STATUS_DELETED )
             {
                 $check_arr         = array();
                 $check_arr['nick'] = $params['fields']['nick'];
@@ -1886,7 +1940,7 @@ class PHS_Model_Accounts extends PHS_Model
             $cdate = date( self::DATETIME_DB );
             $params['fields']['status_date'] = $cdate;
 
-            if( $params['fields']['status'] == self::STATUS_DELETED )
+            if( $params['fields']['status'] === self::STATUS_DELETED )
                 $params['fields']['deleted'] = $cdate;
         }
 
@@ -1909,10 +1963,10 @@ class PHS_Model_Accounts extends PHS_Model
     }
 
     /**
-     * Called right after a successfull edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
+     * Called right after a successful edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
      * in database.
      *
-     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array $existing_data Data which already exists in database (id or full array with all database fields)
      * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
      * @param array $params Flow parameters
      *
@@ -2339,7 +2393,8 @@ class PHS_Model_Accounts extends PHS_Model
     //
 
     /**
-     * @inheritdoc
+     * @param bool|array $params
+     * @return bool|array
      */
     final public function fields_definition( $params = false )
     {
