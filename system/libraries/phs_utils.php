@@ -19,7 +19,6 @@ class PHS_utils extends PHS_Language
      * @param bool|array $params
      *
      * @return string
-     * @throws \Exception
      */
     public static function parse_period( $seconds_span, $params = false )
     {
@@ -41,8 +40,15 @@ class PHS_utils extends PHS_Language
         $nowtime = $params['start_timestamp'];
         $pasttime = $nowtime - $seconds_span;
 
-        $nowdate_obj = new \DateTime( '@'.$nowtime );
-        $pastdate_obj = new \DateTime( '@'.$pasttime );
+        try
+        {
+            $nowdate_obj = new \DateTime( '@'.$nowtime );
+            $pastdate_obj = new \DateTime( '@'.$pasttime );
+        } catch( \Exception $e )
+        {
+            return '#Cannot_parse_period#';
+        }
+
         $interval = $nowdate_obj->diff( $pastdate_obj );
 
         $years = $interval->y;
@@ -100,7 +106,7 @@ class PHS_utils extends PHS_Language
 
             case self::PERIOD_MINUTES:
                 $minutes_diff = floor( $seconds_span/60 );
-                if( $minutes_diff == 0
+                if( $minutes_diff === 0.0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -114,7 +120,7 @@ class PHS_utils extends PHS_Language
 
             case self::PERIOD_HOURS:
                 $hours_diff = floor( $seconds_span/3600 );
-                if( $hours_diff == 0
+                if( $hours_diff === 0.0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -128,7 +134,7 @@ class PHS_utils extends PHS_Language
 
             case self::PERIOD_DAYS:
                 $days_diff = floor( $seconds_span/86400 );
-                if( $days_diff == 0
+                if( $days_diff === 0.0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -142,7 +148,7 @@ class PHS_utils extends PHS_Language
 
             case self::PERIOD_WEEKS:
                 $weeks_diff = floor( $seconds_span/604800 );
-                if( $weeks_diff == 0
+                if( $weeks_diff === 0.0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -155,7 +161,7 @@ class PHS_utils extends PHS_Language
             break;
 
             case self::PERIOD_MONTHS:
-                if( $months == 0
+                if( $months === 0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -168,7 +174,7 @@ class PHS_utils extends PHS_Language
             break;
 
             case self::PERIOD_YEARS:
-                if( $years == 0
+                if( $years === 0
                 and !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
@@ -331,7 +337,7 @@ class PHS_utils extends PHS_Language
         {
             foreach( $directory_content as $filename )
             {
-                if( $filename == '.' or $filename == '..' )
+                if( $filename === '.' or $filename === '..' )
                     continue;
 
                 if( @is_file( $filename )
@@ -344,7 +350,7 @@ class PHS_utils extends PHS_Language
 
                     if( empty( $params['extensions_arr'] )
                      or empty( $file_ext )
-                     or in_array( strtolower( $file_ext ), $params['extensions_arr'] ) )
+                     or in_array( strtolower( $file_ext ), $params['extensions_arr'], true ) )
                         $found_files[$filename] = 1;
 
                     continue;
@@ -434,7 +440,7 @@ class PHS_utils extends PHS_Language
             $params['virtual_file'] = false;
 
         $file = (string)$file;
-        if( $file == ''
+        if( $file === ''
          or (empty( $params['virtual_file'] ) and (!@file_exists( $file ) or !@is_readable( $file ))) )
             return '';
 
