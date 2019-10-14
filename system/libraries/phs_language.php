@@ -26,12 +26,29 @@ class PHS_Language extends PHS_Error
      *
      * @return PHS_Language_Container
      */
-    static function language_container()
+    public static function language_container()
     {
         if( empty( self::$lang_callable_obj ) )
             self::$lang_callable_obj = new PHS_Language_Container();
 
         return self::$lang_callable_obj;
+    }
+
+    /**
+     * @return bool Returns true if system should try converting language files to utf8
+     */
+    public static function get_utf8_conversion_enabled()
+    {
+        return self::language_container()->get_utf8_conversion_enabled();
+    }
+
+    /**
+     * @param bool $enabled Whether utf8 conversion should be enabled or not
+     * @return bool Returns utf8 conversion enabled value currently set
+     */
+    public static function set_utf8_conversion( $enabled )
+    {
+        return self::language_container()->set_utf8_conversion( $enabled );
     }
 
     /**
@@ -275,9 +292,9 @@ class PHS_Language extends PHS_Error
      */
     public static function st_pt( $index )
     {
-        if( !($called_class = get_called_class())
+        if( !($called_class = @get_called_class())
          or !($clean_class_name = ltrim( $called_class, '\\' ))
-         or strtolower( substr( $clean_class_name, 0, 12 ) ) != 'phs\\plugins\\'
+         or stripos( $clean_class_name, 'phs\\plugins\\' ) !== 0
          or !($parts_arr = explode( '\\', $clean_class_name, 4 ))
          or empty( $parts_arr[2] )
          or !($plugin_obj = PHS::load_plugin( $parts_arr[2] )) )
@@ -342,7 +359,7 @@ class PHS_Language extends PHS_Error
      */
     public static function _e( $str, $ch = '"' )
     {
-        return str_replace( $ch, ($ch=='\''?'\\\'':'\\"'), $str );
+        return str_replace( $ch, ($ch==='\''?'\\\'':'\\"'), $str );
     }
 
     /**
@@ -375,6 +392,9 @@ class PHS_Language_Container extends PHS_Error
     // We take error codes from 100000+ to let 1-99999 for custom defined constant errors
     const ERR_LANGUAGE_DEFINITION = 100000, ERR_LANGUAGE_LOAD = 100001, ERR_NOT_STRING = 100002;
 
+    //! Tells if language files should be converted to UTF8 file if UTF8 version doesn't exist
+    //! This helps systems with no shell access
+    private static $CONVERT_LANG_FILES_TO_UTF8 = true;
     //! Tells if multi language should be enabled
     private static $MULTI_LANGUAGE_ENABLED = true;
     //! Fallback language in case we try to translate a text which is not defined in current language
@@ -402,11 +422,32 @@ class PHS_Language_Container extends PHS_Error
 
     private static $csv_settings = false;
 
-    function __construct()
+    public function __construct()
     {
         self::$csv_settings = self::default_lang_files_csv_settings();
 
         parent::__construct();
+    }
+
+    public static function st_get_utf8_conversion()
+    {
+        return self::$CONVERT_LANG_FILES_TO_UTF8;
+    }
+
+    public static function st_set_utf8_conversion( $enabled )
+    {
+        self::$CONVERT_LANG_FILES_TO_UTF8 = (!empty( $enabled )?true:false);
+        return self::$CONVERT_LANG_FILES_TO_UTF8;
+    }
+
+    public function get_utf8_conversion_enabled()
+    {
+        return self::st_get_utf8_conversion();
+    }
+
+    public function set_utf8_conversion( $enabled )
+    {
+        return self::st_set_utf8_conversion( $enabled );
     }
 
     public static function st_get_multi_language_enabled()
@@ -440,6 +481,11 @@ class PHS_Language_Container extends PHS_Error
         );
     }
 
+    /**
+     * @param bool|array $settings
+     *
+     * @return array|bool
+     */
     public static function lang_files_csv_settings( $settings = false )
     {
         if( empty( self::$csv_settings ) )
@@ -545,7 +591,7 @@ class PHS_Language_Container extends PHS_Error
         return self::st_valid_language( $lang );
     }
 
-    static function prepare_lang_index( $lang )
+    public static function prepare_lang_index( $lang )
     {
         return strtolower( trim( $lang ) );
     }
@@ -558,7 +604,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return $this
      */
-    function reset_language_indexes( $lang = false )
+    public function reset_language_indexes( $lang = false )
     {
         if( $lang === false )
         {
@@ -583,7 +629,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool|string
      */
-    static function st_valid_language( $lang )
+    public static function st_valid_language( $lang )
     {
         $lang = self::prepare_lang_index( $lang );
         return (isset( self::$DEFINED_LANGUAGES[$lang] )?$lang:false);
@@ -681,14 +727,14 @@ class PHS_Language_Container extends PHS_Error
          or !@is_dir( $dir ) or !@is_readable( $dir ) )
             return false;
 
-        if( ($languages_arr = self::get_defined_languages())
+        if( ($languages_arr = $this->get_defined_languages())
         and is_array( $languages_arr ) )
         {
             foreach( $languages_arr as $lang_key => $lang_arr )
             {
                 $language_file = $dir.'/'.$lang_key.'.csv';
                 if( @file_exists( $language_file ) )
-                    self::add_language_files( $lang_key, array( $language_file ) );
+                    $this->add_language_files( $lang_key, array( $language_file ) );
             }
         }
 
@@ -757,7 +803,7 @@ class PHS_Language_Container extends PHS_Error
                 return false;
             }
 
-            if( !in_array( $lang_file, self::$DEFINED_LANGUAGES[$lang]['files'] ) )
+            if( !in_array( $lang_file, self::$DEFINED_LANGUAGES[$lang]['files'], true ) )
             {
                 self::$DEFINED_LANGUAGES[$lang]['files'][] = $lang_file;
                 $this->force_reload_language_files( $lang );
@@ -816,7 +862,7 @@ class PHS_Language_Container extends PHS_Error
         {
             $this->_loading_language( false );
 
-            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined or has no files to be loaded.' );
+            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.(!empty( $lang )?$lang:'N/A').'] not defined or has no files to be loaded.' );
             return false;
         }
 
@@ -834,7 +880,7 @@ class PHS_Language_Container extends PHS_Error
         }
 
         if( ($current_theme = PHS::get_theme())
-        and $default_theme != $current_theme
+        and $default_theme !== $current_theme
         and ($theme_language_paths = PHS::get_theme_language_paths( $current_theme ))
         and !empty( $theme_language_paths['path'] ) )
         {
@@ -955,7 +1001,7 @@ class PHS_Language_Container extends PHS_Error
 
         if( !($lang = self::st_valid_language( $lang )) )
         {
-            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.$lang.'] not defined.' );
+            $this->set_error( self::ERR_LANGUAGE_LOAD, 'Language ['.(!empty( $lang )?$lang:'N/A').'] not defined.' );
             return false;
         }
 
@@ -985,15 +1031,15 @@ class PHS_Language_Container extends PHS_Error
         $return_arr = array();
         while( ($buf = @fgets( $fil )) )
         {
-            if( ($mb_substr_exists and mb_substr( ltrim( $buf ), 0, 1 ) == '#')
-             or (!$mb_substr_exists and substr( ltrim( $buf ), 0, 1 ) == '#') )
+            if( ($mb_substr_exists and @mb_substr( ltrim( $buf ), 0, 1 ) === '#')
+             or (!$mb_substr_exists and @substr( ltrim( $buf ), 0, 1 ) === '#') )
                 continue;
 
             $buf = rtrim( $buf, "\r\n" );
 
             if( !($csv_line = @str_getcsv( $buf, $csv_settings['columns_delimiter'], $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] ))
              or !is_array( $csv_line )
-             or count( $csv_line ) != 2 )
+             or count( $csv_line ) !== 2 )
                 continue;
 
             $index = $csv_line[0];
@@ -1014,7 +1060,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return string Resulting file name which will hold UTF-8 encoded content of original file
      */
-    static function get_utf8_file_name( $file )
+    public static function get_utf8_file_name( $file )
     {
         $path_info = @pathinfo( $file );
         return $path_info['dirname'].'/'.$path_info['filename'].'-utf8.'.$path_info['extension'];
@@ -1028,7 +1074,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool|string Returns absolute path of UTF-8 encoded file
      */
-    static function convert_to_utf8( $file, $params = false )
+    public static function convert_to_utf8( $file, $params = false )
     {
         if( empty( $file ) or !@file_exists( $file ) )
             return false;
@@ -1038,6 +1084,12 @@ class PHS_Language_Container extends PHS_Error
 
         if( empty( $params['utf8_file'] ) )
             $params['utf8_file'] = self::get_utf8_file_name( $file );
+
+        // On some systems file and iconv binaries are not available and will display results of which
+        // So, as long as utf8 files exist, just let it be...
+        if( !self::st_get_utf8_conversion()
+        and @file_exists( $params['utf8_file'] ) )
+            return $params['utf8_file'];
 
         ob_start();
         if( !($file_bin = @system( 'which file' ))
@@ -1057,7 +1109,7 @@ class PHS_Language_Container extends PHS_Error
 
         $file_mime = str_replace( $file.': ', '', $file_mime );
 
-        if( !in_array( strtolower( $file_mime ), array( 'utf8', 'utf-8' ) ) )
+        if( !in_array( strtolower( $file_mime ), array( 'utf8', 'utf-8' ), true ) )
         {
             if( @system( $iconv_bin.' -f ' . escapeshellarg( $file_mime ) . ' -t utf-8 ' . escapeshellarg( $file ) . ' > ' . escapeshellarg( $params['utf8_file'] ) ) === false
              or !@file_exists( $params['utf8_file'] ) )
@@ -1090,8 +1142,8 @@ class PHS_Language_Container extends PHS_Error
             $args = array();
 
         if( !isset( $args[0] )
-         or !self::valid_language( $args[0] ) )
-            $t_lang = self::get_current_language();
+         or !$this->valid_language( $args[0] ) )
+            $t_lang = $this->get_current_language();
 
         else
         {

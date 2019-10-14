@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.0.6.0' );
+define( 'PHS_KNOWN_VERSION', '1.0.6.1' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -123,6 +123,7 @@ use \phs\libraries\PHS_Logger;
 
 // Tell the system if it should use multi language feature
 PHS::set_multi_language( true );
+PHS::set_utf8_conversion( true );
 
 // After how many seconds will an Ajax URL expire (if user stays on page and javascript will request same URL)
 PHS_ajax::checksum_timeout( 86400 );
