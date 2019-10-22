@@ -850,7 +850,7 @@ function exclude_params( $str, $params )
 
 function format_filesize( $files )
 {
-    $files = intval( $files );
+    $files = (int)$files;
 
     if( $files >= 1073741824 )
         $files = round( $files / 1073741824 * 100 ) / 100 . 'GB';
@@ -859,7 +859,7 @@ function format_filesize( $files )
     elseif( $files >= 1024 )
         $files = round( $files / 1024 * 100 ) / 100 . 'KB';
     else
-        $files = $files . 'Bytes';
+        $files .= 'Bytes';
 
     return $files;
 }

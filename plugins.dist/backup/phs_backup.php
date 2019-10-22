@@ -172,7 +172,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $error_msg = $this->_pt( 'At the moment directory doesn\'t exist. System will try creating it at first run.' );
 
         elseif( empty( $location_details['full_path'] )
-                    or !is_writeable( $location_details['full_path'] ) )
+                    or !@is_writable( $location_details['full_path'] ) )
             $error_msg = $this->_pt( 'Resolved directory is not writeable.' );
 
         elseif( !($stats_arr = $this->get_directory_stats( $location_details['full_path'] )) )
@@ -186,7 +186,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                  class="form-control <?php echo $params['field_details']['extra_classes'] ?>"
                  style="<?php echo $params['field_details']['extra_style'] ?>"
                  <?php echo (empty( $params['field_details']['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>
-                 value="<?php echo self::_e( $field_value )?>" /><?php
+                 value="<?php echo form_str( $field_value )?>" /><?php
 
         if( !empty( $error_msg ) )
         {
@@ -196,9 +196,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             ?><small><strong><?php echo $stats_str?></strong></small><br/><?php
         }
 
-        $render_result = ob_get_clean();
-
-        return $render_result;
+        return @ob_get_clean();
     }
 
     public function plugin_settings_save_location( $params )
@@ -207,7 +205,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         if( empty( $params['field_name'] )
          or empty( $params['form_data'] ) or !is_array( $params['form_data'] )
-         or $params['field_name'] != 'location' )
+         or $params['field_name'] !== 'location' )
             return null;
 
         if( !array_key_exists( 'field_value', $params )
@@ -339,8 +337,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
             // Make sure we work only with /
             $location_path = str_replace( '\\', '/', $location_path );
 
-            if( substr( $location_path, 0, 1 ) == '/'
-             or substr( $location_path, 1, 2 ) == ':/' )
+            if( strpos( $location_path, '/' ) === 0
+             or substr( $location_path, 1, 2 ) === ':/' )
                 $location_root = '';
             else
                 $location_root = PHS_UPLOADS_DIR;
@@ -373,6 +371,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
+    /**
+     * @param string $path
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_location_for_path( $path, $params = false )
     {
         $this->reset_error();
