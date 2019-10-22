@@ -29,7 +29,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
     private $smtp_library = false;
 
-    function __construct( $instance_details )
+    public function __construct( $instance_details )
     {
         parent::__construct( $instance_details );
 
@@ -58,7 +58,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return true;
     }
 
-    static function mail_auth_key( $key = false )
+    public static function mail_auth_key( $key = false )
     {
         if( $key === false )
             return self::$MAIL_AUTH_KEY;
@@ -136,7 +136,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         );
     }
 
-    static function get_default_smtp_settings()
+    public static function get_default_smtp_settings()
     {
         return array(
             'localhost' => '',
@@ -169,7 +169,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $old_values = $params['field_value'];
 
         $return_data = null;
-        if( $params['field_name'] == 'routes' )
+        if( $params['field_name'] === 'routes' )
         {
             if( empty( $params['form_data']['routes'] ) or !is_array( $params['form_data']['routes'] ) )
                 return null;
@@ -190,7 +190,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 {
                     if( !empty( $old_values[$route_name]['smtp_pass'] )
                     and ($decrypted_pass = PHS_crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
-                    and $route_arr['smtp_pass'] == self::UNCHANGED_SMTP_PASS )
+                    and $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS )
                         $route_arr['smtp_pass'] = $decrypted_pass;
                 }
 
@@ -257,7 +257,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         {
             if( empty( $test_email_sending_email )
              or !PHS_params::check_type( $test_email_sending_email, PHS_params::T_EMAIL ) )
-                $testing_error .= ($testing_error!=''?'<br/>':'').$this->_pt( 'Please provide a valid email address.' );
+                $testing_error .= ($testing_error!==''?'<br/>':'').$this->_pt( 'Please provide a valid email address.' );
 
             else
             {
@@ -281,15 +281,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 {
                     if( empty( $hook_results )
                     and self::st_has_error() )
-                        $testing_error .= ($testing_error!=''?'<br/>':'').self::st_get_error_message();
+                        $testing_error .= ($testing_error!==''?'<br/>':'').self::st_get_error_message();
 
                     elseif( !empty( $hook_results )
                     and !empty( $hook_results['hook_errors'] ) and is_array( $hook_results['hook_errors'] )
                     and self::arr_has_error( $hook_results['hook_errors'] ) )
-                        $testing_error .= ($testing_error!=''?'<br/>':'').self::arr_get_error_message( $hook_results['hook_errors'] );
+                        $testing_error .= ($testing_error!==''?'<br/>':'').self::arr_get_error_message( $hook_results['hook_errors'] );
 
                     else
-                        $testing_error .= ($testing_error!=''?'<br/>':'').$this->_pt( 'Error sending email to provided email address.' );
+                        $testing_error .= ($testing_error!==''?'<br/>':'').$this->_pt( 'Error sending email to provided email address.' );
                 } else
                     $testing_success = true;
 
@@ -307,7 +307,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $this->quick_render_template_for_buffer( 'test_email_sending', $data_arr );
     }
 
-    static function valid_smtp_settings( $settings )
+    public static function valid_smtp_settings( $settings )
     {
         if( empty( $settings ) or !is_array( $settings )
          or empty( $settings['smtp_host'] ) or empty( $settings['smtp_port'] ) )
@@ -639,7 +639,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 else
                 {
                     if( ($file_size = @filesize( $file_details['file'] )) === false
-                     or intval( $file_size ) > self::MAX_ATTACHMENT_FILE_SIZE
+                     or (int)$file_size > self::MAX_ATTACHMENT_FILE_SIZE
                      or !($file_content = @file_get_contents( $file_details['file'] )) )
                     {
                         $this->set_error( self::ERR_SEND, $this->_pt( 'Couldn\'t read attachment file.' ) );
@@ -649,7 +649,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                         return $hook_args;
                     }
 
-                    if( $file_details['transfer_encoding'] == 'base64' )
+                    if( $file_details['transfer_encoding'] === 'base64' )
                         $file_content = base64_encode( $file_content );
 
                     $file_details['file_attachment_buffer'] = '--' . $mime_boundary . "\n" .

@@ -1274,7 +1274,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
-        $params['table_name'] = $table;
+        if( $table !== false )
+            $params['table_name'] = $table;
 
         if( !($params = $this->fetch_default_flow_params( $params )) )
         {
