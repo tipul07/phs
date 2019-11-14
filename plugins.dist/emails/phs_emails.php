@@ -68,35 +68,6 @@ class PHS_Plugin_Emails extends PHS_Plugin
     }
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.2';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function get_models()
-    {
-        return array();
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Email Sending Plugin',
-            'description' => 'Handles all emailing functionality in platform.',
-        );
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_settings_structure()

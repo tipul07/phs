@@ -1728,6 +1728,101 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * @param string $action
+     * @param string|bool $plugin
+     *
+     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
+     */
+    public static function load_action( $action, $plugin = false )
+    {
+        if( !($action_name = PHS_Instantiable::safe_escape_class_name( $action )) )
+        {
+            self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t load action %s from plugin %s.', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Action_'.ucfirst( strtolower( $action_name ) );
+
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        /** @var \phs\libraries\PHS_Action */
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t obtain instance for action %s from plugin %s .', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $scope
+     * @param string|bool $plugin
+     *
+     * @return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
+     */
+    public static function load_scope( $scope, $plugin = false )
+    {
+        if( !($scope_name = PHS_Instantiable::safe_escape_class_name( $scope )) )
+        {
+            self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t load scope %s from plugin %s.', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Scope_'.ucfirst( strtolower( $scope_name ) );
+
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        /** @var \phs\PHS_Scope */
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t obtain instance for scope %s from plugin %s .', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $plugin_name Plugin name to be loaded
+     *
+     * @return false|\phs\libraries\PHS_Plugin Returns false on error or an instance of loaded plugin
+     */
+    public static function load_plugin( $plugin_name )
+    {
+        if( !is_string( $plugin_name ) )
+        {
+            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Plugin name is not a string.' ) );
+            return false;
+        }
+
+        if( $plugin_name === PHS_Instantiable::CORE_PLUGIN )
+            $plugin_name = false;
+
+        if( empty( $plugin_name )
+         or !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
+        {
+            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin %s.', (empty( $plugin_name )?PHS_Instantiable::CORE_PLUGIN:$plugin_name) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Plugin_'.ucfirst( strtolower( $plugin_safe_name ) );
+
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
      * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
      * This only returns file names, does no check if class is instantiable...
      *
@@ -1754,6 +1849,12 @@ final class PHS extends PHS_Registry
             case PHS_Instantiable::INSTANCE_TYPE_ACTION:
                 $class_name = 'PHS_Action_Index';
             break;
+            case PHS_Instantiable::INSTANCE_TYPE_VIEW:
+                $class_name = 'PHS_View_Index';
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_SCOPE:
+                $class_name = 'PHS_Scope_Index';
+            break;
 
             default:
                 self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Invalid instance type to obtain script files list.' ) );
@@ -1761,11 +1862,11 @@ final class PHS extends PHS_Registry
             break;
         }
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
         {
             $plugin = false;
 
-            if( $instance_type == PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+            if( $instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
             {
                 self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'There is no CORE plugin.' ) );
                 return false;
@@ -1800,8 +1901,8 @@ final class PHS extends PHS_Registry
 
         // Check spacial case if we are asked for plugin script (as there's only one)
         $resulting_instance_names = array();
-        if( $plugin != PHS_Instantiable::CORE_PLUGIN
-        and $instance_type == PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+        if( $plugin !== PHS_Instantiable::CORE_PLUGIN
+        and $instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
         {
             if( !@file_exists( $instance_details['instance_path'].'phs_'.$plugin.'.php' ) )
             {
@@ -1820,8 +1921,8 @@ final class PHS extends PHS_Registry
                 {
                     $script_file_name = basename( $file_script );
                     // Special check as plugin script is only one
-                    if( substr( $script_file_name, 0, 4 ) != 'phs_'
-                     or substr( $script_file_name, -4 ) != '.php' )
+                    if( strpos( $script_file_name, 'phs_' ) !== 0
+                     or substr( $script_file_name, -4 ) !== '.php' )
                         continue;
 
                     $instance_file_name = substr( substr( $script_file_name, 4 ), 0, -4 );
@@ -1834,99 +1935,190 @@ final class PHS extends PHS_Registry
         return $resulting_instance_names;
     }
 
-    /**
-     * @param string $action
-     * @param string|bool $plugin
-     *
-     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
-     */
-    public static function load_action( $action, $plugin = false )
+    final public static function default_instance_json_fields()
     {
-        if( !($action_name = PHS_Instantiable::safe_escape_class_name( $action )) )
-        {
-            self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t load action %s from plugin %s.', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
-            return false;
-        }
-
-        $class_name = 'PHS_Action_'.ucfirst( strtolower( $action_name ) );
-
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
-            $plugin = false;
-
-        /** @var \phs\libraries\PHS_Action */
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION )) )
-        {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_ACTION, self::_t( 'Couldn\'t obtain instance for action %s from plugin %s .', $action, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
-            return false;
-        }
-
-        return $instance_obj;
+        return array(
+            'vendor_id' => '', // unique vendor identifier
+            'vendor_name' => '', // readable vendor name
+            'name' => '',
+            'description' => '',
+            'version' => '0.0.0',
+            // This is used internally by PHS
+            'script_version' => '0.0.0',
+            'update_url' => '',
+            // Tells if plugin has any dependencies (key is plugin name and value is min version required)
+            'requires' => array(),
+            // only for plugins...
+            'models' => array(),
+            // only for plugins...
+            'agent_jobs' => array(),
+        );
     }
 
     /**
-     * @param string $scope
-     * @param string|bool $plugin
+     * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
+     * This only returns file names, does no check if class is instantiable...
      *
-     * @return false|\phs\PHS_Scope Returns false on error or an instance of loaded scope
+     * @param string|bool $plugin Plugin name
+     * @param string|bool $instance_name Model, controller, action, view or scope name
+     * @param string $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
+     *
+     * @return array|bool
      */
-    public static function load_scope( $scope, $plugin = false )
+    private static function _get_instance_json_details( $plugin = false, $instance_name = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
     {
-        if( !($scope_name = PHS_Instantiable::safe_escape_class_name( $scope )) )
+        self::st_reset_error();
+
+        if( $plugin === false )
+            $plugin = PHS_Instantiable::CORE_PLUGIN;
+
+        if( $instance_name === false
+         or !is_string( $instance_name ) )
+            $instance_name = 'Index';
+        else
+            $instance_name = ucfirst( strtolower( $instance_name ) );
+
+        switch( $instance_type )
         {
-            self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t load scope %s from plugin %s.', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
-            return false;
+            case PHS_Instantiable::INSTANCE_TYPE_PLUGIN:
+                $class_name = 'PHS_Plugin_'.$instance_name;
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_MODEL:
+                $class_name = 'PHS_Model_'.$instance_name;
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_CONTROLLER:
+                $class_name = 'PHS_Controller_'.$instance_name;
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_ACTION:
+                $class_name = 'PHS_Action_'.$instance_name;
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_VIEW:
+                $class_name = 'PHS_View_'.$instance_name;
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_SCOPE:
+                $class_name = 'PHS_Scope_'.$instance_name;
+            break;
+
+            default:
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Invalid instance type to get JSON info.' ) );
+                return false;
+            break;
         }
 
-        $class_name = 'PHS_Scope_'.ucfirst( strtolower( $scope_name ) );
-
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
+        {
             $plugin = false;
 
-        /** @var \phs\PHS_Scope */
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE )) )
+            if( $instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+            {
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'There is no CORE plugin.' ) );
+                return false;
+            }
+        }
+
+        elseif( !($plugin = PHS_Instantiable::safe_escape_plugin_name( $plugin )) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t obtain instance for scope %s from plugin %s .', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Invalid plugin name to get JSON info.' ) );
             return false;
         }
 
-        return $instance_obj;
+        // Get generic information about an index controller to obtain paths to be checked...
+        if( !($instance_details = PHS_Instantiable::get_instance_details( $class_name, $plugin, $instance_type )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Couldn\'t obtain instance details for generic controller index from plugin %s .', (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        if( empty( $instance_details['instance_path'] ) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_SCRIPT_FILES, self::_t( 'Couldn\'t obtain instance path for plugin %s, instance %s.',
+                    (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin), $instance_name ) );
+
+            return false;
+        }
+
+        // Plugin might not have even directory created meaning no script files
+        if( !@is_dir( $instance_details['instance_path'] )
+         or !@is_readable( $instance_details['instance_path'] )
+         or !@file_exists( $instance_details['instance_path'].$instance_details['instance_json_file'] )
+         or !($json_str = @file_get_contents( $instance_details['instance_path'].$instance_details['instance_json_file'] ))
+         or !($json_arr = @json_decode( $json_str, true )) )
+            return array();
+
+        $json_arr = self::validate_array_to_new_array( $json_arr, self::default_instance_json_fields() );
+
+        // script_version key is used internally by PHS
+        if( !empty( $json_arr['version'] ) )
+            $json_arr['script_version'] = $json_arr['version'];
+
+        return $json_arr;
     }
 
     /**
-     * @param string $plugin_name Plugin name to be loaded
+     * @param string $plugin_name
      *
-     * @return false|\phs\libraries\PHS_Plugin Returns false on error or an instance of loaded plugin
+     * @return array|bool
      */
-    public static function load_plugin( $plugin_name )
+    public static function get_plugin_json_info( $plugin_name )
     {
-        if( !is_string( $plugin_name ) )
-        {
-            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Plugin name is not a string.' ) );
-            return false;
-        }
+        return self::_get_instance_json_details( $plugin_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN );
+    }
 
-        if( $plugin_name == PHS_Instantiable::CORE_PLUGIN )
-            $plugin_name = false;
+    /**
+     * @param string $plugin_name
+     * @param string $model_name
+     *
+     * @return array|bool
+     */
+    public static function get_model_json_info( $plugin_name, $model_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $model_name, PHS_Instantiable::INSTANCE_TYPE_MODEL );
+    }
 
-        if( empty( $plugin_name )
-         or !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
-        {
-            self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin %s.', (empty( $plugin_name )?PHS_Instantiable::CORE_PLUGIN:$plugin_name) ) );
-            return false;
-        }
+    /**
+     * @param string $plugin_name
+     * @param string $controller_name
+     *
+     * @return array|bool
+     */
+    public static function get_controller_json_info( $plugin_name, $controller_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $controller_name, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER );
+    }
 
-        $class_name = 'PHS_Plugin_'.ucfirst( strtolower( $plugin_safe_name ) );
+    /**
+     * @param string $plugin_name
+     * @param string $action_name
+     *
+     * @return array|bool
+     */
+    public static function get_action_json_info( $plugin_name, $action_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $action_name, PHS_Instantiable::INSTANCE_TYPE_ACTION );
+    }
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
-        {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name ) );
-            return false;
-        }
+    /**
+     * @param string $plugin_name
+     * @param string $view_name
+     *
+     * @return array|bool
+     */
+    public static function get_view_json_info( $plugin_name, $view_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $view_name, PHS_Instantiable::INSTANCE_TYPE_VIEW );
+    }
 
-        return $instance_obj;
+    /**
+     * @param string $plugin_name
+     * @param string $scope_name
+     *
+     * @return array|bool
+     */
+    public static function get_scope_json_info( $plugin_name, $scope_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $scope_name, PHS_Instantiable::INSTANCE_TYPE_SCOPE );
     }
 
     /**
@@ -1975,7 +2167,7 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        if( !is_null( $hook_callback ) and !is_callable( $hook_callback ) )
+        if( $hook_callback !== null and !is_callable( $hook_callback ) )
         {
             self::st_set_error( self::ERR_HOOK_REGISTRATION, self::_t( 'Couldn\'t add callback for hook %s.', $hook_name ) );
             return false;
@@ -1993,7 +2185,7 @@ final class PHS extends PHS_Registry
         if( !isset( $extra['priority'] ) )
             $extra['priority'] = 10;
         else
-            $extra['priority'] = intval( $extra['priority'] );
+            $extra['priority'] = (int)$extra['priority'];
 
         $hookdata = array();
         $hookdata['callback'] = $hook_callback;

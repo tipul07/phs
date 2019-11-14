@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Captcha Plugin",
+    "description": "Handles all captcha functionality where required.",
+    "version": "1.0.2"
+}

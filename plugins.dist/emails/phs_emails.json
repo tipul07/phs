@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Email Sending Plugin",
+    "description": "Handles all emailing functionality in platform.",
+    "version": "1.0.2"
+}

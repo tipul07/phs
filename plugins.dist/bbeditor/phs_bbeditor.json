@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Simple BB code editor",
+    "description": "If you need a simple text editor which only changes text formatting this is the one to use.",
+    "version": "1.0.2"
+}

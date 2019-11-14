@@ -101,6 +101,12 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         return self::$_signals[$signal];
     }
 
+    /**
+     * @param string $signal
+     * @param bool|array $signal_params
+     *
+     * @return array|bool
+     */
     final protected function signal_trigger( $signal, $signal_params = false )
     {
         static $signal_level = 0;
@@ -126,7 +132,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         foreach( $this->_connections as $instance_id => $instance_details )
         {
             // Make sure we don't get into a loop
-            if( $instance_id == $this->instance_id()
+            if( $instance_id === $this->instance_id()
              or !empty( self::$signal_backtrace[$signal.'_'.$instance_id] ) )
                 continue;
 

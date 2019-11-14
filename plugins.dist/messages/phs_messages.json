@@ -1,0 +1,8 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Internal Messages",
+    "description": "Create internal messages between user accounts. Supports messages user to user, level, role or role unit.",
+    "version": "1.1.1",
+    "models": [ "messages" ]
+}

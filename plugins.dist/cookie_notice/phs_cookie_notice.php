@@ -16,32 +16,6 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     const COOKIE_NAME = '__phs_c_p_a', COOKIE_EXPIRE_SECS = 31536000; // 1 year
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.1';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Cookie acceptance notice',
-            'description' => 'In some countries end-user has to be warned that current site is using cookies. This plugin displays this warning.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array();
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_settings_structure()

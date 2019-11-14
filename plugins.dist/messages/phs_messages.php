@@ -31,32 +31,6 @@ class PHS_Plugin_Messages extends PHS_Plugin
           ROLEU_SET_TYPE_IN_COMPOSE = 'phs_messages_type_in_compose',
           ROLEU_VIEW_ALL_MESSAGES = 'phs_messages_view_all_messages', ROLEU_CAN_REPLY_TO_ALL = 'phs_messages_can_reply_to_all';
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.1.1';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Internal Messages',
-            'description' => 'Create internal messages between user accounts. Supports messages user to user, level, role or role unit.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array( 'messages' );
-    }
-
     public static function get_msg_handler_field_definition()
     {
         return array(

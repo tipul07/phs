@@ -26,32 +26,6 @@ class PHS_Plugin_Backup extends PHS_Plugin
           ROLEU_LIST_BACKUPS = 'phs_backups_list_backups', ROLEU_DELETE_BACKUPS = 'phs_backups_delete_backups';
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.9';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Backup Plugin',
-            'description' => 'Manages backing up framework database and files.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array( 'rules', 'results' );
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_agent_jobs_definition()
