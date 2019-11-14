@@ -655,6 +655,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         $return_arr['instance_name'] = ucfirst( strtolower( $return_arr['instance_name'] ) );
+        $return_arr['instance_json_file'] = 'phs_'.strtolower( $return_arr['instance_name'] ).'.json';
         $return_arr['instance_id'] = $instance_id;
         $return_arr['instance_file_name'] = 'phs_'.strtolower( $return_arr['instance_name'] ).'.php';
         $return_arr['plugin_paths'] = array();

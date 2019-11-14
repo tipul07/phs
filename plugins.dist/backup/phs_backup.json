@@ -1,0 +1,8 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Backup Plugin",
+    "description": "Manages backing up framework database and files.",
+    "version": "1.0.9",
+    "models": [ "rules", "results" ]
+}

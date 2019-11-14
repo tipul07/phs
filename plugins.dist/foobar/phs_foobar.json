@@ -1,0 +1,8 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Foobar Plugin",
+    "description": "This is a foobar plugin...",
+    "version": "1.0.10",
+    "models": [ "foobar" ]
+}

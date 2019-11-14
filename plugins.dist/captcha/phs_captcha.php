@@ -22,32 +22,6 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
     const SESSION_VAR = 'phs_image_code';
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.2';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Captcha Plugin',
-            'description' => 'Handles all captcha functionality where required.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array();
-    }
-
     public function get_output_as_key_vals()
     {
         return array(

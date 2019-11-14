@@ -27,32 +27,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     private static $_session_key = 'PHS_sess';
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.1.1';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => $this->_pt( 'Accounts Management' ),
-            'description' => $this->_pt( 'Handles all functionality related to user accounts.' ),
-        );
-    }
-
-    public function get_models()
-    {
-        return array( 'accounts', 'accounts_details' );
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_settings_structure()

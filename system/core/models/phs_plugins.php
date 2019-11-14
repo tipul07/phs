@@ -1289,25 +1289,25 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    public function force_install()
-    {
-        $this->install();
-
-        if( !($signal_result = $this->signal_trigger( self::SIGNAL_FORCE_INSTALL )) )
-        {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Error when triggering force install signal.' ) );
-
-            return false;
-        }
-
-        if( !empty( $signal_result['error_arr'] ) and is_array( $signal_result['error_arr'] ) )
-        {
-            $this->copy_error_from_array( $signal_result['error_arr'], self::ERR_FORCE_INSTALL );
-            return false;
-        }
-
-        return true;
-    }
+    // public function force_install()
+    // {
+    //     $this->install();
+    //
+    //     if( !($signal_result = $this->signal_trigger( self::SIGNAL_FORCE_INSTALL )) )
+    //     {
+    //         if( !$this->has_error() )
+    //             $this->set_error( self::ERR_INSTALL, self::_t( 'Error when triggering force install signal.' ) );
+    //
+    //         return false;
+    //     }
+    //
+    //     if( !empty( $signal_result['error_arr'] ) and is_array( $signal_result['error_arr'] ) )
+    //     {
+    //         $this->copy_error_from_array( $signal_result['error_arr'], self::ERR_FORCE_INSTALL );
+    //         return false;
+    //     }
+    //
+    //     return true;
+    // }
 
 }

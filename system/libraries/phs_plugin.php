@@ -21,61 +21,81 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     private $_libraries_instances = array();
     // Plugin details as defined in default_plugin_details_fields() method
     private $_plugin_details = array();
+    // Plugin details as defined in JSON file
+    private $_plugin_json_details = false;
 
     private $_custom_lang_files_included = false;
-
-    /**
-     * @return array An array of strings which are the models used by this plugin
-     */
-    abstract public function get_models();
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    abstract public function get_plugin_details();
-
-    /**
-     * @return string Returns version of plugin
-     */
-    abstract public function get_plugin_version();
 
     public function instance_type()
     {
         return self::INSTANCE_TYPE_PLUGIN;
     }
 
-    function __construct( $instance_details )
+    public function __construct( $instance_details )
     {
         parent::__construct( $instance_details );
 
-        if( !$this->signal_defined( self::SIGNAL_INSTALL ) )
-        {
-            $signal_defaults            = array();
-            $signal_defaults['version'] = '';
+        // if( !$this->signal_defined( self::SIGNAL_INSTALL ) )
+        // {
+        //     $signal_defaults            = array();
+        //     $signal_defaults['version'] = '';
+        //
+        //     $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
+        // }
+        //
+        // if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
+        // {
+        //     $this->define_signal( self::SIGNAL_UNINSTALL );
+        // }
+        //
+        // if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
+        // {
+        //     $signal_defaults                = array();
+        //     $signal_defaults['old_version'] = '';
+        //     $signal_defaults['new_version'] = '';
+        //
+        //     $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
+        // }
+        //
+        // if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
+        // {
+        //     $signal_defaults = array();
+        //
+        //     $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
+        // }
+    }
 
-            $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
-        }
+    /**
+     * @deprecated Plugin details will be obtained from JSON file starting with version 1.1.0.0
+     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
+     */
+    public function get_plugin_details()
+    {
+        return array();
+    }
 
-        if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
-        {
-            $this->define_signal( self::SIGNAL_UNINSTALL );
-        }
+    /**
+     * @return array An array of strings which are the models used by this plugin
+     */
+    public function get_models()
+    {
+        if( !($json_arr = $this->get_plugin_json_info())
+         or empty( $json_arr['models'] ) )
+            return array();
 
-        if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
-        {
-            $signal_defaults                = array();
-            $signal_defaults['old_version'] = '';
-            $signal_defaults['new_version'] = '';
+        return $json_arr['models'];
+    }
 
-            $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
-        }
+    /**
+     * @return string Returns version of plugin
+     */
+    public function get_plugin_version()
+    {
+        if( !($json_arr = $this->get_plugin_json_info())
+         or empty( $json_arr['version'] ) )
+            return '0.0.0';
 
-        if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
-        {
-            $signal_defaults = array();
-
-            $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
-        }
+        return $json_arr['version'];
     }
 
     /**
@@ -110,7 +130,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * If you need agent jobs defined, overwrite this method to provide agent jobs definition
+     * If you need agent jobs defined, define an array in JSON plugin file
+     * Overwriting this method to provide agent jobs definition is DEPRECATED
+     * This function will get final in future release
      *
      * Handler should be unique!
      *
@@ -124,7 +146,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *          'action' => 'action_slug',
      *      ),
      *      'params' => false|array( 'param1' => 'value1', 'param2' => 'value2', ... ), // any required parameters
-     *      'run_async' => 1, // tells if job should run in paralel with agent_bg script or agent_bg script should
+     *      'run_async' => 1, // tells if job should run in parallel with agent_bg script or agent_bg script should
      *      'timed_seconds' => 3600, // interval in seconds. Once how many seconds should this route be executed
      *   ),
      *   ...
@@ -134,7 +156,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_agent_jobs_definition()
     {
-        return array();
+        if( !($json_arr = $this->get_plugin_json_info())
+         or empty( $json_arr['agent_jobs'] )
+         or !is_array( $json_arr['agent_jobs'] ) )
+            return array();
+
+        return $json_arr['agent_jobs'];
     }
 
     final public function quick_init_view_instance( $template, $template_data = false )
@@ -226,6 +253,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         self::scan_for_language_files( $languages_dir );
     }
 
+    /**
+     * @param string $library
+     * @param bool|array $params
+     *
+     * @return bool|string
+     */
     public function get_library_full_path( $library, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -246,6 +279,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
+    /**
+     * @param string $library
+     * @param bool|array $params
+     *
+     * @return bool|string
+     */
     public function get_library_full_www( $library, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -266,6 +305,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->instance_plugin_www().self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
+    /**
+     * @param string $library
+     * @param bool|array $params
+     *
+     * @return bool|mixed|PHS_Library
+     */
     public function load_library( $library, $params = false )
     {
         $this->reset_error();
@@ -598,7 +643,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             foreach( $plugins_modules_arr as $module_id => $module_arr )
             {
-                if( $module_arr['status'] == PHS_Model_Plugins::STATUS_INACTIVE )
+                if( (int)$module_arr['status'] === PHS_Model_Plugins::STATUS_INACTIVE )
                     continue;
 
                 if( !$this->_plugins_instance->edit( $module_arr, $edit_params_arr ) )
@@ -721,9 +766,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 $agent_job_arr['title'] = '';
 
             if( !empty( $agent_job_arr['timed_seconds'] ) )
-                $agent_job_arr['timed_seconds'] = intval( $agent_job_arr['timed_seconds'] );
+                $agent_job_arr['timed_seconds'] = (int)$agent_job_arr['timed_seconds'];
 
-            // Hardcode job to run once an hour rather than stopping install
+            // Hardcoded job to run once an hour rather than stopping install
             if( empty( $agent_job_arr['timed_seconds'] ) or $agent_job_arr['timed_seconds'] < 0 )
                 $agent_job_arr['timed_seconds'] = 3600;
 
@@ -1012,15 +1057,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if( empty( $old_plugin_arr ) )
         {
-            PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-            // No details in database before... it should be an install
-            $signal_params = array();
-            $signal_params['version'] = $plugin_arr['version'];
-
-            $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-
-            PHS_Logger::logf( 'DONE triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            // PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            //
+            // // No details in database before... it should be an install
+            // $signal_params = array();
+            // $signal_params['version'] = $plugin_arr['version'];
+            //
+            // $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
+            //
+            // PHS_Logger::logf( 'DONE triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         } else
         {
             $trigger_update_signal = false;
@@ -1042,26 +1087,26 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 $trigger_update_signal = true;
             }
 
-            if( $trigger_update_signal )
-            {
-                PHS_Logger::logf( 'Triggering update signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-                $signal_params = array();
-                $signal_params['old_version'] = $old_plugin_arr['version'];
-                $signal_params['new_version'] = $plugin_arr['version'];
-
-                $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
-            } else
-            {
-                PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-                $signal_params = array();
-                $signal_params['version'] = $plugin_arr['version'];
-
-                $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-            }
-
-            PHS_Logger::logf( 'DONE triggering signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            // if( $trigger_update_signal )
+            // {
+            //     PHS_Logger::logf( 'Triggering update signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            //
+            //     $signal_params = array();
+            //     $signal_params['old_version'] = $old_plugin_arr['version'];
+            //     $signal_params['new_version'] = $plugin_arr['version'];
+            //
+            //     $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
+            // } else
+            // {
+            //     PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            //
+            //     $signal_params = array();
+            //     $signal_params['version'] = $plugin_arr['version'];
+            //
+            //     $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
+            // }
+            //
+            // PHS_Logger::logf( 'DONE triggering signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         PHS_Logger::logf( 'Installing plugin models ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
@@ -1164,11 +1209,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-        $this->signal_trigger( self::SIGNAL_UNINSTALL );
-
-        PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        // PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        //
+        // $this->signal_trigger( self::SIGNAL_UNINSTALL );
+        //
+        // PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Logger::logf( 'Uninstalling plugin models ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -1426,7 +1471,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $db_details['new_data'];
     }
 
-    final public function default_plugin_details_fields()
+    final public static function default_plugin_details_fields()
     {
         return array(
             'id' => '', // full instance id $instance_type.':'.$plugin_name.':'.$instance_name
@@ -1436,6 +1481,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'name' => '',
             'description' => '',
             'script_version' => '0.0.0',
+            // Alias of script_version (used in JSON)
+            'version' => '0.0.0',
             'db_version' => '0.0.0',
             'update_url' => '',
             'status' => 0,
@@ -1447,31 +1494,50 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'db_details' => false,
             'models' => array(),
             'settings_arr' => array(),
+            // Tells if plugin has any dependencies (key is plugin name and value is min version required)
+            'requires' => array(),
+            'agent_jobs' => array(),
         );
     }
 
-    static public function core_plugin_details_fields()
+    public static function core_plugin_details_fields()
     {
-        return array(
+        $return_arr = array(
             'id' => PHS_Instantiable::CORE_PLUGIN,
-            'plugin_name' => false,
             'vendor_id' => 'phs',
             'vendor_name' => 'PHS',
             'name' => self::_t( 'CORE Framework' ),
             'description' => self::_t( 'CORE functionality' ),
             'script_version' => PHS_VERSION,
             'db_version' => PHS_KNOWN_VERSION,
-            'update_url' => '',
             'status' => PHS_Model_Plugins::STATUS_ACTIVE,
             'is_installed' => true,
             'is_upgradable' => false,
             'is_core' => true,
             'is_always_active' => true,
             'is_distribution' => true,
-            'db_details' => false,
             'models' => PHS::get_core_models(),
-            'settings_arr' => array(),
         );
+
+        return self::validate_array_to_new_array( $return_arr, self::default_plugin_details_fields() );
+    }
+
+    /**
+     * Returns plugin information as described in plugin JSON file (if available) as array or false in case there is no JSON file
+     * @return array
+     */
+    final public function get_plugin_json_info()
+    {
+        if( $this->_plugin_json_details !== false )
+            return $this->_plugin_json_details;
+
+        if( !($plugin_name = $this->instance_plugin_name())
+         or !($json_arr = PHS::get_plugin_json_info( $plugin_name )) )
+            $json_arr = array();
+
+        $this->_plugin_json_details = self::validate_array_to_new_array( $json_arr, self::default_plugin_details_fields() );
+
+        return $this->_plugin_json_details;
     }
 
     final public function get_plugin_info()
@@ -1479,7 +1545,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if( !empty( $this->_plugin_details ) )
             return $this->_plugin_details;
 
-        $plugin_details = self::validate_array( $this->get_plugin_details(), $this->default_plugin_details_fields() );
+        $plugin_details = self::validate_array( $this->get_plugin_details(), self::default_plugin_details_fields() );
+        if( ($json_info = $this->get_plugin_json_info()) )
+            $plugin_details = self::merge_array_assoc( $plugin_details, $json_info );
 
         $plugin_details['id'] = $this->instance_id();
         $plugin_details['plugin_name'] = $this->instance_plugin_name();

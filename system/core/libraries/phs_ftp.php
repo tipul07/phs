@@ -736,9 +736,16 @@ class PHS_Ftp extends PHS_Library
 
             if( !($this->internal_settings['con_ssh2'] = @ssh2_connect( $ftp_settings['host'], $ftp_settings['port'] )) )//, null, $ssh2_callbacks )) )
             {
-                $this->set_error( self::ERR_CONNECTION, 'FTP connection to server failed.' );
+                $error_msg = '';
+                if( ($conn_error = @error_get_last())
+                and !empty( $conn_error['message'] ) )
+                    $error_msg = $conn_error['message'];
+
+                $this->set_error( self::ERR_CONNECTION, 'FTP connection to server failed.'.(!empty( $error_msg )?' ('.$error_msg.')':'') );
+
                 if( empty( $params['skip_callbacks'] ) )
                     $this->trigger_phs_hooks( self::H_AFTER_CONNECT, array( 'server' => $ftp_settings, 'success' => false ) );
+
                 return false;
             }
 

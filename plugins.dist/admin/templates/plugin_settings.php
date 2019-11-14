@@ -33,7 +33,7 @@
     if( empty( $plugin_obj ) )
         $plugin_info = PHS_Plugin::core_plugin_details_fields();
     elseif( !($plugin_info = $plugin_obj->get_plugin_info()) )
-        $plugin_info = $plugin_obj->default_plugin_details_fields();
+        $plugin_info = $plugin_obj::default_plugin_details_fields();
 
     $current_user = PHS::user_logged_in();
 ?>
@@ -170,7 +170,7 @@ function phs_display_plugin_settings_all_fields( $settings_fields, $form_data, $
             ?>
             <div class="lineformgroup" id="phs_group_<?php echo $field_name?>">
             <section class="heading-bordered">
-                <h3><?php
+                <h4><?php
                     if( !empty( $field_details['group_foldable'] ) )
                     {
                         ?><div class="lineformgrouptrigger" onclick="phs_toggle_settings_group( '<?php echo $field_name?>' )"><?php
@@ -182,7 +182,7 @@ function phs_display_plugin_settings_all_fields( $settings_fields, $form_data, $
                     {
                         ?> <i id="phs_group_arrow_icon_<?php echo $field_name?>" class="fa fa-arrow-circle-up"></i></div><?php
                     }
-                ?></h3>
+                ?></h4>
             </section>
             <div class="clearfix"></div>
             <?php

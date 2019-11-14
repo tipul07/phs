@@ -46,21 +46,21 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         parent::__construct( $instance_details );
 
-        if( !$this->signal_defined( self::SIGNAL_ACTION_BEFORE_RUN ) )
-        {
-            $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
-                'action_obj' => $this,
-                'controller_obj' => &$this->_controller_obj,
-            ) );
-        }
-
-        if( !$this->signal_defined( self::SIGNAL_ACTION_AFTER_RUN ) )
-        {
-            $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
-                'action_obj' => $this,
-                'controller_obj' => &$this->_controller_obj,
-            ) );
-        }
+        // if( !$this->signal_defined( self::SIGNAL_ACTION_BEFORE_RUN ) )
+        // {
+        //     $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
+        //         'action_obj' => $this,
+        //         'controller_obj' => &$this->_controller_obj,
+        //     ) );
+        // }
+        //
+        // if( !$this->signal_defined( self::SIGNAL_ACTION_AFTER_RUN ) )
+        // {
+        //     $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
+        //         'action_obj' => $this,
+        //         'controller_obj' => &$this->_controller_obj,
+        //     ) );
+        // }
     }
 
     final public static function default_action_role_definition_array()
@@ -337,19 +337,19 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_BEFORE_RUN, array(
-                    'controller_obj' => $this->_controller_obj,
-                ) )) )
-        {
-            if( !empty( $signal_result['stop_process'] ) )
-            {
-                if( $signal_result['replace_result'] !== null )
-                {
-                    $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
-                    return $this->get_action_result();
-                }
-            }
-        }
+        // if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_BEFORE_RUN, array(
+        //             'controller_obj' => $this->_controller_obj,
+        //         ) )) )
+        // {
+        //     if( !empty( $signal_result['stop_process'] ) )
+        //     {
+        //         if( $signal_result['replace_result'] !== null )
+        //         {
+        //             $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
+        //             return $this->get_action_result();
+        //         }
+        //     }
+        // }
 
         $hook_args = PHS_Hooks::default_action_execute_hook_args();
         $hook_args['action_obj'] = $this;
@@ -392,19 +392,19 @@ abstract class PHS_Action extends PHS_Signal_and_slot
             }
         }
 
-        if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_AFTER_RUN, array(
-            'controller_obj' => $this->_controller_obj,
-        ) )) )
-        {
-            if( !empty( $signal_result['stop_process'] ) )
-            {
-                if( $signal_result['replace_result'] !== null )
-                {
-                    $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
-                    return $this->get_action_result();
-                }
-            }
-        }
+        // if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_AFTER_RUN, array(
+        //     'controller_obj' => $this->_controller_obj,
+        // ) )) )
+        // {
+        //     if( !empty( $signal_result['stop_process'] ) )
+        //     {
+        //         if( $signal_result['replace_result'] !== null )
+        //         {
+        //             $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
+        //             return $this->get_action_result();
+        //         }
+        //     }
+        // }
 
         $hook_args = PHS_Hooks::default_action_execute_hook_args();
         $hook_args['action_obj'] = $this;

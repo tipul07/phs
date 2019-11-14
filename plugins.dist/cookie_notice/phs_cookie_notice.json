@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Cookie acceptance notice",
+    "description": "In some countries end-user has to be warned that current site is using cookies. This plugin displays this warning.",
+    "version": "1.0.1"
+}

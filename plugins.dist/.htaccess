@@ -7,3 +7,7 @@
 <FilesMatch ".*\.js\.php$">
     Require all granted
 </FilesMatch>
+
+<FilesMatch ".*phs_[a-zA-Z0-9_]+\.json$">
+    Require all denied
+</FilesMatch>

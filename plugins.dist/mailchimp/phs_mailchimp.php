@@ -10,32 +10,6 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
     const LOG_CHANNEL = 'phs_mailchimp.log';
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.0';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'MailChimp integration',
-            'description' => 'This plugin implements a library to be used when connecting to a MailChimp account. Plugin implements API communication with MailChimp servers.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array();
-    }
-
-    /**
      * Returns an instance of Mailchimp class
      *
      * @return bool|\phs\plugins\mailchimp\libraries\Mailchimp
@@ -70,5 +44,4 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
 
         return $mailchimp_library;
     }
-
 }

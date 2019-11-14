@@ -23,32 +23,6 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
           H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session';
 
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.2';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Basic Mobile API',
-            'description' => 'Handles basic functionality related to 3rd party (mobile) API calls.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array( 'api_online' );
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_agent_jobs_definition()

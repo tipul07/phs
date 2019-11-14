@@ -1,0 +1,8 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Basic Mobile API",
+    "description": "Handles basic functionality related to 3rd party (mobile) API calls.",
+    "version": "1.0.2",
+    "models": [ "api_online" ]
+}
