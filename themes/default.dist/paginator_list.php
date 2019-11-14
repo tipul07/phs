@@ -691,7 +691,7 @@ if( !function_exists( 'display_js_functionality' ) )
             {
                 var checkboxes_list = phs_paginator_get_checkboxes( column );
 
-                if( !checkboxes_list && !checkboxes_list.length )
+                if( !checkboxes_list || !checkboxes_list.length )
                     return [];
 
                 var list_length = checkboxes_list.length;
