@@ -15,33 +15,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
     const DIRNAME_IN_UPLOADS = '_backups';
 
-    const AGENT_JOB_HANDLE = 'backup_index_bg_run_backups_ag',
-          AGENT_BACKUPS_RUN_SECS = 3600;
-
     const LOG_CHANNEL = 'backups.log';
 
     const ROLE_BACKUP_MANAGER = 'phs_backup_manager', ROLE_BACKUP_OPERATOR = 'phs_backup_operator';
 
     const ROLEU_MANAGE_RULES = 'phs_backups_manage_rules', ROLEU_LIST_RULES = 'phs_backups_list_rules',
           ROLEU_LIST_BACKUPS = 'phs_backups_list_backups', ROLEU_DELETE_BACKUPS = 'phs_backups_delete_backups';
-
-    /**
-     * @inheritdoc
-     */
-    public function get_agent_jobs_definition()
-    {
-        return array(
-            self::AGENT_JOB_HANDLE => array(
-                'title' => 'Backup system according to rules',
-                'route' => array(
-                    'plugin' => 'backup',
-                    'controller' => 'index_bg',
-                    'action' => 'run_backups_ag'
-                ),
-                'timed_seconds' => self::AGENT_BACKUPS_RUN_SECS,
-            ),
-        );
-    }
 
     /**
      * @inheritdoc
