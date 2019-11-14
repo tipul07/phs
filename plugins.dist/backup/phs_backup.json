@@ -4,5 +4,16 @@
     "name": "Backup Plugin",
     "description": "Manages backing up framework database and files.",
     "version": "1.0.9",
-    "models": [ "rules", "results" ]
+    "models": [ "rules", "results" ],
+    "agent_jobs": {
+        "backup_index_bg_run_backups_ag": {
+            "title": "Backup system according to rules",
+            "route": {
+                "plugin": "backup",
+                "controller": "index_bg",
+                "action": "run_backups_ag"
+            },
+            "timed_seconds": 3600
+        }
+    }
 }
