@@ -1938,6 +1938,7 @@ final class PHS extends PHS_Registry
     final public static function default_instance_json_fields()
     {
         return array(
+            'data_from_json' => false, // tells if data is populated from JSON
             'vendor_id' => '', // unique vendor identifier
             'vendor_name' => '', // readable vendor name
             'name' => '',
@@ -2052,6 +2053,8 @@ final class PHS extends PHS_Registry
         // script_version key is used internally by PHS
         if( !empty( $json_arr['version'] ) )
             $json_arr['script_version'] = $json_arr['version'];
+
+        $json_arr['data_from_json'] = true;
 
         return $json_arr;
     }

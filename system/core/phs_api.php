@@ -458,7 +458,7 @@ class PHS_api extends PHS_api_base
     protected function _check_api_authentication()
     {
         if( !($api_user = $this->api_flow_value( 'api_user' ))
-         or !($api_pass = $this->api_flow_value( 'api_pass' )) )
+         or null === ($api_pass = $this->api_flow_value( 'api_pass' )) )
         {
             if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED, 'Please provide credentials' ) )
             {
