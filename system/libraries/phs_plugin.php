@@ -22,6 +22,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     // Plugin details as defined in default_plugin_details_fields() method
     private $_plugin_details = array();
     // Plugin details as defined in JSON file
+    /** @var bool|array $_plugin_json_details */
     private $_plugin_json_details = false;
 
     private $_custom_lang_files_included = false;
@@ -1491,6 +1492,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_core' => false,
             'is_always_active' => false,
             'is_distribution' => false,
+            'data_from_json' => false,
             'db_details' => false,
             'models' => array(),
             'settings_arr' => array(),
@@ -1546,7 +1548,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return $this->_plugin_details;
 
         $plugin_details = self::validate_array( $this->get_plugin_details(), self::default_plugin_details_fields() );
-        if( ($json_info = $this->get_plugin_json_info()) )
+        if( ($json_info = $this->get_plugin_json_info())
+        and !empty( $json_info['data_from_json'] ) )
             $plugin_details = self::merge_array_assoc( $plugin_details, $json_info );
 
         $plugin_details['id'] = $this->instance_id();
