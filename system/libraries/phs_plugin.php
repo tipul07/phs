@@ -67,7 +67,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @deprecated Plugin details will be obtained from JSON file starting with version 1.1.0.0
      * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
      */
     public function get_plugin_details()
@@ -1025,9 +1024,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if( ($plugin_details = $this->get_plugin_details())
-        and !empty( $plugin_details['name'] ) )
-            $plugin_name = $plugin_details['name'];
+        if( ($plugin_info = $this->get_plugin_info())
+        and !empty( $plugin_info['name'] ) )
+            $plugin_name = $plugin_info['name'];
         else
             $plugin_name = $this->instance_plugin_name();
 
@@ -1443,9 +1442,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if( ($plugin_details = $this->get_plugin_details())
-            and !empty( $plugin_details['name'] ) )
-            $plugin_name = $plugin_details['name'];
+        if( ($plugin_info = $this->get_plugin_info())
+            and !empty( $plugin_info['name'] ) )
+            $plugin_name = $plugin_info['name'];
         else
             $plugin_name = $this->instance_plugin_name();
 
