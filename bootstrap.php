@@ -64,9 +64,9 @@ include_once( PHS_CORE_DIR.'phs_agent.php' );
 include_once( PHS_CORE_DIR.'phs_ajax.php' );
 include_once( PHS_CORE_DIR.'phs_api_base.php' );
 include_once( PHS_CORE_DIR.'phs_api.php' );
-// Used to manage big number of files (initialize repostories in plugin's phs_bootstrap_x.php files)
+// Used to manage big number of files (initialize repositories in plugin's phs_bootstrap_x.php files)
 // Make sure you create repositories' directories in uploads dir and you don't initialize a LDAP repository directly in uploads dir - unless you know what you'r doing!!!)
-// eg. if uploads dfirectory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
+// eg. if uploads directory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
 include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 
 use \phs\PHS;
@@ -209,8 +209,8 @@ include_once( PHS_SYSTEM_DIR.'database_init.php' );
 // END Init database settings
 //
 
-define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!=''?':':'').PHS_PORT.'/'.PHS_DOMAIN_PATH );
-define( 'PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT!=''?':':'').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH );
+define( 'PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT!==''?':':'').PHS_PORT.'/'.PHS_DOMAIN_PATH );
+define( 'PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT!==''?':':'').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH );
 
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
 define( 'PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW );

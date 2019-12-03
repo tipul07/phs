@@ -63,14 +63,6 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @inheritDoc
-     */
-    public function get_settings_keys_to_obfuscate()
-    {
-        return array();
-    }
-
-    /**
      * @inheritdoc
      */
     public function get_roles_definition()
@@ -222,6 +214,11 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $return_arr;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array
+     */
     public function trigger_after_left_menu_admin( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
@@ -233,14 +230,19 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_web_template_rendering( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_page_location_hook_args() );
 
         if( !empty( $hook_args ) and !empty( $hook_args['page_template'] ) )
         {
-            if( $hook_args['page_template'] == 'template_admin'
-            and ($current_theme = PHS::get_theme()) != 'default'
+            if( $hook_args['page_template'] === 'template_admin'
+            and ($current_theme = PHS::get_theme()) !== 'default'
             and ($settings_arr = $this->get_plugin_settings()) )
             {
                 PHS::set_theme( 'default' );

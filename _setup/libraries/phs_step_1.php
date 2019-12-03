@@ -110,8 +110,8 @@ class PHS_Step_1 extends PHS_Step
                         'quick_comment' => 'Rename this if you use more sites on same domain...',
                     ),
                     'PHS_DEFAULT_SESSION_COOKIE_LIFETIME' => array(
-                        'raw' => 2678400,
-                        'quick_comment' => '31 days by default',
+                        'raw' => 432000,
+                        'quick_comment' => '5 days by default',
                     ),
                     'PHS_DEFAULT_SESSION_COOKIE_PATH' => '/',
                     'PHS_DEFAULT_SESSION_AUTOSTART' => array(
