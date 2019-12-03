@@ -7,41 +7,6 @@ use \phs\libraries\PHS_Plugin;
 class PHS_Plugin_Bbeditor extends PHS_Plugin
 {
     /**
-     * @return string Returns version of model
-     */
-    public function get_plugin_version()
-    {
-        return '1.0.2';
-    }
-
-    /**
-     * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
-     */
-    public function get_plugin_details()
-    {
-        return array(
-            'vendor_id' => 'phs',
-            'vendor_name' => 'PHS',
-            'name' => 'Simple BB code editor',
-            'description' => 'If you need a simple text editor which only changes text formatting this is the one to use.',
-        );
-    }
-
-    public function get_models()
-    {
-        return array();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function get_settings_structure()
-    {
-        return array(
-        );
-    }
-
-    /**
      * Returns an instance of Bbcode class
      *
      * @return bool|\phs\plugins\bbeditor\libraries\Bbcode
