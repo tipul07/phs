@@ -66,7 +66,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @deprecated Plugin details will be obtained from JSON file starting with version 1.1.0.0
+     * Plugin details will be obtained from JSON file starting with version 1.1.0.0
+     * This method should be used in special cases (eg. plugin with dynamic models)
      * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
      */
     public function get_plugin_details()

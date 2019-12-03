@@ -18,7 +18,7 @@ final class PHS_session extends PHS_Registry
     // Make sure session is not considered garbage by adding a parameter in session with a "random" number
     const SESS_TIME_PARAM_NAME = '__phs_t';
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         self::init();
@@ -101,11 +101,18 @@ final class PHS_session extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $name
+     * @param string $val
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public static function set_cookie( $name, $val, $params = false )
     {
         self::st_reset_error();
 
-        if( empty( $name ) )
+        if( empty( $name ) or !is_string( $name ) )
         {
             self::st_set_error( self::ERR_COOKIE, self::_t( 'Please provide valid cookie name.' ) );
             return false;
@@ -134,7 +141,7 @@ final class PHS_session extends PHS_Registry
         if( !isset( $params['expire_secs'] ) )
             $params['expire_secs'] = 0;
         else
-            $params['expire_secs'] = intval( $params['expire_secs'] );
+            $params['expire_secs'] = (int)$params['expire_secs'];
 
         if( !isset( $params['path'] ) )
             $params['path'] = '/';
@@ -159,6 +166,12 @@ final class PHS_session extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $name
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public static function delete_cookie( $name, $params = false )
     {
         self::st_reset_error();
@@ -211,6 +224,11 @@ final class PHS_session extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return string|null
+     */
     public static function get_cookie( $name )
     {
         if( empty( $_COOKIE ) or !is_array( $_COOKIE )
@@ -220,6 +238,9 @@ final class PHS_session extends PHS_Registry
         return $_COOKIE[$name];
     }
 
+    /**
+     * @return bool
+     */
     public static function start()
     {
         if( PHS::prevent_session() )
@@ -234,7 +255,7 @@ final class PHS_session extends PHS_Registry
             return false;
         }
 
-        session_set_save_handler(
+        @session_set_save_handler(
             array( '\\phs\\PHS_session', 'sf_open' ),
             array( '\\phs\\PHS_session', 'sf_close' ),
             array( '\\phs\\PHS_session', 'sf_read' ),
@@ -263,6 +284,11 @@ final class PHS_session extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $id
+     *
+     * @return array
+     */
     public static function get_session_id_dir_as_array( $id )
     {
         if( empty( $id ) or !is_string( $id )
@@ -276,6 +302,11 @@ final class PHS_session extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param string $id
+     *
+     * @return string
+     */
     public static function get_session_id_dir( $id )
     {
         if( empty( $id ) or !is_string( $id ) )
@@ -285,20 +316,43 @@ final class PHS_session extends PHS_Registry
         if( ($sess_dir = self::get_data( self::SESS_DIR )) )
             $sess_dir = rtrim( $sess_dir, '/\\' );
 
+        if( empty( $sess_dir ) )
+            $sess_dir = '';
+
         if( ($id_arr = self::get_session_id_dir_as_array( $id )) )
             $sess_dir .= '/'.implode( '/', $id_arr );
 
         return $sess_dir;
     }
 
+    /**
+     * @param string $id
+     *
+     * @return string
+     */
+    public static function get_session_file_name_for_id( $id )
+    {
+        return 'sess_'.$id;
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return string
+     */
     public static function get_session_id_file_name( $id )
     {
         if( !($sess_dir = self::get_session_id_dir( $id )) )
-            return 'sess_'.$id;
+            return self::get_session_file_name_for_id( $id );
 
-        return $sess_dir.'/sess_'.$id;
+        return $sess_dir.'/'.self::get_session_file_name_for_id( $id );
     }
 
+    /**
+     * @param bool $params
+     *
+     * @return bool
+     */
     public static function session_close( $params = false )
     {
         if( PHS::prevent_session()
@@ -394,27 +448,77 @@ final class PHS_session extends PHS_Registry
 
     public static function sf_gc( $maxlifetime )
     {
-        if( PHS::prevent_session() )
+        if( PHS::prevent_session()
+         or self::sessions_gc( $maxlifetime ) )
             return true;
 
-        $sess_dir = '';
+        return false;
+    }
+
+    /**
+     * @param bool|int $maxlifetime
+     *
+     * @return array|bool
+     */
+    public static function sessions_gc( $maxlifetime = false )
+    {
         if( ($sess_dir = self::get_data( self::SESS_DIR )) )
             $sess_dir = rtrim( $sess_dir, '/\\' );
 
-        for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
-            $sess_dir .= '/*';
+        if( empty( $sess_dir )
+        and defined( 'PHS_SESSION_DIR' ) )
+            $sess_dir = constant( 'PHS_SESSION_DIR' );
 
-        if( ($file_list = @glob( $sess_dir.'/sess_*' )) )
+        if( empty( $sess_dir ) )
+            return false;
+
+        $sess_dir = rtrim( $sess_dir, '/\\' );
+
+        if( $maxlifetime === false
+        and defined( 'PHS_SESSION_COOKIE_LIFETIME' ) )
+            $maxlifetime = constant( 'PHS_SESSION_COOKIE_LIFETIME' );
+
+        $maxlifetime = (int)$maxlifetime;
+
+        // If max lifetime is 0 (meaning till browser is closed) we will put a default value of 30 days
+        if( empty( $maxlifetime ) )
+            $maxlifetime = 2592000; // delete all sessions older than 30 days if session max life time is 0...
+
+        $dir_pattern = $sess_dir;
+        for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
+            $dir_pattern .= '/*';
+
+        $return_arr = array();
+        $return_arr['sess_dir'] = $sess_dir;
+        $return_arr['dir_pattern'] = $dir_pattern;
+        $return_arr['maxlifetime'] = $maxlifetime;
+        $return_arr['total'] = 0;
+        $return_arr['deleted'] = 0;
+
+        if( ($file_list = @glob( $dir_pattern.'/'.self::get_session_file_name_for_id( '*' ) )) )
         {
             foreach( $file_list as $file )
             {
+                $return_arr['total']++;
+
+                $check_dir = $file;
+                for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
+                    $check_dir = @dirname( $check_dir );
+
                 if( @file_exists( $file )
                 and @filemtime( $file ) + $maxlifetime < time() )
+                {
                     @unlink( $file );
+                    echo 'Delete: ['.$file.']['.$check_dir.']<br/>'."\n";
+
+                    PHS_utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
+
+                    $return_arr['deleted']++;
+                }
             }
         }
 
-        return true;
+        return $return_arr;
     }
 
     public static function is_started()
