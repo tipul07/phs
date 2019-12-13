@@ -67,7 +67,8 @@ class PHS_Action_Device_update extends PHS_Action
         if( !($request_arr = PHS_api::get_request_body_as_json_array())
          or empty( $request_arr['device_type'] )
          or empty( $request_arr['device_token'] )
-         or empty( $device_arr['device_type'] ) or $device_arr['device_type'] != $request_arr['device_type']
+         or !$online_model->valid_device_type( $request_arr['device_type'] )
+         or empty( $device_arr['device_type'] ) or (int)$device_arr['device_type'] !== (int)$request_arr['device_type']
          or empty( $device_arr['device_token'] ) or (string)$device_arr['device_token'] !== (string)$request_arr['device_token'] )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide device details.' ) ) )
@@ -101,9 +102,9 @@ class PHS_Action_Device_update extends PHS_Action
         if( !empty( $device_data )
         and !($new_device_arr = $online_model->update_device( $device_data, $device_arr )) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error updating device.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Error generating session.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Error updating device.' ) );
                 return false;
             }
 
@@ -115,6 +116,7 @@ class PHS_Action_Device_update extends PHS_Action
 
         $session_arr[$online_model::DEVICE_KEY] = $device_arr;
 
+        // In case user already logged out and we have a "late" request or user was inactivated between requests...
         if( empty( $device_arr['uid'] )
          or !($account_arr = $accounts_model->get_details( $device_arr['uid'], array( 'table_name' => 'users' ) ))
          or !$accounts_model->is_active( $account_arr ) )

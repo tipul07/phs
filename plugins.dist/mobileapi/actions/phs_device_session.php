@@ -41,6 +41,7 @@ class PHS_Action_Device_session extends PHS_Action
 
         if( !($request_arr = PHS_api::get_request_body_as_json_array())
          or empty( $request_arr['device_type'] )
+         or !$online_model->valid_device_type( $request_arr['device_type'] )
          or empty( $request_arr['device_token'] ) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide device details.' ) ) )

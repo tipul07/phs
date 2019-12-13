@@ -13,10 +13,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 {
     const ERR_DEPENDENCIES = 60000;
 
-    const AGENT_JOB_HANDLE = 'mobileapi_index_bg_check_api_sessions_ag',
-          AGENT_CHECK_SESSIONS_SECS = 3600; // check expired 3rd party session once every hour
-
-    const LOG_CHANNEL = 'mobileapi.log';
+    const LOG_CHANNEL = 'mobileapi.log', LOG_FIREBASE = 'firebase.log';
 
     const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data',
           // export account and session details to 3rd party apps
@@ -25,17 +22,27 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_agent_jobs_definition()
+    public function get_settings_structure()
     {
         return array(
-            self::AGENT_JOB_HANDLE => array(
-                'title' => 'Check mobile 3rd party sessions',
-                'route' => array(
-                    'plugin' => 'mobileapi',
-                    'controller' => 'index_bg',
-                    'action' => 'check_api_sessions_ag'
-                ),
-                'timed_seconds' => self::AGENT_CHECK_SESSIONS_SECS,
+            // default template
+            'fcm_base_url' => array(
+                'display_name' => 'Firebase API URL',
+                'display_hint' => 'URL where plugin will make the call to send push notifications using Firebase library.',
+                'type' => PHS_params::T_ASIS,
+                'default' => 'https://fcm.googleapis.com',
+            ),
+            'fcm_auth_key' => array(
+                'display_name' => $this->_pt( 'Firebase Authentication Key' ),
+                'display_hint' => $this->_pt( 'Key used for authentication when sending push notification using Firebase library.' ),
+                'type' => PHS_params::T_ASIS,
+                'default' => '',
+            ),
+            'fcm_api_timeout' => array(
+                'display_name' => $this->_pt( 'Firebase API Timeout' ),
+                'display_hint' => $this->_pt( 'After how many seconds should request to Firebase server timeout.' ),
+                'type' => PHS_params::T_INT,
+                'default' => 30,
             ),
         );
     }
@@ -332,5 +339,193 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         self::api_session( $session_params );
 
         return true;
+    }
+
+    /**
+     * @param int|array $account_data
+     * @param array $payload_arr
+     * @param bool|array $params
+     *
+     * @return bool|array Returns false or error or a list of devices to which notification was sent and errors (if any)
+     */
+    public function push_notification_to_user( $account_data, $payload_arr, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading accounts model.' ) );
+            return false;
+        }
+
+        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $apionline_model */
+        if( !($apionline_model = PHS::load_model( 'api_online', 'mobileapi' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading API online model.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        $params['apionline_model'] = $apionline_model;
+
+        if( empty( $params['devices_params'] )
+         or !is_array( $params['devices_params'] ) )
+            $params['devices_params'] = array();
+
+        $return_arr = array();
+        $return_arr['errors'] = array();
+        $return_arr['devices'] = array();
+
+        if( !($devices_arr = $apionline_model->get_account_devices( $account_arr, $params['devices_params'] )) )
+        {
+            if( $apionline_model->has_error() )
+            {
+                $this->copy_error( $apionline_model );
+                return false;
+            }
+
+            return $return_arr;
+        }
+
+        $return_arr['devices'] = $devices_arr;
+        foreach( $devices_arr as $device_id => $device_arr )
+        {
+            if( !($send_result = $this->push_notification_to_device( $device_arr, $payload_arr, $params )) )
+            {
+                $error_msg = $this->_pt( 'Error sending notification to device.' );
+                if( $this->has_error() )
+                    $error_msg = $this->get_simple_error_message();
+
+                $return_arr['errors'][$device_id] = $error_msg;
+            }
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * @param int|array $device_data
+     * @param array $payload_arr
+     * @param bool|array $params
+     *
+     * @return bool|void
+     */
+    public function push_notification_to_device( $device_data, $payload_arr, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['apionline_model'] )
+        and !($params['apionline_model'] = PHS::load_model( 'api_online', 'mobileapi' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading API online model.' ) );
+            return false;
+        }
+
+        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $apionline_model */
+        $apionline_model = $params['apionline_model'];
+
+        if( !($devices_flow = $apionline_model->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initiate device module flow.' ) );
+            return false;
+        }
+
+        if( !($device_arr = $apionline_model->data_to_array( $device_data, $devices_flow )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Device not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $device_arr['device_token'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Device doesn\'t have a token set.' ) );
+            return false;
+        }
+
+        return $this->push_notification_to_token( $device_arr['device_token'], $payload_arr, $params );
+    }
+
+    /**
+     * @param string $token_str
+     * @param array $payload_arr
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
+    public function push_notification_to_token( $token_str, $payload_arr, $params = false )
+    {
+        $this->reset_error();
+
+        if( !($firebase_obj = $this->get_firebase_instance()) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading Firebase library.' ) );
+
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        // Envelope ar keys which will be added in root of payload sent to Firebase
+        // (eg. collapse_key, priority, time_to_live, etc)
+        // @see https://firebase.google.com/docs/cloud-messaging/http-server-ref
+        if( empty( $params['envelope'] ) or !is_array( $params['envelope'] ) )
+            $params['envelope'] = false;
+
+        if( !($result = $firebase_obj->send_notification( $token_str, $payload_arr, $params['envelope'] )) )
+        {
+            if( $firebase_obj->has_error() )
+                $this->copy_error( $firebase_obj );
+            else
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending push notification using Firebase library.' ) );
+
+            return false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns an instance of PHS_Firebase class
+     *
+     * @return bool|\phs\plugins\mobileapi\libraries\PHS_Firebase
+     */
+    public function get_firebase_instance()
+    {
+        static $library_obj = null;
+
+        if( $library_obj !== null )
+            return $library_obj;
+
+        $library_params = array();
+        $library_params['full_class_name'] = '\\phs\\plugins\\mobileapi\\libraries\\PHS_Firebase';
+        $library_params['as_singleton'] = true;
+
+        /** @var \phs\plugins\mobileapi\libraries\PHS_Firebase $loaded_library */
+        if( !($loaded_library = $this->load_library( 'phs_firebase', $library_params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading Firebase library.' ) );
+
+            return false;
+        }
+
+        $library_obj = $loaded_library;
+
+        return $library_obj;
     }
 }

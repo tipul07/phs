@@ -4,5 +4,16 @@
     "name": "Basic Mobile API",
     "description": "Handles basic functionality related to 3rd party (mobile) API calls.",
     "version": "1.0.2",
-    "models": [ "api_online" ]
+    "models": [ "api_online" ],
+    "agent_jobs": {
+        "mobileapi_index_bg_check_api_sessions_ag": {
+            "title": "Check mobile 3rd party sessions",
+            "route": {
+                "plugin": "mobileapi",
+                "controller": "index_bg",
+                "action": "check_api_sessions_ag"
+            },
+            "timed_seconds": 3600
+        }
+    }
 }
