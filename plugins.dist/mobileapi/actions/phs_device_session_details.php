@@ -66,6 +66,7 @@ class PHS_Action_Device_session_details extends PHS_Action
 
         $session_arr[$online_model::DEVICE_KEY] = $device_arr;
 
+        // In case user already logged out and we have a "late" request or user was inactivated between requests...
         if( empty( $device_arr['uid'] )
          or !($account_arr = $accounts_model->get_details( $device_arr['uid'], array( 'table_name' => 'users' ) ))
          or !$accounts_model->is_active( $account_arr ) )

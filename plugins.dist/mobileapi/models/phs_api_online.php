@@ -51,7 +51,7 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    function get_main_table_name()
+    public function get_main_table_name()
     {
         return 'mobileapi_online';
     }
@@ -190,6 +190,7 @@ class PHS_Model_Api_online extends PHS_Model
 
     public function valid_device_type( $type, $lang = false )
     {
+        $type = (int)$type;
         $all_device_types = $this->get_device_types( $lang );
         if( empty( $type )
          or empty( $all_device_types[$type] ) )
@@ -396,7 +397,7 @@ class PHS_Model_Api_online extends PHS_Model
 
         // get device from database and make sure device is linked to same account as current session
         if( !($device_arr = $this->get_details( $session_arr['device_id'], array( 'table_name' => 'mobileapi_devices' ) ))
-         or $device_arr['uid'] != $session_arr['uid'] )
+         or (int)$device_arr['uid'] !== (int)$session_arr['uid'] )
         {
             // couldn't find device in database... don't update session, just wait for next call (might be a database communication error)
             // Device will be fixed anyway at next login...
@@ -735,6 +736,73 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         return $existing_data;
+    }
+
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return bool|array
+     */
+    public function get_account_devices( $account_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['only_logged_in'] ) )
+            $params['only_logged_in'] = false;
+        else
+            $params['only_logged_in'] = true;
+
+        if( empty( $params['device_type'] ) )
+            $params['device_type'] = false;
+        else
+            $params['device_type'] = (int)$params['device_type'];
+
+        if( !empty( $params['device_type'] )
+        and !$this->valid_device_type( $params['device_type'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid device type.' ) );
+            return false;
+        }
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading accounts model.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        if( !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initiate device update details.' ) );
+            return false;
+        }
+
+        $list_arr = $devices_flow;
+        if( !empty( $params['only_logged_in'] ) )
+            $list_arr['fields']['uid'] = $account_arr['id'];
+        else
+            $list_arr['fields']['owner_id'] = $account_arr['id'];
+
+        if( !($devices_arr = $this->get_list( $list_arr )) )
+        {
+            if( $this->has_error() )
+                return false;
+
+            $devices_arr = array();
+        }
+
+        return $devices_arr;
     }
 
     public function update_device( $device_params, $device_data = false )

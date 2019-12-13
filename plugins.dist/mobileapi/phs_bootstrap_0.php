@@ -9,6 +9,7 @@ if( ($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
 and $mobile_plugin->plugin_active() )
 {
     PHS_Logger::define_channel( $mobile_plugin::LOG_CHANNEL );
+    PHS_Logger::define_channel( $mobile_plugin::LOG_FIREBASE );
 
     // POST /devices/session Create session
     PHS_api::register_api_route( array(

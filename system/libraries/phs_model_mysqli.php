@@ -2119,6 +2119,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
     //
     //  region Querying database functionality
     //
+    /**
+     * @param array $constrain_arr
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     protected function get_details_common( $constrain_arr, $params = false )
     {
         if( !($params = $this->fetch_default_flow_params( $params )) )
@@ -2140,11 +2146,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
 
         if( !isset( $params['limit'] )
-         or $params['result_type'] == 'single' )
+         or $params['result_type'] === 'single' )
             $params['limit'] = 1;
         else
         {
-            $params['limit'] = intval( $params['limit'] );
+            $params['limit'] = (int)$params['limit'];
             $params['result_type'] = 'list';
         }
 
@@ -2187,6 +2193,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return array( 'and', 'or' );
     }
 
+    /**
+     * @param string $field_name
+     * @param array $field_val
+     * @param bool|array $params
+     *
+     * @return bool|string
+     */
     protected function _get_query_field_value( $field_name, $field_val, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -2208,7 +2221,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         {
             $linkage_func = 'OR';
             if( !empty( $field_val['linkage_func'] )
-            and in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
+            and in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions(), true ) )
                 $linkage_func = strtoupper( $field_val['linkage_func'] );
 
             $recurring_params = $params;
@@ -2251,7 +2264,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 $field_val['raw_value'] = false;
             // Use linkage function used in current linkage (by default) if more values are provided
             if( !isset( $field_val['linkage_func'] )
-             or !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions() ) )
+             or !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions(), true ) )
                 $field_val['linkage_func'] = false;
 
             if( !empty( $field_val['raw'] ) )
@@ -2316,7 +2329,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         $linkage_func = 'AND';
         if( !empty( $params['fields']['{linkage_func}'] )
-        and in_array( strtolower( $params['fields']['{linkage_func}'] ), self::linkage_db_functions() ) )
+        and in_array( strtolower( $params['fields']['{linkage_func}'] ), self::linkage_db_functions(), true ) )
             $linkage_func = strtoupper( $params['fields']['{linkage_func}'] );
 
         if( isset( $params['fields']['{linkage_func}'] ) )
@@ -2332,7 +2345,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             if( empty( $field_name ) and $field_name !== '0' )
                 continue;
 
-            if( $field_name == '{linkage}' )
+            if( $field_name === '{linkage}' )
             {
                 if( empty( $field_val ) or !is_array( $field_val )
                  or empty( $field_val['fields'] ) or !is_array( $field_val['fields'] ) )
@@ -2354,7 +2367,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
             // Handle field name
             if( !is_numeric( $field_name )
-            and strstr( $field_name, '.' ) === false )
+            and strpos( $field_name, '.' ) === false )
                 $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
 
             // Handle field value
