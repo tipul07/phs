@@ -307,24 +307,24 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         if( ($hook_result = PHS::trigger_hooks( self::H_EXPORT_ACCOUNT_SESSION, $hook_args ))
         and is_array( $hook_result ) )
         {
-            if( !empty( $hook_args['account_data'] )
-            and is_array( $hook_args['account_data'] ) and !empty( $hook_args['account_data']['id'] ) )
+            if( !empty( $hook_result['account_data'] )
+            and is_array( $hook_result['account_data'] ) and !empty( $hook_result['account_data']['id'] ) )
             {
-                $account_arr = $hook_args['account_data'];
+                $account_arr = $hook_result['account_data'];
                 $export_arr['account_data'] = $account_arr;
             }
 
-            if( !empty( $hook_args['session_data'] )
-            and is_array( $hook_args['session_data'] ) and !empty( $hook_args['session_data']['id'] ) )
+            if( !empty( $hook_result['session_data'] )
+            and is_array( $hook_result['session_data'] ) and !empty( $hook_result['session_data']['id'] ) )
             {
-                $session_arr = $hook_args['session_data'];
+                $session_arr = $hook_result['session_data'];
                 $export_arr['session_data'] = $session_arr;
             }
 
             // old keys might also be overwritten
-            if( !empty( $hook_args['extra_export_fields'] ) and is_array( $hook_args['extra_export_fields'] ) )
+            if( !empty( $hook_result['extra_export_fields'] ) and is_array( $hook_result['extra_export_fields'] ) )
             {
-                foreach( $hook_args['extra_export_fields'] as $key => $val )
+                foreach( $hook_result['extra_export_fields'] as $key => $val )
                 {
                     if( in_array( $key, array( 'account_data', 'session_data' ) ) )
                         continue;
