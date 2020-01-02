@@ -313,6 +313,13 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
+        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading MobileAPI plugin.' ) );
+            return false;
+        }
+
         if( empty( $session_data )
          or !($session_arr = $this->populate_session_with_device_data( $session_data )) )
         {
@@ -323,23 +330,19 @@ class PHS_Model_Api_online extends PHS_Model
         if( !empty( $session_arr[self::DEVICE_KEY] ) and is_array( $session_arr[self::DEVICE_KEY] ) )
             $session_arr[self::DEVICE_KEY] = $this->export_data_from_device_data( $session_arr[self::DEVICE_KEY] );
 
-        $export_arr = array();
-        $fields_arr = self::export_data_session_fields();
-        foreach( $fields_arr as $field => $field_arr )
-        {
-            if( !array_key_exists( $field, $session_arr ) )
-                continue;
-
-            $export_arr[$field_arr['key']] = PHS_params::set_type( $session_arr[$field], $field_arr['type'],
-                (!empty( $field_arr['type_extra'] )?$field_arr['type_extra']:false) );
-        }
-
-        return $export_arr;
+        return $mobileapi_plugin::export_array_data_with_definition_as_array( $session_arr, self::export_data_session_fields() );
     }
 
     public function export_data_from_device_data( $device_data )
     {
         $this->reset_error();
+
+        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading MobileAPI plugin.' ) );
+            return false;
+        }
 
         if( empty( $device_data )
          or !($device_arr = $this->data_to_array( $device_data, array( 'table_name' => 'mobileapi_devices' ) )) )
@@ -348,18 +351,7 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        $export_arr = array();
-        $fields_arr = self::export_data_device_fields();
-        foreach( $fields_arr as $field => $field_arr )
-        {
-            if( !array_key_exists( $field, $device_arr ) )
-                continue;
-
-            $export_arr[$field_arr['key']] = PHS_params::set_type( $device_arr[$field], $field_arr['type'],
-                (!empty( $field_arr['type_extra'] )?$field_arr['type_extra']:false) );
-        }
-
-        return $export_arr;
+        return $mobileapi_plugin::export_array_data_with_definition_as_array( $device_arr, self::export_data_device_fields() );
     }
 
     public function get_session_device( $session_data )

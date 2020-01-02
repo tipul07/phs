@@ -95,47 +95,126 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ) );
     }
 
+    /**
+     * Standard definition of a data node to be exported as response to a 3rd party request
+     * @return array
+     */
+    public static function get_default_export_node_details()
+    {
+        return array(
+            // Key/Index of the node when exporting to outside reuqests
+            'key' => '',
+            // Type of data to be exported (useful when exporting to type-oriented languages)
+            'type' => PHS_params::T_ASIS,
+            // Extra parameters used in PHS_params::set_type()
+            'type_extra' => false,
+            // Default value when exporting
+            'default' => null,
+            // Don't export missing keys/indexes or export them with default value
+            'export_if_not_found' => false,
+        );
+    }
+
+    /**
+     * Normalize an array with definitions of data nodes to be exported to a 3rd party request
+     * @param array $definition_arr Array definition to be normalized
+     * @return array Normalized array
+     */
+    public static function normalize_definition_of_export_nodes( $definition_arr )
+    {
+        if( empty( $definition_arr ) or !is_array( $definition_arr ) )
+            return array();
+
+        $node_definition = self::get_default_export_node_details();
+        $return_arr = array();
+        foreach( $definition_arr as $int_key => $node_arr )
+        {
+            if( !isset( $node_arr['key'] )
+             or (string)$node_arr['key'] === ''
+             or !is_scalar( $node_arr['key'] ) )
+                $node_arr['key'] = $int_key;
+
+            $return_arr[$int_key] = self::validate_array( $node_arr, $node_definition );
+        }
+
+        return $return_arr;
+    }
+
+    public static function export_array_data_with_definition_as_array( $data_arr, $definition_arr )
+    {
+        if( empty( $data_arr ) or !is_array( $data_arr ) )
+            return array();
+
+        $definition_arr = self::normalize_definition_of_export_nodes( $definition_arr );
+        // Keep original array in case there are other nodes that are not present in definition
+        $return_arr = $data_arr;
+        foreach( $definition_arr as $int_key => $node_arr )
+        {
+            if( !isset( $node_arr['key'] )
+             or (string)$node_arr['key'] === '' )
+                continue;
+
+            if( array_key_exists( $int_key, $data_arr ) )
+                $return_arr[$node_arr['key']] = PHS_params::set_type( $data_arr[$int_key], $node_arr['type'],
+                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
+
+            elseif( !empty( $node_arr['export_if_not_found'] ) )
+                $return_arr[$node_arr['key']] = $return_arr['default'];
+        }
+
+        return $return_arr;
+    }
+
     public static function export_data_account_fields()
     {
         return array(
             'id' => array(
                 'key' => 'id',
                 'type' => PHS_params::T_INT,
+                'default' => 0,
             ),
             'email' => array(
                 'key' => 'email',
                 'type' => PHS_params::T_EMAIL,
+                'default' => '',
             ),
             'email_verified' => array(
                 'key' => 'email_verified',
                 'type' => PHS_params::T_INT,
+                'default' => 0,
             ),
             'status' => array(
                 'key' => 'status',
                 'type' => PHS_params::T_INT,
+                'default' => 0,
             ),
             'status_date' => array(
                 'key' => 'status_date',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
+                'default' => null,
             ),
             'level' => array(
                 'key' => 'level',
                 'type' => PHS_params::T_INT,
+                'default' => 0,
             ),
             'lastlog' => array(
                 'key' => 'lastlog',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
+                'default' => null,
             ),
             'lastip' => array(
                 'key' => 'lastip',
                 'type' => PHS_params::T_NOHTML,
+                'default' => '',
             ),
             'cdate' => array(
                 'key' => 'cdate',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
+                'default' => null,
             ),
         );
     }
@@ -174,33 +253,11 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             // old keys might also be overwritten
             if( !empty( $hook_args['extra_export_fields'] ) and is_array( $hook_args['extra_export_fields'] ) )
             {
-                foreach( $hook_args['extra_export_fields'] as $field => $field_arr )
-                {
-                    if( !is_array( $field_arr ) )
-                        $field_arr = array();
-
-                    if( empty( $field_arr['key'] ) )
-                        $field_arr['key'] = $field;
-
-                    if( empty( $field_arr['type'] ) )
-                        $field_arr['type'] = PHS_params::T_ASIS;
-
-                    $fields_arr[$field] = $field_arr;
-                }
+                $fields_arr = self::merge_array_assoc( $fields_arr, $hook_args['extra_export_fields'] );
             }
         }
 
-        $export_arr = array();
-        foreach( $fields_arr as $field => $field_arr )
-        {
-            if( !array_key_exists( $field, $account_arr ) )
-                continue;
-
-            $export_arr[$field_arr['key']] = PHS_params::set_type( $account_arr[$field], $field_arr['type'],
-                (!empty( $field_arr['type_extra'] )?$field_arr['type_extra']:false) );
-        }
-
-        return $export_arr;
+        return self::export_array_data_with_definition_as_array( $account_arr, $fields_arr );
     }
 
     public function export_data_account_and_session( $account_data, $session_data )
