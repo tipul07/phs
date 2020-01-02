@@ -146,8 +146,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return array();
 
         $definition_arr = self::normalize_definition_of_export_nodes( $definition_arr );
-        // Keep original array in case there are other nodes that are not present in definition
-        $return_arr = $data_arr;
+        $return_arr = array();
         foreach( $definition_arr as $int_key => $node_arr )
         {
             if( !isset( $node_arr['key'] )
