@@ -52,7 +52,9 @@ class PHS_Action_Device_session_details extends PHS_Action
         }
 
         $session_arr = $session_data['session_arr'];
+        $account_arr = (!empty( $session_data['account_arr'] )?$session_data['account_arr']:false);
 
+        // Device is already cached in session data if present
         if( !($device_arr = $online_model->get_session_device( $session_arr )) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_NOT_FOUND, $this->_pt( 'Device not found in database.' ) ) )
@@ -63,14 +65,6 @@ class PHS_Action_Device_session_details extends PHS_Action
 
             exit;
         }
-
-        $session_arr[$online_model::DEVICE_KEY] = $device_arr;
-
-        // In case user already logged out and we have a "late" request or user was inactivated between requests...
-        if( empty( $device_arr['uid'] )
-         or !($account_arr = $accounts_model->get_details( $device_arr['uid'], array( 'table_name' => 'users' ) ))
-         or !$accounts_model->is_active( $account_arr ) )
-            $account_arr = false;
 
         $action_result = self::default_action_result();
 

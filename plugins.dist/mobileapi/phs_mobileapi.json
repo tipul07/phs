@@ -2,8 +2,8 @@
     "vendor_id": "phs",
     "vendor_name": "PHS",
     "name": "Basic Mobile API",
-    "description": "Handles basic functionality related to 3rd party (mobile) API calls.",
-    "version": "1.0.2",
+    "description": "Handles basic functionality related to 3rd party (mobile apps) API calls.",
+    "version": "1.0.3",
     "models": [ "api_online" ],
     "agent_jobs": {
         "mobileapi_index_bg_check_api_sessions_ag": {
@@ -13,7 +13,8 @@
                 "controller": "index_bg",
                 "action": "check_api_sessions_ag"
             },
-            "timed_seconds": 3600
+            "timed_seconds": 1800,
+            "timed_seconds_comment": "Usually agent runs each hour, but if this interval will be lower run this job each 30 mins"
         }
     }
 }

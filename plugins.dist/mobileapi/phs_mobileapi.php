@@ -11,13 +11,19 @@ use \phs\libraries\PHS_Hooks;
 
 class PHS_Plugin_Mobileapi extends PHS_Plugin
 {
+    const ACCOUNT_DETAILS_KEY = '{users_details}';
+
     const ERR_DEPENDENCIES = 60000;
+
+    const API_KEY_INPUT = 1, API_KEY_OUTPUT = 2, API_KEY_BOTH = 3;
 
     const LOG_CHANNEL = 'mobileapi.log', LOG_FIREBASE = 'firebase.log';
 
     const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data',
-          // export account and session details to 3rd party apps
-          H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session';
+          // export account and session details to 3rd party API calls/apps
+          H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session',
+          // hook called when saving account data through 3rd party API calls/apps
+          H_IMPORT_ACCOUNT_DATA = 'phs_mobileapi_import_account_data';
 
     /**
      * @inheritdoc
@@ -25,24 +31,41 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     public function get_settings_structure()
     {
         return array(
-            // default template
-            'fcm_base_url' => array(
-                'display_name' => 'Firebase API URL',
-                'display_hint' => 'URL where plugin will make the call to send push notifications using Firebase library.',
-                'type' => PHS_params::T_ASIS,
-                'default' => 'https://fcm.googleapis.com',
+            'firebase_settings_group' => array(
+                'display_name' => $this->_pt( 'FireBase Settings' ),
+                'display_hint' => $this->_pt( 'Settings related to FireBase server (used when sending Push Notification messages to devices)' ),
+                'group_fields' => array(
+                    'fcm_base_url' => array(
+                        'display_name' => 'Firebase API URL',
+                        'display_hint' => 'URL where plugin will make the call to send push notifications using Firebase library.',
+                        'type' => PHS_params::T_ASIS,
+                        'default' => 'https://fcm.googleapis.com',
+                    ),
+                    'fcm_auth_key' => array(
+                        'display_name' => $this->_pt( 'Firebase Authentication Key' ),
+                        'display_hint' => $this->_pt( 'Key used for authentication when sending push notification using Firebase library.' ),
+                        'type' => PHS_params::T_ASIS,
+                        'default' => '',
+                    ),
+                    'fcm_api_timeout' => array(
+                        'display_name' => $this->_pt( 'Firebase API Timeout' ),
+                        'display_hint' => $this->_pt( 'After how many seconds should request to Firebase server timeout.' ),
+                        'type' => PHS_params::T_INT,
+                        'default' => 30,
+                    ),
+                ),
             ),
-            'fcm_auth_key' => array(
-                'display_name' => $this->_pt( 'Firebase Authentication Key' ),
-                'display_hint' => $this->_pt( 'Key used for authentication when sending push notification using Firebase library.' ),
-                'type' => PHS_params::T_ASIS,
-                'default' => '',
-            ),
-            'fcm_api_timeout' => array(
-                'display_name' => $this->_pt( 'Firebase API Timeout' ),
-                'display_hint' => $this->_pt( 'After how many seconds should request to Firebase server timeout.' ),
-                'type' => PHS_params::T_INT,
-                'default' => 30,
+            'mobile_session_group' => array(
+                'display_name' => $this->_pt( 'API Sessions Settings' ),
+                'display_hint' => $this->_pt( 'Defines how system should handle API/applications sessions' ),
+                'group_fields' => array(
+                    'api_session_lifetime' => array(
+                        'display_name' => $this->_pt( 'API Sessions Timeout' ),
+                        'display_hint' => $this->_pt( 'After how many hours should API sessions expire. (0 will not expire)' ),
+                        'type' => PHS_params::T_INT,
+                        'default' => 0,
+                    ),
+                ),
             ),
         );
     }
@@ -95,11 +118,19 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ) );
     }
 
+    public static function default_import_account_data_hook_args()
+    {
+        return PHS_Hooks::hook_args_definition( array(
+            'account_data' => false,
+            'full_request' => false,
+        ) );
+    }
+
     /**
      * Standard definition of a data node to be exported as response to a 3rd party request
      * @return array
      */
-    public static function get_default_export_node_details()
+    public static function get_default_api_node_details()
     {
         return array(
             // Key/Index of the node when exporting to outside reuqests
@@ -112,7 +143,29 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             'default' => null,
             // Don't export missing keys/indexes or export them with default value
             'export_if_not_found' => false,
+            // Don't import missing keys/indexes or import them with default value
+            'import_if_not_found' => false,
+            // Tells if current key should be accepted only as input, output or both
+            'key_type' => self::API_KEY_INPUT,
         );
+    }
+
+    /**
+     * Valid key_type values
+     * @return array
+     */
+    public static function get_api_node_key_types()
+    {
+        return array( self::API_KEY_INPUT, self::API_KEY_OUTPUT, self::API_KEY_BOTH, );
+    }
+
+    /**
+     * @param int $type Node type to be checked
+     * @return bool
+     */
+    public static function valid_api_node_key_type( $type )
+    {
+        return (in_array( (int)$type, self::get_api_node_key_types(), true )?true:false);
     }
 
     /**
@@ -120,12 +173,12 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      * @param array $definition_arr Array definition to be normalized
      * @return array Normalized array
      */
-    public static function normalize_definition_of_export_nodes( $definition_arr )
+    public static function normalize_definition_of_api_nodes( $definition_arr )
     {
         if( empty( $definition_arr ) or !is_array( $definition_arr ) )
             return array();
 
-        $node_definition = self::get_default_export_node_details();
+        $node_definition = self::get_default_api_node_details();
         $return_arr = array();
         foreach( $definition_arr as $int_key => $node_arr )
         {
@@ -134,23 +187,37 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
              or !is_scalar( $node_arr['key'] ) )
                 $node_arr['key'] = $int_key;
 
+            if( !isset( $node_arr['key_type'] )
+             or !self::valid_api_node_key_type( $node_arr['key_type'] ) )
+                $node_arr['key_type'] = self::API_KEY_INPUT;
+
             $return_arr[$int_key] = self::validate_array( $node_arr, $node_definition );
         }
 
         return $return_arr;
     }
 
-    public static function export_array_data_with_definition_as_array( $data_arr, $definition_arr )
+    /**
+     * Convert $data_arr array to a response array given to an API request
+     *
+     * @param array $data_arr Data to be converted into an array exported as response to an API request
+     * @param array $definition_arr Definition of nodes to be exported to as API response
+     * @return array Converted array
+     */
+    public static function export_api_data_with_definition_as_array( $data_arr, $definition_arr )
     {
+        // If we don't receive the data we should check if there is an empty data to be exported...
         if( empty( $data_arr ) or !is_array( $data_arr ) )
-            return array();
+            $data_arr = array();
 
-        $definition_arr = self::normalize_definition_of_export_nodes( $definition_arr );
+        $definition_arr = self::normalize_definition_of_api_nodes( $definition_arr );
         $return_arr = array();
         foreach( $definition_arr as $int_key => $node_arr )
         {
             if( !isset( $node_arr['key'] )
-             or (string)$node_arr['key'] === '' )
+             or (string)$node_arr['key'] === ''
+             or !isset( $node_arr['key_type'] )
+             or (int)$node_arr['key_type'] === self::API_KEY_INPUT )
                 continue;
 
             if( array_key_exists( $int_key, $data_arr ) )
@@ -164,56 +231,145 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $return_arr;
     }
 
-    public static function export_data_account_fields()
+    /**
+     * Convert $data_arr array from an API request to an array to be used internally
+     *
+     * @param array $data_arr Data to be converted from an API request
+     * @param array $definition_arr Definition of nodes to be imported from API request
+     * @return array Converted array
+     */
+    public static function import_api_data_with_definition_as_array( $data_arr, $definition_arr )
+    {
+        if( empty( $data_arr ) or !is_array( $data_arr ) )
+            return array();
+
+        $definition_arr = self::normalize_definition_of_api_nodes( $definition_arr );
+        $return_arr = array();
+        foreach( $definition_arr as $int_key => $node_arr )
+        {
+            if( !isset( $node_arr['key'] )
+             or (string)$node_arr['key'] === ''
+             or !isset( $node_arr['key_type'] )
+             or (int)$node_arr['key_type'] === self::API_KEY_OUTPUT )
+                continue;
+
+            if( array_key_exists( $node_arr['key'], $data_arr ) )
+                $return_arr[$int_key] = PHS_params::set_type( $data_arr[$node_arr['key']], $node_arr['type'],
+                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
+
+            elseif( !empty( $node_arr['import_if_not_found'] ) )
+                $return_arr[$int_key] = $return_arr['default'];
+        }
+
+        return $return_arr;
+    }
+
+    public static function get_api_data_account_fields()
     {
         return array(
             'id' => array(
                 'key' => 'id',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
+                'key_type' => self::API_KEY_OUTPUT,
+            ),
+            'nick' => array(
+                'key' => 'nick',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
             ),
             'email' => array(
                 'key' => 'email',
                 'type' => PHS_params::T_EMAIL,
                 'default' => '',
+                'key_type' => self::API_KEY_BOTH,
             ),
             'email_verified' => array(
                 'key' => 'email_verified',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'status' => array(
                 'key' => 'status',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'status_date' => array(
                 'key' => 'status_date',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'level' => array(
                 'key' => 'level',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'lastlog' => array(
                 'key' => 'lastlog',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'lastip' => array(
                 'key' => 'lastip',
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
+                'key_type' => self::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
+                'key_type' => self::API_KEY_OUTPUT,
+            ),
+            self::ACCOUNT_DETAILS_KEY => array(
+                'key' => 'details_data',
+                'type' => PHS_params::T_ASIS,
+                'key_type' => self::API_KEY_BOTH,
+            ),
+        );
+    }
+
+    public static function get_api_data_account_details_fields()
+    {
+        return array(
+            'title' => array(
+                'key' => 'title',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
+            ),
+            'fname' => array(
+                'key' => 'fname',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
+            ),
+            'lname' => array(
+                'key' => 'lname',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
+            ),
+            'phone' => array(
+                'key' => 'phone',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
+            ),
+            'company' => array(
+                'key' => 'company',
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+                'key_type' => self::API_KEY_BOTH,
             ),
         );
     }
@@ -236,7 +392,13 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        $fields_arr = self::export_data_account_fields();
+        if( !($account_details_arr = $accounts_model->get_account_details( $account_arr )) )
+            $account_details_arr = null;
+
+        if( !empty( $account_details_arr ) and is_array( $account_details_arr ) )
+            $account_arr[self::ACCOUNT_DETAILS_KEY] = self::export_api_data_with_definition_as_array( $account_details_arr, self::get_api_data_account_details_fields() );
+
+        $fields_arr = self::get_api_data_account_fields();
 
         $hook_args = self::default_export_account_data_hook_args();
         $hook_args['account_data'] = $account_arr;
@@ -245,18 +407,128 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         if( ($hook_result = PHS::trigger_hooks( self::H_EXPORT_ACCOUNT_DATA, $hook_args ))
         and is_array( $hook_result ) )
         {
-            if( !empty( $hook_args['account_data'] )
-            and is_array( $hook_args['account_data'] ) and !empty( $hook_args['account_data']['id'] ) )
-                $account_arr = $hook_args['account_data'];
+            if( !empty( $hook_result['account_data'] )
+            and is_array( $hook_result['account_data'] ) and !empty( $hook_result['account_data']['id'] ) )
+                $account_arr = $hook_result['account_data'];
 
             // old keys might also be overwritten
-            if( !empty( $hook_args['extra_export_fields'] ) and is_array( $hook_args['extra_export_fields'] ) )
+            if( !empty( $hook_result['extra_export_fields'] ) and is_array( $hook_result['extra_export_fields'] ) )
             {
-                $fields_arr = self::merge_array_assoc( $fields_arr, $hook_args['extra_export_fields'] );
+                $fields_arr = self::merge_array_assoc( $fields_arr, $hook_result['extra_export_fields'] );
             }
         }
 
-        return self::export_array_data_with_definition_as_array( $account_arr, $fields_arr );
+        return self::export_api_data_with_definition_as_array( $account_arr, $fields_arr );
+    }
+
+    /**
+     * Manage saving account details to database along with other details from hook call
+     * @param int|array $account_data
+     * @param array $request_arr
+     * @param bool|array $params
+     * @return bool
+     */
+    public function import_api_data_for_account_data( $account_data, $request_arr, $params = false )
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load required models.' ) );
+            return false;
+        }
+
+        $account_arr = false;
+        if( !empty( $account_data )
+        and !($account_arr = $accounts_model->data_to_array( $account_data )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['root_as_account_data'] ) )
+            $params['root_as_account_data'] = false;
+        else
+            $params['root_as_account_data'] = true;
+
+        if( empty( $params['account_data_key'] )
+         or !is_string( $params['account_data_key'] ) )
+            $params['account_data_key'] = 'account_data';
+
+        if( empty( $request_arr ) or !is_array( $request_arr ) )
+            return true;
+
+        $account_data_node = false;
+        if( !empty( $params['root_as_account_data'] ) )
+            $account_data_node = $request_arr;
+        elseif( !empty( $request_arr[$params['account_data_key']] ) )
+            $account_data_node = $request_arr[$params['account_data_key']];
+
+        if( !empty( $account_data_node ) )
+        {
+            // We have something to edit for account...
+            if( ($account_fields = self::import_api_data_with_definition_as_array( $account_data_node, self::get_api_data_account_fields() )) )
+            {
+                $account_details = false;
+                if( !empty( $account_fields[self::ACCOUNT_DETAILS_KEY] ) )
+                {
+                    $account_details = $account_fields[self::ACCOUNT_DETAILS_KEY];
+                    unset( $account_fields[self::ACCOUNT_DETAILS_KEY] );
+                }
+
+                $save_arr = array();
+                $save_arr['fields'] = $account_fields;
+                if( !empty( $account_details ) )
+                    $save_arr['{users_details}'] = $account_details;
+
+                if( !empty( $account_arr ) )
+                {
+                    if( !($new_account = $accounts_model->edit( $account_arr, $save_arr )) )
+                    {
+                        $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error saving account details.' ) );
+                        return false;
+                    }
+                } else
+                {
+                    if( !($new_account = $accounts_model->insert( $save_arr )) )
+                    {
+                        $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inserting account in database.' ) );
+                        return false;
+                    }
+                }
+
+                $account_arr = $new_account;
+            }
+        }
+
+        $hook_args = self::default_import_account_data_hook_args();
+        $hook_args['account_data'] = $account_arr;
+        $hook_args['full_request'] = $request_arr;
+
+        $trigger_args = array();
+        $trigger_args['stop_on_first_error'] = true;
+
+        if( ($hook_result = PHS::trigger_hooks( self::H_IMPORT_ACCOUNT_DATA, $hook_args, $trigger_args ))
+        and is_array( $hook_result ) )
+        {
+            if( !empty( $hook_result['account_data'] )
+            and is_array( $hook_result['account_data'] ) and !empty( $hook_result['account_data']['id'] ) )
+                $account_arr = $hook_result['account_data'];
+        }
+
+        if( !empty( $hook_result )
+        and PHS_Hooks::hook_args_has_error( $hook_result )
+        and ($error_arr = PHS_Hooks::get_hook_args_error( $hook_result )) )
+        {
+            $this->copy_error_from_array( $error_arr );
+            return false;
+        }
+
+        return true;
     }
 
     public function export_data_account_and_session( $account_data, $session_data )
@@ -371,8 +643,9 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
          or !($api_secret = $api_obj->api_flow_value( 'api_pass' ))
          or !($session_arr = $online_model->get_session_by_apikey( $api_key, array( 'include_device_data' => true ) ))
          // If we cannot obtain session device might be unlinked from account... ask user to login again...
-         or !$online_model->get_session_device( $session_arr )
-         or !$online_model->check_session_authentication( $session_arr, $api_secret ) )
+         or !($device_arr = $online_model->get_session_device( $session_arr ))
+         or !$online_model->check_session_authentication( $session_arr, $api_secret )
+         or (int)$device_arr['uid'] !== (int)$session_arr['uid'] )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED ) )
             {
@@ -385,7 +658,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
         if( empty( $session_arr['uid'] )
          or !($account_arr = $accounts_model->get_details( $session_arr['uid'], array( 'table_name' => 'users' ) ))
-         or !$accounts_model->is_active( $accounts_model ) )
+         or !$accounts_model->is_active( $account_arr ) )
             $account_arr = null;
 
         $session_params = array();

@@ -2222,21 +2222,30 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $hook_name
-     * @param array $hook_args
+     * @param string $hook_name Hook name
+     * @param array $hook_args Hook arguments
+     * @param array|bool $params Any specific parameters required on this trigger only
      *
      * @return array|null
      */
-    public static function trigger_hooks( $hook_name, array $hook_args = array() )
+    public static function trigger_hooks( $hook_name, array $hook_args = array(), $params = false )
     {
         if( !($hook_name = self::prepare_hook_name( $hook_name ))
          or empty( self::$hooks[$hook_name] ) or !is_array( self::$hooks[$hook_name] ) )
             return null;
 
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $params['stop_on_first_error'] ) )
+            $params['stop_on_first_error'] = false;
+        else
+            $params['stop_on_first_error'] = true;
+
         if( empty( $hook_args ) or !is_array( $hook_args ) )
             $hook_args = PHS_Hooks::default_common_hook_args();
         else
-            $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_common_hook_args() );
+            $hook_args = PHS_Hooks::hook_args_reset_error( $hook_args );
 
         foreach( self::$hooks[$hook_name] as $priority => $hooks_array )
         {
@@ -2258,8 +2267,16 @@ final class PHS extends PHS_Registry
                  or $result === false )
                     continue;
 
+                // If required for this trigger to stop on first error...
+                //!!! Altough there is an error we return a hook argument array and it is up to you to check
+                //!!! if any errors in resulting hook arguments
+                if( !empty( $params['stop_on_first_error'] )
+                and PHS_Hooks::hook_args_has_error( $result ) )
+                    return $result;
+
                 $resulting_buffer = '';
-                if( !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] ) )
+                if( is_array( $result )
+                and !empty( $call_hook_args['concatenate_buffer'] ) and is_string( $call_hook_args['concatenate_buffer'] ) )
                 {
                     if( isset( $result[$call_hook_args['concatenate_buffer']] ) and is_string( $result[$call_hook_args['concatenate_buffer']] )
                     and isset( $hook_args[$call_hook_args['concatenate_buffer']] ) and is_string( $hook_args[$call_hook_args['concatenate_buffer']] ) )

@@ -60,60 +60,49 @@ class PHS_Action_Account_edit extends PHS_Action
 
         if( !($request_arr = PHS_api::get_request_body_as_json_array()) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide OLD and NEW password.' ) ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide account details you want to change.' ) ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide OLD and NEW password.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide account details you want to change.' ) );
                 return false;
             }
 
             exit;
         }
 
-        $account_fields = array();
-        if( !empty( $request_arr ) )
-        {
-            $account_keys = array(
-                'nick' => '',
-                'email' => '',
-            );
-            foreach( $account_keys as $field => $def_value )
-            {
-                if( array_key_exists( $field, $request_arr ) )
-                    $account_fields[$field] = $request_arr[$field];
-            }
-        }
+        $account_arr = $session_data['account_arr'];
+        $session_arr = $session_data['session_arr'];
 
-        if( !$accounts_model->check_pass( $session_data['account_arr'], $request_arr['pass'] ) )
+        //        $account_fields = array();
+        //        if( !empty( $request_arr ) )
+        //        {
+        //            $account_keys = array(
+        //                'nick' => '',
+        //                'email' => '',
+        //            );
+        //            foreach( $account_keys as $field => $def_value )
+        //            {
+        //                if( array_key_exists( $field, $request_arr ) )
+        //                    $account_fields[$field] = $request_arr[$field];
+        //            }
+        //        }
+
+        if( false === ($result = $mobile_plugin->import_api_data_for_account_data( $account_arr, $request_arr ))
+        and $mobile_plugin->has_error() )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Wrong current password.' ) ) )
+            if( !($error_msg = $mobile_plugin->get_simple_error_message()) )
+                $error_msg = $this->_pt( 'Error saving account details.' );
+
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $error_msg ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Wrong current password.' ) );
+                $this->set_error( $api_obj::ERR_AUTHENTICATION, $error_msg );
                 return false;
             }
 
             exit;
         }
 
-        $edit_arr = array();
-        $edit_arr['pass'] = $request_arr['new_pass'];
-
-        $edit_params_arr = array();
-        $edit_params_arr['fields'] = $edit_arr;
-
-        if( !($new_account = $accounts_model->edit( $session_data['account_arr'], $edit_params_arr )) )
-        {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error changing password.' ) ) )
-            {
-                $this->set_error( $api_obj::ERR_API_INIT, $this->_pt( 'Error changing password.' ) );
-                return false;
-            }
-
-            exit;
-        }
-
-        $response_arr = array(
-            'password_changed' => true,
-        );
+        $response_arr = $mobile_plugin->export_data_account_and_session( $account_arr['id'], $session_arr['id'] );
+        $response_arr['profile_saved'] = true;
 
         $action_result = self::default_action_result();
 
