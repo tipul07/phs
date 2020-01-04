@@ -72,29 +72,15 @@ class PHS_Action_Account_edit extends PHS_Action
         $account_arr = $session_data['account_arr'];
         $session_arr = $session_data['session_arr'];
 
-        //        $account_fields = array();
-        //        if( !empty( $request_arr ) )
-        //        {
-        //            $account_keys = array(
-        //                'nick' => '',
-        //                'email' => '',
-        //            );
-        //            foreach( $account_keys as $field => $def_value )
-        //            {
-        //                if( array_key_exists( $field, $request_arr ) )
-        //                    $account_fields[$field] = $request_arr[$field];
-        //            }
-        //        }
-
         if( false === ($result = $mobile_plugin->import_api_data_for_account_data( $account_arr, $request_arr ))
         and $mobile_plugin->has_error() )
         {
             if( !($error_msg = $mobile_plugin->get_simple_error_message()) )
                 $error_msg = $this->_pt( 'Error saving account details.' );
 
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $error_msg ) )
+            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $error_msg ) )
             {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $error_msg );
+                $this->set_error( $api_obj::ERR_FUNCTIONALITY, $error_msg );
                 return false;
             }
 
