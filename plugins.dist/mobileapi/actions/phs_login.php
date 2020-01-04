@@ -86,23 +86,25 @@ class PHS_Action_Login extends PHS_Action
             exit;
         }
 
-        $device_data = array();
-        if( !empty( $request_arr['device_info'] ) )
-        {
-            $device_info_keys = array(
-                'device_type' => $online_model::DEV_TYPE_UNDEFINED,
-                'device_name' => '',
-                'device_version' => '',
-                'device_token' => '',
-                'lat' => 0,
-                'long' => 0,
-            );
-            foreach( $device_info_keys as $field => $def_value )
-            {
-                if( array_key_exists( $field, $request_arr['device_info'] ) )
-                    $device_data[$field] = $request_arr['device_info'][$field];
-            }
-        }
+        //        $device_data = array();
+        //        if( !empty( $request_arr['device_info'] ) )
+        //        {
+        //            $device_info_keys = array(
+        //                'device_type' => $online_model::DEV_TYPE_UNDEFINED,
+        //                'device_name' => '',
+        //                'device_version' => '',
+        //                'device_token' => '',
+        //                'lat' => 0,
+        //                'long' => 0,
+        //            );
+        //            foreach( $device_info_keys as $field => $def_value )
+        //            {
+        //                if( array_key_exists( $field, $request_arr['device_info'] ) )
+        //                    $device_data[$field] = $request_arr['device_info'][$field];
+        //            }
+        //        }
+
+        $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr['device_info'], $online_model::get_api_data_device_fields() );
 
         if( !($new_session_arr = $online_model->update_session( $session_arr, $device_data, $account_arr['id'], array( 'regenerate_keys' => true ) )) )
         {

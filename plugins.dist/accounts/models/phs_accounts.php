@@ -323,7 +323,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params['populate_with_empty_data'] = false;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+        if( !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' )) )
             return false;
 
         if( empty( $account_data )

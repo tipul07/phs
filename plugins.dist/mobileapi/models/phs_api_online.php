@@ -5,9 +5,7 @@ namespace phs\plugins\mobileapi\models;
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_params;
-use \phs\libraries\PHS_Roles;
-use \phs\plugins\accounts\models\PHS_Model_Accounts;
-use \phs\plugins\accounts\models\PHS_Model_Accounts_details;
+use \phs\libraries\PHS_Logger;
 
 class PHS_Model_Api_online extends PHS_Model
 {
@@ -223,88 +221,113 @@ class PHS_Model_Api_online extends PHS_Model
         return md5( uniqid( rand(), true ) );
     }
 
-    public static function export_data_session_fields()
+    public static function get_api_data_session_fields()
     {
+        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
+            return array();
+
         return array(
             'uid' => array(
                 'key' => 'account_id',
                 'type' => PHS_params::T_INT,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'api_key' => array(
                 'key' => 'api_key',
                 'type' => PHS_params::T_NOHTML,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'api_secret' => array(
                 'key' => 'api_secret',
                 'type' => PHS_params::T_NOHTML,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'last_update' => array(
                 'key' => 'last_update',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             self::DEVICE_KEY => array(
                 'key' => 'device_data',
                 'type' => PHS_params::T_ASIS,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
         );
     }
 
-    public static function export_data_device_fields()
+    public static function get_api_data_device_fields()
     {
+        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
+            return array();
+
         return array(
             'owner_id' => array(
                 'key' => 'owner_id',
                 'type' => PHS_params::T_INT,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'uid' => array(
                 'key' => 'account_id',
                 'type' => PHS_params::T_INT,
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'device_type' => array(
                 'key' => 'device_type',
                 'type' => PHS_params::T_INT,
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_name' => array(
                 'key' => 'device_name',
                 'type' => PHS_params::T_NOHTML,
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_version' => array(
                 'key' => 'device_version',
                 'type' => PHS_params::T_NOHTML,
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_token' => array(
                 'key' => 'device_token',
                 'type' => PHS_params::T_ASIS,
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'source' => array(
                 'key' => 'source',
                 'type' => PHS_params::T_NOHTML,
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'lat' => array(
                 'key' => 'lat',
                 'type' => PHS_params::T_FLOAT,
                 'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'long' => array(
                 'key' => 'long',
                 'type' => PHS_params::T_FLOAT,
                 'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
+                'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'last_update' => array(
                 'key' => 'last_update',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
                 'type' => PHS_params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
         );
     }
@@ -330,7 +353,7 @@ class PHS_Model_Api_online extends PHS_Model
         if( !empty( $session_arr[self::DEVICE_KEY] ) and is_array( $session_arr[self::DEVICE_KEY] ) )
             $session_arr[self::DEVICE_KEY] = $this->export_data_from_device_data( $session_arr[self::DEVICE_KEY] );
 
-        return $mobileapi_plugin::export_array_data_with_definition_as_array( $session_arr, self::export_data_session_fields() );
+        return $mobileapi_plugin::export_api_data_with_definition_as_array( $session_arr, self::get_api_data_session_fields() );
     }
 
     public function export_data_from_device_data( $device_data )
@@ -351,7 +374,7 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        return $mobileapi_plugin::export_array_data_with_definition_as_array( $device_arr, self::export_data_device_fields() );
+        return $mobileapi_plugin::export_api_data_with_definition_as_array( $device_arr, self::get_api_data_device_fields() );
     }
 
     public function get_session_device( $session_data )
@@ -927,6 +950,68 @@ class PHS_Model_Api_online extends PHS_Model
         return $new_device_arr;
     }
 
+    public function check_api_sessions_ag()
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' ))
+         or !($mapi_online_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
+         or !($mo_table_name = $this->get_flow_table_name( $mapi_online_flow )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initialize required resources to check mobile API sessions.' ) );
+            return false;
+        }
+
+        $return_arr = array();
+        $return_arr['expired'] = 0;
+        $return_arr['errors'] = 0;
+        $return_arr['deleted'] = 0;
+
+        if( !($plugin_settings = $mobileapi_plugin->get_plugin_settings())
+         or !is_array( $plugin_settings )
+         or empty( $plugin_settings['api_session_lifetime'] ) )
+            return $return_arr;
+
+        $plugin_settings['api_session_lifetime'] = (int)$plugin_settings['api_session_lifetime'];
+
+        $list_arr = $mapi_online_flow;
+        $list_arr['fields']['last_update'] = array( 'check' => '<=', 'value' => date( self::DATETIME_DB, time() + $plugin_settings['api_session_lifetime'] * 3600 ) );
+
+        if( ($sessions_list = $this->get_list( $list_arr )) === false
+         or !is_array( $sessions_list ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying database for API mobile sessions.' ) );
+            return false;
+        }
+
+        if( empty( $sessions_list ) )
+            return $return_arr;
+
+        PHS_Logger::logf( 'Deleting '.count( $sessions_list ).' API mobile sessions.', $mobileapi_plugin::LOG_CHANNEL );
+
+        foreach( $sessions_list as $session_id => $session_arr )
+        {
+            $return_arr['expired']++;
+
+            if( !$this->logout_session( $session_arr ) )
+            {
+                $return_arr['errors']++;
+
+                $error_msg = 'N/A';
+                if( $this->has_error() )
+                    $error_msg = $this->get_simple_error_message();
+
+                PHS_Logger::logf( 'Error logging out session #'.$session_id.': '.$error_msg, $mobileapi_plugin::LOG_CHANNEL );
+                continue;
+            }
+
+            $return_arr['deleted']++;
+        }
+
+        return $return_arr;
+    }
+
     /**
      * @inheritdoc
      */
@@ -1192,14 +1277,14 @@ class PHS_Model_Api_online extends PHS_Model
                     ),
                     'api_key' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                         'index' => true,
                     ),
                     'api_secret' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                     ),
@@ -1244,31 +1329,31 @@ class PHS_Model_Api_online extends PHS_Model
                     ),
                     'source' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                     ),
                     'device_type' => array(
                         'type' => self::FTYPE_TINYINT,
-                        'length' => '2',
+                        'length' => 2,
                         'index' => true,
                         'editable' => false,
                     ),
                     'device_name' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                     ),
                     'device_version' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                     ),
                     'device_token' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                         'index' => true,

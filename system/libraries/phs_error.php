@@ -420,6 +420,18 @@ class PHS_Error
     }
 
     /**
+     * @param array $err_arr
+     * @return array
+     */
+    public static function arr_reset_error( $err_arr )
+    {
+        if( empty( $err_arr ) or !is_array( $err_arr ) )
+            $err_arr = array();
+
+        return array_merge( $err_arr, self::default_error_array() );
+    }
+
+    /**
      * @return array Returns default error array structure with default values (no error)
      */
     public static function default_error_array()

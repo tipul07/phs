@@ -79,17 +79,27 @@ class PHS_Action_Register extends PHS_Action
             exit;
         }
 
-        if( empty( $request_arr['pass'] ) )
-            $request_arr['pass'] = '';
+        $account_fields = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr, $mobile_plugin::get_api_data_account_fields() );
+
+        $account_details = false;
+        if( !empty( $account_fields[$mobile_plugin::ACCOUNT_DETAILS_KEY] ) )
+        {
+            $account_details = $account_fields[$mobile_plugin::ACCOUNT_DETAILS_KEY];
+            unset( $account_fields[$mobile_plugin::ACCOUNT_DETAILS_KEY] );
+        }
+
+        $insert_fields_arr = $account_fields;
+        if( empty( $insert_fields_arr['pass'] ) )
+            $insert_fields_arr['pass'] = '';
+        $insert_fields_arr['level'] = $accounts_model::LVL_MEMBER;
+        $insert_fields_arr['lastip'] = request_ip();
 
         $insert_arr = array();
-        $insert_arr['nick'] = $request_arr['nick'];
-        $insert_arr['pass'] = $request_arr['pass'];
-        $insert_arr['email'] = $request_arr['email'];
-        $insert_arr['level'] = $accounts_model::LVL_MEMBER;
-        $insert_arr['lastip'] = request_ip();
+        $insert_arr['fields'] = $insert_fields_arr;
+        if( !empty( $account_details ) )
+            $insert_arr['{users_details}'] = $account_details;
 
-        if( !($account_arr = $accounts_model->insert( array( 'fields' => $insert_arr ) )) )
+        if( !($account_arr = $accounts_model->insert( $insert_arr )) )
         {
             if( $accounts_model->has_error() )
                 $error_msg = $accounts_model->get_error_message();
@@ -111,8 +121,6 @@ class PHS_Action_Register extends PHS_Action
             'registered' => true,
             'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
         );
-
-        // trigger hook to populate with other details if required
 
         $action_result['api_json_result_array'] = $response_arr;
 

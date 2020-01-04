@@ -150,6 +150,58 @@ class PHS_Hooks extends PHS_Registry
 
     /**
      * @param array $hook_args
+     * @return array
+     */
+    public static function get_hook_args_error( $hook_args )
+    {
+        if( empty( $hook_args ) or !is_array( $hook_args )
+         or empty( $hook_args['hook_errors'] ) or !is_array( $hook_args['hook_errors'] ) )
+            return self::default_error_array();
+
+        return self::validate_array( $hook_args['hook_errors'], self::default_error_array() );
+    }
+
+    /**
+     * @param array $hook_args
+     * @return bool
+     */
+    public static function hook_args_has_error( $hook_args )
+    {
+        return self::arr_has_error( self::get_hook_args_error( $hook_args ) );
+    }
+
+    /**
+     * @param array $hook_args
+     * @return array
+     */
+    public static function hook_args_reset_error( $hook_args )
+    {
+        $hook_args = self::validate_array( $hook_args, self::default_common_hook_args() );
+
+        $hook_args['hook_errors'] = self::arr_reset_error( $hook_args['hook_errors'] );
+
+        return $hook_args;
+    }
+
+    /**
+     * Set an error on provided hook arguments
+     * @param array $hook_args
+     * @param int $error_no
+     * @param string $error_msg
+     * @param string $error_debug_msg
+     * @return array
+     */
+    public static function hook_args_set_error( $hook_args, $error_no, $error_msg, $error_debug_msg = '' )
+    {
+        $hook_args = self::hook_args_reset_error( $hook_args );
+
+        $hook_args['hook_errors'] = self::arr_set_error( $error_no, $error_msg, $error_debug_msg );
+
+        return $hook_args;
+    }
+
+    /**
+     * @param array $hook_args
      *
      * @return array
      */
