@@ -97,6 +97,9 @@ function phs_init_before_bootstrap()
     return true;
 }
 
+/**
+ * @return string
+ */
 function generate_guid()
 {
     return sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
@@ -108,28 +111,39 @@ function generate_guid()
     );
 }
 
+/**
+ * @param string $ip
+ *
+ * @return bool|string
+ */
 function validate_ip( $ip )
 {
-    if( function_exists( 'filter_var' ) and defined( 'FILTER_VALIDATE_IP' ) )
-        return filter_var( $ip, FILTER_VALIDATE_IP );
+    if( @function_exists( 'filter_var' ) and defined( 'FILTER_VALIDATE_IP' ) )
+    {
+        $ret_val = filter_var( $ip, FILTER_VALIDATE_IP );
+        return ($ret_val?trim( $ret_val ):false);
+    }
 
     if( !($ip_numbers = explode( '.', $ip ))
-     or !is_array( $ip_numbers ) or count( $ip_numbers ) != 4 )
+     or !is_array( $ip_numbers ) or count( $ip_numbers ) !== 4 )
         return false;
 
     $parsed_ip = '';
     foreach( $ip_numbers as $ip_part )
     {
-        $ip_part = intval( $ip_part );
+        $ip_part = (int)$ip_part;
         if( $ip_part < 0 or $ip_part > 255 )
             return false;
 
-        $parsed_ip = ($parsed_ip!=''?'.':'').$ip_part;
+        $parsed_ip = ($parsed_ip!==''?'.':'').$ip_part;
     }
 
     return $parsed_ip;
 }
 
+/**
+ * @return string
+ */
 function request_ip()
 {
     $guessed_ip = '';
@@ -141,7 +155,7 @@ function request_ip()
         $guessed_ip = validate_ip( $_SERVER['HTTP_X_FORWARDED_FOR'] );
 
     if( empty( $guessed_ip ) )
-        $guessed_ip = (!empty( $_SERVER['REMOTE_ADDR'] )?$_SERVER['REMOTE_ADDR']:'');
+        $guessed_ip = (!empty( $_SERVER['REMOTE_ADDR'] )?trim( $_SERVER['REMOTE_ADDR'] ):'');
 
     return $guessed_ip;
 }

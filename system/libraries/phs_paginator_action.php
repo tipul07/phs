@@ -193,7 +193,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS, $hook_args ))
         and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
-            $paginator_params = $hook_args['paginator_params'];
+            $paginator_params = self::validate_array( $hook_args['paginator_params'], $this->default_paginator_params() );
 
         // Particular action hooks...
         $hook_args = PHS_Hooks::default_paginator_action_parameters_hook_args();
@@ -202,7 +202,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS.$this->instance_id(), $hook_args ))
         and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
-            $paginator_params = $hook_args['paginator_params'];
+            $paginator_params = self::validate_array( $hook_args['paginator_params'], $this->default_paginator_params() );
 
         if( !($this->_paginator = new PHS_Paginator( $paginator_params['base_url'], $paginator_params['flow_parameters'] ))
          or !$this->we_have_paginator() )

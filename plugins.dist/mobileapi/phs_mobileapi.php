@@ -285,6 +285,12 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
+            'pass' => array(
+                'key' => 'pass',
+                'type' => PHS_params::T_ASIS,
+                'default' => '',
+                'key_type' => self::API_KEY_INPUT,
+            ),
             'email_verified' => array(
                 'key' => 'email_verified',
                 'type' => PHS_params::T_INT,

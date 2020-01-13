@@ -618,7 +618,7 @@ class PHS_Registry extends PHS_Language
      * @param string $str
      * @param bool|array $params
      *
-     * @return array
+     * @return string[]
      */
     public static function extract_strings_from_comma_separated( $str, $params = false )
     {

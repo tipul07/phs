@@ -248,6 +248,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $return_arr;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function get_messages_summary_hook_args( $hook_args )
     {
         $this->reset_error();
@@ -349,6 +354,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array
+     */
     public function trigger_after_main_menu_logged_in( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
@@ -360,6 +370,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array
+     */
     public function trigger_after_main_menu_admin( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
@@ -371,6 +386,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_model_table_fields( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Model::default_table_fields_hook_args() );
@@ -394,6 +414,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_account_action( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() );
@@ -426,6 +451,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_assign_registration_roles( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_registration_roles_hook_args() );
@@ -449,6 +479,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_user_details_fields( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_account_fields_hook_args() );
@@ -476,6 +511,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param bool|array $hook_args
+     *
+     * @return array|bool
+     */
     public function trigger_user_registration( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_account_hook_args() );

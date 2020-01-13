@@ -201,7 +201,7 @@ class PHS_api extends PHS_api_base
         $api_route_tokens_count = (empty( $api_route['api_route'] )?0:count( $api_route['api_route'] ));
         $request_route_tokens_count = count( $tokenized_request_route );
 
-        if( $api_route_tokens_count != $request_route_tokens_count )
+        if( $api_route_tokens_count !== $request_route_tokens_count )
             return false;
 
         $knti = 0;
@@ -214,11 +214,11 @@ class PHS_api extends PHS_api_base
 
             $knti++;
 
-            if( $api_element['exact_match'] == ''
+            if( $api_element['exact_match'] === ''
             and empty( $api_element['regexp'] ) )
                 return false;
 
-            if( $api_element['exact_match'] != '' )
+            if( $api_element['exact_match'] !== '' )
             {
                 if( !empty( $api_element['insensitive_match'] ) )
                 {
@@ -230,7 +230,7 @@ class PHS_api extends PHS_api_base
                     $check_token = $request_token;
                 }
 
-                if( $exact_match != $check_token )
+                if( $exact_match !== $check_token )
                     return false;
             } elseif( !empty( $api_element['regexp'] ) )
             {
@@ -498,7 +498,7 @@ class PHS_api extends PHS_api_base
         $http_method = $this->http_method();
 
         if( !empty( $apikey_arr['allowed_methods'] )
-        and !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], array( 'to_lowercase' => true ) ) ) )
+        and !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], array( 'to_lowercase' => true ) ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
@@ -512,7 +512,7 @@ class PHS_api extends PHS_api_base
         }
 
         if( !empty( $apikey_arr['denied_methods'] )
-        and in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], array( 'to_lowercase' => true ) ) ) )
+        and in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], array( 'to_lowercase' => true ) ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
@@ -527,7 +527,7 @@ class PHS_api extends PHS_api_base
 
         $request_ip = request_ip();
         if( !empty( $apikey_arr['allowed_ips'] )
-        and !in_array( $request_ip, self::extract_strings_from_comma_separated( $apikey_arr['allowed_ips'], array( 'to_lowercase' => true ) ) ) )
+        and !in_array( $request_ip, self::extract_strings_from_comma_separated( $apikey_arr['allowed_ips'], array( 'to_lowercase' => true ) ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_FORBIDDEN ) )
             {
