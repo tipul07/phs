@@ -499,13 +499,6 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        if( empty( $device_data['source'] )
-         or !$this->valid_source( $device_data['source'] ) )
-        {
-            $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide a valid device source.' ) );
-            return false;
-        }
-
         $sess_fields = array();
         $sess_fields['uid'] = $account_id;
 
@@ -867,6 +860,15 @@ class PHS_Model_Api_online extends PHS_Model
 
         if( empty( $db_device_arr ) )
         {
+            if( empty( $db_fields_device['source'] ) )
+                $db_fields_device['source'] = self::SOURCE_NATIVE;
+
+            if( !$this->valid_source( $db_fields_device['source'] ) )
+            {
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide a valid device source.' ) );
+                return false;
+            }
+
             $device_params_arr = $devices_flow;
             $device_params_arr['fields'] = $db_fields_device;
 

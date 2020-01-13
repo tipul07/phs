@@ -604,7 +604,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
             return $hook_args;
 
         if( !($hook_args['account_structure'] = $accounts_model->data_to_array( $hook_args['account_data'] ))
