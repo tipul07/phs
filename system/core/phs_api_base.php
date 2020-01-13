@@ -147,7 +147,7 @@ abstract class PHS_api_base extends PHS_Registry
             {
                 if( !is_scalar( $kkey )
                  or !array_key_exists( $kkey, $this->my_flow )
-                 or in_array( $kkey, $this->_special_flow_keys() ) )
+                 or in_array( $kkey, $this->_special_flow_keys(), true ) )
                     continue;
 
                 $this->my_flow[$kkey] = $kval;
@@ -158,7 +158,7 @@ abstract class PHS_api_base extends PHS_Registry
 
         if( !is_scalar( $key )
          or !array_key_exists( $key, $this->my_flow )
-         or in_array( $key, $this->_special_flow_keys() ) )
+         or in_array( $key, $this->_special_flow_keys(), true ) )
             return null;
 
         $this->my_flow[$key] = $val;
@@ -166,6 +166,11 @@ abstract class PHS_api_base extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param bool|array $methods_arr
+     *
+     * @return array|bool
+     */
     public function allowed_http_methods( $methods_arr = false )
     {
         if( $methods_arr === false )
@@ -186,6 +191,7 @@ abstract class PHS_api_base extends PHS_Registry
 
     /**
      * @param bool|array $args Arguments which must be added in query string (other than predefined ones)
+     * @param bool|array $extra Call parameters
      *
      * @return array Arguments to be added to query string of API URL
      */
@@ -208,10 +214,10 @@ abstract class PHS_api_base extends PHS_Registry
             {
                 // rewrite parameter is set in rewrite rule...
                 // put in parameters parsed value
-                if( $key == self::PARAM_USING_REWRITE
-                 or $key == self::PARAM_API_ROUTE
+                if( $key === self::PARAM_USING_REWRITE
+                 or $key === self::PARAM_API_ROUTE
                  or !isset( $this->init_query_params[$key] )
-                 or ($key == self::PARAM_VERSION and empty( $extra['include_version'] )) )
+                 or ($key === self::PARAM_VERSION and empty( $extra['include_version'] )) )
                     continue;
 
                 $args[$key] = $this->init_query_params[$key];
@@ -264,6 +270,9 @@ abstract class PHS_api_base extends PHS_Registry
         return trim( $route_str, '/- ' );
     }
 
+    /**
+     * @param bool|array $credentials_arr
+     */
     public function set_api_credentials( $credentials_arr = false )
     {
         $new_credentials_arr = array(
@@ -279,9 +288,9 @@ abstract class PHS_api_base extends PHS_Registry
         {
             if( empty( $_SERVER['PHP_AUTH_USER'] ) and empty( $_SERVER['PHP_AUTH_PW'] )
             and !empty( $_SERVER['HTTP_AUTHORIZATION'] )
-            and strtolower( substr( $_SERVER['HTTP_AUTHORIZATION'], 0, 5 ) ) == 'basic'
+            and stripos( $_SERVER['HTTP_AUTHORIZATION'], 'basic' ) === 0
             and ($auth_arr = explode(':', @base64_decode( trim( substr( $_SERVER['HTTP_AUTHORIZATION'], 6 ) ) ) ))
-            and count( $auth_arr ) == 2 )
+            and count( $auth_arr ) === 2 )
             {
                 $_SERVER['PHP_AUTH_USER'] = $auth_arr[0];
                 $_SERVER['PHP_AUTH_PW'] = $auth_arr[1];
@@ -289,9 +298,9 @@ abstract class PHS_api_base extends PHS_Registry
 
             if( empty( $_SERVER['PHP_AUTH_USER'] ) and empty( $_SERVER['PHP_AUTH_PW'] )
             and !empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] )
-            and strtolower( substr( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 0, 5 ) ) == 'basic'
+            and stripos( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 'basic' ) === 0
             and ($auth_arr = explode(':', @base64_decode( trim( substr( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6 ) ) ) ))
-            and count( $auth_arr ) == 2 )
+            and count( $auth_arr ) === 2 )
             {
                 $_SERVER['PHP_AUTH_USER'] = $auth_arr[0];
                 $_SERVER['PHP_AUTH_PW'] = $auth_arr[1];
@@ -370,10 +379,10 @@ abstract class PHS_api_base extends PHS_Registry
                 // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
                 // eg. $extra['raw_params'] might be an id passed as javascript function parameter
                 if( ($raw_query = array_to_query_string( $extra['raw_params'], array( 'raw_encode_values' => false ) )) )
-                    $query_string .= ($query_string!=''?'&':'').$raw_query;
+                    $query_string .= ($query_string!==''?'&':'').$raw_query;
             }
 
-            return PHS::get_base_url( $route_arr['force_https'] ).'api/v'.$this->get_api_version().'/'.$route.($query_string!=''?'?'.$query_string:'');
+            return PHS::get_base_url( $route_arr['force_https'] ).'api/v'.$this->get_api_version().'/'.$route.($query_string!==''?'?'.$query_string:'');
         }
 
         return PHS::url( $route_arr, $args, $extra );

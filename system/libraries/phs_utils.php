@@ -969,9 +969,30 @@ class PHS_utils extends PHS_Language
 
     /**
      * @param string $url URL where we send the request
-     * @param bool|array $params cURL parameters
-     *
-     * @return array|bool cURL result array or false on error
+     * @param bool|array $params {
+     *      cURL parameters
+     *      @type array userpass {
+     *          'user' @type string User used in Basic Authentication
+     *          'pass' @type string Pass used in Basic Authentication
+     *      } Basic Authentication
+     *      @type bool follow_location Should request follow location if redirected
+     *      @type int timeout Timeout in seconds
+     *      @type string user_agent User-agent to be used for this request
+     *      @type string[string] extra_get_params Extra parameters to be sent in GET (variable name as key, variable value as value)
+     *      @type string raw_post_str Raw POST string
+     *      @type string[string] header_keys_arr Headers to be sent. Header name as key and header value as value
+     *      @type string[int] header_arr Header lines to be sent in this request
+     *      @type string[string] post_arr POST to be passed in the request (variable name as key, variable value as value)
+     *      @type string http_method Method to be sent in this request (eg. GET, POST, PUT, PATCH, DELETE, etc)
+     * }
+     * @return array|bool {
+     *      'response' @type string
+     *      'http_code' @type int HTTP code returned by request
+     *      'request_details' @type array result of curl_getinfo() on cURL resource
+     *      'request_error_msg' @type string result of curl_error() on cURL resource
+     *      'request_error_no' @type int result of curl_errno() on cURL resource
+     *      'request_params' @type array Request parameters ($params array populated with default values as used in the request)
+     * } cURL result array or false on error
      */
     public static function quick_curl( $url, $params = false )
     {

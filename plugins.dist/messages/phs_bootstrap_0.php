@@ -65,7 +65,7 @@ and $messages_plugin->plugin_active() )
         array(
             'chained_hook' => true,
             'stop_chain' => false,
-            'priority' => 10,
+            'priority' => 0,
         )
     );
 
