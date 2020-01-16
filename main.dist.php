@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.0.4' );
+define( 'PHS_KNOWN_VERSION', '1.1.0.5' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -78,6 +78,8 @@ define( 'PHS_DEFAULT_SESSION_NAME', 'PHS_SESS' );
 // We can save in session language or other details that should be available for a longer period
 define( 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME', 432000 ); // 5 days by default
 define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/' );
+// SameSite session cookie settings (can be None, Lax or Strict)
+define( 'PHS_DEFAULT_SESSION_SAMESITE', 'Lax' );
 // Session starts automatically if it is required a variable.
 // If system gets to the point to start displaying something and this constant is set to true, session will be started before displaying
 // It is important to start the session before sending headers, as it cannot be started once headers were sent to browser

@@ -83,6 +83,8 @@ define( 'PHS_SESSION_NAME', PHS_DEFAULT_SESSION_NAME );
 // We can save in session language or other details that should be available for a longer period
 define( 'PHS_SESSION_COOKIE_LIFETIME', PHS_DEFAULT_SESSION_COOKIE_LIFETIME );
 define( 'PHS_SESSION_COOKIE_PATH', PHS_DEFAULT_SESSION_COOKIE_PATH );
+// SameSite session cookie settings (can be None, Lax or Strict)
+define( 'PHS_SESSION_SAMESITE', PHS_DEFAULT_SESSION_SAMESITE );
 // Session starts automatically if it is required a variable.
 // If system gets to the point to start displaying something and this constant is set to true, session will be started before displaying
 // It is important to start the session before sending headers, as it cannot be started once headers were sent to browser

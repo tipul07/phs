@@ -170,7 +170,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     /**
      * Returns an array of scopes in which action is allowed to run
      *
-     * @return array If empty array, action is allowed in all scopes...
+     * @return int[] If empty array, action is allowed in all scopes...
      */
     public function allowed_scopes()
     {
@@ -186,6 +186,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     {
         $this->reset_error();
 
+        $scope = (int)$scope;
         if( !PHS_Scope::valid_scope( $scope ) )
         {
             $this->set_error( self::ERR_SCOPE, self::_t( 'Invalid scope.' ) );
@@ -194,13 +195,13 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         if( ($allowed_scopes = $this->allowed_scopes())
         and is_array( $allowed_scopes )
-        and !in_array( $scope, $allowed_scopes ) )
+        and !in_array( $scope, $allowed_scopes, true ) )
             return false;
 
         return true;
     }
 
-    static function default_action_result()
+    public static function default_action_result()
     {
         return array(
             // Action "content"
