@@ -211,24 +211,13 @@ class PHS_Hubspot extends PHS_Library
             return false;
         }
 
-        $hubspot_plugin = $this->_hubspot_plugin;
-
-        $payload_str = '';
-        if( !empty( $payload_arr )
-        and !($payload_str = @json_encode( $payload_arr )) )
-        {
-            ob_start();
-            var_dump( $payload_arr );
-            $buf = ob_get_clean();
-
-            PHS_Logger::logf( 'Couldn\'t obtain JSON from payload: ['.$buf.']', $hubspot_plugin::LOG_CHANNEL );
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain JSON from payload.' ) );
-            return false;
-        }
-
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
+
+        if( empty( $params['not_found_is_not_an_error'] ) )
+            $params['not_found_is_not_an_error'] = false;
+        else
+            $params['not_found_is_not_an_error'] = (!empty( $params['not_found_is_not_an_error'] ));
 
         if( empty( $params['log_not_found_response'] ) )
             $params['log_not_found_response'] = false;
@@ -246,6 +235,26 @@ class PHS_Hubspot extends PHS_Library
 
         if( empty( $params['extra_get_params'] ) or !is_array( $params['extra_get_params'] ) )
             $params['extra_get_params'] = array();
+
+        $hubspot_plugin = $this->_hubspot_plugin;
+
+        $payload_str = '';
+        if( !empty( $payload_arr )
+        and !($payload_str = @json_encode( $payload_arr )) )
+        {
+            $payload_buf = 'undisclosed-payload';
+            if( !empty( $params['log_payload'] ) )
+            {
+                ob_start();
+                var_dump( $payload_arr );
+                $payload_buf = ob_get_clean();
+            }
+
+            PHS_Logger::logf( 'Couldn\'t obtain JSON from payload: ['.$payload_buf.']', $hubspot_plugin::LOG_CHANNEL );
+
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain JSON from payload.' ) );
+            return false;
+        }
 
         $base_url = rtrim( trim( $this->_api_settings['base_url'] ), '/' );
         $rest_url = trim( trim( $this->_api_params['rest_url'] ), '/' );
@@ -297,6 +306,11 @@ class PHS_Hubspot extends PHS_Library
 
         $response['json_response_arr'] = $response_arr;
 
+        // Treat 404 Not found as a valid response, not as an error
+        if( !empty( $params['not_found_is_not_an_error'] )
+        and $this->api_response_is_not_found( $response ) )
+            return $response;
+
         if( !empty( $response_arr )
         and !empty( $response_arr['status'] )
         and $response_arr['status'] === 'error' )
@@ -322,7 +336,6 @@ class PHS_Hubspot extends PHS_Library
                         $knti++;
                     }
                 }
-
 
                 PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty( $short_error )?$short_error:'N/A'), $hubspot_plugin::LOG_CHANNEL );
                 if( !empty( $long_error ) )
@@ -391,6 +404,50 @@ class PHS_Hubspot extends PHS_Library
     }
 
     /**
+     * @param array $properties_arr Properties array to be validated
+     *
+     * @return bool
+     */
+    public function validate_properties_structure( $properties_arr )
+    {
+        if( empty( $properties_arr ) or !is_array( $properties_arr ) )
+            return false;
+
+        foreach( $properties_arr as $node_arr )
+        {
+            if( empty( $node_arr ) or !is_array( $node_arr )
+             or !array_key_exists( 'property', $node_arr )
+             or !array_key_exists( 'value', $node_arr ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Converts properties to be sent to HubSpot from array( 'property' => 'value', ... ) to array( array( 'property' => 'name', 'value' => 'value' ), ... )
+     * @param array $properties_arr Properties array to be converted
+     *
+     * @return array
+     */
+    public function transform_array_key_value_to_properties_structure( $properties_arr )
+    {
+        if( empty( $properties_arr ) or !is_array( $properties_arr ) )
+            return array();
+
+        $return_arr = array();
+        foreach( $properties_arr as $property => $value )
+        {
+            $return_arr[] = array(
+                'property' => $property,
+                'value' => $value,
+            );
+        }
+
+        return $return_arr;
+    }
+
+    /**
      * @param bool|array $params
      *
      * @return array|bool
@@ -430,7 +487,7 @@ class PHS_Hubspot extends PHS_Library
     //
     /**
      * @param int $contact_id
-     * @param bool|array $params
+     * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array
      */
@@ -439,11 +496,10 @@ class PHS_Hubspot extends PHS_Library
         $this->reset_error();
         $this->reset_api_params();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
         if( !($params = $this->manage_api_request_params( $params )) )
             return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = true;
 
         $this->_api_params( array(
             'rest_url' => 'contacts/v1/contact/vid/'.$contact_id.'/profile',
@@ -461,7 +517,7 @@ class PHS_Hubspot extends PHS_Library
 
     /**
      * @param string $email
-     * @param bool|array $params
+     * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array Returns false on error, empty array if account is not found and a populated array if account exists
      */
@@ -470,11 +526,10 @@ class PHS_Hubspot extends PHS_Library
         $this->reset_error();
         $this->reset_api_params();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
         if( !($params = $this->manage_api_request_params( $params )) )
             return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = true;
 
         $this->_api_params( array(
             'rest_url' => 'contacts/v1/contact/email/'.trim( $email ).'/profile',
@@ -492,7 +547,7 @@ class PHS_Hubspot extends PHS_Library
 
     /**
      * @param bool|array $list_params
-     * @param bool|array $params
+     * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array
      */
@@ -536,6 +591,50 @@ class PHS_Hubspot extends PHS_Library
 
         return $response['json_response_arr'];
     }
+
+    /**
+     * @param array $properties_arr
+     * @param bool|array $params Request extra parameters (if required)
+     *
+     * @return bool|array Returns false if account creation failed (server communication or request)
+     */
+    public function create_contact( $properties_arr, $params = false )
+    {
+        $this->reset_error();
+        $this->reset_api_params();
+
+        if( !($params = $this->manage_api_request_params( $params )) )
+            return false;
+
+        if( empty( $properties_arr ) or !is_array( $properties_arr )
+         or !$this->validate_properties_structure( $properties_arr ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contact properties.' ) );
+
+            return false;
+        }
+
+        $this->_api_params( array(
+            'rest_url' => 'contacts/v1/contact',
+            'http_method' => 'POST',
+        ) );
+
+        $payload_arr = array(
+            'properties' => $properties_arr
+        );
+
+        var_dump( $payload_arr );
+        exit;
+
+        if( !($response = $this->_do_call( $payload_arr, $params['call_parameters'] )) )
+            return false;
+
+        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+            return array();
+
+        return $response['json_response_arr'];
+    }
     //
     ///endregion Contacts methods
     //
@@ -561,11 +660,10 @@ class PHS_Hubspot extends PHS_Library
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
-
         if( !($params = $this->manage_api_request_params( $params )) )
             return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = true;
 
         $this->_api_params( array(
             'rest_url' => 'companies/v2/companies/'.$company_id,

@@ -12,8 +12,8 @@ final class PHS_session extends PHS_Registry
     const SESS_DIR_LENGTH = 2, SESS_DIR_MAX_SEGMENTS = 4;
 
     const SESS_DATA = 'sess_data',
-          SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_AUTOSTART = 'sess_autostart',
-          SESS_STARTED = 'sess_started';
+          SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_SAMESITE = 'sess_samesite',
+          SESS_AUTOSTART = 'sess_autostart', SESS_STARTED = 'sess_started';
 
     // Make sure session is not considered garbage by adding a parameter in session with a "random" number
     const SESS_TIME_PARAM_NAME = '__phs_t';
@@ -39,6 +39,8 @@ final class PHS_session extends PHS_Registry
             self::set_data( self::SESS_COOKIE_LIFETIME, PHS_SESSION_COOKIE_LIFETIME );
         if( defined( 'PHS_SESSION_COOKIE_PATH' ) )
             self::set_data( self::SESS_COOKIE_PATH, PHS_SESSION_COOKIE_PATH );
+        if( defined( 'PHS_SESSION_SAMESITE' ) )
+            self::set_data( self::SESS_SAMESITE, PHS_SESSION_SAMESITE );
         if( defined( 'PHS_SESSION_AUTOSTART' ) )
             self::set_data( self::SESS_AUTOSTART, PHS_SESSION_AUTOSTART );
 
@@ -151,11 +153,38 @@ final class PHS_session extends PHS_Registry
         else
             $params['httponly'] = (!empty( $params['httponly'] )?true:false);
 
+        if( !isset( $params['secure'] ) )
+            $params['secure'] = false;
+        else
+            $params['secure'] = (!empty( $params['secure'] )?true:false);
+
+        if( !isset( $params['samesite'] )
+         or !in_array( strtolower( $params['samesite'] ), array( 'none', 'lax', 'strict' ), true ) )
+            $params['samesite'] = 'Lax';
+        else
+            $params['samesite'] = ucfirst( strtolower( $params['samesite'] ) );
+
         if( $params['expire_secs'] < 0 )
             return self::delete_cookie( $name, $params );
 
-        if( !@setcookie( $name, $val, time() + $params['expire_secs'], $params['path'], PHS_DOMAIN, $params['httponly'] ) )
-            return false;
+        $time_expire = time() + $params['expire_secs'];
+
+        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        {
+            if( !@setcookie( $name, $val, array(
+                                            'expires' => $time_expire,
+                                            'path' => $params['path'],
+                                            'domain' => PHS_DOMAIN,
+                                            'secure' => $params['secure'],
+                                            'httponly' => $params['httponly'],
+                                            'samesite' => $params['samesite'] )
+            ) )
+                return false;
+        } else
+        {
+            if( !@setcookie( $name, $val, $time_expire, $params['path'], PHS_DOMAIN, $params['secure'], $params['httponly'] ) )
+                return false;
+        }
 
         if( !empty( $params['alter_globals'] ) )
         {
@@ -210,8 +239,35 @@ final class PHS_session extends PHS_Registry
         else
             $params['httponly'] = (!empty( $params['httponly'] )?true:false);
 
-        if( !@setcookie( $name, '', time() - 90000, $params['path'], PHS_DOMAIN, $params['httponly'] ) )
-            return false;
+        if( !isset( $params['secure'] ) )
+            $params['secure'] = false;
+        else
+            $params['secure'] = (!empty( $params['secure'] )?true:false);
+
+        if( !isset( $params['samesite'] )
+         or !in_array( strtolower( $params['samesite'] ), array( 'none', 'lax', 'strict' ), true ) )
+            $params['samesite'] = 'Lax';
+        else
+            $params['samesite'] = ucfirst( strtolower( $params['samesite'] ) );
+
+        $time_expire = time() - 90000;
+
+        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        {
+            if( !@setcookie( $name, '', array(
+                                            'expires' => $time_expire,
+                                            'path' => $params['path'],
+                                            'domain' => PHS_DOMAIN,
+                                            'secure' => $params['secure'],
+                                            'httponly' => $params['httponly'],
+                                            'samesite' => $params['samesite'] )
+            ) )
+                return false;
+        } else
+        {
+            if( !@setcookie( $name, '', $time_expire, $params['path'], PHS_DOMAIN, $params['secure'], $params['httponly'] ) )
+                return false;
+        }
 
         if( !empty( $params['alter_globals'] ) )
         {
@@ -266,8 +322,22 @@ final class PHS_session extends PHS_Registry
 
         @session_save_path( self::get_data( self::SESS_DIR ) );
         @session_cache_limiter( 'nocache' );
-        @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN );
         @session_name( self::get_data( self::SESS_NAME ) );
+
+        // SameSite session cookie...
+        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        {
+            @session_set_cookie_params( array(
+                                        'lifetime' => self::get_data( self::SESS_COOKIE_LIFETIME ),
+                                        'path' => self::get_data( self::SESS_COOKIE_PATH ),
+                                        'domain' => PHS_DOMAIN,
+                                        'secure' => false,
+                                        'httponly' => false,
+                                        'samesite' => self::get_data( self::SESS_SAMESITE ) ) );
+        } else
+        {
+            @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN, false, false );
+        }
 
         @register_shutdown_function( array( '\\phs\\PHS_session', 'session_close' ) );
 
@@ -509,7 +579,6 @@ final class PHS_session extends PHS_Registry
                 and @filemtime( $file ) + $maxlifetime < time() )
                 {
                     @unlink( $file );
-                    echo 'Delete: ['.$file.']['.$check_dir.']<br/>'."\n";
 
                     PHS_utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
 

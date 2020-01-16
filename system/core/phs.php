@@ -539,6 +539,7 @@ final class PHS extends PHS_Registry
             'PHS_SESSION_NAME' => 'PHS_DEFAULT_SESSION_NAME',
             'PHS_SESSION_COOKIE_LIFETIME' => 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME',
             'PHS_SESSION_COOKIE_PATH' => 'PHS_DEFAULT_SESSION_COOKIE_PATH',
+            'PHS_SESSION_SAMESITE' => 'PHS_DEFAULT_SESSION_SAMESITE',
             'PHS_SESSION_AUTOSTART' => 'PHS_DEFAULT_SESSION_AUTOSTART',
         );
     }
@@ -649,7 +650,7 @@ final class PHS extends PHS_Registry
                     $force_https = true;
             } else
             {
-                if( strstr( $route, '-' ) !== false )
+                if( strpos( $route, '-' ) !== false )
                 {
                     if( !($route_parts_tmp = explode( '-', $route, 2 ))
                      or empty( $route_parts_tmp[0] ) )
@@ -668,14 +669,14 @@ final class PHS extends PHS_Registry
                 }
 
                 $rp_count = count( $route_parts );
-                if( $rp_count == 1 )
+                if( $rp_count === 1 )
                 {
                     $action = (!empty( $route_parts[0] )?trim( $route_parts[0] ):'');
-                } elseif( $rp_count == 2 )
+                } elseif( $rp_count === 2 )
                 {
                     $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
                     $action = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
-                } elseif( $rp_count == 3 )
+                } elseif( $rp_count === 3 )
                 {
                     $plugin = (!empty( $route_parts[0] )?trim( $route_parts[0] ):false);
                     $controller = (!empty( $route_parts[1] )?trim( $route_parts[1] ):'');
@@ -714,6 +715,12 @@ final class PHS extends PHS_Registry
         );
     }
 
+    /**
+     * @param string|array $route
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public static function route_exists( $route, $params = false )
     {
         self::st_reset_error();

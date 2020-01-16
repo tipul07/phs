@@ -114,6 +114,7 @@ class PHS_Step_1 extends PHS_Step
                         'quick_comment' => '5 days by default',
                     ),
                     'PHS_DEFAULT_SESSION_COOKIE_PATH' => '/',
+                    'PHS_DEFAULT_SESSION_SAMESITE' => 'Lax',
                     'PHS_DEFAULT_SESSION_AUTOSTART' => array(
                         'raw' => 'false',
                     ),
