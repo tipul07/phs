@@ -6,13 +6,6 @@ use \phs\libraries\PHS_Model;
 
 class PHS_Model_Accounts_details extends PHS_Model
 {
-    function __construct( $instance_details = false )
-    {
-        // $this->add_connection( 'PHS_Model_Accounts', 'accounts', self::INSTANCE_TYPE_MODEL );
-
-        parent::__construct( $instance_details );
-    }
-
     /**
      * @return string Returns version of model
      */

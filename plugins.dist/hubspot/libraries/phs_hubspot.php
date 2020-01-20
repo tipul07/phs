@@ -6,6 +6,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Library;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_params;
 
 class PHS_Hubspot extends PHS_Library
 {
@@ -39,6 +40,9 @@ class PHS_Hubspot extends PHS_Library
         return true;
     }
 
+    //
+    ///region Common functionality methods
+    //
     public function valid_api_settings( $settings_arr )
     {
         if( empty( $settings_arr ) or !is_array( $settings_arr )
@@ -481,6 +485,9 @@ class PHS_Hubspot extends PHS_Library
 
         return $params;
     }
+    //
+    ///endregion Common functionality methods
+    //
 
     //
     ///region Contacts methods
@@ -624,9 +631,6 @@ class PHS_Hubspot extends PHS_Library
             'properties' => $properties_arr
         );
 
-        var_dump( $payload_arr );
-        exit;
-
         if( !($response = $this->_do_call( $payload_arr, $params['call_parameters'] )) )
             return false;
 
@@ -634,6 +638,166 @@ class PHS_Hubspot extends PHS_Library
             return array();
 
         return $response['json_response_arr'];
+    }
+
+    /**
+     * @param int $contact_id
+     * @param array $properties_arr
+     * @param bool|array $params Request extra parameters (if required)
+     *
+     * @return bool|array Returns false if account creation failed (server communication or request)
+     */
+    public function update_contact( $contact_id, $properties_arr, $params = false )
+    {
+        $this->reset_error();
+        $this->reset_api_params();
+
+        $contact_id = (int)$contact_id;
+        if( empty( $contact_id ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide contact ID to be updated.' ) );
+            return false;
+        }
+
+        if( !($params = $this->manage_api_request_params( $params )) )
+            return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = false;
+
+        if( empty( $properties_arr ) or !is_array( $properties_arr )
+         or !$this->validate_properties_structure( $properties_arr ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contact properties.' ) );
+
+            return false;
+        }
+
+        $this->_api_params( array(
+            'rest_url' => 'contacts/v1/contact/vid/'.$contact_id.'/profile',
+            'http_method' => 'POST',
+        ) );
+
+        $payload_arr = array(
+            'properties' => $properties_arr
+        );
+
+        if( !($response = $this->_do_call( $payload_arr, $params['call_parameters'] )) )
+            return false;
+
+        if( !$this->api_response_is_ok( $response, array( 204 ) ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'HubSpot server didn\'t respond with 204 code.' ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array[] $contacts_arr {
+     *      {
+     *          'id' @type int HubSpot contact ID
+     *          | 'email' @type string Email which identifies the contact
+     *          'properties' @type array {
+     *              {
+     *                  'property' @type string Property name
+     *                  'value' @type mixed Property value
+     *              }...
+     *          }
+     *      }...
+     * }
+     * @param bool|array $params Request extra parameters (if required)
+     *
+     * @return bool|array Returns false if account creation failed (server communication or request)
+     */
+    public function update_list_of_contacts( $contacts_arr, $params = false )
+    {
+        $this->reset_error();
+        $this->reset_api_params();
+
+        if( empty( $contacts_arr ) or !is_array( $contacts_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide contacts to be updated.' ) );
+            return false;
+        }
+
+        if( !($params = $this->manage_api_request_params( $params )) )
+            return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = true;
+
+        $contacts_payload_arr = array();
+        $knti = 0;
+        foreach( $contacts_arr as $contact_arr )
+        {
+            $knti++;
+
+            if( empty( $contact_arr ) or !is_array( $contact_arr )
+             or (empty( $contact_arr['id'] )
+                    and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
+                )
+             or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact %s doesn\'t follow structure requirements.', $knti ) );
+                return false;
+            }
+
+            $new_contact_arr = array();
+            if( !empty( $contact_arr['id'] ) )
+                $new_contact_arr['vid'] = (int)$contact_arr['id'];
+            elseif( !empty( $contact_arr['email'] ) )
+                $new_contact_arr['email'] = trim( $contact_arr['email'] );
+
+            if( empty( $new_contact_arr['vid'] ) and empty( $new_contact_arr['email'] ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact %s doesn\'t follow structure requirements.', $knti ) );
+                return false;
+            }
+
+            $new_properties_arr = array();
+            foreach( $contact_arr['properties'] as $node_arr )
+            {
+                if( empty( $node_arr ) or !is_array( $node_arr )
+                 or !array_key_exists( 'property', $node_arr )
+                 or !array_key_exists( 'value', $node_arr ) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact\'s %s properties doesn\'t follow structure requirements.', $knti ) );
+                    return false;
+                }
+
+                $new_properties_arr[] = array(
+                    'property' => $node_arr['property'],
+                    'value' => $node_arr['value'],
+                );
+            }
+
+            $new_contact_arr['properties'] = $new_properties_arr;
+
+            $contacts_payload_arr[] = $new_contact_arr;
+        }
+
+        if( empty( $contacts_payload_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No contacts to send to batch update functionality.', $knti ) );
+            return false;
+        }
+
+        $this->_api_params( array(
+            'rest_url' => 'contacts/v1/contact/batch/',
+            'http_method' => 'POST',
+        ) );
+
+        if( !($response = $this->_do_call( $contacts_payload_arr, $params['call_parameters'] )) )
+            return false;
+
+        if( !$this->api_response_is_ok( $response, array( 202 ) ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'HubSpot server didn\'t respond with 202 code.' ) );
+            return false;
+        }
+
+        return true;
     }
     //
     ///endregion Contacts methods

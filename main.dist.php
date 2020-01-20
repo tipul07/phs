@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.0.5' );
+define( 'PHS_KNOWN_VERSION', '1.1.0.6' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -77,7 +77,7 @@ define( 'PHS_DEFAULT_SESSION_NAME', 'PHS_SESS' );
 // 0 to close session when browser closes... This is session lifetime, not how long user will be logged in
 // We can save in session language or other details that should be available for a longer period
 define( 'PHS_DEFAULT_SESSION_COOKIE_LIFETIME', 432000 ); // 5 days by default
-define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/' );
+define( 'PHS_DEFAULT_SESSION_COOKIE_PATH', '/'.trim( PHS_DEFAULT_DOMAIN_PATH, '/' ) );
 // SameSite session cookie settings (can be None, Lax or Strict)
 define( 'PHS_DEFAULT_SESSION_SAMESITE', 'Lax' );
 // Session starts automatically if it is required a variable.
