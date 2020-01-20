@@ -104,6 +104,67 @@ final class PHS_session extends PHS_Registry
     }
 
     /**
+     * @param array|bool $options_arr
+     *
+     * @return array
+     */
+    public static function validate_cookie_params( $options_arr = false )
+    {
+        if( empty( $options_arr ) or !is_array( $options_arr ) )
+            $options_arr = array();
+
+        if( empty( $options_arr['expires'] ) )
+            $options_arr['expires'] = 0;
+        if( empty( $options_arr['path'] ) or !is_string( $options_arr['path'] ) )
+            $options_arr['path'] = '/';
+        if( empty( $options_arr['domain'] ) or !is_string( $options_arr['domain'] ) )
+            $options_arr['domain'] = PHS_DOMAIN;
+        if( empty( $options_arr['secure'] ) )
+            $options_arr['secure'] = false;
+        else
+            $options_arr['secure'] = true;
+        if( empty( $options_arr['httponly'] ) )
+            $options_arr['httponly'] = false;
+        else
+            $options_arr['httponly'] = true;
+
+        if( empty( $options_arr['samesite'] ) or !is_array( $options_arr['samesite'] )
+         or !in_array( strtolower( $options_arr['samesite'] ), array( 'none', 'lax', 'strict' ) ) )
+            $options_arr['samesite'] = 'Lax';
+        else
+            $options_arr['samesite'] = ucfirst( strtolower( $options_arr['samesite'] ) );
+
+        return $options_arr;
+    }
+
+    /**
+     * @param string $name
+     * @param string|int $value
+     * @param array|bool $options_arr
+     */
+    public static function raw_setcookie( $name, $value, $options_arr = false )
+    {
+        $options_arr = self::validate_cookie_params( $options_arr );
+
+        $header = 'Set-Cookie: ';
+        $header .= rawurlencode( $name ) . '=' . rawurlencode( $value ) . ';';
+        $header .= 'expires=' . \gmdate( 'D, d-M-Y H:i:s T', $options_arr['expires'] ) . ';';
+        $header .= 'Max-Age=' . max( 0, (int)($options_arr['expires'] - time())) . ';';
+        $header .= 'path=' . rawurlencode( $options_arr['path'] ). ';';
+        $header .= 'domain=' . rawurlencode( $options_arr['domain'] ) . ';';
+
+        if( !empty( $options_arr['secure'] ) )
+            $header .= 'secure;';
+        if( !empty( $options_arr['httponly'] ) )
+            $header .= 'httponly;';
+
+        $header .= 'SameSite=' . rawurlencode( $options_arr['samesite'] );
+
+        @header( $header, false );
+        $_COOKIE[$name] = $value;
+    }
+
+    /**
      * @param string $name
      * @param string $val
      * @param bool|array $params
@@ -169,20 +230,22 @@ final class PHS_session extends PHS_Registry
 
         $time_expire = time() + $params['expire_secs'];
 
+        $cookie_params = array(
+            'expires' => $time_expire,
+            'path' => $params['path'],
+            'domain' => PHS_DOMAIN,
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        );
+
         if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
         {
-            if( !@setcookie( $name, $val, array(
-                                            'expires' => $time_expire,
-                                            'path' => $params['path'],
-                                            'domain' => PHS_DOMAIN,
-                                            'secure' => $params['secure'],
-                                            'httponly' => $params['httponly'],
-                                            'samesite' => $params['samesite'] )
-            ) )
+            if( !@setcookie( $name, $val, $cookie_params ) )
                 return false;
         } else
         {
-            if( !@setcookie( $name, $val, $time_expire, $params['path'], PHS_DOMAIN, $params['secure'], $params['httponly'] ) )
+            if( !self::raw_setcookie( $name, $val, $cookie_params ) )
                 return false;
         }
 
@@ -252,20 +315,22 @@ final class PHS_session extends PHS_Registry
 
         $time_expire = time() - 90000;
 
+        $cookie_params = array(
+            'expires' => $time_expire,
+            'path' => $params['path'],
+            'domain' => PHS_DOMAIN,
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        );
+
         if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
         {
-            if( !@setcookie( $name, '', array(
-                                            'expires' => $time_expire,
-                                            'path' => $params['path'],
-                                            'domain' => PHS_DOMAIN,
-                                            'secure' => $params['secure'],
-                                            'httponly' => $params['httponly'],
-                                            'samesite' => $params['samesite'] )
-            ) )
+            if( !@setcookie( $name, '', $cookie_params ) )
                 return false;
         } else
         {
-            if( !@setcookie( $name, '', $time_expire, $params['path'], PHS_DOMAIN, $params['secure'], $params['httponly'] ) )
+            if( !self::raw_setcookie( $name, '', $cookie_params ) )
                 return false;
         }
 

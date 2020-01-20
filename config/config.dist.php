@@ -82,7 +82,7 @@ define( 'PHS_SESSION_NAME', PHS_DEFAULT_SESSION_NAME );
 // 0 to close session when browser closes... This is session lifetime, not how long user will be logged in
 // We can save in session language or other details that should be available for a longer period
 define( 'PHS_SESSION_COOKIE_LIFETIME', PHS_DEFAULT_SESSION_COOKIE_LIFETIME );
-define( 'PHS_SESSION_COOKIE_PATH', PHS_DEFAULT_SESSION_COOKIE_PATH );
+define( 'PHS_SESSION_COOKIE_PATH', '/'.trim( PHS_DEFAULT_DOMAIN_PATH, '/' ) );
 // SameSite session cookie settings (can be None, Lax or Strict)
 define( 'PHS_SESSION_SAMESITE', PHS_DEFAULT_SESSION_SAMESITE );
 // Session starts automatically if it is required a variable.

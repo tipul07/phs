@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-//! \version 1.81
+//! \version 1.90
 
 class PHS_params
 {
@@ -12,25 +12,41 @@ class PHS_params
           T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13, T_TIMESTAMP = 14;
 
     const FLOAT_PRECISION = 10;
+    const REGEX_INT = '/^[+-]?\d+$/', REGEX_FLOAT = '/^[+-]?\d+\.?\d*$/',
+          REGEX_EMAIL = '/^[a-zA-Z0-9]+[a-zA-Z0-9\._\-\+]*@[a-zA-Z0-9_-]+\.[a-zA-Z0-9\._-]+$/',
+          REGEX_URL = '_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS';
 
-    function __construct()
-    {
-    }
 
-    static function get_valid_types()
+    /**
+     * @return array
+     */
+    public static function get_valid_types()
     {
         return array(
             self::T_ASIS, self::T_INT, self::T_FLOAT, self::T_ALPHANUM, self::T_SAFEHTML, self::T_NOHTML, self::T_EMAIL,
             self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, self::T_NUMERIC_BOOL, self::T_TIMESTAMP, );
     }
 
-    static function valid_type( $type )
+    /**
+     * @param int $type
+     *
+     * @return bool
+     */
+    public static function valid_type( $type )
     {
-        return in_array( $type, self::get_valid_types() );
+        return in_array( (int)$type, self::get_valid_types(), true );
     }
 
-    static function check_type( $val, $type, $extra = false )
+    /**
+     * @param int|float|string $val
+     * @param int $type
+     * @param bool|array $extra
+     *
+     * @return bool
+     */
+    public static function check_type( $val, $type, $extra = false )
     {
+        $type = (int)$type;
         switch( $type )
         {
             default:
@@ -38,12 +54,12 @@ class PHS_params
             break;
 
             case self::T_INT:
-                if( preg_match( '/^[+-]?\d+$/', $val ) )
+                if( preg_match( self::REGEX_INT, $val ) )
                     return true;
             break;
 
             case self::T_FLOAT:
-                if( preg_match( '/^[+-]?\d+\.?\d*$/', $val ) )
+                if( preg_match( self::REGEX_FLOAT, $val ) )
                     return true;
             break;
 
@@ -53,7 +69,7 @@ class PHS_params
             break;
 
             case self::T_EMAIL:
-                if( preg_match( '/^[a-zA-Z0-9]+[a-zA-Z0-9\._\-\+]*@[a-zA-Z0-9_-]+\.[a-zA-Z0-9\._-]+$/', $val ) )
+                if( preg_match( self::REGEX_EMAIL, $val ) )
                     return true;
             break;
 
@@ -69,7 +85,7 @@ class PHS_params
             break;
 
             case self::T_URL:
-                if( preg_match( '_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS', $val ) )
+                if( preg_match( self::REGEX_URL, $val ) )
                     return true;
             break;
         }
@@ -77,7 +93,14 @@ class PHS_params
         return false;
     }
 
-    static function set_type( $val, $type, $extra = false )
+    /**
+     * @param mixed $val
+     * @param int $type
+     * @param bool|array $extra
+     *
+     * @return mixed
+     */
+    public static function set_type( $val, $type, $extra = false )
     {
         if( $val === null )
             return null;
@@ -92,6 +115,7 @@ class PHS_params
         and is_scalar( $val ) )
             $val = trim( $val );
 
+        $type = (int)$type;
         switch( $type )
         {
             default:
@@ -103,8 +127,8 @@ class PHS_params
                 if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
 
-                if( $val != '' )
-                    $val = intval( $val );
+                if( $val !== '' )
+                    $val = (int)$val;
 
                 return $val;
             break;
@@ -119,7 +143,7 @@ class PHS_params
                 if( empty( $extra['digits'] ) )
                     $extra['digits'] = self::FLOAT_PRECISION;
 
-                if( $val != '' )
+                if( $val !== '' )
                 {
                     if( @function_exists( 'bcmul' ) )
                     {
@@ -129,16 +153,16 @@ class PHS_params
                         $val = @number_format( $val, $extra['digits'], '.', '' );
                     }
 
-                    if( strstr( $val, '.' ) !== false )
+                    if( strpos( $val, '.' ) !== false )
                     {
                         $val = trim( $val, '0' );
-                        if( substr( $val, -1 ) == '.' )
+                        if( substr( $val, -1 ) === '.' )
                             $val = substr( $val, 0, -1 );
-                        if( substr( $val, 0, 1 ) == '.' )
+                        if( substr( $val, 0, 1 ) === '.' )
                             $val = '0'.$val;
                     }
 
-                    $val = floatval( $val );
+                    $val = (float)$val;
                 }
 
                 return $val;
@@ -203,7 +227,7 @@ class PHS_params
                     $val = 0;
 
                 elseif( is_numeric( $val ) )
-                    $val = intval( $val );
+                    $val = (int)$val;
 
                 elseif( ($val = @strtotime( $val )) === false or $val === -1 )
                     $val = 0;
@@ -227,15 +251,15 @@ class PHS_params
 
                     $low_val = strtolower( $val );
 
-                    if( $low_val == 'true' )
+                    if( $low_val === 'true' )
                         $val = true;
-                    elseif( $low_val == 'false' )
+                    elseif( $low_val === 'false' )
                         $val = false;
                 }
 
-                if( $type == self::T_BOOL )
+                if( $type === self::T_BOOL )
                     return (!empty( $val )?true:false);
-                elseif( $type == self::T_NUMERIC_BOOL )
+                elseif( $type === self::T_NUMERIC_BOOL )
                     return (!empty( $val )?1:0);
             break;
         }
@@ -243,7 +267,15 @@ class PHS_params
         return null;
     }
 
-    static function _gp( $v, $type = self::T_ASIS, $extra = false )
+    /**
+     * Obtain a variable from _GET, then check _POST if not found in _GET
+     * @param string $v
+     * @param int $type
+     * @param bool|array $extra
+     *
+     * @return mixed|null
+     */
+    public static function _gp( $v, $type = self::T_ASIS, $extra = false )
     {
         if( !empty( $_POST )
         and isset( $_POST[$v] ) )
@@ -257,7 +289,15 @@ class PHS_params
         return self::set_type( $var, $type, $extra );
     }
 
-    static function _pg( $v, $type = self::T_ASIS, $extra = false )
+    /**
+     * Obtain a variable from _POST, then check _GET if not found in _POST
+     * @param string $v
+     * @param int $type
+     * @param bool|array $extra
+     *
+     * @return mixed|null
+     */
+    public static function _pg( $v, $type = self::T_ASIS, $extra = false )
     {
         if( !empty( $_POST )
         and isset( $_POST[$v] ) )
@@ -271,7 +311,17 @@ class PHS_params
         return self::set_type( $var, $type, $extra );
     }
 
-    static function _var( $from, $v, $type = self::T_ASIS, $extra = false )
+    /**
+     * Checks _GET (g), _POST (p), _SESSION (s), _FILES (f), _COOKIE (c), _REQUEST (r), _ENV (e), _SERVER (v) arrays to find $v key in provided order in $from
+     *
+     * @param string $from Order in which to check arrays as string _GET (g), _POST (p), _SESSION (s), _FILES (f), _COOKIE (c), _REQUEST (r), _ENV (e), _SERVER (v)
+     * @param string $v Key to be search in provided order in arrays
+     * @param int $type
+     * @param bool|array $extra
+     *
+     * @return mixed|null
+     */
+    public static function _var( $from, $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $from ) )
             return null;
@@ -321,7 +371,7 @@ class PHS_params
         return null;
     }
 
-    static function _g( $v, $type = self::T_ASIS, $extra = false )
+    public static function _g( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_GET )
          or !isset( $_GET[$v] ) )
@@ -330,7 +380,7 @@ class PHS_params
         return self::set_type( $_GET[$v], $type, $extra );
     }
 
-    static function _p( $v, $type = self::T_ASIS, $extra = false )
+    public static function _p( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_POST )
          or !isset( $_POST[$v] ) )
@@ -344,16 +394,18 @@ class PHS_params
      *
      * @return array|null
      */
-    static function _f( $v )
+    public static function _f( $v )
     {
         if( empty( $_FILES )
-         or !isset( $_FILES[$v] ) or $_FILES[$v]['name'] == '' )
+         or !isset( $_FILES[$v] )
+         or !isset( $_FILES[$v]['name'] )
+         or $_FILES[$v]['name'] === '' )
             return null;
 
         return $_FILES[$v];
     }
 
-    static function _s( $v, $type = self::T_ASIS, $extra = false )
+    public static function _s( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_SESSION ) or !isset( $_SESSION[$v] ) )
             return null;
@@ -361,7 +413,7 @@ class PHS_params
         return self::set_type( $_SESSION[$v], $type, $extra );
     }
 
-    static function _c( $v, $type = self::T_ASIS, $extra = false )
+    public static function _c( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_COOKIE ) or !isset( $_COOKIE[$v] ) )
             return null;
@@ -369,7 +421,7 @@ class PHS_params
         return self::set_type( $_COOKIE[$v], $type, $extra );
     }
 
-    static function _r( $v, $type = self::T_ASIS, $extra = false )
+    public static function _r( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_REQUEST ) or !isset( $_REQUEST[$v] ) )
             return null;
@@ -377,7 +429,7 @@ class PHS_params
         return self::set_type( $_REQUEST[$v], $type, $extra );
     }
 
-    static function _v( $v, $type = self::T_ASIS, $extra = false )
+    public static function _v( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_SERVER ) or !isset( $_SERVER[$v] ) )
             return null;
@@ -385,7 +437,7 @@ class PHS_params
         return self::set_type( $_SERVER[$v], $type, $extra );
     }
 
-    static function _e( $v, $type = self::T_ASIS, $extra = false )
+    public static function _e( $v, $type = self::T_ASIS, $extra = false )
     {
         if( empty( $_ENV ) or !isset( $_ENV[$v] ) )
             return null;
@@ -393,4 +445,3 @@ class PHS_params
         return self::set_type( $_ENV[$v], $type, $extra );
     }
 }
-
