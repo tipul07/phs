@@ -646,8 +646,6 @@ final class PHS extends PHS_Registry
 
                 if( !empty( $route['force_https'] ) )
                     $force_https = true;
-                elseif( !empty( $route['force_https'] ) )
-                    $force_https = true;
             } else
             {
                 if( strpos( $route, '-' ) !== false )

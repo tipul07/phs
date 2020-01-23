@@ -52,7 +52,7 @@ interface PHS_db_interface
     /**
      * @param bool|array $dump_params Array containing dump parameters
      *
-     * @return array Returns populated $dump_params array
+     * @return array|bool Returns populated $dump_params array or false on error
      */
     public function dump_database( $dump_params = false );
 

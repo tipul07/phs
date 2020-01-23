@@ -181,6 +181,7 @@ abstract class PHS_Signal_and_slot extends PHS_Instantiable
         return $signal_response;
     }
 
+    /** @noinspection PhpUnusedParameterInspection */
     protected function signal_receive( $sender, $signal, $signal_params = false )
     {
         return self::default_signal_response();

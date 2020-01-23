@@ -195,7 +195,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $new_value;
     }
 
-    public function custom_after_install()
+    protected function custom_after_install()
     {
         // Even if we get an error when adding predefined backup rules don't break the install...
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */

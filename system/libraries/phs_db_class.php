@@ -13,6 +13,8 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
     const ERR_CONNECT = 1;
     //! Cannot query server.
     const ERR_QUERY = 2;
+    //! Database/scheme related errors
+    const ERR_DATABASE = 3;
 
     //! Database settings - array with connection settings (can hold one or more database connection settings).
     //! Eg. $my_settings['default']['host'] = 'localhost'; $my_settings['default']['port'] = 'XXXX'; ... etc
@@ -59,6 +61,10 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
     abstract protected function default_custom_settings_structure();
     abstract protected function custom_settings_validation( $conn_settings );
     abstract protected function custom_settings_are_valid( $conn_settings );
+
+    /**
+     * @return string
+     */
     abstract protected function default_connection_name();
 
     protected function default_common_settings_structure()
@@ -81,6 +87,12 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
         return self::validate_array( $custom_structure, $common_structure );
     }
 
+    /**
+     * @param string $connection_name
+     * @param bool|array $conn_settings
+     *
+     * @return bool
+     */
     public function connection_settings( $connection_name, $conn_settings = false )
     {
         if( $connection_name === false )
@@ -126,6 +138,11 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
         return true;
     }
 
+    /**
+     * @param bool|array $conn_settings
+     *
+     * @return bool|mixed
+     */
     public function settings( $conn_settings = false )
     {
         if( $conn_settings === false )
@@ -161,9 +178,14 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
         return true;
     }
 
+    /**
+     * @param null|string $connection_name
+     *
+     * @return string|bool
+     */
     public function default_connection( $connection_name = null )
     {
-        if( is_null( $connection_name ) )
+        if( $connection_name === null )
             return $this->my_def_connection;
 
         if( empty( $this->my_settings ) or empty( $this->my_settings[$connection_name] ) )
@@ -176,7 +198,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
 
     public function display_errors( $var = null )
     {
-        if( is_null( $var ) )
+        if( $var === null )
             return $this->display_errors;
 
         $this->display_errors = $var;
@@ -185,7 +207,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
 
     public function die_on_errors( $var = null )
     {
-        if( is_null( $var ) )
+        if( $var === null )
             return $this->die_on_errors;
 
         $this->die_on_errors = $var;
@@ -194,7 +216,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
 
     public function debug_errors( $var = null )
     {
-        if( is_null( $var ) )
+        if( $var === null )
             return $this->debug_errors;
 
         $this->debug_errors = $var;
@@ -312,7 +334,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
         $this->error_state = false;
     }
 
-    function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )
+    protected function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();

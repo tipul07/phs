@@ -352,6 +352,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      *
      * @return bool true on success, false on failure
      */
+    /** @noinspection PhpUnusedParameterInspection */
     protected function custom_update( $old_version, $new_version )
     {
         return true;
@@ -368,13 +369,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      *
      * @return bool true on success, false on failure
      */
+    /** @noinspection PhpUnusedParameterInspection */
     protected function custom_after_update( $old_version, $new_version )
     {
         return true;
     }
 
     /**
-     * Performs any necessary custom actions after intalling missing tables while updating model from $old_version to $new_version
+     * Performs any necessary custom actions after installing missing tables while updating model from $old_version to $new_version
      * This action is performed after all missing tables are created
      * Overwrite this method to do particular updates.
      * If this function returns false updating model to last version will stop, model table structure will remain changed tho.
@@ -385,6 +387,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      *
      * @return bool true on success, false on failure
      */
+    /** @noinspection PhpUnusedParameterInspection */
     protected function custom_after_missing_tables_update( $old_version, $new_version, $params_arr = false )
     {
         return true;
@@ -1769,30 +1772,5 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         PHS_Logger::logf( 'DONE Updating model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return $db_details['new_data'];
-    }
-
-    protected function signal_receive( $sender, $signal, $signal_params = false )
-    {
-        $return_arr = self::default_signal_response();
-
-        switch( $signal )
-        {
-            default:
-                $return_arr = parent::signal_receive( $sender, $signal, $signal_params );
-            break;
-
-            case self::SIGNAL_FORCE_INSTALL:
-                if( !$this->install() )
-                {
-                    if( $this->has_error() )
-                    {
-                        $return_arr['error_arr'] = $this->get_error();
-                        $return_arr['stop_process'] = true;
-                    }
-                }
-            break;
-        }
-
-        return $return_arr;
     }
 }
