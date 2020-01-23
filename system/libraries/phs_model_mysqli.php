@@ -78,12 +78,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
     /**
      * @inheritdoc
-     *
+     * @return int
      * Default primary key an INT, override this method if otherwise
      */
     public function prepare_primary_key( $id, $params = false )
     {
-        return intval( $id );
+        return (int)$id;
     }
 
     /**
@@ -192,7 +192,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         db_restore_errors_state( $this->get_db_connection( $flow_params ) );
 
-        if( is_array( self::$tables_arr[$my_driver] )
+        if( !empty( self::$tables_arr[$my_driver] )
+        and is_array( self::$tables_arr[$my_driver] )
         and array_key_exists( $flow_table_name, self::$tables_arr[$my_driver] ) )
             return true;
 
@@ -252,10 +253,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
              or !is_array( $field_definition ) or empty( $field_definition['field_str'] ) )
                 continue;
 
-            $all_fields_str .= ($all_fields_str!=''?', '."\n":'').$field_definition['field_str'];
+            $all_fields_str .= ($all_fields_str!==''?', '."\n":'').$field_definition['field_str'];
 
             if( !empty( $field_definition['keys_str'] ) )
-                $keys_str .= ($keys_str!=''?',':'').$field_definition['keys_str'];
+                $keys_str .= ($keys_str!==''?',':'').$field_definition['keys_str'];
         }
 
         $sql .= $all_fields_str.(!empty( $keys_str )?', '."\n":'').$keys_str.(!empty( $keys_str )?"\n":'').
@@ -329,8 +330,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $found_old_field_names_arr = array();
         foreach( $table_definition as $field_name => $field_definition )
         {
-            if( $field_name == self::T_DETAILS_KEY
-             or $field_name == self::EXTRA_INDEXES_KEY
+            if( $field_name === self::T_DETAILS_KEY
+             or $field_name === self::EXTRA_INDEXES_KEY
              or !is_array( $field_definition )
              or empty( $field_definition['old_names'] ) or !is_array( $field_definition['old_names'] ) )
                 continue;
@@ -406,8 +407,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         // First we add or remove missing fields
         foreach( $table_definition as $field_name => $field_definition )
         {
-            if( $field_name == self::T_DETAILS_KEY
-             or $field_name == self::EXTRA_INDEXES_KEY )
+            if( $field_name === self::T_DETAILS_KEY
+             or $field_name === self::EXTRA_INDEXES_KEY )
                 continue;
 
             $field_extra_params = array();
@@ -481,8 +482,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         // Delete fields which we didn't find in new structure
         foreach( $db_table_definition as $field_name => $junk )
         {
-            if( $field_name == self::T_DETAILS_KEY
-             or $field_name == self::EXTRA_INDEXES_KEY
+            if( $field_name === self::T_DETAILS_KEY
+             or $field_name === self::EXTRA_INDEXES_KEY
              or !empty( $fields_found_in_old_structure[$field_name] ) )
                 continue;
 
@@ -843,9 +844,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                         $trim_possible_value = trim( $value );
                         $lower_possible_value = strtolower( $trim_value );
 
-                        if( $value == $possible_value
-                         or $trim_value == $trim_possible_value
-                         or $lower_value == $lower_possible_value )
+                        if( $value === $possible_value
+                         or $trim_value === $trim_possible_value
+                         or $lower_value === $lower_possible_value )
                         {
                             $value_valid = true;
                             break;
@@ -1091,7 +1092,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 if( empty( $field_arr['title'] ) )
                     continue;
 
-                if( $field_arr['title'] == $mysql_type )
+                if( $field_arr['title'] === $mysql_type )
                 {
                     $return_arr['type'] = $field_type;
                     break;
@@ -1137,10 +1138,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             $model_field_arr['length'] = $model_field_type['length'];
         }
 
-        $model_field_arr['nullable'] = ((!empty( $field_arr['Null'] ) and strtolower( $field_arr['Null'] ) == 'yes')?true:false);
-        $model_field_arr['primary'] = ((!empty( $field_arr['Key'] ) and strtolower( $field_arr['Key'] ) == 'pri')?true:false);
-        $model_field_arr['auto_increment'] = ((!empty( $field_arr['Extra'] ) and strtolower( $field_arr['Extra'] ) == 'auto_increment')?true:false);
-        $model_field_arr['index'] = ((!empty( $field_arr['Key'] ) and strtolower( $field_arr['Key'] ) == 'mul')?true:false);
+        $model_field_arr['nullable'] = ((!empty( $field_arr['Null'] ) and strtolower( $field_arr['Null'] ) === 'yes')?true:false);
+        $model_field_arr['primary'] = ((!empty( $field_arr['Key'] ) and strtolower( $field_arr['Key'] ) === 'pri')?true:false);
+        $model_field_arr['auto_increment'] = ((!empty( $field_arr['Extra'] ) and strtolower( $field_arr['Extra'] ) === 'auto_increment')?true:false);
+        $model_field_arr['index'] = ((!empty( $field_arr['Key'] ) and strtolower( $field_arr['Key'] ) === 'mul')?true:false);
         $model_field_arr['default'] = $field_arr['Default'];
         $model_field_arr['comment'] = (!empty( $field_arr['Comment'] )?$field_arr['Comment']:'');
 
@@ -1202,15 +1203,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
          or !($field2_arr = $this->_validate_field( $field2_arr )) )
             return true;
 
-        if( intval( $field1_arr['type'] ) != intval( $field2_arr['type'] )
+        if( (int)$field1_arr['type'] !== (int)$field2_arr['type']
          // for lengths with comma
-         or str_replace( ' ', '', $field1_arr['length'] ) != str_replace( ' ', '', $field2_arr['length'] )
-         or $field1_arr['primary'] != $field1_arr['primary']
-         or $field1_arr['auto_increment'] != $field1_arr['auto_increment']
-         or $field1_arr['index'] != $field1_arr['index']
-         or $field1_arr['default'] !== $field1_arr['default']
-         or $field1_arr['nullable'] !== $field1_arr['nullable']
-         or trim( $field1_arr['comment'] ) !== trim( $field1_arr['comment'] )
+         or str_replace( ' ', '', $field1_arr['length'] ) !== str_replace( ' ', '', $field2_arr['length'] )
+         or $field1_arr['primary'] !== $field2_arr['primary']
+         or $field1_arr['auto_increment'] !== $field2_arr['auto_increment']
+         or $field1_arr['index'] !== $field2_arr['index']
+         or $field1_arr['default'] !== $field2_arr['default']
+         or $field1_arr['nullable'] !== $field2_arr['nullable']
+         or trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
         )
             return true;
 
@@ -1378,8 +1379,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
     {
         $field_details = self::validate_array( $field_details, self::_default_field_arr() );
 
-        if( $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
+        if( $field_name === self::T_DETAILS_KEY
+         or $field_name === self::EXTRA_INDEXES_KEY
          or empty( $field_details ) or !is_array( $field_details )
          or !($type_details = $this->valid_field_type( $field_details['type'] ))
          or !($field_details = $this->_validate_field( $field_details )) )
@@ -1387,6 +1388,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         $field_str = '';
         $keys_str = '';
+
+        $field_details['type'] = (int)$field_details['type'];
 
         if( !empty( $field_details['primary'] ) )
             $keys_str = ' PRIMARY KEY (`'.$field_name.'`)';
@@ -1396,7 +1399,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $field_str .= '`'.$field_name.'` '.$type_details['title'];
         if( $field_details['length'] !== null
         and $field_details['length'] !== false
-        and (!in_array( $field_details['type'], array( self::FTYPE_DATE, self::FTYPE_DATETIME ) )
+        and (!in_array( $field_details['type'], array( self::FTYPE_DATE, self::FTYPE_DATETIME ), true )
                 or $field_details['length'] !== 0
             ) )
             $field_str .= '('.$field_details['length'].')';
@@ -1410,7 +1413,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             $field_str .= ' AUTO_INCREMENT';
 
         if( empty( $field_details['primary'] )
-        and $field_details['type'] != self::FTYPE_DATE )
+        and $field_details['type'] !== self::FTYPE_DATE )
         {
             if( !empty( $field_details['raw_default'] ) )
                 $default_value = $field_details['raw_default'];
@@ -1433,6 +1436,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         );
     }
 
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $flow_params
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     final public function alter_table_add_column( $field_name, $field_details, $flow_params = false, $params = false )
     {
         $this->reset_error();
@@ -1440,8 +1451,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $field_details = self::validate_array( $field_details, self::_default_field_arr() );
 
         if( empty( $field_name )
-         or $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
+         or $field_name === self::T_DETAILS_KEY
+         or $field_name === self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          or empty( $field_details ) or !is_array( $field_details )
          or !($field_details = $this->_validate_field( $field_details ))
@@ -1466,7 +1477,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
-        if( empty( $params['after_column'] ) or strtolower( trim( $params['after_column'] ) ) == '`first`' )
+        if( empty( $params['after_column'] ) or strtolower( trim( $params['after_column'] ) ) === '`first`' )
             $params['after_column'] = ' FIRST';
 
         else
@@ -1509,6 +1520,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $old_field
+     * @param bool|array $flow_params
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     final public function alter_table_change_column( $field_name, $field_details, $old_field = false, $flow_params = false, $params = false )
     {
         $this->reset_error();
@@ -1516,8 +1536,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $field_details = self::validate_array( $field_details, self::_default_field_arr() );
 
         if( empty( $field_name )
-         or $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
+         or $field_name === self::T_DETAILS_KEY
+         or $field_name === self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
          or empty( $field_details ) or !is_array( $field_details )
@@ -1557,7 +1577,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( empty( $params['after_column'] ) )
             $params['after_column'] = '';
 
-        elseif( strtolower( trim( $params['after_column'] ) ) == '`first`' )
+        elseif( strtolower( trim( $params['after_column'] ) ) === '`first`' )
             $params['after_column'] = ' FIRST';
 
         else
@@ -1614,13 +1634,19 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param string $field_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
     final public function alter_table_drop_column( $field_name, $flow_params = false )
     {
         $this->reset_error();
 
         if( empty( $field_name )
-         or $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
+         or $field_name === self::T_DETAILS_KEY
+         or $field_name === self::EXTRA_INDEXES_KEY
          or !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
@@ -1644,6 +1670,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param array $flow_params
+     *
+     * @return bool
+     */
     protected function _create_table_extra_indexes( $flow_params )
     {
         $this->reset_error();
@@ -1672,6 +1703,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param array $indexes_array
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
     public function create_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
     {
         $this->reset_error();
@@ -1691,6 +1728,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param string $index_name
+     * @param array $index_arr
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
     private function _create_table_extra_index( $index_name, $index_arr, $flow_params = false )
     {
         $this->reset_error();
@@ -1717,7 +1761,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $fields_str = '';
         foreach( $index_arr['fields'] as $field_name )
         {
-            $fields_str .= ($fields_str!=''?',':'').'`'.$field_name.'`';
+            $fields_str .= ($fields_str!==''?',':'').'`'.$field_name.'`';
         }
 
         // $sql =
@@ -1766,6 +1810,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param array $indexes_array
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
     protected function delete_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
     {
         $this->reset_error();
@@ -1785,6 +1835,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param string $index_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
     public function delete_table_extra_index( $index_name, $flow_params = false )
     {
         $this->reset_error();
@@ -1821,6 +1877,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
     //
     //  region CRUD functionality
     //
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
     public function insert( $params )
     {
         $this->reset_error();
@@ -1937,6 +1998,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $insert_arr;
     }
 
+    /**
+     * @param array $record_arr
+     *
+     * @return bool
+     */
     public function record_is_new( $record_arr )
     {
         if( empty( $record_arr ) or !is_array( $record_arr )
@@ -1946,6 +2012,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return true;
     }
 
+    /**
+     * @param int|array $existing_data
+     * @param array $params
+     *
+     * @return array|bool
+     */
     public function edit( $existing_data, $params )
     {
         $this->reset_error();
@@ -1971,7 +2043,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( (
                 $edit_prepare_params_exists
                 and
-                !($params = call_user_func( array( $this, 'get_edit_prepare_params_' . $params['table_name'] ), $existing_arr, $params ))
+                !($params = @call_user_func( array( $this, 'get_edit_prepare_params_' . $params['table_name'] ), $existing_arr, $params ))
             )
 
             or
@@ -2188,6 +2260,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $return_arr;
     }
 
+    /**
+     * @return array
+     */
     protected static function linkage_db_functions()
     {
         return array( 'and', 'or' );
@@ -2309,9 +2384,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $result_str;
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
     public function get_query_fields( $params )
     {
-        if( empty( $params['fields'] ) or !is_array( $params['fields'] )
+        if( empty( $params ) or !is_array( $params )
+         or empty( $params['fields'] ) or !is_array( $params['fields'] )
          or !($new_params = $this->fetch_default_flow_params( $params )) )
             return $params;
 
@@ -2378,6 +2459,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $params;
     }
 
+    /**
+     * @return array
+     */
     public static function get_count_default_params()
     {
         return array(
@@ -2394,6 +2478,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         );
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return array|int
+     */
     public function get_count( $params = false )
     {
         $this->reset_error();
@@ -2416,7 +2505,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         $db_connection = $this->get_db_connection( $params );
 
         $distinct_str = '';
-        if( $params['count_field'] != '*' )
+        if( $params['count_field'] !== '*' )
             $distinct_str = 'DISTINCT ';
 
         $sql = 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '.
@@ -2445,6 +2534,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $ret;
     }
 
+    /**
+     * @return array
+     */
     public static function get_list_default_params()
     {
         return array(
@@ -2533,6 +2625,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $return_arr;
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return array|bool|\mysqli_result
+     */
     public function get_list( $params = false )
     {
         $this->reset_error();
@@ -2566,7 +2663,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         return $ret_arr;
     }
 
-    static public function safe_escape( $str, $char = '\'' )
+    /**
+     * @param string $str
+     * @param string $char
+     *
+     * @return string
+     */
+    public static function safe_escape( $str, $char = '\'' )
     {
         return str_replace( $char, '\\'.$char, str_replace( '\\'.$char, $char, $str ) );
     }

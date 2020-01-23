@@ -5,6 +5,9 @@ namespace phs\libraries;
 use \phs\PHS_db;
 
 //! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
+/**
+ * @deprecated
+ */
 define( 'PHS_MONGO_DEF_CONNECTION_NAME', '@def_mongo_connection@' );
 
 /**
@@ -12,6 +15,8 @@ define( 'PHS_MONGO_DEF_CONNECTION_NAME', '@def_mongo_connection@' );
  */
 class PHS_db_mongo extends PHS_db_class
 {
+    const DEFAULT_CONNECTION_NAME = '@def_mongo_connection@';
+
     //! Last created manager object
     /** @var bool|\MongoDB\Driver\Manager[] $managers_obj */
     private $managers_obj = null;
@@ -25,7 +30,7 @@ class PHS_db_mongo extends PHS_db_class
     //! Query result details...
     private $last_inserted_id, $inserted_rows, $updated_rows;
 
-    function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = false )
     {
         $this->query_id = false;
         $this->managers_obj = null;
@@ -89,7 +94,7 @@ class PHS_db_mongo extends PHS_db_class
             $conn_settings['uri_options'] = array();
 
         if( !empty( $conn_settings['port'] ) )
-            $conn_settings['port'] = intval( $conn_settings['port'] );
+            $conn_settings['port'] = (int)$conn_settings['port'];
 
         return $conn_settings;
     }
@@ -99,7 +104,7 @@ class PHS_db_mongo extends PHS_db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] != PHS_db::DB_DRIVER_MONGO)
+         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_db::DB_DRIVER_MONGO)
          or (
                 (!isset( $conn_settings['database'] ) or !isset( $conn_settings['user'] ) or !isset( $conn_settings['password'] ))
                 and
@@ -115,13 +120,13 @@ class PHS_db_mongo extends PHS_db_class
 
     protected function default_connection_name()
     {
-        return PHS_MONGO_DEF_CONNECTION_NAME;
+        return self::DEFAULT_CONNECTION_NAME;
     }
     //
     //  END Abstract methods...
     //
 
-    function query_id()
+    public function query_id()
     {
         return $this->query_id;
     }

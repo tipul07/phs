@@ -10,7 +10,9 @@ use \phs\libraries\PHS_params;
 
 class PHS_Hubspot extends PHS_Library
 {
-    const ERR_SETTINGS = 1;
+    const ERR_SETTINGS = 1, ERR_QUEUE_FULL = 2, ERR_BULK_UPDATE = 3;
+
+    const MAX_CONTACTS_BULK_UPDATE = 1000;
 
     /** @var \phs\plugins\hubspot\PHS_Plugin_Hubspot $_hubspot_plugin */
     private $_hubspot_plugin = false;
@@ -18,12 +20,15 @@ class PHS_Hubspot extends PHS_Library
     private $_api_settings = array();
     private $_api_params = array();
 
+    private $_contacts_update_queue = array();
+
     public function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
     {
         parent::__construct( $error_no, $error_msg, $error_debug_msg, $static_instance );
 
         $this->reset_api_settings();
         $this->reset_api_params();
+        $this->reset_contacts_update_queue();
     }
 
     private function _load_dependencies()
@@ -497,6 +502,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function get_contact_by_id( $contact_id, $params = false )
     {
@@ -527,6 +534,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array Returns false on error, empty array if account is not found and a populated array if account exists
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function get_contact_by_email( $email, $params = false )
     {
@@ -557,6 +566,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function get_contacts_list( $list_params = false, $params = false )
     {
@@ -604,6 +615,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array Returns false if account creation failed (server communication or request)
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function create_contact( $properties_arr, $params = false )
     {
@@ -646,6 +659,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array Returns false if account creation failed (server communication or request)
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function update_contact( $contact_id, $properties_arr, $params = false )
     {
@@ -694,6 +709,168 @@ class PHS_Hubspot extends PHS_Library
         return true;
     }
 
+    public function reset_contacts_update_queue()
+    {
+        $this->_contacts_update_queue = array();
+    }
+
+    /**
+     * @return int
+     */
+    public function get_contacts_update_queue_length()
+    {
+        return count( $this->_contacts_update_queue );
+    }
+
+    /**
+     * @return bool
+     */
+    public function contacts_update_queue_is_full()
+    {
+        return ($this->get_contacts_update_queue_length() >= self::MAX_CONTACTS_BULK_UPDATE);
+    }
+
+    /**
+     * Add contact properties array to a queue until we submit update request to HubSpot server
+     * @param array $contact_arr
+     * @return bool|array
+     */
+    public function add_contact_to_update_queue( $contact_arr )
+    {
+        $this->reset_error();
+
+        if( $this->contacts_update_queue_is_full() )
+        {
+            $this->set_error( self::ERR_QUEUE_FULL, $this->_pt( 'Contacts update queue is full. Please commit queue before adding new contacts.' ) );
+            return false;
+        }
+
+        if( !($new_contact_arr = $this->validate_contact_properties_for_queue_add( $contact_arr )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error validating contact structure.' ) );
+
+            return false;
+        }
+
+        $this->_contacts_update_queue[] = $new_contact_arr;
+
+        return $new_contact_arr;
+    }
+
+    /**
+     * @param bool|array $params
+     *
+     * @return bool
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
+     */
+    public function commit_contacts_update_queue( $params = false )
+    {
+        if( $this->get_contacts_update_queue_length() === 0 )
+            return true;
+
+        if( !$this->update_list_of_contacts( $this->_contacts_update_queue, $params ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_BULK_UPDATE, $this->_pt( 'Error sending contacts bulk update request to HubSpot server.' ) );
+
+            $this->reset_contacts_update_queue();
+
+            return false;
+        }
+
+        $this->reset_contacts_update_queue();
+
+        return true;
+    }
+
+    /**
+     * @param array $contact_arr
+     *
+     * @return array|bool
+     */
+    public function validate_contact_properties_for_queue_add( $contact_arr )
+    {
+        $this->reset_error();
+
+        if( empty( $contact_arr ) or !is_array( $contact_arr )
+         or (empty( $contact_arr['id'] )
+                and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
+            )
+         or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Bad HubSpot contact structure.' ) );
+            return false;
+        }
+
+        $new_contact_arr = array();
+        if( !empty( $contact_arr['id'] ) )
+            $new_contact_arr['vid'] = (int)$contact_arr['id'];
+        elseif( !empty( $contact_arr['email'] ) )
+            $new_contact_arr['email'] = trim( $contact_arr['email'] );
+
+        if( empty( $new_contact_arr['vid'] ) and empty( $new_contact_arr['email'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide contact identity for update action.' ) );
+            return false;
+        }
+
+        $new_properties_arr = array();
+        foreach( $contact_arr['properties'] as $node_arr )
+        {
+            if( empty( $node_arr ) or !is_array( $node_arr )
+             or !array_key_exists( 'property', $node_arr )
+             or !array_key_exists( 'value', $node_arr ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure.' ) );
+                return false;
+            }
+
+            $new_properties_arr[] = array(
+                'property' => $node_arr['property'],
+                'value' => $node_arr['value'],
+            );
+        }
+
+        $new_contact_arr['properties'] = $new_properties_arr;
+
+        return $new_contact_arr;
+    }
+
+    /**
+     * @param array $contact_arr
+     *
+     * @return array|bool
+     */
+    protected function _validate_contact_properties_for_update( $contact_arr )
+    {
+        $this->reset_error();
+
+        if( empty( $contact_arr ) or !is_array( $contact_arr )
+         or (empty( $contact_arr['vid'] )
+                and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
+            )
+         or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'HubSpot contact structure is not well formatted.' ) );
+            return false;
+        }
+
+        foreach( $contact_arr['properties'] as $node_arr )
+        {
+            if( empty( $node_arr ) or !is_array( $node_arr )
+             or !array_key_exists( 'property', $node_arr )
+             or !array_key_exists( 'value', $node_arr ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Contact properties structure is not well formatted.' ) );
+                return false;
+            }
+        }
+
+        return $contact_arr;
+    }
+
     /**
      * @param array[] $contacts_arr {
      *      {
@@ -710,6 +887,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params Request extra parameters (if required)
      *
      * @return bool|array Returns false if account creation failed (server communication or request)
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function update_list_of_contacts( $contacts_arr, $params = false )
     {
@@ -733,46 +912,15 @@ class PHS_Hubspot extends PHS_Library
         {
             $knti++;
 
-            if( empty( $contact_arr ) or !is_array( $contact_arr )
-             or (empty( $contact_arr['id'] )
-                    and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
-                )
-             or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+            if( !($new_contact_arr = $this->_validate_contact_properties_for_update( $contact_arr )) )
             {
-                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact %s doesn\'t follow structure requirements.', $knti ) );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error validating contact %s.', $knti ) );
+                else
+                    $this->change_error_message( $this->get_simple_error_message().' '.$this->_pt( 'Contact %s doesn\'t follow structure requirements.', $knti ) );
+
                 return false;
             }
-
-            $new_contact_arr = array();
-            if( !empty( $contact_arr['id'] ) )
-                $new_contact_arr['vid'] = (int)$contact_arr['id'];
-            elseif( !empty( $contact_arr['email'] ) )
-                $new_contact_arr['email'] = trim( $contact_arr['email'] );
-
-            if( empty( $new_contact_arr['vid'] ) and empty( $new_contact_arr['email'] ) )
-            {
-                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact %s doesn\'t follow structure requirements.', $knti ) );
-                return false;
-            }
-
-            $new_properties_arr = array();
-            foreach( $contact_arr['properties'] as $node_arr )
-            {
-                if( empty( $node_arr ) or !is_array( $node_arr )
-                 or !array_key_exists( 'property', $node_arr )
-                 or !array_key_exists( 'value', $node_arr ) )
-                {
-                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure. Contact\'s %s properties doesn\'t follow structure requirements.', $knti ) );
-                    return false;
-                }
-
-                $new_properties_arr[] = array(
-                    'property' => $node_arr['property'],
-                    'value' => $node_arr['value'],
-                );
-            }
-
-            $new_contact_arr['properties'] = $new_properties_arr;
 
             $contacts_payload_arr[] = $new_contact_arr;
         }
@@ -788,10 +936,12 @@ class PHS_Hubspot extends PHS_Library
             'http_method' => 'POST',
         ) );
 
+        $params['call_parameters']['ok_http_code'] = array( 202 );
+
         if( !($response = $this->_do_call( $contacts_payload_arr, $params['call_parameters'] )) )
             return false;
 
-        if( !$this->api_response_is_ok( $response, array( 202 ) ) )
+        if( !$this->api_response_is_ok( $response, $params['call_parameters']['ok_http_code'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'HubSpot server didn\'t respond with 202 code.' ) );
             return false;
@@ -811,6 +961,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params
      *
      * @return bool|array
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function get_company_by_id( $company_id, $params = false )
     {
@@ -848,6 +1000,8 @@ class PHS_Hubspot extends PHS_Library
      * @param bool|array $params
      *
      * @return bool|array
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
     public function get_company_contacts_by_id( $company_id, $params = false )
     {

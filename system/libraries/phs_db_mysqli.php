@@ -8,6 +8,9 @@ use \phs\PHS_db;
 //! \version 2.01
 
 //! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
+/**
+ * @deprecated
+ */
 define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
 
 /**
@@ -15,10 +18,13 @@ define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
  */
 class PHS_db_mysqli extends PHS_db_class
 {
+    const DEFAULT_CONNECTION_NAME = '@def_connection@';
+
     //! Tells if class should close connection to mongo server after done with query
     private $close_after_query;
 
     //! In case connection is not closed after each query this should keep connection id
+    /** @var \mysqli[string]  */
     private $connection_id;
 
     //! Hold last query id
@@ -27,7 +33,7 @@ class PHS_db_mysqli extends PHS_db_class
     //! Query result details...
     private $last_inserted_id, $affected_rows;
 
-    function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = false )
     {
         $this->close_after_query = true;
 
@@ -40,7 +46,7 @@ class PHS_db_mysqli extends PHS_db_class
         parent::__construct( $mysql_settings );
     }
 
-    function query_id()
+    public function query_id()
     {
         return $this->query_id;
     }
@@ -50,14 +56,14 @@ class PHS_db_mysqli extends PHS_db_class
         return $this->last_inserted_id;
     }
 
-    function affected_rows()
+    public function affected_rows()
     {
         return $this->affected_rows;
     }
 
-    function close_after_query( $var = null )
+    public function close_after_query( $var = null )
     {
-        if( is_null( $var ) )
+        if( $var === null )
             return $this->close_after_query;
 
         $this->close_after_query = $var;
@@ -99,7 +105,7 @@ class PHS_db_mysqli extends PHS_db_class
             return false;
 
         if( !empty( $conn_settings['port'] ) )
-            $conn_settings['port'] = intval( $conn_settings['port'] );
+            $conn_settings['port'] = (int)$conn_settings['port'];
         if( isset( $conn_settings['use_pconnect'] ) )
             $conn_settings['use_pconnect'] = (!empty( $conn_settings['use_pconnect'] )?true:false);
         else
@@ -113,7 +119,7 @@ class PHS_db_mysqli extends PHS_db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] != PHS_db::DB_DRIVER_MYSQLI)
+         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_db::DB_DRIVER_MYSQLI)
          or !isset( $conn_settings['database'] ) or !isset( $conn_settings['user'] ) or !isset( $conn_settings['password'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Database, user or password not pressent in settings array.' ) );
@@ -123,15 +129,18 @@ class PHS_db_mysqli extends PHS_db_class
         return $conn_settings;
     }
 
+    /**
+     * @return string
+     */
     protected function default_connection_name()
     {
-        return PHS_MYSQL_DEF_CONNECTION_NAME;
+        return self::DEFAULT_CONNECTION_NAME;
     }
     //
     //  END Abstract methods...
     //
 
-    function is_connected( $connection_name = false )
+    public function is_connected( $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
@@ -145,7 +154,7 @@ class PHS_db_mysqli extends PHS_db_class
         return $this->connection_id[$connection_name];
     }
 
-    function close( $connection_name = false )
+    public function close( $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
@@ -159,7 +168,7 @@ class PHS_db_mysqli extends PHS_db_class
         return true;
     }
 
-    function connect( $connection_name = false )
+    public function connect( $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
@@ -177,13 +186,13 @@ class PHS_db_mysqli extends PHS_db_class
         if( !empty( $conn_settings['use_pconnect'] ) )
             $host = 'p:'.$conn_settings['host'];
 
-        $this->connection_id[$connection_name] = @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
+        $this->connection_id[$connection_name] = mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
 
         if( empty( $this->connection_id[$connection_name] )
          or !is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof \mysqli) )
         {
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!=''?' (with password)':'').(!empty( $conn_settings['use_pconnect'] )?' (using permanent)':'').'.',
+                                 'Cannot connect to '.$host.', user '.$conn_settings['user'].($conn_settings['password']!==''?' (with password)':'').(!empty( $conn_settings['use_pconnect'] )?' (using permanent)':'').'.',
                                  'Cannot connect to database server.',
                                  $connection_name );
             return false;
@@ -215,12 +224,12 @@ class PHS_db_mysqli extends PHS_db_class
                 foreach( $sql_mode_arr as $mysql_mode_flag )
                 {
                     $mysql_mode_flag = trim( $mysql_mode_flag );
-                    if( substr( $mysql_mode_flag, 0, 1 ) == '-' )
+                    if( substr( $mysql_mode_flag, 0, 1 ) === '-' )
                         $sql_mode_remove_arr[substr( $mysql_mode_flag, 1 )] = true;
 
                     else
                     {
-                        if( substr( $mysql_mode_flag, 0, 1 ) == '+' )
+                        if( substr( $mysql_mode_flag, 0, 1 ) === '+' )
                             $mysql_mode_flag = substr( $mysql_mode_flag, 1 );
 
                         $sql_mode_add_arr[$mysql_mode_flag] = true;
@@ -266,7 +275,16 @@ class PHS_db_mysqli extends PHS_db_class
         return true;
     }
 
-    // Returns an INSERT query string for table $table_name for $insert_arr data
+    /**
+     * Returns an INSERT query string for table $table_name for $insert_arr data
+     *
+     * @param string $table_name
+     * @param array $insert_arr
+     * @param bool|string $connection_name
+     * @param bool|array $params
+     *
+     * @return string
+     */
     public function quick_insert( $table_name, $insert_arr, $connection_name = false, $params = false )
     {
         if( !is_array( $insert_arr ) or !count( $insert_arr ) )
@@ -281,7 +299,7 @@ class PHS_db_mysqli extends PHS_db_class
         $return = '';
         foreach( $insert_arr as $key => $val )
         {
-            if( is_null( $val ) )
+            if( $val === null )
                 $field_value = 'NULL';
 
             elseif( is_array( $val ) )
@@ -294,7 +312,7 @@ class PHS_db_mysqli extends PHS_db_class
 
                 $field_value = $val['value'];
 
-                if( is_null( $field_value ) )
+                if( $field_value === null )
                     $field_value = 'NULL';
 
                 elseif( empty( $val['raw_field'] ) )
@@ -310,14 +328,23 @@ class PHS_db_mysqli extends PHS_db_class
             $return .= '`'.$key.'`='.$field_value.', ';
         }
 
-        if( $return == '' )
+        if( $return === '' )
             return '';
 
         return 'INSERT INTO `'.$table_name.'` SET '.substr( $return, 0, -2 );
     }
 
-    // Returns an EDIT query string for table $table_name for $edit_arr data conditions added outside this method
-    // in future where conditions should be added here to support more drivers...
+    /**
+     * Returns an EDIT query string for table $table_name for $edit_arr data conditions added outside this method
+     * in future where conditions should be added here to support more drivers...
+     *
+     * @param string $table_name
+     * @param array $edit_arr
+     * @param bool|string $connection_name
+     * @param bool|array $params
+     *
+     * @return string
+     */
     public function quick_edit( $table_name, $edit_arr, $connection_name = false, $params = false )
     {
         if( !is_array( $edit_arr ) or !count( $edit_arr ) )
@@ -332,7 +359,7 @@ class PHS_db_mysqli extends PHS_db_class
         $return = '';
         foreach( $edit_arr as $key => $val )
         {
-            if( is_null( $val ) )
+            if( $val === null )
                 $field_value = 'NULL';
 
             elseif( is_array( $val ) )
@@ -345,7 +372,7 @@ class PHS_db_mysqli extends PHS_db_class
 
                 $field_value = $val['value'];
 
-                if( is_null( $field_value ) )
+                if( $field_value === null )
                     $field_value = 'NULL';
 
                 elseif( empty( $val['raw_field'] ) )
@@ -361,13 +388,20 @@ class PHS_db_mysqli extends PHS_db_class
             $return .= '`'.$key.'`='.$field_value.', ';
         }
 
-        if( $return == '' )
+        if( $return === '' )
             return '';
 
         return 'UPDATE `'.$table_name.'` SET '.substr( $return, 0, -2 );
     }
 
-    function formated_query( $format, $fields = false, $connection_name = false )
+    /**
+     * @param string $format
+     * @param bool|array $fields
+     * @param bool|string $connection_name
+     *
+     * @return bool|\mysqli_result
+     */
+    public function formated_query( $format, $fields = false, $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
@@ -375,7 +409,7 @@ class PHS_db_mysqli extends PHS_db_class
         if( ($conn_settings = $this->connection_settings( $connection_name )) === false )
             return false;
 
-        // We connect now to database bcuz we don't need escape and query methods to open 2 connections...
+        // We connect now to database because we don't need escape and query methods to open 2 connections...
         // if connect wasn't called separately call it now
         if( !$this->is_connected( $connection_name ) and $this->connect( $connection_name ) === false )
             return false;
@@ -388,7 +422,7 @@ class PHS_db_mysqli extends PHS_db_class
             $fields = $this->escape( $fields, $connection_name );
 
         $mysql_str = @vsprintf( $format, $fields );
-        if( $mysql_str == '' )
+        if( $mysql_str === '' )
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.(is_string( $format )?htmlspecialchars( $format ):print_r( $format, true )).(is_array( $fields )?' - ['.count( $fields ).' parameters passed]':''),
@@ -408,6 +442,11 @@ class PHS_db_mysqli extends PHS_db_class
         return $qid;
     }
 
+    /**
+     * @param bool|string $connection_name
+     *
+     * @return bool
+     */
     public function test_connection( $connection_name = false )
     {
         $this->reset_error();
@@ -470,7 +509,7 @@ class PHS_db_mysqli extends PHS_db_class
 
         if( !@mysqli_select_db( $this->connection_id[$connection_name], $conn_settings['database'] ) )
         {
-            $this->set_my_error( self::ERR_CONNECT,
+            $this->set_my_error( self::ERR_DATABASE,
                 'Cannot acces <b>'.$conn_settings['database'].'</b> database with user <b>'.$conn_settings['user'].'</b>.',
                 'Cannot select database.',
                 $connection_name );
@@ -512,7 +551,12 @@ class PHS_db_mysqli extends PHS_db_class
         return $this->query_id;
     }
 
-    function s_query()
+    /**
+     * Run a stored query and return query result
+     *
+     * @return bool|\mysqli_result
+     */
+    public function s_query()
     {
         $numargs = @func_num_args();
         $arg_list = @func_get_args();
@@ -520,7 +564,7 @@ class PHS_db_mysqli extends PHS_db_class
         if( !is_array( $arg_list ) or empty( $numargs ) )
             return false;
 
-        if( count( $arg_list ) == 1 and is_array( $arg_list[0] ) )
+        if( count( $arg_list ) === 1 and is_array( $arg_list[0] ) )
             $arg_list = $arg_list[0];
 
         $connection_name = false;
@@ -565,14 +609,16 @@ class PHS_db_mysqli extends PHS_db_class
             $qparams = array( '' );
 
         $mysql_str = @vsprintf( $query_info['query'], $qparams );
-        if( $mysql_str == '' )
+        if( $mysql_str === '' )
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.@htmlspecialchars( $query_info['query'] ).(is_array( $qparams )?' - ['.count( $qparams ).' parameters passed]':''),
                                  'Bad format for query.',
                                  $connection_name );
+
             if( $this->close_after_query )
                 $this->close( $connection_name );
+
             return false;
         }
 
@@ -585,7 +631,12 @@ class PHS_db_mysqli extends PHS_db_class
         return $qid;
     }
 
-    function get_squery()
+    /**
+     * Populate a stored query with parameters sent to this method and return resulting query as string
+     *
+     * @return bool|string
+     */
+    public function get_squery()
     {
         $numargs = @func_num_args();
         $arg_list = @func_get_args();
@@ -593,7 +644,7 @@ class PHS_db_mysqli extends PHS_db_class
         if( !is_array( $arg_list ) or empty( $numargs ) )
             return false;
 
-        if( count( $arg_list ) == 1 and is_array( $arg_list[0] ) )
+        if( count( $arg_list ) === 1 and is_array( $arg_list[0] ) )
             $arg_list = $arg_list[0];
 
         $connection_name = false;
@@ -638,7 +689,7 @@ class PHS_db_mysqli extends PHS_db_class
             $qparams = array( '' );
 
         $mysql_str = @vsprintf( $query_info['query'], $qparams );
-        if( $mysql_str == '' )
+        if( $mysql_str === '' )
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Bad format for query: '.@htmlspecialchars( $query_info['query'] ).(is_array( $qparams )?' - ['.count( $qparams ).' parameters passed]':''),
@@ -652,6 +703,9 @@ class PHS_db_mysqli extends PHS_db_class
         return $mysql_str;
     }
 
+    /**
+     * @return array
+     */
     public static function get_default_driver_settings()
     {
         return array(
@@ -659,16 +713,24 @@ class PHS_db_mysqli extends PHS_db_class
         );
     }
 
-    static function stored_query( $qname, $qformat = null )
+    /**
+     * Define a predefined/stored MySQL query as a string which will be used against vsprintf (placeholders: %s, %d, etc)
+     *
+     * @param string $qname Stored query name
+     * @param null|string $qformat If null, method will return stored query with $qname as name
+     *
+     * @return bool|string
+     */
+    public static function stored_query( $qname, $qformat = null )
     {
         static $stored_queries;
 
-        if( is_null( $qformat ) )
+        if( $qformat === null )
         {
             if( empty( $stored_queries ) or !is_array( $stored_queries ) or !isset( $stored_queries[$qname] ) )
                 return false;
-            else
-                return $stored_queries[$qname];
+
+            return $stored_queries[$qname];
         }
 
         if( !isset( $stored_queries ) or !is_array( $stored_queries ) )
@@ -685,6 +747,14 @@ class PHS_db_mysqli extends PHS_db_class
         return true;
     }
 
+    /**
+     * Escape a single value or an array of values that should be sent to MySQL in a query
+     *
+     * @param array|int|string $fields
+     * @param bool|string $connection_name
+     *
+     * @return array|bool|mixed
+     */
     public function escape( $fields, $connection_name = false )
     {
         if( $connection_name === false )
@@ -729,7 +799,13 @@ class PHS_db_mysqli extends PHS_db_class
         return (!is_array( $fields )?$escape_fields[0]:$escape_fields);
     }
 
-    function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )
+    /**
+     * @param int $error_code
+     * @param string $debug_err
+     * @param string $short_err
+     * @param bool|string $connection_name
+     */
+    protected function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
@@ -762,6 +838,11 @@ class PHS_db_mysqli extends PHS_db_class
         }
     }
 
+    /**
+     * @param bool $incr
+     *
+     * @return int
+     */
     public function queries_number( $incr = false )
     {
         static $queries_no;
@@ -777,26 +858,38 @@ class PHS_db_mysqli extends PHS_db_class
         return $queries_no;
     }
 
+    /**
+     * @param \mysqli_result $qid
+     *
+     * @return bool|string[]|null
+     */
     public function fetch_assoc( $qid )
     {
         if( empty( $qid )
-        and gettype( $qid ) != 'resource' )
+         or !($qid instanceof \mysqli_result) )
             return false;
 
         return @mysqli_fetch_assoc( $qid );
     }
 
+    /**
+     * @param \mysqli_result $qid
+     *
+     * @return bool|int
+     */
     public function num_rows( $qid )
     {
         if( empty( $qid )
-        and gettype( $qid ) != 'resource' )
+         or !($qid instanceof \mysqli_result) )
             return false;
 
         return @mysqli_num_rows( $qid );
     }
 
     /**
-     * @inheritdoc
+     * @param bool|array $dump_params Array containing dump parameters
+     *
+     * @return array|bool Returns populated $dump_params array
      */
     public function dump_database( $dump_params = false )
     {
@@ -822,13 +915,13 @@ class PHS_db_mysqli extends PHS_db_class
         $connection_identifier = $dump_params['connection_identifier']['identifier'];
 
         $credentials_file = $dump_params['output_dir'].'/export_'.$connection_identifier.'.cnf';
-        if( !($fil = @fopen( $credentials_file, 'w' )) )
+        if( !($fil = @fopen( $credentials_file, 'wb' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating dump credentials file.' ) );
             return false;
         }
 
-        if( !@fputs( $fil, '[mysqldump]'."\n".
+        if( !@fwrite( $fil, '[mysqldump]'."\n".
                            'user = '.$connection_settings['user']."\n".
                            'password = '.$connection_settings['password']."\n" ) )
         {

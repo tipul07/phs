@@ -87,8 +87,15 @@ class PHS_bg_jobs extends PHS_Registry
         }
 
         return $new_job;
-   }
+    }
 
+    /**
+     * @param string|array $route Route to be executed in background
+     * @param bool|array $params Parameters that will be passed to background job
+     * @param bool|array $extra Parameters used in this method
+     *
+     * @return array|bool
+     */
     public static function run( $route, $params = false, $extra = false )
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
@@ -96,17 +103,14 @@ class PHS_bg_jobs extends PHS_Registry
         self::st_reset_error();
 
         $route_parts = false;
-        if( is_string( $route )
-        and !($route_parts = PHS::parse_route( $route )) )
+        if( (is_string( $route ) or is_array( $route ))
+        and !($route_parts = PHS::parse_route( $route, false )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
 
             return false;
         }
-
-        if( is_array( $route ) )
-            $route_parts = $route;
 
         if( empty( $route_parts ) or !is_array( $route_parts ) )
         {
@@ -238,7 +242,7 @@ class PHS_bg_jobs extends PHS_Registry
             PHS_Logger::logf( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND );
 
         if( !empty( $extra['same_thread_if_bg'] )
-        and PHS_Scope::current_scope() == PHS_Scope::SCOPE_BACKGROUND )
+        and PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND )
         {
             $original_debug_data = PHS::platform_debug_data();
 
