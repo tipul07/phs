@@ -328,29 +328,33 @@ class PHS_Hubspot extends PHS_Library
             if( !empty( $response_arr['message'] ) )
                 $short_error = (!empty( $response_arr['category'] )?$response_arr['category'].': ':'').$response_arr['message'];
 
-            if( !empty( $params['log_not_found_response'] )
-            and $this->api_response_is_not_found( $response ) )
+            $long_error = '';
+            if( !empty( $response_arr['errors'] ) and is_array( $response_arr['errors'] ) )
             {
-                $long_error = '';
-                if( !empty( $response_arr['errors'] ) and is_array( $response_arr['errors'] ) )
+                $knti = 1;
+                foreach( $response_arr['errors'] as $error_arr )
                 {
-                    $knti = 1;
-                    foreach( $response_arr['errors'] as $error_arr )
-                    {
-                        if( empty( $error_arr ) or !is_array( $error_arr )
-                         or empty( $error_arr['message'] ) )
-                            continue;
+                    if( empty( $error_arr ) or !is_array( $error_arr )
+                     or empty( $error_arr['message'] ) )
+                        continue;
 
-                        $long_error .= $knti.'. '.$error_arr['message']."\n";
-                        $knti++;
-                    }
+                    $long_error .= $knti.'. '.$error_arr['message']."\n";
+                    $knti++;
                 }
+            }
 
+            $do_log_error = true;
+            if( empty( $params['log_not_found_response'] )
+            and $this->api_response_is_not_found( $response ) )
+                $do_log_error = false;
+
+            if( $do_log_error )
+            {
                 PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty( $short_error )?$short_error:'N/A'), $hubspot_plugin::LOG_CHANNEL );
                 if( !empty( $long_error ) )
-                    PHS_Logger::logf( 'Errors: '.$long_error, $hubspot_plugin::LOG_CHANNEL );
-                else
-                    PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
+                    PHS_Logger::logf( 'Detailed errors: '.$long_error, $hubspot_plugin::LOG_CHANNEL );
+
+                PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
 
                 if( !empty( $params['log_payload'] ) )
                     PHS_Logger::logf( 'Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL );

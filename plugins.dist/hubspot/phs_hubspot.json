@@ -3,5 +3,5 @@
     "vendor_name": "PHS",
     "name": "HubSpot Integration",
     "description": "This plugin implements a library to be used when connecting to a HubSpot server.",
-    "version": "1.0.0"
+    "version": "1.0.1"
 }
