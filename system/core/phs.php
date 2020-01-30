@@ -560,6 +560,11 @@ final class PHS extends PHS_Registry
         }
     }
 
+    /**
+     * @param bool $force_https
+     *
+     * @return bool|string
+     */
     public static function get_base_url( $force_https = false )
     {
         if( !empty( $force_https )
@@ -568,16 +573,18 @@ final class PHS extends PHS_Registry
             // if domain settings are set
             if( defined( 'PHS_HTTPS' ) )
                 return PHS_HTTPS;
+
             // if default domain settings are set
-            elseif( defined( 'PHS_DEFAULT_HTTPS' ) )
+            if( defined( 'PHS_DEFAULT_HTTPS' ) )
                 return PHS_DEFAULT_HTTPS;
         } else
         {
             // if domain settings are set
             if( defined( 'PHS_HTTP' ) )
                 return PHS_HTTP;
+
             // if default domain settings are set
-            elseif( defined( 'PHS_DEFAULT_HTTP' ) )
+            if( defined( 'PHS_DEFAULT_HTTP' ) )
                 return PHS_DEFAULT_HTTP;
         }
 
@@ -871,10 +878,10 @@ final class PHS extends PHS_Registry
         $hook_args = PHS_Hooks::default_phs_route_hook_args();
         $hook_args['original_route'] = $route_parts;
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
+        if( ($hook_args = self::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
         and is_array( $hook_args )
         and !empty( $hook_args['altered_route'] ) and is_array( $hook_args['altered_route'] ) )
-            $route_parts = PHS::parse_route( $hook_args['altered_route'], false );
+            $route_parts = self::parse_route( $hook_args['altered_route'], false );
 
         self::set_data( self::ROUTE_PLUGIN, $route_parts['plugin'] );
         self::set_data( self::ROUTE_CONTROLLER, $route_parts['controller'] );
@@ -1016,12 +1023,17 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::interpret_script();
     }
 
+    /**
+     * @param bool $force_https
+     *
+     * @return bool|string
+     */
     public static function get_interpret_url( $force_https = false )
     {
         if( !($base_url = self::get_base_url( $force_https )) )
             return false;
 
-        if( substr( $base_url, -1 ) != '/' )
+        if( substr( $base_url, -1 ) !== '/' )
             $base_url .= '/';
 
         return $base_url.self::interpret_script();
@@ -1037,7 +1049,7 @@ final class PHS extends PHS_Registry
         if( !($base_url = self::get_base_url( $force_https )) )
             return false;
 
-        if( substr( $base_url, -1 ) != '/' )
+        if( substr( $base_url, -1 ) !== '/' )
             $base_url .= '/';
 
         return $base_url.self::ajax_script();
@@ -1053,7 +1065,7 @@ final class PHS extends PHS_Registry
         if( !($base_url = self::get_base_url( $force_https )) )
             return false;
 
-        if( substr( $base_url, -1 ) != '/' )
+        if( substr( $base_url, -1 ) !== '/' )
             $base_url .= '/';
 
         return $base_url.self::api_script();
@@ -1064,10 +1076,10 @@ final class PHS extends PHS_Registry
         if( !($plugin = self::get_data( self::ROUTE_PLUGIN )) )
             $plugin = false;
         if( !($controller = self::get_data( self::ROUTE_CONTROLLER ))
-         or $controller == self::ROUTE_DEFAULT_CONTROLLER )
+         or $controller === self::ROUTE_DEFAULT_CONTROLLER )
             $controller = false;
         if( !($action = self::get_data( self::ROUTE_ACTION ))
-         or $action == self::ROUTE_DEFAULT_ACTION )
+         or $action === self::ROUTE_DEFAULT_ACTION )
             $action = false;
 
         if( !($query_string = self::current_page_query_string_as_array()) )
@@ -1076,6 +1088,11 @@ final class PHS extends PHS_Registry
         return self::url( array( 'p' => $plugin, 'c' => $controller, 'a' => $action ), $query_string );
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return array
+     */
     public static function current_page_query_string_as_array( $params = false )
     {
         if( empty( $_SERVER ) )
@@ -1111,6 +1128,11 @@ final class PHS extends PHS_Registry
         return $query_arr;
     }
 
+    /**
+     * @param bool|array $parts
+     *
+     * @return bool|mixed|string
+     */
     public static function route_from_parts( $parts = false )
     {
         if( empty( $parts ) or !is_array( $parts ) )
@@ -1169,6 +1191,13 @@ final class PHS extends PHS_Registry
         return $route_arr;
     }
 
+    /**
+     * @param bool|array $route_arr
+     * @param bool|array $args
+     * @param bool|array $extra
+     *
+     * @return mixed|string
+     */
     public static function url( $route_arr = false, $args = false, $extra = false )
     {
         $route_arr = self::validate_route_from_parts( $route_arr, true );
@@ -1217,21 +1246,21 @@ final class PHS extends PHS_Registry
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
             // eg. $extra['raw_args'] might be an id passed as javascript function parameter
             if( ($raw_query = array_to_query_string( $extra['raw_args'], array( 'raw_encode_values' => false ) )) )
-                $query_string .= ($query_string!=''?'&':'').$raw_query;
+                $query_string .= ($query_string!==''?'&':'').$raw_query;
         }
 
         switch( $extra['for_scope'] )
         {
             default:
-                $stock_url = self::get_interpret_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+                $stock_url = self::get_interpret_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
             break;
 
             case PHS_Scope::SCOPE_AJAX:
-                $stock_url = self::get_ajax_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+                $stock_url = self::get_ajax_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
             break;
 
             case PHS_Scope::SCOPE_API:
-                $stock_url = self::get_api_url( $route_arr['force_https'] ).($query_string!=''?'?'.$query_string:'');
+                $stock_url = self::get_api_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
             break;
         }
 
@@ -1247,7 +1276,7 @@ final class PHS extends PHS_Registry
         $hook_args['stock_query_string'] = $query_string;
         $hook_args['stock_url'] = $stock_url;
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
+        if( ($hook_args = self::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
         and is_array( $hook_args )
         and !empty( $hook_args['new_url'] ) and is_string( $hook_args['new_url'] ) )
             $final_url = $hook_args['new_url'];
@@ -1260,13 +1289,13 @@ final class PHS extends PHS_Registry
         // check on "non https" url first
         if( ($base_url = self::get_base_url( false ))
         and ($base_len = strlen( $base_url ))
-        and substr( $url, 0, $base_len ) == $base_url )
+        and strpos( $url, $base_url ) === 0 )
             return substr( $url, $base_len );
 
         // check "https" url
         if( ($base_url = self::get_base_url( true ))
         and ($base_len = strlen( $base_url ))
-        and substr( $url, 0, $base_len ) == $base_url )
+        and strpos( $url, $base_url ) === 0 )
             return substr( $url, $base_len );
 
         return $url;
@@ -1275,8 +1304,7 @@ final class PHS extends PHS_Registry
     public static function from_relative_url( $url, $force_https = false )
     {
         if( ($base_url = self::get_base_url( $force_https ))
-        and ($base_len = strlen( $base_url ))
-        and substr( $url, 0, $base_len ) == $base_url )
+        and strpos( $url, $base_url ) === 0 )
             return $url;
 
         return $base_url.$url;
@@ -1285,7 +1313,7 @@ final class PHS extends PHS_Registry
     public static function relative_path( $path )
     {
         if( ($base_len = strlen( PHS_PATH ))
-        and substr( $path, 0, $base_len ) == PHS_PATH )
+        and strpos( $path, PHS_PATH ) === 0 )
             return substr( $path, $base_len );
 
         return $path;
@@ -1293,8 +1321,7 @@ final class PHS extends PHS_Registry
 
     public static function from_relative_path( $path )
     {
-        if( ($base_len = strlen( PHS_PATH ))
-        and substr( $path, 0, $base_len ) == PHS_PATH )
+        if( strpos( $path, PHS_PATH ) === 0 )
             return $path;
 
         return PHS_PATH.$path;
@@ -1355,6 +1382,11 @@ final class PHS extends PHS_Registry
         return self::route_from_parts( $route_arr );
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return array|bool|null
+     */
     public static function execute_route( $params = false )
     {
         self::st_reset_error();
@@ -1395,7 +1427,7 @@ final class PHS extends PHS_Registry
 
         if( is_array( $action_result )
         and !empty( $action_result['scope'] )
-        and $action_result['scope'] != PHS_Scope::current_scope() )
+        and $action_result['scope'] !== PHS_Scope::current_scope() )
             PHS_Scope::current_scope( $action_result['scope'] );
 
         if( !($scope_obj = PHS_Scope::get_scope_instance()) )
@@ -1417,7 +1449,7 @@ final class PHS extends PHS_Registry
         }
 
         // Don't display technical stuff to end-user...
-        if( !PHS::st_debugging_mode()
+        if( !self::st_debugging_mode()
         and self::arr_has_error( $controller_error_arr ) )
             $controller_error_arr = self::arr_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error serving request.' ) );
 
@@ -1633,7 +1665,7 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Model_'.ucfirst( strtolower( $model_name ) );
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
@@ -1672,7 +1704,7 @@ final class PHS extends PHS_Registry
         else
             $class_name = 'PHS_View';
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
         // Views are not singletons
@@ -1719,7 +1751,7 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Controller_'.ucfirst( strtolower( $controller_name ) );
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
@@ -1805,10 +1837,8 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        if( $plugin_name === PHS_Instantiable::CORE_PLUGIN )
-            $plugin_name = false;
-
         if( empty( $plugin_name )
+         or $plugin_name === PHS_Instantiable::CORE_PLUGIN
          or !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name( $plugin_name )) )
         {
             self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t load plugin %s.', (empty( $plugin_name )?PHS_Instantiable::CORE_PLUGIN:$plugin_name) ) );
@@ -2209,6 +2239,11 @@ final class PHS extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param bool|string $hook_name
+     *
+     * @return bool
+     */
     public static function unregister_hooks( $hook_name = false )
     {
         if( $hook_name === false )
@@ -2273,7 +2308,7 @@ final class PHS extends PHS_Registry
                     continue;
 
                 // If required for this trigger to stop on first error...
-                //!!! Altough there is an error we return a hook argument array and it is up to you to check
+                //!!! Although there is an error we return a hook argument array and it is up to you to check
                 //!!! if any errors in resulting hook arguments
                 if( !empty( $params['stop_on_first_error'] )
                 and PHS_Hooks::hook_args_has_error( $result ) )
@@ -2318,6 +2353,7 @@ final class PHS extends PHS_Registry
 
         $backtrace_str = self::st_debug_call_backtrace();
 
+        $errno = (int)$errno;
         $error_type = 'Unknown error type';
         switch( $errno )
         {
@@ -2420,12 +2456,13 @@ final class PHS extends PHS_Registry
         if( @class_exists( '\\phs\\PHS_Logger', false ) )
             PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str, PHS_Logger::TYPE_DEBUG );
 
-        if( $errno == E_ERROR or $errno == E_USER_ERROR )
+        if( $errno === E_ERROR or $errno === E_USER_ERROR )
             exit( 1 );
 
         return true;
     }
 
+    /** @noinspection ForgottenDebugOutputInspection */
     public static function tick_handler()
     {
         var_dump( self::st_debug_call_backtrace( 1 ) );
