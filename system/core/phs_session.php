@@ -5,7 +5,7 @@ namespace phs;
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_utils;
 
-final class PHS_session extends PHS_Registry
+final class PHS_Session extends PHS_Registry
 {
     const ERR_DOMAIN = 1, ERR_COOKIE = 2;
 
@@ -377,12 +377,12 @@ final class PHS_session extends PHS_Registry
         }
 
         @session_set_save_handler(
-            array( '\\phs\\PHS_session', 'sf_open' ),
-            array( '\\phs\\PHS_session', 'sf_close' ),
-            array( '\\phs\\PHS_session', 'sf_read' ),
-            array( '\\phs\\PHS_session', 'sf_write' ),
-            array( '\\phs\\PHS_session', 'sf_destroy' ),
-            array( '\\phs\\PHS_session', 'sf_gc' )
+            array( '\\phs\\PHS_Session', 'sf_open' ),
+            array( '\\phs\\PHS_Session', 'sf_close' ),
+            array( '\\phs\\PHS_Session', 'sf_read' ),
+            array( '\\phs\\PHS_Session', 'sf_write' ),
+            array( '\\phs\\PHS_Session', 'sf_destroy' ),
+            array( '\\phs\\PHS_Session', 'sf_gc' )
         );
 
         @session_save_path( self::get_data( self::SESS_DIR ) );
@@ -404,7 +404,7 @@ final class PHS_session extends PHS_Registry
             @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN, false, false );
         }
 
-        @register_shutdown_function( array( '\\phs\\PHS_session', 'session_close' ) );
+        @register_shutdown_function( array( '\\phs\\PHS_Session', 'session_close' ) );
 
         @session_start();
 

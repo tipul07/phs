@@ -233,8 +233,8 @@ include_once( PHS_SYSTEM_DIR.'functions.php' );
 include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 
 // Init session
-// !!!NOTE!!! When working with session variables you HAVE to use PHS_session::_* (_g - get, _s - set and _d - delete)
-// $_SESSION array will be overwritten by PHS_session class and variables set directly in $_SESSION array will be lost
+// !!!NOTE!!! When working with session variables you HAVE to use PHS_Session::_* (_g - get, _s - set and _d - delete)
+// $_SESSION array will be overwritten by PHS_Session class and variables set directly in $_SESSION array will be lost
 include_once( PHS_SYSTEM_DIR.'session_init.php' );
 
 // Init language system

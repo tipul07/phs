@@ -511,29 +511,47 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFAULT_LANGUAGE;
     }
 
+    /**
+     * @return string
+     */
     public static function st_get_current_language()
     {
         return self::$CURRENT_LANGUAGE;
     }
 
+    /**
+     * @param string $lang
+     *
+     * @return bool|string
+     */
     public static function st_set_current_language( $lang )
     {
-        if( !self::st_valid_language( $lang ) )
+        if( !($lang = self::st_valid_language( $lang )) )
             return false;
 
         self::$CURRENT_LANGUAGE = $lang;
         return self::$CURRENT_LANGUAGE;
     }
 
+    /**
+     * @param string $lang
+     *
+     * @return bool|string
+     */
     public static function st_set_default_language( $lang )
     {
-        if( !self::st_valid_language( $lang ) )
+        if( !($lang = self::st_valid_language( $lang )) )
             return false;
 
         self::$DEFAULT_LANGUAGE = $lang;
         return self::$DEFAULT_LANGUAGE;
     }
 
+    /**
+     * @param string $key Property in current language definition array
+     *
+     * @return bool
+     */
     public static function st_get_current_language_key( $key )
     {
         $clang = self::st_get_current_language();
@@ -566,11 +584,17 @@ class PHS_Language_Container extends PHS_Error
         return self::st_get_defined_languages();
     }
 
+    /**
+     * @return string
+     */
     public function get_default_language()
     {
         return self::st_get_default_language();
     }
 
+    /**
+     * @return string
+     */
     public function get_current_language()
     {
         return self::st_get_current_language();
@@ -591,6 +615,11 @@ class PHS_Language_Container extends PHS_Error
         return self::st_valid_language( $lang );
     }
 
+    /**
+     * @param string $lang
+     *
+     * @return string
+     */
     public static function prepare_lang_index( $lang )
     {
         return strtolower( trim( $lang ) );

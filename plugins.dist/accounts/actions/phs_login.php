@@ -2,9 +2,9 @@
 
 namespace phs\plugins\accounts\actions;
 
-use phs\libraries\PHS_utils;
 use \phs\PHS;
 use \phs\PHS_Scope;
+use \phs\PHS_Session;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_params;
@@ -119,7 +119,7 @@ class PHS_Action_Login extends PHS_Action
             if( empty( $nick ) or empty( $pass ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Please provide complete mandatory fields.' ) );
 
-            elseif( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+            elseif( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
 
             elseif( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $nick ) ))
@@ -134,6 +134,16 @@ class PHS_Action_Login extends PHS_Action
 
                 if( $accounts_plugin->do_login( $account_arr, $login_params ) )
                 {
+                    if( ($account_language = $accounts_model->get_account_language( $account_arr )) )
+                    {
+                        if( !($current_language = self::get_current_language())
+                         or $current_language !== $account_language )
+                        {
+                            self::set_current_language( $account_language );
+                            PHS_Session::_s( self::LANG_SESSION_KEY, $account_language );
+                        }
+                    }
+
                     $hook_args = PHS_Hooks::default_page_location_hook_args();
 
                     if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
