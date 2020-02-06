@@ -3,7 +3,7 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS_Scope;
-use \phs\PHS_session;
+use \phs\PHS_Session;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Logger;
 
@@ -18,7 +18,7 @@ class PHS_Action_Clean_sessions_ag extends PHS_Action
     {
         PHS_Logger::logf( ' ----- Checking sessions...', PHS_Logger::TYPE_MAINTENANCE );
 
-        if( !($check_result = PHS_session::sessions_gc()) )
+        if( !($check_result = PHS_Session::sessions_gc()) )
             PHS_Logger::logf( 'ERROR checking session files.', PHS_Logger::TYPE_MAINTENANCE );
 
         else

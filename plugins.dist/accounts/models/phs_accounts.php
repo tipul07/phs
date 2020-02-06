@@ -43,19 +43,12 @@ class PHS_Model_Accounts extends PHS_Model
         self::LVL_DEVELOPER => array( 'title' => 'Developer' ),
     );
 
-    function __construct( $instance_details = false )
-    {
-        //$this->add_connection( 'PHS_Model_Accounts_details', 'accounts', self::INSTANCE_TYPE_MODEL );
-
-        parent::__construct( $instance_details );
-    }
-
     /**
      * @return string Returns version of model
      */
     public function get_model_version()
     {
-        return '1.1.1';
+        return '1.2.0';
     }
 
     /**
@@ -70,7 +63,7 @@ class PHS_Model_Accounts extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    function get_main_table_name()
+    public function get_main_table_name()
     {
         return 'users';
     }
@@ -106,27 +99,32 @@ class PHS_Model_Accounts extends PHS_Model
     //
     public static function is_developer( $lvl )
     {
-        return ($lvl == self::LVL_DEVELOPER);
+        $lvl = (int)$lvl;
+        return ($lvl === self::LVL_DEVELOPER);
     }
 
     public static function is_sadmin( $lvl )
     {
-        return ($lvl == self::LVL_SUPERADMIN or $lvl == self::LVL_DEVELOPER);
+        $lvl = (int)$lvl;
+        return ($lvl === self::LVL_SUPERADMIN or $lvl === self::LVL_DEVELOPER);
     }
 
     public static function is_admin( $lvl, $strict = false )
     {
-        return ($lvl == self::LVL_ADMIN or (!$strict and ($lvl == self::LVL_SUPERADMIN or $lvl == self::LVL_DEVELOPER)));
+        $lvl = (int)$lvl;
+        return ($lvl === self::LVL_ADMIN or (!$strict and ($lvl === self::LVL_SUPERADMIN or $lvl === self::LVL_DEVELOPER)));
     }
 
     public static function is_operator( $lvl, $strict = false )
     {
-        return ($lvl == self::LVL_OPERATOR or (!$strict and self::is_admin( $lvl )));
+        $lvl = (int)$lvl;
+        return ($lvl === self::LVL_OPERATOR or (!$strict and self::is_admin( $lvl )));
     }
 
     public static function is_member( $lvl, $strict = false )
     {
-        return ($lvl == self::LVL_MEMBER or (!$strict and self::is_admin( $lvl )));
+        $lvl = (int)$lvl;
+        return ($lvl === self::LVL_MEMBER or (!$strict and self::is_admin( $lvl )));
     }
     //
     //  END Level checks
@@ -186,7 +184,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_active( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['status'] != self::STATUS_ACTIVE )
+         or (int)$user_arr['status'] !== self::STATUS_ACTIVE )
             return false;
 
         return $user_arr;
@@ -195,7 +193,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_inactive( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['status'] != self::STATUS_INACTIVE )
+         or (int)$user_arr['status'] !== self::STATUS_INACTIVE )
             return false;
 
         return $user_arr;
@@ -204,7 +202,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function is_deleted( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
-         or $user_arr['status'] != self::STATUS_DELETED )
+         or (int)$user_arr['status'] !== self::STATUS_DELETED )
             return false;
 
         return $user_arr;
@@ -228,6 +226,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    /**
+     * @param int|array $user_data
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public function needs_after_registration_email( $user_data, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -252,7 +256,12 @@ class PHS_Model_Accounts extends PHS_Model
         return ($this->needs_activation( $user_arr, $params ) or $this->needs_confirmation_email( $user_arr ));
     }
 
-
+    /**
+     * @param int|array $user_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function needs_activation( $user_data, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -278,6 +287,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
     public function needs_confirmation_email( $user_data )
     {
         // If password was provided by user or he did already login no need to send him password confirmation
@@ -290,6 +304,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
     public function needs_email_verification( $user_data )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
@@ -300,6 +319,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
+    /**
+     * @param int|array $user_data
+     * @param int|array $user_to_manage
+     *
+     * @return array|bool
+     */
     public function can_manage_account( $user_data, $user_to_manage )
     {
         if( !($user_arr = $this->data_to_array( $user_data ))
@@ -314,6 +339,12 @@ class PHS_Model_Accounts extends PHS_Model
         );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_account_details( $account_data, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -335,6 +366,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $accounts_details_arr;
     }
 
+    /**
+     * @param bool|string $lang
+     *
+     * @return array
+     */
     final public function get_levels( $lang = false )
     {
         static $levels_arr = array();
@@ -364,7 +400,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             foreach( $new_levels_arr as $level_id => $level_arr )
             {
-                $level_id = intval( $level_id );
+                $level_id = (int)$level_id;
                 if( empty( $level_id ) )
                     continue;
 
@@ -385,6 +421,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param bool|string $lang
+     *
+     * @return array|bool
+     */
     final public function get_levels_as_key_val( $lang = false )
     {
         static $user_levels_key_val_arr = false;
@@ -411,6 +452,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param int $level
+     * @param bool|string $lang
+     *
+     * @return bool|array
+     */
     public function valid_level( $level, $lang = false )
     {
         $all_levels = $this->get_levels( $lang );
@@ -421,6 +468,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $all_levels[$level];
     }
 
+    /**
+     * @param bool|string $lang
+     *
+     * @return array
+     */
     final public function get_statuses( $lang = false )
     {
         static $statuses_arr = array();
@@ -449,7 +501,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             foreach( $new_statuses_arr as $status_id => $status_arr )
             {
-                $status_id = intval( $status_id );
+                $status_id = (int)$status_id;
                 if( empty( $status_id ) )
                     continue;
 
@@ -470,6 +522,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param bool|string $lang
+     *
+     * @return array|bool
+     */
     final public function get_statuses_as_key_val( $lang = false )
     {
         static $user_statuses_key_val_arr = false;
@@ -496,6 +553,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param int $status
+     * @param bool|string $lang
+     *
+     * @return bool|mixed
+     */
     public function valid_status( $status, $lang = false )
     {
         $all_statuses = $this->get_statuses( $lang );
@@ -506,6 +569,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $all_statuses[$status];
     }
 
+    /**
+     * @param int $len
+     * @param bool|array $params
+     *
+     * @return string
+     */
     public static function generate_password( $len = 10, $params = false )
     {
         $hook_args = PHS_Hooks::default_common_hook_args();
@@ -515,7 +584,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_GENERATE_PASS, $hook_args ))
         and is_array( $new_hook_args ) and !empty( $new_hook_args['generated_pass'] ) )
-            return $new_hook_args['generated_pass'];
+            return (string)$new_hook_args['generated_pass'];
 
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -530,9 +599,9 @@ class PHS_Model_Accounts extends PHS_Model
         if( !isset( $params['percents']['normal_chars'] ) )
             $params['percents']['normal_chars'] = 70;
 
-        $spacial_chars_perc = intval( $params['percents']['spacial_chars'] );
-        $digits_chars_perc = intval( $params['percents']['digits_chars'] );
-        $normal_chars_perc = intval( $params['percents']['normal_chars'] );
+        $spacial_chars_perc = (int)$params['percents']['spacial_chars'];
+        $digits_chars_perc = (int)$params['percents']['digits_chars'];
+        $normal_chars_perc = (int)$params['percents']['normal_chars'];
 
         if( $spacial_chars_perc + $digits_chars_perc + $normal_chars_perc > 100 )
         {
@@ -613,6 +682,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $ret;
     }
 
+    /**
+     * @param string $pass
+     * @param string $salt
+     *
+     * @return string
+     */
     public static function encode_pass( $pass, $salt )
     {
         $hook_args = PHS_Hooks::default_common_hook_args();
@@ -623,11 +698,18 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_ENCODE_PASS, $hook_args ))
         and is_array( $new_hook_args ) and !empty( $new_hook_args['encoded_pass'] ) )
-            return $new_hook_args['encoded_pass'];
+            return (string)$new_hook_args['encoded_pass'];
 
         return @hash( self::PASSWORDS_ALGO, $salt.'_'.$pass, false );
     }
 
+    /**
+     * @param string $acc_pass
+     * @param string $acc_salt
+     * @param string $pass
+     *
+     * @return bool
+     */
     public function raw_check_pass( $acc_pass, $acc_salt, $pass )
     {
         if( empty( $acc_pass ) or empty( $acc_salt )
@@ -639,6 +721,12 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param string $pass
+     *
+     * @return array|bool
+     */
     public function check_pass( $account_data, $pass )
     {
         if( !($account_arr = $this->data_to_array( $account_data )) )
@@ -657,6 +745,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     *
+     * @return bool|string
+     */
     public function obfuscate_password( $account_data )
     {
         $this->reset_error();
@@ -676,6 +769,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $obfuscated_pass;
     }
 
+    /**
+     * @param int|array $account_data
+     *
+     * @return bool|string
+     */
     public function clean_password( $account_data )
     {
         $this->reset_error();
@@ -697,6 +795,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $clean_pass;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array
+     */
     public function is_password_expired( $account_data, $params = false )
     {
         $return_arr = PHS_Hooks::default_password_expiration_data();
@@ -707,7 +811,7 @@ class PHS_Model_Accounts extends PHS_Model
          or !($settings_arr = $this->get_plugin_settings())
          or !is_array( $settings_arr )
          or empty( $settings_arr['expire_passwords_days'] )
-         or ($expire_days = intval( $settings_arr['expire_passwords_days'] )) <= 0 )
+         or ($expire_days = (int)$settings_arr['expire_passwords_days']) <= 0 )
             return $return_arr;
 
         $now_time = time();
@@ -716,10 +820,10 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $settings_arr['block_after_expiration'] ) )
             $settings_arr['block_after_expiration'] = 0;
         else
-            $settings_arr['block_after_expiration'] = intval( $settings_arr['block_after_expiration'] );
+            $settings_arr['block_after_expiration'] = (int)$settings_arr['block_after_expiration'];
 
         $block_after_seconds = -1;
-        if( $settings_arr['block_after_expiration'] != -1 )
+        if( $settings_arr['block_after_expiration'] !== -1 )
             $block_after_seconds = $settings_arr['block_after_expiration'] * 3600;
 
         $expire_seconds = $expire_days * 86400;
@@ -748,6 +852,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     *
+     * @return array|bool
+     */
     private function _get_account_salt_data( $account_data )
     {
         $this->reset_error();
@@ -763,6 +872,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_salt_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     private function _add_account_password_to_history( $account_data, $params = false )
     {
         $this->reset_error();
@@ -810,7 +925,7 @@ class PHS_Model_Accounts extends PHS_Model
         $accounts_settings = $params['{accounts_settings}'];
 
         if( empty( $accounts_settings['passwords_history_count'] )
-         or !($history_count = intval( $accounts_settings['passwords_history_count'] )) )
+         or !($history_count = (int)$accounts_settings['passwords_history_count']) )
         {
             // delete extra records
             db_query( 'DELETE FROM `'.$uph_table_name.'`'.
@@ -854,6 +969,13 @@ class PHS_Model_Accounts extends PHS_Model
         return $history_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param string $pass
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function is_password_in_history( $account_data, $pass, $params = false )
     {
         $this->reset_error();
@@ -883,7 +1005,7 @@ class PHS_Model_Accounts extends PHS_Model
         $accounts_settings = $params['{accounts_settings}'];
 
         if( empty( $accounts_settings['passwords_history_count'] )
-         or !($history_count = intval( $accounts_settings['passwords_history_count'] ))
+         or !($history_count = (int)$accounts_settings['passwords_history_count'])
          or !($qid = db_query( 'SELECT * '.
                               ' FROM `'.$uph_table_name.'`'.
                               ' WHERE uid = \''.$account_arr['id'].'\' '.
@@ -914,6 +1036,74 @@ class PHS_Model_Accounts extends PHS_Model
         return false;
     }
 
+    /**
+     * @param int|array $account_data
+     *
+     * @return bool|string
+     */
+    public function get_account_language( $account_data )
+    {
+        $this->reset_error();
+
+        if( empty( $account_data )
+         or !($account_arr = $this->data_to_array( $account_data, array( 'table_name' => 'users' ) )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        $clean_lang = false;
+        if( empty( $account_arr['language'] )
+         or !($clean_lang = self::valid_language( $account_arr['language'] )) )
+            return false;
+
+        return $clean_lang;
+    }
+
+    /**
+     * @param int|array $account_data
+     * @param string $lang
+     *
+     * @return bool|array
+     */
+    public function set_account_language( $account_data, $lang )
+    {
+        $this->reset_error();
+
+        if( empty( $lang )
+         or !($clean_lang = self::valid_language( $lang )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid language.' ) );
+            return false;
+        }
+
+        if( empty( $account_data )
+         or !($flow_arr = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+         or !($users_table = $this->get_flow_table_name( $flow_arr ))
+         or !($account_arr = $this->data_to_array( $account_data, $flow_arr )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        if( !empty( $account_arr['language'] )
+        and $account_arr['language'] === $clean_lang )
+            return $account_arr;
+
+        if( !db_query( 'UPDATE `'.$users_table.'` SET language = \''.$clean_lang.'\' WHERE id = \''.$account_arr['id'].'\'', $flow_arr['db_connection'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error updating account language.' ) );
+            return false;
+        }
+
+        $account_arr['language'] = $clean_lang;
+
+        return $account_arr;
+    }
+
+    /**
+     * @return bool
+     */
     public function clear_idler_sessions()
     {
         if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'online' ) ))
@@ -923,6 +1113,12 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
+    /**
+     * @param int|array $online_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function update_current_session( $online_data, $params = false )
     {
         if( empty( $online_data )
@@ -938,9 +1134,9 @@ class PHS_Model_Accounts extends PHS_Model
             $params['location'] = trim( $params['location'] );
 
         if( isset( $params['auid'] ) )
-            $params['auid'] = intval( $params['auid'] );
+            $params['auid'] = (int)$params['auid'];
         if( isset( $params['uid'] ) )
-            $params['uid'] = intval( $params['uid'] );
+            $params['uid'] = (int)$params['uid'];
 
         if( !($host = request_ip()) )
             $host = '127.0.0.1';
@@ -973,6 +1169,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $online_arr;
     }
 
+    /**
+     * @param int|array $online_data
+     *
+     * @return array|bool
+     */
     public function session_logout_subaccount( $online_data )
     {
         if( empty( $online_data )
@@ -989,6 +1190,11 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->edit( $online_arr, $edit_arr );
     }
 
+    /**
+     * @param int|array $online_data
+     *
+     * @return bool
+     */
     public function session_logout( $online_data )
     {
         if( empty( $online_data )
@@ -999,11 +1205,20 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->hard_delete( $online_arr, array( 'table_name' => 'online' ) );
     }
 
+    /**
+     * @return string
+     */
     public function create_session_id()
     {
-        return md5( uniqid( rand(), true ) );
+        return md5( uniqid( mt_rand(), true ) );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function login( $account_data, $params = false )
     {
         if( empty( $account_data )
@@ -1020,7 +1235,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['expire_mins'] ) )
             $params['expire_mins'] = 0;
         else
-            $params['expire_mins'] = intval( $params['expire_mins'] );
+            $params['expire_mins'] = (int)$params['expire_mins'];
 
         if( empty( $params['location'] ) )
             $params['location'] = PHS::relative_url( PHS::current_url() );
@@ -1096,6 +1311,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $onuser_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function email_verified( $account_data, $params = false )
     {
         if( empty( $account_data )
@@ -1287,6 +1508,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function send_confirmation_email( $account_data, $params = false )
     {
         $this->reset_error();
@@ -1681,6 +1908,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $insert_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param array $user_details_arr
+     *
+     * @return array|bool
+     */
     public function update_user_details( $account_data, $user_details_arr )
     {
         $this->reset_error();
@@ -2255,7 +2488,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         // Changed passwords encoding function from md5 to sha256
         if( @function_exists( 'hash_algos' )
-        and !in_array( self::PASSWORDS_ALGO, (array)@hash_algos() ) )
+        and !in_array( self::PASSWORDS_ALGO, (array)@hash_algos(), true ) )
         {
             $this->set_error( self::ERR_SERVER, $this->_pt( '%s hash algorithm not available on this server.', self::PASSWORDS_ALGO ) );
             $this->throw_errors( $throwing_errors );
@@ -2443,6 +2676,12 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_TINYINT,
                         'length' => '2',
                         'default' => 0,
+                    ),
+                    'language' => array(
+                        'type' => self::FTYPE_VARCHAR,
+                        'length' => '5',
+                        'nullable' => true,
+                        'comment' => 'Last selected language',
                     ),
                     'pass_generated' => array(
                         'type' => self::FTYPE_TINYINT,

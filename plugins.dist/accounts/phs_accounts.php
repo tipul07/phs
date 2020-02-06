@@ -5,7 +5,7 @@ namespace phs\plugins\accounts;
 use \phs\PHS;
 use \phs\PHS_api;
 use \phs\PHS_Scope;
-use \phs\PHS_session;
+use \phs\PHS_Session;
 use \phs\PHS_crypt;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Plugin;
@@ -249,7 +249,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( !PHS_session::_d( self::session_key() ) )
+        if( !PHS_Session::_d( self::session_key() ) )
         {
             $this->set_error( self::ERR_LOGOUT, $this->_pt( 'Couldn\'t logout from your account. Please retry.' ) );
             return false;
@@ -301,7 +301,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( !PHS_session::_s( self::session_key(), $onuser_arr['wid'] ) )
+        if( !PHS_Session::_s( self::session_key(), $onuser_arr['wid'] ) )
         {
             $accounts_model->session_logout( $onuser_arr );
 
@@ -549,7 +549,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $accounts_model = $params['accounts_model'];
 
         if( empty( $accounts_model )
-         or !($skey_value = PHS_session::_g( self::session_key() ))
+         or !($skey_value = PHS_Session::_g( self::session_key() ))
          or !($online_db_details = $accounts_model->get_details_fields(
                 array(
                     'wid' => $skey_value,
@@ -665,7 +665,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             }
         } else
         {
-            if( !($skey_value = PHS_session::_g( self::session_key() ))
+            if( !($skey_value = PHS_Session::_g( self::session_key() ))
              or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ) )) )
             {
                 $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );

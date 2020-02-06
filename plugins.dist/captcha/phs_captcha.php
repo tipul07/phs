@@ -3,7 +3,7 @@
 namespace phs\plugins\captcha;
 
 use \phs\PHS;
-use \phs\PHS_session;
+use \phs\PHS_Session;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
@@ -122,7 +122,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return false;
         }
 
-        if( ($cimage_code = PHS_session::_g( self::SESSION_VAR )) === null )
+        if( ($cimage_code = PHS_Session::_g( self::SESSION_VAR )) === null )
             $cimage_code = '';
 
         $library_params = array();
@@ -157,7 +157,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             $cimage_code = $img_library->get_public_code();
         }
 
-        PHS_session::_s( self::SESSION_VAR, $cimage_code );
+        PHS_Session::_s( self::SESSION_VAR, $cimage_code );
 
         return $code_valid;
     }
@@ -172,7 +172,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return false;
         }
 
-        if( ($cimage_code = PHS_session::_g( self::SESSION_VAR )) === null )
+        if( ($cimage_code = PHS_Session::_g( self::SESSION_VAR )) === null )
             $cimage_code = '';
 
         $library_params = array();
@@ -196,7 +196,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         $img_library->regenerate_public_code();
         $cimage_code = $img_library->get_public_code();
 
-        PHS_session::_s( self::SESSION_VAR, $cimage_code );
+        PHS_Session::_s( self::SESSION_VAR, $cimage_code );
 
         return true;
     }

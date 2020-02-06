@@ -2,7 +2,7 @@
 
 namespace phs\plugins\cookie_notice;
 
-use \phs\PHS_session;
+use \phs\PHS_Session;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Error;
@@ -46,12 +46,12 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
 
     public function agreed_cookies()
     {
-        return (PHS_session::get_cookie( self::COOKIE_NAME )?true:false);
+        return (PHS_Session::get_cookie( self::COOKIE_NAME )?true:false);
     }
 
     public function accept_cookie_agreement()
     {
-        return PHS_session::set_cookie( self::COOKIE_NAME, 1, array( 'expire_secs' => self::COOKIE_EXPIRE_SECS ) );
+        return PHS_Session::set_cookie( self::COOKIE_NAME, 1, array( 'expire_secs' => self::COOKIE_EXPIRE_SECS ) );
     }
 
     public function get_cookie_notice_hook_args( $hook_args )

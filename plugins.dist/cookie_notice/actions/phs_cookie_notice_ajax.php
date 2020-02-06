@@ -4,7 +4,7 @@ namespace phs\plugins\cookie_notice\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_session;
+use \phs\PHS_Session;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_params;

@@ -5,19 +5,19 @@ namespace phs;
 use \phs\libraries\PHS_Language;
 use \phs\libraries\PHS_encdec;
 
-//! @version 1.00
+//! @version 1.10
 
 class PHS_crypt extends PHS_Language
 {
     static private $internal_keys = array();
     static private $crypt_key = '';
 
-    function __construct()
-    {
-        parent::__construct();
-    }
-
-    static function crypting_key( $key = false )
+    /**
+     * @param bool|string $key
+     *
+     * @return bool|string
+     */
+    public static function crypting_key( $key = false )
     {
         if( $key === false )
             return self::$crypt_key;
@@ -26,12 +26,20 @@ class PHS_crypt extends PHS_Language
         return self::$crypt_key;
     }
 
-    static function get_internal_keys()
+    /**
+     * @return array
+     */
+    public static function get_internal_keys()
     {
         return self::$internal_keys;
     }
 
-    static function set_internal_keys( array $keys_arr = array() )
+    /**
+     * @param array $keys_arr
+     *
+     * @return bool
+     */
+    public static function set_internal_keys( $keys_arr = array() )
     {
         if( empty( $keys_arr ) or !is_array( $keys_arr ) )
             return false;
@@ -40,7 +48,13 @@ class PHS_crypt extends PHS_Language
         return true;
     }
 
-    static function quick_encode( $str, $params = false )
+    /**
+     * @param string $str
+     * @param bool|array $params
+     *
+     * @return string
+     */
+    public static function quick_encode( $str, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
@@ -59,7 +73,13 @@ class PHS_crypt extends PHS_Language
         return $enc_dec->encrypt( $str );
     }
 
-    static function quick_decode( $str, $params = false )
+    /**
+     * @param string $str
+     * @param bool|array $params
+     *
+     * @return string
+     */
+    public static function quick_decode( $str, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
