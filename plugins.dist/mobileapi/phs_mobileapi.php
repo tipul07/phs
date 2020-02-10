@@ -673,6 +673,16 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
         self::api_session( $session_params );
 
+        if( !empty( $account_arr ) )
+        {
+            $api_obj->api_flow_value( 'api_key_user_id', (int)$account_arr['id'] );
+            $api_obj->api_flow_value( 'api_account_data', $account_arr );
+        } else
+        {
+            $api_obj->api_flow_value( 'api_key_user_id', 0 );
+            $api_obj->api_flow_value( 'api_account_data', false );
+        }
+
         return true;
     }
 
