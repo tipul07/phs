@@ -10,6 +10,11 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
 {
     const LOG_CHANNEL = 'phs_hubspot.log';
 
+    public function get_settings_keys_to_obfuscate()
+    {
+        return array( 'hubspot_api_key' );
+    }
+
     /**
      * @inheritdoc
      */
