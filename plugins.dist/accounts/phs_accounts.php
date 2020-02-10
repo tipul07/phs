@@ -649,7 +649,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $hook_args;
 
         // Check if we are in API scope and we have a valid API instance...
-        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API
+        if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
         and ($api_obj = PHS_api::global_api_instance()) )
         {
             $online_db_details = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );

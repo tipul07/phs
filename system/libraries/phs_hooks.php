@@ -3,6 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 
 //! This class define all core hooks (for usability)
@@ -733,7 +734,8 @@ class PHS_Hooks extends PHS_Registry
         {
             if( !empty( $hook_args['session_expired_secs'] ) )
             {
-                if( !@headers_sent() )
+                if( !@headers_sent()
+                and PHS_Scope::current_scope() === PHS_Scope::SCOPE_WEB )
                 {
                     header( 'Location: '.PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'expired_secs' => $hook_args['session_expired_secs'] ) ) );
                     exit;
