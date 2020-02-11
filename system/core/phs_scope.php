@@ -20,30 +20,40 @@ abstract class PHS_Scope extends PHS_Instantiable
             'title' => 'Web',
             'plugin' => false,
             'class_name' => 'web',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'web',
         ),
 
         self::SCOPE_BACKGROUND => array(
             'title' => 'Background',
             'plugin' => false,
             'class_name' => 'background',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'background',
         ),
 
         self::SCOPE_AJAX => array(
             'title' => 'Ajax',
             'plugin' => false,
             'class_name' => 'ajax',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'ajax',
         ),
 
         self::SCOPE_API => array(
             'title' => 'API',
             'plugin' => false,
             'class_name' => 'api',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'api',
         ),
 
         self::SCOPE_AGENT => array(
             'title' => 'Agent',
             'plugin' => false,
             'class_name' => 'agent',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'agent',
         ),
     );
 
@@ -79,6 +89,27 @@ abstract class PHS_Scope extends PHS_Instantiable
             return false;
 
         return $scopes_arr[$scope];
+    }
+
+    /**
+     * @param string $const_scope
+     *
+     * @return bool|int
+     */
+    public static function valid_constant_scope( $const_scope )
+    {
+        $const_scope = strtolower( trim( $const_scope ) );
+        if( !($scopes_arr = self::get_scopes()) )
+            return false;
+
+        foreach( $scopes_arr as $scope_id => $scope_details )
+        {
+            if( !empty( $scope_details['constant_name'] )
+            and $scope_details['constant_name'] === $const_scope )
+                return $scope_id;
+        }
+
+        return false;
     }
 
     public static function default_scope_params()
@@ -170,6 +201,14 @@ abstract class PHS_Scope extends PHS_Instantiable
         self::set_data( self::SCOPE_FLOW_KEY, $scope );
 
         return $scope;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function current_scope_is_set()
+    {
+        return (self::get_data( self::SCOPE_FLOW_KEY )?true:false);
     }
 
     /**

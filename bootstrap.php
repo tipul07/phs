@@ -125,7 +125,12 @@ PHS_Logger::logging_dir( PHS_LOGS_DIR );
 
 // Default scope settings... These are overwritten when running specific actions
 PHS_Scope::default_scope( PHS_Scope::SCOPE_WEB );
-PHS_Scope::current_scope( PHS_Scope::SCOPE_WEB );
+if( defined( 'PHS_SCRIPT_SCOPE' )
+and ($script_scope = PHS_Scope::valid_constant_scope( PHS_SCRIPT_SCOPE )) )
+    PHS_Scope::current_scope( $script_scope );
+
+if( !PHS_Scope::current_scope_is_set() )
+    PHS_Scope::current_scope( PHS_Scope::SCOPE_WEB );
 
 PHS::init();
 

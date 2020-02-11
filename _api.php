@@ -7,6 +7,7 @@
     header( 'Pragma: no-cache' );
 
     define( 'PHS_PREVENT_SESSION', true );
+    define( 'PHS_SCRIPT_SCOPE', 'api' );
 
     include_once( 'main.php' );
 

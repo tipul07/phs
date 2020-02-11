@@ -325,8 +325,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
 
         $this->set_action_defaults();
 
-        $default_result = self::default_action_result();
-
         if( ($current_scope = PHS_Scope::current_scope())
         and !$this->scope_is_allowed( $current_scope ) )
         {
@@ -337,20 +335,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
                 return false;
             }
         }
-
-        // if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_BEFORE_RUN, array(
-        //             'controller_obj' => $this->_controller_obj,
-        //         ) )) )
-        // {
-        //     if( !empty( $signal_result['stop_process'] ) )
-        //     {
-        //         if( $signal_result['replace_result'] !== null )
-        //         {
-        //             $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
-        //             return $this->get_action_result();
-        //         }
-        //     }
-        // }
 
         $hook_args = PHS_Hooks::default_action_execute_hook_args();
         $hook_args['action_obj'] = $this;
@@ -392,20 +376,6 @@ abstract class PHS_Action extends PHS_Signal_and_slot
                 }
             }
         }
-
-        // if( ($signal_result = $this->signal_trigger( self::SIGNAL_ACTION_AFTER_RUN, array(
-        //     'controller_obj' => $this->_controller_obj,
-        // ) )) )
-        // {
-        //     if( !empty( $signal_result['stop_process'] ) )
-        //     {
-        //         if( $signal_result['replace_result'] !== null )
-        //         {
-        //             $this->set_action_result( self::validate_array( $signal_result['replace_result'], $default_result ) );
-        //             return $this->get_action_result();
-        //         }
-        //     }
-        // }
 
         $hook_args = PHS_Hooks::default_action_execute_hook_args();
         $hook_args['action_obj'] = $this;

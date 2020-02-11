@@ -8,11 +8,13 @@
     // HTTP/1.0
     header( 'Pragma: no-cache' );
 
+    define( 'PHS_SCRIPT_SCOPE', 'ajax' );
+
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\libraries\PHS_Logger;
     use \phs\PHS_ajax;
+    use \phs\libraries\PHS_Logger;
 
     PHS_Logger::logf( ' --- Started ajax request...', PHS_Logger::TYPE_AJAX );
 

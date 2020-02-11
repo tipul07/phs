@@ -9,6 +9,7 @@
     header( 'Pragma: no-cache' );
 
     define( 'PHS_PREVENT_SESSION', true );
+    define( 'PHS_SCRIPT_SCOPE', 'background' );
 
     include_once( 'main.php' );
 
