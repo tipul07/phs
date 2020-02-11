@@ -408,6 +408,12 @@ final class PHS_Session extends PHS_Registry
 
         @session_start();
 
+        // If provided session ID is not safe, generate a new one
+        if( !self::safe_session_id( @session_id() ) )
+        {
+            @session_regenerate_id( true );
+        }
+
         self::set_data( self::SESS_STARTED, true );
 
         // safe...
@@ -419,6 +425,15 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
+    public static function safe_session_id( $id )
+    {
+        if( empty( $id ) or !is_string( $id )
+         or preg_match( '@[^a-zA-Z0-9_]@', $id ) )
+            return false;
+
+        return $id;
+    }
+
     /**
      * @param string $id
      *
@@ -427,6 +442,7 @@ final class PHS_Session extends PHS_Registry
     public static function get_session_id_dir_as_array( $id )
     {
         if( empty( $id ) or !is_string( $id )
+         or !self::safe_session_id( $id )
          or !($return_arr = @str_split( $id, self::SESS_DIR_LENGTH ))
          or !is_array( $return_arr ) )
             return array();
@@ -444,7 +460,8 @@ final class PHS_Session extends PHS_Registry
      */
     public static function get_session_id_dir( $id )
     {
-        if( empty( $id ) or !is_string( $id ) )
+        if( empty( $id ) or !is_string( $id )
+         or !self::safe_session_id( $id ) )
             return '';
 
         $sess_dir = '';
@@ -467,16 +484,22 @@ final class PHS_Session extends PHS_Registry
      */
     public static function get_session_file_name_for_id( $id )
     {
+        if( !self::safe_session_id( $id ) )
+            return false;
+
         return 'sess_'.$id;
     }
 
     /**
      * @param string $id
      *
-     * @return string
+     * @return string|bool
      */
     public static function get_session_id_file_name( $id )
     {
+        if( !self::safe_session_id( $id ) )
+            return false;
+
         if( !($sess_dir = self::get_session_id_dir( $id )) )
             return self::get_session_file_name_for_id( $id );
 
@@ -491,7 +514,8 @@ final class PHS_Session extends PHS_Registry
     public static function session_close( $params = false )
     {
         if( PHS::prevent_session()
-         or !self::is_started() )
+         or !self::is_started()
+         or !self::safe_session_id( @session_id() ) )
             return true;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
@@ -530,7 +554,8 @@ final class PHS_Session extends PHS_Registry
         if( PHS::prevent_session() )
             return true;
 
-        if( !($sess_file = self::get_session_id_file_name( $id ))
+        if( !self::safe_session_id( $id )
+         or !($sess_file = self::get_session_id_file_name( $id ))
          or !@file_exists( $sess_file )
          or !($ret_val = @file_get_contents( $sess_file )) )
             $ret_val = '';
@@ -540,7 +565,8 @@ final class PHS_Session extends PHS_Registry
 
     public static function sf_write( $id, $data )
     {
-        if( PHS::prevent_session() )
+        if( !self::safe_session_id( $id )
+         or PHS::prevent_session() )
             return true;
 
         if( !($sess_file = self::get_session_id_file_name( $id )) )
@@ -559,7 +585,7 @@ final class PHS_Session extends PHS_Registry
                 return false;
         }
 
-        if( !($fil = @fopen( $sess_file, 'w' )) )
+        if( !($fil = @fopen( $sess_file, 'wb' )) )
             return false;
 
         @fwrite( $fil, $data );
@@ -571,7 +597,8 @@ final class PHS_Session extends PHS_Registry
 
     public static function sf_destroy( $id )
     {
-        if( PHS::prevent_session() )
+        if( !self::safe_session_id( $id )
+         or PHS::prevent_session() )
             return true;
 
         if( ($sess_file = self::get_session_id_file_name( $id ))
