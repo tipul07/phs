@@ -9,15 +9,13 @@
     header( 'Pragma: no-cache' );
 
     define( 'PHS_PREVENT_SESSION', true );
+    define( 'PHS_SCRIPT_SCOPE', 'agent' );
 
     include_once( 'main.php' );
 
     use \phs\PHS;
     use \phs\PHS_Agent;
-    use \phs\PHS_Scope;
     use \phs\libraries\PHS_Logger;
-
-    PHS_Scope::current_scope( PHS_Scope::SCOPE_AGENT );
 
     PHS_Logger::logf( ' --- Started agent...', PHS_Logger::TYPE_AGENT );
 

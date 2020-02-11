@@ -1427,7 +1427,7 @@ final class PHS extends PHS_Registry
 
         if( is_array( $action_result )
         and !empty( $action_result['scope'] )
-        and $action_result['scope'] !== PHS_Scope::current_scope() )
+        and (int)$action_result['scope'] !== PHS_Scope::current_scope() )
             PHS_Scope::current_scope( $action_result['scope'] );
 
         if( !($scope_obj = PHS_Scope::get_scope_instance()) )

@@ -46,8 +46,10 @@ and ($url_lang = PHS_Language::valid_language( $url_lang )) )
         PHS_Session::_s( PHS_Language::LANG_SESSION_KEY, $url_lang );
 }
 
+// Checking current user's selected language only for session scopes
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-if( ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+if( !PHS::prevent_session()
+and ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
 and ($current_user = PHS::user_logged_in()) )
 {
     if( !($account_language = $accounts_model->get_account_language( $current_user )) )
