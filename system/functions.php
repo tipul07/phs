@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.1.0';
+    return '1.1.1.1';
 }
 
 function phs_init_before_bootstrap()
@@ -469,9 +469,15 @@ function make_sure_is_filename( $str )
             $str );
 }
 
+/**
+ * @param string $str
+ * @param bool|array $params
+ *
+ * @return int
+ */
 function seconds_passed( $str, $params = false )
 {
-    return time() - parse_db_date( $str, $params );
+    return time() - (int)parse_db_date( $str, $params );
 }
 
 function validate_db_date_array( $date_arr )
@@ -483,6 +489,8 @@ function validate_db_date_array( $date_arr )
     {
         if( !isset( $date_arr[$i] ) )
             return false;
+
+        $date_arr[$i] = (int)$date_arr[$i];
     }
 
     if(
@@ -497,11 +505,22 @@ function validate_db_date_array( $date_arr )
     return true;
 }
 
+/**
+ * @param string $date
+ *
+ * @return bool
+ */
 function empty_t_date( $date )
 {
-    return (empty( $date ) or $date == DATETIME_T_EMPTY or $date == PHS_Model::DATE_EMPTY);
+    return (empty( $date ) or (string)$date === DATETIME_T_EMPTY or (string)$date === PHS_Model::DATE_EMPTY);
 }
 
+/**
+ * @param string $date
+ * @param bool|array $params
+ *
+ * @return array|bool
+ */
 function is_t_date( $date, $params = false )
 {
     if( is_string( $date ) )
@@ -509,7 +528,7 @@ function is_t_date( $date, $params = false )
 
     if( empty( $date )
      or !is_string( $date )
-     or strstr( $date, 'T' ) === false )
+     or strpos( $date, 'T' ) === false )
         return false;
 
     if( empty_t_date( $date ) )
@@ -523,7 +542,7 @@ function is_t_date( $date, $params = false )
     else
         $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
 
-    if( strstr( $date, 'T' ) )
+    if( strpos( $date, 'T' ) !== false )
     {
         $d = explode( 'T', $date );
         $date_ = explode( '-', $d[0] );
@@ -540,15 +559,15 @@ function is_t_date( $date, $params = false )
          or !isset( $time_[$i] ) )
             return false;
 
-        if( $i == 2
+        if( $i === 2
         and !empty( $time_[$i] ) )
         {
             // try removing any timezone at the end of format...
             $time_[$i] = substr( $time_[$i], 0, 2 );
         }
 
-        $date_[$i] = intval( $date_[$i] );
-        $time_[$i] = intval( $time_[$i] );
+        $date_[$i] = (int)$date_[$i];
+        $time_[$i] = (int)$time_[$i];
     }
 
     $result_arr = array_merge( $date_, $time_ );
@@ -559,6 +578,12 @@ function is_t_date( $date, $params = false )
     return $result_arr;
 }
 
+/**
+ * @param string|array $date
+ * @param bool|array $params
+ *
+ * @return false|int
+ */
 function parse_t_date( $date, $params = false )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -571,7 +596,7 @@ function parse_t_date( $date, $params = false )
     {
         // offset in seconds...
         if( isset( $params['offset_seconds'] ) )
-            $params['offset_seconds'] = intval( $params['offset_seconds'] );
+            $params['offset_seconds'] = (int)$params['offset_seconds'];
 
         else
         {
@@ -580,7 +605,7 @@ function parse_t_date( $date, $params = false )
                 $params['offset_seconds'] = 0;
 
             else
-                $params['offset_seconds'] = intval( $params['offset_hours'] ) * 3600;
+                $params['offset_seconds'] = (int)$params['offset_hours'] * 3600;
         }
 
         $params['offset_seconds'] = @date( 'Z' ) - $params['offset_seconds'];
@@ -598,7 +623,7 @@ function parse_t_date( $date, $params = false )
             if( !isset( $date[$i] ) )
                 return 0;
 
-            $date[$i] = intval( $date[$i] );
+            $date[$i] = (int)$date[$i];
         }
 
         $date_arr = $date;
@@ -616,6 +641,12 @@ function parse_t_date( $date, $params = false )
     return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] ) + $params['offset_seconds'];
 }
 
+/**
+ * @param string $date
+ * @param bool|array $params
+ *
+ * @return array|bool
+ */
 function is_db_date( $date, $params = false )
 {
     if( is_string( $date ) )
@@ -623,7 +654,7 @@ function is_db_date( $date, $params = false )
 
     if( empty( $date )
      or !is_string( $date )
-     or strstr( $date, '-' ) === false )
+     or strpos( $date, '-' ) === false )
         return false;
 
     if( empty_db_date( $date ) )
@@ -637,7 +668,7 @@ function is_db_date( $date, $params = false )
     else
         $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
 
-    if( strstr( $date, ' ' ) )
+    if( strpos( $date, ' ' ) !== false )
     {
         $d = explode( ' ', $date );
         $date_ = explode( '-', $d[0] );
@@ -654,8 +685,8 @@ function is_db_date( $date, $params = false )
          or !isset( $time_[$i] ) )
             return false;
 
-        $date_[$i] = intval( $date_[$i] );
-        $time_[$i] = intval( $time_[$i] );
+        $date_[$i] = (int)$date_[$i];
+        $time_[$i] = (int)$time_[$i];
     }
 
     $result_arr = array_merge( $date_, $time_ );
@@ -666,6 +697,12 @@ function is_db_date( $date, $params = false )
     return $result_arr;
 }
 
+/**
+ * @param string|array $date
+ * @param bool|array $params
+ *
+ * @return false|int
+ */
 function parse_db_date( $date, $params = false )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -683,7 +720,7 @@ function parse_db_date( $date, $params = false )
             if( !isset( $date[$i] ) )
                 return 0;
 
-            $date[$i] = intval( $date[$i] );
+            $date[$i] = (int)$date[$i];
         }
 
         $date_arr = $date;
@@ -701,11 +738,22 @@ function parse_db_date( $date, $params = false )
     return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] );
 }
 
+/**
+ * @param string $date
+ *
+ * @return bool
+ */
 function empty_db_date( $date )
 {
-    return (empty( $date ) or $date == PHS_Model::DATETIME_EMPTY or $date == PHS_Model::DATE_EMPTY);
+    return (empty( $date ) or (string)$date === PHS_Model::DATETIME_EMPTY or (string)$date === PHS_Model::DATE_EMPTY);
 }
 
+/**
+ * @param string $date
+ * @param bool|string $format
+ *
+ * @return false|string|null
+ */
 function validate_db_date( $date, $format = false )
 {
     if( empty_db_date( $date ) )
@@ -717,6 +765,11 @@ function validate_db_date( $date, $format = false )
     return @date( $format, parse_db_date( $date ) );
 }
 
+/**
+ * @param string $str
+ *
+ * @return string
+ */
 function prepare_data( $str )
 {
     return str_replace( '\'', '\\\'', str_replace( '\\\'', '\'', $str ) );
@@ -732,7 +785,14 @@ function from_safe_url( $url )
     return str_replace( array( '%3F', '%26', '%23' ), array( '?', '&', '#' ), $url );
 }
 
-// this function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required) 
+/**
+ * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
+ *
+ * @param array $arr
+ * @param bool|array $params
+ *
+ * @return string
+ */
 function array_to_query_string( $arr, $params = false )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -751,7 +811,7 @@ function array_to_query_string( $arr, $params = false )
     $return_str = '';
     foreach( $arr as $key => $val )
     {
-        $return_str .= ($return_str!=''?'&':'');
+        $return_str .= ($return_str!==''?'&':'');
 
         if( is_array( $val ) )
         {
@@ -774,6 +834,12 @@ function array_to_query_string( $arr, $params = false )
     return $return_str;
 }
 
+/**
+ * @param string $str
+ * @param array $params
+ *
+ * @return string
+ */
 function add_url_params( $str, $params )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -788,7 +854,7 @@ function add_url_params( $str, $params )
         $anchor = '#'.$anch_arr[1];
     }
 
-    if( strstr( $str, '?' ) === false )
+    if( strpos( $str, '?' ) === false )
         $str .= '?';
 
     if( ($params_res = array_to_query_string( $params )) )
@@ -797,6 +863,12 @@ function add_url_params( $str, $params )
     return $str.$anchor;
 }
 
+/**
+ * @param string $str
+ * @param array $params
+ *
+ * @return string
+ */
 function exclude_params( $str, $params )
 {
     if( empty( $params ) or !is_array( $params ) )
@@ -824,13 +896,13 @@ function exclude_params( $str, $params )
     } else
         $script = $str;
 
-    if( $param_str == '' )
+    if( $param_str === '' )
     {
         // check if script is a string of parameters
         $eg_pos = strpos( $script, '=' );
         $slash_pos = strpos( $script, '/' );
         if( $slash_pos === false
-        and (substr( $script, 0, 1 ) == '&' or $eg_pos !== false) )
+        and (substr( $script, 0, 1 ) === '&' or $eg_pos !== false) )
         {
             // only params provided to class...
             $param_str = $script;
@@ -839,14 +911,14 @@ function exclude_params( $str, $params )
     }
 
     $params_res = '';
-    if( $param_str != '' )
+    if( $param_str !== '' )
     {
         parse_str( $param_str, $res );
 
         $new_query_args = array();
         foreach( $res as $key => $val )
         {
-            if( in_array( $key, $params ) )
+            if( in_array( $key, $params, true ) )
                 continue;
 
             $new_query_args[$key] = $val;

@@ -97,7 +97,7 @@ if( !defined( 'PHS_ASSETS_DIR' ) )
         define( 'PHS_ASSETS_DIR', PHS_DEFAULT_ASSETS_DIR );
 }
 
-// Default loggin settings (change if required in main.php)
+// Default logging settings (change if required in main.php)
 if( !defined( 'PHS_LOGS_DIR' ) )
 {
     if( defined( 'PHS_FRAMEWORK_LOGS_DIR' ) )
@@ -123,7 +123,7 @@ PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
 PHS_Logger::logging_dir( PHS_LOGS_DIR );
 
-// Default scope settings... These are overwritten when runing specific actions
+// Default scope settings... These are overwritten when running specific actions
 PHS_Scope::default_scope( PHS_Scope::SCOPE_WEB );
 PHS_Scope::current_scope( PHS_Scope::SCOPE_WEB );
 
