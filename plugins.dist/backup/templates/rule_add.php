@@ -251,7 +251,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_pass" style="width:150px !important;"><?php echo $this->_pt( 'Password' )?></label>
-                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required"
+                            <input type="password" class="form-control" style="width:250px;" autocomplete="off" required="required"
                                    name="ftp_settings[pass]"
                                    id="ftp_settings_pass"
                                    value="<?php echo (!empty( $ftp_settings['pass'] )?form_str( $ftp_settings['pass'] ):'')?>" />

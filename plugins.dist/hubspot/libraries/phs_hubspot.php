@@ -509,6 +509,38 @@ class PHS_Hubspot extends PHS_Library
      *
      * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
      */
+    public function delete_contact_by_id( $contact_id, $params = false )
+    {
+        $this->reset_error();
+        $this->reset_api_params();
+
+        if( !($params = $this->manage_api_request_params( $params )) )
+            return false;
+
+        $params['call_parameters']['not_found_is_not_an_error'] = true;
+
+        $this->_api_params( array(
+            'rest_url' => 'contacts/v1/contact/vid/'.$contact_id,
+            'http_method' => 'DELETE',
+        ) );
+
+        if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
+            return false;
+
+        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+            return array();
+
+        return $response['json_response_arr'];
+    }
+
+    /**
+     * @param int $contact_id
+     * @param bool|array $params Request extra parameters (if required)
+     *
+     * @return bool|array
+     *
+     * @see PHS_Hubspot::manage_api_request_params() $params is validating using this method
+     */
     public function get_contact_by_id( $contact_id, $params = false )
     {
         $this->reset_error();

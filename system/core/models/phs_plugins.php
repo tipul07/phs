@@ -336,7 +336,14 @@ class PHS_Model_Plugins extends PHS_Model
                 {
                     if( array_key_exists( $ob_key, self::$plugin_settings[$instance_id] )
                     and is_string( self::$plugin_settings[$instance_id][$ob_key] ) )
-                        self::$plugin_settings[$instance_id][$ob_key] = PHS_crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
+                    {
+                        // In case we are in install mode and errors will get thrown
+                        try {
+                            self::$plugin_settings[$instance_id][$ob_key] = PHS_crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
+                        } catch( \Exception $e )
+                        {
+                        }
+                    }
                 }
             }
 
