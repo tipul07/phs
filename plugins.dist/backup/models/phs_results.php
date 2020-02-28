@@ -291,6 +291,12 @@ class PHS_Model_Results extends PHS_Model
         );
     }
 
+    /**
+     * @param array|int $result_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function finish_result_shell_script_bg( $result_data, $params = false )
     {
         $this->reset_error();
@@ -426,7 +432,7 @@ class PHS_Model_Results extends PHS_Model
             if( !($file_size = @filesize( $result_file_arr['file'] )) )
                 $file_size = 0;
 
-            if( $file_size != $result_file_arr['size'] )
+            if( (int)$file_size !== (int)$result_file_arr['size'] )
             {
                 $sizes_changed = true;
                 $result_file_arr['size'] = $file_size;

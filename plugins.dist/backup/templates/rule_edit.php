@@ -183,7 +183,7 @@
              or $cdelete_after_days < 0 )
                 $cdelete_after_days = 1;
 
-            $selected_delete_after_days = intval( $selected_delete_after_days );
+            $selected_delete_after_days = (int)$selected_delete_after_days;
             ?>
             <fieldset class="form-group">
                 <label for="delete_after_days"><?php echo $this->_pt( 'Delete backups' )?>:</label>
@@ -192,11 +192,11 @@
                     <select name="delete_after_days" id="delete_after_days" class="chosen-select" style="min-width:200px;" onchange="check_delete_after_days_change()">
                     <option value="-1"><?php echo $this->_pt( ' - Choose - ' )?></option>
                     <option value="0" <?php echo ($selected_delete_after_days===0?'selected="selected"':'')?>><?php echo $this->_pt( ' - Don\'t delete results - ' )?></option>
-                    <option value="-2" <?php echo ($selected_delete_after_days==-2?'selected="selected"':'')?>><?php echo $this->_pt( ' - Custom value - ' )?></option>
+                    <option value="-2" <?php echo ($selected_delete_after_days===-2?'selected="selected"':'')?>><?php echo $this->_pt( ' - Custom value - ' )?></option>
                     <?php
                     foreach( $days_options_arr as $days_no => $days_text )
                     {
-                        ?><option value="<?php echo $days_no?>" <?php echo (($selected_delete_after_days !== false and $selected_delete_after_days==$days_no)?'selected="selected"':'')?>><?php echo $days_text?></option><?php
+                        ?><option value="<?php echo $days_no?>" <?php echo (($selected_delete_after_days !== false and $selected_delete_after_days===$days_no)?'selected="selected"':'')?>><?php echo $days_text?></option><?php
                     }
                     ?></select></div>
                     <div id="delete_after_days_container" style="float:left;margin-right:5px;line-height: 1.5em;">
@@ -213,6 +213,8 @@
             <?php
             if( ($selected_copy_results = $this->view_var( 'copy_results' )) === false )
                 $selected_copy_results = 0;
+
+            $selected_copy_results = (int)$selected_copy_results;
             ?>
             <fieldset class="form-group">
                 <label for="copy_results"><?php echo $this->_pt( 'Copy results' )?>:</label>
@@ -222,7 +224,7 @@
                     <?php
                     foreach( $copy_results_arr as $copy_id => $copy_text )
                     {
-                        ?><option value="<?php echo $copy_id?>" <?php echo ($selected_copy_results==$copy_id?'selected="selected"':'')?>><?php echo $copy_text?></option><?php
+                        ?><option value="<?php echo $copy_id?>" <?php echo ($selected_copy_results===$copy_id?'selected="selected"':'')?>><?php echo $copy_text?></option><?php
                     }
                     ?></select>
                     <br/>
@@ -241,13 +243,13 @@
                             <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
                             <?php
                             if( !empty( $ftp_settings['connection_mode'] ) )
-                                $selected_connection_mode = $ftp_settings['connection_mode'];
+                                $selected_connection_mode = (int)$ftp_settings['connection_mode'];
                             else
                                 $selected_connection_mode = 0;
 
                             foreach( $ftp_connection_modes_arr as $ctype_id => $ctype_text )
                             {
-                                ?><option value="<?php echo $ctype_id?>" <?php echo ($selected_connection_mode==$ctype_id?'selected="selected"':'')?>><?php echo $ctype_text?></option><?php
+                                ?><option value="<?php echo $ctype_id?>" <?php echo ($selected_connection_mode===$ctype_id?'selected="selected"':'')?>><?php echo $ctype_text?></option><?php
                             }
                             ?>
                             </select></div>
@@ -279,7 +281,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="ftp_settings_pass" style="width:150px !important;"><?php echo $this->_pt( 'Password' )?></label>
-                            <input type="text" class="form-control" style="width:250px;" autocomplete="off" required="required" rel="is_required"
+                            <input type="password" class="form-control" style="width:250px;" autocomplete="off" required="required" rel="is_required"
                                    name="ftp_settings[pass]"
                                    id="ftp_settings_pass"
                                    value="<?php echo (!empty( $ftp_settings['pass'] )?form_str( $ftp_settings['pass'] ):'')?>" />

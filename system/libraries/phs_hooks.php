@@ -524,6 +524,8 @@ class PHS_Hooks extends PHS_Registry
     public static function default_account_action_hook_args()
     {
         return self::hook_args_definition( array(
+            // Tells if current hook call is in a background script
+            'in_background' => false,
             // Account id on which action was taken
             // We provide id as account was changed and you should normally
             'account_data' => false,

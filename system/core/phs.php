@@ -2262,6 +2262,20 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * @param string $hook_name
+     *
+     * @return bool
+     */
+    public static function hook_has_callbacks( $hook_name )
+    {
+        if( !($hook_name = self::prepare_hook_name( $hook_name ))
+         or empty( self::$hooks[$hook_name] ) )
+            return false;
+
+        return true;
+    }
+
+    /**
      * @param string $hook_name Hook name
      * @param array $hook_args Hook arguments
      * @param array|bool $params Any specific parameters required on this trigger only

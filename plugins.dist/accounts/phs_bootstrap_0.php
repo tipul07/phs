@@ -7,7 +7,8 @@ use \phs\libraries\PHS_Hooks;
 if( ($accounts_plugin = PHS::load_plugin( 'accounts' ))
 and $accounts_plugin->plugin_active() )
 {
-    $accounts_plugin->resolve_idler_sessions();
+    if( !PHS::prevent_session() )
+        $accounts_plugin->resolve_idler_sessions();
 
     PHS::register_hook(
         // $hook_name

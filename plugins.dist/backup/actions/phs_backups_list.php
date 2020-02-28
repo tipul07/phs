@@ -579,7 +579,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 resizable: true,
                 close_outside_click: false,
 
-                title: "<?php echo $this->_e( $this->_pt( 'Backup Result Files' ) )?>",
+                title: "<?php echo self::_e( $this->_pt( 'Backup Result Files' ) )?>",
                 method: "get",
                 url: "<?php echo PHS_ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>",
                 url_data: { result_id: id }

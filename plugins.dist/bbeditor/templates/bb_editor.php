@@ -160,7 +160,7 @@ var phs_bb_editor = phs_bb_editor || {
             suffix: "phs_bbeditor_document",
             resizable: true,
 
-            title: "<?php echo $this->_e( $this->_pt( 'Document preview' ) )?>",
+            title: "<?php echo self::_e( $this->_pt( 'Document preview' ) )?>",
             method: "POST",
             url: "<?php echo PHS_ajax::url( array( 'p' => 'bbeditor', 'a' => 'bb_editor_preview' ) )?>",
             url_data: { body: document.getElementById( editor_id ).value }

@@ -14,7 +14,7 @@ use \phs\libraries\PHS_utils;
 
 class PHS_Model_Accounts extends PHS_Model
 {
-    const ERR_LOGIN = 10001, ERR_EMAIL = 10002;
+    const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003;
 
     const PASSWORDS_ALGO = 'sha256';
 
@@ -48,7 +48,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.2.0';
+        return '1.2.1';
     }
 
     /**
@@ -1468,6 +1468,9 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['unlink_roles'] ) )
             $params['unlink_roles'] = false;
 
+        //
+        // We don't put before delete action to background as this should be a sync action
+        //
         $hook_args = PHS_Hooks::default_account_action_hook_args();
         $hook_args['account_data'] = $account_arr;
         $hook_args['action_alias'] = 'before_delete';
@@ -1495,17 +1498,58 @@ class PHS_Model_Accounts extends PHS_Model
 
         $account_arr = $new_account_arr;
 
+        //
+        // After delete should be in background (all actions which require more time should be hooked here)
+        //
         $hook_args = PHS_Hooks::default_account_action_hook_args();
         $hook_args['account_data'] = $account_arr;
         $hook_args['action_alias'] = 'after_delete';
         $hook_args['action_params'] = $params;
         $hook_args['route'] = PHS::get_route_details();
 
-        if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
-        and !empty( $result_arr['account_data'] ) )
-            $account_arr = $result_arr['account_data'];
+        $this->trigger_account_action_in_background( $hook_args );
 
         return $account_arr;
+    }
+
+    /**
+     * @param array $hook_args
+     *
+     * @return bool|array
+     */
+    public function trigger_account_action_in_background( $hook_args )
+    {
+        $this->reset_error();
+
+        // If no plugin is registered to this hook, there is no use in launching a background job for it
+        if( !PHS::hook_has_callbacks( PHS_Hooks::H_USER_ACCOUNT_ACTION ) )
+            return $hook_args;
+
+        if( !($hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() ))
+         or empty( $hook_args['account_data'] )
+         or !($account_arr = $this->data_to_array( $hook_args['account_data'], array( 'table_name' => 'users' ) )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        $hook_args['account_data'] = $account_arr['id'];
+
+        if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'account_action_bg' ), $hook_args ) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_ACCOUNT_ACTION );
+            else
+                $this->set_error( self::ERR_ACCOUNT_ACTION, $this->_pt( 'Error launching account action in background.' ) );
+
+            PHS_Logger::logf( 'Error launching account action ['.(!empty( $hook_args['action_alias'] )?$hook_args['action_alias']:'N/A').'] in background. ('.$this->get_simple_error_message().')', PHS_Logger::TYPE_ERROR );
+
+            return false;
+        }
+
+        $hook_args['account_data'] = $account_arr;
+
+        return $hook_args;
     }
 
     /**
@@ -2322,9 +2366,10 @@ class PHS_Model_Accounts extends PHS_Model
         $hook_args['action_params'] = $params;
         $hook_args['route'] = PHS::get_route_details();
 
-        if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
-        and !empty( $result_arr['account_data'] ) )
-            $existing_data = $result_arr['account_data'];
+        // if( ($result_arr = PHS_Hooks::trigger_account_action( $hook_args ))
+        // and !empty( $result_arr['account_data'] ) )
+        //     $existing_data = $result_arr['account_data'];
+        $this->trigger_account_action_in_background( $hook_args );
 
         return $existing_data;
     }
