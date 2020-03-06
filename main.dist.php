@@ -30,6 +30,7 @@ define( 'PHS_DEFAULT_SSL_PORT', '' ); // https port (if applicable) if using def
 define( 'PHS_DEFAULT_DOMAIN_PATH', 'url/path/to/root/' ); // tells the path from domain to get to root URL of the platform
 
 // Default database settings (these settings will be used when creating default database connection)
+define( 'PHS_DB_DRIVER', 'mysqli' );
 define( 'PHS_DB_HOSTNAME', 'localhost' );
 define( 'PHS_DB_USERNAME', 'dbuser' );
 define( 'PHS_DB_PASSWORD', 'dbpass' );
@@ -48,6 +49,8 @@ define( 'PHS_DB_DRIVER_SETTINGS', @json_encode( array( 'sql_mode' => '-ONLY_FULL
 //     define( 'PHS_DB_DIE_ON_ERROR', true );
 // if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
 //     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
+// if( !defined( 'PHS_DB_USE_PCONNECT' ) )
+//     define( 'PHS_DB_USE_PCONNECT', true );
 
 // Define other specific database settings (if required)
 // $mysql_settings = array();
