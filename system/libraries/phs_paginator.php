@@ -1901,9 +1901,13 @@ class PHS_Paginator extends PHS_Registry
             if( !empty( $column_arr['display_key_value'] )
             and is_array( $column_arr['display_key_value'] )
             and !empty( $field_name )
-            and isset( $record_arr[$field_name] )
-            and isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
-                $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
+            and isset( $record_arr[$field_name] ) )
+            {
+                if( isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
+                    $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
+                elseif( $column_arr['invalid_value'] !== null )
+                    $cell_content = $column_arr['invalid_value'];
+            }
 
             elseif( !empty( $model_obj )
                 and !empty( $field_name )
