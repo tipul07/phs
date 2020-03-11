@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 class PHS_file_upload extends PHS_Registry
 {
-    //! /descr Class was initialised succesfully
+    //! /descr Class was initialised successfully
     const ERR_OK = 0;
     //! Error related to parameters sent to method
     const ERR_PARAMS = 1;
@@ -20,7 +20,7 @@ class PHS_file_upload extends PHS_Registry
     const ERR_NO_EXTENSION = 6;
     //! Destination file exists
     const ERR_DESTINATION_EXISTS = 7;
-    //! Unknown/System error occured
+    //! Unknown/System error occurred
     const ERR_ERROR = 8;
     //
     const ERR_TMP_FILE = 9;
@@ -32,13 +32,21 @@ class PHS_file_upload extends PHS_Registry
     const ERR_CHANGE_DESTINATION = 12;
 
     // source details
-    var $source_config;
+    /** @var array $source_config */
+    private $source_config;
     // destination details
-    var $destination_config;
+    /** @var array $destination_config */
+    private $destination_config;
     //! Details related to copy result
-    var $copy_result;
+    /** @var array $copy_result */
+    private $copy_result;
 
-    function __construct( $params = false )
+    /**
+     * PHS_file_upload constructor.
+     *
+     * @param bool|array $params
+     */
+    public function __construct( $params = false )
     {
         parent::__construct();
 
@@ -60,6 +68,11 @@ class PHS_file_upload extends PHS_Registry
         $this->reset_error();
     }
 
+    /**
+     * @param bool|array $extra
+     *
+     * @return bool|array
+     */
     public function copy_url( $extra = false )
     {
         $this->reset_error();
@@ -112,8 +125,8 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $extra['buffer_size'] ) or $extra['buffer_size'] < 128 )
            $extra['buffer_size'] = 1024;
 
-        $extra['timeout'] = intval( $extra['timeout'] );
-        $extra['buffer_size'] = intval( $extra['buffer_size'] );
+        $extra['timeout'] = (int)$extra['timeout'];
+        $extra['buffer_size'] = (int)$extra['buffer_size'];
 
         $url_info_arr = PHS_utils::myparse_url( $source_arr['url_file'] );
         $url_file_arr = PHS_utils::mypathinfo( $url_info_arr['path'] );
@@ -141,7 +154,7 @@ class PHS_file_upload extends PHS_Registry
             }
         }
 
-        if( !@is_writeable( $extra['location'] ) )
+        if( !@is_writable( $extra['location'] ) )
         {
             $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot write in destination directory.' ) );
             $this->_update_copy_result( array(
@@ -152,12 +165,13 @@ class PHS_file_upload extends PHS_Registry
         }
 
         $local_filename = $extra['custom_name'];
-        if( $local_filename == '' )
+        if( $local_filename === '' )
             $local_filename = $url_file_arr['filename'];
 
         $file_name_ext = PHS_utils::mypathinfo( $local_filename );
 
-        if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] ) and !in_array( strtolower( $url_file_arr['extension'] ), $extra['extensions'] ) )
+        if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
+        and !in_array( strtolower( $url_file_arr['extension'] ), $extra['extensions'], true ) )
         {
             $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'Extension not allowed.' ) );
             $this->_update_copy_result( array(
@@ -168,12 +182,12 @@ class PHS_file_upload extends PHS_Registry
         }
 
         $new_name = $extra['prefix'];
-        if( $file_name_ext['basename'] == '' )
+        if( $file_name_ext['basename'] === '' )
             $new_name .= date( 'dmyhis' ).microtime( true );
         else
             $new_name .= $file_name_ext['basename'];
 
-        if( $file_name_ext['extension'] != '' )
+        if( $file_name_ext['extension'] !== '' )
             $file_extension = $file_name_ext['extension'];
         else
             $file_extension = $url_file_arr['extension'];
@@ -284,6 +298,11 @@ class PHS_file_upload extends PHS_Registry
         return $this->get_copy_result();
     }
 
+    /**
+     * @param bool|array $extra
+     *
+     * @return array|bool
+     */
     public function copy_local( $extra = false )
     {
         $this->reset_error();
@@ -358,7 +377,7 @@ class PHS_file_upload extends PHS_Registry
             }
         }
 
-        if( !@is_dir( $extra['location'] ) or !@is_writeable( $extra['location'] ) )
+        if( !@is_dir( $extra['location'] ) or !@is_writable( $extra['location'] ) )
         {
             $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot write in destination directory.' ) );
             $this->_update_copy_result( array(
@@ -369,7 +388,7 @@ class PHS_file_upload extends PHS_Registry
         }
 
         $local_filename = $extra['custom_name'];
-        if( $local_filename == '' )
+        if( $local_filename === '' )
             $local_filename = $path_file_arr['filename'];
 
         $file_name_ext = PHS_utils::mypathinfo( $local_filename );
@@ -385,12 +404,12 @@ class PHS_file_upload extends PHS_Registry
         }
 
         $new_name = $extra['prefix'];
-        if( $file_name_ext['basename'] == '' )
+        if( $file_name_ext['basename'] === '' )
             $new_name .= date( 'dmyhis' ).microtime( true );
         else
             $new_name .= $file_name_ext['basename'];
 
-        if( $file_name_ext['extension'] != '' )
+        if( $file_name_ext['extension'] !== '' )
             $file_extension = $file_name_ext['extension'];
         else
             $file_extension = $path_file_arr['extension'];
@@ -444,7 +463,12 @@ class PHS_file_upload extends PHS_Registry
         return $this->get_copy_result();
     }
 
-    function copy_uploaded( $extra = false )
+    /**
+     * @param bool|array $extra
+     *
+     * @return bool|array
+     */
+    public function copy_uploaded( $extra = false )
     {
         $this->reset_error();
 
@@ -496,8 +520,8 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $extra['buffer_size'] ) or $extra['buffer_size'] < 128 )
            $extra['buffer_size'] = 1024;
 
-        $extra['timeout'] = intval( $extra['timeout'] );
-        $extra['buffer_size'] = intval( $extra['buffer_size'] );
+        $extra['timeout'] = (int)$extra['timeout'];
+        $extra['buffer_size'] = (int)$extra['buffer_size'];
 
         $finfo = $source_arr['upload_file'];
 
@@ -534,7 +558,7 @@ class PHS_file_upload extends PHS_Registry
             }
         }
 
-        if( !@is_writeable( $extra['location'] ) )
+        if( !@is_writable( $extra['location'] ) )
         {
             $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot write in destination directory.' ) );
             $this->_update_copy_result( array(
@@ -545,13 +569,15 @@ class PHS_file_upload extends PHS_Registry
         }
 
         $local_filename = $extra['custom_name'];
-        if( $local_filename == '' )
+        if( !is_string( $local_filename )
+         or $local_filename === '' )
             $local_filename = $finfo['name'];
 
         $file_name_ext = PHS_utils::mypathinfo( $local_filename );
         $finfo_arr = PHS_utils::mypathinfo( $finfo['name'] );
 
-        if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] ) and !in_array( strtolower( $finfo_arr['extension'] ), $extra['extensions'] ) )
+        if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
+        and !in_array( strtolower( $finfo_arr['extension'] ), $extra['extensions'], true ) )
         {
             $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'Extension not allowed.' ) );
             $this->_update_copy_result( array(
@@ -572,14 +598,13 @@ class PHS_file_upload extends PHS_Registry
             return false;
         }
 
-
         $new_name = $extra['prefix'];
-        if( $file_name_ext['basename'] == '' )
+        if( $file_name_ext['basename'] === '' )
             $new_name .= date( 'dmyhis' ).microtime( true );
         else
             $new_name .= $file_name_ext['basename'];
 
-        if( $file_name_ext['extension'] != '' )
+        if( $file_name_ext['extension'] !== '' )
             $file_extension = $file_name_ext['extension'];
         else
             $file_extension = $finfo_arr['extension'];
@@ -628,9 +653,15 @@ class PHS_file_upload extends PHS_Registry
         return $this->get_copy_result();
     }
 
+    /**
+     * @param string $destination_file
+     * @param bool|array $extra
+     *
+     * @return array|bool
+     */
     public function set_destination_file( $destination_file, $extra = false )
     {
-        if( empty( $extra ) )
+        if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
         if( empty( $extra['file_prefix'] ) )
             $extra['file_prefix'] = '';
@@ -652,9 +683,15 @@ class PHS_file_upload extends PHS_Registry
         return $this->set_destination( $destination_arr );
     }
 
+    /**
+     * @param string $source_file
+     * @param bool|array $extra
+     *
+     * @return array|bool
+     */
     public function set_source_file( $source_file, $extra = false )
     {
-        if( empty( $extra ) )
+        if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
         if( empty( $extra['local_file'] ) )
             $extra['local_file'] = '';
@@ -682,6 +719,11 @@ class PHS_file_upload extends PHS_Registry
         return $this->set_source( $source_arr );
     }
 
+    /**
+     * @param bool|array $source
+     *
+     * @return array|bool
+     */
     public function set_source( $source = false )
     {
         if( $source === false )
@@ -705,6 +747,11 @@ class PHS_file_upload extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param bool|array $destination
+     *
+     * @return array|bool
+     */
     public function set_destination( $destination = false )
     {
         if( $destination === false )
@@ -728,7 +775,7 @@ class PHS_file_upload extends PHS_Registry
         return true;
     }
 
-    static public function source_valid( $source )
+    public static function source_valid( $source )
     {
         if( empty( $source ) or !is_array( $source )
          or (empty( $source['local_file'] ) and empty( $source['upload_file'] ) and empty( $source['url_file'] ))
@@ -742,7 +789,7 @@ class PHS_file_upload extends PHS_Registry
         return $source;
     }
 
-    static public function destination_valid( $destination )
+    public static function destination_valid( $destination )
     {
         if( empty( $destination ) or !is_array( $destination )
          or empty( $destination['local'] ) or !is_array( $destination['local'] )
@@ -755,7 +802,7 @@ class PHS_file_upload extends PHS_Registry
         return $destination;
     }
 
-    static public function default_copy_result()
+    public static function default_copy_result()
     {
         $default_result = array();
         $default_result['version'] = 1;
@@ -769,7 +816,7 @@ class PHS_file_upload extends PHS_Registry
         return $default_result;
     }
 
-    static public function default_source_settings()
+    public static function default_source_settings()
     {
         $default_source = array();
         $default_source['version'] = 1;
@@ -784,7 +831,7 @@ class PHS_file_upload extends PHS_Registry
         return $default_source;
     }
 
-    static public function default_destination_settings()
+    public static function default_destination_settings()
     {
         $default_destination = array();
         $default_destination['version'] = 1;
@@ -800,7 +847,12 @@ class PHS_file_upload extends PHS_Registry
         return $default_destination;
     }
 
-    static public function validate_source( $params )
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
+    public static function validate_source( $params )
     {
         $def_source = self::default_source_settings();
         if( empty( $params ) or !is_array( $params ) )
@@ -809,7 +861,7 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $params['version'] ) )
             $params['version'] = $def_source['version'];
         else
-            $params['version'] = intval( $params['version'] );
+            $params['version'] = (int)$params['version'];
 
         if( empty( $params['upload_file'] ) )
             $params['upload_file'] = $def_source['upload_file'];
@@ -823,12 +875,12 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $params['url_file_timeout'] ) )
             $params['url_file_timeout'] = $def_source['url_file_timeout'];
         else
-            $params['url_file_timeout'] = intval( $params['url_file_timeout'] );
+            $params['url_file_timeout'] = (int)$params['url_file_timeout'];
 
         if( empty( $params['file_max_size'] ) )
             $params['file_max_size'] = $def_source['file_max_size'];
         else
-            $params['file_max_size'] = intval( $params['file_max_size'] );
+            $params['file_max_size'] = (int)$params['file_max_size'];
 
         if( empty( $params['allowed_extentions'] ) or !is_array( $params['allowed_extentions'] ) )
             $params['allowed_extentions'] = $def_source['allowed_extentions'];
@@ -844,7 +896,7 @@ class PHS_file_upload extends PHS_Registry
                 foreach( $params['allowed_extentions'] as $ext )
                 {
                     $ext = strtolower( trim( str_replace( array( '/', '.', '\\', ':' ), '', $ext ) ) );
-                    if( $ext == '' )
+                    if( $ext === '' )
                         continue;
 
                     $valid_exts_arr[] = $ext;
@@ -862,7 +914,7 @@ class PHS_file_upload extends PHS_Registry
                 foreach( $params['denied_extentions'] as $ext )
                 {
                     $ext = strtolower( trim( str_replace( array( '/', '.', '\\', ':' ), '', $ext ) ) );
-                    if( $ext == '' )
+                    if( $ext === '' )
                         continue;
 
                     $valid_exts_arr[] = $ext;
@@ -875,7 +927,12 @@ class PHS_file_upload extends PHS_Registry
         return $params;
     }
 
-    static public function validate_destination( $params )
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
+    public static function validate_destination( $params )
     {
         $def_params = self::default_destination_settings();
         if( empty( $params ) or !is_array( $params ) )
@@ -884,7 +941,7 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $params['version'] ) )
             $params['version'] = $def_params['version'];
         else
-            $params['version'] = intval( $params['version'] );
+            $params['version'] = (int)$params['version'];
 
         if( empty( $params['local'] ) )
             $params['local'] = array();
@@ -899,7 +956,7 @@ class PHS_file_upload extends PHS_Registry
         else
             $params['local']['path'] = trim( $params['local']['path'] );
 
-        if( substr( $params['local']['path'], -1 ) == '/' )
+        if( substr( $params['local']['path'], -1 ) === '/' )
             $params['local']['path'] = substr( $params['local']['path'], 0, -1 );
 
         $params['local']['full_file'] = $params['local']['path'].'/'.$params['local']['file'];
@@ -913,16 +970,19 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $params['local']['dir_mode'] ) )
             $params['local']['dir_mode'] = $def_params['local']['dir_mode'];
         else
-            $params['local']['dir_mode'] = intval( $params['local']['dir_mode'] );
+            $params['local']['dir_mode'] = (int)$params['local']['dir_mode'];
 
         if( empty( $params['local']['file_mode'] ) )
             $params['local']['file_mode'] = $def_params['file_mode'];
         else
-            $params['local']['file_mode'] = intval( $params['local']['file_mode'] );
+            $params['local']['file_mode'] = (int)$params['local']['file_mode'];
 
         return $params;
     }
 
+    /**
+     * @return array
+     */
     public function get_copy_result()
     {
         return $this->copy_result;
@@ -933,6 +993,11 @@ class PHS_file_upload extends PHS_Registry
         $this->copy_result = self::default_copy_result();
     }
 
+    /**
+     * @param array $details
+     *
+     * @return bool
+     */
     private function _update_copy_result( $details )
     {
         if( !is_array( $details ) )
@@ -963,6 +1028,11 @@ class PHS_file_upload extends PHS_Registry
         $this->destination_config = self::default_destination_settings();
     }
 
+    /**
+     * @param bool|array $params
+     *
+     * @return bool|array
+     */
     public function copy( $params = false )
     {
         $this->reset_error();
@@ -994,6 +1064,11 @@ class PHS_file_upload extends PHS_Registry
         return false;
     }
 
+    /**
+     * @param array $params
+     *
+     * @return bool
+     */
     public function rename( $params )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -1013,7 +1088,7 @@ class PHS_file_upload extends PHS_Registry
             $this->set_error( self::ERR_NO_SOURCE, self::_t( 'Source not found' ) );
             return false;
         }
-        if( empty( $destination_arr ) or empty( $destination_arr['local'] ) or $destination_arr['local']['full_file'] == '' )
+        if( empty( $destination_arr ) or empty( $destination_arr['local'] ) or $destination_arr['local']['full_file'] === '' )
         {
             $this->set_error( self::ERR_NO_DESTINATION, self::_t( 'Unknown destination' ) );
             return false;
