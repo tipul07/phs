@@ -60,6 +60,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * Array returned should be an array of arrays. Node will have id, value and label keys.
      * id key value will be used in id input (to be used to identify what autocomplete record is)
      * label key value will be used to render record in autocomplete text input (what is actually seen by end-user)
+     * value key value will be displaed in text input to end-user once an item is selected from autocomplete list
      * @return array
      */
     abstract public function get_results_for_ajax_call();
