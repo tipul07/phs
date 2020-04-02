@@ -701,7 +701,7 @@ function is_db_date( $date, $params = false )
  * @param string|array $date
  * @param bool|array $params
  *
- * @return false|int
+ * @return int
  */
 function parse_db_date( $date, $params = false )
 {
@@ -735,7 +735,10 @@ function parse_db_date( $date, $params = false )
     } else
         return 0;
 
-    return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] );
+    if( false === ($ret_val = @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] )) )
+        $ret_val = 0;
+
+    return $ret_val;
 }
 
 /**
