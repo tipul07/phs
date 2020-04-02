@@ -12,11 +12,23 @@
 ?>
 if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 {
+    if( typeof $ === "undefined" )
+    {
+        if( typeof jQuery !== "undefined" )
+            $ = jQuery;
+    }
+
+    if( typeof $ === "undefined" )
+    {
+        if( console )
+            console.log( "Seems like we don't have jQuery..." );
+    }
+
     var PHS_JSEN =
     {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.31,
+        version: 1.32,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -68,17 +80,40 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
         },
 
-        js_messages: function( messages_arr, type )
+        /**
+         * Display JS errors
+         * @param messages_arr Array of messages to be displayed
+         * @param type String: "error", "warning" or "success"
+         * @param message_box_container String with container ID, container JQuery object
+         */
+        js_messages: function( messages_arr, type, message_box_container )
         {
             if( typeof messages_arr == "undefined" || !messages_arr
              || typeof messages_arr.length == "undefined" || !messages_arr.length )
                 return;
 
-            var message_box = $("#phs_ajax_" + type + "_box");
-            if( message_box )
+            var message_box = false;
+            if( typeof message_box_container === "undefined"
+             || message_box_container.length == 0 )
+                message_box = $("#phs_ajax_" + type + "_box");
+            else
             {
+                if( typeof message_box_container === "string" )
+                    message_box = $("#"+message_box_container + "_" + type + "_box");
+                else if( typeof message_box_container === "object" )
+                    message_box = message_box_container;
+            }
+
+            if( message_box && message_box.length )
+            {
+                var find_result = message_box.find( ".dismissible" );
                 for( var i = 0; i < messages_arr.length; i++ )
-                    message_box.find( ".dismissible" ).append( "<p>" + messages_arr[i] + "</p>" );
+                {
+                    if( find_result.length )
+                        find_result.append( "<p>" + messages_arr[i] + "</p>" );
+                    else
+                        message_box.append( "<p>" + messages_arr[i] + "</p>" );
+                }
                 message_box.show();
             }
         },
@@ -144,6 +179,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 method            : "GET",
                 url_data          : "",
                 data_type         : "html",
+                messages_pattern  : "",
                 async             : true,
                 full_buffer       : false,
 
@@ -178,7 +214,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     if( options.onsuccess )
                     {
                         var onsuccess_result = null;
-                        if( jQuery.isFunction( options.onsuccess ) )
+                        if( $.isFunction( options.onsuccess ) )
                             onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
                         else if( typeof options.onsuccess == "string" )
                             onsuccess_result = eval( options.onsuccess );
@@ -197,11 +233,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     if( data && typeof data.status != 'undefined' && data.status )
                     {
                         if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
-                            PHS_JSEN.js_messages( data.status.success_messages, "success" );
+                            PHS_JSEN.js_messages( data.status.success_messages, "success", options.messages_pattern );
                         if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
-                            PHS_JSEN.js_messages( data.status.warning_messages, "warning" );
+                            PHS_JSEN.js_messages( data.status.warning_messages, "warning", options.messages_pattern );
                         if( typeof data.status.error_messages != 'undefined' && data.status.error_messages.length )
-                            PHS_JSEN.js_messages( data.status.error_messages, "error" );
+                            PHS_JSEN.js_messages( data.status.error_messages, "error", options.messages_pattern );
                     }
                 },
 
@@ -209,7 +245,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                     if( options.onfailed )
                     {
-                        if( jQuery.isFunction( options.onfailed ) )
+                        if( $.isFunction( options.onfailed ) )
                             options.onfailed( ajax_obj, status, error_exception );
                         else if( typeof options.onfailed == "string" )
                             eval( options.onfailed );
@@ -473,7 +509,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 //var obj_options = PHS_JSEN.dialogOptions( suffix );
                 //if( obj_options && obj_options.onclose )
                 //{
-                //    if( jQuery.isFunction( obj_options.onclose ) )
+                //    if( $.isFunction( obj_options.onclose ) )
                 //        obj_options.onclose();
                 //    else if( typeof obj_options.onclose == "string" )
                 //        eval( obj_options.onclose );
@@ -572,7 +608,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                         if( options.onsuccess )
                         {
-                            if( jQuery.isFunction( options.onsuccess ) )
+                            if( $.isFunction( options.onsuccess ) )
                                 options.onsuccess();
                             else if( typeof options.onsuccess == "string" )
                                 eval( options.onsuccess );
@@ -714,7 +750,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     beforeClose: function(event,ui) {
                         if( options.onbeforeclose )
                         {
-                            if( jQuery.isFunction( options.onbeforeclose ) )
+                            if( $.isFunction( options.onbeforeclose ) )
                                 options.onbeforeclose();
                             else if( typeof options.onbeforeclose == "string" )
                                 eval( options.onbeforeclose );
@@ -754,7 +790,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                             if( options.onsuccess )
                             {
-                                if( jQuery.isFunction( options.onsuccess ) )
+                                if( $.isFunction( options.onsuccess ) )
                                     options.onsuccess();
                                 else if( typeof options.onsuccess == "string" )
                                     eval( options.onsuccess );
@@ -771,7 +807,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                             if( options.onfailed )
                             {
-                                if( jQuery.isFunction( options.onfailed ) )
+                                if( $.isFunction( options.onfailed ) )
                                     options.onfailed();
                                 else if( typeof options.onfailed == "string" )
                                     eval( options.onfailed );
@@ -806,7 +842,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                     if( options.onsuccess )
                     {
-                        if( jQuery.isFunction( options.onsuccess ) )
+                        if( $.isFunction( options.onsuccess ) )
                             options.onsuccess();
                         else if( typeof options.onsuccess == "string" )
                             eval( options.onsuccess );
@@ -825,7 +861,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 dialog_obj.bind( 'dialogclose', function(event) {
                     if( options.onclose )
                     {
-                        if( jQuery.isFunction( options.onclose ) )
+                        if( $.isFunction( options.onclose ) )
                             options.onclose();
                         else if( typeof options.onclose == "string" )
                             eval( options.onclose );

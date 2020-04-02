@@ -52,7 +52,7 @@ class PHS_Scope_Ajax extends PHS_Scope
                     if( empty( $key ) )
                         continue;
 
-                    if( !is_null( $val ) )
+                    if( $val !== null )
                         $result_headers[$key] = $val;
                     else
                         $result_headers[$key] = '';
@@ -65,14 +65,14 @@ class PHS_Scope_Ajax extends PHS_Scope
 
             foreach( $result_headers as $key => $val )
             {
-                if( $val == '' )
+                if( $val === '' )
                     @header( $key );
                 else
                     @header( $key.': '.$val );
             }
         }
 
-        if( $action_result['buffer'] != '' )
+        if( $action_result['buffer'] !== '' )
         {
             @header( 'Content-Type: text/html' );
             echo $action_result['buffer'];
