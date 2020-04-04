@@ -65,6 +65,15 @@ function phs_refresh_input_skins()
     $("*[title]").not(".no-title-skinning").tooltip();
 }
 
+function phs_refresh_dismissible_functionality()
+{
+    $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
+    $('.dismissible-close').on( 'click', function( event ){
+        $(this).parent().slideUp();
+        $(this).parent().find(".dismissible").html("");
+    });
+}
+
 function ignore_hidden_required( obj )
 {
     var form_obj = $(obj).parents('form:first');
@@ -84,10 +93,7 @@ $(document).ready(function(){
 
     $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
 
-    $('.dismissible').before( '<i class="fa fa-times-circle dismissible-close" style="float:right; margin: 5px; cursor: pointer;"></i>' );
-    $('.dismissible-close').on( 'click', function( event ){
-        $(this).parent().slideUp();
-    });
+    phs_refresh_dismissible_functionality();
 
     $('.submit-protection').on('click', function( event ){
 

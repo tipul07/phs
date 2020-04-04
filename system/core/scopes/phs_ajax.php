@@ -96,7 +96,7 @@ class PHS_Scope_Ajax extends PHS_Scope
                     $hook_args = PHS_Hooks::default_notifications_hook_args();
                     $hook_args['output_ajax_placeholders'] = false;
 
-                    if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args() ))
+                    if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, $hook_args ))
                     and is_array( $hook_args )
                     and !empty( $hook_args['notifications_buffer'] ) )
                         $action_result['ajax_result'] = $hook_args['notifications_buffer'].$action_result['ajax_result'];

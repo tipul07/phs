@@ -573,6 +573,7 @@ class PHS_Hooks extends PHS_Registry
             ), // default template
             'display_channels' => array( 'warnings', 'errors', 'success' ),
             'output_ajax_placeholders' => true,
+            'ajax_placeholders_prefix' => false,
             'notifications_buffer' => '',
         ) );
     }
