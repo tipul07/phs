@@ -3,5 +3,5 @@
     "vendor_name": "PHS",
     "name": "Generic Notifications Banner",
     "description": "This plugin will display notifications buffered using PHS_Notifications class in main template.",
-    "version": "1.0.1"
+    "version": "1.0.2"
 }

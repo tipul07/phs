@@ -33,8 +33,8 @@ class PHS_Plugin_Notifications extends PHS_Plugin
                 'type' => PHS_params::T_ARRAY,
                 'extra_type' => array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ),
                 'input_type' => self::INPUT_TYPE_ONE_OR_MORE,
-                'default' => array( 'warnings', 'errors', 'success' ),
-                'values_arr' => array( 'warnings' => 'Warnings', 'errors' => 'Errors', 'success' => 'Success messages' ),
+                'default' => array( 'success', 'warnings', 'errors' ),
+                'values_arr' => array( 'success' => 'Success messages', 'warnings' => 'Warnings', 'errors' => 'Errors' ),
             ),
         );
     }
@@ -77,6 +77,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = array(
             'output_ajax_placeholders' => $hook_args['output_ajax_placeholders'],
+            'ajax_placeholders_prefix' => $hook_args['ajax_placeholders_prefix'],
             'notifications' => $notifications_arr,
             'display_channels' => $hook_args['display_channels']
         );

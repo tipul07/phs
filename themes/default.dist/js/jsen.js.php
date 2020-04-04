@@ -63,17 +63,29 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return false;
         },
 
-        js_messages_hide_all: function()
+        js_messages_hide_all: function( message_box_container )
         {
-            PHS_JSEN.js_messages_hide( "success" );
-            PHS_JSEN.js_messages_hide( "warning" );
-            PHS_JSEN.js_messages_hide( "error" );
+            PHS_JSEN.js_messages_hide( "success", message_box_container );
+            PHS_JSEN.js_messages_hide( "warning", message_box_container );
+            PHS_JSEN.js_messages_hide( "error", message_box_container );
         },
 
-        js_messages_hide: function( type )
+        js_messages_hide: function( type, message_box_container )
         {
-            var message_box = $("#phs_ajax_" + type + "_box");
-            if( message_box )
+            var message_box = false;
+            if( typeof message_box_container === "undefined"
+             || message_box_container.length == 0 )
+                message_box = $("#phs_ajax_" + type + "_box");
+
+            else
+            {
+                if( typeof message_box_container === "string" )
+                    message_box = $("#"+message_box_container + "_" + type + "_box");
+                else if( typeof message_box_container === "object" )
+                    message_box = message_box_container;
+            }
+
+            if( message_box && message_box.length )
             {
                 message_box.find( ".dismissible" ).html( "" );
                 message_box.hide();
@@ -175,16 +187,16 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         do_ajax: function( url, o )
         {
             var defaults = {
-                cache_response    : false,
-                method            : "GET",
-                url_data          : "",
-                data_type         : "html",
-                messages_pattern  : "",
-                async             : true,
-                full_buffer       : false,
+                cache_response: false,
+                method: "GET",
+                url_data: "",
+                data_type: "html",
+                message_box_prefix: "",
+                async: true,
+                full_buffer: false,
 
-                onfailed          : null,
-                onsuccess         : null
+                onfailed: null,
+                onsuccess: null
             };
 
             var options = $.extend( {}, defaults, o );
@@ -233,11 +245,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     if( data && typeof data.status != 'undefined' && data.status )
                     {
                         if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
-                            PHS_JSEN.js_messages( data.status.success_messages, "success", options.messages_pattern );
+                            PHS_JSEN.js_messages( data.status.success_messages, "success", options.message_box_prefix );
                         if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
-                            PHS_JSEN.js_messages( data.status.warning_messages, "warning", options.messages_pattern );
+                            PHS_JSEN.js_messages( data.status.warning_messages, "warning", options.message_box_prefix );
                         if( typeof data.status.error_messages != 'undefined' && data.status.error_messages.length )
-                            PHS_JSEN.js_messages( data.status.error_messages, "error", options.messages_pattern );
+                            PHS_JSEN.js_messages( data.status.error_messages, "error", options.message_box_prefix );
                     }
                 },
 
