@@ -302,7 +302,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
                             if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
                                 $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
                         }
-                    }
+                    } else
+                        $new_settings_arr[$field_name] = $save_result;
                 }
             }
 
