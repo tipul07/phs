@@ -657,7 +657,7 @@ final class PHS_Session extends PHS_Registry
         $return_arr['total'] = 0;
         $return_arr['deleted'] = 0;
 
-        if( ($file_list = @glob( $dir_pattern.'/'.self::get_session_file_name_for_id( '*' ) )) )
+        if( ($file_list = @glob( $dir_pattern.'/'.self::get_session_file_name_for_id( '*' ).'*' )) )
         {
             $empty_dir_maybe = array();
 
