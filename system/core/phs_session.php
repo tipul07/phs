@@ -659,22 +659,32 @@ final class PHS_Session extends PHS_Registry
 
         if( ($file_list = @glob( $dir_pattern.'/'.self::get_session_file_name_for_id( '*' ) )) )
         {
+            $empty_dir_maybe = array();
+
             foreach( $file_list as $file )
             {
                 $return_arr['total']++;
-
-                $check_dir = $file;
-                for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
-                    $check_dir = @dirname( $check_dir );
 
                 if( @file_exists( $file )
                 and @filemtime( $file ) + $maxlifetime < time() )
                 {
                     @unlink( $file );
 
-                    PHS_utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
+                    $check_dir = $file;
+                    for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
+                        $check_dir = @dirname( $check_dir );
+
+                    $empty_dir_maybe[$check_dir] = true;
 
                     $return_arr['deleted']++;
+                }
+            }
+
+            if( !empty( $empty_dir_maybe ) )
+            {
+                foreach( $empty_dir_maybe as $check_dir => $true )
+                {
+                    PHS_utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
                 }
             }
         }
