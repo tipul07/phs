@@ -256,6 +256,32 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
+     * @param bool $slash_ended
+     * @return bool|string
+     */
+    final public function get_plugin_libraries_www( $slash_ended = true )
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_www()) )
+            return false;
+
+        return $prefix.self::LIBRARIES_DIR.($slash_ended?'/':'');
+    }
+
+    /**
+     * @param bool $slash_ended
+     * @return bool|string
+     */
+    final public function get_plugin_libraries_path( $slash_ended = true )
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_path()) )
+            return false;
+
+        return $prefix.self::LIBRARIES_DIR.($slash_ended?'/':'');
+    }
+
+    /**
      * @param string $library
      * @param bool|array $params
      *
@@ -273,12 +299,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $library = self::safe_escape_library_name( $library );
         if( empty( $library )
-         or !($dir_path = $this->instance_plugin_path())
-         or !@is_dir( $dir_path.self::LIBRARIES_DIR.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
-         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
+         or !($dir_path = $this->get_plugin_libraries_path( false ))
+         or !@is_dir( $dir_path.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
+         or !@file_exists( $dir_path.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
             return false;
 
-        return $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
+        return $dir_path.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
     /**
@@ -299,12 +325,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $library = self::safe_escape_library_name( $library );
         if( empty( $library )
-         or !($dir_path = $this->instance_plugin_path())
-         or !@is_dir( $dir_path.self::LIBRARIES_DIR.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
-         or !@file_exists( $dir_path.self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
+         or !($dir_path = $this->get_plugin_libraries_path( false ))
+         or !@is_dir( $dir_path.(!empty( $params['path_in_lib_dir'] )?'/'.$params['path_in_lib_dir']:'') )
+         or !@file_exists( $dir_path.'/'.$params['path_in_lib_dir'].$library.'.php' ) )
             return false;
 
-        return $this->instance_plugin_www().self::LIBRARIES_DIR.'/'.$params['path_in_lib_dir'].$library.'.php';
+        return $this->get_plugin_libraries_www( true ).$params['path_in_lib_dir'].$library.'.php';
     }
 
     /**
