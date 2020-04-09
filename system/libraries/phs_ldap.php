@@ -21,14 +21,22 @@ class PHS_Ldap extends PHS_Registry
     const ERR_LDAP_CONFIG = 7;
 
     // input variables
-    var $server_config;
+    /** @var array */
+    private $server_config;
 
     //! (bool) true if class was provided a valid directory (not necessary writeable)
-    var $server_ready;
+    /** @var bool */
+    private $server_ready;
     //! (bool) true if there are no rights to write files in the directory, false if class can write files in directory
-    var $server_readonly;
+    /** @var bool */
+    private $server_readonly;
 
-    function __construct( $params = false )
+    /**
+     * PHS_Ldap constructor.
+     *
+     * @param bool|array $params
+     */
+    public function __construct( $params = false )
     {
         parent::__construct();
 
@@ -50,6 +58,11 @@ class PHS_Ldap extends PHS_Registry
         $this->reset_error();
     }
 
+    /**
+     * @param bool|array $settings
+     *
+     * @return bool|array
+     */
     public function server_settings( $settings = false )
     {
         if( $settings === false )
@@ -66,7 +79,7 @@ class PHS_Ldap extends PHS_Registry
             return false;
         }
 
-        if( substr( $settings['root'], -1 ) != '/' )
+        if( substr( $settings['root'], -1 ) !== '/' )
             $settings['root'] .= '/';
 
         // Read server settings from file if available
@@ -90,7 +103,7 @@ class PHS_Ldap extends PHS_Registry
 
         $this->server_config = $server_settings;
 
-        if( !@is_writeable( $this->server_config['root'] ) )
+        if( !@is_writable( $this->server_config['root'] ) )
             $this->server_readonly = true;
         else
             $this->server_readonly = false;
@@ -103,7 +116,12 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    static public function settings_valid( $settings )
+    /**
+     * @param array $settings
+     *
+     * @return array|bool
+     */
+    public static function settings_valid( $settings )
     {
         if( empty( $settings ) or !is_array( $settings )
          or empty( $settings['root'] )
@@ -114,7 +132,10 @@ class PHS_Ldap extends PHS_Registry
         return $settings;
     }
 
-    static public function default_settings()
+    /**
+     * @return array
+     */
+    public static function default_settings()
     {
         $default_config = array();
         $default_config['version'] = 1;
@@ -133,7 +154,12 @@ class PHS_Ldap extends PHS_Registry
         return $default_config;
     }
 
-    static public function validate_settings( $settings )
+    /**
+     * @param array $settings
+     *
+     * @return array
+     */
+    public static function validate_settings( $settings )
     {
         $def_settings = self::default_settings();
         if( empty( $settings ) or !is_array( $settings ) )
@@ -141,14 +167,14 @@ class PHS_Ldap extends PHS_Registry
 
         $settings = self::validate_array( $settings, self::default_settings() );
 
-        $settings['version'] = intval( $settings['version'] );
+        $settings['version'] = (int)$settings['version'];
         $settings['name'] = trim( $settings['name'] );
         $settings['root'] = trim( $settings['root'] );
-        $settings['dir_length'] = intval( $settings['dir_length'] );
-        $settings['depth'] = intval( $settings['depth'] );
+        $settings['dir_length'] = (int)$settings['dir_length'];
+        $settings['depth'] = (int)$settings['depth'];
         $settings['file_prefix'] = trim( $settings['file_prefix'] );
-        $settings['dir_mode'] = intval( $settings['dir_mode'] );
-        $settings['file_mode'] = intval( $settings['file_mode'] );
+        $settings['dir_mode'] = (int)$settings['dir_mode'];
+        $settings['file_mode'] = (int)$settings['file_mode'];
 
         if( empty( $settings['allowed_extentions'] ) or !is_array( $settings['allowed_extentions'] ) )
             $settings['allowed_extentions'] = $def_settings['allowed_extentions'];
@@ -156,7 +182,7 @@ class PHS_Ldap extends PHS_Registry
         if( empty( $settings['denied_extentions'] ) or !is_array( $settings['denied_extentions'] ) )
             $settings['denied_extentions'] = $def_settings['denied_extentions'];
 
-        if( substr( $settings['root'], -1 ) != '/' )
+        if( substr( $settings['root'], -1 ) !== '/' )
             $settings['root'] .= '/';
 
         if( !empty( $settings['name'] ) )
@@ -174,7 +200,7 @@ class PHS_Ldap extends PHS_Registry
                 foreach( $settings['allowed_extentions'] as $ext )
                 {
                     $ext = strtolower( trim( str_replace( array( '/', '.', '\\' ), '', $ext ) ) );
-                    if( $ext == '' )
+                    if( $ext === '' )
                         continue;
 
                     $valid_exts_arr[] = $ext;
@@ -192,7 +218,7 @@ class PHS_Ldap extends PHS_Registry
                 foreach( $settings['denied_extentions'] as $ext )
                 {
                     $ext = strtolower( trim( str_replace( array( '/', '.', '\\' ), '', $ext ) ) );
-                    if( $ext == '' )
+                    if( $ext === '' )
                         continue;
 
                     $valid_exts_arr[] = $ext;
@@ -213,11 +239,17 @@ class PHS_Ldap extends PHS_Registry
         $this->server_ready = false;
     }
 
+    /**
+     * @return bool
+     */
     public function is_ready()
     {
         return (!empty( $this->server_ready )?true:false);
     }
 
+    /**
+     * @return bool
+     */
     public function unlink_all()
     {
         $this->reset_error();
@@ -230,11 +262,15 @@ class PHS_Ldap extends PHS_Registry
             return false;
         }
 
-        $return_arr = $this->_unlink_ldap_dir( $settings['root'] );
-
-        return $return_arr;
+        return $this->_unlink_ldap_dir( $settings['root'] );
     }
 
+    /**
+     * @param string $dir
+     * @param int $level
+     *
+     * @return bool
+     */
     private function _unlink_ldap_dir( $dir, $level = 0 )
     {
         if( empty( $dir ) or !@is_dir( $dir ) )
@@ -257,6 +293,11 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
     public function rename( $params )
     {
         $this->reset_error();
@@ -338,6 +379,11 @@ class PHS_Ldap extends PHS_Registry
         );
     }
 
+    /**
+     * @param string|array $ldap_id
+     *
+     * @return array|bool
+     */
     public function identifier_details( $ldap_id )
     {
         $this->reset_error();
@@ -362,6 +408,11 @@ class PHS_Ldap extends PHS_Registry
         return $ldap_data;
     }
 
+    /**
+     * @param array $params
+     *
+     * @return bool
+     */
     public function unlink( $params )
     {
         if( empty( $params ) or !is_array( $params )
@@ -396,6 +447,11 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
     public function add( $params )
     {
         $this->reset_error();
@@ -451,14 +507,14 @@ class PHS_Ldap extends PHS_Registry
         }
 
         if( !empty( $settings['allowed_extentions'] ) and is_array( $settings['allowed_extentions'] )
-        and !in_array( $ldap_details['ldap_meta_arr']['file_extension'], $settings['allowed_extentions'] ) )
+        and !in_array( $ldap_details['ldap_meta_arr']['file_extension'], $settings['allowed_extentions'], true ) )
         {
             $this->set_error( self::ERR_SOURCE, self::_t( 'Extension [%s] not allowed. [Only: %s]', $ldap_details['ldap_meta_arr']['file_extension'], implode( ', ', $settings['allowed_extentions'] ) ) );
             return false;
         }
 
         if( !empty( $settings['denied_extentions'] ) and is_array( $settings['denied_extentions'] )
-        and in_array( $ldap_details['ldap_meta_arr']['file_extension'], $settings['denied_extentions'] ) )
+        and in_array( $ldap_details['ldap_meta_arr']['file_extension'], $settings['denied_extentions'], true ) )
         {
             $this->set_error( self::ERR_SOURCE, self::_t( 'Extension [%s] not allowed. [Denied: %s]', $ldap_details['ldap_meta_arr']['file_extension'], implode( ', ', $settings['denied_extentions'] ) ) );
             return false;
@@ -489,11 +545,18 @@ class PHS_Ldap extends PHS_Registry
             return false;
         }
 
+        if( empty( $ldap_details ) or !is_array( $ldap_details ) )
+            $ldap_details = array();
+
+        if( empty( $ldap_details['ldap_meta_arr'] ) or !is_array( $ldap_details['ldap_meta_arr'] ) )
+            $ldap_details['ldap_meta_arr'] = array();
+
         if( !empty( $params['extra_meta'] ) and is_array( $params['extra_meta'] ) )
         {
             foreach( $params['extra_meta'] as $key => $val )
             {
-                if( !isset( $ldap_details['ldap_meta_arr'][$key] ) )
+                if( $key !== ''
+                and !isset( $ldap_details['ldap_meta_arr'][$key] ) )
                     $ldap_details['ldap_meta_arr'][$key] = $val;
             }
         }
@@ -509,6 +572,9 @@ class PHS_Ldap extends PHS_Registry
         return $ldap_details;
     }
 
+    /**
+     * @return array
+     */
     public static function default_meta_data()
     {
         return array(
@@ -520,6 +586,12 @@ class PHS_Ldap extends PHS_Registry
         );
     }
 
+    /**
+     * @param string $file_name
+     * @param string $ldap_id
+     *
+     * @return array|bool
+     */
     private function _extract_meta_data( $file_name, $ldap_id )
     {
         $file_name = @realpath( $file_name );
@@ -542,6 +614,11 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param string $meta_file
+     *
+     * @return array|bool
+     */
     private static function _read_meta_data( $meta_file )
     {
         if( !@file_exists( $meta_file ) or !@is_readable( $meta_file )
@@ -558,6 +635,12 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param array|string $ldap_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_meta( $ldap_data, $params = false )
     {
         $this->reset_error();
@@ -566,7 +649,8 @@ class PHS_Ldap extends PHS_Registry
 
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
-        if( !isset( $params ) )
+
+        if( !isset( $params['ignore_read_errors'] ) )
             $params['ignore_read_errors'] = false;
 
         if( !is_array( $ldap_data ) and is_string( $ldap_data ) )
@@ -596,6 +680,12 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param string|array $ldap_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function update_meta( $ldap_data, $params = false )
     {
         $this->reset_error();
@@ -650,6 +740,9 @@ class PHS_Ldap extends PHS_Registry
         return $new_meta;
     }
 
+    /**
+     * @return array
+     */
     public static function default_ldap_data()
     {
         return array(
@@ -666,6 +759,13 @@ class PHS_Ldap extends PHS_Registry
         );
     }
 
+    /**
+     * @param string $identifier
+     * @param bool|string $source_file
+     * @param bool|array $meta_arr
+     *
+     * @return array|bool
+     */
     public function identifier2ldap( $identifier, $source_file = false, $meta_arr = false )
     {
         $settings = $this->server_settings();
@@ -728,6 +828,11 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param array $segments_arr
+     *
+     * @return bool
+     */
     private function _mkdir_tree( $segments_arr )
     {
         if( empty( $segments_arr ) or !is_array( $segments_arr )
@@ -746,29 +851,36 @@ class PHS_Ldap extends PHS_Registry
 
             $segments_path .= '/'.$dir_segment;
 
-            if( @file_exists( $settings['root'].$segments_path ) )
+            $current_path = $settings['root'].$segments_path;
+
+            if( @file_exists( $current_path ) )
             {
-                if( !@is_dir( $settings['root'].$segments_path ) )
+                if( !@is_dir( $current_path ) )
                 {
-                    $this->set_error( self::ERR_LDAP_DIR, self::_t( '[%s] is not a directory.', $settings['root'].$segments_path ) );
+                    $this->set_error( self::ERR_LDAP_DIR, self::_t( '[%s] is not a directory.', $current_path ) );
                     return false;
                 }
 
                 continue;
             }
 
-            if( !@mkdir( $settings['root'].$segments_path ) )
+            if( !@mkdir( $current_path ) and !@is_dir( $current_path ) )
             {
-                $this->set_error( self::ERR_LDAP_DIR, 'Cannot create directory ['.$settings['root'].$segments_path.']' );
+                $this->set_error( self::ERR_LDAP_DIR, 'Cannot create directory ['.$current_path.']' );
                 return false;
             }
 
-            @chmod( $settings['root'].$segments_path, $settings['dir_mode'] );
+            @chmod( $current_path, $settings['dir_mode'] );
         }
 
         return true;
     }
 
+    /**
+     * @param string $root
+     *
+     * @return array|bool
+     */
     public static function load_ldap_settings( $root )
     {
         if( empty( $root )
@@ -776,7 +888,7 @@ class PHS_Ldap extends PHS_Registry
          or !@is_dir( $root ) )
             return false;
 
-        if( substr( $root, -1 ) != '/' )
+        if( substr( $root, -1 ) !== '/' )
             $root .= '/';
 
         $return_arr = array();
@@ -797,6 +909,11 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param array $settings_arr
+     *
+     * @return string
+     */
     private function get_settings_checksum( $settings_arr )
     {
         $settings_arr = self::validate_array( $settings_arr, self::default_settings() );
@@ -804,9 +921,12 @@ class PHS_Ldap extends PHS_Registry
         $settings_arr['checksum'] = '';
         $settings_arr['config_last_save'] = '';
 
-        return md5( @json_encode( $settings_arr ) );
+        return @md5( @json_encode( $settings_arr ) );
     }
 
+    /**
+     * @return bool
+     */
     private function _save_ldap_settings()
     {
         if( !$this->is_ready() )
@@ -819,13 +939,13 @@ class PHS_Ldap extends PHS_Registry
         if( empty( $settings['checksum'] ) )
             $settings['checksum'] = $settings_checksum;
 
-        elseif( $settings['checksum'] == $settings_checksum )
+        elseif( $settings['checksum'] === $settings_checksum )
             return true;
 
         $config_file = self::_ldap_config_file();
 
         $retries = 5;
-        while( !($fil = @fopen( $settings['root'].$config_file, 'wt' )) and $retries > 0 )
+        while( !($fil = @fopen( $settings['root'].$config_file, 'wb' )) and $retries > 0 )
             $retries--;
 
         if( empty( $fil ) )
@@ -843,6 +963,9 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
+    /**
+     * @return string
+     */
     private static function _ldap_config_file()
     {
         return '__ldap.config';
