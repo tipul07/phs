@@ -13,8 +13,9 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     const SCOPE_VAR_PREFIX = '__scp_pre_';
 
-    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5;
+    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5, SCOPE_TESTS = 6;
 
+    /** @var array $SCOPES_ARR */
     private static $SCOPES_ARR = array(
         self::SCOPE_WEB => array(
             'title' => 'Web',
@@ -54,6 +55,14 @@ abstract class PHS_Scope extends PHS_Instantiable
             'class_name' => 'agent',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'agent',
+        ),
+
+        self::SCOPE_TESTS => array(
+            'title' => 'Test Suite',
+            'plugin' => false,
+            'class_name' => 'test',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'test',
         ),
     );
 
@@ -128,7 +137,7 @@ abstract class PHS_Scope extends PHS_Instantiable
      *
      * @return array|bool
      */
-    public static function register_scope( array $scope_params )
+    public static function register_scope( $scope_params )
     {
         self::st_reset_error();
 

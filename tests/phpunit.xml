@@ -1,0 +1,12 @@
+<phpunit
+        bootstrap="config/bootstrap_tests.php"
+        colors="true"
+        verbose="true">
+
+    <testsuites>
+        <testsuite name="PHS Tests Suite">
+            <directory>phpunit/phs</directory>
+        </testsuite>
+    </testsuites>
+
+</phpunit>
