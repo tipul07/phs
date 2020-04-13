@@ -9,31 +9,36 @@ use \phs\PHS_Scope;
 class PHS_Logger extends PHS_Registry
 {
     const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
-          TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
+          TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log', TYPE_TESTS = 'phs_tests.log',
           // this constants are used only to tell log_channels() method it should log redefined sets of channels
           TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
+    /** @var bool $_logging */
     private static $_logging = true;
+    /** @var array $_custom_channels */
     private static $_custom_channels = array();
+    /** @var array $_channels */
     private static $_channels = array();
+    /** @var bool|string */
     private static $_logs_dir = false;
+    /** @var bool|string */
     private static $_request_identifier = false;
 
     private static function _regenerate_request_identifier()
     {
-        self::$_request_identifier = microtime( true );
+        self::$_request_identifier = (string)microtime( true );
     }
 
     public static function get_types()
     {
         return array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                      self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API );
+                      self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
     }
 
     public static function valid_type( $type )
     {
         if( empty( $type )
-         or !($types_arr = self::get_types()) or !in_array( $type, $types_arr ) )
+         or !($types_arr = self::get_types()) or !in_array( (string)$type, $types_arr, true ) )
             return false;
 
         return true;
@@ -67,7 +72,7 @@ class PHS_Logger extends PHS_Registry
         if( empty( $channel ) or !is_string( $channel ) )
             return false;
 
-        if( strtolower( substr( $channel, -4 ) ) == '.log' )
+        if( strtolower( substr( $channel, -4 ) ) === '.log' )
             $check_channel = substr( $channel, 0, -4 );
         else
             $check_channel = $channel;
@@ -120,12 +125,12 @@ class PHS_Logger extends PHS_Registry
 
                 case self::TYPE_DEF_ALL:
                     $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API );
+                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
                 break;
 
                 case self::TYPE_DEF_DEBUG:
                     $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API );
+                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
                 break;
 
                 case self::TYPE_DEF_PRODUCTION:
@@ -194,14 +199,14 @@ class PHS_Logger extends PHS_Registry
             return false;
         }
 
-        if( strtolower( substr( $log_file, -4 ) ) == '.log' )
+        if( strtolower( substr( $log_file, -4 ) ) === '.log' )
             $check_channel = substr( $log_file, 0, -4 );
         else
             $check_channel = $log_file;
 
         $filename = $logs_dir.$log_file;
 
-        if( substr( $log_file, -4 ) != '.log' )
+        if( substr( $log_file, -4 ) !== '.log' )
             $filename .= '.log';
 
         if( !PHS::safe_escape_root_script( $check_channel )
@@ -223,7 +228,7 @@ class PHS_Logger extends PHS_Registry
 
         // Read it and adjust line number if necessary
         // (Otherwise the result would be wrong if file doesn't end with a blank line)
-        if( @fread( $f, 1 ) != "\n" )
+        if( @fread( $f, 1 ) !== "\n" )
             $lines -= 1;
 
         // Start reading
@@ -288,14 +293,14 @@ class PHS_Logger extends PHS_Registry
         and ($len = count( $args_arr ))
         and self::defined_channel( $args_arr[$len-1] ) )
         {
-            $channel = $args_arr[$len - 1];
+            $channel = (string)$args_arr[$len - 1];
             array_pop( $args_arr );
 
             if( empty( $args_arr ) )
                 $args_arr = array();
         }
 
-        if( $channel == self::TYPE_INFO )
+        if( $channel === self::TYPE_INFO )
         {
             $current_scope = PHS_Scope::current_scope();
             switch( $current_scope )
@@ -312,6 +317,9 @@ class PHS_Logger extends PHS_Registry
                 case PHS_Scope::SCOPE_API:
                     $channel = self::TYPE_API;
                 break;
+                case PHS_Scope::SCOPE_TESTS:
+                    $channel = self::TYPE_TESTS;
+                break;
             }
         }
 
@@ -323,7 +331,7 @@ class PHS_Logger extends PHS_Registry
 
         $log_file = $logs_dir.$channel;
 
-        if( substr( $channel, -4 ) != '.log' )
+        if( substr( $channel, -4 ) !== '.log' )
             $log_file .= '.log';
 
         if( !($request_ip = request_ip()) )
@@ -358,7 +366,7 @@ class PHS_Logger extends PHS_Registry
         if( !($log_size = @filesize( $log_file )) )
             $log_size = 0;
 
-        if( !($fil = @fopen( $log_file, 'a' )) )
+        if( !($fil = @fopen( $log_file, 'ab' )) )
             return false;
 
         if( empty( self::$_request_identifier ) )
@@ -366,10 +374,10 @@ class PHS_Logger extends PHS_Registry
 
         if( empty( $log_size ) )
         {
-            fputs( $fil, self::get_file_header_str() );
+            @fwrite( $fil, self::get_file_header_str() );
         }
 
-        @fputs( $fil, str_pad( $log_time, 23, ' ', STR_PAD_LEFT ) . ' | ' .
+        @fwrite( $fil, str_pad( $log_time, 23, ' ', STR_PAD_LEFT ) . ' | ' .
                       (!empty(self::$_request_identifier) ? str_pad( self::$_request_identifier, 15, ' ', STR_PAD_LEFT ) . ' | ' : '') .
                       str_pad( $request_ip, 15, ' ', STR_PAD_LEFT ) . ' | ' .
                       $str . "\n" );

@@ -1,0 +1,9 @@
+default:
+  autoload:
+    '': "%paths.base%/behat/contexts"
+  suites:
+    default:
+      paths:
+        - "%paths.base%/behat/features"
+        - "%paths.base%/behat/.../features"
+
