@@ -11,7 +11,12 @@ abstract class PHS_Instantiable extends PHS_Registry
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action',
           INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope';
 
-    const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages';
+    const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages',
+          TESTS_DIR = 'tests',
+          // Behat features directory in tests directory of plugin
+          FEATURES_DIR = 'features',
+          // Files required for test unit (eg. PHPUnit)
+          TESTUNIT_DIR = 'testunit';
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = array(
@@ -254,6 +259,74 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_tests_www()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_www()) )
+            return false;
+
+        return $prefix.self::TESTS_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_tests_path()
+    {
+        if( $this->instance_is_core()
+         or !($prefix = $this->instance_plugin_path()) )
+            return false;
+
+        return $prefix.self::TESTS_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_features_www()
+    {
+        if( !($prefix = $this->instance_plugin_tests_www()) )
+            return false;
+
+        return $prefix.self::FEATURES_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_features_path()
+    {
+        if( !($prefix = $this->instance_plugin_tests_path()) )
+            return false;
+
+        return $prefix.self::FEATURES_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_testunit_www()
+    {
+        if( !($prefix = $this->instance_plugin_tests_www()) )
+            return false;
+
+        return $prefix.self::TESTUNIT_DIR.'/';
+    }
+
+    /**
+     * @return bool|string
+     */
+    final public function instance_plugin_testunit_path()
+    {
+        if( !($prefix = $this->instance_plugin_tests_path()) )
+            return false;
+
+        return $prefix.self::TESTUNIT_DIR.'/';
     }
 
     /**

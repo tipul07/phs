@@ -1,5 +1,5 @@
 <phpunit
-        bootstrap="config/bootstrap_tests.php"
+        bootstrap="bootstrap.php"
         colors="true"
         verbose="true">
 

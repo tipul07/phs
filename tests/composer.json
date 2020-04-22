@@ -1,6 +1,16 @@
 {
-    "require-dev": {
-        "roave/security-advisories": "dev-master",
-        "behat/behat": "^3.6",
+  "require-dev": {
+    "roave/security-advisories": "dev-master",
+    "behat/behat": "^3.6"
+  },
+  "require": {
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "\\phs\\tests\\phs\\" : "phs",
+      "\\phs\\tests\\behat\\" : "behat",
+      "\\phs\\tests\\phpunit\\" : "phpunit"
     }
+  }
 }

@@ -205,7 +205,7 @@ Unknown destination.,Destinazione sconosciuta.
 Unknown source file.,File sorgente sconosciuta.
 Cannot create directory.,Impossibile creare la guida.
 Cannot write in destination directory.,Impossibile scrivere nella guida la destinazione.
-Extension not allowed.,Estensione non consentita.
+File extension not allowed.,Estensione del file non consentita.
 Cannot open source file.,Impossibile aprire il file dalla sorgente.
 Destination already exists.,La destinazione esiste già.
 Cannot create destination file.,Impossibile creare il file di destinazione.

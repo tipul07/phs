@@ -63,7 +63,7 @@ class PHS_Agent extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
         if( !($controller_names = PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER ))
@@ -88,7 +88,7 @@ class PHS_Agent extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( $plugin == PHS_Instantiable::CORE_PLUGIN )
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
         if( !($action_names = PHS::get_plugin_scripts_from_dir( $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION ))
@@ -154,6 +154,12 @@ class PHS_Agent extends PHS_Registry
         return self::remove_job( $existing_job, $remove_params );
     }
 
+    /**
+     * @param int|array $job_data
+     * @param bool|array $params
+     *
+     * @return array|bool|int|string
+     */
     public static function remove_job( $job_data, $params = false )
     {
         self::st_reset_error();
@@ -194,19 +200,50 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
+    /**
+     * @param string $handler
+     * @param string|array $route
+     * @param int $once_every_seconds
+     * @param bool|array $params
+     * @param bool|array $extra
+     *
+     * @return array|bool|int
+     */
     public static function add_job( $handler, $route, $once_every_seconds, $params = false, $extra = false )
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
 
-        if( empty( $handler ) )
+        if( empty( $extra ) or !is_array( $extra ) )
+            $extra = array();
+
+        if( !empty( $extra['title'] ) )
+            $extra['title'] = trim( $extra['title'] );
+        else
+            $extra['title'] = '';
+
+        if( !isset( $extra['run_async'] ) )
+            $extra['run_async'] = true;
+        else
+            $extra['run_async'] = (!empty( $extra['run_async'] )?true:false);
+
+        // This tells if job was added by plugin or is an user defined job
+        if( empty( $extra['plugin'] ) or !is_string( $extra['plugin'] ) )
+            $extra['plugin'] = '';
+        else
+            $extra['plugin'] = trim( $extra['plugin'] );
+
+        if( empty( $params ) or !is_array( $params ) )
+            $params = array();
+
+        if( empty( $handler ) or !is_string( $handler ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide a handler for this agent job.' ) );
             return false;
         }
 
-        $once_every_seconds = intval( $once_every_seconds );
+        $once_every_seconds = (int)$once_every_seconds;
 
         $route_parts = false;
         if( is_string( $route )
@@ -249,28 +286,6 @@ class PHS_Agent extends PHS_Registry
 
             return false;
         }
-
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
-
-        if( !empty( $extra['title'] ) )
-            $extra['title'] = trim( $extra['title'] );
-        else
-            $extra['title'] = '';
-
-        if( !isset( $extra['run_async'] ) )
-            $extra['run_async'] = true;
-        else
-            $extra['run_async'] = (!empty( $extra['run_async'] )?true:false);
-
-        // This tells if job was added by plugin or is an user defined job
-        if( empty( $extra['plugin'] ) or !is_string( $extra['plugin'] ) )
-            $extra['plugin'] = '';
-        else
-            $extra['plugin'] = trim( $extra['plugin'] );
-
-        if( !is_array( $params ) )
-            $params = array();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )

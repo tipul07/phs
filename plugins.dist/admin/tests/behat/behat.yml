@@ -1,0 +1,7 @@
+default:
+  suites:
+    admin:
+      paths:
+        features: features/admin/
+      contexts:
+        - phs\tests\behat\contexts\admin\
