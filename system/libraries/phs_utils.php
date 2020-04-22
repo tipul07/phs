@@ -567,6 +567,10 @@ class PHS_utils extends PHS_Language
                     $file_mime_type = 'text/plain';
                 break;
 
+                case 'csv':
+                    $file_mime_type = 'text/csv';
+                break;
+
                 case 'mpeg' :
                 case 'mpg' :
                 case 'mpe' :

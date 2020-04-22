@@ -116,7 +116,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         if( !empty( $dir_entries ) )
         {
             $offset = $this->_paginator->pagination_params( 'offset' );
-            $records_per_page = $this->_paginator->pagination_params( 'records_per_page' );
+            $records_per_page = (int)$this->_paginator->pagination_params( 'records_per_page' );
 
             /**
              * @var string $plugin_dir
@@ -152,20 +152,20 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
 
                 if( !empty( $scope_arr['fplugin'] )
-                and stristr( $record_arr['name'], $scope_arr['fplugin'] ) === false )
+                and stripos( $record_arr['name'], $scope_arr['fplugin'] ) === false )
                     continue;
 
                 if( !empty( $scope_arr['fvendor'] )
-                and stristr( $record_arr['vendor_name'], $scope_arr['fvendor'] ) === false )
+                and stripos( $record_arr['vendor_name'], $scope_arr['fvendor'] ) === false )
                     continue;
 
                 if( !empty( $scope_arr['fstatus'] )
-                and $record_arr['status'] != $scope_arr['fstatus'] )
+                and (int)$record_arr['status'] !== (int)$scope_arr['fstatus'] )
                     continue;
 
                 $knti++;
 
-                if( $on_this_page == $records_per_page )
+                if( $on_this_page === $records_per_page )
                 {
                     $add_records = false;
                     continue;
@@ -359,9 +359,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'install_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin installed with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Installing plugin failed. Please try again.' ) );
 
                     return true;
@@ -379,7 +379,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -403,9 +403,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'activate_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin activated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Activating plugin failed. Please try again.' ) );
 
                     return true;
@@ -423,7 +423,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                     or empty( $instance_details['instance_type'] )
-                    or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                    or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -447,9 +447,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'inactivate_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin inactivated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating plugin failed. Please try again.' ) );
 
                     return true;
@@ -468,7 +468,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
                  or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -492,9 +492,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'upgrade_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin upgraded with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Upgrading plugin failed. Please try again.' ) );
 
                     return true;
@@ -512,7 +512,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -528,9 +528,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( ($plugin_info_arr = $plugin_obj->get_plugin_info())
-                and !empty( $plugin_info_arr['is_upgradable'] )
-                and !$plugin_obj->update( $plugin_info_arr['db_version'], $plugin_info_arr['script_version'] ) )
+                if( !($plugin_info_arr = $plugin_obj->get_plugin_info())
+                 or (!empty( $plugin_info_arr['is_upgradable'] )
+                        and !$plugin_obj->update( $plugin_info_arr['db_version'], $plugin_info_arr['script_version'] )
+                    ) )
                 {
                     if( $plugin_obj->has_error() )
                     {
@@ -546,9 +547,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'uninstall_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin uninstalled with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Uninstalling plugin failed. Please try again.' ) );
 
                     return true;
@@ -567,7 +568,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
                  or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -576,7 +577,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
+                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins(), true ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot uninstall this plugin.' ) );
                     return false;
@@ -604,9 +605,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             case 'delete_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Plugin deleted with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Deleting plugin failed. Please try again.' ) );
 
                     return true;
@@ -625,7 +626,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  or empty( $instance_details['instance_type'] )
                  or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -634,7 +635,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins() ) )
+                if( in_array( $instance_details['plugin_name'], PHS::get_distribution_plugins(), true ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete this plugin.' ) );
                     return false;
@@ -690,7 +691,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <a href="javascript:void(0)" onclick="phs_plugins_list_install( '<?php echo $params['record']['id']?>' )"><i class="fa fa-plus-circle action-icons" title="<?php echo $this->_pt( 'Install plugin' )?>"></i></a>
             <?php
         }
-        if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
         and empty( $params['record']['is_always_active'] )
         and $this->_paginator_model->is_inactive( $params['record'] ) )
         {
@@ -710,7 +711,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ?>
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
             <?php
-            if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+            if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
             and empty( $params['record']['is_always_active'] ) )
             {
                 ?>
@@ -719,7 +720,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             }
         }
 
-        if( $params['record']['id'] != PHS_Plugin::CORE_PLUGIN
+        if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
         and empty( $params['record']['is_always_active'] )
         and empty( $params['record']['is_installed'] )
         and empty( $params['record']['is_core'] ) )

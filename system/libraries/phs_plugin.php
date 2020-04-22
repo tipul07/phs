@@ -35,35 +35,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public function __construct( $instance_details )
     {
         parent::__construct( $instance_details );
-
-        // if( !$this->signal_defined( self::SIGNAL_INSTALL ) )
-        // {
-        //     $signal_defaults            = array();
-        //     $signal_defaults['version'] = '';
-        //
-        //     $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
-        // {
-        //     $this->define_signal( self::SIGNAL_UNINSTALL );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
-        // {
-        //     $signal_defaults                = array();
-        //     $signal_defaults['old_version'] = '';
-        //     $signal_defaults['new_version'] = '';
-        //
-        //     $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
-        // {
-        //     $signal_defaults = array();
-        //
-        //     $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
-        // }
     }
 
     /**
@@ -143,9 +114,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * return array(
      *   '{handler}' => array(
      *      'route' => array(
-     *          'plugin' => 'plugin_slug',
-     *          'controller' => 'controller_slug',
-     *          'action' => 'action_slug',
+     *          'p' or 'plugin' => 'plugin_slug',
+     *          'c' or 'controller' => 'controller_slug',
+     *          'a' or 'action' => 'action_slug',
      *      ),
      *      'params' => false|array( 'param1' => 'value1', 'param2' => 'value2', ... ), // any required parameters
      *      'run_async' => 1, // tells if job should run in parallel with agent_bg script or agent_bg script should
@@ -194,7 +165,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             $path_key = PHS::relative_path( $this->instance_plugin_templates_path() );
             if( empty( $template['extra_paths'] ) or !is_array( $template['extra_paths'] )
-             or !in_array( $path_key, $template['extra_paths'] ) )
+             or !in_array( $path_key, $template['extra_paths'], true ) )
             {
                 $template['extra_paths'][] = array( $path_key => PHS::relative_url( $this->instance_plugin_templates_www() ) );
             }
@@ -521,7 +492,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $check_params['details'] = '*';
 
         if( !($plugin_arr = $this->_plugins_instance->get_details_fields( $check_arr, $check_params ))
-         or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
+         or (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN )
         {
             $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
             return false;
@@ -549,7 +520,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             foreach( $plugins_modules_arr as $module_id => $module_arr )
             {
-                if( $module_arr['status'] == PHS_Model_Plugins::STATUS_ACTIVE )
+                if( (int)$module_arr['status'] === PHS_Model_Plugins::STATUS_ACTIVE )
                     continue;
 
                 if( !$this->_plugins_instance->edit( $module_arr, $edit_params_arr ) )
@@ -627,7 +598,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $check_params['details'] = '*';
 
         if( !($plugin_arr = $this->_plugins_instance->get_details_fields( $check_arr, $check_params ))
-         or $plugin_arr['type'] != self::INSTANCE_TYPE_PLUGIN )
+         or (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN )
         {
             $this->set_error( self::ERR_CHANGES, self::_t( 'Plugin not found in database.' ) );
             return false;
@@ -1515,6 +1486,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'update_url' => '',
             'status' => 0,
             'is_installed' => false,
+            'is_active' => false,
             'is_upgradable' => false,
             'is_core' => false,
             'is_always_active' => false,
@@ -1574,6 +1546,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if( !empty( $this->_plugin_details ) )
             return $this->_plugin_details;
 
+        if( !$this->_load_plugins_instance() )
+            return false;
+
         $plugin_details = self::validate_array( $this->get_plugin_details(), self::default_plugin_details_fields() );
         if( ($json_info = $this->get_plugin_json_info())
         and !empty( $json_info['data_from_json'] ) )
@@ -1592,13 +1567,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
+            $plugin_details['is_active'] = ($this->_plugins_instance->is_active( $db_details )?true:false);
             $plugin_details['db_version'] = (!empty( $db_details['version'] )?$db_details['version']:'0.0.0');
-            $plugin_details['is_upgradable'] = ($plugin_details['db_version'] != $plugin_details['script_version']);
+            $plugin_details['is_upgradable'] = ((string)$plugin_details['db_version'] !== (string)$plugin_details['script_version']);
             $plugin_details['is_core'] = (!empty( $db_details['is_core'] )?true:false);
         }
 
-        $plugin_details['is_always_active'] = in_array( $plugin_details['plugin_name'], PHS::get_always_active_plugins() );
-        $plugin_details['is_distribution'] = in_array( $plugin_details['plugin_name'], PHS::get_distribution_plugins() );
+        $plugin_details['is_always_active'] = in_array( $plugin_details['plugin_name'], PHS::get_always_active_plugins(), true );
+        $plugin_details['is_distribution'] = in_array( $plugin_details['plugin_name'], PHS::get_distribution_plugins(), true );
 
         $plugin_details['settings_arr'] = $this->get_plugin_settings();
 

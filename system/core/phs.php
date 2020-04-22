@@ -1140,9 +1140,7 @@ final class PHS extends PHS_Registry
 
         $parts = self::validate_route_from_parts( $parts, true );
 
-        if( (!empty( $parts['p'] ) and !self::safe_escape_route_parts( $parts['p'] ))
-         or (!empty( $parts['c'] ) and !self::safe_escape_route_parts( $parts['c'] ))
-         or (!empty( $parts['a'] ) and !self::safe_escape_route_parts( $parts['a'] )) )
+        if( !self::validate_short_name_route_parts( $parts, false ) )
             return false;
 
         if( !empty( $parts['c'] ) )
@@ -1151,15 +1149,66 @@ final class PHS extends PHS_Registry
                 $parts['p'] = '';
 
             $route = $parts['p'].'/'.$parts['c'].'/'.$parts['a'];
-        } else
-        {
-            if( empty( $parts['p'] ) )
+        } elseif( empty( $parts['p'] ) )
                 $route = $parts['a'];
-            else
-                $route = $parts['p'].'-'.$parts['a'];
-        }
+        else
+            $route = $parts['p'].'-'.$parts['a'];
 
         return $route;
+    }
+
+    /**
+     * Convert route from long plugin, controller and action names into p, c, a names
+     * @param array $route_arr
+     *
+     * @return array|bool
+     */
+    public static function convert_route_to_short_parts( $route_arr )
+    {
+        if( empty( $route_arr ) or !is_array( $route_arr )
+         or (empty( $route_arr['plugin'] ) and empty( $route_arr['controller'] ) and empty( $route_arr['action'] )) )
+            return $route_arr;
+
+        $converted_route = $route_arr;
+        if( isset( $route_arr['plugin'] ) )
+        {
+            unset( $converted_route['plugin'] );
+            $converted_route['p'] = $route_arr['plugin'];
+        }
+        if( isset( $route_arr['controller'] ) )
+        {
+            unset( $converted_route['controller'] );
+            $converted_route['c'] = $route_arr['controller'];
+        }
+        if( isset( $route_arr['action'] ) )
+        {
+            unset( $converted_route['action'] );
+            $converted_route['a'] = $route_arr['action'];
+        }
+
+        return self::validate_short_name_route_parts( $converted_route, true );
+    }
+
+    /**
+     * Checks if provided route has valid short name parts
+     * @param array $route_arr
+     * @param bool $check_if_empty
+     *
+     * @return array|bool
+     */
+    public static function validate_short_name_route_parts( $route_arr, $check_if_empty = true )
+    {
+        if( empty( $route_arr ) or !is_array( $route_arr ) )
+            $route_arr = array();
+
+        if( (!empty( $check_if_empty )
+             and empty( $route_arr['p'] ) and empty( $route_arr['c'] ) and empty( $route_arr['a'] ))
+         or (!empty( $route_arr['p'] ) and !self::safe_escape_route_parts( $route_arr['p'] ))
+         or (!empty( $route_arr['c'] ) and !self::safe_escape_route_parts( $route_arr['c'] ))
+         or (!empty( $route_arr['a'] ) and !self::safe_escape_route_parts( $route_arr['a'] )) )
+            return false;
+
+        return $route_arr;
     }
 
     public static function validate_route_from_parts( $route_arr, $use_short_names = false )

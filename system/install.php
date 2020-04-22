@@ -45,7 +45,7 @@
      or !is_array( $plugins_arr ) )
     {
         if( !$plugins_model->has_error() )
-            PHS::st_copy_error( -1, PHS::_t( 'Error obtaining plugins list.' ) );
+            PHS::st_set_error( -1, PHS::_t( 'Error obtaining plugins list.' ) );
         else
             PHS::st_copy_error( $plugins_model );
 

@@ -352,6 +352,14 @@ function db_query_count( $connection = false )
     return $db_instance->queries_number();
 }
 
+function db_affected_rows( $connection = false )
+{
+    if( !($db_instance = PHS_db::db( $connection )) )
+        return 0;
+
+    return $db_instance->affected_rows();
+}
+
 function db_quick_insert( $table_name, $insert_arr, $connection = false, $params = false )
 {
     if( !($db_instance = PHS_db::db( $connection )) )

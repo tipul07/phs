@@ -173,10 +173,10 @@ class PHS_file_upload extends PHS_Registry
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
         and !in_array( strtolower( $url_file_arr['extension'] ), $extra['extensions'], true ) )
         {
-            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'Extension not allowed.' ) );
+            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'File extension not allowed.' ) );
             $this->_update_copy_result( array(
                     'error_no' => self::ERR_NO_EXTENSION,
-                    'error_msg' => self::_t( 'Extension not allowed.' ),
+                    'error_msg' => self::_t( 'File extension not allowed.' ),
                 ));
             return false;
         }
@@ -395,10 +395,10 @@ class PHS_file_upload extends PHS_Registry
 
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] ) and !in_array( strtolower( $path_file_arr['extension'] ), $extra['extensions'] ) )
         {
-            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'Extension not allowed.' ) );
+            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'File extension not allowed.' ) );
             $this->_update_copy_result( array(
                     'error_no' => self::ERR_NO_EXTENSION,
-                    'error_msg' => self::_t( 'Extension not allowed.' ),
+                    'error_msg' => self::_t( 'File extension not allowed.' ),
                 ));
             return false;
         }
@@ -579,10 +579,10 @@ class PHS_file_upload extends PHS_Registry
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
         and !in_array( strtolower( $finfo_arr['extension'] ), $extra['extensions'], true ) )
         {
-            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'Extension not allowed.' ) );
+            $this->set_error( self::ERR_NO_EXTENSION, self::_t( 'File extension not allowed.' ) );
             $this->_update_copy_result( array(
                     'error_no' => self::ERR_NO_EXTENSION,
-                    'error_msg' => self::_t( 'Extension not allowed.' ),
+                    'error_msg' => self::_t( 'File extension not allowed.' ),
                 ));
             return false;
         }

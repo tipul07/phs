@@ -1,9 +1,12 @@
 default:
   autoload:
-    '': "%paths.base%/behat/contexts"
+    '': "%paths.base%/phs/contexts"
   suites:
     default:
+      contexts:
+        - \phs\tests\phs\contexts\phs_common_context
       paths:
         - "%paths.base%/behat/features"
-        - "%paths.base%/behat/.../features"
 
+includes:
+  - "%paths.base%/behat/plugins.yml"
