@@ -1,6 +1,6 @@
 
 # Composer
-/vendor
+vendor
 composer.lock
 composer.phar
 
@@ -8,4 +8,3 @@ composer.phar
 phpunit.phar
 .phpunit.result.cache
 
-!.gitignore

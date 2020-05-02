@@ -7,10 +7,18 @@
         exit;
     }
 
+    if( !@file_exists( 'vendor/autoload.php' ) )
+    {
+        echo 'You should first run composer install command.';
+        exit;
+    }
+
     include_once( 'bootstrap.php' );
 
+    include_once( 'vendor/autoload.php' );
+
     use \phs\PHS_cli;
-    use \phs\tests\phs\phs_tests;
+    use \phs\tests\phs\PHSTests;
 
     if( !PHS_cli::running_in_cli() )
     {
@@ -18,13 +26,13 @@
         exit;
     }
 
-    if( !($phs_tests = phs_tests::get_instance()) )
+    if( !($phs_tests = PHSTests::get_instance()) )
     {
-        $error_msg = phs_tests::st_cli_color( phs_tests::_t( 'ERROR' ), 'red' ).': ';
-        if( phs_tests::st_has_error() )
-            $error_msg .= phs_tests::st_get_simple_error_message();
+        $error_msg = PHSTests::st_cli_color( PHSTests::_t( 'ERROR' ), 'red' ).': ';
+        if( PHSTests::st_has_error() )
+            $error_msg .= PHSTests::st_get_simple_error_message();
         else
-            $error_msg .= PHS_cli::_t( 'Error obtaining phs_tests class instance.' );
+            $error_msg .= PHS_cli::_t( 'Error obtaining PHSTests class instance.' );
 
         echo $error_msg."\n";
 

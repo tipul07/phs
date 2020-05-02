@@ -1,7 +1,16 @@
 default:
   suites:
+
+    default:
+      paths:
+        features: features/admin/
+      contexts:
+        - phs\tests\behat\contexts\admin\PHSAdminContext
+
     admin:
       paths:
         features: features/admin/
       contexts:
-        - phs\tests\behat\contexts\admin\
+        - phs\tests\phs\contexts\PHSCommonContext
+        - phs\tests\phs\contexts\PHSAccountsContext
+        - phs\tests\behat\contexts\admin\PHSAdminContext

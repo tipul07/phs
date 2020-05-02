@@ -1,4 +1,4 @@
-# Language file specifications
+### Language file specifications
 
 All texts used in this framework will be loaded from CSV (Comma Separated Values) files. We use CSV format because files are easily editable using Excel or equivalent applications.
 

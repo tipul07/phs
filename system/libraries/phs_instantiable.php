@@ -14,7 +14,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages',
           TESTS_DIR = 'tests',
           // Behat features directory in tests directory of plugin
-          FEATURES_DIR = 'features',
+          BEHAT_DIR = 'behat',
           // Files required for test unit (eg. PHPUnit)
           TESTUNIT_DIR = 'testunit';
 
@@ -288,23 +288,43 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @return bool|string
      */
-    final public function instance_plugin_features_www()
+    final public function instance_plugin_behat_www()
     {
         if( !($prefix = $this->instance_plugin_tests_www()) )
             return false;
 
-        return $prefix.self::FEATURES_DIR.'/';
+        return $prefix.self::BEHAT_DIR.'/';
     }
 
     /**
      * @return bool|string
      */
-    final public function instance_plugin_features_path()
+    final public function instance_plugin_behat_path()
     {
         if( !($prefix = $this->instance_plugin_tests_path()) )
             return false;
 
-        return $prefix.self::FEATURES_DIR.'/';
+        return $prefix.self::BEHAT_DIR.'/';
+    }
+
+    final public function instance_plugin_behat_details()
+    {
+        $behat_path = $this->instance_plugin_behat_path();
+        $behat_www = $this->instance_plugin_behat_www();
+
+        $features_dir = 'features';
+        $contexts_dir = 'contexts';
+
+        return array(
+            'behat_path' => $behat_path,
+            'behat_www' => $behat_www,
+            'features_dir' => $features_dir,
+            'contexts_dir' => $contexts_dir,
+            'features_path' => $behat_path.$features_dir.'/',
+            'contexts_path' => $behat_path.$contexts_dir.'/',
+            'config_file' => 'behat.yml',
+            'config_file_path' => $behat_path.'behat.yml',
+        );
     }
 
     /**

@@ -8,3 +8,4 @@
 # Languages backup files
 /languages/*.dist/*_bk*.csv
 
+composer.phar

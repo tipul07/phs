@@ -20,6 +20,9 @@ abstract class PHS_cli extends PHS_Registry
     /** @var int|bool Instead of sending verbose level for each echo, we can set it as long as we don't change it again */
     protected $_block_verbose = false;
 
+    /** @var bool Flush _echo commands as soon as received without buffering output */
+    protected $_continous_flush = false;
+
     /** @var string|bool Name of the script in command line */
     protected $_cli_script = false;
 
@@ -318,12 +321,12 @@ abstract class PHS_cli extends PHS_Registry
          or $this->_app_result['buffer'] === '' )
             exit( $exit_code );
 
-        $this->_output_result();
+        $this->_flush_output();
 
         exit( $exit_code );
     }
 
-    protected function _output_result()
+    protected function _flush_output()
     {
         if( $this->_app_result === false )
             $this->_reset_app_result();
@@ -777,6 +780,22 @@ abstract class PHS_cli extends PHS_Registry
         return $old_verbosity;
     }
 
+    /**
+     * Get or set conitnous flush status: flush output when calling _echo commands rather than buffering output.
+     * When changing continous flush status, method returns old settings.
+     * @param bool|null $flush
+     * @return bool
+     */
+    protected function _continous_flush( $flush = null )
+    {
+        if( $flush === null )
+            return $this->_continous_flush;
+
+        $old_continous_flush = $this->_continous_flush;
+        $this->_continous_flush = (!empty( $flush ));
+        return $old_continous_flush;
+    }
+
     protected function _reset_verbosity_block()
     {
         $old_verbosity = $this->_block_verbose;
@@ -845,7 +864,7 @@ abstract class PHS_cli extends PHS_Registry
      */
     public function _echo_error( $msg, $params = false )
     {
-        return $this->_echo( $this->cli_color( self::_t( 'ERROR' ), 'red' ).': '.$msg );
+        return $this->_echo( $this->cli_color( self::_t( 'ERROR' ), 'red' ).': '.$msg, $params );
     }
 
     /**
@@ -878,9 +897,17 @@ abstract class PHS_cli extends PHS_Registry
         else
             $params['force_echo'] = (!empty( $params['force_echo'] )?true:false);
 
+        if( empty( $params['flush_output'] ) )
+            $params['flush_output'] = false;
+        else
+            $params['flush_output'] = (!empty( $params['flush_output'] )?true:false);
+
         $msg .= "\n";
 
         $this->_add_buffer_to_result( $msg );
+
+        if( !empty( $params['flush_output'] ) )
+            $this->_flush_output();
 
         if( !empty( $params['force_echo'] ) )
             echo $msg;

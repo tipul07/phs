@@ -9,7 +9,7 @@
     include_once( PHS_TESTS_DIR.'../main.php' );
 
     include_once( PHS_CORE_DIR.'phs_cli.php' );
-    include_once( PHS_TESTS_PHS_DIR.'phs_tests.php' );
+    include_once( PHS_TESTS_PHS_DIR.'PHSTests.php' );
 
     use phs\PHS_Scope;
 
