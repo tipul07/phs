@@ -20,7 +20,7 @@ final class PHS extends PHS_Registry
 
           ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action',
 
-          CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme',
+          CURRENT_THEME = 'c_theme', DEFAULT_THEME = 'd_theme', CASCADE_THEMES = 'cascade_themes',
 
           PHS_START_TIME = 'phs_start_time', PHS_BOOTSTRAP_END_TIME = 'phs_bootstrap_end_time', PHS_END_TIME = 'phs_end_time',
 
@@ -399,6 +399,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if( empty( $theme )
+         or !is_string( $theme )
          or !($theme = PHS_Instantiable::safe_escape_theme_name( $theme ))
          or !@file_exists( PHS_THEMES_DIR . $theme )
          or !@is_dir( PHS_THEMES_DIR . $theme )
@@ -467,6 +468,63 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * Set a cascading themes array. You don't have to include default and current themes here.
+     * When searching for templates, system will check current theme, then each cascading theme and lastly default theme.
+     * @param array $themes_arr
+     *
+     * @return bool
+     */
+    public static function set_cascading_themes( $themes_arr )
+    {
+        if( !is_array( $themes_arr ) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide a themes array.' ) );
+            return false;
+        }
+
+        $new_themes = array();
+        foreach( $themes_arr as $theme )
+        {
+            if( !self::valid_theme( $theme ) )
+                return false;
+
+            $new_themes[$theme] = true;
+        }
+
+        if( empty( $new_themes )
+         or !($themes_arr = @array_keys( $new_themes )) )
+            $themes_arr = array();
+
+        self::set_data( self::CASCADE_THEMES, $themes_arr );
+
+        return true;
+    }
+
+    /**
+     * @param string $theme
+     *
+     * @return bool
+     */
+    public static function add_theme_to_cascading_themes( $theme )
+    {
+        if( !self::valid_theme( $theme ) )
+            return false;
+
+        if( !($themes_arr = self::get_data( self::CASCADE_THEMES ))
+         or !is_array( $themes_arr ) )
+            $themes_arr = array();
+
+        if( in_array( $theme, $themes_arr, true ) )
+            return true;
+
+        $themes_arr[] =  $theme;
+
+        self::set_data( self::CASCADE_THEMES, $themes_arr );
+
+        return true;
+    }
+
+    /**
      * @return bool
      */
     public static function resolve_theme()
@@ -515,6 +573,19 @@ final class PHS extends PHS_Registry
         }
 
         return $theme;
+    }
+
+    /**
+     * Return an array with cascading themes
+     * @return array
+     */
+    public static function get_cascading_themes()
+    {
+        if( !($themes = self::get_data( self::CASCADE_THEMES ))
+         or !is_array( $themes ) )
+            $themes = array();
+
+        return $themes;
     }
 
     public static function domain_constants()

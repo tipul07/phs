@@ -64,6 +64,12 @@ class PHS_View extends PHS_Signal_and_slot
         );
     }
 
+    /**
+     * @param string|array $template
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public static function validate_template_resource( $template, $params = false )
     {
         if( empty( $template )
@@ -171,6 +177,12 @@ class PHS_View extends PHS_Signal_and_slot
         return $action_result;
     }
 
+    /**
+     * @param $template
+     * @param bool $params
+     *
+     * @return bool|false|\phs\system\core\views\PHS_View
+     */
     public static function init_view( $template, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -340,6 +352,12 @@ class PHS_View extends PHS_Signal_and_slot
         return true;
     }
 
+    /**
+     * @param string $theme_relative_dir
+     * @param bool|string $theme
+     *
+     * @return array|bool
+     */
     public static function st_add_extra_theme_dir( $theme_relative_dir, $theme = false )
     {
         if( $theme === false )
@@ -358,8 +376,21 @@ class PHS_View extends PHS_Signal_and_slot
             and @is_dir( PHS_THEMES_DIR . $theme . '/'. $theme_relative_dir ) )
                 $extra_dirs[PHS_THEMES_DIR . $theme . '/' . $theme_relative_dir . '/'] = PHS_THEMES_WWW . $theme . '/' . $theme_relative_dir . '/';
 
+            if( ($themes_arr = PHS::get_cascading_themes())
+            and is_array( $themes_arr ) )
+            {
+                foreach( $themes_arr as $c_theme )
+                {
+                    if( !empty( $c_theme )
+                    and @file_exists( PHS_THEMES_DIR . $c_theme . '/'. $theme_relative_dir )
+                    and @is_dir( PHS_THEMES_DIR . $c_theme . '/'. $theme_relative_dir )
+                    and empty( $extra_dirs[PHS_THEMES_DIR . $c_theme . '/' . $theme_relative_dir . '/'] ) )
+                        $extra_dirs[PHS_THEMES_DIR . $c_theme . '/' . $theme_relative_dir . '/'] = PHS_THEMES_WWW . $c_theme . '/' . $theme_relative_dir . '/';
+                }
+            }
+
             if( ($default_theme = PHS::get_default_theme())
-            and $default_theme != $theme
+            and $default_theme !== $theme
             and @file_exists( PHS_THEMES_DIR . $default_theme . '/'. $theme_relative_dir )
             and @is_dir( PHS_THEMES_DIR . $default_theme . '/'. $theme_relative_dir ) )
                 $extra_dirs[PHS_THEMES_DIR . $default_theme . '/' . $theme_relative_dir . '/'] = PHS_THEMES_WWW . $default_theme . '/' . $theme_relative_dir . '/';
@@ -412,8 +443,27 @@ class PHS_View extends PHS_Signal_and_slot
                             = PHS_THEMES_WWW . $this->_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/';
                 }
 
+                if( ($themes_arr = PHS::get_cascading_themes())
+                and is_array( $themes_arr ) )
+                {
+                    foreach( $themes_arr as $c_theme )
+                    {
+                        if( !@file_exists( PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name )
+                         or !@is_dir( PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name ) )
+                            continue;
+
+                        if( @file_exists( PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language )
+                        and @is_dir( PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language ) )
+                            $this->_template_dirs[PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/']
+                                = PHS_THEMES_WWW . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. $current_language .'/';
+
+                        $this->_template_dirs[PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/']
+                            = PHS_THEMES_WWW . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/';
+                    }
+                }
+
                 if( ($default_theme = PHS::get_default_theme())
-                and $default_theme != $this->_theme
+                and $default_theme !== $this->_theme
                 and @file_exists( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name )
                 and @is_dir( PHS_THEMES_DIR . $default_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name ) )
                 {
@@ -487,8 +537,21 @@ class PHS_View extends PHS_Signal_and_slot
                 $this->_template_dirs[PHS_THEMES_DIR . $this->_theme . '/'] = PHS_THEMES_WWW . $this->_theme . '/';
             }
 
+            if( ($themes_arr = PHS::get_cascading_themes())
+            and is_array( $themes_arr ) )
+            {
+                foreach( $themes_arr as $c_theme )
+                {
+                    if( @file_exists( PHS_THEMES_DIR . $c_theme . '/' . $current_language )
+                    and @is_dir( PHS_THEMES_DIR . $c_theme . '/' . $current_language ) )
+                        $this->_template_dirs[PHS_THEMES_DIR . $c_theme . '/' . $current_language . '/'] = PHS_THEMES_WWW . $c_theme . '/' . $current_language . '/';
+
+                    $this->_template_dirs[PHS_THEMES_DIR . $c_theme . '/'] = PHS_THEMES_WWW . $c_theme . '/';
+                }
+            }
+
             if( ($default_theme = PHS::get_default_theme())
-            and $default_theme != $this->_theme )
+            and $default_theme !== $this->_theme )
             {
                 if( @file_exists( PHS_THEMES_DIR . $default_theme . '/' . $current_language )
                 and @is_dir( PHS_THEMES_DIR . $default_theme . '/' . $current_language ) )
@@ -535,6 +598,10 @@ class PHS_View extends PHS_Signal_and_slot
         return false;
     }
 
+    /**
+     * Return full path to template file based on themes, action, controller, parent plugin and current plugin
+     * @return bool|string
+     */
     protected function _get_template_path()
     {
         $this->reset_error();
@@ -560,10 +627,16 @@ class PHS_View extends PHS_Signal_and_slot
         return true;
     }
 
+    /**
+     * Return resource details for found file based on themes, action, controller, parent plugin and current plugin
+     * @param string $file
+     *
+     * @return array|bool
+     */
     public function get_resource_details( $file )
     {
         if( empty( $file )
-         or !self::safe_escape_resource( $file ) )
+         or !($file = self::safe_escape_resource( $file )) )
         {
             $this->set_error( self::ERR_BAD_TEMPLATE, self::_t( 'Invalid resource file.' ) );
             return false;
@@ -579,6 +652,12 @@ class PHS_View extends PHS_Signal_and_slot
         return $file_details;
     }
 
+    /**
+     * Return URL to file resource
+     * @param string $file
+     *
+     * @return string
+     */
     public function get_resource_url( $file )
     {
         if( empty( $file )
@@ -589,6 +668,12 @@ class PHS_View extends PHS_Signal_and_slot
         return $resource_details['full_url'];
     }
 
+    /**
+     * Return full server path to resource file
+     * @param string $file
+     *
+     * @return bool|string
+     */
     public function get_resource_path( $file )
     {
         if( empty( $file )
@@ -602,7 +687,7 @@ class PHS_View extends PHS_Signal_and_slot
     public static function safe_escape_template( $template )
     {
         if( empty( $template ) or !is_string( $template )
-            or preg_match( '@[^a-zA-Z0-9_-]@', $template ) )
+         or preg_match( '@[^a-zA-Z0-9_-]@', $template ) )
             return false;
 
         return $template;
@@ -619,6 +704,13 @@ class PHS_View extends PHS_Signal_and_slot
         return $resource;
     }
 
+    /**
+     * Set template for current view
+     * @param string|array $template
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function set_template( $template, $params = false )
     {
         $this->reset_error();
@@ -658,6 +750,12 @@ class PHS_View extends PHS_Signal_and_slot
         return $template_structure;
     }
 
+    /**
+     * Force a specific theme for current view
+     * @param string $theme
+     *
+     * @return bool
+     */
     public function set_theme( $theme )
     {
         $this->reset_error();
@@ -713,7 +811,7 @@ class PHS_View extends PHS_Signal_and_slot
         }
 
         $hook_args = PHS_Hooks::default_buffer_hook_args();
-        $hook_args['buffer_data'] = $subview_obj->get_full_data();
+        $hook_args['buffer_data'] = $subview_obj::get_full_data();
         $hook_args['buffer'] = $subview_buffer;
 
         if( !empty( $subview_template['file'] )
@@ -794,6 +892,15 @@ class PHS_View extends PHS_Signal_and_slot
         return $this->view_var( $key );
     }
 
+    /**
+     * Render template set for current view or the template provided in parameters
+     *
+     * @param bool|array|string $template
+     * @param bool|string $force_theme
+     * @param bool|array $params
+     *
+     * @return bool|string
+     */
     public function render( $template = false, $force_theme = false, $params = false )
     {
         if( $template !== false )

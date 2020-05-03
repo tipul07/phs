@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.2.0' );
+define( 'PHS_KNOWN_VERSION', '1.1.2.1' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -99,6 +99,7 @@ define( 'PHS_FRAMEWORK_UPLOADS_DIR', PHS_PATH.'_uploads/' );
 define( 'PHS_FRAMEWORK_ASSETS_DIR', PHS_PATH.'assets/' );
 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
+// You can setup a cascade of themes after boostrap.php is included (scroll down)
 if( !defined( 'PHS_DEFAULT_THEME' ) )
     define( 'PHS_DEFAULT_THEME', 'default' );
 if( !defined( 'PHS_THEME' ) )
@@ -125,6 +126,9 @@ include_once( PHS_PATH.'bootstrap.php' );
 use \phs\PHS;
 use \phs\PHS_ajax;
 use \phs\libraries\PHS_Logger;
+
+// Set any cascading themes here...
+// PHS::set_cascading_themes( array( 'theme1', 'theme2' ) );
 
 // Tell the system if it should use multi language feature
 PHS::set_multi_language( true );
