@@ -128,6 +128,8 @@ use \phs\PHS_ajax;
 use \phs\libraries\PHS_Logger;
 
 // Set any cascading themes here...
+// You don't have to add default or current theme here.
+// Order in which resources will be searched in themes is current theme, cascade theme1, cascade theme2, ..., cascade themeX, default theme
 // PHS::set_cascading_themes( array( 'theme1', 'theme2' ) );
 
 // Tell the system if it should use multi language feature
