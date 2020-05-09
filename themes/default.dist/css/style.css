@@ -269,7 +269,7 @@ a:hover#menu-icon { background-color: #444; border-radius: 4px 4px 0 0; }
 #menu ul ul { position: absolute; top: 38px; left:0; display: none; padding: 1em 1em 1em 0; z-index: 1000; min-width: 15em;  }
 #menu ul li:hover > ul { display: block; }
 #menu ul li ul li > a { font-size: 14px !important; white-space: nowrap; line-height:36px;}
-#menu ul li ul li ul { position: absolute; top:10px; left:200px; display: none; z-index: 1000; }
+#menu ul li ul li ul { position: absolute; top:10px; left:11em; display: none; z-index: 1000; }
 
 .jqcheckbox-checkbox span.mark { background-color: transparent !important; }
 

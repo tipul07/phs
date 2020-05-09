@@ -1480,7 +1480,7 @@ class PHS_Model_Messages extends PHS_Model
 
                 $role_arr = false;
                 if( !is_numeric( $params['dest_type_role'] )
-                 or !($role_id = intval( $params['dest_type_role'] ))
+                 or !($role_id = (int)$params['dest_type_role'])
                  or !($role_arr = $roles_model->get_details( $role_id, $roles_flow_params )) )
                 {
                     $roles_fields_arr = array();
@@ -1527,7 +1527,7 @@ class PHS_Model_Messages extends PHS_Model
 
                 $role_unit_arr = false;
                 if( !is_numeric( $params['dest_type_role_unit'] )
-                 or !($role_unit_id = intval( $params['dest_type_role_unit'] ))
+                 or !($role_unit_id = (int)$params['dest_type_role_unit'])
                  or !($role_unit_arr = $roles_model->get_details( $role_unit_id, $roles_units_flow_params )) )
                 {
                     $roles_units_fields_arr = array();
@@ -1617,7 +1617,7 @@ class PHS_Model_Messages extends PHS_Model
         $bg_job_params = $params['bg_job_params'];
         $bg_job_params['mid'] = $message_arr['id'];
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'action' => 'write_message_bg' ),
+        if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'controller' => 'index_bg', 'action' => 'write_message_bg' ),
                                $bg_job_params,
                                array( 'same_thread_if_bg' => true ) ) )
         {
@@ -1639,6 +1639,13 @@ class PHS_Model_Messages extends PHS_Model
         );
     }
 
+    /**
+     * Do the actual database inserts in background process
+     * @param int|array $message_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function write_message_finish_bg( $message_data, $params = false )
     {
         $this->reset_error();
@@ -1653,12 +1660,12 @@ class PHS_Model_Messages extends PHS_Model
         if( !isset( $params['email_author'] ) )
             $params['email_author'] = true;
         else
-            $params['email_author'] = (!empty( $params['email_author'] )?true:false);
+            $params['email_author'] = (!empty( $params['email_author'] ));
 
         if( !isset( $params['email_destination'] ) )
             $params['email_destination'] = true;
         else
-            $params['email_destination'] = (!empty( $params['email_destination'] )?true:false);
+            $params['email_destination'] = (!empty( $params['email_destination'] ));
 
         $accounts_model = self::$_accounts_model;
         $messages_plugin = self::$_messages_plugin;
@@ -1748,11 +1755,12 @@ class PHS_Model_Messages extends PHS_Model
 
             $thread_id = $followup_message['thread_id'];
         }
+        $thread_id = (int)$thread_id;
 
         $thread_message = false;
         if( !empty( $thread_id ) )
         {
-            if( $thread_id == $message_arr['id'] )
+            if( $thread_id === (int)$message_arr['id'] )
                 $thread_message = $message_arr;
 
             elseif( !($thread_message = $this->get_details( $thread_id, $m_flow_params )) )

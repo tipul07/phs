@@ -54,10 +54,10 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $pid = PHS_params::_gp( 'pid', PHS_params::T_ASIS );
         $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
 
-        if( $pid != PHS_Instantiable::CORE_PLUGIN
+        if( $pid !== PHS_Instantiable::CORE_PLUGIN
         and (!($instance_details = PHS_Instantiable::valid_instance_id( $pid ))
                  or empty( $instance_details['instance_type'] )
-                 or $instance_details['instance_type'] != PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                  or !($this->_plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] ))
             ) )
         {

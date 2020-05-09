@@ -27,7 +27,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     private $_custom_lang_files_included = false;
 
-    public function instance_type()
+    final public function instance_type()
     {
         return self::INSTANCE_TYPE_PLUGIN;
     }
@@ -712,8 +712,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
          or !is_array( $role_definition ) )
             return false;
 
-        // Couldn't generate an empty user structure; assume no slugs are assigned
-        if( !($cuser_arr = PHS::current_user()) )
+        // Do slug check even if user is not logged in
+        // but if we couldn't generate an empty user structure, assume no slugs are assigned
+        if( !($cuser_arr = PHS::account_structure( PHS::user_logged_in() )) )
             return false;
 
         $role_units_arr = array();
@@ -1054,20 +1055,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_arr = $db_details['new_data'];
         $old_plugin_arr = (!empty( $db_details['old_data'] )?$db_details['old_data']:false);
 
-        if( empty( $old_plugin_arr ) )
+        if( !empty( $old_plugin_arr ) )
         {
-            // PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            // // No details in database before... it should be an install
-            // $signal_params = array();
-            // $signal_params['version'] = $plugin_arr['version'];
-            //
-            // $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-            //
-            // PHS_Logger::logf( 'DONE triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-        } else
-        {
-            $trigger_update_signal = false;
             // Performs any necessary actions when updating model from old version to new version
             if( version_compare( $old_plugin_arr['version'], $plugin_arr['version'], '<' ) )
             {
@@ -1082,30 +1071,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 PHS_Logger::logf( 'Update with success ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-                $trigger_update_signal = true;
             }
-
-            // if( $trigger_update_signal )
-            // {
-            //     PHS_Logger::logf( 'Triggering update signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            //     $signal_params = array();
-            //     $signal_params['old_version'] = $old_plugin_arr['version'];
-            //     $signal_params['new_version'] = $plugin_arr['version'];
-            //
-            //     $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
-            // } else
-            // {
-            //     PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            //     $signal_params = array();
-            //     $signal_params['version'] = $plugin_arr['version'];
-            //
-            //     $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-            // }
-            //
-            // PHS_Logger::logf( 'DONE triggering signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         PHS_Logger::logf( 'Installing plugin models ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
@@ -1207,12 +1173,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             return false;
         }
-
-        // PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-        //
-        // $this->signal_trigger( self::SIGNAL_UNINSTALL );
-        //
-        // PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Logger::logf( 'Uninstalling plugin models ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 

@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.2.1' );
+define( 'PHS_KNOWN_VERSION', '1.1.2.2' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -131,6 +131,9 @@ use \phs\libraries\PHS_Logger;
 // You don't have to add default or current theme here.
 // Order in which resources will be searched in themes is current theme, cascade theme1, cascade theme2, ..., cascade themeX, default theme
 // PHS::set_cascading_themes( array( 'theme1', 'theme2' ) );
+
+// If you want to add themes to cascade (in a plugin bootstrap for example) you should use PHS::add_theme_to_cascading_themes();
+// PHS::add_theme_to_cascading_themes( 'phs_reactjs' );
 
 // Tell the system if it should use multi language feature
 PHS::set_multi_language( true );

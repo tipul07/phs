@@ -2215,7 +2215,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( !isset( $params['return_query_string'] ) )
             $params['return_query_string'] = false;
         else
-            $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
+            $params['return_query_string'] = (!empty( $params['return_query_string'] ));
 
         if( !isset( $params['limit'] )
          or $params['result_type'] === 'single' )
@@ -2306,7 +2306,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             foreach( $field_val as $value_index => $value_arr )
             {
                 // skip non integer indexes
-                if( (string)intval( $value_index ) !== (string)$value_index )
+                if( (string)((int)$value_index) !== (string)$value_index )
                     continue;
 
                 if( ($recurring_result = $this->_get_query_field_value( $field_name, $value_arr, $recurring_params )) )
@@ -2580,7 +2580,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
         if( !isset( $params['return_query_string'] ) )
             $params['return_query_string'] = false;
         else
-            $params['return_query_string'] = (!empty( $params['return_query_string'] )?true:false);
+            $params['return_query_string'] = (!empty( $params['return_query_string'] ));
 
         // Field which will be used as key in result array (be sure is unique)
         if( empty( $params['arr_index_field'] ) )

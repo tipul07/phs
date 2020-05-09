@@ -3,16 +3,18 @@
 namespace phs\plugins\backup\controllers;
 
 use \phs\PHS;
-use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Notifications;
-use \phs\libraries\PHS_Action;
 
-class PHS_Controller_Index extends PHS_Controller
+class PHS_Controller_Index extends \phs\libraries\PHS_Controller_Admin
 {
     /**
-     * @inheritdoc
+     * @param string $action Action to be loaded and executed
+     * @param bool|string $plugin false means core plugin, string is name of plugin
+     * @param string $action_dir Directory (relative from actions dir) where action class is found
+     *
+     * @return bool|array Returns false on error or an action array on success
      */
-    protected function _execute_action( $action, $plugin = null )
+    protected function _execute_action( $action, $plugin = null, $action_dir = '' )
     {
         $this->is_admin_controller( true );
 
@@ -23,29 +25,13 @@ class PHS_Controller_Index extends PHS_Controller
             return false;
         }
 
-        if( !($current_user = PHS::user_logged_in()) )
-        {
-            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
-
-            $action_result = PHS_Action::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $this->execute_foobar_action( $action_result );
-        }
-
-        if( !$accounts_model->acc_is_operator( $current_user ) )
+        if( !$accounts_model->acc_is_operator( PHS::user_logged_in() ) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You don\'t have enough rights to access this section...' ) );
 
             return $this->execute_foobar_action();
         }
 
-        if( !($action_result = parent::_execute_action( $action, $plugin )) )
-            return false;
-
-        $action_result['page_template'] = 'template_admin';
-
-        return $action_result;
+        return parent::_execute_action( $action, $plugin, $action_dir );
     }
 }

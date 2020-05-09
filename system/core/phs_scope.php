@@ -73,7 +73,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return string
      */
-    public function instance_type()
+    final public function instance_type()
     {
         return self::INSTANCE_TYPE_SCOPE;
     }

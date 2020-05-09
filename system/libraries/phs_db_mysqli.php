@@ -186,7 +186,7 @@ class PHS_db_mysqli extends PHS_db_class
         if( !empty( $conn_settings['use_pconnect'] ) )
             $host = 'p:'.$conn_settings['host'];
 
-        $this->connection_id[$connection_name] = mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
+        $this->connection_id[$connection_name] = @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'], $conn_settings['database'], $conn_settings['port'] );
 
         if( empty( $this->connection_id[$connection_name] )
          or !is_object( $this->connection_id[$connection_name] ) or !($this->connection_id[$connection_name] instanceof \mysqli) )

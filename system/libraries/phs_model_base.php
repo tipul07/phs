@@ -237,7 +237,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      */
     final public static function get_model_base_version()
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     /**
@@ -390,6 +390,29 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     /** @noinspection PhpUnusedParameterInspection */
     protected function custom_after_missing_tables_update( $old_version, $new_version, $params_arr = false )
     {
+        return true;
+    }
+
+    /**
+     * Test DB connection for this model
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    public function test_db_connection( $flow_params = false )
+    {
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+            return false;
+
+        db_supress_errors( $flow_params['db_connection'] );
+        if( !db_test_connection( $flow_params['db_connection'] ) )
+        {
+            db_restore_errors_state( $flow_params['db_connection'] );
+            return false;
+        }
+
+        db_restore_errors_state( $flow_params['db_connection'] );
+
         return true;
     }
 
@@ -619,21 +642,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                     $params = $trigger_result['params'];
             }
         }
-
-        // $signal_params = array();
-        // $signal_params['existing_data'] = $existing_arr;
-        // $signal_params['params'] = $params;
-        //
-        // if( ($signal_result = $this->signal_trigger( self::SIGNAL_HARD_DELETE, $signal_params )) )
-        // {
-        //     if( !empty( $signal_result['stop_process'] ) )
-        //     {
-        //         if( !$this->has_error() )
-        //             $this->set_error( self::HOOK_HARD_DELETE, self::_t( 'Delete cancelled by delete signal trigger.' ) );
-        //
-        //         return false;
-        //     }
-        // }
 
         return $this->_hard_delete_for_model( $existing_arr, $params );
     }
@@ -876,44 +884,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
     {
         parent::__construct( $instance_details );
 
-        // if( !$this->signal_defined( self::SIGNAL_INSTALL ) )
-        // {
-        //     $signal_defaults            = array();
-        //     $signal_defaults['version'] = '';
-        //
-        //     $this->define_signal( self::SIGNAL_INSTALL, $signal_defaults );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_UNINSTALL ) )
-        // {
-        //     $this->define_signal( self::SIGNAL_UNINSTALL );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_UPDATE ) )
-        // {
-        //     $signal_defaults                = array();
-        //     $signal_defaults['old_version'] = '';
-        //     $signal_defaults['new_version'] = '';
-        //
-        //     $this->define_signal( self::SIGNAL_UPDATE, $signal_defaults );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_FORCE_INSTALL ) )
-        // {
-        //     $signal_defaults = array();
-        //
-        //     $this->define_signal( self::SIGNAL_FORCE_INSTALL, $signal_defaults );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_HARD_DELETE ) )
-        // {
-        //     $signal_defaults                  = array();
-        //     $signal_defaults['existing_data'] = false;
-        //     $signal_defaults['params']        = false;
-        //
-        //     $this->define_signal( self::SIGNAL_HARD_DELETE, $signal_defaults );
-        // }
-
         $this->_validate_tables_definition();
     }
 
@@ -1151,7 +1121,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
      */
     public function data_to_array( $item_data, $params = false )
     {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( empty( $item_data )
+         or !($params = $this->fetch_default_flow_params( $params )) )
             return false;
 
         $id = 0;
@@ -1262,20 +1233,8 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $plugin_arr = $db_details['new_data'];
         $old_plugin_arr = (!empty( $db_details['old_data'] )?$db_details['old_data']:false);
 
-        if( empty( $old_plugin_arr ) )
+        if( !empty( $old_plugin_arr ) )
         {
-            // PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            // // No details in database before... it should be an install
-            // $signal_params = array();
-            // $signal_params['version'] = $plugin_arr['version'];
-            //
-            // $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-            //
-            // PHS_Logger::logf( 'DONE triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-        } else
-        {
-            $trigger_update_signal = false;
             // Performs any necessary actions when updating model from old version to new version
             if( version_compare( $old_plugin_arr['version'], $plugin_arr['version'], '<' ) )
             {
@@ -1290,30 +1249,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 }
 
                 PHS_Logger::logf( 'Update with success ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-
-                $trigger_update_signal = true;
             }
-
-            // if( $trigger_update_signal )
-            // {
-            //     PHS_Logger::logf( 'Triggering update signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            //     $signal_params = array();
-            //     $signal_params['old_version'] = $old_plugin_arr['version'];
-            //     $signal_params['new_version'] = $plugin_arr['version'];
-            //
-            //     $this->signal_trigger( self::SIGNAL_UPDATE, $signal_params );
-            // } else
-            // {
-            //     PHS_Logger::logf( 'Triggering install signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-            //
-            //     $signal_params = array();
-            //     $signal_params['version'] = $plugin_arr['version'];
-            //
-            //     $this->signal_trigger( self::SIGNAL_INSTALL, $signal_params );
-            // }
-            //
-            // PHS_Logger::logf( 'DONE triggering signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         PHS_Logger::logf( 'DONE installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
@@ -1571,12 +1507,6 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         }
 
         db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
-
-        // PHS_Logger::logf( 'Triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
-        //
-        // $this->signal_trigger( self::SIGNAL_UNINSTALL );
-        //
-        // PHS_Logger::logf( 'DONE triggering uninstall signal ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Logger::logf( 'Calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 

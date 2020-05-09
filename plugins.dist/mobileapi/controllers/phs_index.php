@@ -3,9 +3,8 @@
 namespace phs\plugins\mobileapi\controllers;
 
 use \phs\PHS_Scope;
-use \phs\libraries\PHS_Controller;
 
-class PHS_Controller_Index extends PHS_Controller
+class PHS_Controller_Index extends \phs\libraries\PHS_Controller_Index
 {
     public function allowed_scopes()
     {

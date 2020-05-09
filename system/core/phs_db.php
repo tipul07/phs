@@ -361,7 +361,7 @@ final class PHS_db extends PHS_Registry
      *
      * @param bool|string $connection_name Connection used with database
      *
-     * @return bool|\phs\libraries\PHS_db_interface|\phs\libraries\PHS_Language Returns database driver instance
+     * @return bool|\phs\libraries\PHS_db_interface Returns database driver instance
      */
     public static function db( $connection_name = false )
     {

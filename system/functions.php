@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.2.1';
+    return '1.1.2.2';
 }
 
 function phs_init_before_bootstrap()
@@ -260,6 +260,14 @@ function db_query( $query, $connection = false )
         {
             $error = $db_instance->get_error();
             echo $error['display_error'];
+        }
+
+        if( $db_instance->has_error()
+        and ($db_instance->get_error_code() === $db_instance::ERR_CONNECT
+                or $db_instance->get_error_code() === $db_instance::ERR_DATABASE
+            ) )
+        {
+            return false;
         }
 
         return 0;

@@ -1,4 +1,4 @@
 ### Welcome to PHoSphorus
 
-Latest version 1.1.2.1
+Latest version 1.1.2.2
 

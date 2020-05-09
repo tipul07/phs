@@ -135,7 +135,8 @@ class PHS_Model_Accounts extends PHS_Model
     //
     public function acc_is_developer( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !self::is_developer( $user_arr['level'] ) )
             return false;
 
@@ -144,7 +145,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function acc_is_sadmin( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !self::is_sadmin( $user_arr['level'] ) )
             return false;
 
@@ -153,7 +155,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function acc_is_admin( $user_data, $strict = false )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !self::is_admin( $user_arr['level'], $strict ) )
             return false;
 
@@ -162,7 +165,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function acc_is_operator( $user_data, $strict = false )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !self::is_operator( $user_arr['level'], $strict ) )
             return false;
 
@@ -171,7 +175,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function acc_is_member( $user_data, $strict = false )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !self::is_member( $user_arr['level'], $strict ) )
             return false;
 
@@ -183,7 +188,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function is_active( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or (int)$user_arr['status'] !== self::STATUS_ACTIVE )
             return false;
 
@@ -192,7 +198,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function is_inactive( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or (int)$user_arr['status'] !== self::STATUS_INACTIVE )
             return false;
 
@@ -201,7 +208,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function is_deleted( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or (int)$user_arr['status'] !== self::STATUS_DELETED )
             return false;
 
@@ -210,7 +218,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function is_just_registered( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or (!empty( $user_arr['lastlog'] ) and !empty_db_date( $user_arr['lastlog'] )) )
             return false;
 
@@ -219,7 +228,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function has_logged_in( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or empty( $user_arr['lastlog'] ) or empty_db_date( $user_arr['lastlog'] ) )
             return false;
 
@@ -234,6 +244,9 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function needs_after_registration_email( $user_data, $params = false )
     {
+        if( empty( $user_data ) )
+            return false;
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
@@ -264,6 +277,9 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function needs_activation( $user_data, $params = false )
     {
+        if( empty( $user_data ) )
+            return false;
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 
@@ -295,7 +311,8 @@ class PHS_Model_Accounts extends PHS_Model
     public function needs_confirmation_email( $user_data )
     {
         // If password was provided by user or he did already login no need to send him password confirmation
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or empty( $user_arr['pass_generated'] )
          or $this->is_active( $user_arr )
          or $this->has_logged_in( $user_arr ) )
@@ -311,7 +328,8 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function needs_email_verification( $user_data )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !empty( $user_arr['email_verified'] )
          or $this->is_deleted( $user_arr ) )
             return false;
@@ -327,7 +345,8 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function can_manage_account( $user_data, $user_to_manage )
     {
-        if( !($user_arr = $this->data_to_array( $user_data ))
+        if( empty( $user_data )
+         or !($user_arr = $this->data_to_array( $user_data ))
          or !($user_to_manage_arr = $this->data_to_array( $user_to_manage ))
          or !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_ROLES )
          or $user_arr['level'] < $user_to_manage_arr['level'] )
@@ -347,6 +366,9 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_account_details( $account_data, $params = false )
     {
+        if( empty( $account_data ) )
+            return false;
+
         if( empty( $params ) or !is_array( $params ) )
             $params = array();
 

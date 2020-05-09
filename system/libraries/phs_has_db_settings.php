@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 use \phs\PHS;
 
-abstract class PHS_Has_db_settings extends PHS_Signal_and_slot
+abstract class PHS_Has_db_settings extends PHS_Instantiable
 {
     const ERR_PLUGINS_MODEL = 40000;
     

@@ -14,11 +14,8 @@
     {
         PHS_Notifications::add_error_notice( $this::_t( 'Couldn\'t load accounts model. Please contact support.' ) );
         $accounts_model = false;
-    } else
-    {
-        if( !($accounts_plugin_settings = $accounts_model->get_plugin_settings()) )
-            $accounts_plugin_settings = array();
-    }
+    } elseif( !($accounts_plugin_settings = $accounts_model->get_plugin_settings()) )
+        $accounts_plugin_settings = array();
 
     $cuser_arr = PHS::user_logged_in();
 

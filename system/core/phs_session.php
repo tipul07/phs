@@ -243,10 +243,9 @@ final class PHS_Session extends PHS_Registry
         {
             if( !@setcookie( $name, $val, $cookie_params ) )
                 return false;
-        } else
+        } elseif( !self::raw_setcookie( $name, $val, $cookie_params ) )
         {
-            if( !self::raw_setcookie( $name, $val, $cookie_params ) )
-                return false;
+            return false;
         }
 
         if( !empty( $params['alter_globals'] ) )

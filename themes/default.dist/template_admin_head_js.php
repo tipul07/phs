@@ -10,7 +10,7 @@
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/chosen.jquery.js' )?>"></script>
 <script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/bootstrap.js' )?>"></script>
 
-<script  src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
+<script type="text/javascript" src="<?php echo $this->get_resource_url( 'js/include.js' )?>" ></script>
 
 <?php
     if( ($jq_datepicker_lang_url = $this->get_resource_url( 'js/jquery.ui.datepicker-'.PHS_Language::get_current_language().'.js' ))

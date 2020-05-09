@@ -30,7 +30,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_library.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_roles.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
-include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
+//include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
@@ -39,6 +39,9 @@ include_once( PHS_LIBRARIES_DIR.'phs_model_mysqli.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model_mongo.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_controller_index.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_controller_background.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
@@ -185,7 +188,7 @@ PHS_db::default_db_driver( PHS_db::DB_DRIVER_MYSQLI );
 
 if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {
-    PHS_db::st_throw_error();
+    echo 'ERROR ';
     exit;
 }
 //
@@ -249,8 +252,9 @@ include_once( PHS_SYSTEM_DIR.'languages_init.php' );
 /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
 if( !($plugins_model = PHS::load_model( 'plugins' )) )
 {
-    echo PHS::_t( 'ERROR Instantiating plugins model:' )."\n";
-    var_dump( PHS::st_get_error() );
+    echo PHS::_t( 'ERROR Instantiating plugins model.' )."\n";
+    if( PHS::st_debugging_mode() )
+        PHS::var_dump( PHS::st_get_error(), array( 'max_level' => 5 ) );
     exit;
 }
 
@@ -260,13 +264,31 @@ if( !($plugins_model = PHS::load_model( 'plugins' )) )
 if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
 {
     if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
+    {
+        $plugins_model_err = $plugins_model->get_error();
+        if( !$plugins_model->test_db_connection() )
+        {
+            echo PHS::_t( 'ERROR Connecting to database. Please check your database connection settings.' );
+
+            if( PHS::arr_has_error( $plugins_model_err )
+            and PHS::st_debugging_mode() )
+                PHS::var_dump( $plugins_model_err, array( 'max_level' => 5 ) );
+            exit;
+        }
+
         $active_plugins = array();
+    }
 
     if( empty( $active_plugins )
     and !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
     {
         if( !@is_dir( PHS_SETUP_DIR ) )
             echo 'It seems you didn\'t run yet install script.';
+
+        // If we have a main.php script it means platform was setup before
+        // Don't redirect to setup script
+        elseif( !@is_file( PHS_PATH.'main.php' ) )
+            echo 'It seems plugins table is missing. Please check framework setup.';
 
         else
             @header( 'Location: '.PHS_SETUP_WWW );

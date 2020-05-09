@@ -528,6 +528,12 @@ class PHS_Model_Plugins extends PHS_Model
         return (empty( self::$db_plugins )?array():self::$db_plugins);
     }
 
+    /**
+     * Cache all plugin records from plugins table...
+     * @param bool $force
+     *
+     * @return bool
+     */
     public function cache_all_db_details( $force = false )
     {
         $this->reset_error();
@@ -539,7 +545,12 @@ class PHS_Model_Plugins extends PHS_Model
         if( !empty( self::$db_plugins ) )
             return true;
 
-        $list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'plugins' ) );
+        if( !($list_arr = $this->fetch_default_flow_params( array( 'table_name' => 'plugins' ) )) )
+        {
+            $this->set_error( self::ERR_DB_DETAILS, $this->_pt( 'Error preparing query to obtain plugins records.' ) );
+            return false;
+        }
+
         $list_arr['order_by'] = 'is_core DESC';
 
         db_supress_errors( $list_arr['db_connection'] );
@@ -592,6 +603,12 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * Returns cached array of active plugins from plugins table
+     * @param bool $force
+     *
+     * @return array
+     */
     public function get_all_active_plugins( $force = false )
     {
         $this->reset_error();
@@ -1295,26 +1312,4 @@ class PHS_Model_Plugins extends PHS_Model
 
         return $return_arr;
     }
-
-    // public function force_install()
-    // {
-    //     $this->install();
-    //
-    //     if( !($signal_result = $this->signal_trigger( self::SIGNAL_FORCE_INSTALL )) )
-    //     {
-    //         if( !$this->has_error() )
-    //             $this->set_error( self::ERR_INSTALL, self::_t( 'Error when triggering force install signal.' ) );
-    //
-    //         return false;
-    //     }
-    //
-    //     if( !empty( $signal_result['error_arr'] ) and is_array( $signal_result['error_arr'] ) )
-    //     {
-    //         $this->copy_error_from_array( $signal_result['error_arr'], self::ERR_FORCE_INSTALL );
-    //         return false;
-    //     }
-    //
-    //     return true;
-    // }
-
 }

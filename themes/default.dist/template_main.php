@@ -47,7 +47,6 @@
 
     echo $this->sub_view( 'template_main_head_js' );
 
-
     echo $this->sub_view( 'template_main_skinning' );
 
     echo $this->sub_view( 'template_main_messages_js' );

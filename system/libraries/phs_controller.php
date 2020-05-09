@@ -6,7 +6,7 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 
-abstract class PHS_Controller extends PHS_Signal_and_slot
+abstract class PHS_Controller extends PHS_Instantiable
 {
     const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
@@ -18,12 +18,16 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     /**
      * @return string
      */
-    public function instance_type()
+    final public function instance_type()
     {
         return self::INSTANCE_TYPE_CONTROLLER;
     }
 
-    public function get_action()
+    /**
+     * Returns action running currently using this controller
+     * @return bool|PHS_Action
+     */
+    final public function get_action()
     {
         return $this->_action;
     }
@@ -38,12 +42,12 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         return array();
     }
 
-    public function is_admin_controller( $is_admin = null )
+    final public function is_admin_controller( $is_admin = null )
     {
         if( $is_admin === null )
             return $this->_is_admin_controller;
 
-        $this->_is_admin_controller = (!empty( $is_admin )?true:false);
+        $this->_is_admin_controller = (!empty( $is_admin ));
 
         return $this->_is_admin_controller;
     }
@@ -72,12 +76,32 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     }
 
     /**
+     * Overwrite this method to tell controller to redirect user to login page if not logged in
+     * @return bool
+     */
+    public function should_request_have_logged_in_user()
+    {
+        return false;
+    }
+
+    /**
+     * Overwrite this method to tell controller that a check if current logged in user should have any role units defined in current plugin
+     * If this method returns true, an user checked test is also made
+     * @return bool
+     */
+    public function should_user_have_any_of_defined_role_units()
+    {
+        return false;
+    }
+
+    /**
      * @param string $action Action to be loaded and executed
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
+     * @param string $action_dir Directory (relative from actions dir) where action class is found
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    final public function run_action( $action, $plugin = null )
+    final public function run_action( $action, $plugin = null, $action_dir = '' )
     {
         PHS::running_controller( $this );
 
@@ -103,26 +127,60 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         if( $plugin === null )
             $plugin = $this->instance_plugin_name();
 
-        return $this->_execute_action( $action, $plugin );
+        return $this->_execute_action( $action, $plugin, $action_dir );
     }
 
     /**
      * @param string $action Action to be loaded and executed
      * @param bool|string $plugin false means core plugin, string is name of plugin
+     * @param string $action_dir Filesystem directory (relative from actions dir) where action class is found
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    protected function _execute_action( $action, $plugin )
+    protected function _execute_action( $action, $plugin, $action_dir = '' )
     {
         self::st_reset_error();
 
+        if( $this->should_request_have_logged_in_user()
+        and !PHS::user_logged_in() )
+        {
+            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
+
+            $action_result = PHS_Action::default_action_result();
+
+            $action_result['request_login'] = true;
+
+            return $this->execute_foobar_action( $action_result );
+        }
+
+        if( $this->should_user_have_any_of_defined_role_units() )
+        {
+            /** @var \phs\libraries\PHS_Plugin $plugin_obj */
+            if( !($plugin_obj = $this->get_plugin_instance()) )
+            {
+                PHS_Notifications::add_warning_notice( $this->_pt( 'Couldn\'t obtain plugin instance.' ) );
+
+                return $this->execute_foobar_action();
+            }
+
+            if( !$plugin_obj->user_has_any_of_defined_role_units() )
+            {
+                PHS_Notifications::add_warning_notice( $this->_pt( 'You don\'t have rights to access this section.' ) );
+
+                return $this->execute_foobar_action();
+            }
+        }
+
+        if( !is_string( $action_dir ) )
+            $action_dir = '';
+
         /** @var \phs\libraries\PHS_Action $action_obj */
-        if( !($action_obj = PHS::load_action( $action, $plugin )) )
+        if( !($action_obj = PHS::load_action( $action, $plugin, $action_dir )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
             else
-                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Couldn\'t load action [%s].', $action ) );
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Couldn\'t load action [%s].', ($action_dir!==''?$action_dir.'/':'').$action ) );
             return false;
         }
 
@@ -133,7 +191,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
             if( $action_obj->has_error() )
                 $this->copy_error( $action_obj );
             else
-                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Error executing action [%s].', $action ) );
+                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Error executing action [%s].', ($action_dir!==''?$action_dir.'/':'').$action ) );
 
             return false;
         }
@@ -149,7 +207,7 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
     }
 
     /**
-     * @param array|bool|false $action_result stop execution from controller level using a standard action, just to have nice display...
+     * @param array|bool $action_result stop execution from controller level using a standard action, just to have nice display...
      *
      * @return bool|array Returns an action result array which was generated from controller...
      */
@@ -180,13 +238,9 @@ abstract class PHS_Controller extends PHS_Signal_and_slot
         if( $action_result === false )
             $action_result = PHS_Action::default_action_result();
 
-        $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
-
         $foobar_action_obj->set_controller( $this );
         $foobar_action_obj->run_action();
-        $foobar_action_obj->set_action_result( $action_result );
 
-        return $action_result;
+        return $foobar_action_obj->set_action_result( $action_result );
     }
-
 }

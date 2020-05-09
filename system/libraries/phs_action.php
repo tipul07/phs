@@ -6,7 +6,7 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Controller;
 use \phs\system\core\views\PHS_View;
 
-abstract class PHS_Action extends PHS_Signal_and_slot
+abstract class PHS_Action extends PHS_Instantiable
 {
     const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003;
 
@@ -42,25 +42,22 @@ abstract class PHS_Action extends PHS_Signal_and_slot
      */
     abstract public function execute();
 
-    public function __construct( $instance_details = false )
+    /**
+     * Returns an array of scopes in which action is allowed to run
+     *
+     * @return int[] If empty array, action is allowed in all scopes...
+     */
+    public function allowed_scopes()
     {
-        parent::__construct( $instance_details );
+        return array();
+    }
 
-        // if( !$this->signal_defined( self::SIGNAL_ACTION_BEFORE_RUN ) )
-        // {
-        //     $this->define_signal( self::SIGNAL_ACTION_BEFORE_RUN, array(
-        //         'action_obj' => $this,
-        //         'controller_obj' => &$this->_controller_obj,
-        //     ) );
-        // }
-        //
-        // if( !$this->signal_defined( self::SIGNAL_ACTION_AFTER_RUN ) )
-        // {
-        //     $this->define_signal( self::SIGNAL_ACTION_AFTER_RUN, array(
-        //         'action_obj' => $this,
-        //         'controller_obj' => &$this->_controller_obj,
-        //     ) );
-        // }
+    /**
+     * @return array Returns roles that current action have
+     */
+    public function action_roles()
+    {
+        return array( self::ACT_ROLE_PAGE );
     }
 
     final public static function default_action_role_definition_array()
@@ -70,6 +67,10 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         );
     }
 
+    /**
+     * Return an array of defined action roles (custom and builtin)
+     * @return array
+     */
     final public static function get_action_roles()
     {
         if( !empty( self::$_action_roles ) )
@@ -80,6 +81,12 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return self::$_action_roles;
     }
 
+    /**
+     * Check if $role_key is a defined action role. Return action role definiton if role is defined.
+     * @param string $role_key
+     *
+     * @return array|bool
+     */
     final public static function valid_action_role( $role_key )
     {
         if( !($roles_arr = self::get_action_roles())
@@ -89,10 +96,30 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return $roles_arr[$role_key];
     }
 
+    /**
+     * Define an action role
+     * @param string $role_key
+     * @param array $role_arr Role definition array
+     *
+     * @return array|bool
+     */
     final public function define_action_role( $role_key, $role_arr )
     {
-        if( ($defined_role = $this->valid_action_role( $role_key )) )
+        $this->reset_error();
+
+        if( ($defined_role = self::valid_action_role( $role_key )) )
             return $defined_role;
+
+        if( !is_string( $role_key ) )
+        {
+            if( !is_scalar( $role_key ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role key should be a string.' ) );
+                return false;
+            }
+
+            $role_key = (string)$role_key;
+        }
 
         $role_arr = self::merge_array_assoc( $role_arr, self::default_action_role_definition_array() );
 
@@ -106,17 +133,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     }
 
     /**
-     * @return array Returns roles that current action have
-     */
-    public function action_roles()
-    {
-        return array( self::ACT_ROLE_PAGE );
-    }
-
-    /**
      * Checks if current action has provided role(s)
      *
-     * @param array|int $role_check action role (int) or action roles (array of ints) to be checked
+     * @param string[]|string $role_check action role (string) or action roles (array of strings) to be checked
      * @param array|bool $params Method extra parameters
      *
      * @return array|bool Return false if provided roles are not for current action or a list of matching action roles
@@ -139,13 +158,13 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         if( empty( $params['all_provided'] ) )
             $params['all_provided'] = false;
         else
-            $params['all_provided'] = (!empty( $params['all_provided'] )?true:false);
+            $params['all_provided'] = (!empty( $params['all_provided'] ));
 
         $return_arr = array();
         foreach( $role_check as $role_key )
         {
             if( ($role_arr = self::valid_action_role( $role_key ))
-            and in_array( $role_key, $action_roles ) )
+            and in_array( $role_key, $action_roles, true ) )
             {
                 $return_arr[$role_key] = $role_arr;
                 continue;
@@ -162,19 +181,9 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     /**
      * @return string
      */
-    public function instance_type()
+    final public function instance_type()
     {
         return self::INSTANCE_TYPE_ACTION;
-    }
-
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return int[] If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
-    {
-        return array();
     }
 
     /**
@@ -201,7 +210,11 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return true;
     }
 
-    public static function default_action_result()
+    /**
+     * Returns a default array as result of an action execution
+     * @return array
+     */
+    final public static function default_action_result()
     {
         return array(
             // Action "content"
@@ -235,7 +248,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         );
     }
 
-    public function set_action_defaults()
+    final public function set_action_defaults()
     {
         $this->_action_result = self::default_action_result();
     }
@@ -243,12 +256,18 @@ abstract class PHS_Action extends PHS_Signal_and_slot
     /**
      * @return array|null
      */
-    public function get_action_result()
+    final public function get_action_result()
     {
         return $this->_action_result;
     }
 
-    public function set_action_result( $result )
+    /**
+     * Sets action result for current action
+     * @param array $result
+     *
+     * @return array
+     */
+    final public function set_action_result( $result )
     {
         $this->_action_result = self::validate_array( $result, self::default_action_result() );
         return $this->_action_result;
@@ -307,7 +326,12 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         {
             $route_parts = array();
             foreach( $route_as_array as $part_type => $part_value )
+            {
+                if( empty( $part_value ) )
+                    continue;
+
                 $route_parts[$part_value] = true;
+            }
 
             $action_body_classes .= ' '.implode( ' ', array_keys( $route_parts ) );
         }
@@ -391,7 +415,7 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return $this->get_action_result();
     }
 
-    public function set_controller( PHS_Controller $controller_obj )
+    final public function set_controller( PHS_Controller $controller_obj )
     {
         if( !($controller_obj instanceof PHS_Controller) )
         {
@@ -404,14 +428,14 @@ abstract class PHS_Action extends PHS_Signal_and_slot
         return true;
     }
 
-    public function get_controller()
+    final public function get_controller()
     {
         return $this->_controller_obj;
     }
 
-    public function is_admin_controller()
+    final public function is_admin_controller()
     {
-        return ($this->_controller_obj and $this->_controller_obj->is_admin_controller()?true:false);
+        return ($this->_controller_obj and $this->_controller_obj->is_admin_controller());
     }
 
 }
