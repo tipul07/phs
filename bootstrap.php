@@ -38,6 +38,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_model_base.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model_mysqli.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model_mongo.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_model.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_model_trait_statuses.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller_index.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
