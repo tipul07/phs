@@ -29,12 +29,19 @@ class PHS_ajax extends PHS_Registry
         return self::$_ajax_checksum_timeout;
     }
 
-    public static function url( $params = false, $args = false, $extra = false )
+    /**
+     * @param bool|array $route_arr
+     * @param bool|array $args
+     * @param bool|array $extra
+     *
+     * @return mixed|string
+     */
+    public static function url( $route_arr = false, $args = false, $extra = false )
     {
         self::st_reset_error();
         
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $route_arr ) or !is_array( $route_arr ) )
+            $route_arr = array();
 
         if( empty( $args ) or !is_array( $args ) )
             $args = array();
@@ -46,7 +53,7 @@ class PHS_ajax extends PHS_Registry
 
         $extra['for_scope'] = PHS_Scope::SCOPE_AJAX;
         
-        return PHS::url( $params, $args, $extra );
+        return PHS::url( $route_arr, $args, $extra );
     }
 
     public static function get_ajax_validation_params( $args = false )

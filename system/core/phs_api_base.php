@@ -932,12 +932,19 @@ abstract class PHS_api_base extends PHS_Registry
         return self::http_header_response( self::GENERIC_ERROR_CODE, $msg );
     }
 
+    /**
+     * @param int $code
+     * @param bool|string $msg
+     * @param bool|string $protocol
+     *
+     * @return bool
+     */
     public static function http_header_response( $code, $msg = false, $protocol = false )
     {
         if( @headers_sent() )
             return false;
 
-        if( !($code = intval( $code )) )
+        if( !($code = (int)$code) )
             $code = self::GENERIC_OK_CODE;
 
         if( !is_string( $msg ) )

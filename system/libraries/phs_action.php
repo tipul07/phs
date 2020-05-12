@@ -8,7 +8,7 @@ use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
-    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003;
+    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
 
     const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 

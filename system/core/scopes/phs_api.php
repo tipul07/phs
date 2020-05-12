@@ -134,7 +134,7 @@ class PHS_Scope_Api extends PHS_Scope
             $action_result['api_buffer'] = @json_encode( $json_array );
         }
 
-        if( $action_result['api_buffer'] != '' )
+        if( $action_result['api_buffer'] !== '' )
             echo $action_result['api_buffer'];
 
         return $action_result;

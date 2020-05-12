@@ -1372,11 +1372,11 @@ final class PHS extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
-        if( empty( $extra['raw_params'] ) )
+        if( empty( $extra['raw_params'] ) or !is_array( $extra['raw_params'] ) )
             $extra['raw_params'] = array();
 
         // Changed raw_params to raw_args (backward compatibility)
-        if( empty( $extra['raw_args'] ) )
+        if( empty( $extra['raw_args'] ) or !is_array( $extra['raw_args'] ) )
             $extra['raw_args'] = $extra['raw_params'];
 
         if( empty( $extra['skip_formatters'] ) )
@@ -1387,15 +1387,25 @@ final class PHS extends PHS_Registry
         if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
             $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
 
-        if( !($route = self::route_from_parts( $route_arr )) )
+        $new_args = array();
+
+        // We can pass raw route as a string (obtained as PHS::route_from_parts())
+        // which is passed as a parameter in a JavaScript script
+        // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
+        if( !empty( $extra['raw_route'] ) and is_string( $extra['raw_route'] ) )
+        {
+            $extra['raw_args'][self::ROUTE_PARAM] = $extra['raw_route'];
+        } elseif( !($route = self::route_from_parts( $route_arr )) )
+        {
             return '#invalid_path['.
                    (!empty( $route_arr['p'] )?$route_arr['p']:'').'::'.
                    (!empty( $route_arr['c'] )?$route_arr['c']:'').'::'.
                    (!empty( $route_arr['ad'] )?$route_arr['ad']:'').'/'.
                    (!empty( $route_arr['a'] )?$route_arr['a']:'').']';
-
-        $new_args = array();
-        $new_args[self::ROUTE_PARAM] = $route;
+        } else
+        {
+            $new_args[self::ROUTE_PARAM] = $route;
+        }
 
         if( isset( $args[self::ROUTE_PARAM] ) )
             unset( $args[self::ROUTE_PARAM] );
@@ -1431,20 +1441,23 @@ final class PHS extends PHS_Registry
 
         $final_url = $stock_url;
 
-        // Let plugins change API provided route in actual plugin, controller, action route (if required)
-        $hook_args = PHS_Hooks::default_url_rewrite_hook_args();
-        $hook_args['route_arr'] = $route_arr;
-        $hook_args['args'] = $args;
-        $hook_args['raw_args'] = $extra['raw_args'];
+        if( empty( $extra['skip_formatters'] ) )
+        {
+            // Let plugins change API provided route in actual plugin, controller, action route (if required)
+            $hook_args = PHS_Hooks::default_url_rewrite_hook_args();
+            $hook_args['route_arr'] = $route_arr;
+            $hook_args['args'] = $args;
+            $hook_args['raw_args'] = $extra['raw_args'];
 
-        $hook_args['stock_args'] = $new_args;
-        $hook_args['stock_query_string'] = $query_string;
-        $hook_args['stock_url'] = $stock_url;
+            $hook_args['stock_args'] = $new_args;
+            $hook_args['stock_query_string'] = $query_string;
+            $hook_args['stock_url'] = $stock_url;
 
-        if( ($hook_args = self::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['new_url'] ) and is_string( $hook_args['new_url'] ) )
-            $final_url = $hook_args['new_url'];
+            if( ($hook_args = self::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
+            and is_array( $hook_args )
+            and !empty( $hook_args['new_url'] ) and is_string( $hook_args['new_url'] ) )
+                $final_url = $hook_args['new_url'];
+        }
 
         return $final_url;
     }

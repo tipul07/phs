@@ -103,8 +103,8 @@ class PHS_Scope_Ajax extends PHS_Scope
                 }
 
                 $ajax_data['response'] = $action_result['ajax_result'];
-                $ajax_data['redirect_to_url'] = (!empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : '');
-                $ajax_data['request_login'] = (!empty($action_result['request_login']) ? true : false);
+                $ajax_data['redirect_to_url'] = (!empty( $action_result['redirect_to_url'] ) ? $action_result['redirect_to_url'] : '');
+                $ajax_data['request_login'] = (!empty( $action_result['request_login'] ));
             }
 
             if( $full_buffer )
