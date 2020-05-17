@@ -40,10 +40,12 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
             $params['m'] = '';
         if( empty( $params['a'] ) )
             $params['a'] = '';
+        if( empty( $params['co'] ) )
+            $params['co'] = '';
 
         $action_result['ajax_result']['params'] = $params;
 
-        if( empty( $params['c'] ) and empty( $params['m'] ) and empty( $params['a'] ) )
+        if( empty( $params['c'] ) and empty( $params['m'] ) and empty( $params['a'] ) and empty( $params['co'] ) )
         {
             if( !($plugin_obj = PHS::load_plugin( $params['p'] )) )
             {
@@ -81,6 +83,19 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 $action_result['buffer'] = $error_msg;
                 $action_result['ajax_result']['has_error'] = true;
             } elseif( ($instance_details = $action_obj->instance_details()) )
+                $action_result['ajax_result']['instance_details'] = $instance_details;
+        } elseif( !empty( $params['co'] ) )
+        {
+            if( !($contract_obj = PHS::load_contract( $params['co'], $params['p'] )) )
+            {
+                if( self::st_has_error() )
+                    $error_msg = self::st_get_error_message();
+                else
+                    $error_msg = $this->_pt( 'Unknown error while instantiating contract.' );
+
+                $action_result['buffer'] = $error_msg;
+                $action_result['ajax_result']['has_error'] = true;
+            } elseif( ($instance_details = $contract_obj->instance_details()) )
                 $action_result['ajax_result']['instance_details'] = $instance_details;
         } elseif( !empty( $params['m'] ) )
         {

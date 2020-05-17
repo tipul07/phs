@@ -12,9 +12,11 @@ use \phs\libraries\PHS_Library;
 
 final class PHS extends PHS_Registry
 {
-    const ERR_HOOK_REGISTRATION = 2000, ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
+    const ERR_HOOK_REGISTRATION = 2000,
+          ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
           ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
-          ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012;
+          ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012,
+          ERR_LOAD_CONTRACT = 2013;
 
     const ACTION_DIR_ACTION_SEPARATOR = '__';
 
@@ -1996,6 +1998,58 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * @param string $contract
+     * @param string|bool $plugin
+     * @param string $contract_dir
+     *
+     * @return bool|\phs\libraries\PHS_Contract Returns false on error or an instance of loaded contract
+     */
+    public static function load_contract( $contract, $plugin = false, $contract_dir = '' )
+    {
+        if( !is_string( $contract_dir ) )
+            $contract_dir = '';
+        else
+            $contract_dir = trim( trim( $contract_dir ), '/\\' );
+
+        if( !($contract_name = PHS_Instantiable::safe_escape_class_name( $contract )) )
+        {
+            self::st_set_error( self::ERR_LOAD_CONTRACT,
+                                self::_t( 'Couldn\'t load contract %s from plugin %s.',
+                                          ($contract_dir!==''?$contract_dir.'/':'').$contract,
+                                          (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        if( '' !== $contract_dir
+        and !($contract_dir = PHS_Instantiable::safe_escape_instance_subdir( $contract_dir )) )
+        {
+            self::st_set_error( self::ERR_LOAD_CONTRACT,
+                                self::_t( 'Couldn\'t load contract %s from plugin %s.',
+                                          ($contract_dir!==''?$contract_dir.'/':'').$contract,
+                                          (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Contract_'.ucfirst( strtolower( $contract_name ) );
+
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        /** @var \phs\libraries\PHS_Action */
+        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_CONTRACT,
+                                    self::_t( 'Couldn\'t obtain instance for contract %s from plugin %s .',
+                                              ($contract_dir!==''?$contract_dir.'/':'').$contract,
+                                              (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
      * @param string $scope
      * @param string|bool $plugin
      *
@@ -2084,6 +2138,9 @@ final class PHS extends PHS_Registry
             break;
             case PHS_Instantiable::INSTANCE_TYPE_ACTION:
                 $class_name = 'PHS_Action_Index';
+            break;
+            case PHS_Instantiable::INSTANCE_TYPE_CONTRACT:
+                $class_name = 'PHS_Contract_Index';
             break;
             case PHS_Instantiable::INSTANCE_TYPE_VIEW:
                 $class_name = 'PHS_View_Index';
@@ -2230,6 +2287,9 @@ final class PHS extends PHS_Registry
             case PHS_Instantiable::INSTANCE_TYPE_ACTION:
                 $class_name = 'PHS_Action_'.$instance_name;
             break;
+            case PHS_Instantiable::INSTANCE_TYPE_CONTRACT:
+                $class_name = 'PHS_Contract_'.$instance_name;
+            break;
             case PHS_Instantiable::INSTANCE_TYPE_VIEW:
                 $class_name = 'PHS_View_'.$instance_name;
             break;
@@ -2337,6 +2397,17 @@ final class PHS extends PHS_Registry
     public static function get_action_json_info( $plugin_name, $action_name )
     {
         return self::_get_instance_json_details( $plugin_name, $action_name, PHS_Instantiable::INSTANCE_TYPE_ACTION );
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $contract_name
+     *
+     * @return array|bool
+     */
+    public static function get_contract_json_info( $plugin_name, $contract_name )
+    {
+        return self::_get_instance_json_details( $plugin_name, $contract_name, PHS_Instantiable::INSTANCE_TYPE_CONTRACT );
     }
 
     /**

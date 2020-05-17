@@ -1,0 +1,41 @@
+.phs_ractive_autocomplete_loading {
+    background: white url("../images/working.gif") right center no-repeat;
+}
+.phs_ractive_autocomplete_inputs {
+    clear:both;
+    width: 100%;
+}
+.phs_ractive_autocomplete_results {
+    border: 1px solid gray;
+    background: white;
+    height: 250px;
+    position: absolute;
+    width: max-content;
+    max-width: 800px;
+    min-width: 250px;
+    clear: both;
+    margin-top: 10px;
+}
+.phs_ractive_autocomplete_items_list {
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 90%;
+    clear: both;
+}
+.phs_ractive_autocomplete_status {
+    font-size: small;
+    text-align: center;
+    padding: 5px;
+    min-height: 24px;
+    height: 10%;
+    clear: both;
+}
+.phs_ractive_autocomplete_item {
+    padding: 5px;
+    border-bottom: 1px dotted lightgrey;
+}
+.phs_ractive_autocomplete_item:hover {
+    background-color: #c2c2c2;
+    cursor: pointer;
+}

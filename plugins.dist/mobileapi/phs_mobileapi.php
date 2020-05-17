@@ -141,9 +141,11 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             'type_extra' => false,
             // Default value when exporting
             'default' => null,
-            // Don't export missing keys/indexes or export them with default value
+            // false - don't export missing keys/indexes from data array
+            // true - export missing keys from data array with default value
             'export_if_not_found' => false,
-            // Don't import missing keys/indexes or import them with default value
+            // false - don't import missing keys/indexes from data array
+            // true - import missing keys from data array with default value
             'import_if_not_found' => false,
             // Tells if current key should be accepted only as input, output or both
             'key_type' => self::API_KEY_INPUT,

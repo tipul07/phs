@@ -9,7 +9,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     const ERR_INSTANCE = 20000, ERR_INSTANCE_ID = 20001, ERR_INSTANCE_CLASS = 20002, ERR_CLASS_NAME = 20002;
 
     const INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller', INSTANCE_TYPE_ACTION = 'action',
-          INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope';
+          INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope', INSTANCE_TYPE_CONTRACT = 'contract';
 
     const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
           TESTS_DIR = 'tests',
@@ -26,6 +26,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_ACTION => array( 'title' => 'Action', 'dir_name' => 'actions' ),
         self::INSTANCE_TYPE_VIEW => array( 'title' => 'View', 'dir_name' => 'views' ),
         self::INSTANCE_TYPE_SCOPE => array( 'title' => 'Scope', 'dir_name' => 'scopes' ),
+        self::INSTANCE_TYPE_CONTRACT => array( 'title' => 'Contract', 'dir_name' => 'contracts' ),
     );
 
     protected static $instances = array();
@@ -797,6 +798,31 @@ abstract class PHS_Instantiable extends PHS_Registry
                 }
             break;
 
+            case self::INSTANCE_TYPE_CONTRACT:
+
+                if( empty( $class )
+                 or stripos( $class, 'phs_contract_' ) !== 0 )
+                {
+                    self::st_set_error( self::ERR_INSTANCE, self::_t( 'Class name is not a framework contract.' ) );
+                    return false;
+                }
+
+                $return_arr['instance_name'] = trim( substr( $class, 13 ), '_' );
+
+                if( empty( $return_arr['instance_name'] ) )
+                    $return_arr['instance_name'] = 'index';
+
+                if( $plugin_name === self::CORE_PLUGIN )
+                {
+                    $return_arr['instance_path'] = PHS_CORE_CONTRACT_DIR;
+                } else
+                {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW . $plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR . $plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR . $plugin_name.'/'.$instance_type_dir.'/';
+                }
+            break;
+
             case self::INSTANCE_TYPE_VIEW:
 
                 if( empty( $class )
@@ -901,7 +927,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     final public static function instance_types_that_allow_subdirs()
     {
-        return array( self::INSTANCE_TYPE_ACTION );
+        return array( self::INSTANCE_TYPE_ACTION, self::INSTANCE_TYPE_CONTRACT );
     }
 
     /**

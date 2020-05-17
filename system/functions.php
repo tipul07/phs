@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.2.3';
+    return '1.1.2.4';
 }
 
 function phs_init_before_bootstrap()
@@ -76,6 +76,8 @@ function phs_init_before_bootstrap()
         define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
     if( !defined( 'PHS_CORE_ACTION_DIR' ) )
         define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
+    if( !defined( 'PHS_CORE_CONTRACT_DIR' ) )
+        define( 'PHS_CORE_CONTRACT_DIR', PHS_CORE_DIR.'contracts/' );
     if( !defined( 'PHS_CORE_PLUGIN_DIR' ) )
         define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
     if( !defined( 'PHS_CORE_SCOPE_DIR' ) )

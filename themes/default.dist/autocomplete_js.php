@@ -12,12 +12,25 @@
 
     if( !($route_params_arr = $this->view_var( 'route_params_arr' )) )
         $route_params_arr = false;
-?>
-<script type="text/javascript">
-$(document).ready(function(){
+    if( !($include_js_script_tags = $this->view_var( 'include_js_script_tags' )) )
+        $include_js_script_tags = false;
+    if( !($include_js_on_ready = $this->view_var( 'include_js_on_ready' )) )
+        $include_js_on_ready = false;
 
-    <?php
-    if( $this->view_var( 'id_value' ) )
+if( $include_js_script_tags )
+{
+?><script type="text/javascript">
+<?php
+}
+
+if( $include_js_on_ready )
+{
+?>$(document).ready(function(){
+<?php
+}
+
+    if( $this->view_var( 'id_value' )
+    and $this->view_var( 'lock_on_init' ) )
     {
         ?>phs_autocomplete_input_lock( '<?php echo $text_id?>' );<?php
     }
@@ -41,6 +54,15 @@ $(document).ready(function(){
                 .append( "<a>" + item.label + "</a>" )
                 .appendTo( ul );
     };
+<?php
+if( $include_js_on_ready )
+{
+    ?>});
+<?php
+}
+if( $include_js_script_tags )
+{
+    ?></script>
+<?php
+}
 
-});
-</script>

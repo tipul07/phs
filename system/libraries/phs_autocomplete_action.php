@@ -21,6 +21,13 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         'text_id' => 'phs_autocomplete_text_id',
         'text_name' => 'phs_autocomplete_text_name',
 
+        'onclick_attribute' => 'onclick',
+        'onfocus_attribute' => 'onfocus',
+
+        'include_js_script_tags' => true,
+        'include_js_on_ready' => true,
+        'lock_on_init' => true,
+
         // styling
         'text_css_classes' => 'form-control',
         'text_css_style' => '',

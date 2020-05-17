@@ -109,12 +109,14 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $controllers_arr = array();
         if( !($actions_arr = PHS::get_plugin_scripts_from_dir( $plugin_name, PHS_Instantiable::INSTANCE_TYPE_ACTION )) )
             $actions_arr = array();
+        if( !($contracts_arr = PHS::get_plugin_scripts_from_dir( $plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTRACT )) )
+            $contracts_arr = array();
         if( !($models_arr = PHS::get_plugin_scripts_from_dir( $plugin_name, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
             $models_arr= array();
 
-        $return_str = '<hr/><p>'.$this->_pt( 'Checking plugin %s (%s controllers, %s actions, %s models)...',
+        $return_str = '<hr/><p>'.$this->_pt( 'Checking plugin %s (%s controllers, %s actions, %s contracts, %s models)...',
                                         '<strong>'.$plugin_name.'</strong>',
-                                        count( $controllers_arr ), count( $actions_arr ), count( $models_arr ) ).'</p>';
+                                        count( $controllers_arr ), count( $actions_arr ), count( $contracts_arr ), count( $models_arr ) ).'</p>';
 
         $return_str .= '<p>Plugin instance... ';
         if( ($action_result = $this->check_plugin_integrity( $plugin_name ))
@@ -188,6 +190,33 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $return_str .= '</p>';
         }
 
+        if( !empty( $contracts_arr ) )
+        {
+            $return_str .= '<p>Checking contracts:<br/>';
+            foreach( $contracts_arr as $contract_name )
+            {
+                $return_str .= 'Contract '.$contract_name.'... ';
+                if( ($action_result = $this->check_plugin_integrity( $plugin_name, array( 'contract' => $contract_name ) ))
+                and !empty( $action_result['ajax_result'] )
+                and empty( $action_result['ajax_result']['has_error'] ) )
+                {
+                    if( !empty( $action_result['ajax_result']['instance_details'] )
+                    and is_array( $action_result['ajax_result']['instance_details'] ) )
+                    {
+                        $instance_details = $action_result['ajax_result']['instance_details'];
+
+                        $return_str .= ' '.$instance_details['instance_id'].' ';
+                    }
+
+                    $return_str .= '<span style="color:green">OK</span>';
+                } else
+                    $return_str .= '<span style="color:red">FAILED ('.((!empty( $action_result ) and !empty( $action_result['buffer'] ))?$action_result['buffer']:$this->_pt( 'N/A' )).')</span>';
+
+                $return_str .= '<br/>';
+            }
+            $return_str .= '</p>';
+        }
+
         if( !empty( $models_arr ) )
         {
             $return_str .= '<p>Checking models:<br/>';
@@ -229,6 +258,8 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $params['controller'] = false;
         if( empty( $params['action'] ) )
             $params['action'] = false;
+        if( empty( $params['contract'] ) )
+            $params['contract'] = false;
 
         $script_params = array();
         $script_params['p'] = $plugin_name;
@@ -238,6 +269,8 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $script_params['m'] = $params['model'];
         if( !empty( $params['action'] ) )
             $script_params['a'] = $params['action'];
+        if( !empty( $params['contract'] ) )
+            $script_params['co'] = $params['contract'];
 
         if( !($bg_action_result = PHS_bg_jobs::run( array(
                                                       'plugin' => 'admin',
