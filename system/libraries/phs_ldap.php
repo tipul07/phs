@@ -2,9 +2,6 @@
 
 namespace phs\libraries;
 
-use \phs\PHS;
-use \phs\libraries\PHS_Library;
-
 class PHS_Ldap extends PHS_Registry
 {
     //! Error related to LDAP repository
@@ -842,6 +839,8 @@ class PHS_Ldap extends PHS_Registry
             return false;
 
         $this->reset_error();
+
+        $settings['root'] = rtrim( $settings['root'], '/\\' );
 
         $segments_path = '';
         foreach( $segments_arr as $dir_segment )
