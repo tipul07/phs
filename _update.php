@@ -2,6 +2,7 @@
 
     define( 'PHS_INSTALLING_FLOW', true );
     define( 'PHS_PREVENT_SESSION', true );
+    define( 'PHS_IN_WEB_UPDATE_SCRIPT', true );
 
     include_once( 'main.php' );
 

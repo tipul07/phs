@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.2.4';
+    return '1.1.3.0';
 }
 
 function phs_init_before_bootstrap()
@@ -828,7 +828,7 @@ function array_to_query_string( $arr, $params = false )
 
     if( empty( $arr ) or !is_array( $arr ) )
         return '';
-    
+
     $return_str = '';
     foreach( $arr as $key => $val )
     {

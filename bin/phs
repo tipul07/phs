@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+    if( !@file_exists( __DIR__.'/apps/bootstrap.php' ) )
+    {
+        echo 'Couldn\'t find bootstrap.php in apps directory.'."\n";
+        exit;
+    }
+
+    if( !@file_exists( __DIR__.'/apps/PHSMaintenance.php' ) )
+    {
+        echo 'Couldn\'t find PHSMaintenance app in apps directory.'."\n";
+        exit;
+    }
+
+    include_once( __DIR__.'/apps/bootstrap.php' );
+    include_once( __DIR__.'/apps/PHSMaintenance.php' );
+
+    use \phs\PHS_cli;
+    use \phs\cli\apps\PHSMaintenance;
+
+    if( !PHS_cli::running_in_cli() )
+    {
+        echo PHS_cli::_t( 'This script must be run in a CLI environment.' )."\n";
+        exit;
+    }
+
+    if( !($phs_app = PHSMaintenance::get_instance()) )
+    {
+        $error_msg = PHSMaintenance::st_cli_color( PHSMaintenance::_t( 'ERROR' ), 'red' ).': ';
+        if( PHSMaintenance::st_has_error() )
+            $error_msg .= PHSMaintenance::st_get_simple_error_message();
+        else
+            $error_msg .= PHS_cli::_t( 'Error obtaining PHSMaintenance class instance.' );
+
+        echo $error_msg."\n";
+
+        exit;
+    }
+
+    $phs_app->_echo( $phs_app::_t( 'Script executed using PHP version: %s', $phs_app->cli_color( trim( PHP_VERSION ), 'red' ) ) );
+
+    $phs_app->run();
+

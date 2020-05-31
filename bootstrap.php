@@ -25,6 +25,7 @@ if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) or !is_array( $PHS_DEFAULT_CRY
 phs_init_before_bootstrap();
 
 include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_language_container.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_library.php' );
@@ -83,6 +84,7 @@ use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Language;
+use \phs\libraries\PHS_params;
 
 // These are special cases as there might be 3 definitions of same constant
 // and framework will take first framework constant, then default constant if domain constant is not defined
@@ -211,6 +213,22 @@ if( ($custom_config_file = PHS::check_custom_config()) )
 
 PHS::define_constants();
 
+// Init crypting system
+include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
+
+// If we are in WEB update script check if we have update token
+if( defined( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && defined( 'PHS_INSTALLING_FLOW' )
+ && constant( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && constant( 'PHS_INSTALLING_FLOW' )
+ && (
+     !($pub_key = PHS_params::_gp( PHS::PARAM_UPDATE_TOKEN_PUBKEY, PHS_params::T_NOHTML ))
+     || !($hash = PHS_params::_gp( PHS::PARAM_UPDATE_TOKEN_HASH, PHS_params::T_NOHTML ))
+     || !PHS::validate_framework_update_params( $pub_key, $hash )
+    ) )
+{
+    echo PHS::_t( 'Update token invalid.' );
+    exit;
+}
+
 //
 // Init database settings
 // We don't create a connection with database server yet, we just instantiate database objects and
@@ -241,9 +259,6 @@ define( 'PHS_UPLOADS_WWW', $base_url.'_uploads/' );
 // most used functionalities defined as functions for quick access (doh...)
 include_once( PHS_SYSTEM_DIR.'functions.php' );
 
-// Init crypting system
-include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
-
 // Init session
 // !!!NOTE!!! When working with session variables you HAVE to use PHS_Session::_* (_g - get, _s - set and _d - delete)
 // $_SESSION array will be overwritten by PHS_Session class and variables set directly in $_SESSION array will be lost
@@ -264,7 +279,7 @@ if( !($plugins_model = PHS::load_model( 'plugins' )) )
 //
 // Check if we are in install flow...
 //
-if( !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
+if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
 {
     if( !($active_plugins = $plugins_model->get_all_active_plugins()) )
     {

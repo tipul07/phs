@@ -57,6 +57,7 @@
     }
 
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language_container.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php' );
@@ -70,8 +71,14 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mysqli.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mongo.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_trait_statuses.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_trait_record_types.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_index.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_background.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_contract.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_encdec.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_interface.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_class.php' );
@@ -84,6 +91,8 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_file_upload.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_paginator.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_paginator_action.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_paginator_exporter_library.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_autocomplete_action.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_db.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_session.php' );
@@ -93,6 +102,8 @@
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_bg_jobs.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_agent.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_ajax.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_api_base.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_api.php' );
 
     include_once( PHS_SETUP_PHS_SYSTEM_DIR.'functions.php' );
 

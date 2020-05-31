@@ -1,21 +1,21 @@
 #!/usr/bin/env php
 <?php
 
-    if( !@file_exists( 'bootstrap.php' ) )
+    if( !@file_exists( __DIR__.'/../tests/bootstrap.php' ) )
     {
-        echo 'Couldn\'t find bootstrap.php in tests directory.';
+        echo 'Couldn\'t find bootstrap.php in tests directory.'."\n";
         exit;
     }
 
-    if( !@file_exists( 'vendor/autoload.php' ) )
+    if( !@file_exists( __DIR__.'/../tests/vendor/autoload.php' ) )
     {
-        echo 'You should first run composer install command.';
+        echo 'You should first run composer install command.'."\n";
         exit;
     }
 
-    include_once( 'bootstrap.php' );
+    include_once( __DIR__.'/../tests/bootstrap.php' );
 
-    include_once( 'vendor/autoload.php' );
+    include_once( __DIR__.'/../tests/vendor/autoload.php' );
 
     use \phs\PHS_cli;
     use \phs\tests\phs\PHSTests;

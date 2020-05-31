@@ -18,6 +18,11 @@ final class PHS extends PHS_Registry
           ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012,
           ERR_LOAD_CONTRACT = 2013;
 
+    // How much will an update token be available in seconds
+    const UPDATE_TOKEN_LIFETIME = 86400;
+    // Update token parameter names
+    const PARAM_UPDATE_TOKEN_HASH = '_phs_uth', PARAM_UPDATE_TOKEN_PUBKEY = '_phs_upk';
+
     const ACTION_DIR_ACTION_SEPARATOR = '__';
 
     const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
@@ -48,8 +53,9 @@ final class PHS extends PHS_Registry
     private static $_AGENT_SCRIPT = '_agent_bg';
     private static $_AJAX_SCRIPT = '_ajax';
     private static $_API_SCRIPT = '_api';
+    private static $_UPDATE_SCRIPT = '_update';
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
 
@@ -1104,6 +1110,26 @@ final class PHS extends PHS_Registry
         return self::$_API_SCRIPT.'.php';
     }
 
+    /**
+     * Change default update script (default is _update). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New upate script (default is _update). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function update_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_UPDATE_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         or !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_UPDATE_SCRIPT = $script;
+        return self::$_UPDATE_SCRIPT.'.php';
+    }
+
     public static function get_background_path()
     {
         return PHS_PATH.self::background_script();
@@ -1117,6 +1143,11 @@ final class PHS extends PHS_Registry
     public static function get_interpret_path()
     {
         return PHS_PATH.self::interpret_script();
+    }
+
+    public static function get_update_script_path()
+    {
+        return PHS_PATH.self::update_script();
     }
 
     /**
@@ -1165,6 +1196,64 @@ final class PHS extends PHS_Registry
             $base_url .= '/';
 
         return $base_url.self::api_script();
+    }
+
+    public static function get_update_script_url( $force_https = false )
+    {
+        if( !($base_url = self::get_base_url( $force_https )) )
+            return false;
+
+        if( substr( $base_url, -1 ) !== '/' )
+            $base_url .= '/';
+
+        return $base_url.self::update_script();
+    }
+
+    public static function generate_framework_update_token()
+    {
+        $pub_key = time() + self::UPDATE_TOKEN_LIFETIME;
+        $clean_str = $pub_key.':'.PHS_crypt::crypting_key();
+        if( @function_exists( 'hash' )
+         && ($hash_algos = @hash_algos())
+         && in_array( 'sha256', $hash_algos, true ) )
+            $hashed_str = hash( 'sha256', $clean_str );
+        else
+            $hashed_str = md5( $clean_str );
+
+        return [
+            'pub_key' => $pub_key,
+            'hash' => $hashed_str,
+        ];
+    }
+
+    public static function validate_framework_update_params( $pub_key, $hash )
+    {
+        if( empty( $pub_key ) || empty( $hash )
+         || !is_string( $pub_key ) || !is_string( $hash ) )
+            return false;
+
+        $clean_str = $pub_key.':'.PHS_crypt::crypting_key();
+        if( @function_exists( 'hash' )
+         && ($hash_algos = @hash_algos())
+         && @in_array( 'sha256', $hash_algos, true ) )
+            return (@hash_equals( hash( 'sha256', $clean_str ), $hash ) ? true : false);
+
+        return (md5( $clean_str ) === $hash);
+    }
+
+    public static function get_framework_update_url_with_token()
+    {
+        $token = self::generate_framework_update_token();
+
+        $args = [
+            self::PARAM_UPDATE_TOKEN_HASH => $token['hash'],
+            self::PARAM_UPDATE_TOKEN_PUBKEY => $token['pub_key'],
+        ];
+
+        if( !($query_string = @http_build_query( $args )) )
+            $query_string = '';
+
+        return self::get_update_script_url( true ).'?'.$query_string;
     }
 
     public static function current_url()

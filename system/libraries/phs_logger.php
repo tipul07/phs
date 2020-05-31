@@ -9,7 +9,8 @@ use \phs\PHS_Scope;
 class PHS_Logger extends PHS_Registry
 {
     const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
-          TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log', TYPE_TESTS = 'phs_tests.log',
+          TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
+          TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log',
           // this constants are used only to tell log_channels() method it should log redefined sets of channels
           TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
@@ -32,7 +33,8 @@ class PHS_Logger extends PHS_Registry
     public static function get_types()
     {
         return array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                      self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
+                      self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+                      self::TYPE_TESTS, self::TYPE_CLI );
     }
 
     public static function valid_type( $type )
@@ -125,16 +127,19 @@ class PHS_Logger extends PHS_Registry
 
                 case self::TYPE_DEF_ALL:
                     $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
+                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+                                        self::TYPE_TESTS, self::TYPE_CLI );
                 break;
 
                 case self::TYPE_DEF_DEBUG:
                     $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_TESTS );
+                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
+                                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI );
                 break;
 
                 case self::TYPE_DEF_PRODUCTION:
-                    $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND, self::TYPE_AGENT, self::TYPE_API );
+                    $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND,
+                                        self::TYPE_AGENT, self::TYPE_API, self::TYPE_CLI );
                 break;
             }
         }
@@ -319,6 +324,9 @@ class PHS_Logger extends PHS_Registry
                 break;
                 case PHS_Scope::SCOPE_TESTS:
                     $channel = self::TYPE_TESTS;
+                break;
+                case PHS_Scope::SCOPE_CLI:
+                    $channel = self::TYPE_CLI;
                 break;
             }
         }
