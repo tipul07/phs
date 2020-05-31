@@ -43,12 +43,27 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         {
             var keys = [];
             for( var i in o )
+            {
                 if( o.hasOwnProperty( i ) )
                 {
                     keys.push( i );
                 }
+            }
 
             return keys;
+        },
+
+        object_has_keys : function( o )
+        {
+            for( var i in o )
+            {
+                if( o.hasOwnProperty( i ) )
+                {
+                    return true;
+                }
+            }
+
+            return false;
         },
 
         in_array : function( needle, haystack )

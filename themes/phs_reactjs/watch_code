@@ -1,0 +1,1 @@
+npx babel --watch src --keep-file-extension --out-dir scripts --presets react-app/prod

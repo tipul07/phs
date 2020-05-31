@@ -1,3 +1,78 @@
+/** Simple selector **/
+.phs_ractive { }
+
+/**region Notifications */
+.phs_ractive_notifications_container {
+    padding: 2px;
+    border: 1px solid #dfdfdf;
+    border-radius: 5px;
+    background: #fff;
+    opacity: 0.8;
+    position: fixed;
+    z-index: 10000;
+    min-width: 20%;
+    width: 600px;
+    max-width: 60%;
+    min-height: 32px;
+}
+.phs_ractive_notifications_container_left_bottom { left: 10px; bottom: 10px; }
+.phs_ractive_notifications_container_center_bottom { left: 40%; bottom: 10px; }
+.phs_ractive_notifications_container_right_bottom { right: 10px; bottom: 10px; }
+.phs_ractive_notifications_container_left_center { left: 10px; top: 40%; }
+.phs_ractive_notifications_container_center_center { left: 40%; top: 40%; }
+.phs_ractive_notifications_container_right_center { right: 10px; top: 40%; }
+.phs_ractive_notifications_container_left_top { left: 10px; top: 10px; }
+.phs_ractive_notifications_container_center_top { left: 40%; top: 10px; }
+.phs_ractive_notifications_container_right_top { right: 10px; top: 10px; }
+
+.phs_ractive_notifications_box {
+    width: 100%;
+    margin-top: 3px;
+    clear:both;
+    min-height: 24px;
+    line-height: 24px;
+    padding: 2px;
+    border-radius: 5px;
+}
+.phs_ractive_notifications_box:before,
+.phs_ractive_notifications_box:after {
+    content: "\0020";
+    display: block;
+    overflow: hidden;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+.phs_ractive_notifications_box:after {
+    clear: both;
+}
+
+.phs_ractive_notifications_success {
+    background-color: #dff0d8;
+    border: 1px solid #3c763d;
+    color: #2a532b;
+}
+.phs_ractive_notifications_error {
+    background-color: #ffeade;
+    border: 1px solid #ff623d;
+    color: #531f14;
+}
+.phs_ractive_notifications_warning {
+    background-color: #d9edf7;
+    border: 1px solid #31708f;
+    color: #31708f;
+}
+.phs_ractive_notifications_text {
+    float: left;
+}
+.phs_ractive_notifications_close {
+    float: right;
+    font-size: smaller;
+    cursor: pointer;
+}
+/**endregion Notifications */
+
+/**region Autocomplete */
 .phs_ractive_autocomplete_loading {
     background: white url("../images/working.gif") right center no-repeat;
 }
@@ -39,3 +114,4 @@
     background-color: #c2c2c2;
     cursor: pointer;
 }
+/**endregion END Autocomplete */

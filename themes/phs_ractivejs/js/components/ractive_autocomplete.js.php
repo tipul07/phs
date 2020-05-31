@@ -2,10 +2,10 @@
 
     @header( 'Content-type: text/javascript' );
 
-    $check_main_dir = dirname( __DIR__, 3 );
+    $check_main_dir = dirname( __DIR__, 4 );
     if( !@file_exists( $check_main_dir.'/main.php' ) )
     {
-        $check_main_dir = dirname( $_SERVER['SCRIPT_FILENAME'], 4 );
+        $check_main_dir = dirname( $_SERVER['SCRIPT_FILENAME'], 5 );
         if( !@file_exists( $check_main_dir.'/main.php' ) )
         {
             ?>

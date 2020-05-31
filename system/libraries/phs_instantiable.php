@@ -151,7 +151,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
 
         $this->_parent_plugin = $plugin_obj;
-        
+
         return $this->_parent_plugin;
     }
 

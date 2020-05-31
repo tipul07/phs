@@ -257,7 +257,7 @@ final class PHS extends PHS_Registry
 
                 return true;
             }
-            
+
             elseif( is_string( $key )
             and ($page_settings = self::get_data( self::PHS_PAGE_SETTINGS ))
             and is_array( $page_settings )
@@ -272,7 +272,7 @@ final class PHS extends PHS_Registry
             $current_settings[$key] = $val;
 
             self::set_data( self::PHS_PAGE_SETTINGS, $current_settings );
-            
+
             return true;
         }
 
