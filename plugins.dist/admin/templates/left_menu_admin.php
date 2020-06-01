@@ -133,3 +133,18 @@ if( $can_view_logs )
     </li>
     <?php
 }
+
+/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+if( ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+and $accounts_model->acc_is_developer( $cuser_arr ) )
+{
+    ?>
+    <li><?php echo $this::_t( 'Framework Updates' ) ?>
+        <ul>
+            <li><a href="<?php echo PHS::url( array(
+                                                      'a' => 'framework_updates', 'p' => 'admin'
+                                              ) ) ?>"><?php echo $this::_t( 'Update PHS structure' ) ?></a></li>
+        </ul>
+    </li>
+    <?php
+}

@@ -1,6 +1,6 @@
 <?php
 
-namespace phs;
+namespace phs\traits;
 
 /**
  * Adds plugin functionality for CLI apps

@@ -42,4 +42,3 @@
     $phs_tests->_echo( $phs_tests::_t( 'Script executed using PHP version: %s', $phs_tests->cli_color( trim( PHP_VERSION ), 'red' ) ) );
 
     $phs_tests->run();
-

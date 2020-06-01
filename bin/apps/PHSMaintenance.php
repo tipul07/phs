@@ -7,7 +7,7 @@ include_once( PHS_CORE_DIR.'phs_cli_plugins_trait.php' );
 use \phs\PHS;
 use \phs\PHS_cli;
 use phs\libraries\PHS_utils;
-use \phs\PHS_cli_plugins_trait;
+use \phs\traits\PHS_cli_plugins_trait;
 use \phs\libraries\PHS_Plugin;
 
 class PHSMaintenance extends PHS_cli

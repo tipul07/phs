@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\libraries;
+namespace phs\traits;
 
 /**
  * In case a model handles more tables you can define an array which will tell this trait
@@ -20,7 +20,7 @@ trait PHS_Model_Trait_record_types
     {
         static $record_types_arr = array();
 
-        if( empty( self::$STATUSES_ARR ) )
+        if( empty( self::$RECORD_TYPES_ARR ) )
             return array();
 
         if( $lang === false

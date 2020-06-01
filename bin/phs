@@ -18,7 +18,7 @@
 
     use \phs\PHS_cli;
     use \phs\cli\apps\PHSMaintenance;
-
+ 
     if( !PHS_cli::running_in_cli() )
     {
         echo PHS_cli::_t( 'This script must be run in a CLI environment.' )."\n";

@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\libraries;
+namespace phs\traits;
 
 /**
  * Add status management methods for models which implement a status static array

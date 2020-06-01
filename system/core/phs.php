@@ -1228,15 +1228,24 @@ final class PHS extends PHS_Registry
 
     public static function validate_framework_update_params( $pub_key, $hash )
     {
+        $pub_key = (int)$pub_key;
         if( empty( $pub_key ) || empty( $hash )
-         || !is_string( $pub_key ) || !is_string( $hash ) )
+         || !is_string( $hash )
+         || $pub_key < time() )
             return false;
 
         $clean_str = $pub_key.':'.PHS_crypt::crypting_key();
         if( @function_exists( 'hash' )
          && ($hash_algos = @hash_algos())
          && @in_array( 'sha256', $hash_algos, true ) )
-            return (@hash_equals( hash( 'sha256', $clean_str ), $hash ) ? true : false);
+        {
+            // hash_equals available in PHP >= 5.6.0
+            $generated_hash = hash( 'sha256', $clean_str );
+            if( @function_exists( 'hash_equals' ) )
+                return (@hash_equals( $generated_hash, $hash ) ? true : false);
+
+            return ($generated_hash === $hash);
+        }
 
         return (md5( $clean_str ) === $hash);
     }
