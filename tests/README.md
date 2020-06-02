@@ -8,19 +8,19 @@ All context classes MUST follow [PSR-4 specifications](https://www.php-fig.org/p
 
 *Summary*: Class names should follow file names and namespaces should mirror directory structure for respective class.
 
-There is a CLI script in tests directory named **tests**. You should use this script in order to enable or disable plugins for tests.
-As a requirement, a plugin should have a *tests* directory in its directory structure (*PROJECT_DIR/plugins/PLUGIN_NAME/tests/*).
+There is a CLI script in ``bin`` directory named ``tests``. You should use this script in order to enable or disable plugins for tests.
+As a requirement, a plugin should have a ``tests`` directory in its directory structure (``PROJECT_DIR/plugins/PLUGIN_NAME/tests/``).
 
-**tests** script will create symlinks as follows:
+``tests`` script will create symlinks as follows:
 
- - Directory symlink *PROJECT_DIR/tests/behat/contexts/PLUGIN_NAME* will point to *PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/contexts* 
- - Directory symlink *PROJECT_DIR/tests/behat/features/PLUGIN_NAME* will point to *PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/features* 
- - File symlink *PROJECT_DIR/tests/behat/config/PLUGIN_NAME.yml* will point to *PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml* 
+ - Directory symlink ``PROJECT_DIR/tests/behat/contexts/PLUGIN_NAME`` will point to ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/contexts`` 
+ - Directory symlink ``PROJECT_DIR/tests/behat/features/PLUGIN_NAME`` will point to ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/features`` 
+ - File symlink ``PROJECT_DIR/tests/behat/config/PLUGIN_NAME.yml`` will point to ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml`` 
 
-Namespaces for plugin contexts must be like *phs\tests\behat\contexts\PLUGIN_NAME*
+Namespaces for plugin contexts must be like ``phs\tests\behat\contexts\PLUGIN_NAME``
 
 #### Enabling a plugin for Behat tests
   
-**tests** script will look for a *PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml* in plugin's directory. If this file is not present, script will consider plugin is not Behat ready. If you don't want to change any configuration in Behat, just create an empty *PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml* file in your plugin.
+``tests`` script will look for a ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml`` in plugin's directory. If this file is not present, script will consider plugin is not Behat ready. If you don't want to change any configuration in Behat, just create an empty ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml`` file in your plugin.
 
-Learning by example... Check admin plugin for tests directory to have a better understanding on how to integrate Behat. More details will follow here in a future release.
+Learning by example... Check ``admin`` plugin for ``tests`` directory to have a better understanding on how to integrate Behat. More details will follow here in a future release.

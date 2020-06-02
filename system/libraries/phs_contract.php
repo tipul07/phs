@@ -35,7 +35,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
     /**
      * Returns an array with data nodes definition
-     * @return array
+     * @return array|bool
      * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
      */
     abstract public function get_contract_data_definition();
@@ -381,11 +381,20 @@ abstract class PHS_Contract extends PHS_Instantiable
     protected function _normalize_definition_of_nodes( $definition_arr = false )
     {
         if( $definition_arr === false )
-            $definition_arr = $this->get_contract_data_definition();
-
-        if( empty( $definition_arr ) or !is_array( $definition_arr ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'get_contract_data_definition() method should return an array.' ) );
+            if( !($definition_arr = $this->get_contract_data_definition())
+             || !is_array( $definition_arr ) )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_PARAMETERS, self::_t( 'get_contract_data_definition() method should return an array.' ) );
+
+                return false;
+            }
+        }
+
+        if( empty( $definition_arr ) || !is_array( $definition_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Provided node definition is not an array.' ) );
             return false;
         }
 
@@ -423,8 +432,8 @@ abstract class PHS_Contract extends PHS_Instantiable
                 return false;
             }
 
-            if( !empty( $node_arr['nodes'] ) and is_array( $node_arr['nodes'] )
-            and false === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes( $node_arr['nodes'] )) )
+            if( !empty( $node_arr['nodes'] ) && is_array( $node_arr['nodes'] )
+             && false === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes( $node_arr['nodes'] )) )
                 return false;
 
             $return_arr[$int_key] = $node_arr;

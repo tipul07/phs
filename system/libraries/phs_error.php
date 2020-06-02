@@ -89,15 +89,6 @@ class PHS_Error
      */
     public static function st_throw_error()
     {
-        //$error_instance = self::get_error_static_instance();
-        //if( ($error_arr = $error_instance->get_error())
-        //and $error_arr['error_no'] == self::ERR_OK )
-        //    return false;
-        //
-        //if( self::st_debugging_mode() )
-        //    throw new \Exception( $error_arr['error_msg'], $error_arr['error_no'] );
-        //else
-        //    throw new \Exception( $error_arr['error_simple_msg'], $error_arr['error_no'] );
         return self::get_error_static_instance()->throw_error();
     }
 
@@ -122,7 +113,10 @@ class PHS_Error
         if( empty( $err_arr ) or !is_array( $err_arr ) )
             $err_arr = array();
 
-        return array_merge( self::default_error_array(), $err_arr );
+        $return_arr = array_merge( self::default_error_array(), $err_arr );
+        $return_arr['error_no'] = (int)$return_arr['error_no'];
+
+        return $return_arr;
     }
 
     public static function arr_has_error( $err_arr )
@@ -333,6 +327,18 @@ class PHS_Error
         return self::get_error_static_instance()->change_error_message( $error_msg, $error_debug_msg );
     }
 
+    public function change_error_code( $error_no )
+    {
+        $this->error_no = (int)$error_no;
+
+        return $this->get_error();
+    }
+
+    public function st_change_error_code( $error_no )
+    {
+        return self::get_error_static_instance()->change_error_code( $error_no );
+    }
+
     //! Add a warning message
     /**
      *   Add a warning message for a specified tag or as general warning. Also method will make a backtrace of this call and present all functions/methods called (with their parameters) and files/line of call.
@@ -520,7 +526,7 @@ class PHS_Error
         $this->error_debug_msg = $error_arr['error_debug_msg'];
 
         if( $force_error_code !== false )
-            $this->error_no = $force_error_code;
+            $this->error_no = (int)$force_error_code;
 
         return true;
     }
@@ -539,13 +545,13 @@ class PHS_Error
          or !isset( $error_arr['error_simple_msg'] ) or !isset( $error_arr['error_debug_msg'] ) )
             return false;
 
-        $this->error_no = $error_arr['error_no'];
+        $this->error_no = (int)$error_arr['error_no'];
         $this->error_msg = $error_arr['error_msg'];
         $this->error_simple_msg = $error_arr['error_simple_msg'];
         $this->error_debug_msg = $error_arr['error_debug_msg'];
 
         if( $force_error_code !== false )
-            $this->error_no = $force_error_code;
+            $this->error_no = (int)$force_error_code;
 
         return true;
     }
@@ -633,7 +639,7 @@ class PHS_Error
 
         if( !self::arr_has_error( $source_error_arr )
         and self::arr_has_error( $error_arr ) )
-            $source_error_arr['error_no'] = $error_arr['error_no'];
+            $source_error_arr['error_no'] = (int)$error_arr['error_no'];
 
         return $source_error_arr;
     }
