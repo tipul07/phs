@@ -405,7 +405,12 @@ if( empty( $action_result['page_settings']['page_only_buffer'] ) )
     </header>
     <div class="clearfix"></div>
 
-    <div id="content">
+    <div id="content"><?php
+if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_FIRST_CONTENT, PHS_Hooks::default_buffer_hook_args() ))
+ && is_array( $hook_args )
+ && !empty( $hook_args['buffer'] ) )
+    echo $hook_args['buffer'];
+?>
 		<div id="main_content"><?php
 }
 

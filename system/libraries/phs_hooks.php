@@ -108,6 +108,8 @@ class PHS_Hooks extends PHS_Registry
          H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
          H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
          H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
+         // Triggered when main container which holds page content is rendered
+         H_ADMIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_admin_template_page_first_content',
 
          H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
          H_ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
@@ -120,6 +122,8 @@ class PHS_Hooks extends PHS_Registry
          H_MAIN_TEMPLATE_PAGE_HEAD = 'phs_main_template_page_head',
          H_MAIN_TEMPLATE_PAGE_START = 'phs_main_template_page_start',
          H_MAIN_TEMPLATE_PAGE_END = 'phs_main_template_page_end',
+         // Triggered when main container which holds page content is rendered
+         H_MAIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_main_template_page_first_content',
 
          H_MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
          H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',

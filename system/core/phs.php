@@ -1754,6 +1754,52 @@ final class PHS extends PHS_Registry
         return $scope_action_result;
     }
 
+    /**
+     * This method spawns a view object with provided route as context for script which require resources
+     * (javascript URLs, image URLs, etc), but they are not running in a view context. Usually javascript scripts
+     * which output javascript directly without rendering the code in a view context
+     *
+     * @param array|string $route_arr
+     * @param string|array $template
+     * @param bool|array $template_data
+     *
+     * @return bool|\phs\system\core\views\PHS_view
+     */
+    public static function spawn_view_in_context( $route_arr, $template, $template_data = false )
+    {
+        self::st_reset_error();
+
+        $plugin_obj = false;
+        /** @var \phs\libraries\PHS_Plugin $plugin_obj */
+        /** @var \phs\libraries\PHS_Controller $controller_obj */
+        /** @var \phs\libraries\PHS_Action $action_obj */
+        if( !($route_arr = self::parse_route( $route_arr, true ))
+         || (!empty( $route_arr['p'] ) && !($plugin_obj = self::load_plugin( $route_arr['p'] )))
+         || !($controller_obj = self::load_controller( $route_arr['c'], $route_arr['p'] ))
+         || !($action_obj = self::load_action( $route_arr['a'], $route_arr['p'], $route_arr['ad'] )) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Error instantiating controller or action from provided route.' ) );
+            return false;
+        }
+
+        $view_params = array();
+        $view_params['action_obj'] = $action_obj;
+        $view_params['controller_obj'] = $controller_obj;
+        $view_params['parent_plugin_obj'] = $plugin_obj;
+        $view_params['plugin'] = ($plugin_obj?$plugin_obj->instance_plugin_name():false);
+        $view_params['template_data'] = $template_data;
+
+        if( !($view_obj = \phs\system\core\views\PHS_View::init_view( $template, $view_params )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Error instantiating view in provided context.' ) );
+
+            return false;
+        }
+
+        return $view_obj;
+    }
+
     public static function platform_debug_data()
     {
         $now_secs = microtime( true );

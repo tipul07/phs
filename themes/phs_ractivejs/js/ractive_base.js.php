@@ -19,12 +19,140 @@
 
     use \phs\PHS;
     use \phs\PHS_ajax;
-?>
 
+    if( !($view_obj = PHS::spawn_view_in_context(
+        [ 'a' => 'index' ], 'index' )) )
+    {
+        ?>
+        alert( "Failed initializing Ractive.js library. Error obtaining view instance. Please contact suppot." );
+        <?php
+        exit;
+    }
+
+    if( !($empty_img_url = $view_obj->get_resource_url( 'images/empty.png' )) )
+        $empty_img_url = '';
+?>
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
     debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
     submit_protections_count: 0,
+
+    // These decorators help adding skinning on inputs (as in classic PHS default theme)
+    // Chosen selects update chosen skinning when:
+    // - user selects something in dropdown
+    // - also when using RActive_obj.set( "property", "new_value" );
+    // Respecting twoway binding rules of RActive
+    //region Decorators
+    decorators: {
+        chosen_select: function( node ) {
+            var self = this;
+
+            if( typeof node._ractive !== "undefined"
+             && typeof node._ractive.binding !== "undefined"
+             && typeof node._ractive.binding.model !== "undefined"
+             && typeof node._ractive.binding.model.key !== "undefined" ) {
+                this.observe( node._ractive.binding.model.key, function( newval, oldval ) {
+                    window.setTimeout( function(){
+                        $(node).trigger( "chosen:updated" );
+                    }, 100 );
+                });
+            }
+
+            $(node)
+                .chosen( { disable_search_threshold: 7 } )
+                .on("change", function( evt, params ) {
+                       self.updateModel();
+                });
+
+            return {
+                teardown: function() {
+                    $(node).chosen("destroy");
+                }
+            };
+        },
+        chosen_select_nosearch: function( node ) {
+            var self = this;
+
+            if( typeof node._ractive !== "undefined"
+             && typeof node._ractive.binding !== "undefined"
+             && typeof node._ractive.binding.model !== "undefined"
+             && typeof node._ractive.binding.model.key !== "undefined" ) {
+                this.observe( node._ractive.binding.model.key, function( newval, oldval ) {
+                    window.setTimeout( function() {
+                        $(node).trigger( "chosen:updated" );
+                    }, 100 );
+                });
+            }
+
+            $(node)
+                .chosen( { disable_search: true } )
+                .on("change", function( evt, params ){
+                    self.updateModel();
+                });
+
+            return {
+                teardown: function() {
+                    $(node).chosen("destroy");
+                }
+            };
+        },
+        skin_checkbox: function( node ) {
+            $(node).checkbox({cls:'jqcheckbox-checkbox', empty: '<?php echo $empty_img_url?>'});
+            return {
+                teardown: function() {
+                    // Nothing to do on teardown
+                }
+            };
+        },
+        skin_radio: function( node ) {
+            $(node).checkbox({cls:'jqcheckbox-radio', empty: '<?php echo $empty_img_url?>'});
+            return {
+                teardown: function() {
+                    // Nothing to do on teardown
+                }
+            };
+        },
+        datepicker_month: function( node, args ) {
+            var self = this;
+            $(node).datepicker({
+                dateFormat: 'yy-mm-01',
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                onSelect: function(dateValue) {
+                    self.updateModel();
+                },
+                onClose: function(dateText, inst) {
+                    $(this).datepicker('setDate', new Date(inst.selectedYear, inst.selectedMonth, 1));
+                }
+            });
+
+            return {
+                teardown: function() {
+                    $(node).datepicker("destroy");
+                }
+            };
+        },
+        datepicker: function( node, args ) {
+            var self = this;
+            $(node).datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                onSelect: function(dateValue) {
+                    self.updateModel();
+                }
+            });
+
+            return {
+                teardown: function() {
+                    $(node).datepicker("destroy");
+                }
+            };
+        }
+    },
+    //endregion Decorators
 
     object_has_keys: function( o )
     {

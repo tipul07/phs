@@ -98,6 +98,51 @@ trait PHS_Model_Trait_record_types
     }
 
     /**
+     * @param array $constrain_arr
+     * @param string $record_type
+     *
+     * @return array|bool
+     */
+    public function record_get_details_fields( $constrain_arr, $record_type )
+    {
+        if( !($record_table = $this->_record_type_to_table_name( $record_type ))
+         || !($record_arr = $this->get_details_fields( $constrain_arr, [ 'table_name' => $record_table ] )) )
+            return false;
+
+        return $record_arr;
+    }
+
+    /**
+     * @param int|array $record_data
+     * @param string $record_type
+     *
+     * @return array|bool
+     */
+    public function record_hard_delete( $record_data, $record_type )
+    {
+        if( !($record_table = $this->_record_type_to_table_name( $record_type )) )
+            return false;
+
+        return $this->hard_delete( $record_data, [ 'table_name' => $record_table ] );
+    }
+
+    /**
+     * @param int $record_id
+     * @param string $record_type
+     *
+     * @return array|bool
+     */
+    public function record_get_details( $record_id, $record_type )
+    {
+        if( empty( $record_id )
+         || !($record_table = $this->_record_type_to_table_name( $record_type ))
+         || !($record_arr = $this->get_details( $record_id, [ 'table_name' => $record_table ] )) )
+            return false;
+
+        return $record_arr;
+    }
+
+    /**
      * @param string $record_type
      *
      * @return bool|string

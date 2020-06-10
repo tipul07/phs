@@ -15,6 +15,65 @@ class PHS_utils extends PHS_Language
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
 
     /**
+     * Returns details about running process with provided PID
+     * @param int $pid Process id
+     * @return array
+     */
+    public static function get_process_details( $pid )
+    {
+        $pid = (int)$pid;
+        if( empty( $pid )
+         || !@is_dir( '/proc' )
+         || !@is_readable( '/proc' )
+         || !@is_dir( '/proc/'.$pid )
+         || !@is_readable( '/proc/'.$pid )
+         || !@file_exists( '/proc/'.$pid.'/status' ) )
+            return false;
+
+        $cmd_line = '';
+        if( @file_exists( '/proc/'.$pid.'/cmdline' ) )
+            $cmd_line = trim( @file_get_contents( '/proc/'.$pid.'/cmdline' ) );
+
+        $return_arr = [];
+        $return_arr['pid'] = $pid;
+        $return_arr['cmd_line'] = $cmd_line;
+        $return_arr['parent_pid'] = 0;
+        $return_arr['name'] = '';
+        $return_arr['state'] = '';
+        $return_arr['is_running'] = false;
+        $return_arr['is_sleeping'] = false;
+        $return_arr['is_idle'] = false;
+
+        if( ($status_file_str = @file_get_contents( '/proc/'.$pid.'/status' )) )
+        {
+            echo '['.$status_file_str.']';
+
+            if( preg_match( '@State:\s*(.*)@i', $status_file_str, $matches_arr )
+             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+                $return_arr['state'] = $matches_arr[1];
+            if( preg_match( '@Name:\s*(.*)@i', $status_file_str, $matches_arr )
+             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+                $return_arr['name'] = $matches_arr[1];
+            if( preg_match( '@PPid:\s*(.*)@i', $status_file_str, $matches_arr )
+             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+                $return_arr['parent_pid'] = (int)$matches_arr[1];
+        }
+
+        if( !empty( $return_arr['state'] ) )
+        {
+            $state_letter = strtoupper( substr( $return_arr['state'], 0, 1 ) );
+            if( $state_letter === 'R' )
+                $return_arr['is_running'] = true;
+            elseif( $state_letter === 'S' )
+                $return_arr['is_sleeping'] = true;
+            elseif( $state_letter === 'I' )
+                $return_arr['is_idle'] = true;
+        }
+
+        return $return_arr;
+    }
+
+    /**
      * @param $seconds_span
      * @param bool|array $params
      *
@@ -1320,7 +1379,7 @@ class PHS_utils extends PHS_Language
                 if( !empty( $params['format_string'] ) )
                     $return_str .= "\n";
             }
-            
+
             if( !empty( $params['root_tag'] ) )
             {
                 $return_str .= '<'.$params['root_tag'].'>';
@@ -1385,10 +1444,10 @@ class PHS_utils extends PHS_Language
             if( empty( $only_content ) )
                 $return_str .= '</'.$root_tag.'>'.(!empty( $params['format_string'] )?"\n":'');
         }
-        
+
         if( empty( $params['root'] ) and !empty( $params['root_tag'] ) )
             $return_str .= '</'.$params['root_tag'].'>';
-        
+
         return $return_str;
     }
 
