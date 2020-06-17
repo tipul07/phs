@@ -1472,6 +1472,16 @@ final class PHS extends PHS_Registry
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 
+        if( empty( $extra['http'] ) || !is_array( $extra['http'] ) )
+            $extra['http'] = array();
+
+        if( empty( $extra['http']['arg_separator'] )
+         || !is_string( $extra['http']['arg_separator'] ) )
+            $extra['http']['arg_separator'] = '&';
+
+        if( empty( $extra['http']['enc_type'] ) )
+            $extra['http']['enc_type'] = PHP_QUERY_RFC1738;
+
         if( empty( $extra['raw_params'] ) or !is_array( $extra['raw_params'] ) )
             $extra['raw_params'] = array();
 
@@ -1513,15 +1523,16 @@ final class PHS extends PHS_Registry
         foreach( $args as $key => $val )
             $new_args[$key] = $val;
 
-        if( !($query_string = @http_build_query( $new_args )) )
+        if( !($query_string = @http_build_query( $new_args, null, $extra['http']['arg_separator'], $extra['enc_type'] )) )
             $query_string = '';
 
         if( !empty( $extra['raw_args'] ) and is_array( $extra['raw_args'] ) )
         {
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
             // eg. $extra['raw_args'] might be an id passed as javascript function parameter
-            if( ($raw_query = array_to_query_string( $extra['raw_args'], array( 'raw_encode_values' => false ) )) )
-                $query_string .= ($query_string!==''?'&':'').$raw_query;
+            if( ($raw_query = array_to_query_string( $extra['raw_args'],
+                                                     array( 'arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false ) )) )
+                $query_string .= ($query_string!==''?$extra['http']['arg_separator']:'').$raw_query;
         }
 
         switch( $extra['for_scope'] )

@@ -79,6 +79,7 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_background.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_contract.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_contract_list.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_encdec.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_interface.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_db_class.php' );

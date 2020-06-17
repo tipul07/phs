@@ -579,18 +579,24 @@ class PHS_Model_Rules extends PHS_Model
         );
     }
 
+    /**
+     * @param $output_dir
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_database_backup_script_commands( $output_dir, $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             $params = array();
 
         // Zip database dump
         if( !isset( $params['zip_dump'] ) )
             $params['zip_dump'] = true;
         else
-            $params['zip_dump'] = (!empty( $params['zip_dump'] )?true:false);
+            $params['zip_dump'] = (!empty( $params['zip_dump'] ));
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
         if( empty( $params['zip_bin'] ) )
@@ -633,25 +639,17 @@ class PHS_Model_Rules extends PHS_Model
 
         if( !empty( $params['mysqldump_bin'] ) )
             $mysqldump_bin = $params['mysqldump_bin'];
-
+        elseif( !empty( $settings_arr['mysqldump_bin'] ) )
+            $mysqldump_bin = $settings_arr['mysqldump_bin'];
         else
-        {
-            if( !empty( $settings_arr['mysqldump_bin'] ) )
-                $mysqldump_bin = $settings_arr['mysqldump_bin'];
-            else
-                $mysqldump_bin = 'mysqldump';
-        }
+            $mysqldump_bin = 'mysqldump';
 
         if( !empty( $params['zip_bin'] ) )
             $zip_bin = $params['zip_bin'];
-
+        elseif( !empty( $settings_arr['zip_bin'] ) )
+            $zip_bin = $settings_arr['zip_bin'];
         else
-        {
-            if( !empty( $settings_arr['zip_bin'] ) )
-                $zip_bin = $settings_arr['zip_bin'];
-            else
-                $zip_bin = 'zip';
-        }
+            $zip_bin = 'zip';
 
         $dump_params = PHS_db_class::default_dump_parameters();
         $dump_params['zip_dump'] = $params['zip_dump'];
@@ -884,7 +882,7 @@ class PHS_Model_Rules extends PHS_Model
         $run_time_str = date( 'YmdHis', $run_time );
         $run_path = $rule_location['rule_path'].'/'.$run_time_str;
         if( !@file_exists( $run_path )
-         or !@is_dir( $run_path ) )
+         || !@is_dir( $run_path ) )
         {
             if( !@mkdir( $run_path, 0750 ) )
             {
@@ -901,25 +899,17 @@ class PHS_Model_Rules extends PHS_Model
 
         if( !empty( $params['mysqldump_bin'] ) )
             $mysqldump_bin = $params['mysqldump_bin'];
-
+        elseif( !empty( $settings_arr['mysqldump_bin'] ) )
+            $mysqldump_bin = $settings_arr['mysqldump_bin'];
         else
-        {
-            if( !empty( $settings_arr['mysqldump_bin'] ) )
-                $mysqldump_bin = $settings_arr['mysqldump_bin'];
-            else
-                $mysqldump_bin = 'mysqldump';
-        }
+            $mysqldump_bin = 'mysqldump';
 
         if( !empty( $params['zip_bin'] ) )
             $zip_bin = $params['zip_bin'];
-
+        elseif( !empty( $settings_arr['zip_bin'] ) )
+            $zip_bin = $settings_arr['zip_bin'];
         else
-        {
-            if( !empty( $settings_arr['zip_bin'] ) )
-                $zip_bin = $settings_arr['zip_bin'];
-            else
-                $zip_bin = 'zip';
-        }
+            $zip_bin = 'zip';
 
         $dump_params = array();
         $dump_params['backup_path'] = (!empty( $rule_location['backup_path'] )?$rule_location['backup_path']:'');
@@ -927,7 +917,7 @@ class PHS_Model_Rules extends PHS_Model
         $dump_params['zip_bin'] = $zip_bin;
         $dump_params['mysqldump_bin'] = $mysqldump_bin;
 
-        $rule_arr['target'] = intval( $rule_arr['target'] );
+        $rule_arr['target'] = (int)$rule_arr['target'];
         $bg_script_commands = array();
         $resulting_files = array();
         $generated_files = array();
@@ -1128,7 +1118,7 @@ class PHS_Model_Rules extends PHS_Model
     {
         $this->reset_error();
 
-        $result_id = intval( $result_id );
+        $result_id = (int)$result_id;
         if( empty( $result_id ) )
         {
             $this->set_error( self::ERR_PARAMETERS,$this->_pt( 'Please provide a result ID.' ) );
@@ -1147,14 +1137,14 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( !($fil = @fopen( $shell_script, 'w' )) )
+        if( !($fil = @fopen( $shell_script, 'wb' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating backup shell script.' ) );
             return false;
         }
 
-        if( !@fputs( $fil, '#!/bin/bash'."\n".
-                         '# Backup shell script...'."\n" ) )
+        if( !@fwrite( $fil, '#!/bin/bash' . "\n" .
+                            '# Backup shell script...' . "\n" ) )
         {
             @fclose( $fil );
             @unlink( $shell_script );
@@ -1165,7 +1155,7 @@ class PHS_Model_Rules extends PHS_Model
 
         foreach( $commands_arr as $command_str )
         {
-            if( !@fputs( $fil, $command_str."\n" ) )
+            if( !@fwrite( $fil, $command_str . "\n" ) )
             {
                 @fclose( $fil );
                 @unlink( $shell_script );
@@ -1175,9 +1165,9 @@ class PHS_Model_Rules extends PHS_Model
             }
         }
 
-        if( !@fputs( $fil, "\n".
-                         '# Delete myself...'."\n".
-                         'rm -f "'.$shell_script.'"'."\n" ) )
+        if( !@fwrite( $fil, "\n" .
+                            '# Delete myself...' . "\n" .
+                            'rm -f "' . $shell_script . '"' . "\n" ) )
         {
             @fclose( $fil );
             @unlink( $shell_script );
@@ -1194,6 +1184,12 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
+    /**
+     * @param int|array $result_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function launch_backup_rule_bg( $result_data, $params = false )
     {
         $this->reset_error();
@@ -1204,7 +1200,7 @@ class PHS_Model_Rules extends PHS_Model
         if( empty( $params['force'] ) )
             $params['force'] = false;
         else
-            $params['force'] = (!empty( $params['force'] )?true:false);
+            $params['force'] = (!empty( $params['force'] ));
 
         if( !($r_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) )) )
         {
@@ -1252,6 +1248,12 @@ class PHS_Model_Rules extends PHS_Model
         return $launch_result;
     }
 
+    /**
+     * @param int|array $result_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function finish_backup_rule_bg( $result_data, $params = false )
     {
         $this->reset_error();
@@ -1262,7 +1264,7 @@ class PHS_Model_Rules extends PHS_Model
         if( empty( $params['force'] ) )
             $params['force'] = false;
         else
-            $params['force'] = (!empty( $params['force'] )?true:false);
+            $params['force'] = (!empty( $params['force'] ));
 
         /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
         if( !($results_model = PHS::load_model( 'results', 'backup' )) )
@@ -1283,6 +1285,11 @@ class PHS_Model_Rules extends PHS_Model
         return $finish_result;
     }
 
+    /**
+     * @param array $target_arr
+     *
+     * @return int
+     */
     public function targets_arr_to_bits( $target_arr )
     {
         if( empty( $target_arr ) or !is_array( $target_arr ) )
@@ -1291,8 +1298,8 @@ class PHS_Model_Rules extends PHS_Model
         $target_bits = 0;
         foreach( $target_arr as $target )
         {
-            $target = intval( $target );
-            if( !self::valid_target( $target ) )
+            $target = (int)$target;
+            if( !$this->valid_target( $target ) )
                 continue;
 
             $target_bits |= (1 << $target);
@@ -1301,9 +1308,14 @@ class PHS_Model_Rules extends PHS_Model
         return $target_bits;
     }
 
+    /**
+     * @param int $bits
+     *
+     * @return array
+     */
     public function bits_to_targets_arr( $bits )
     {
-        $bits = intval( $bits );
+        $bits = (int)$bits;
         if( empty( $bits )
          or !($all_targets = $this->get_targets()) )
             return array();
@@ -1318,11 +1330,16 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param $rule_id
+     *
+     * @return array
+     */
     public function get_rule_days_as_array( $rule_id )
     {
         $this->reset_error();
 
-        $rule_id = intval( $rule_id );
+        $rule_id = (int)$rule_id;
         if( empty( $rule_id )
          or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules_days' ) ))
          or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\' ORDER BY `day` ASC', $this->get_db_connection( $flow_params ) ))
@@ -1338,6 +1355,11 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
+    /**
+     * @param int|array $rule_data
+     *
+     * @return bool
+     */
     public function unlink_all_days_for_rule( $rule_data )
     {
         $this->reset_error();
@@ -1358,6 +1380,12 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
+    /**
+     * @param int|array $rule_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function get_rule_ftp_settings( $rule_data, $params = false )
     {
         $this->reset_error();
@@ -1386,6 +1414,13 @@ class PHS_Model_Rules extends PHS_Model
         return $rule_arr;
     }
 
+    /**
+     * @param int|array $rule_data
+     * @param array $days_arr
+     * @param bool|array $params
+     *
+     * @return array|array[]|bool|bool[]
+     */
     public function link_days_to_rule( $rule_data, $days_arr, $params = false )
     {
         $this->reset_error();
@@ -1425,114 +1460,118 @@ class PHS_Model_Rules extends PHS_Model
             }
 
             return $return_arr;
-        } else
+        }
+
+        if( !($existing_days = $this->get_rule_days_as_list( $rule_arr['id'] )) )
+            $existing_days = array();
+
+        $days_current_list = array();
+        $insert_days = array();
+        $delete_days = array();
+        $delete_ids = array();
+        $day_zero_record = false;
+        $should_delete_rest_but_zero = false;
+        foreach( $existing_days as $day_id => $day_arr )
         {
-            if( !($existing_days = $this->get_rule_days_as_list( $rule_arr['id'] )) )
-                $existing_days = array();
+            if( empty( $day_arr ) or !is_array( $day_arr )
+             or !isset( $day_arr['day'] ) )
+                continue;
 
-            $days_current_list = array();
-            $insert_days = array();
-            $delete_days = array();
-            $delete_ids = array();
-            $day_zero_record = false;
-            $should_delete_rest_but_zero = false;
-            foreach( $existing_days as $day_id => $day_arr )
+            $days_current_list[] = $day_arr['day'];
+
+            if( empty( $day_arr['day'] ) )
+                $day_zero_record = $day_arr;
+            else
+                $should_delete_rest_but_zero = true;
+
+            if( in_array( $day_arr['day'], $days_arr ) )
+                $return_arr[$day_id] = $day_arr;
+
+            else
             {
-                if( empty( $day_arr ) or !is_array( $day_arr )
-                 or !isset( $day_arr['day'] ) )
-                    continue;
+                $delete_ids[] = $day_arr['id'];
+                $delete_days[] = $day_arr['day'];
+            }
+        }
 
-                $days_current_list[] = $day_arr['day'];
-
-                if( empty( $day_arr['day'] ) )
-                    $day_zero_record = $day_arr;
-                else
-                    $should_delete_rest_but_zero = true;
-
-                if( in_array( $day_arr['day'], $days_arr ) )
-                    $return_arr[$day_id] = $day_arr;
-
-                else
-                {
-                    $delete_ids[] = $day_arr['id'];
-                    $delete_days[] = $day_arr['day'];
-                }
+        $day_zero_to_be_added = false;
+        foreach( $days_arr as $day_no )
+        {
+            if( empty( $day_no ) )
+            {
+                $day_zero_to_be_added = true;
+                break;
             }
 
-            $day_zero_to_be_added = false;
-            foreach( $days_arr as $day_no )
-            {
-                if( empty( $day_no ) )
-                {
-                    $day_zero_to_be_added = true;
-                    break;
-                }
+            if( !in_array( $day_no, $delete_days )
+            and !in_array( $day_no, $days_current_list ) )
+                $insert_days[] = $day_no;
+        }
 
-                if( !in_array( $day_no, $delete_days )
-                and !in_array( $day_no, $days_current_list ) )
-                    $insert_days[] = $day_no;
+        if( $day_zero_to_be_added )
+        {
+            if( $should_delete_rest_but_zero
+            and !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND day != 0', $db_connection ) )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking days for backup rule.' ) );
+                return false;
             }
 
-            if( $day_zero_to_be_added )
+            $day_insert_arr = $flow_params;
+            $day_insert_arr['fields']['rule_id'] = $rule_arr['id'];
+            $day_insert_arr['fields']['day'] = 0;
+
+            if( empty( $day_zero_record )
+            and !($day_zero_record = $this->insert( $day_insert_arr )) )
             {
-                if( $should_delete_rest_but_zero
-                and !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND day != 0', $db_connection ) )
-                {
-                    $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking days for backup rule.' ) );
-                    return false;
-                }
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error linking days to backup rule.' ) );
+                return false;
+            }
 
-                $day_insert_arr = $flow_params;
-                $day_insert_arr['fields']['rule_id'] = $rule_arr['id'];
-                $day_insert_arr['fields']['day'] = 0;
+            return array( $day_zero_record['id'] => $day_zero_record );
+        }
 
-                if( empty( $day_zero_record )
-                and !($day_zero_record = $this->insert( $day_insert_arr )) )
+        if( !empty( $insert_days ) )
+        {
+            $day_insert_arr = $flow_params;
+            $day_insert_arr['fields']['rule_id'] = $rule_arr['id'];
+
+            foreach( $insert_days as $day_no )
+            {
+                $day_insert_arr['fields']['day'] = $day_no;
+
+                if( !($day_record = $this->insert( $day_insert_arr )) )
                 {
                     if( !$this->has_error() )
                         $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error linking days to backup rule.' ) );
                     return false;
                 }
 
-                return array( $day_zero_record['id'] => $day_zero_record );
+                $return_arr[$day_record['id']] = $day_record;
             }
+        }
 
-            if( !empty( $insert_days ) )
-            {
-                $day_insert_arr = $flow_params;
-                $day_insert_arr['fields']['rule_id'] = $rule_arr['id'];
-
-                foreach( $insert_days as $day_no )
-                {
-                    $day_insert_arr['fields']['day'] = $day_no;
-
-                    if( !($day_record = $this->insert( $day_insert_arr )) )
-                    {
-                        if( !$this->has_error() )
-                            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error linking days to backup rule.' ) );
-                        return false;
-                    }
-
-                    $return_arr[$day_record['id']] = $day_record;
-                }
-            }
-
-            if( !empty( $delete_ids )
-            and !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking days for backup rule.' ) );
-                return false;
-            }
+        if( !empty( $delete_ids )
+        and !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND id IN ('.implode( ',', $delete_ids ).')', $db_connection ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking days for backup rule.' ) );
+            return false;
         }
 
         return $return_arr;
     }
 
+    /**
+     * @param int $rule_id
+     *
+     * @return array
+     */
     public function get_rule_days_as_list( $rule_id )
     {
         $this->reset_error();
 
-        $rule_id = intval( $rule_id );
+        $rule_id = (int)$rule_id;
         if( empty( $rule_id )
          or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_rules_days' ) ))
          or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\'', $this->get_db_connection( $flow_params ) ))
@@ -1542,7 +1581,7 @@ class PHS_Model_Rules extends PHS_Model
         $return_arr = array();
         while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
         {
-            $return_arr[$link_arr['id']] = $link_arr;
+            $return_arr[(int)$link_arr['id']] = $link_arr;
         }
 
         return $return_arr;

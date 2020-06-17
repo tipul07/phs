@@ -1,11 +1,6 @@
 <?php
 namespace phs\libraries;
 
-use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_Controller;
-use \phs\system\core\views\PHS_View;
-
 abstract class PHS_Contract extends PHS_Instantiable
 {
     const FROM_OUTSIDE = 1, FROM_INSIDE = 2, FROM_BOTH = 3;

@@ -476,7 +476,7 @@ class PHS_bg_jobs extends PHS_Registry
             $error_arr = self::st_get_error();
 
             $error_params = array();
-            $error_params['last_error'] = self::st_get_error_message();;
+            $error_params['last_error'] = self::st_get_error_message();
 
             $bg_jobs_model->job_error_stop( $job_arr, $error_params );
 

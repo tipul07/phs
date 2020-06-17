@@ -31,7 +31,7 @@ class PHS_Model_Results extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.5';
+        return '1.0.6';
     }
 
     /**
@@ -167,7 +167,7 @@ class PHS_Model_Results extends PHS_Model
     public function is_pending( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         or $record_arr['status'] != self::STATUS_PENDING )
+         or (int)$record_arr['status'] !== self::STATUS_PENDING )
             return false;
 
         return $record_arr;
@@ -176,7 +176,7 @@ class PHS_Model_Results extends PHS_Model
     public function is_running( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         or $record_arr['status'] != self::STATUS_RUNNING )
+         or (int)$record_arr['status'] !== self::STATUS_RUNNING )
             return false;
 
         return $record_arr;
@@ -185,7 +185,7 @@ class PHS_Model_Results extends PHS_Model
     public function is_finished( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         or $record_arr['status'] != self::STATUS_FINISHED )
+         or (int)$record_arr['status'] !== self::STATUS_FINISHED )
             return false;
 
         return $record_arr;
@@ -194,12 +194,18 @@ class PHS_Model_Results extends PHS_Model
     public function is_error( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         or $record_arr['status'] != self::STATUS_FINISHED )
+         or (int)$record_arr['status'] !== self::STATUS_FINISHED )
             return false;
 
         return $record_arr;
     }
 
+    /**
+     * @param int|array $record_data
+     * @param bool|array $params
+     *
+     * @return bool
+     */
     public function act_delete( $record_data, $params = false )
     {
         $this->reset_error();
@@ -222,6 +228,12 @@ class PHS_Model_Results extends PHS_Model
         return $this->hard_delete( $record_arr );
     }
 
+    /**
+     * @param int|array $result_data
+     * @param bool|array $params
+     *
+     * @return array|bool
+     */
     public function launch_result_shell_script_bg( $result_data, $params = false )
     {
         $this->reset_error();
@@ -232,7 +244,7 @@ class PHS_Model_Results extends PHS_Model
         if( empty( $params['force'] ) )
             $params['force'] = false;
         else
-            $params['force'] = (!empty( $params['force'] )?true:false);
+            $params['force'] = (!empty( $params['force'] ));
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
         if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
@@ -307,7 +319,7 @@ class PHS_Model_Results extends PHS_Model
         if( empty( $params['force'] ) )
             $params['force'] = false;
         else
-            $params['force'] = (!empty( $params['force'] )?true:false);
+            $params['force'] = (!empty( $params['force'] ));
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
         if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
@@ -401,7 +413,7 @@ class PHS_Model_Results extends PHS_Model
     {
         $this->reset_error();
 
-        $result_id = intval( $result_id );
+        $result_id = (int)$result_id;
         if( empty( $result_id )
          or !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
          or !($brf_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
@@ -1177,7 +1189,7 @@ class PHS_Model_Results extends PHS_Model
                         'comment' => 'Directory where backup rule runs',
                     ),
                     'size' => array(
-                        'type' => self::FTYPE_INT,
+                        'type' => self::FTYPE_BIGINT,
                     ),
                     'copied' => array(
                         'type' => self::FTYPE_DATETIME,
@@ -1219,7 +1231,7 @@ class PHS_Model_Results extends PHS_Model
                         'comment' => 'Full path to resulting file',
                     ),
                     'size' => array(
-                        'type' => self::FTYPE_INT,
+                        'type' => self::FTYPE_BIGINT,
                     ),
                     'target_id' => array(
                         'type' => self::FTYPE_TINYINT,
