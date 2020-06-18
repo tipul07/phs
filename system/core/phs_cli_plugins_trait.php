@@ -2,6 +2,8 @@
 
 namespace phs\traits;
 
+use \phs\PHS;
+
 /**
  * Adds plugin functionality for CLI apps
  * @method \phs\libraries\PHS_Error::set_error()

@@ -1293,7 +1293,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !($host = request_ip()) )
             $host = '127.0.0.1';
-        
+
         $now_time = time();
         $cdate = date( self::DATETIME_DB, $now_time );
 
@@ -1557,7 +1557,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $hook_args['account_data'] = $account_arr['id'];
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'account_action_bg' ), $hook_args ) )
+        if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ), $hook_args ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_ACCOUNT_ACTION );
@@ -1597,7 +1597,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_confirmation_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+        if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_EMAIL );
@@ -1657,7 +1657,7 @@ class PHS_Model_Accounts extends PHS_Model
             $return_arr['activation_email_required'] = true;
 
             // send activation email...
-            if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'registration_email_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+            if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
             {
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
@@ -2362,7 +2362,7 @@ class PHS_Model_Accounts extends PHS_Model
             and !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
             {
                 // send password changed email...
-                PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'pass_changed_email_bg' ), array( 'uid' => $existing_data['id'] ) );
+                PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg' ), array( 'uid' => $existing_data['id'] ) );
             }
         }
 

@@ -1,5 +1,0 @@
-# This file will be generated each time a new plugin is added to behat features
-# DO NOT CHANGE THIS FILE MANUALLY!!!
-
-imports:
-  - "config/admin.yml"

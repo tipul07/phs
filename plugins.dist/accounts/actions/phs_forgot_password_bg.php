@@ -3,10 +3,11 @@
 namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
-use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_Hooks;
 use \phs\PHS_Scope;
 use \phs\PHS_bg_jobs;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_Action;
+use \phs\libraries\PHS_Hooks;
 
 class PHS_Action_Forgot_password_bg extends PHS_Action
 {

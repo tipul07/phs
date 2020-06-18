@@ -95,7 +95,7 @@ class PHS_Action_Forgot extends PHS_Action
 
             else
             {
-                if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'forgot_password_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+                if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
                 {
                     if( self::st_has_error() )
                         $error_msg = self::st_get_error_message();

@@ -1738,15 +1738,19 @@ final class PHS extends PHS_Registry
 
         $scope_action_result = $scope_obj->generate_response( $action_result, $controller_error_arr );
 
-        if( self::st_has_error()
-         or $scope_obj->has_error() )
+        $error_msg = false;
+        if( self::st_has_error() )
+            $error_msg = self::st_get_error_message();
+        elseif( self::arr_has_error( $controller_error_arr ) )
         {
-            if( self::st_has_error() )
-                $error_msg = self::st_get_error_message();
-            else
-                $error_msg = $scope_obj->get_error_message();
+            $error_msg = '['.self::get_route_as_string().'] - '.
+                         self::arr_get_simple_error_message( $controller_error_arr );
+        } elseif( $scope_obj->has_error() )
+            $error_msg = $scope_obj->get_error_message();
 
-            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
+        if( $error_msg !== false )
+        {
+            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
 
             return false;
         }

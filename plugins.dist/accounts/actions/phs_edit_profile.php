@@ -134,7 +134,7 @@ class PHS_Action_Edit_profile extends PHS_Action
         if( !empty( $verify_email )
         and $accounts_model->needs_email_verification( $current_user ) )
         {
-            if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'verify_email_bg' ), array( 'uid' => $current_user['id'] ) ) )
+            if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'verify_email_bg', 'c' => 'index_bg' ), array( 'uid' => $current_user['id'] ) ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t send verification email. Please try again.' ) );
 
             else
