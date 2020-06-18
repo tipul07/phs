@@ -4,6 +4,7 @@ namespace phs;
 
 use phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Instantiable;
+use phs\libraries\PHS_Notifications;
 
 abstract class PHS_Scope extends PHS_Instantiable
 {
@@ -303,10 +304,18 @@ abstract class PHS_Scope extends PHS_Instantiable
             {
                 $action_result = $default_action_result;
                 $action_result['buffer'] = self::_t( 'Unknown running action.' );
-            } elseif( !($action_result = $action_obj->get_action_result()) )
+            } else
             {
-                $action_result = $default_action_result;
-                $action_result['buffer'] = self::_t( 'Couldn\'t obtain action result.' );
+                if( !($action_result = $action_obj->get_action_result()) )
+                {
+                    $action_result = $default_action_result;
+                    $action_result['buffer'] = self::_t( 'Couldn\'t obtain action result.' );
+                }
+
+                // In case we have an error in action set an error notice in notifications class
+                // so it can be used in response as scope class considers
+                if( $action_obj->has_error() )
+                    PHS_Notifications::add_error_notice( $action_obj->get_simple_error_message() );
             }
         }
 

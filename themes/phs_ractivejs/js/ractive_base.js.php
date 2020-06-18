@@ -232,11 +232,12 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
 
     valid_default_response_from_read_data: function( response )
     {
-        return (typeof response === "undefined"
-            || typeof response.error === "undefined"
-            || typeof response.error.code === "undefined"
-            || response.error.code !== 0
-            || typeof response.response === "undefined");
+        return (typeof response !== "undefined"
+            && typeof response.response !== "undefined"
+            && response.response !== null
+            && typeof response.error !== "undefined"
+            && typeof response.error.code !== "undefined"
+            && parseInt( response.error.code ) === 0 );
     },
 
     get_error_message_for_default_read_data: function( response )
@@ -247,7 +248,12 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
          || response.error.message.length === 0 )
             return false;
 
-        return response.error.message;
+        var error_msg = response.error.message;
+        if( typeof response.error.code !== "undefined"
+         && response.error.code != 0 )
+            error_msg = "[" + response.error.code + "] " + error_msg;
+
+        return error_msg;
     },
 
     read_html: function ( route, data, success, failure )

@@ -137,16 +137,7 @@ var PHS_RActive_notifications = PHS_RActive_notifications || PHS_RActive.extend(
 
         var inner_this = this;
 
-        console.log( "Added" );
-        console.log( timeout );
-        console.log( messages );
-
         this.set( "messages." + type, messages );
-
-        var updated_val = this.get( "messages" );
-
-        console.log( "Updated" );
-        console.log( updated_val );
 
         if( timeout > 0 )
             setTimeout( function() { inner_this.phs_remove_message_from_queue( msg_id, type ) }, timeout * 1000 );
