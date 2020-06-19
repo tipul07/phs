@@ -395,12 +395,16 @@ final class PHS_Session extends PHS_Registry
                                         'lifetime' => self::get_data( self::SESS_COOKIE_LIFETIME ),
                                         'path' => self::get_data( self::SESS_COOKIE_PATH ),
                                         'domain' => PHS_DOMAIN,
-                                        'secure' => false,
-                                        'httponly' => false,
+                                        'secure' => (PHS::is_secured_request()?true:false),
+                                        'httponly' => true,
                                         'samesite' => self::get_data( self::SESS_SAMESITE ) ) );
         } else
         {
-            @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ), self::get_data( self::SESS_COOKIE_PATH ), PHS_DOMAIN, false, false );
+            @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ),
+                                        self::get_data( self::SESS_COOKIE_PATH ),
+                                        PHS_DOMAIN,
+                                        (PHS::is_secured_request()?true:false),
+                                        true );
         }
 
         @register_shutdown_function( array( '\\phs\\PHS_Session', 'session_close' ) );
