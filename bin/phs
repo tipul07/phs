@@ -41,4 +41,3 @@
     $phs_app->_echo( $phs_app::_t( 'Script executed using PHP version: %s', $phs_app->cli_color( trim( PHP_VERSION ), 'red' ) ) );
 
     $phs_app->run();
-

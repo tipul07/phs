@@ -75,6 +75,7 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_trait_record_types.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_index.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_api.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_background.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );

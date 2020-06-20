@@ -206,6 +206,8 @@ class PHSMaintenance extends PHS_cli
     {
         $this->reset_error();
 
+        echo '['.PHS_SYSTEM_DIR.']';
+
         echo $this->cli_color( 'IN DEVELOPMENT...', 'green' )."\n";
         echo 'Use '.$this->cli_color( $this->get_app_cli_script().' '.'web_update', 'green' ).' option meanwhile to update the framework.'."\n";
 

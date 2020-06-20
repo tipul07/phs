@@ -8,8 +8,6 @@
 
     use \phs\PHS;
 
-    PHS::st_throw_errors( true );
-
     echo '<pre style="background-color:black;color:white;padding: 5px;border:1px solid gray;">'."\n\n";
 
     echo 'Installing core plugins, models, etc...'."\n";
