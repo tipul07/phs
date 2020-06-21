@@ -1656,8 +1656,8 @@ class PHS_Paginator extends PHS_Registry
             return true;
 
         if( !empty( $params['force'] )
-        and !empty( $current_records )
-        and !$this->flow_param( 'records_from_model' ) )
+         && !empty( $current_records )
+         && !$this->flow_param( 'records_from_model' ) )
             return true;
 
         $this->reset_records();
@@ -1669,19 +1669,29 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if( !($scope_arr = $this->get_scope())
-         or !is_array( $scope_arr ) )
+         || !is_array( $scope_arr ) )
             $scope_arr = array();
 
         if( !($filters_arr = $this->get_filters())
-         or !is_array( $filters_arr ) )
+         || !is_array( $filters_arr ) )
             $filters_arr = array();
 
+        $initial_fields = array();
         if( !($list_arr = $this->flow_param( 'initial_list_arr' ))
-         or !is_array( $list_arr ) )
+         || !is_array( $list_arr ) )
             $list_arr = array();
 
+        elseif( !empty( $list_arr['fields'] )
+             && is_array( $list_arr['fields'] ) )
+        {
+            foreach( $list_arr['fields'] as $field_name => $field_val )
+            {
+                $initial_fields[$field_name] = true;
+            }
+        }
+
         if( !($count_list_arr = $this->flow_param( 'initial_count_list_arr' ))
-         or !is_array( $count_list_arr ) )
+         || !is_array( $count_list_arr ) )
             $count_list_arr = $list_arr;
 
         $list_arr['extra_sql'] = '';
@@ -1689,18 +1699,18 @@ class PHS_Paginator extends PHS_Registry
 
         foreach( $filters_arr as $filter_arr )
         {
-            if( empty( $filter_arr ) or !is_array( $filter_arr )
-             or empty( $filter_arr['var_name'] )
-             or empty( $filter_arr['record_field'] )
-             or !isset( $scope_arr[$filter_arr['var_name']] )
-             or ($filter_arr['default'] !== false and $scope_arr[$filter_arr['var_name']] == $filter_arr['default']) )
+            if( empty( $filter_arr ) || !is_array( $filter_arr )
+             || empty( $filter_arr['var_name'] )
+             || empty( $filter_arr['record_field'] )
+             || !isset( $scope_arr[$filter_arr['var_name']] )
+             || ($filter_arr['default'] !== false && $scope_arr[$filter_arr['var_name']] == $filter_arr['default']) )
                 continue;
 
             if( !empty( $filter_arr['record_check'] )
-            and is_array( $filter_arr['record_check'] ) )
+             && is_array( $filter_arr['record_check'] ) )
             {
                 if( isset( $filter_arr['record_check']['value'] )
-                and strstr( $filter_arr['record_check']['value'], '%s' ) !== false )
+                 && strpos( $filter_arr['record_check']['value'], '%s' ) !== false )
                 {
                     if( is_array( $scope_arr[$filter_arr['var_name']] ) )
                         $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
@@ -1718,11 +1728,11 @@ class PHS_Paginator extends PHS_Registry
                 {
                     $check_model_obj = $model_obj;
                     if( !empty( $filter_arr['record_check_model'] )
-                    and ($filter_arr['record_check_model'] instanceof PHS_Model) )
+                     && ($filter_arr['record_check_model'] instanceof PHS_Model) )
                         $check_model_obj = $filter_arr['record_check_model'];
 
                     if( ($linkage_params = $check_model_obj->get_query_fields( $filter_arr['record_check'] ))
-                    and !empty( $linkage_params['extra_sql'] ) )
+                     && !empty( $linkage_params['extra_sql'] ) )
                     {
                         if( is_array( $scope_arr[$filter_arr['var_name']] ) )
                             $final_value = implode( ',', $scope_arr[$filter_arr['var_name']] );
@@ -1741,14 +1751,27 @@ class PHS_Paginator extends PHS_Registry
             }
 
             if( empty( $check_value )
-             or empty( $filter_arr['record_check'] ) )
+             || empty( $filter_arr['record_check'] ) )
                 $check_value = $scope_arr[$filter_arr['var_name']];
+
+            // If in initial list we were passed predefined filters and now we have an end-user filter,
+            // discard predefined filter and use what end-user passed us
+            if( !empty( $initial_fields )
+             && !empty( $initial_fields[$filter_arr['record_field']] )
+             && isset( $list_arr['fields'][$filter_arr['record_field']] ) )
+            {
+                unset( $list_arr['fields'][$filter_arr['record_field']] );
+                unset( $initial_fields[$filter_arr['record_field']] );
+
+                if( empty( $initial_fields ) )
+                    $initial_fields = array();
+            }
 
             // 'record_field' is always what we send to database...
             if( isset( $list_arr['fields'][$filter_arr['record_field']] ) )
             {
                 if( !is_array( $list_arr['fields'][$filter_arr['record_field']] )
-                 or empty( $list_arr['fields'][$filter_arr['record_field']][0] ) )
+                 || empty( $list_arr['fields'][$filter_arr['record_field']][0] ) )
                 {
                     $list_arr['fields'][$filter_arr['record_field']] = array( $list_arr['fields'][$filter_arr['record_field']] );
                     $count_list_arr['fields'][$filter_arr['record_field']] = array( $count_list_arr['fields'][$filter_arr['record_field']] );
