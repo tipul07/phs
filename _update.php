@@ -7,8 +7,11 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
+    use \phs\PHS_Maintenance;
 
     echo '<pre style="background-color:black;color:white;padding: 5px;border:1px solid gray;">'."\n\n";
+
+    PHS_Maintenance::output_callback( '_update_maintenance_output' );
 
     echo 'Installing core plugins, models, etc...'."\n";
     if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
@@ -58,3 +61,7 @@
              '</small>';
     }
 
+function _update_maintenance_output( $msg )
+{
+    echo $msg."\n";
+}

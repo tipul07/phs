@@ -567,6 +567,12 @@ abstract class PHS_cli extends PHS_Registry
                 'description' => 'Output will have no colors',
                 'callback_init' => array( $this, 'cli_option_output_colors' ),
             ),
+            'continous_flush' => array(
+                'short' => 'cf',
+                'long' => 'continous-flush',
+                'description' => 'Output will not get buffered, but displayed directly',
+                'callback_init' => array( $this, 'cli_option_continous_flush' ),
+            ),
             'version' => array(
                 'short' => 'v',
                 'long' => 'version',
@@ -702,6 +708,16 @@ abstract class PHS_cli extends PHS_Registry
             return false;
 
         $this->_output_colors = (empty( $args['value'] ));
+        return true;
+    }
+
+    public function cli_option_continous_flush( $args )
+    {
+        if( empty( $args ) or !is_array( $args )
+         or !isset( $args['value'] ) )
+            return false;
+
+        $this->_continous_flush = (empty( $args['value'] ));
         return true;
     }
 
@@ -906,7 +922,8 @@ abstract class PHS_cli extends PHS_Registry
 
         $this->_add_buffer_to_result( $msg );
 
-        if( !empty( $params['flush_output'] ) )
+        if( !empty( $params['flush_output'] )
+         || $this->_continous_flush() )
             $this->_flush_output();
 
         if( !empty( $params['force_echo'] ) )

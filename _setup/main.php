@@ -60,10 +60,11 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language_container.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' );
+    // Make sure we can use maintenance things anytime
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_maintenance.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_roles.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_instantiable.php' );
-    //include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_plugin.php' );

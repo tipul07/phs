@@ -28,10 +28,11 @@ include_once( PHS_LIBRARIES_DIR.'phs_error.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language_container.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_language.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_registry.php' );
+// Make sure we can use maintenance things anytime
+include_once( PHS_CORE_DIR.'phs_maintenance.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_library.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_roles.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
-//include_once( PHS_LIBRARIES_DIR.'phs_signal_and_slot.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
@@ -78,6 +79,7 @@ include_once( PHS_CORE_DIR.'phs_api.php' );
 // Make sure you create repositories' directories in uploads dir and you don't initialize a LDAP repository directly in uploads dir - unless you know what you'r doing!!!)
 // eg. if uploads directory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
 include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
+
 
 use \phs\PHS;
 use \phs\PHS_db;

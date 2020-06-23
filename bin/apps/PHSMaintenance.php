@@ -5,6 +5,7 @@ namespace phs\cli\apps;
 include_once( PHS_CORE_DIR.'phs_cli_plugins_trait.php' );
 
 use \phs\PHS;
+use \phs\PHS_Maintenance;
 use \phs\PHS_cli;
 use phs\libraries\PHS_utils;
 use \phs\traits\PHS_cli_plugins_trait;
@@ -62,11 +63,18 @@ class PHSMaintenance extends PHS_cli
     {
         $this->reset_error();
 
+        PHS_Maintenance::output_callback( [ $this, 'cli_maintenance_output' ] );
+
         return true;
     }
     //
     //endregion Environment initialization
     //
+
+    public function cli_maintenance_output( $msg )
+    {
+        $this->_echo( $msg );
+    }
 
     public function cmd_plugin_action()
     {
@@ -206,10 +214,65 @@ class PHSMaintenance extends PHS_cli
     {
         $this->reset_error();
 
-        echo '['.PHS_SYSTEM_DIR.']';
+        if( !defined( 'PHS_INSTALLING_FLOW' ) )
+            define( 'PHS_INSTALLING_FLOW', true );
 
-        echo $this->cli_color( 'IN DEVELOPMENT...', 'green' )."\n";
-        echo 'Use '.$this->cli_color( $this->get_app_cli_script().' '.'web_update', 'green' ).' option meanwhile to update the framework.'."\n";
+        $this->_continous_flush( true );
+
+        $this->_echo( 'Installing core plugins, models, etc...' );
+        if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
+        {
+            $system_install_result = include_once( PHS_SYSTEM_DIR . 'install.php' );
+
+            if( $system_install_result !== true )
+            {
+                $this->_echo( $this->cli_color( 'ERROR', 'red' ).' while running system install script [CORE INSTALL]:'  );
+                $this->_echo( self::arr_get_simple_error_message( $system_install_result ) );
+                return true;
+            }
+        }
+
+        $this->_echo( $this->cli_color( 'DONE', 'green' ) );
+
+        $this->_echo( 'Installing custom plugins, models, etc...' );
+
+        // Walk thgrough plugins install scripts (if any special install functionality is required)...
+        foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
+        {
+            if( ($install_scripts = @glob( $bstrap_dir . '*/install.php', GLOB_BRACE ))
+            and is_array( $install_scripts ) )
+            {
+                foreach( $install_scripts as $install_script )
+                {
+                    $install_result = include_once( $install_script );
+
+                    if( $install_result !== null )
+                    {
+                        $install_result = self::validate_error_arr( $install_result );
+                        $this->_echo( $this->cli_color( 'ERROR', 'red' ).' while running custom install script ['.$install_script.']:'  );
+
+                        if( self::arr_has_error( $install_result ) )
+                            $this->_echo( self::arr_get_simple_error_message( $install_result ) );
+
+                        return true;
+                    }
+                }
+            }
+        }
+
+        $this->_echo( $this->cli_color( 'DONE', 'green' ) );
+        $this->_echo( '' );
+
+        if( ($debug_data = PHS::platform_debug_data()) )
+        {
+            $this->_echo( 'Update stats:' );
+            $this->_echo( 'DB queries: '.$debug_data['db_queries_count'].', '.
+                          'bootstrap time: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
+                          'running time: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s.'
+            );
+        }
+
+        //echo 'Use '.$this->cli_color( $this->get_app_cli_script().' '.'web_update', 'green' ).' option meanwhile to update the framework.'."\n";
 
         return true;
     }
