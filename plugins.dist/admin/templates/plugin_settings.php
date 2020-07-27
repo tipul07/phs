@@ -310,7 +310,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
 
                 case $plugin_obj::INPUT_TYPE_ONE_OR_MORE:
                     if( empty( $field_details['values_arr'] )
-                     or !is_array( $field_details['values_arr'] ) )
+                     || !is_array( $field_details['values_arr'] ) )
                         echo $fthis->_pt( 'Values array should be provided' );
 
                     else
@@ -320,17 +320,50 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
 
                         foreach( $field_details['values_arr'] as $one_more_key => $one_more_text )
                         {
-                            $option_checked = in_array( $one_more_key, $field_value );
+                            $option_checked = in_array( $one_more_key, $field_value, false );
 
-                            $field_id .= '_'.$one_more_key;
-
+                            $option_field_id = $field_id.'_'.$one_more_key;
                             ?>
                             <div style="float:left; margin-right:10px;">
-                            <input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" class="<?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox" <?php echo (!empty($option_checked) ? 'checked="checked"' : '').(empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?> style="<?php echo $field_details['extra_style'] ?>" />
-                            <label for="<?php echo $field_id?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text?></label>
+                            <input type="checkbox" id="<?php echo $option_field_id ?>" name="<?php echo $field_name ?>[]"
+                                   class="<?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $one_more_key )?>" rel="skin_checkbox"
+                                   <?php echo (!empty($option_checked) ? 'checked="checked"' : '').(empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '') ?>
+                                   style="<?php echo $field_details['extra_style'] ?>" />
+                            <label for="<?php echo $option_field_id?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text?></label>
                             </div>
                             <?php
                         }
+                    }
+                break;
+
+                case $plugin_obj::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                    if( empty( $field_details['values_arr'] )
+                     || !is_array( $field_details['values_arr'] ) )
+                        echo $fthis->_pt( 'Values array should be provided' );
+
+                    else
+                    {
+                        if( empty( $field_value ) or !is_array( $field_value ) )
+                            $field_value = array();
+                        ?>
+                        <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" multiple="multiple"
+                                class="chosen-select <?php echo $field_details['extra_classes'] ?>" style="width: 100%;<?php echo $field_details['extra_style'] ?>"
+                                <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>
+                        >
+                        <?php
+                        foreach( $field_details['values_arr'] as $one_more_key => $one_more_text )
+                        {
+                            $option_checked = in_array( $one_more_key, $field_value, false );
+
+                            $option_field_id = $field_id.'_'.$one_more_key;
+                            ?>
+                            <option value="<?php echo form_str( $one_more_key )?>" <?php echo (!empty($option_checked) ? 'selected="selected"' : '')?>
+                                    id="<?php echo $option_field_id?>"><?php echo $one_more_text?></option>
+                            <?php
+                        }
+                        ?>
+                        </select>
+                        <?php
                     }
                 break;
             }

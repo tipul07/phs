@@ -377,6 +377,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         {
             default:
             case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
+            case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
                 $field_value = $form_data[$field_name];
             break;
 

@@ -7,8 +7,9 @@ use \phs\PHS;
 abstract class PHS_Has_db_settings extends PHS_Instantiable
 {
     const ERR_PLUGINS_MODEL = 40000;
-    
-    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array';
+
+    const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more',
+          INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array';
 
     // Validated settings fields structure array
     protected $_settings_structure = array();
