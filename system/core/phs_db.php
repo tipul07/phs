@@ -21,28 +21,40 @@ final class PHS_db extends PHS_Registry
 
     private static $inited = false;
     private static $instance = false;
+    private static $check_db_fields_boundaries = true;
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
 
         self::init();
     }
 
+    /**
+     * @return string[]
+     */
     public static function known_db_drivers()
     {
         return self::$KNOWN_DB_DRIVERS;
     }
 
+    /**
+     * @param string $driver
+     *
+     * @return bool|string
+     */
     public static function valid_db_driver( $driver )
     {
-        if( empty( $driver ) or !is_string( $driver )
-         or empty( self::$KNOWN_DB_DRIVERS[$driver] ) )
+        if( empty( $driver ) || !is_string( $driver )
+         || empty( self::$KNOWN_DB_DRIVERS[$driver] ) )
             return false;
 
         return self::$KNOWN_DB_DRIVERS[$driver];
     }
 
+    /**
+     * @return array
+     */
     public static function get_default_db_connection_settings_arr()
     {
         return array(
@@ -61,11 +73,16 @@ final class PHS_db extends PHS_Registry
         );
     }
 
+    /**
+     * @param array $settings_arr
+     *
+     * @return array|bool
+     */
     public static function validate_db_connection_settings( $settings_arr )
     {
         self::st_reset_error();
-        if( empty( $settings_arr ) or !is_array( $settings_arr )
-         or empty( $settings_arr['host'] ) or empty( $settings_arr['database'] ) )
+        if( empty( $settings_arr ) || !is_array( $settings_arr )
+         || empty( $settings_arr['host'] ) || empty( $settings_arr['database'] ) )
         {
             self::st_set_error( self::ERR_DATABASE, self::_t( 'Invalid database settings' ) );
             return false;
@@ -74,7 +91,7 @@ final class PHS_db extends PHS_Registry
         $settings_arr = self::validate_array( $settings_arr, self::get_default_db_connection_settings_arr() );
 
         if( empty( $settings_arr['driver'] )
-         or !self::valid_db_driver( $settings_arr['driver'] ) )
+         || !self::valid_db_driver( $settings_arr['driver'] ) )
         {
             self::st_set_error( self::ERR_DATABASE,
                                 self::_t( 'Invalid database driver' ),
@@ -88,10 +105,16 @@ final class PHS_db extends PHS_Registry
         return $settings_arr;
     }
 
+    /**
+     * @param string $connection_name
+     * @param array $settings_arr
+     *
+     * @return array|bool
+     */
     public static function add_db_connection( $connection_name, $settings_arr )
     {
         if( empty( $connection_name )
-         or empty( $settings_arr ) or !is_array( $settings_arr ) )
+         || empty( $settings_arr ) || !is_array( $settings_arr ) )
         {
             self::st_set_error( self::ERR_DATABASE, self::_t( 'Invalid connection or database settings' ) );
             return false;
@@ -123,8 +146,8 @@ final class PHS_db extends PHS_Registry
      */
     public static function get_db_connection( $connection_name = false )
     {
-        if( !($all_connections = self::get_data( self::DB_SETTINGS ))
-         or ($connection_name !== false and !is_string( $connection_name )) )
+        if( ($connection_name !== false && !is_string( $connection_name ))
+         || !($all_connections = self::get_data( self::DB_SETTINGS )) )
             return false;
 
         if( $connection_name === false )
@@ -136,12 +159,29 @@ final class PHS_db extends PHS_Registry
         return $all_connections[$connection_name];
     }
 
+    /**
+     * Tells database drivers to check table fields for their limits (value boundaries) when sending data to the database. (If applicable)
+     * For MySQL driver this means check int max and min values
+     * @param null|bool $check
+     *
+     * @return bool
+     */
+    public static function check_db_fields_boundaries( $check = null )
+    {
+        if( $check === null )
+            return self::$check_db_fields_boundaries;
+
+        self::$check_db_fields_boundaries = (!empty( $check ));
+
+        return self::$check_db_fields_boundaries;
+    }
+
     public static function get_connection_identifier( $connection_name )
     {
         if( empty( $connection_name )
-         or !($connection_settings = self::get_db_connection( $connection_name ))
-         or !is_array( $connection_settings )
-         or !($connection_settings = self::validate_array( $connection_settings, self::get_default_db_connection_settings_arr() )) )
+         || !($connection_settings = self::get_db_connection( $connection_name ))
+         || !is_array( $connection_settings )
+         || !($connection_settings = self::validate_array( $connection_settings, self::get_default_db_connection_settings_arr() )) )
             return false;
 
         $return_arr = array();
@@ -164,6 +204,12 @@ final class PHS_db extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param bool $driver
+     * @param bool $connection_name
+     *
+     * @return bool|mixed
+     */
     public static function default_db_connection( $driver = false, $connection_name = false )
     {
         if( $driver === false )
@@ -172,7 +218,7 @@ final class PHS_db extends PHS_Registry
         if( $connection_name === false )
         {
             if( !($default_connection_arr = self::get_data( self::DB_DEFAULT_CONNECTION ))
-             or !is_array( $default_connection_arr ) )
+             || !is_array( $default_connection_arr ) )
                 $default_connection_arr = array();
 
             if( empty( $default_connection_arr[$driver] ) )
@@ -182,11 +228,11 @@ final class PHS_db extends PHS_Registry
         }
 
         if( !($settings_arr = self::get_db_connection( $connection_name ))
-         or !is_array( $settings_arr ) )
+         || !is_array( $settings_arr ) )
             return false;
 
         if( !($default_connection_arr = self::get_data( self::DB_DEFAULT_CONNECTION ))
-         or !is_array( $default_connection_arr ) )
+         || !is_array( $default_connection_arr ) )
             $default_connection_arr = array();
 
         $default_connection_arr[$settings_arr['driver']] = $connection_name;
@@ -219,7 +265,7 @@ final class PHS_db extends PHS_Registry
     public static function db_connection_exists( $connection_name )
     {
         if( !($all_connections = self::get_data( self::DB_SETTINGS ))
-         or !is_string( $connection_name ) )
+         || !is_string( $connection_name ) )
             return false;
 
         if( empty( $all_connections[$connection_name] ) )
@@ -242,7 +288,7 @@ final class PHS_db extends PHS_Registry
 
         // If no database connection was defined assume we don't need a database?
         if( !($all_connections = self::get_data( self::DB_SETTINGS ))
-         or empty( $all_connections ) )
+         || empty( $all_connections ) )
             return true;
 
         $we_did_something = false;
@@ -297,7 +343,7 @@ final class PHS_db extends PHS_Registry
                     include_once( PHS_LIBRARIES_DIR . 'phs_db_mysqli.php' );
 
                     if( !($db_instance = new PHS_db_mysqli())
-                     or $db_instance->has_error() )
+                     || $db_instance->has_error() )
                     {
                         if( $db_instance )
                             self::st_copy_error( $db_instance );
@@ -309,7 +355,7 @@ final class PHS_db extends PHS_Registry
 
                     $on_debugging_mode = self::st_debugging_mode();
 
-                    $db_instance->display_errors( ($on_debugging_mode and !PHS_DB_SILENT_ERRORS) );
+                    $db_instance->display_errors( ($on_debugging_mode && !PHS_DB_SILENT_ERRORS) );
                     $db_instance->die_on_errors( PHS_DB_DIE_ON_ERROR );
                     $db_instance->debug_errors( $on_debugging_mode );
                     $db_instance->close_after_query( PHS_DB_CLOSE_AFTER_QUERY );
@@ -325,7 +371,7 @@ final class PHS_db extends PHS_Registry
                     include_once( PHS_LIBRARIES_DIR . 'phs_db_mongo.php' );
 
                     if( !($db_instance = new PHS_db_mongo())
-                     or $db_instance->has_error() )
+                     || $db_instance->has_error() )
                     {
                         if( $db_instance )
                             self::st_copy_error( $db_instance );
@@ -337,7 +383,7 @@ final class PHS_db extends PHS_Registry
 
                     $on_debugging_mode = self::st_debugging_mode();
 
-                    $db_instance->display_errors( ($on_debugging_mode and !PHS_DB_SILENT_ERRORS) );
+                    $db_instance->display_errors( ($on_debugging_mode && !PHS_DB_SILENT_ERRORS) );
                     $db_instance->die_on_errors( PHS_DB_DIE_ON_ERROR );
                     $db_instance->debug_errors( $on_debugging_mode );
 

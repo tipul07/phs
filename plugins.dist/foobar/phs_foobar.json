@@ -3,6 +3,6 @@
     "vendor_name": "PHS",
     "name": "Foobar Plugin",
     "description": "This is a foobar plugin...",
-    "version": "1.0.10",
+    "version": "1.0.14",
     "models": [ "foobar" ]
 }

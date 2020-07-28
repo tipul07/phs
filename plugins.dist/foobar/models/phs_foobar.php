@@ -14,7 +14,7 @@ class PHS_Model_Foobar extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.6';
+        return '1.0.10';
     }
 
     /**
@@ -95,20 +95,35 @@ class PHS_Model_Foobar extends PHS_Model
                     ),
                     'pid' => array(
                         'type' => self::FTYPE_INT,
+                        'default' => 0,
+                    ),
+                    'unspid' => array(
+                        'type' => self::FTYPE_INT,
+                        'default' => 0,
+                        'unsigned' => true,
+                    ),
+                    'bigintf' => array(
+                        'type' => self::FTYPE_BIGINT,
+                        'default' => 0,
+                    ),
+                    'decfield' => array(
+                        'type' => self::FTYPE_DECIMAL,
+                        'length' => '5,3',
+                        'default' => 0,
                     ),
                     'route' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 50,
                         'nullable' => true,
                         'default' => null,
                     ),
                     'params' => array(
-                        'type' => self::FTYPE_LONGTEXT,
+                        'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                     ),
                     'last_error' => array(
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '255',
+                        'length' => 255,
                         'nullable' => true,
                         'default' => null,
                     ),

@@ -128,9 +128,9 @@ if( !defined( 'PHS_SITEBUILD_VERSION' ) )
 PHS::set_multi_language( true );
 
 // Running in debugging mode?
-PHS::st_debugging_mode( ((defined( 'PHS_DEBUG_MODE' ) and PHS_DEBUG_MODE)?true:false) );
+PHS::st_debugging_mode( (defined( 'PHS_DEBUG_MODE' ) && PHS_DEBUG_MODE) );
 // Should errors be thrown?
-PHS::st_throw_errors( ((defined( 'PHS_DEBUG_THROW_ERRORS' ) and PHS_DEBUG_THROW_ERRORS)?true:false) );
+PHS::st_throw_errors( (defined( 'PHS_DEBUG_THROW_ERRORS' ) && PHS_DEBUG_THROW_ERRORS) );
 
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
@@ -139,7 +139,7 @@ PHS_Logger::logging_dir( PHS_LOGS_DIR );
 // Default scope settings... These are overwritten when running specific actions
 PHS_Scope::default_scope( PHS_Scope::SCOPE_WEB );
 if( defined( 'PHS_SCRIPT_SCOPE' )
-and ($script_scope = PHS_Scope::valid_constant_scope( PHS_SCRIPT_SCOPE )) )
+ && ($script_scope = PHS_Scope::valid_constant_scope( PHS_SCRIPT_SCOPE )) )
     PHS_Scope::current_scope( $script_scope );
 
 if( !PHS_Scope::current_scope_is_set() )
@@ -194,6 +194,7 @@ if( !is_array( $mysql_settings['driver_settings'] ) )
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
 PHS_db::default_db_driver( PHS_db::DB_DRIVER_MYSQLI );
+PHS_db::check_db_fields_boundaries( true );
 
 if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {

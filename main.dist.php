@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.3.3' );
+define( 'PHS_KNOWN_VERSION', '1.1.3.4' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '1.0.0' );
@@ -125,6 +125,7 @@ include_once( PHS_PATH.'bootstrap.php' );
 
 use \phs\PHS;
 use \phs\PHS_ajax;
+use \phs\PHS_db;
 use \phs\libraries\PHS_Logger;
 
 // Set any cascading themes here...
@@ -146,3 +147,7 @@ PHS_ajax::checksum_timeout( 86400 );
 PHS_Logger::logging_enabled( true );
 PHS_Logger::log_channels( PHS_Logger::TYPE_DEF_ALL );
 PHS_Logger::logging_dir( PHS_LOGS_DIR );
+
+// Tell database drivers to try to restrict data sent to database based on field boundaries
+// defined in table definition (if applicable)
+PHS_db::check_db_fields_boundaries( true );

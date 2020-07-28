@@ -19,6 +19,8 @@ class PHS_Hooks extends PHS_Registry
 
          // Model hooks
          H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
+         // low level insert and edit
+         H_MODEL_INSERT_DATA = 'phs_model_insert_data', H_MODEL_EDIT_DATA = 'phs_model_edit_data', H_MODEL_HARD_DELETE_DATA = 'phs_model_hard_delete_data',
 
          // Paginator hooks
          H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
@@ -442,6 +444,33 @@ class PHS_Hooks extends PHS_Registry
         return self::hook_args_definition( array(
             'data_arr' => array(),
             'flow_params' => false,
+        ) );
+    }
+
+    public static function default_model_insert_data_hook_args()
+    {
+        return self::hook_args_definition( array(
+            'fields_arr' => array(),
+            'table_name' => false,
+            'new_db_record' => false,
+        ) );
+    }
+
+    public static function default_model_edit_data_hook_args()
+    {
+        return self::hook_args_definition( array(
+            'fields_arr' => array(),
+            'table_name' => false,
+            'new_db_record' => false,
+            'old_db_record' => false,
+        ) );
+    }
+
+    public static function default_model_hard_delete_data_hook_args()
+    {
+        return self::hook_args_definition( array(
+            'table_name' => false,
+            'db_record' => false,
         ) );
     }
     //

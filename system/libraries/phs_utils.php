@@ -15,6 +15,124 @@ class PHS_utils extends PHS_Language
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
 
     /**
+     * Compares two numeric strings and says which one is bigger. This method simulates bccomp behaviour.
+     * It doesn't take in consideration float representations of numbers (eg. 9.2233720368548E+18), only "plain" numbers
+     * (eg. 3523466345634573567657456.33223, -34534534534534543543534.2244555)
+     * On error, method returns false
+     *
+     * @param string|int|float $num1
+     * @param string|int|float $num2
+     * @return int
+     */
+    public static function numeric_string_compare( $num1, $num2 )
+    {
+        if( !is_string( $num1 ) )
+            $num1 = (string)$num1;
+        if( !is_string( $num2 ) )
+            $num2 = (string)$num2;
+
+        if( $num1 === '' )
+            $num1 = '0';
+        if( $num2 === '' )
+            $num2 = '0';
+
+        if( strpos( $num1, '.' ) !== false
+         && ($num1_arr = @explode( '.', $num1 )) )
+        {
+            $num1_int = ($num1_arr[0]===''?'0':$num1_arr[0]);
+            $num1_digits = ($num1_arr[1]===''?'0':$num1_arr[1]);
+        } else
+        {
+            $num1_int = $num1;
+            $num1_digits = '0';
+        }
+
+        if( strpos( $num2, '.' ) !== false
+         && ($num2_arr = @explode( '.', $num2 )) )
+        {
+            $num2_int = ($num2_arr[0]===''?'0':$num2_arr[0]);
+            $num2_digits = ($num2_arr[1]===''?'0':$num2_arr[1]);
+        } else
+        {
+            $num2_int = $num2;
+            $num2_digits = '0';
+        }
+
+        $num1_positive = true;
+        $num2_positive = true;
+
+        if( $num1_int[0] === '-' )
+        {
+            $num1_int = substr( $num1_int, 1 );
+            $num1_positive = false;
+        }
+
+        if( $num2_int[0] === '-' )
+        {
+            $num2_int = substr( $num2_int, 1 );
+            $num2_positive = false;
+        }
+
+        if( $num1_positive xor $num2_positive )
+        {
+            if( $num1_positive )
+                return 1;
+            else
+                return -1;
+        }
+
+        $num1_int_len = strlen( $num1_int );
+        $num2_int_len = strlen( $num2_int );
+
+
+        if( $num1_int_len > $num2_int_len )
+            return 1;
+
+        if( $num1_int_len < $num2_int_len )
+            return -1;
+
+        for( $i = $num1_int_len-1; $i >= 0; $i-- )
+        {
+            $num1_digit = (int)$num1_int[$i];
+            $num2_digit = (int)$num2_int[$i];
+            if( $num1_digit === $num2_digit )
+                continue;
+
+            if( $num1_digit > $num2_digit )
+                return 1;
+
+            if( $num1_digit < $num2_digit )
+                return -1;
+        }
+
+        $num1_digits_len = strlen( $num1_digits );
+        $num2_digits_len = strlen( $num2_digits );
+
+        $digits_len = min( $num1_digits_len, $num2_digits_len );
+
+        for( $i = 0; $i < $digits_len; $i++ )
+        {
+            $num1_digit = (int)$num1_digits[$i];
+            $num2_digit = (int)$num2_digits[$i];
+            if( $num1_digit === $num2_digit )
+                continue;
+
+            if( $num1_digit > $num2_digit )
+                return 1;
+
+            if( $num1_digit < $num2_digit )
+                return -1;
+        }
+
+        if( $num1_digits_len > $num2_digits_len )
+            return 1;
+        if( $num1_digits_len < $num2_digits_len )
+            return -1;
+
+        return 0;
+    }
+
+    /**
      * Returns details about running process with provided PID
      * @param int $pid Process id
      * @return array
