@@ -40,7 +40,8 @@ class PHS_utils extends PHS_Language
          && ($num1_arr = @explode( '.', $num1 )) )
         {
             $num1_int = ($num1_arr[0]===''?'0':$num1_arr[0]);
-            $num1_digits = ($num1_arr[1]===''?'0':$num1_arr[1]);
+            if( '0' === ($num1_digits = ($num1_arr[1]===''?'0':rtrim( $num1_arr[1], '0' ))) )
+                $num1_digits = '0';
         } else
         {
             $num1_int = $num1;
@@ -51,7 +52,8 @@ class PHS_utils extends PHS_Language
          && ($num2_arr = @explode( '.', $num2 )) )
         {
             $num2_int = ($num2_arr[0]===''?'0':$num2_arr[0]);
-            $num2_digits = ($num2_arr[1]===''?'0':$num2_arr[1]);
+            if( '' === ($num2_digits = ($num2_arr[1]===''?'0':rtrim( $num2_arr[1], '0' ))) )
+                $num2_digits = '0';
         } else
         {
             $num2_int = $num2;
@@ -84,25 +86,40 @@ class PHS_utils extends PHS_Language
         $num1_int_len = strlen( $num1_int );
         $num2_int_len = strlen( $num2_int );
 
-
         if( $num1_int_len > $num2_int_len )
-            return 1;
+        {
+            if( $num1_positive )
+                return 1;
+            else
+                return -1;
+        }
 
         if( $num1_int_len < $num2_int_len )
-            return -1;
+        {
+            if( $num1_positive )
+                return -1;
+            else
+                return 1;
+        }
 
-        for( $i = $num1_int_len-1; $i >= 0; $i-- )
+        for( $i = 0; $i < $num1_int_len; $i++ )
         {
             $num1_digit = (int)$num1_int[$i];
             $num2_digit = (int)$num2_int[$i];
             if( $num1_digit === $num2_digit )
                 continue;
 
+            // If digits are not equal...
             if( $num1_digit > $num2_digit )
-                return 1;
-
-            if( $num1_digit < $num2_digit )
+            {
+                if( $num1_positive )
+                    return 1;
+                else
+                    return -1;
+            } elseif( $num1_positive )
                 return -1;
+            else
+                return 1;
         }
 
         $num1_digits_len = strlen( $num1_digits );
@@ -117,17 +134,33 @@ class PHS_utils extends PHS_Language
             if( $num1_digit === $num2_digit )
                 continue;
 
+            // If digits are not equal...
             if( $num1_digit > $num2_digit )
-                return 1;
-
-            if( $num1_digit < $num2_digit )
+            {
+                if( $num1_positive )
+                    return 1;
+                else
+                    return -1;
+            } elseif( $num1_positive )
                 return -1;
+            else
+                return 1;
         }
 
         if( $num1_digits_len > $num2_digits_len )
-            return 1;
+        {
+            if( $num1_positive )
+                return 1;
+            else
+                return -1;
+        }
         if( $num1_digits_len < $num2_digits_len )
-            return -1;
+        {
+            if( $num1_positive )
+                return -1;
+            else
+                return 1;
+        }
 
         return 0;
     }
