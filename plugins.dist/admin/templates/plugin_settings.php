@@ -11,8 +11,8 @@
 
     /** @var \phs\libraries\PHS_Plugin $plugin_obj */
     $plugin_obj = false;
-    if( (empty( $form_data['pid'] ) or $form_data['pid'] != PHS_Instantiable::CORE_PLUGIN)
-    and !($plugin_obj = $this->view_var( 'plugin_obj' )) )
+    if( (empty( $form_data['pid'] ) || $form_data['pid'] !== PHS_Instantiable::CORE_PLUGIN)
+     && !($plugin_obj = $this->view_var( 'plugin_obj' )) )
         return $this->_pt( 'Plugin ID is invalid or plugin was not found.' );
 
     if( !($back_page = $this->view_var( 'back_page' )) )
@@ -60,10 +60,10 @@
                     <?php echo $plugin_info['name']?>
                     <small>
                     <?php
-                    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version']; // $plugin_obj->get_plugin_version();
+                    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version'];
 
                     if( !empty( $plugin_info['models'] )
-                    and is_array( $plugin_info['models'] ) )
+                     && is_array( $plugin_info['models'] ) )
                         echo ' - '.$this->_pt( '%s models', count( $plugin_info['models'] ) );
                     ?>
                     </small>
@@ -78,7 +78,7 @@
                 <div class="clearfix"></div><?php
             }
 
-            if( !empty( $modules_with_settings ) and is_array( $modules_with_settings ) )
+            if( !empty( $modules_with_settings ) && is_array( $modules_with_settings ) )
             {
                 ?>
                 <div class="lineform">
@@ -89,7 +89,7 @@
                     foreach( $modules_with_settings as $model_id => $model_arr )
                     {
                         if( !is_array( $model_arr )
-                         or empty( $model_arr['instance'] ) )
+                         || empty( $model_arr['instance'] ) )
                             continue;
 
                         /** @var \phs\libraries\PHS_Model $model_instance */
@@ -116,7 +116,7 @@
 
             ?></small><?php
 
-            if( empty( $settings_fields ) or !is_array( $settings_fields ) )
+            if( empty( $settings_fields ) || !is_array( $settings_fields ) )
             {
                 ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt( 'Selected module doesn\'t have any settings.' )?></p><?php
             } else
@@ -162,7 +162,7 @@ function phs_display_plugin_settings_all_fields( $settings_fields, $form_data, $
 {
     foreach( $settings_fields as $field_name => $field_details )
     {
-        if( !$plugin_obj::settings_field_is_group( $field_details ) )
+        if( !PHS_Plugin::settings_field_is_group( $field_details ) )
             phs_display_plugin_settings_field( $field_name, $field_details, $form_data, $plugin_settings, $fthis, $plugin_obj );
 
         else
@@ -221,7 +221,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
 
     $field_id = $field_name;
     $field_value = null;
-    if( isset( $form_data[$field_name] ) and $form_data[$field_name] !== null )
+    if( isset( $form_data[$field_name] ) && $form_data[$field_name] !== null )
         $field_value = $form_data[$field_name];
     elseif( isset( $plugin_settings[$field_name] ) )
         $field_value = $plugin_settings[$field_name];
@@ -235,9 +235,9 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
         <div class="lineformwide_line"><?php
 
         if( !empty( $field_details['custom_renderer'] )
-        and is_callable( $field_details['custom_renderer'] ) )
+         && is_callable( $field_details['custom_renderer'] ) )
         {
-            $callback_params = $plugin_obj->default_custom_renderer_params();
+            $callback_params = PHS_Plugin::default_custom_renderer_params();
             $callback_params['field_id'] = $field_id;
             $callback_params['field_name'] = $field_name;
             $callback_params['field_details'] = $field_details;
@@ -247,7 +247,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
             $callback_params['plugin_obj'] = $plugin_obj;
 
             if( ($cell_content = @call_user_func( $field_details['custom_renderer'], $callback_params )) === false
-             or $cell_content === null )
+             || $cell_content === null )
                 $cell_content = '[' . $fthis->_pt( 'Render settings field call failed.' ) . ']';
 
             echo $cell_content;
@@ -256,7 +256,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
         {
             switch( $field_details['input_type'] )
             {
-                case $plugin_obj::INPUT_TYPE_KEY_VAL_ARRAY:
+                case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
 
                     if( !is_array( $field_value ) )
                         echo $fthis->_pt( 'Not a key-value array...' );
@@ -277,7 +277,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                     }
                 break;
 
-                case $plugin_obj::INPUT_TYPE_TEMPLATE:
+                case PHS_Plugin::INPUT_TYPE_TEMPLATE:
 
                     echo $fthis->_pt( 'Template file' ).': ';
                     if( is_string( $field_value ) )
@@ -290,7 +290,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                         echo $fthis->_pt( 'N/A' );
 
                     if( is_array( $field_value )
-                    and !empty( $field_value['extra_paths'] ) and is_array( $field_value['extra_paths'] ) )
+                     && !empty( $field_value['extra_paths'] ) && is_array( $field_value['extra_paths'] ) )
                     {
                         echo '<br/>'.$fthis->_pt( 'From paths' ).': ';
 
@@ -308,14 +308,14 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                     }
                 break;
 
-                case $plugin_obj::INPUT_TYPE_ONE_OR_MORE:
+                case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
                     if( empty( $field_details['values_arr'] )
                      || !is_array( $field_details['values_arr'] ) )
                         echo $fthis->_pt( 'Values array should be provided' );
 
                     else
                     {
-                        if( empty( $field_value ) or !is_array( $field_value ) )
+                        if( empty( $field_value ) || !is_array( $field_value ) )
                             $field_value = array();
 
                         foreach( $field_details['values_arr'] as $one_more_key => $one_more_text )
@@ -336,14 +336,14 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                     }
                 break;
 
-                case $plugin_obj::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
                     if( empty( $field_details['values_arr'] )
                      || !is_array( $field_details['values_arr'] ) )
                         echo $fthis->_pt( 'Values array should be provided' );
 
                     else
                     {
-                        if( empty( $field_value ) or !is_array( $field_value ) )
+                        if( empty( $field_value ) || !is_array( $field_value ) )
                             $field_value = array();
                         ?>
                         <select id="<?php echo $field_id ?>" name="<?php echo $field_name ?>[]" multiple="multiple"
@@ -370,7 +370,7 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
         } else
         {
             if( !empty( $field_details['values_arr'] )
-            and is_array( $field_details['values_arr'] ) )
+             && is_array( $field_details['values_arr'] ) )
             {
                 if( empty( $field_details['extra_style'] ) )
                     $field_details['extra_style'] = 'width:100%';

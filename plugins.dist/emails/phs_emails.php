@@ -176,7 +176,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public function display_settings_routes( $params )
     {
-        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
+        $params = self::validate_array( $params, self::default_custom_renderer_params() );
 
         $default_smtp_settings = self::get_default_smtp_settings();
 
@@ -205,7 +205,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public function display_test_sending_emails( $params )
     {
-        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
+        $params = self::validate_array( $params, self::default_custom_renderer_params() );
 
         if( !($current_settings = $this->get_plugin_settings()) )
             $current_settings = array();

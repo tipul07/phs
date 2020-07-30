@@ -99,7 +99,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
     public function plugin_settings_render_location( $params )
     {
-        $params = self::validate_array( $params, $this->default_custom_renderer_params() );
+        $params = self::validate_array( $params, self::default_custom_renderer_params() );
 
         if( isset( $params['field_details']['default'] ) )
             $default_value = $params['field_details']['default'];

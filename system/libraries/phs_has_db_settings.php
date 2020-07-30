@@ -122,7 +122,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         );
     }
 
-    public function default_custom_renderer_params()
+    public static function default_custom_renderer_params()
     {
         return array(
             'field_id' => '',
