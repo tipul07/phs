@@ -28,7 +28,7 @@
 ?>
 <div id="header_content">
     <div id="logo">
-        <a href="<?php echo PHS::url()?>"><img src="<?php echo $this->get_resource_url( 'images/logo.png' )?>" alt="<?php echo PHS_SITE_NAME?>" title="<?php echo PHS_SITE_NAME?>" /></a>
+        <a href="<?php echo PHS::url()?>"><img src="<?php echo $this->get_resource_url( 'images/logo.png' )?>" alt="<?php echo PHS_SITE_NAME?>" /></a>
         <div class="clearfix"></div>
     </div>
 
