@@ -4,7 +4,6 @@ namespace phs\plugins\messages\models;
 
 use phs\libraries\PHS_line_params;
 use \phs\PHS;
-use \phs\PHS_Scope;
 use \phs\PHS_bg_jobs;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Roles;
@@ -1050,6 +1049,47 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         return $result_list_arr;
+    }
+
+    public function get_all_messages($account_id)
+    {
+        if (
+            !($accounts_model = PHS::load_model('accounts', 'accounts'))
+            || !($m_flow_params = $this->fetch_default_flow_params(array('table_name' => 'messages')))
+            || !($mu_flow_params = $this->fetch_default_flow_params(array('table_name' => 'messages_users')))
+            || !($mb_flow_params = $this->fetch_default_flow_params(array('table_name' => 'messages_body')))
+            || !($users_flow_params = $accounts_model->fetch_default_flow_params(array('table_name' => 'users')))
+            || !($users_table_name = $accounts_model->get_flow_table_name($users_flow_params))
+            || !($mu_table_name = $this->get_flow_table_name($mu_flow_params))
+            || !($m_table_name = $this->get_flow_table_name($m_flow_params))
+            || !($mb_table_name = $this->get_flow_table_name($mb_flow_params))
+        ) {
+            $this->set_error( self::ERR_ACTION, $this->_pt( 'Couldn\'t load required functionality.' ) );
+            return false;
+        }
+
+        $list_fields_arr = array();
+        $list_fields_arr['`'.$mu_table_name.'`.user_id'] = $account_id;
+
+        $list_arr = $mu_flow_params;
+        $list_arr['fields'] = $list_fields_arr;
+        $list_arr['join_sql'] = ' LEFT JOIN `'.$m_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$m_table_name.'`.id '
+            .' LEFT JOIN `'.$mb_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$mb_table_name.'`.id '
+        ;
+        $list_arr['db_fields'] = 'MAX(`' . $m_table_name . '`.id) AS m_id,'
+            . ' `' . $m_table_name . '`.*,'
+            . ' MAX(`' . $m_table_name . '`.cdate) AS m_cdate,'
+            . ' MAX(`' . $mu_table_name . '`.id) AS mu_id,'
+            . ' MAX(`' . $mu_table_name . '`.is_new) AS mu_is_new,'
+            . ' `' . $mu_table_name . '`.*,'
+            . ' COUNT( `' . $mu_table_name . '`.id ) AS m_thread_count '
+        ;
+        $list_arr['order_by'] = 'm_cdate DESC';
+        $list_arr['count_field'] = '`'.$mu_table_name.'`.thread_id';
+
+        $list_arr['group_by'] = '`'.$mu_table_name.'`.thread_id';
+
+        return $this->get_list($list_arr);
     }
 
     public function get_accounts_from_handlers( $dest_handlers )
