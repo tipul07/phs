@@ -4,6 +4,7 @@
 ## adjust memory limit
 
     php_value memory_limit 256M
+    {{PHP_MAX_EXECUTION_TIME}}
 
 ############################################
 ## disable magic quotes for php request vars
@@ -15,6 +16,16 @@
 ## before autoload was initialized
 
     php_flag session.auto_start off
+
+############################################
+## enable resulting html compression
+
+    #php_flag zlib.output_compression on
+
+###########################################
+# disable user agent verification to not break multiple image upload
+
+    {{PHS_SESSION_CRYPTUA}}
 
 </IfModule>
 <IfModule mod_php7.c>
@@ -23,6 +34,7 @@
 ## adjust memory limit
 
     php_value memory_limit 256M
+    {{PHP_MAX_EXECUTION_TIME}}
 
 ############################################
 ## disable magic quotes for php request vars
@@ -34,6 +46,25 @@
 ## before autoload was initialized
 
     php_flag session.auto_start off
+
+############################################
+## enable resulting html compression
+
+    #php_flag zlib.output_compression on
+
+###########################################
+# disable user agent verification to not break multiple image upload
+
+    {{PHS_SESSION_CRYPTUA}}
+
+</IfModule>
+
+<IfModule mod_ssl.c>
+
+############################################
+## make HTTPS env vars available for CGI mode
+
+    {{PHS_STD_ENV_VARS}}
 
 </IfModule>
 <IfModule mod_security.c>
@@ -49,6 +80,7 @@
 ############################################
 ## enable rewrites
 
+    {{PHS_OPTIONS}}
     RewriteEngine on
 
 ############################################
@@ -70,6 +102,7 @@
     RewriteCond %{REQUEST_METHOD} ^TRAC[EK]
     RewriteRule .* - [L,R=405]
 
+    {{PHS_REWRITE_RULES}}
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
 
 ############################################
@@ -83,6 +116,24 @@
 ## rewrite everything else to index.php
 
     RewriteRule .* index.php [L]
+
+</IfModule>
+
+
+############################################
+## Prevent character encoding issues from server overrides
+## If you still have problems, use the second line instead
+
+    AddDefaultCharset Off
+    #AddDefaultCharset UTF-8
+
+<IfModule mod_expires.c>
+
+############################################
+## Add default Expires header
+## http://developer.yahoo.com/performance/rules.html#expires
+
+    ExpiresDefault "access plus 1 year"
 
 </IfModule>
 
