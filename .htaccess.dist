@@ -102,7 +102,8 @@
     RewriteCond %{REQUEST_METHOD} ^TRAC[EK]
     RewriteRule .* - [L,R=405]
 
-    {{PHS_REWRITE_RULES}}
+    {{PHS_REWRITE_RULES_1}}
+    {{PHS_REWRITE_RULES_2}}
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
 
 ############################################
