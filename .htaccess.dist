@@ -1,79 +1,89 @@
 <IfModule mod_php5.c>
 
-############################################
-## adjust memory limit
+    # adjust php values and flags (if required)
+    # examples to be used
+    # php_value memory_limit 32M
+    # php_value max_execution_time 30
+    # php_flag zlib.output_compression on
+    # php_flag suhosin.session.cryptua off
 
-    php_value memory_limit 256M
+    # recommended
+    # php_flag session.auto_start off
 
-############################################
-## disable magic quotes for php request vars
-
-    php_flag magic_quotes_gpc off
-
-############################################
-## disable automatic session start
-## before autoload was initialized
-
-    php_flag session.auto_start off
+    {{HTACCESS_PHP_VALUES_AND_FLAGS}}
 
 </IfModule>
 <IfModule mod_php7.c>
 
-############################################
-## adjust memory limit
+    # adjust php values and flags (if required)
+    # examples to be used
+    # php_value memory_limit 32M
+    # php_value max_execution_time 30
+    # php_flag zlib.output_compression on
 
-    php_value memory_limit 256M
+    # recommended
+    # php_flag session.auto_start off
 
-############################################
-## disable magic quotes for php request vars
-
-    php_flag magic_quotes_gpc off
-
-############################################
-## disable automatic session start
-## before autoload was initialized
-
-    php_flag session.auto_start off
+    {{HTACCESS_PHP_VALUES_AND_FLAGS}}
 
 </IfModule>
-<IfModule mod_security.c>
-###########################################
-## disable POST processing to not break multiple image upload
 
+#+-----------------------------------------------------------
+#| disable POST processing to not break multiple image upload
+<IfModule mod_security.c>
     SecFilterEngine Off
     SecFilterScanPOST Off
 </IfModule>
 
+#+-------------------------------------------
+#| make HTTPS env vars available for CGI mode
+<IfModule mod_ssl.c>
+    SSLOptions StdEnvVars
+</IfModule>
+
+#+--------------------------------------------------------
+#| Prevent character encoding issues from server overrides
+
+  # default value
+  # AddDefaultCharset Off
+  # Use this one if above fails...
+  # AddDefaultCharset UTF-8
+  {{HTACCESS_CHARACTER_ENCODING}}
+
+#+----------------
+#| Enable rewrites (required for api access)
+#| You can still use classic route style access, but it doesn't look good :)
+#| eg. https://yourdomain.com/_api.php?_v=1&_ar=devices/session
+#| devices/session is an API route, NOT a PHS route!!!
 <IfModule mod_rewrite.c>
 
-############################################
-## enable rewrites
-
+    Options +FollowSymLinks
     RewriteEngine on
 
-############################################
-## you can put here your magento root folder
-## path relative to web root
+#+----------------------------------------
+#| path relative to web root (if required)
 
-    #RewriteBase /phs/
+    # RewriteBase /phs/
+    {{HTACCESS_PHS_REWRITE_OPTIONS}}
 
-############################################
-## workaround for HTTP authorization
-## in CGI environment
+#+----------------------------------
+#| workaround for HTTP authorization
+#| in CGI environment
 
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [E=HTTP_CONTENT_TYPE:%{HTTP:Content-Type}]
 
-############################################
-## TRACE and TRACK HTTP methods disabled to prevent XSS attacks
+#+-------------------------------------------------------------
+#| TRACE and TRACK HTTP methods disabled to prevent XSS attacks
 
     RewriteCond %{REQUEST_METHOD} ^TRAC[EK]
     RewriteRule .* - [L,R=405]
 
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
+    {{HTACCESS_PHS_REWRITE_RULES}}
 
-############################################
-## never rewrite for existing files, directories and links
+#+--------------------------------------------------------
+#| never rewrite for existing files, directories and links
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -89,23 +99,23 @@
 ############################################
 ## By default allow all access
 
-    <IfVersion < 2.4>
-        order allow,deny
-        allow from all
-    </IfVersion>
-    <IfVersion >= 2.4>
-        Require all granted
-    </IfVersion>
+<IfVersion < 2.4>
+    order allow,deny
+    allow from all
+</IfVersion>
+<IfVersion >= 2.4>
+    Require all granted
+</IfVersion>
 
 ###########################################
 ## Deny access to sensitive scripts
 
-    <Files "^(README.md|VERSION|LICENSE|_bg.php|_agent.php|_agent_bg.php|_new_crypt_keys.php)$">
-        <IfVersion < 2.4>
-            order allow,deny
-            deny from all
-        </IfVersion>
-        <IfVersion >= 2.4>
-            Require all denied
-        </IfVersion>
-    </Files>
+<Files "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|_update.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
+    <IfVersion < 2.4>
+        order allow,deny
+        deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</Files>

@@ -32,8 +32,12 @@ class PHSMaintenance extends PHS_cli
     protected function _get_app_commands_definition()
     {
         return array(
+            'phs_setup' => array(
+                'description' => 'Setup framework database. This is called first time to setup framework database.',
+                'callback' => null,
+            ),
             'web_update' => array(
-                'description' => 'Provide a link .',
+                'description' => 'Provides a framework update URL which can be used to update framework in a browser for one day.',
                 'callback' => array( $this, 'cmd_web_update' ),
             ),
             'update' => array(
@@ -99,7 +103,9 @@ class PHSMaintenance extends PHS_cli
         {
             $this->_echo_error( self::_t( 'Please provide a valid plugin name. Use %s command to view all plugins.', $this->cli_color( 'plugins', 'green' ) ) );
 
-            $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] plugin [plugin_action]' );
+            $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] plugin [plugin] [action]' );
+            $this->_echo( 'Available actions: '.implode( ', ', self::_get_plugin_command_actions() ).'.' );
+            $this->_echo( 'If no action is provided, plugin details will be displayed.' );
             return false;
         }
 
@@ -122,6 +128,10 @@ class PHSMaintenance extends PHS_cli
 
         switch( $plugin_action )
         {
+            case 'info':
+                return $this->_echo_plugin_details( $plugin_name );
+            break;
+
             case 'activate':
                 if( !($result_arr = $this->_activate_plugin( $plugin_name )) )
                 {
