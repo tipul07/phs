@@ -349,7 +349,7 @@ class PHS_Model_Plugins extends PHS_Model
 
             // Merge database settings with default script settings
             if( !empty( $default_settings ) )
-                self::$plugin_settings[$instance_id] = self::validate_array_recursive( self::$plugin_settings[$instance_id], $default_settings );
+                self::$plugin_settings[$instance_id] = self::validate_array( self::$plugin_settings[$instance_id], $default_settings );
         }
 
         // Low level hook for plugin settings (allow only keys that are not present in default plugin settings)
@@ -359,7 +359,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         if( ($extra_settings_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS, $hook_args ))
         and is_array( $extra_settings_arr ) and !empty( $extra_settings_arr['settings_arr'] ) )
-            self::$plugin_settings[$instance_id] = self::validate_array_recursive( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
+            self::$plugin_settings[$instance_id] = self::validate_array( $extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id] );
 
         return self::$plugin_settings[$instance_id];
     }

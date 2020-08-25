@@ -115,7 +115,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         datepicker_month: function( node, args ) {
             var self = this;
             $(node).datepicker({
-                dateFormat: 'yy-mm-01',
+                dateFormat: 'yy-mm',
                 changeMonth: true,
                 changeYear: true,
                 showButtonPanel: true,
@@ -233,6 +233,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
     valid_default_response_from_read_data: function( response )
     {
         return (typeof response !== "undefined"
+            && response !== null
             && typeof response.response !== "undefined"
             && response.response !== null
             && typeof response.error !== "undefined"
@@ -243,14 +244,16 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
     get_error_message_for_default_read_data: function( response )
     {
         if( typeof response === "undefined"
+         || response === null
          || typeof response.error === "undefined"
+         || response.response === null
          || typeof response.error.message === "undefined"
          || response.error.message.length === 0 )
             return false;
 
         var error_msg = response.error.message;
         if( typeof response.error.code !== "undefined"
-         && response.error.code != 0 )
+         && parseInt( response.error.code ) !== 0 )
             error_msg = "[" + response.error.code + "] " + error_msg;
 
         return error_msg;
