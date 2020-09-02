@@ -30,7 +30,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
         return true;
     }
-    
+
     /**
      * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
@@ -48,7 +48,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
             return $action_result;
         }
-        
+
         return false;
     }
 
@@ -439,7 +439,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
                 if( !empty( $action['action_params'] ) )
                     $action['action_params'] = intval( $action['action_params'] );
-                 
+
                 if( empty( $action['action_params'] )
                  or !($role_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
@@ -659,13 +659,12 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
+                return false;
 
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
 
         function phs_roles_list_bulk_inactivate()
@@ -678,13 +677,12 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s roles?', '"' ), '" + total_checked + "' )?>" ) )
+                return false;
 
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
 
         function phs_roles_list_bulk_delete()
@@ -697,13 +695,13 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s roles?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s roles?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
         </script>
         <?php

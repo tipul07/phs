@@ -48,7 +48,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         return true;
     }
-    
+
     /**
      * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
@@ -78,7 +78,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to read messages.' ) );
             return self::default_action_result();
         }
-        
+
         return false;
     }
 
@@ -646,13 +646,13 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s message threads?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s message threads?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
 
         function phs_messages_list_bulk_mark_as_read()
@@ -665,12 +665,12 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to mark as read %s message threads?', '"' ), '" + total_checked + "' )?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to mark as read %s message threads?', '"' ), '" + total_checked + "' )?>" ) )
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
         </script>
         <?php

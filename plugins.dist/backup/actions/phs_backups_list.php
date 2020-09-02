@@ -56,7 +56,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         return true;
     }
-    
+
     /**
      * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
@@ -562,13 +562,13 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s backup results?', '"' ), '" + total_checked + "' )?>" + "\n" +
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to DELETE %s backup results?', '"' ), '" + total_checked + "' )?>" + "\n" +
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-                if( form_obj )
-                    form_obj.submit();
-            }
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
         function phs_backup_results_list_view_files( id )
         {
