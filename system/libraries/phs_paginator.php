@@ -727,9 +727,15 @@ class PHS_Paginator extends PHS_Registry
             // Header columns styling
             'extra_style' => '',
             'extra_classes' => '',
+            // Raw attributes to be added to header td
+            'raw_attrs' => '',
+            // If column will be custom rendered and will span over more columns, provide the number of columns span here
+            'column_colspan' => 1,
             // Record lines styling
             'extra_records_style' => '',
             'extra_records_classes' => '',
+            // Raw attributes to be added to record td
+            'raw_records_attrs' => '',
         );
     }
 
