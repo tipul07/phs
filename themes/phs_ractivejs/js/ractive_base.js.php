@@ -9,7 +9,7 @@
         if( !@file_exists( $check_main_dir.'/main.php' ) )
         {
             ?>
-            alert( "Failed initializing Ractive.js library. Please contact suppot." );
+            alert( "Failed initializing Ractive.js library. Please contact support." );
             <?php
             exit;
         }
@@ -24,7 +24,7 @@
         [ 'a' => 'index' ], 'index' )) )
     {
         ?>
-        alert( "Failed initializing Ractive.js library. Error obtaining view instance. Please contact suppot." );
+        alert( "Failed initializing Ractive.js library. Error obtaining view instance. Please contact support." );
         <?php
         exit;
     }

@@ -3,9 +3,12 @@
     <div class="phs_ractive phs_ractive_autocomplete_inputs clearfix">
     <input type="hidden" id="{{id_input_id}}" name="{{id_input_name}}" value="{{id_input_value}}" />
     <input type="text" id="{{text_input_id}}" name="{{text_input_name}}" class="{{text_input_css_classes.join(' ')}}"
-           value="{{text_input_value}}" autocomplete="off"
+           value="{{text_input_value}}" autocomplete="off" lazy="{{input_lazyness}}"
            {{#text_input_style}}style="{{text_input_style}}"{{/}} {{#text_is_readonly}}readonly="readonly"{{/}} />
-    <a href="javascript:void(0)" class="action-icons fa fa-refresh" onfocus="this.blur()" on-click="@.do_reset_inputs()"></a>
+    {{ #display_show_all }}
+    <a href="javascript:void(0)" class="action-icons phs_ractive_autocomplete_show_all fa fa-arrow-down" onfocus="this.blur()" on-click="@.get_items_by_term( '' )"></a>
+    {{ / }}
+    <a href="javascript:void(0)" class="action-icons phs_ractive_autocomplete_reset fa fa-refresh" onfocus="this.blur()" on-click="@.do_reset_inputs()"></a>
     {{ # show_filtered_items }}
         <div class="phs_ractive_autocomplete_results">
         <div class="phs_ractive_autocomplete_items_list">

@@ -9,7 +9,7 @@
         if( !@file_exists( $check_main_dir.'/main.php' ) )
         {
             ?>
-            alert( "Failed initializing autocomplete for Ractive.js library. Please contact suppot." );
+            alert( "Failed initializing autocomplete for Ractive.js library. Please contact support." );
             <?php
             exit;
         }
@@ -36,6 +36,8 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             min_text_length: 1,
             hide_component: false,
             text_is_readonly: false,
+            display_show_all: false,
+            input_lazyness: 500,
 
             // Data source
             // Where to send AJAX call for a list of items
@@ -141,6 +143,9 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
                     if( !value.hasOwnProperty( "listing_title_html" ) )
                         value["listing_title_html"] = value["listing_title"];
 
+                    if( term.length === 0 )
+                        return true;
+
                     return (-1 !== value["listing_title"].toLowerCase().indexOf( term ));
                 });
             }
@@ -186,8 +191,6 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
                 inner_this.set( "total_items_count", data.response.total_items );
                 inner_this.set( "filtered_items", data.response.items );
                 inner_this.set( "show_filtered_items", true );
-
-                console.log( data.response );
             },
             function() {
                 inner_this.stop_loading_animation();
