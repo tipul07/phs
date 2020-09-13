@@ -68,15 +68,12 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
     },
 
     observe: {
-        'text_input_value':
-        {
-            handler( newval )
-            {
+        'text_input_value': {
+            handler( newval ) {
                 if( this.get( "text_is_readonly" ) )
                     return;
 
-                if( newval === "" )
-                {
+                if( newval === "" ) {
                     this.do_reset_inputs();
                     return;
                 }
@@ -87,52 +84,49 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         }
     },
 
-    hide_filtered_items: function()
-    {
-        console.log( 'hiding items' );
+    hide_filtered_items: function() {
         this.set( "show_filtered_items", false );
     },
 
-    select_item: function( id, input_value )
-    {
-        console.log( 'Selected something' );
-        console.log( id );
-        console.log( input_value );
-
-        this.set( "text_is_readonly", true );
-
-        this.set( "id_input_value", id );
-        this.set( "text_input_value", input_value );
+    select_item: function( id, input_value ) {
+        this.set({
+            "text_is_readonly": true,
+            "id_input_value": id,
+            "text_input_value": input_value
+        });
         this.hide_filtered_items();
     },
 
-    start_search: function ( term )
-    {
+    start_search: function( term ) {
         this.start_loading_animation();
 
         this.set( "filtered_items", this.get_items_by_term( term ) );
     },
 
-    stop_search: function ()
-    {
+    stop_search: function() {
         this.stop_loading_animation();
     },
 
-    get_items_by_term: function( term )
-    {
+    do_show_all_results: function() {
+        var show_filtered_items = this.get( "show_filtered_items" );
+        if( show_filtered_items )
+            return;
+
+        this.get_items_by_term( "" );
+    },
+
+    get_items_by_term: function( term ) {
         var items_arr = [];
         var ajax_phs_route = this.get( "ajax_phs_route" );
-        if( ajax_phs_route !== "" )
-        {
+        if( ajax_phs_route !== "" ) {
             // Source is an AJAX query
             this.query_for_items_by_term( term );
-        } else
-        {
+        } else {
             // Source is a provided array
             var source_arr = this.get( "source_data" );
+
             if( $.isArray( source_arr )
-             && source_arr.length > 0 )
-            {
+             && source_arr.length > 0 ) {
                 items_arr = $.grep( source_arr, function( value ) {
                     if( typeof value !== "object"
                      || !value.hasOwnProperty( "id" )
@@ -150,16 +144,17 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
                 });
             }
 
-            this.set( "filtered_items", items_arr );
-            this.set( "total_items_count", source_arr.length );
-            this.set( "show_filtered_items", true );
+            this.set({
+                "filtered_items": items_arr,
+                "total_items_count": source_arr.length,
+                "show_filtered_items": true
+            });
         }
 
         return items_arr;
     },
 
-    query_for_items_by_term: function( term )
-    {
+    query_for_items_by_term: function( term ) {
         var ajax_phs_route = this.get( "ajax_phs_route" );
         if( ajax_phs_route === "" )
             return;
@@ -198,8 +193,7 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         );
     },
 
-    start_loading_animation: function ()
-    {
+    start_loading_animation: function() {
         var new_classes = this.get( "text_input_css_classes" );
         if( -1 === $.inArray( "phs_ractive_autocomplete_loading", new_classes ) )
         {
@@ -208,8 +202,7 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         }
     },
 
-    stop_loading_animation: function ()
-    {
+    stop_loading_animation: function() {
         var new_classes = this.get( "text_input_css_classes" );
 
         var value_found = false;
@@ -224,18 +217,15 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             this.set( "text_input_css_classes", new_classes );
     },
 
-    hide_me()
-    {
+    hide_me: function() {
         this.set( "hide_component", true );
     },
 
-    show_me()
-    {
+    show_me: function() {
         this.set( "hide_component", false );
     },
 
-    do_reset_inputs: function()
-    {
+    do_reset_inputs: function() {
         this.stop_loading_animation();
         this.set({
             id_input_value: 0,

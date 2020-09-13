@@ -23,7 +23,7 @@ class PHS_Action_Check_api_sessions_ag extends PHS_Action
          if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' ))
           or !($apionline_model = PHS::load_model( 'api_online', 'mobileapi' )) )
          {
-             $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Couldn\'t load required resources.' ) );
+             $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
              return false;
          }
 
