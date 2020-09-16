@@ -121,18 +121,19 @@ abstract class PHS_Contract extends PHS_Instantiable
             if( $node_arr['key_type'] === self::FROM_INSIDE )
                 continue;
 
+            // Make sure that we have a data to process
+           if( !array_key_exists( $node_arr['outside_key'], $outside_data ) )
+            {
+                if( !empty( $node_arr['import_if_not_found'] )
+                 || !empty( $params['force_import_if_not_found'] ) )
+                    $return_arr[$node_arr['inside_key']] = $node_arr['default_inside'];
+
+                continue;
+            }
+
             // Check if we have recurring node...
             if( !empty( $node_arr['recurring_node'] ) )
             {
-                if( !array_key_exists( $node_arr['outside_key'], $outside_data ) )
-                {
-                    if( !empty( $node_arr['import_if_not_found'] )
-                     || !empty( $params['force_import_if_not_found'] ) )
-                        $return_arr[$node_arr['inside_key']] = $node_arr['default_inside'];
-
-                    continue;
-                }
-
                 $return_arr[$node_arr['inside_key']] = [];
 
                 if( !is_array( $outside_data[$node_arr['outside_key']] ) )
@@ -162,13 +163,28 @@ abstract class PHS_Contract extends PHS_Instantiable
                 continue;
             }
 
-            if( array_key_exists( $node_arr['outside_key'], $outside_data ) )
-                $return_arr[$node_arr['inside_key']] = PHS_params::set_type( $outside_data[$node_arr['outside_key']], $node_arr['type'],
-                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
+            // This is not a recurring node, but it is an "object" (has nodes definition inside)
+            if( !empty( $node_arr['nodes'] ) && is_array( $node_arr['nodes'] ) )
+            {
+                if( !is_array( $outside_data[$node_arr['outside_key']] ) )
+                    continue;
 
-            elseif( !empty( $node_arr['import_if_not_found'] )
-                 || !empty( $params['force_import_if_not_found'] ) )
-                $return_arr[$node_arr['inside_key']] = $node_arr['default_inside'];
+                $return_arr[$node_arr['inside_key']] = [];
+
+                $rec_params = $params;
+                $rec_params['lvl']++;
+
+                if( false === ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $outside_data[$node_arr['outside_key']], $rec_params )) )
+                    continue;
+
+                $return_arr[$node_arr['inside_key']] = $result_item;
+
+                continue;
+            }
+
+            // Scalar value...
+            $return_arr[$node_arr['inside_key']] = PHS_params::set_type( $outside_data[$node_arr['outside_key']], $node_arr['type'],
+                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
         }
 
         return $return_arr;
@@ -244,18 +260,19 @@ abstract class PHS_Contract extends PHS_Instantiable
             if( $node_arr['key_type'] === self::FROM_OUTSIDE )
                 continue;
 
+            // Make sure that we have a data to process
+            if( !array_key_exists( $node_arr['inside_key'], $inside_data ) )
+            {
+                if( !empty( $node_arr['export_if_not_found'] )
+                 || !empty( $params['force_export_if_not_found'] ) )
+                    $return_arr[$node_arr['outside_key']] = $node_arr['default_outside'];
+
+                continue;
+            }
+
             // Check if we have recurring node...
             if( !empty( $node_arr['recurring_node'] ) )
             {
-                if( !array_key_exists( $node_arr['inside_key'], $inside_data ) )
-                {
-                    if( !empty( $node_arr['export_if_not_found'] )
-                     || !empty( $params['force_export_if_not_found'] ) )
-                        $return_arr[$node_arr['outside_key']] = $node_arr['default_outside'];
-
-                    continue;
-                }
-
                 $return_arr[$node_arr['outside_key']] = [];
 
                 if( !is_array( $inside_data[$node_arr['inside_key']] ) )
@@ -285,28 +302,52 @@ abstract class PHS_Contract extends PHS_Instantiable
                 continue;
             }
 
-            if( array_key_exists( $node_arr['inside_key'], $inside_data ) )
-                $return_arr[$node_arr['outside_key']] = PHS_params::set_type( $inside_data[$node_arr['inside_key']], $node_arr['type'],
-                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
+            // This is not a recurring node, but it is an "object" (has nodes definition inside)
+            if( !empty( $node_arr['nodes'] ) && is_array( $node_arr['nodes'] ) )
+            {
+                if( !is_array( $inside_data[$node_arr['inside_key']] ) )
+                    continue;
 
-            elseif( !empty( $node_arr['export_if_not_found'] )
-                 || !empty( $params['force_export_if_not_found'] ) )
-                $return_arr[$node_arr['outside_key']] = $node_arr['default_outside'];
+                $return_arr[$node_arr['outside_key']] = [];
+
+                $rec_params = $params;
+                $rec_params['lvl']++;
+
+                if( false === ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $inside_data[$node_arr['inside_key']], $rec_params )) )
+                    continue;
+
+                $return_arr[$node_arr['outside_key']] = $result_item;
+
+                continue;
+            }
+
+            // Scalar value...
+            $return_arr[$node_arr['outside_key']] = PHS_params::set_type( $inside_data[$node_arr['inside_key']], $node_arr['type'],
+                    (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
         }
 
         return $return_arr;
     }
 
+    /**
+     * @return bool
+     */
     public function data_is_from_outside()
     {
         return ($this->_data_type === self::FROM_OUTSIDE);
     }
 
+    /**
+     * @return bool
+     */
     public function data_is_from_inside()
     {
         return ($this->_data_type === self::FROM_INSIDE);
     }
 
+    /**
+     * @return bool
+     */
     public function data_was_parsed()
     {
         return $this->_data_was_parsed;
