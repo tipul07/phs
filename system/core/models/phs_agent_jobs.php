@@ -192,8 +192,24 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return true;
     }
 
-    public function start_job( $job_data )
+    /**
+     * @param int|array $job_data
+     * @param false|array $params
+     *
+     * @return array|bool
+     */
+    public function start_job( $job_data, $params = false )
     {
+        $this->reset_error();
+
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        if( empty( $params['force_job'] ) )
+            $params['force_job'] = false;
+        else
+            $params['force_job'] = true;
+
         if( empty( $job_data )
          or !($job_arr = $this->data_to_array( $job_data )) )
         {
@@ -201,30 +217,45 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return false;
         }
 
+        if( empty( $job_arr['params'] )
+         || !($job_params_arr = @json_decode( $job_arr['params'], true )) )
+            $job_params_arr = [];
+
+        if( !empty( $params['force_job'] ) )
+            $job_params_arr['force_job'] = true;
+
         if( !($pid = @getmypid()) )
             $pid = -1;
 
         $edit_arr = array();
         $edit_arr['is_running'] = date( self::DATETIME_DB );
         $edit_arr['pid'] = $pid;
+        if( !empty( $job_params_arr ) )
+            $edit_arr['params'] = @json_encode( $job_params_arr );
 
         PHS_Logger::logf( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']' );
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }
 
+    /**
+     * @param int|array $job_data
+     * @param false|array $params
+     *
+     * @return array|bool
+     */
     public function stop_job( $job_data, $params = false )
     {
         $this->reset_error();
 
         if( empty( $job_data )
-         or !($job_arr = $this->data_to_array( $job_data )) )
+         || !($job_arr = $this->data_to_array( $job_data )) )
         {
             $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             $params = array();
 
         if( empty( $params['last_error'] ) )
@@ -238,7 +269,20 @@ class PHS_Model_Agent_jobs extends PHS_Model
         // Remove one minute to be sure we'r not at the limit with few seconds (time which took to bootstrap agent job)
         // One minute doesn't affect time unit at which scripts can run as linux crontab can run at minimum every minute
         if( !empty( $job_arr['timed_seconds'] ) )
-            $next_time += intval( $job_arr['timed_seconds'] ) - 60;
+            $next_time += (int)$job_arr['timed_seconds'] - 60;
+
+        // Remove force job parameter (if set)
+        $new_params = false;
+        if( !empty( $job_arr['params'] )
+         && ($job_params_arr = @json_decode( $job_arr['params'], true ))
+         && isset( $job_params_arr['force_job'] ) )
+        {
+            unset( $job_params_arr['force_job'] );
+            if( !empty( $job_params_arr ) )
+                $new_params = @json_encode( $job_params_arr );
+            else
+                $new_params = null;
+        }
 
         $edit_arr = array();
         $edit_arr['pid'] = 0;
@@ -246,6 +290,8 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr['is_running'] = null;
         $edit_arr['last_action'] = date( self::DATETIME_DB );
         $edit_arr['timed_action'] = date( self::DATETIME_DB, $next_time );
+        if( $new_params !== false )
+            $edit_arr['params'] = $new_params;
 
         return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
     }

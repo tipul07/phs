@@ -17,7 +17,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     private $_accounts_model;
 
     /** @var array $_cuser_details_arr */
-    private $_cuser_details_arr = array();
+    private $_cuser_details_arr = [];
 
     public function load_depencies()
     {
@@ -62,7 +62,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         {
             $action_result = self::default_action_result();
 
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 's2p_companies', 'a' => 'company_details' ), array( 'need_company_details' => 1 ) );
+            $action_result['redirect_to_url'] = PHS::url();
 
             return $action_result;
         }
@@ -91,16 +91,16 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
         $agent_jobs_model = $this->_paginator_model;
 
-        $list_arr = array();
+        $list_arr = [];
 
-        $flow_params = array(
+        $flow_params = [
             'term_singular' => $this->_pt( 'agent job' ),
             'term_plural' => $this->_pt( 'agent jobs' ),
             'initial_list_arr' => $list_arr,
-            'after_table_callback' => array( $this, 'after_table_callback' ),
-            'after_filters_callback' => array( $this, 'after_filters_callback' ),
-			'listing_title' => $this->_pt( 'Agent Jobs' ),
-        );
+            'after_table_callback' => [ $this, 'after_table_callback' ],
+            'after_filters_callback' => [ $this, 'after_filters_callback' ],
+            'listing_title' => $this->_pt( 'Agent Jobs' ),
+        ];
 
         if( PHS_params::_g( 'unknown_job', PHS_params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid agent job or agent job was not found in database.' ) );
@@ -108,158 +108,158 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             PHS_Notifications::add_success_notice( $this->_pt( 'Agent job details saved in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
-            $statuses_arr = array();
+            $statuses_arr = [];
 
         if( !empty( $statuses_arr ) )
-            $statuses_arr = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ) ), $statuses_arr );
+            $statuses_arr = self::merge_array_assoc( [ 0 => $this->_pt( ' - Choose - ' ) ], $statuses_arr );
 
         if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
             $bulk_actions = false;
 
         else
         {
-            $bulk_actions = array(
-                array(
+            $bulk_actions = [
+                [
                     'display_name' => $this->_pt( 'Inactivate' ),
                     'action' => 'bulk_inactivate',
                     'js_callback' => 'phs_agent_jobs_list_bulk_inactivate',
                     'checkbox_column' => 'id',
-                ),
-                array(
+                ],
+                [
                     'display_name' => $this->_pt( 'Activate' ),
                     'action' => 'bulk_activate',
                     'js_callback' => 'phs_agent_jobs_list_bulk_activate',
                     'checkbox_column' => 'id',
-                ),
-                array(
+                ],
+                [
                     'display_name' => $this->_pt( 'Delete' ),
                     'action' => 'bulk_delete',
                     'js_callback' => 'phs_agent_jobs_list_bulk_delete',
                     'checkbox_column' => 'id',
-                ),
-            );
+                ],
+            ];
         }
 
-        $filters_arr = array(
-            array(
+        $filters_arr = [
+            [
                 'display_name' => $this->_pt( 'Handler' ),
                 'display_hint' => $this->_pt( 'All records containing this value at handler field' ),
                 'var_name' => 'fhandler',
                 'record_field' => 'handler',
-                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
+            ],
+            [
                 'display_name' => $this->_pt( 'Route' ),
                 'display_hint' => $this->_pt( 'All records containing this value at route field' ),
                 'var_name' => 'froute',
                 'record_field' => 'route',
-                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
+            ],
+            [
                 'display_name' => $this->_pt( 'Plugin' ),
                 'display_hint' => $this->_pt( 'All records containing this value at plugin field' ),
                 'var_name' => 'fplugin',
                 'record_field' => 'plugin',
-                'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
+                'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
+            ],
+            [
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
                 'type' => PHS_params::T_INT,
                 'default' => 0,
                 'values_arr' => $statuses_arr,
-            ),
-        );
+            ],
+        ];
 
-        $columns_arr = array(
-            array(
+        $columns_arr = [
+            [
                 'column_title' => '#',
                 'record_field' => 'id',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:55px;',
                 'extra_records_style' => 'text-align:center;',
-                'display_callback' => array( $this, 'display_hide_id' ),
-            ),
-            array(
+                'display_callback' => [ $this, 'display_hide_id' ],
+            ],
+            [
                 'column_title' => $this->_pt( 'Title' ),
                 'record_field' => 'title',
-                'display_callback' => array( $this, 'display_job_title' ),
-            ),
-            array(
+                'display_callback' => [ $this, 'display_job_title' ],
+            ],
+            [
                 'column_title' => $this->_pt( 'Route' ),
                 'record_field' => 'route',
                 'invalid_value' => $this->_pt( 'N/A' ),
-                'display_callback' => array( $this, 'display_route_column' ),
-            ),
-            array(
+                'display_callback' => [ $this, 'display_route_column' ],
+            ],
+            [
                 'column_title' => $this->_pt( 'Plugin' ),
                 'record_field' => 'plugin',
                 'invalid_value' => $this->_pt( 'N/A' ),
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Status' ),
                 'record_field' => 'status',
                 'display_key_value' => $statuses_arr,
                 'invalid_value' => $this->_pt( 'Undefined' ),
                 'extra_classes' => 'status_th',
                 'extra_records_classes' => 'status',
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Next run' ),
                 'record_field' => 'timed_action',
-                'display_callback' => array( $this, 'display_timed_seconds' ),
+                'display_callback' => [ $this, 'display_timed_seconds' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
                 'extra_classes' => 'date_th',
                 'extra_records_classes' => 'date',
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Last action' ),
                 'record_field' => 'last_action',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
+                'display_callback' => [ &$this->_paginator, 'pretty_date' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
                 'extra_classes' => 'date_th',
                 'extra_records_classes' => 'date',
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Created' ),
                 'default_sort' => 1,
                 'record_db_field' => 'cdate',
                 'record_field' => 'cdate %s, handler ASC ',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
+                'display_callback' => [ &$this->_paginator, 'pretty_date' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
-				'extra_classes' => 'date_th',
-				'extra_records_classes' => 'date',
-            ),
-            array(
+                'extra_classes' => 'date_th',
+                'extra_records_classes' => 'date',
+            ],
+            [
                 'column_title' => $this->_pt( 'Actions' ),
-                'display_callback' => array( $this, 'display_actions' ),
+                'display_callback' => [ $this, 'display_actions' ],
                 'sortable' => false,
-				'extra_style' => 'width:150px;',
-				'extra_classes' => 'actions_th',
-				'extra_records_classes' => 'actions',
-            )
-        );
+                'extra_style' => 'width:150px;',
+                'extra_classes' => 'actions_th',
+                'extra_records_classes' => 'actions',
+            ]
+        ];
 
         if( PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
         {
-            $columns_arr[0]['checkbox_record_index_key'] = array(
+            $columns_arr[0]['checkbox_record_index_key'] = [
                 'key' => 'id',
                 'type' => PHS_params::T_INT,
-            );
+            ];
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'agent_jobs_list' ) );
+        $return_arr['base_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'agent_jobs_list' ] );
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -287,8 +287,8 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if( empty( $action ) or !is_array( $action )
-         or empty( $action['action'] ) )
+        if( empty( $action ) || !is_array( $action )
+         || empty( $action['action'] ) )
             return $action_result_params;
 
         $action_result_params['action'] = $action['action'];
@@ -303,38 +303,38 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             case 'bulk_activate':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Required agent jobs activated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected agent jobs failed. Please try again.' ) );
-                    elseif( $action['action_result'] == 'failed_some' )
+                    elseif( $action['action_result'] === 'failed_some' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected agent jobs. Agent jobs which failed activation are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !($scope_arr = $this->_paginator->get_scope())
-                 or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
-                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
-                 or empty( $scope_arr[$scope_key] )
-                 or !is_array( $scope_arr[$scope_key] ) )
+                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 || !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
+                 || !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
+                 || empty( $scope_arr[$scope_key] )
+                 || !is_array( $scope_arr[$scope_key] ) )
                     return true;
 
-                $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $address_id )
+                $remaining_ids_arr = [];
+                foreach( $scope_arr[$scope_key] as $job_id )
                 {
-                    if( !$this->_paginator_model->act_activate( $address_id ) )
+                    if( !$this->_paginator_model->act_activate( $job_id ) )
                     {
-                        $remaining_ids_arr[] = $address_id;
+                        $remaining_ids_arr[] = $job_id;
                     }
                 }
 
@@ -347,55 +347,55 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
                     unset( $scope_arr[$scope_key] );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 } else
                 {
-                    if( count( $remaining_ids_arr ) != count( $scope_arr[$scope_key] ) )
+                    if( count( $remaining_ids_arr ) !== count( $scope_arr[$scope_key] ) )
                         $action_result_params['action_result'] = 'failed_some';
                     else
                         $action_result_params['action_result'] = 'failed';
 
                     $scope_arr[$scope_key] = implode( ',', $remaining_ids_arr );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 }
             break;
 
             case 'bulk_inactivate':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Required agent jobs inactivated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected agent jobs failed. Please try again.' ) );
-                    elseif( $action['action_result'] == 'failed_some' )
+                    elseif( $action['action_result'] === 'failed_some' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !($scope_arr = $this->_paginator->get_scope())
-                 or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
-                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
-                 or empty( $scope_arr[$scope_key] )
-                 or !is_array( $scope_arr[$scope_key] ) )
+                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 || !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
+                 || !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
+                 || empty( $scope_arr[$scope_key] )
+                 || !is_array( $scope_arr[$scope_key] ) )
                     return true;
 
-                $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $address_id )
+                $remaining_ids_arr = [];
+                foreach( $scope_arr[$scope_key] as $job_id )
                 {
-                    if( !$this->_paginator_model->act_inactivate( $address_id ) )
+                    if( !$this->_paginator_model->act_inactivate( $job_id ) )
                     {
-                        $remaining_ids_arr[] = $address_id;
+                        $remaining_ids_arr[] = $job_id;
                     }
                 }
 
@@ -408,55 +408,55 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
                     unset( $scope_arr[$scope_key] );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 } else
                 {
-                    if( count( $remaining_ids_arr ) != count( $scope_arr[$scope_key] ) )
+                    if( count( $remaining_ids_arr ) !== count( $scope_arr[$scope_key] ) )
                         $action_result_params['action_result'] = 'failed_some';
                     else
                         $action_result_params['action_result'] = 'failed';
 
                     $scope_arr[$scope_key] = implode( ',', $remaining_ids_arr );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 }
             break;
 
             case 'bulk_delete':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Required agent jobs deleted with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Deleting selected agent jobs failed. Please try again.' ) );
-                    elseif( $action['action_result'] == 'failed_some' )
+                    elseif( $action['action_result'] === 'failed_some' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Failed deleting all selected agent jobs. Agent jobs which failed deletion are still selected. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !($scope_arr = $this->_paginator->get_scope())
-                 or !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 or !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 or !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
-                 or !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
-                 or empty( $scope_arr[$scope_key] )
-                 or !is_array( $scope_arr[$scope_key] ) )
+                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 || !($scope_key = @sprintf( $ids_checkboxes_name, 'id' ))
+                 || !($scope_all_key = @sprintf( $ids_all_checkbox_name, 'id' ))
+                 || empty( $scope_arr[$scope_key] )
+                 || !is_array( $scope_arr[$scope_key] ) )
                     return true;
 
-                $remaining_ids_arr = array();
-                foreach( $scope_arr[$scope_key] as $address_id )
+                $remaining_ids_arr = [];
+                foreach( $scope_arr[$scope_key] as $job_id )
                 {
-                    if( !$this->_paginator_model->act_delete( $address_id ) )
+                    if( !$this->_paginator_model->act_delete( $job_id ) )
                     {
-                        $remaining_ids_arr[] = $address_id;
+                        $remaining_ids_arr[] = $job_id;
                     }
                 }
 
@@ -469,43 +469,43 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
                     unset( $scope_arr[$scope_key] );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 } else
                 {
-                    if( count( $remaining_ids_arr ) != count( $scope_arr[$scope_key] ) )
+                    if( count( $remaining_ids_arr ) !== count( $scope_arr[$scope_key] ) )
                         $action_result_params['action_result'] = 'failed_some';
                     else
                         $action_result_params['action_result'] = 'failed';
 
                     $scope_arr[$scope_key] = implode( ',', $remaining_ids_arr );
 
-                    $action_result_params['action_redirect_url_params'] = array( 'force_scope' => $scope_arr );
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
                 }
             break;
 
             case 'do_activate':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Agent job activated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Activating agent job failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent job.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = (int)$action['action_params'];
 
                 if( empty( $action['action_params'] )
-                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 || !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate agent job. Agent job not found in database.' ) );
                     return false;
@@ -520,26 +520,26 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             case 'do_inactivate':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Agent job inactivated with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating agent job failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = (int)$action['action_params'];
 
                 if( empty( $action['action_params'] )
-                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 || !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot inactivate agent job. Agent job not found in database.' ) );
                     return false;
@@ -554,26 +554,26 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             case 'do_manually_run':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Agent job started with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Running agent job failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = (int)$action['action_params'];
 
                 if( empty( $action['action_params'] )
-                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 || !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot run agent job. Agent job not found in database.' ) );
                     return false;
@@ -586,7 +586,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( !$agent_obj->run_job( $agent_job_arr, array( 'force_run' => true ) ) )
+                if( !$agent_obj->run_job( $agent_job_arr, [ 'force_run' => true ] ) )
                     $action_result_params['action_result'] = 'failed';
                 else
                     $action_result_params['action_result'] = 'success';
@@ -595,26 +595,26 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             case 'do_delete':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] == 'success' )
+                    if( $action['action_result'] === 'success' )
                         PHS_Notifications::add_success_notice( $this->_pt( 'Agent job deleted with success.' ) );
-                    elseif( $action['action_result'] == 'failed' )
+                    elseif( $action['action_result'] === 'failed' )
                         PHS_Notifications::add_error_notice( $this->_pt( 'Deleting agent job failed. Please try again.' ) );
 
                     return true;
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+                 || !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage agent jobs.' ) );
                     return false;
                 }
 
                 if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = intval( $action['action_params'] );
+                    $action['action_params'] = (int)$action['action_params'];
 
                 if( empty( $action['action_params'] )
-                 or !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
+                 || !($agent_job_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot delete address. Agent job not found in database.' ) );
                     return false;
@@ -638,9 +638,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     public function display_job_title( $params )
     {
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
         $paginator_obj = $this->_paginator;
@@ -672,9 +672,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     public function display_route_column( $params )
     {
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
         $paginator_obj = $this->_paginator;
@@ -701,7 +701,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     if( $paginator_model->job_is_stalling( $agent_job ) )
                         $cell_str .= ' - <span style="color:red;">'.$this->_pt( 'Stalling' ).'</span>';
 
-                    $cell_str = $agent_job['route'].($cell_str!=''?'<br/>':'').$cell_str;
+                    $cell_str = $agent_job['route'].($cell_str!==''?'<br/>':'').$cell_str;
                 break;
             }
         }
@@ -712,14 +712,14 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     public function display_timed_seconds( $params )
     {
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
         $paginator_obj = $this->_paginator;
 
-        $pretty_params = array();
+        $pretty_params = [];
         $pretty_params['date_format'] = (!empty( $params['column']['date_format'] )?$params['column']['date_format']:false);
         $pretty_params['request_render_type'] = (!empty( $params['request_render_type'] )?$params['request_render_type']:false);
 
@@ -763,9 +763,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             return '-';
 
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
             return false;
 
         $job_is_inactive = $this->_paginator_model->job_is_inactive( $agent_job );
@@ -779,7 +779,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         if( !$job_is_suspended )
         {
             ?>
-            <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_edit' ), array( 'aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url() ) )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit agent job' )?>"></i></a>
+            <a href="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'agent_job_edit' ], [ 'aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url() ] )?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit agent job' )?>"></i></a>
             <?php
         }
         if( $job_is_inactive )
@@ -795,7 +795,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             <?php
         }
         if( !$job_is_running
-         or $job_is_stalling )
+         || $job_is_stalling )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_agent_jobs_list_manually_run( '<?php echo $agent_job['id']?>', <?php echo ($job_is_running?'true':'false')?> )"><i class="fa fa-fast-forward action-icons" <?php echo ($job_is_stalling?'style="color:red !important;"':'')?> title="<?php echo $this->_pt( 'Manually run agent job' )?>"></i></a>
@@ -814,14 +814,12 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <div style="width:97%;min-width:97%;margin: 15px auto 0;">
-          <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_add' ) )?>" class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt( 'Add Agent Job' )?></a>
+          <a href="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'agent_job_add' ] )?>" class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt( 'Add Agent Job' )?></a>
         </div>
         <div class="clearfix"></div>
         <?php
 
-        $buf = ob_get_clean();
-
-        return $buf;
+        return ob_get_clean();
     }
 
     public function after_table_callback( $params )
@@ -841,11 +839,11 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this agent job?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'do_activate',
                     'action_params' => '" + id + "',
-                )
+                ];
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -854,11 +852,11 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this agent job?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'do_inactivate',
                     'action_params' => '" + id + "',
-                )
+                ];
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -874,11 +872,11 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'do_delete',
                     'action_params' => '" + id + "',
-                )
+                ];
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -891,11 +889,11 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to manually run this agent job?', '"' )?>" + note_str ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'do_manually_run',
                     'action_params' => '" + id + "',
-                )
+                ];
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
