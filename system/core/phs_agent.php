@@ -390,17 +390,18 @@ class PHS_Agent extends PHS_Registry
         else
             $extra['force_run'] = true;
 
-        if( !$agent_jobs_model->job_is_active( $job_arr ) )
+        if( !$extra['force_run']
+         && !$agent_jobs_model->job_is_active( $job_arr ) )
         {
             $this->set_error( self::ERR_RUN_JOB, self::_t( 'Agent job not active.' ) );
             return false;
         }
 
-        if( empty( $extra['force_run'] )
+        if( !$extra['force_run']
         && $agent_jobs_model->job_is_running( $job_arr )
         && !$agent_jobs_model->job_is_stalling( $job_arr ) )
         {
-            $this->set_error( self::ERR_RUN_JOB, self::_t( 'Agent job not active.' ) );
+            $this->set_error( self::ERR_RUN_JOB, self::_t( 'Agent job is still running.' ) );
             return false;
         }
 
@@ -528,7 +529,7 @@ class PHS_Agent extends PHS_Registry
         if( !db_query( 'UPDATE `'.$agent_jobs_model->get_flow_table_name( $flow_params ).'`'.
                        ' SET status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\' '.
                        ' WHERE '.
-                       ' plugin = \''.prepare_data( $plugin ).'\' AND status = \''.$agent_jobs_model::STATUS_ACTIVE.'\'', $flow_params['db_connection'] ) )
+                       ' plugin = \''.prepare_data( $plugin_name ).'\' AND status = \''.$agent_jobs_model::STATUS_ACTIVE.'\'', $flow_params['db_connection'] ) )
         {
             self::st_set_error( self::ERR_JOB_DB, self::_t( 'Error running query to suspend agent jobs for provided plugin.' ) );
             return false;
@@ -563,7 +564,7 @@ class PHS_Agent extends PHS_Registry
         if( !db_query( 'UPDATE `'.$agent_jobs_model->get_flow_table_name( $flow_params ).'`'.
                        ' SET status = \''.$agent_jobs_model::STATUS_ACTIVE.'\' '.
                        ' WHERE '.
-                       ' plugin = \''.prepare_data( $plugin ).'\' AND status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\'', $flow_params['db_connection'] ) )
+                       ' plugin = \''.prepare_data( $plugin_name ).'\' AND status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\'', $flow_params['db_connection'] ) )
         {
             self::st_set_error( self::ERR_JOB_DB, self::_t( 'Error running query to re-activate agent jobs for provided plugin.' ) );
             return false;

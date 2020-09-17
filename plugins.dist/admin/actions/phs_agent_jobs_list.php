@@ -587,8 +587,15 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if( !$agent_obj->run_job( $agent_job_arr, [ 'force_run' => true ] ) )
+                {
+                    if( $agent_obj->has_error() )
+                    {
+                        $this->set_error( self::ERR_FUNCTIONALITY, $agent_obj->get_simple_error_message() );
+                        return false;
+                    }
+
                     $action_result_params['action_result'] = 'failed';
-                else
+                } else
                     $action_result_params['action_result'] = 'success';
             break;
 

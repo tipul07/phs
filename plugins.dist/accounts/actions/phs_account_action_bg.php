@@ -21,10 +21,10 @@ class PHS_Action_Account_action_bg extends PHS_Action
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($params = PHS_bg_jobs::get_current_job_parameters())
-         or !($hook_args = self::validate_array( $params, PHS_Hooks::default_account_action_hook_args() ))
-         or empty( $hook_args['account_data'] )
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'], array( 'table_name' => 'users' ) )) )
+         || !($hook_args = self::validate_array( $params, PHS_Hooks::default_account_action_hook_args() ))
+         || empty( $hook_args['account_data'] )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'], array( 'table_name' => 'users' ) )) )
         {
             $this->set_error( self::ERR_UNKNOWN_ACCOUNT, $this->_pt( 'Cannot send forgot password email to this account.' ) );
             return false;

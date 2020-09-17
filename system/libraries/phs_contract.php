@@ -3,6 +3,10 @@ namespace phs\libraries;
 
 abstract class PHS_Contract extends PHS_Instantiable
 {
+    // hardcoded maximum recursive calls when parsing data
+    /** @see PHS_Contract::max_recursive_level_for_data_parsing() */
+    const MAX_RECURSIVE_PARSING = 15;
+
     const FROM_OUTSIDE = 1, FROM_INSIDE = 2, FROM_BOTH = 3;
     protected static $KEYS_ARR = [
         self::FROM_OUTSIDE => [ 'title' => 'From Outside' ],
@@ -25,8 +29,14 @@ abstract class PHS_Contract extends PHS_Instantiable
     /** @var array Normalized nodes definition */
     private $_definition_arr = [];
 
+    /** @var array Data cache for data retrieved from models for inside sources */
+    private $_data_cache = [];
+
     /** @var bool Was defintion normalized already? */
     private $_definition_initialized = false;
+
+    /** @var int Maximum number of recursive calls when parsing contract data */
+    private $_recursive_lvl = self::MAX_RECURSIVE_PARSING;
 
     /**
      * Returns an array with data nodes definition
@@ -43,10 +53,20 @@ abstract class PHS_Contract extends PHS_Instantiable
         return self::INSTANCE_TYPE_CONTRACT;
     }
 
+    public function max_recursive_level_for_data_parsing( $lvl = false )
+    {
+        if( $lvl === false )
+            return $this->_recursive_lvl;
+
+        $this->_recursive_lvl = (int)$lvl;
+        return $this->_recursive_lvl;
+    }
+
     private function _reset_data()
     {
         $this->_source_data = [];
         $this->_resulting_data = [];
+        $this->_data_cache = [];
         $this->_data_type = false;
         $this->_data_was_parsed = false;
     }
@@ -114,6 +134,10 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             return false;
         }
+
+        // Check if we reached maximum number of recursive calls
+        if( $params['lvl'] > $this->max_recursive_level_for_data_parsing() )
+            return null;
 
         $return_arr = [];
         foreach( $definition_arr as $node_key => $node_arr )
@@ -191,6 +215,101 @@ abstract class PHS_Contract extends PHS_Instantiable
     }
 
     /**
+     * In order to reduce number of database queries, we will cache any records obtained as result of matching
+     * primary keys in current contract recurring level. This method caches any records obtained outside contract
+     * scope by providing node key - records arrays pairs. (eg. 'user' => $user_arr, where user node refers to user_id key in
+     * current contract nodes definition)
+     *
+     * @param array $data_arr Data to be cached
+     *
+     * @return bool
+     */
+    protected function _set_initial_cache_data( $data_arr )
+    {
+        if( empty( $data_arr ) | !is_array( $data_arr ) )
+            return false;
+
+        foreach( $this->_definition_arr as $node_key => $node_arr )
+        {
+            /** @var \phs\libraries\PHS_Model $model_obj */
+            if( empty( $data_arr[$node_key] )
+             || empty( $node_arr['nodes'] )  || !is_array( $node_arr['nodes'] )
+             || empty( $node_arr['data_model_obj'] )
+             || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
+             || !($flow_arr = $model_obj->fetch_default_flow_params( (!empty( $node_arr['data_flow_arr'] )?$node_arr['data_flow_arr']:false) ))
+             || empty( $data_arr[$node_key][$flow_arr['table_index']] )
+             || !($model_id = $model_obj->instance_id()) )
+                continue;
+
+            if( empty( $this->_data_cache[$model_id] ) )
+                $this->_data_cache[$model_id] = [];
+
+            $this->_data_cache[$model_id][(int)$data_arr[$node_key][$flow_arr['table_index']]] = $data_arr[$node_key];
+        }
+
+        return true;
+    }
+
+    /**
+     * Given a node definition and data to be parsed for current contract recurrence level, check if we have cached any data
+     *
+     * @param array $node_arr Node definition for which we check cache
+     * @param array $inside_data Data provided for current contract recurrence level
+     *
+     * @return false|array
+     */
+    protected function _get_cache_data_for_node( $node_arr, $inside_data )
+    {
+        /** @var \phs\libraries\PHS_Model $model_obj */
+        if( empty( $node_arr ) | !is_array( $node_arr )
+         || empty( $node_arr['nodes'] )  || !is_array( $node_arr['nodes'] )
+         || empty( $node_arr['data_primary_key'] )
+         || empty( $node_arr['data_model_obj'] )
+         || !isset( $inside_data[$node_arr['data_primary_key']] )
+         || !($primary_key = (int)$inside_data[$node_arr['data_primary_key']])
+         || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
+         || !($model_id = $model_obj->instance_id())
+         || empty( $this->_data_cache[$model_id] )
+         || !is_array( $this->_data_cache[$model_id] )
+         || empty( $this->_data_cache[$model_id][$primary_key] )
+        )
+            return false;
+
+        return $this->_data_cache[$model_id][$primary_key];
+    }
+
+    /**
+     * Given a node definition and data to be parsed for current contract recurrence level, check if we have cached any data
+     *
+     * @param array $node_arr Node definition for which we check cache
+     * @param array $data_arr Data to be cached
+     *
+     * @return bool
+     */
+    protected function _set_cache_data_for_node( $node_arr, $data_arr )
+    {
+        /** @var \phs\libraries\PHS_Model $model_obj */
+        if( empty( $node_arr ) | !is_array( $node_arr )
+         || empty( $node_arr['nodes'] )  || !is_array( $node_arr['nodes'] )
+         || empty( $node_arr['data_primary_key'] )
+         || empty( $node_arr['data_model_obj'] )
+         || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
+         || !($flow_arr = $model_obj->fetch_default_flow_params( (!empty( $node_arr['data_flow_arr'] )?$node_arr['data_flow_arr']:false) ))
+         || !isset( $data_arr[$flow_arr['table_index']] )
+         || !($primary_key = (int)$data_arr[$flow_arr['table_index']])
+         || !($model_id = $model_obj->instance_id())
+        )
+            return false;
+
+        if( empty( $this->_data_cache[$model_id] ) )
+            $this->_data_cache[$model_id] = [];
+
+        $this->_data_cache[$model_id][$primary_key] = $data_arr;
+
+        return true;
+    }
+
+    /**
      * @param array $inside_data Source array received from inside which should be converted into outside data
      * @param array|bool $params Functionality parameters
      *
@@ -209,17 +328,29 @@ abstract class PHS_Contract extends PHS_Instantiable
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
 
+        if( empty( $params['data_cache'] ) || !is_array( $params['data_cache'] ) )
+            $params['data_cache'] = false;
+
         if( empty( $params['force_export_if_not_found'] ) )
             $params['force_export_if_not_found'] = false;
         else
             $params['force_export_if_not_found'] = true;
 
+        if( empty( $params['max_data_recursive_lvl'] ) )
+            $params['max_data_recursive_lvl'] = 0;
+        else
+            $params['max_data_recursive_lvl'] = (int)$params['max_data_recursive_lvl'];
+
         $this->_data_type = self::FROM_INSIDE;
         $this->_source_data = $inside_data;
+
+        if( !empty( $params['data_cache'] ) )
+            $this->_set_initial_cache_data( $params['data_cache'] );
 
         $parsing_params = [];
         $parsing_params['lvl'] = 0;
         $parsing_params['force_export_if_not_found'] = $params['force_export_if_not_found'];
+        $parsing_params['max_data_recursive_lvl'] = $params['max_data_recursive_lvl'];
 
         if( null === ($this->_resulting_data = $this->_parse_data_from_inside_source( $this->_definition_arr, $inside_data, $parsing_params )) )
         {
@@ -254,15 +385,52 @@ abstract class PHS_Contract extends PHS_Instantiable
             return false;
         }
 
+        // Check if we reached maximum number of recursive calls
+        if( $params['lvl'] > $this->max_recursive_level_for_data_parsing() )
+            return null;
+
         $return_arr = [];
         foreach( $definition_arr as $node_key => $node_arr )
         {
             if( $node_arr['key_type'] === self::FROM_OUTSIDE )
                 continue;
 
-            // Make sure that we have a data to process
+            // Check if we have data to process for current node
             if( !array_key_exists( $node_arr['inside_key'], $inside_data ) )
             {
+                // This should be an "object", but we are provided no data for it,
+                // check if we have an associated model from where we can take the data
+                /** @var \phs\libraries\PHS_Model $model_obj */
+                if( !empty( $node_arr['nodes'] ) && is_array( $node_arr['nodes'] )
+                 && !empty( $node_arr['data_model_obj'] )
+                 && !empty( $node_arr['data_primary_key'] )
+                 && !empty( $inside_data[$node_arr['data_primary_key']] )
+                 && (empty( $params['max_data_recursive_lvl'] ) || $params['max_data_recursive_lvl'] > $params['lvl']) )
+                {
+                    $db_record_arr = false;
+                    // It seems we can get some data from model...
+                    if( !($db_record_arr = $this->_get_cache_data_for_node( $node_arr, $inside_data )) )
+                        $db_record_arr = false;
+
+                    if( empty( $db_record_arr )
+                     && (($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
+                     && ($flow_arr = $model_obj->fetch_default_flow_params( (!empty( $node_arr['data_flow_arr'] )?$node_arr['data_flow_arr']:false) ))
+                     && ($db_record_arr = $model_obj->get_details( $inside_data[$node_arr['data_primary_key']], $flow_arr )) )
+                        $this->_set_cache_data_for_node( $node_arr, $db_record_arr );
+
+                    if( !empty( $db_record_arr ) )
+                    {
+                        $rec_params = $params;
+                        $rec_params['lvl']++;
+
+                        if( false !== ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $db_record_arr, $rec_params )) )
+                        {
+                            $return_arr[$node_arr['outside_key']] = $result_item;
+                            continue;
+                        }
+                    }
+                }
+
                 if( !empty( $node_arr['export_if_not_found'] )
                  || !empty( $params['force_export_if_not_found'] ) )
                     $return_arr[$node_arr['outside_key']] = $node_arr['default_outside'];
@@ -407,6 +575,16 @@ abstract class PHS_Contract extends PHS_Instantiable
             'recurring_key_type' => PHS_params::T_ASIS,
             // Extra parameters used in PHS_params::set_type()
             'recurring_key_type_extra' => false,
+
+            // Try obtaining data from a model if we are provided no data from inside source
+            // NOTE: This works only when parsing data from inside sources
+            // Instance of model to be used to obtain data
+            'data_model_obj' => false,
+            // flow to be passed to PHS_Model::get_details() method (obtained with PHS_Model::fetch_default_flow_params() method)
+            'data_flow_arr' => false,
+            // Which key in inside data array contains primary index value to be used with PHS_Model::get_details() method
+            // when retrieving data from model
+            'data_primary_key' => false,
 
             // (OPTIONAL) Descriptive info about this node (can generate documentation based on this
             'title' => '',
