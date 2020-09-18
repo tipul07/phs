@@ -243,8 +243,10 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             if( empty( $this->_data_cache[$model_id] ) )
                 $this->_data_cache[$model_id] = [];
+            if( empty( $this->_data_cache[$model_id][$flow_arr['table_name']] ) )
+                $this->_data_cache[$model_id][$flow_arr['table_name']] = [];
 
-            $this->_data_cache[$model_id][(int)$data_arr[$node_key][$flow_arr['table_index']]] = $data_arr[$node_key];
+            $this->_data_cache[$model_id][$flow_arr['table_name']][(int)$data_arr[$node_key][$flow_arr['table_index']]] = $data_arr[$node_key];
         }
 
         return true;
@@ -268,14 +270,17 @@ abstract class PHS_Contract extends PHS_Instantiable
          || !isset( $inside_data[$node_arr['data_primary_key']] )
          || !($primary_key = (int)$inside_data[$node_arr['data_primary_key']])
          || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
+         || !($flow_arr = $model_obj->fetch_default_flow_params( (!empty( $node_arr['data_flow_arr'] )?$node_arr['data_flow_arr']:false) ))
          || !($model_id = $model_obj->instance_id())
          || empty( $this->_data_cache[$model_id] )
          || !is_array( $this->_data_cache[$model_id] )
-         || empty( $this->_data_cache[$model_id][$primary_key] )
+         || empty( $this->_data_cache[$model_id][$flow_arr['table_name']] )
+         || !is_array( $this->_data_cache[$model_id][$flow_arr['table_name']] )
+         || empty( $this->_data_cache[$model_id][$flow_arr['table_name']][$primary_key] )
         )
             return false;
 
-        return $this->_data_cache[$model_id][$primary_key];
+        return $this->_data_cache[$model_id][$flow_arr['table_name']][$primary_key];
     }
 
     /**
@@ -303,8 +308,10 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         if( empty( $this->_data_cache[$model_id] ) )
             $this->_data_cache[$model_id] = [];
+        if( empty( $this->_data_cache[$model_id][$flow_arr['table_name']] ) )
+            $this->_data_cache[$model_id][$flow_arr['table_name']] = [];
 
-        $this->_data_cache[$model_id][$primary_key] = $data_arr;
+        $this->_data_cache[$model_id][$flow_arr['table_name']][$primary_key] = $data_arr;
 
         return true;
     }
@@ -398,6 +405,14 @@ abstract class PHS_Contract extends PHS_Instantiable
             // Check if we have data to process for current node
             if( !array_key_exists( $node_arr['inside_key'], $inside_data ) )
             {
+                if( empty( $node_arr['max_data_recursive_lvl'] ) )
+                    $max_data_recursive_lvl = $params['max_data_recursive_lvl'];
+                elseif( empty( $params['max_data_recursive_lvl'] ) )
+                    $max_data_recursive_lvl = $node_arr['max_data_recursive_lvl'];
+                else
+                    // Node recurrence is calculated from level of node...
+                    $max_data_recursive_lvl = min( $params['max_data_recursive_lvl'], $node_arr['max_data_recursive_lvl'] + $params['lvl'] );
+
                 // This should be an "object", but we are provided no data for it,
                 // check if we have an associated model from where we can take the data
                 /** @var \phs\libraries\PHS_Model $model_obj */
@@ -405,7 +420,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                  && !empty( $node_arr['data_model_obj'] )
                  && !empty( $node_arr['data_primary_key'] )
                  && !empty( $inside_data[$node_arr['data_primary_key']] )
-                 && (empty( $params['max_data_recursive_lvl'] ) || $params['max_data_recursive_lvl'] > $params['lvl']) )
+                 && (empty( $max_data_recursive_lvl ) || $max_data_recursive_lvl > $params['lvl']) )
                 {
                     $db_record_arr = false;
                     // It seems we can get some data from model...
@@ -421,6 +436,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                     if( !empty( $db_record_arr ) )
                     {
                         $rec_params = $params;
+                        $rec_params['max_data_recursive_lvl'] = $max_data_recursive_lvl;
                         $rec_params['lvl']++;
 
                         if( false !== ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $db_record_arr, $rec_params )) )
@@ -585,6 +601,8 @@ abstract class PHS_Contract extends PHS_Instantiable
             // Which key in inside data array contains primary index value to be used with PHS_Model::get_details() method
             // when retrieving data from model
             'data_primary_key' => false,
+            // Maximum number of recursive calls from this node forward 0 - no limit
+            'max_data_recursive_lvl' => 0,
 
             // (OPTIONAL) Descriptive info about this node (can generate documentation based on this
             'title' => '',
