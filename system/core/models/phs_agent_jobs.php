@@ -32,7 +32,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'bg_agent' );
+        return [ 'bg_agent' ];
     }
 
     /**
@@ -45,14 +45,14 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
     public function get_settings_structure()
     {
-        return array(
-            'minutes_to_stall' => array(
+        return [
+            'minutes_to_stall' => [
                 'display_name' => 'Minutes to stall',
                 'display_hint' => 'After how many minutes should we consider agent as stalling',
                 'type' => PHS_params::T_INT,
                 'default' => 15,
-            ),
-        );
+            ],
+        ];
     }
 
     final public function get_statuses()
@@ -227,7 +227,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         if( !($pid = @getmypid()) )
             $pid = -1;
 
-        $edit_arr = array();
+        $edit_arr = [];
         $edit_arr['is_running'] = date( self::DATETIME_DB );
         $edit_arr['pid'] = $pid;
         if( !empty( $job_params_arr ) )
@@ -235,7 +235,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
         PHS_Logger::logf( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']' );
 
-        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+        return $this->edit( $job_arr, [ 'fields' => $edit_arr ] );
     }
 
     /**
@@ -301,7 +301,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $this->reset_error();
 
         if( empty( $job_data )
-         or !($job_arr = $this->data_to_array( $job_data )) )
+         || !($job_arr = $this->data_to_array( $job_data )) )
         {
             $this->set_error( self::ERR_DB_JOB, self::_t( 'Job not found in database.' ) );
             return false;
@@ -309,7 +309,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
         $cdate = date( self::DATETIME_DB );
 
-        $edit_arr = array();
+        $edit_arr = [];
         if( empty( $job_arr['pid'] ) )
         {
             if( !($pid = @getmypid()) )
@@ -319,12 +319,12 @@ class PHS_Model_Agent_jobs extends PHS_Model
         }
 
         if( empty( $job_arr['is_running'] )
-         or empty_db_date( $job_arr['is_running'] ) )
+         || empty_db_date( $job_arr['is_running'] ) )
             $edit_arr['is_running'] = $cdate;
 
         $edit_arr['last_action'] = $cdate;
 
-        return $this->edit( $job_arr, array( 'fields' => $edit_arr ) );
+        return $this->edit( $job_arr, [ 'fields' => $edit_arr ] );
     }
 
     public function get_stalling_minutes()
@@ -335,10 +335,10 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return $stalling_minutes;
 
         if( !($settings_arr = $this->get_db_settings())
-         or empty( $settings_arr['minutes_to_stall'] ) )
+         || empty( $settings_arr['minutes_to_stall'] ) )
             $stalling_minutes = 0;
         else
-            $stalling_minutes = intval( $settings_arr['minutes_to_stall'] );
+            $stalling_minutes = (int)$settings_arr['minutes_to_stall'];
 
         return $stalling_minutes;
     }
@@ -348,7 +348,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $this->reset_error();
 
         if( empty( $job_data )
-         or !($job_arr = $this->data_to_array( $job_data )) )
+         || !($job_arr = $this->data_to_array( $job_data )) )
         {
             $this->set_error( self::ERR_DB_JOB, self::_t( 'Couldn\'t get agent jobs details.' ) );
             return null;
@@ -361,8 +361,9 @@ class PHS_Model_Agent_jobs extends PHS_Model
         }
 
         if( !$this->job_is_running( $job_arr )
-         or (!empty( $settings_arr['minutes_to_stall'] ) and !empty( $job_arr['last_action'] )
-                and floor( seconds_passed( $job_arr['last_action'] ) / 60 ) > $settings_arr['minutes_to_stall']) )
+         || !($minutes_to_stall = $this->get_stalling_minutes())
+         || empty_db_date( $job_arr['last_action'] )
+         || floor( seconds_passed( $job_arr['last_action'] ) / 60 ) < $settings_arr['minutes_to_stall'] )
             return false;
 
         return true;
@@ -482,16 +483,16 @@ class PHS_Model_Agent_jobs extends PHS_Model
      */
     protected function get_edit_prepare_params_bg_agent( $existing_data, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         $cdate = date( self::DATETIME_DB );
 
         if( !empty( $params['fields']['handler'] ) )
         {
-            $check_arr = array();
+            $check_arr = [];
             $check_arr['handler'] = $params['fields']['handler'];
-            $check_arr['id'] = array( 'check' => '!=', 'value' => $existing_data['id'] );
+            $check_arr['id'] = [ 'check' => '!=', 'value' => $existing_data['id'] ];
 
             if( $this->get_details_fields( $check_arr ) )
             {
@@ -501,7 +502,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         }
 
         if( !empty( $params['fields']['status'] )
-        and !$this->valid_status( $params['fields']['status'] ) )
+         && !$this->valid_status( $params['fields']['status'] ) )
         {
             $this->set_error( self::ERR_EDIT, self::_t( 'Agent job status is not defined.' ) );
             return false;
@@ -513,15 +514,15 @@ class PHS_Model_Agent_jobs extends PHS_Model
         if( isset( $params['fields']['is_running'] ) )
         {
             if( empty( $params['fields']['is_running'] )
-             or empty_db_date( $params['fields']['is_running'] ) )
+             || empty_db_date( $params['fields']['is_running'] ) )
                 $params['fields']['is_running'] = null;
             else
                 $params['fields']['is_running'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['is_running'] ) );
         }
 
-        // Update last_action field on any edit's we do...
+        // Update last_action field on any edit we do...
         if( empty( $params['fields']['last_action'] )
-         or empty_db_date( $params['fields']['last_action'] ) )
+         || empty_db_date( $params['fields']['last_action'] ) )
             $params['fields']['last_action'] = $cdate;
 
         return $params;
