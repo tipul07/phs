@@ -154,12 +154,9 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
     },
     //endregion Decorators
 
-    object_has_keys: function( o )
-    {
-        for( var i in o )
-        {
-            if( o.hasOwnProperty( i ) )
-            {
+    object_has_keys: function( o ) {
+        for( var i in o ) {
+            if( o.hasOwnProperty( i ) ) {
                 return true;
             }
         }
@@ -167,14 +164,16 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         return false;
     },
 
-    show_submit_protection: function( msg, extra_msg )
-    {
+    is_showing_submit_protection: function() {
+        return (this.submit_protections_count > 0);
+    },
+
+    show_submit_protection: function( msg, extra_msg ) {
         this.submit_protections_count++;
         show_submit_protection( msg, extra_msg );
     },
 
-    hide_submit_protection: function( msg, extra_msg )
-    {
+    hide_submit_protection: function() {
         if( this.submit_protections_count <= 0 )
             return;
 
@@ -184,32 +183,37 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             hide_submit_protection();
     },
 
-    phs_add_warning_message: function( msg, timeout = 6 )
-    {
+    hide_all_submit_protections: function() {
+        if( this.submit_protections_count <= 0 )
+            return;
+
+        while( this.submit_protections_count > 0 ) {
+            this.hide_submit_protection();
+        }
+    },
+
+    phs_add_warning_message: function( msg, timeout = 6 ) {
         if( !PHS_RActive_Main_app )
             return;
 
         PHS_RActive_Main_app.phs_add_warning_message( msg, timeout );
     },
 
-    phs_add_error_message: function( msg, timeout = 6 )
-    {
+    phs_add_error_message: function( msg, timeout = 6 ) {
         if( !PHS_RActive_Main_app )
             return;
 
         PHS_RActive_Main_app.phs_add_error_message( msg, timeout );
     },
 
-    phs_add_success_message: function( msg, timeout = 6 )
-    {
+    phs_add_success_message: function( msg, timeout = 6 ) {
         if( !PHS_RActive_Main_app )
             return;
 
         PHS_RActive_Main_app.phs_add_success_message( msg, timeout );
     },
 
-    read_data: function ( route, data, success, failure )
-    {
+    read_data: function ( route, data, success, failure ) {
         if( typeof data === "undefined" )
             data = false;
         if( typeof success === "undefined" )
@@ -230,8 +234,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         return PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
     },
 
-    valid_default_response_from_read_data: function( response )
-    {
+    valid_default_response_from_read_data: function( response ) {
         return (typeof response !== "undefined"
             && response !== null
             && typeof response.response !== "undefined"
@@ -241,12 +244,10 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             && parseInt( response.error.code ) === 0 );
     },
 
-    get_error_message_for_default_read_data: function( response )
-    {
+    get_error_message_for_default_read_data: function( response ) {
         if( typeof response === "undefined"
          || response === null
          || typeof response.error === "undefined"
-         || response.response === null
          || typeof response.error.message === "undefined"
          || response.error.message.length === 0 )
             return false;
@@ -254,13 +255,12 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         var error_msg = response.error.message;
         if( typeof response.error.code !== "undefined"
          && parseInt( response.error.code ) !== 0 )
-            error_msg = "[" + response.error.code + "] " + error_msg;
+            error_msg = error_msg + " (error code: " + response.error.code + ")";
 
         return error_msg;
     },
 
-    read_html: function ( route, data, success, failure )
-    {
+    read_html: function ( route, data, success, failure ) {
         if( typeof data === "undefined" )
             data = false;
         if( typeof success === "undefined" )

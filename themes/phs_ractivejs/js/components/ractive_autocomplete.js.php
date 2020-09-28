@@ -32,6 +32,7 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             text_input_value: '',
             text_input_css_classes: ['form-control'],
             text_input_style: 'width:90%;float:left;',
+            text_input_twoway: true,
 
             min_text_length: 1,
             hide_component: false,

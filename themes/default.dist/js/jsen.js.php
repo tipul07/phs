@@ -1,10 +1,8 @@
 <?php
 
-// /version 1.31
-
     include( '../../../main.php' );
 
-    header( 'Content-type: text/javascript' );
+    @header( 'Content-type: text/javascript' );
 
     use \phs\PHS;
     use \phs\PHS_ajax;
@@ -24,8 +22,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             console.log( "Seems like we don't have jQuery..." );
     }
 
-    var PHS_JSEN =
-    {
+    var PHS_JSEN = {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
         version: 1.32,
@@ -39,13 +36,10 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         dialogs_options: [],
 
-        keys : function( o )
-        {
+        keys : function( o ) {
             var keys = [];
-            for( var i in o )
-            {
-                if( o.hasOwnProperty( i ) )
-                {
+            for( var i in o ) {
+                if( o.hasOwnProperty( i ) ) {
                     keys.push( i );
                 }
             }
@@ -53,12 +47,40 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return keys;
         },
 
-        object_has_keys : function( o )
-        {
-            for( var i in o )
+        objects_are_equal: function ( object1, object2 ) {
+            var obj1_empty = true, obj2_empty = true;
+            if( (obj1_empty = (typeof object1 === "undefined" || object1 == null))
+             || (obj2_empty = (typeof object2 === "undefined" || object2 == null)) )
             {
-                if( o.hasOwnProperty( i ) )
-                {
+                if( obj1_empty && obj2_empty )
+                    return true;
+
+                return false;
+            }
+
+            const keys1 = Object.keys( object1 );
+            const keys2 = Object.keys( object2 );
+
+            if( keys1.length !== keys2.length )
+                return false;
+
+            for( const key of keys1 ) {
+                const val1 = object1[key];
+                const val2 = object2[key];
+                const areObjects = (val1 != null && typeof val1 === "object"
+                                 && val2 != null && typeof val2 === "object");
+
+                if( (areObjects && !PHS_JSEN.objects_are_equal( val1, val2 ))
+                 || (!areObjects && val1 !== val2) )
+                    return false;
+            }
+
+            return true;
+        },
+
+        object_has_keys : function( o ) {
+            for( var i in o ) {
+                if( o.hasOwnProperty( i ) ) {
                     return true;
                 }
             }
@@ -66,11 +88,23 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return false;
         },
 
-        in_array : function( needle, haystack )
-        {
+        object_length : function( o ) {
+            if( typeof o !== "object" )
+                return 0;
+
+            var length = 0;
+            for( var i in o ) {
+                if( o.hasOwnProperty( i ) ) {
+                    length++;
+                }
+            }
+
+            return length;
+        },
+
+        in_array : function( needle, haystack ) {
             var length = haystack.length;
-            for( var i = 0; i < length; i++ )
-            {
+            for( var i = 0; i < length; i++ ) {
                 if( haystack[i] == needle )
                     return true;
             }
@@ -78,30 +112,44 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return false;
         },
 
-        js_messages_hide_all: function( message_box_container )
-        {
+        random_string: function( length ) {
+            var result = '';
+            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            var charactersLength = characters.length;
+            for ( var i = 0; i < length; i++ ) {
+                result += characters.charAt( Math.floor( Math.random() * charactersLength ) );
+            }
+
+            return result;
+        },
+
+        bool_value_to_numeric: function( val ) {
+            if( val )
+                return 1;
+
+            return 0;
+        },
+
+        js_messages_hide_all: function( message_box_container ) {
             PHS_JSEN.js_messages_hide( "success", message_box_container );
             PHS_JSEN.js_messages_hide( "warning", message_box_container );
             PHS_JSEN.js_messages_hide( "error", message_box_container );
         },
 
-        js_messages_hide: function( type, message_box_container )
-        {
+        js_messages_hide: function( type, message_box_container ) {
             var message_box = false;
             if( typeof message_box_container === "undefined"
-             || message_box_container.length == 0 )
+             || message_box_container.length === 0 )
                 message_box = $("#phs_ajax_" + type + "_box");
 
-            else
-            {
+            else {
                 if( typeof message_box_container === "string" )
                     message_box = $("#"+message_box_container + "_" + type + "_box");
                 else if( typeof message_box_container === "object" )
                     message_box = message_box_container;
             }
 
-            if( message_box && message_box.length )
-            {
+            if( message_box && message_box.length ) {
                 message_box.find( ".dismissible" ).html( "" );
                 message_box.hide();
             }
@@ -113,29 +161,25 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
          * @param type String: "error", "warning" or "success"
          * @param message_box_container String with container ID, container JQuery object
          */
-        js_messages: function( messages_arr, type, message_box_container )
-        {
+        js_messages: function( messages_arr, type, message_box_container ) {
             if( typeof messages_arr == "undefined" || !messages_arr
              || typeof messages_arr.length == "undefined" || !messages_arr.length )
                 return;
 
             var message_box = false;
             if( typeof message_box_container === "undefined"
-             || message_box_container.length == 0 )
+             || message_box_container.length === 0 )
                 message_box = $("#phs_ajax_" + type + "_box");
-            else
-            {
+            else {
                 if( typeof message_box_container === "string" )
                     message_box = $("#"+message_box_container + "_" + type + "_box");
                 else if( typeof message_box_container === "object" )
                     message_box = message_box_container;
             }
 
-            if( message_box && message_box.length )
-            {
+            if( message_box && message_box.length ) {
                 var find_result = message_box.find( ".dismissible" );
-                for( var i = 0; i < messages_arr.length; i++ )
-                {
+                for( var i = 0; i < messages_arr.length; i++ ) {
                     if( find_result.length )
                         find_result.append( "<p>" + messages_arr[i] + "</p>" );
                     else
@@ -145,8 +189,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
         },
 
-        do_autocomplete: function( container, o )
-        {
+        do_autocomplete: function( container, o ) {
             var defaults = {
                 url : '',
                 autocomplete_obj : {
@@ -169,29 +212,24 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             else if( typeof container == "object" )
                 container_obj = container;
 
-            if( !container_obj )
-            {
+            if( !container_obj ) {
                 alert( "<?php echo PHS_Language::_te( 'Couldn\'t obtain jQuery object for autocomplete field.' )?>" );
                 return false;
             }
 
-            if( !options.url )
-            {
+            if( !options.url ) {
                 PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_te( 'URL not provided for autocomplete field.' )?>" ], "error" );
                 return container_obj.autocomplete();
             }
 
             return container_obj.autocomplete( $.extend( {}, {
-                source: function( request, response )
-                {
-                    PHS_JSEN.do_ajax( options.url, $.extend( {},
-                    {
+                source: function( request, response ) {
+                    PHS_JSEN.do_ajax( options.url, $.extend( {}, {
                         url_data: {
                             term: request.term
                         },
                         data_type: "json",
-                        onsuccess: function( data, status, ajax_obj )
-                        {
+                        onsuccess: function( data, status, ajax_obj ) {
                             response( data );
                         }
                     }, options.ajax_options ) );
@@ -199,8 +237,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }, options.autocomplete_obj ) );
         },
 
-        do_ajax: function( url, o )
-        {
+        do_ajax: function( url, o ) {
             var defaults = {
                 cache_response: false,
                 method: "GET",
@@ -226,11 +263,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 cache: options.cache_response,
                 async: options.async,
 
-                success: function( data, status, ajax_obj )
-                {
+                success: function( data, status, ajax_obj ) {
                     var result_response = false;
-                    if( !options.full_buffer )
-                    {
+                    if( !options.full_buffer ) {
                         if( typeof data.response == 'undefined' || !data.response )
                             data.response = false;
 
@@ -238,8 +273,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     } else
                         result_response = data;
 
-                    if( options.onsuccess )
-                    {
+                    if( options.onsuccess ) {
                         var onsuccess_result = null;
                         if( $.isFunction( options.onsuccess ) )
                             onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
@@ -251,14 +285,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                             data = onsuccess_result;
                     }
 
-                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length )
-                    {
+                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length ) {
                         document.location = data.redirect_to_url;
                         return;
                     }
 
-                    if( data && typeof data.status != 'undefined' && data.status )
-                    {
+                    if( data && typeof data.status != 'undefined' && data.status ) {
                         if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
                             PHS_JSEN.js_messages( data.status.success_messages, "success", options.message_box_prefix );
                         if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
@@ -270,8 +302,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 error: function( ajax_obj, status, error_exception ) {
 
-                    if( options.onfailed )
-                    {
+                    if( options.onfailed ) {
                         if( $.isFunction( options.onfailed ) )
                             options.onfailed( ajax_obj, status, error_exception );
                         else if( typeof options.onfailed == "string" )
@@ -285,44 +316,39 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         dialogErrorsDivsIds : [],
         dialogErrorsDivs : 0,
-        dialogErrorsClose : function ()
-        {
+        dialogErrorsClose : function () {
             var container_obj = null;
-            for( var i = 0; i < this.dialogErrorsDivsIds.length; i++ )
-            {
+            for( var i = 0; i < this.dialogErrorsDivsIds.length; i++ ) {
                 container_obj = $(this.dialogErrorsDivsIds[i]);
                 if( container_obj )
                     container_obj.remove();
             }
         },
 
-        removeURLParameter: function ( url, parameter )
-        {
+        removeURLParameter: function ( url, parameter ) {
             //prefer to use l.search if you have a location/link object
-            var urlparts= url.split('?');
+            var urlparts= url.split( "?" );
 
             if( urlparts.length < 2 )
                 return url;
 
-            var prefix = encodeURIComponent( parameter ) + '=';
+            var prefix = encodeURIComponent( parameter ) + "=";
             var parts = urlparts[1].split( /[&;]/g );
 
-            //reverse iteration as may be destructive
-            for ( var i = parts.length; i-- > 0;) {
-                //idiom for string.startsWith
-                if ( parts[i].lastIndexOf( prefix, 0 ) !== -1 )
-                {
+            // reverse iteration as may be destructive
+            for ( var i = parts.length; i-- > 0; ) {
+                // idiom for string.startsWith
+                if ( parts[i].lastIndexOf( prefix, 0 ) !== -1 ) {
                     parts.splice(i, 1);
                 }
             }
 
-            url = urlparts[0]+'?'+parts.join('&');
+            url = urlparts[0] + "?" + parts.join( "&" );
 
             return url;
         },
 
-        addURLParameter: function ( url, key, value )
-        {
+        addURLParameter: function ( url, key, value ) {
             var urlparts= url.split( "?" );
             key = encodeURI( key );
             value = encodeURI( value );
@@ -335,37 +361,33 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             var i = parts.length;
             var x;
 
-            while( i-- )
-            {
+            while( i-- ) {
                 x = parts[i].split( "=" );
 
-                if( x[0] == key )
-                {
+                if( x[0] == key ) {
                     x[1] = value;
                     parts[i] = x.join( "=" );
                     break;
                 }
             }
 
-            if( i < 0 )
-            {
-                parts[parts.length] = [key,value].join("=");
+            if( i < 0 ) {
+                parts[parts.length] = [key,value].join( "=" );
             }
 
-            url = urlparts[0]+"?"+parts.join("&");
+            url = urlparts[0] + "?" + parts.join( "&" );
 
             return url;
         },
 
-        refreshPage : function( to_url )
-        {
-            if( typeof to_url == "undefined" || to_url == "" )
+        refreshPage : function( to_url ) {
+            if( typeof to_url === "undefined" || to_url === "" )
                 to_url = window.location.href;
 
-            to_url = PHS_JSEN.removeURLParameter( to_url, '_PHS_JSENr' );
+            to_url = PHS_JSEN.removeURLParameter( to_url, "_PHS_JSENr" );
 
             var rand_no = Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000);
-            if( to_url.search( '\\?' ) == -1 )
+            if( to_url.search( "\\?" ) === -1 )
                 to_url = to_url + "?&_PHS_JSENr=" + rand_no;
             else
                 to_url = to_url + "&_PHS_JSENr=" + rand_no;
@@ -373,8 +395,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             window.location.href = to_url;
         },
 
-        change_language: function( language )
-        {
+        change_language: function( language ) {
             show_submit_protection( "<?php echo PHS_Language::_t( 'Changing language... Please wait.' )?>" );
 
             var ajax_params = {
@@ -387,7 +408,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     hide_submit_protection();
 
                     if( response
-                     && typeof response.language_changed != "undefined" && response.language_changed )
+                     && typeof response.language_changed !== "undefined" && response.language_changed )
                         PHS_JSEN.refreshPage();
                 },
 
@@ -398,18 +419,16 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 }
             };
 
-            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'a' => 'change_language_ajax' ) )?>", ajax_params );
+            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( [ 'a' => 'change_language_ajax' ] )?>", ajax_params );
         },
 
-        dialogErrors : function( error_arr )
-        {
-            if( !error_arr || typeof error_arr != "object" || !error_arr.length )
+        dialogErrors : function( error_arr ) {
+            if( !error_arr || typeof error_arr !== "object" || !error_arr.length )
                 return;
 
             this.dialogErrorsClose();
 
-            for( var i = 0; i < error_arr.length; i++ )
-            {
+            for( var i = 0; i < error_arr.length; i++ ) {
                 var container_obj = false;
                 var appendto_obj = false;
 
@@ -420,24 +439,21 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 var container_name_id = '';
                 var container_div_id = '';
-                if( !error_arr[i].container || !error_arr[i].container.length )
-                {
+                if( !error_arr[i].container || !error_arr[i].container.length ) {
                     if( typeof error_arr[i].appendto === "undefined"
                      || !error_arr[i].appendto
-                     || error_arr[i].appendto.length == 0 )
+                     || error_arr[i].appendto.length === 0 )
                         continue;
 
                     appendto_obj = $(error_arr[i].appendto);
-                    if( appendto_obj.length == 0 )
+                    if( appendto_obj.length === 0 )
                         continue;
 
                     container_div_id = "PHS_JSENDiaErr" + this.dialogErrorsDivs;
                     container_name_id = "#PHS_JSENDiaErr" + this.dialogErrorsDivs;
-                }
-                else
-                {
+                } else {
                     container_obj = $(error_arr[i].container);
-                    if( container_obj.length == 0 )
+                    if( container_obj.length === 0 )
                         continue;
 
                     container_name_id = error_arr[i].container;
@@ -445,8 +461,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     this.dialogErrorsDivsIds.push( error_arr[i].container );
                 }
 
-                if( !error_arr[i].check_visible || typeof error_arr[i].check_visible != "object" )
-                {
+                if( !error_arr[i].check_visible || typeof error_arr[i].check_visible !== "object" ) {
                     error_arr[i].check_visible = [];
                     error_arr[i].check_visible.push( container_name_id );
                 } else if( !this.in_array( container_name_id, error_arr[i].check_visible ) )
@@ -455,25 +470,20 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 var len = 0;
                 var ki = 0;
 
-                if( typeof error_arr[i].highlight_field !== "undefined" )
-                {
-                    if( typeof error_arr[i].highlight_field == "object" && error_arr[i].highlight_field.length )
-                    {
+                if( typeof error_arr[i].highlight_field !== "undefined" ) {
+                    if( typeof error_arr[i].highlight_field === "object" && error_arr[i].highlight_field.length ) {
                         len = error_arr[i].highlight_field.length;
-                        for( ki = 0; ki < len; ki++ )
-                        {
+                        for( ki = 0; ki < len; ki++ ) {
                             var highlight_id = error_arr[i].highlight_field[ki];
                             if( $("#" + highlight_id) )
                                 $("#" + highlight_id).addClass( "ui-highlight-error" );
                         }
-                    } else if( $("#" + error_arr[i].highlight_field).length > 0 )
-                    {
+                    } else if( $("#" + error_arr[i].highlight_field).length > 0 ) {
                         $("#" + error_arr[i].highlight_field).addClass("ui-highlight-error");
                     }
                 }
 
-                if( appendto_obj )
-                {
+                if( appendto_obj ) {
                     appendto_obj.append( '<div id="' + container_div_id + '"></div>' );
                     this.dialogErrorsDivs++;
                     container_obj = $(container_name_id);
@@ -484,28 +494,24 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     this.dialogErrorsDivsIds.push( container_name_id );
                 }
 
-                if( error_arr[i].check_visible && typeof error_arr[i].check_visible == "object" )
-                {
+                if( error_arr[i].check_visible && typeof error_arr[i].check_visible === "object" ) {
                     len = error_arr[i].check_visible.length;
-                    for( ki = 0; ki < len; ki++ )
-                    {
+                    for( ki = 0; ki < len; ki++ ) {
                         container_name = error_arr[i].check_visible[ki];
-                        if( container_name.substr( 0, 1 ) != '#' )
+                        if( container_name.substr( 0, 1 ) !== '#' )
                             container_name = '#' + container_name;
 
                         var vis_obj = $(container_name);
                         if( !vis_obj )
                             continue;
 
-                        if( vis_obj.css( 'display' ) != 'block' )
+                        if( vis_obj.css( 'display' ) !== 'block' )
                             vis_obj.css( 'display', 'block' );
                     }
                 }
 
-                if( error_arr[i].highlight_classes && typeof error_arr[i].highlight_classes == "object" )
-                {
-                    for( ki = 0; ki < error_arr[i].highlight_classes.length; ki++ )
-                    {
+                if( error_arr[i].highlight_classes && typeof error_arr[i].highlight_classes === "object" ) {
+                    for( ki = 0; ki < error_arr[i].highlight_classes.length; ki++ ) {
                         if( !container_obj.hasClass( error_arr[i].highlight_classes[ki] ) )
                             container_obj.addClass( error_arr[i].highlight_classes[ki] );
                     }
@@ -525,14 +531,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
         },
 
-        closeAjaxDialog : function( suffix )
-        {
-            if( typeof suffix == "undefined" )
+        closeAjaxDialog : function( suffix ) {
+            if( typeof suffix === "undefined" )
                 suffix = "";
 
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + suffix);
-            if( dialog_obj )
-            {
+            if( dialog_obj ) {
                 //var obj_options = PHS_JSEN.dialogOptions( suffix );
                 //if( obj_options && obj_options.onclose )
                 //{
@@ -548,8 +552,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         // Create AJAX request
-        redirectAjaxDialog : function( o )
-        {
+        redirectAjaxDialog : function( o ) {
             var defaults = {
                 suffix            : "",
                 cache_response    : false,
@@ -564,16 +567,13 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             var ajax_obj = false;
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
-            if( typeof options.url != "undefined" && options.url && dialog_obj )
-            {
-                if( options.title && options.title.length )
-                {
+            if( typeof options.url !== "undefined" && options.url && dialog_obj ) {
+                if( options.title && options.title.length ) {
                     dialog_obj.dialog( "option", "title",  options.title );
                     PHS_JSEN.dialogOptions( options.suffix, 'title', options.title );
                 }
 
-                if( typeof( options.cssclass ) != "undefined" && options.cssclass )
-                {
+                if( typeof( options.cssclass ) !== "undefined" && options.cssclass ) {
                     dialog_obj.dialog( "option", "dialogClass", options.cssclass );
                     PHS_JSEN.dialogOptions( options.suffix, 'cssclass', options.cssclass );
                 }
@@ -593,7 +593,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     }
                 };
 
-                if( typeof options.data_type == "string" )
+                if( typeof options.data_type === "string" )
                     ajax_params.data_type = options.data_type;
 
                 ajax_obj = PHS_JSEN.do_ajax( options.url, ajax_params );
@@ -603,8 +603,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         // Reload HTML content of an AJAX dialog
-        reloadAjaxDialog : function( o )
-        {
+        reloadAjaxDialog : function( o ) {
             var defaults = {
                 suffix            : "",
                 cache_response    : false,
@@ -622,8 +621,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             if( !dialog_obj )
                 return false;
 
-            if( ( typeof options.url != "undefined" ) && options.url )
-            {
+            if( typeof options.url !== "undefined" && options.url ) {
                 var ajax_params = {
                     cache_response: options.cache_response,
                     method: options.method,
@@ -633,8 +631,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     onsuccess: function( response, status, ajax_obj ) {
                         dialog_obj.html( response );
 
-                        if( options.onsuccess )
-                        {
+                        if( options.onsuccess ) {
                             if( $.isFunction( options.onsuccess ) )
                                 options.onsuccess();
                             else if( typeof options.onsuccess == "string" )
@@ -647,7 +644,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     }
                 };
 
-                if( typeof options.data_type == "string" )
+                if( typeof options.data_type === "string" )
                     ajax_params.data_type = options.data_type;
 
                 PHS_JSEN.do_ajax( options.url, ajax_params );
@@ -661,8 +658,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         // Alter an AJAX dialog
-        modifyAjaxDialog : function( o )
-        {
+        modifyAjaxDialog : function( o ) {
             var defaults = {
                 width             : 0,
                 height            : 0,
@@ -676,35 +672,34 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             var options = [];
             var options_to_change = false;
 
-            for( key in o )
-            {
-                if( defaults.hasOwnProperty( key ) )
-                {
-                    options[key] = o[key];
-                    options_to_change = true;
-                }
+            var key = false;
+            for( key in o ) {
+                if( !o.hasOwnProperty( key )
+                 || !defaults.hasOwnProperty( key ) )
+                    continue;
+
+                options[key] = o[key];
+                options_to_change = true;
             }
 
-            if( !options.hasOwnProperty( 'suffix' ) )
-                options['suffix'] = '';
+            if( !options.hasOwnProperty( "suffix" ) )
+                options["suffix"] = "";
 
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
-            if( options_to_change && dialog_obj )
-            {
-                for( key in options )
-                {
-                    if( key == 'suffix' )
+            if( options_to_change && dialog_obj ) {
+                for( key in options ) {
+                    if( key === 'suffix'
+                     || !options.hasOwnProperty( key ) )
                         continue;
 
-                    dialog_obj.dialog( 'option', key, options[key] );
+                    dialog_obj.dialog( "option", key, options[key] );
                     PHS_JSEN.dialogOptions( options.suffix, key, options[key] );
                 }
             }
         },
 
         // Create AJAX request
-        createAjaxDialog : function( o )
-        {
+        createAjaxDialog : function( o ) {
             var defaults = {
                 width             : 600,
                 height            : 400,
@@ -745,20 +740,18 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             // Remove Dialog ( if previously created )
             var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
-            if( dialog_obj )
-            {
-                dialog_obj.dialog('destroy').remove();
+            if( dialog_obj ) {
+                dialog_obj.dialog( "destroy" ).remove();
             }
 
             // Create Dialog
-            if( $(options.parent_tag).length == 0 )
+            if( $(options.parent_tag).length === 0 )
                 options.parent_tag = "body";
 
             $(options.parent_tag).append( '<div id="' + PHS_JSEN.dialogs_prefix + options.suffix + '"></div>' );
 
             dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
-            if( dialog_obj )
-            {
+            if( dialog_obj ) {
                 var dialog_default_options_obj = {
                     width: options.width,
                     height: options.height,
@@ -774,9 +767,8 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     position: { my: "center", at: "center", of: window },
                     resizable: options.resizable,
 
-                    beforeClose: function(event,ui) {
-                        if( options.onbeforeclose )
-                        {
+                    beforeClose: function( event, ui ) {
+                        if( options.onbeforeclose ) {
                             if( $.isFunction( options.onbeforeclose ) )
                                 options.onbeforeclose();
                             else if( typeof options.onbeforeclose == "string" )
@@ -784,7 +776,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         }
                     },
 
-                    open: function(event, ui) {
+                    open: function( event, ui ) {
                         $('.ui-widget-overlay').css('opacity', options.opacity);
                     }
                 };
@@ -798,8 +790,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 dialog_obj.dialog( dialog_options_obj );
 
                 // Check if we should call an url
-                if( typeof options.url != "undefined" && options.url )
-                {
+                if( typeof options.url !== "undefined" && options.url ) {
                     var ajax_params = {
                         cache_response: options.cache_response,
                         method: options.method,
@@ -809,14 +800,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         onsuccess: function( response, status, ajax_obj ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
 
-                            if( dialog_obj )
-                            {
+                            if( dialog_obj ) {
                                 dialog_obj.html( response );
                                 dialog_obj.dialog( "open" );
                             }
 
-                            if( options.onsuccess )
-                            {
+                            if( options.onsuccess ) {
                                 if( $.isFunction( options.onsuccess ) )
                                     options.onsuccess();
                                 else if( typeof options.onsuccess == "string" )
@@ -826,14 +815,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
-                            if( dialog_obj )
-                            {
+                            if( dialog_obj ) {
                                 dialog_obj.html( "<?php echo PHS_Language::_te( 'Error ontaining dialogue body. Please try again.' )?>" );
                                 dialog_obj.dialog( "open" );
                             }
 
-                            if( options.onfailed )
-                            {
+                            if( options.onfailed ) {
                                 if( $.isFunction( options.onfailed ) )
                                     options.onfailed();
                                 else if( typeof options.onfailed == "string" )
@@ -846,11 +833,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 } else
 
                 // Check if we have an object to extract html() from
-                if( typeof( options.source_obj ) != "undefined" && options.source_obj )
-                {
+                if( typeof( options.source_obj ) !== "undefined" && options.source_obj ) {
                     var source_container = null;
-                    if( typeof( options.source_obj ) == "string" )
-                    {
+                    if( typeof( options.source_obj ) === "string" ) {
                         source_container = $( '#' + options.source_obj );
                         options.source_obj = source_container;
                     } else
@@ -864,33 +849,28 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     else
                         dialog_obj.html( source_container.html() );
 
-
                     dialog_obj.dialog( "open" );
 
-                    if( options.onsuccess )
-                    {
+                    if( options.onsuccess ) {
                         if( $.isFunction( options.onsuccess ) )
                             options.onsuccess();
-                        else if( typeof options.onsuccess == "string" )
+                        else if( typeof options.onsuccess === "string" )
                             eval( options.onsuccess );
                     }
                 }
 
-                if( options.close_outside_click )
-                {
-                    $(document).on('click', '.ui-widget-overlay', function() {
+                if( options.close_outside_click ) {
+                    $(document).on( "click", ".ui-widget-overlay", function() {
                         if( dialog_obj )
                             dialog_obj.dialog( "close" );
                     });
-
                 }
 
-                dialog_obj.bind( 'dialogclose', function(event) {
-                    if( options.onclose )
-                    {
+                dialog_obj.bind( 'dialogclose', function( event ) {
+                    if( options.onclose ) {
                         if( $.isFunction( options.onclose ) )
                             options.onclose();
-                        else if( typeof options.onclose == "string" )
+                        else if( typeof options.onclose === "string" )
                             eval( options.onclose );
                     }
 
@@ -904,8 +884,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 PHS_JSEN.dialogOptions( options.suffix, options );
             }
 
-            if( window.innerHeight < options.height )
-            {
+            if( window.innerHeight < options.height ) {
                 setTimeout(function() {
                     dialog_obj.parent().css( "top", "30px" );
                 }, 500 );
@@ -913,22 +892,19 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         // Close Loading div...
-        dialogOptions : function( suffix, key, val )
-        {
-            if( typeof key == 'undefined' && typeof val == 'undefined' )
+        dialogOptions : function( suffix, key, val ) {
+            if( typeof key === "undefined" && typeof val === "undefined" )
                 return PHS_JSEN.dialogs_options[suffix];
 
-            if( typeof key == 'string' && typeof val == 'undefined' )
-            {
-                if( typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' && typeof PHS_JSEN.dialogs_options[suffix][key] != 'undefined' )
+            if( typeof key === "string" && typeof val === "undefined" ) {
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" && typeof PHS_JSEN.dialogs_options[suffix][key] !== "undefined" )
                     return PHS_JSEN.dialogs_options[suffix][key];
                 else
                     return null;
             }
 
-            if( typeof key == 'object' )
-            {
-                if( typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' )
+            if( typeof key === "object" ) {
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" )
                     PHS_JSEN.dialogs_options[suffix] = $.extend( {}, PHS_JSEN.dialogs_options[suffix], key );
                 else
                     PHS_JSEN.dialogs_options[suffix] = key;
@@ -936,9 +912,8 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 return PHS_JSEN.dialogs_options[suffix];
             }
 
-            if( typeof key == 'string' && typeof val != 'undefined'
-             && typeof PHS_JSEN.dialogs_options[suffix] != 'undefined' )
-            {
+            if( typeof key === "string" && typeof val !== "undefined"
+             && typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
                 PHS_JSEN.dialogs_options[suffix][key] = val;
                 return true;
             }
@@ -947,19 +922,16 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         // Close Loading div...
-        closeLoadingDialog : function( suffix )
-        {
+        closeLoadingDialog : function( suffix ) {
             // Remove Dialog ( if previously created )
             var loading_dialog_obj = $("#phs_jsen_loading" + suffix);
-            if( loading_dialog_obj )
-            {
+            if( loading_dialog_obj ) {
                 loading_dialog_obj.remove();
             }
         },
 
         // Create Loading div...
-        createLoadingDialog : function( o )
-        {
+        createLoadingDialog : function( o ) {
             var options = $.extend( {}, {
                 width       : 320,
                 height      : 100,
@@ -979,13 +951,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 loading_dialog_obj.remove();
 
             // Create Dialog
-            if( $(options.parent_tag).length == 0 )
+            if( $(options.parent_tag).length === 0 )
                 options.parent_tag = "body";
 
             $(options.parent_tag).append( '<div id="phs_jsen_loading' + options.suffix + '"></div>' );
 
-            if( loading_dialog_obj )
-            {
+            if( loading_dialog_obj ) {
                 loading_dialog_obj.dialog( {
                         width: options.width,
                         height: options.height,
@@ -1013,32 +984,34 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
         },
 
-        keyPressHandler : function()
-        {
+        keyPressHandler : function() {
             var r = $(PHS_JSEN.default_action_13);
             if( !r || !r.length )
                 return;
 
-            r.each( function()
-            {
+            r.each( function() {
                 var a = $(this);
-                while( a && a.length && a.attr( "tagName" ) != "FORM" )
-                {
+                while( a && a.length && a.attr( "tagName" ) !== "FORM" ) {
                     a = a.parent()
                 }
 
-                if( a && a.length )
-                    a.find("input").keypress( function(e){ if( ( e.which && e.which == 13 ) || (e.keyCode && e.keyCode == 13) ) { a.find(PHS_JSEN.default_action_13).click(); return false } else { return true } } );
+                if( a && a.length ) {
+                    a.find("input").keypress( function( e ) {
+                        if( ( e.which && e.which === 13 ) || (e.keyCode && e.keyCode === 13) ) {
+                            a.find( PHS_JSEN.default_action_13 ).click();
+                            return false;
+                        }
 
+                        return true;
+                    });
+                }
             });
         },
 
-        logf : function( str )
-        {
+        logf : function( str ) {
             if( console && PHS_JSEN.debugging_mode )
                 console.log( str );
         }
-
     };
 }
 

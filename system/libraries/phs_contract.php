@@ -252,6 +252,54 @@ abstract class PHS_Contract extends PHS_Instantiable
         return true;
     }
 
+    private function _non_nodes_related_cache_data_keys()
+    {
+        return [
+            // Instance of model to be used to obtain data
+            'data_model_obj' => false,
+            // flow to be passed to PHS_Model::get_details() method (obtained with PHS_Model::fetch_default_flow_params() method)
+            'data_flow_arr' => false,
+            // Data to be added to cache as an array of records (key is ignored, but record array should contain a model flow 'table_index' key)
+            'data_cache' => false,
+        ];
+    }
+
+    /**
+     * If sub-nodes are known to use data which can be provided in an array with finite values (eg. categories which can be up to 100, etc)
+     * and which are not related necessary to a node in current contract definition, you can use this method to add data to cache in order
+     * to limit number of queries to database
+     *
+     * @param \phs\libraries\PHS_Model $model_obj
+     * @param array $data_arr
+     * @param bool|array $flow_arr
+     *
+     * @return bool
+     */
+    public function add_data_to_cache( $model_obj, $data_arr, $flow_arr = false )
+    {
+        /** @var \phs\libraries\PHS_Model $model_obj */
+        if( empty( $model_obj )
+         || empty( $data_arr ) || !is_array( $data_arr )
+         || !($model_obj instanceof PHS_Model)
+         || !($flow_arr = $model_obj->fetch_default_flow_params( $flow_arr ))
+         || !($table_name = $flow_arr['table_name'])
+         || !($primary_key = $flow_arr['table_index'])
+         || !($model_id = $model_obj->instance_id())
+          )
+            return false;
+
+        foreach( $data_arr as $cache_data_arr )
+        {
+            if( empty( $cache_data_arr ) || !is_array( $cache_data_arr )
+             || empty( $cache_data_arr[$primary_key] ) )
+                continue;
+
+            $this->_data_cache[$model_id][$table_name][$cache_data_arr[$primary_key]] = $cache_data_arr;
+        }
+
+        return true;
+    }
+
     /**
      * Given a node definition and data to be parsed for current contract recurrence level, check if we have cached any data
      *
@@ -263,8 +311,8 @@ abstract class PHS_Contract extends PHS_Instantiable
     protected function _get_cache_data_for_node( $node_arr, $inside_data )
     {
         /** @var \phs\libraries\PHS_Model $model_obj */
-        if( empty( $node_arr ) | !is_array( $node_arr )
-         || empty( $node_arr['nodes'] )  || !is_array( $node_arr['nodes'] )
+        if( empty( $node_arr ) || !is_array( $node_arr )
+         || empty( $node_arr['nodes'] ) || !is_array( $node_arr['nodes'] )
          || empty( $node_arr['data_primary_key'] )
          || empty( $node_arr['data_model_obj'] )
          || !isset( $inside_data[$node_arr['data_primary_key']] )
