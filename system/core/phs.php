@@ -1466,14 +1466,17 @@ final class PHS extends PHS_Registry
     {
         $route_arr = self::validate_route_from_parts( $route_arr, true );
 
-        if( empty( $args ) or !is_array( $args ) )
-            $args = array();
+        if( in_array( PHS_Scope::current_scope(), [ PHS_Scope::SCOPE_BACKGROUND, PHS_Scope::SCOPE_AGENT ], true ) )
+            $route_arr['force_https'] = true;
 
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
+        if( empty( $args ) || !is_array( $args ) )
+            $args = [];
+
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
 
         if( empty( $extra['http'] ) || !is_array( $extra['http'] ) )
-            $extra['http'] = array();
+            $extra['http'] = [];
 
         if( empty( $extra['http']['arg_separator'] )
          || !is_string( $extra['http']['arg_separator'] ) )
@@ -1482,11 +1485,11 @@ final class PHS extends PHS_Registry
         if( empty( $extra['http']['enc_type'] ) )
             $extra['http']['enc_type'] = PHP_QUERY_RFC1738;
 
-        if( empty( $extra['raw_params'] ) or !is_array( $extra['raw_params'] ) )
-            $extra['raw_params'] = array();
+        if( empty( $extra['raw_params'] ) || !is_array( $extra['raw_params'] ) )
+            $extra['raw_params'] = [];
 
         // Changed raw_params to raw_args (backward compatibility)
-        if( empty( $extra['raw_args'] ) or !is_array( $extra['raw_args'] ) )
+        if( empty( $extra['raw_args'] ) || !is_array( $extra['raw_args'] ) )
             $extra['raw_args'] = $extra['raw_params'];
 
         if( empty( $extra['skip_formatters'] ) )
@@ -1494,15 +1497,15 @@ final class PHS extends PHS_Registry
         else
             $extra['skip_formatters'] = (!empty( $extra['skip_formatters'] ));
 
-        if( empty( $extra['for_scope'] ) or !PHS_Scope::valid_scope( $extra['for_scope'] ) )
+        if( empty( $extra['for_scope'] ) || !PHS_Scope::valid_scope( $extra['for_scope'] ) )
             $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
 
-        $new_args = array();
+        $new_args = [];
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
         // which is passed as a parameter in a JavaScript script
         // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
-        if( !empty( $extra['raw_route'] ) and is_string( $extra['raw_route'] ) )
+        if( !empty( $extra['raw_route'] ) && is_string( $extra['raw_route'] ) )
         {
             $extra['raw_args'][self::ROUTE_PARAM] = $extra['raw_route'];
         } elseif( !($route = self::route_from_parts( $route_arr )) )
@@ -1526,12 +1529,12 @@ final class PHS extends PHS_Registry
         if( !($query_string = @http_build_query( $new_args, null, $extra['http']['arg_separator'], $extra['enc_type'] )) )
             $query_string = '';
 
-        if( !empty( $extra['raw_args'] ) and is_array( $extra['raw_args'] ) )
+        if( !empty( $extra['raw_args'] ) && is_array( $extra['raw_args'] ) )
         {
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
             // eg. $extra['raw_args'] might be an id passed as javascript function parameter
             if( ($raw_query = array_to_query_string( $extra['raw_args'],
-                                                     array( 'arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false ) )) )
+                                                     [ 'arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false ] )) )
                 $query_string .= ($query_string!==''?$extra['http']['arg_separator']:'').$raw_query;
         }
 
@@ -1565,8 +1568,8 @@ final class PHS extends PHS_Registry
             $hook_args['stock_url'] = $stock_url;
 
             if( ($hook_args = self::trigger_hooks( PHS_Hooks::H_URL_REWRITE, $hook_args ))
-            and is_array( $hook_args )
-            and !empty( $hook_args['new_url'] ) and is_string( $hook_args['new_url'] ) )
+             && is_array( $hook_args )
+             && !empty( $hook_args['new_url'] ) && is_string( $hook_args['new_url'] ) )
                 $final_url = $hook_args['new_url'];
         }
 
