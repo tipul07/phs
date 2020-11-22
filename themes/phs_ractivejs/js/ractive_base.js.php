@@ -80,7 +80,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             }
 
             $(node)
-                .chosen( { disable_search_threshold: 7 } )
+                .chosen( { disable_search_threshold: 7, search_contains: true } )
                 .on("change", function( evt, params ) {
                        self.updateModel();
                 });
@@ -106,7 +106,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             }
 
             $(node)
-                .chosen( { disable_search: true } )
+                .chosen( { disable_search: true, search_contains: true } )
                 .on("change", function( evt, params ){
                     self.updateModel();
                 });

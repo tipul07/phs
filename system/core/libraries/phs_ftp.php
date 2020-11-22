@@ -2095,8 +2095,8 @@ class PHS_Ftp extends PHS_Library
 
         $ftp_settings = $this->settings();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
         if( !isset( $params['skip_callbacks'] ) )
             $params['skip_callbacks'] = false;
         if( empty( $params['dir_rights'] ) )
@@ -2128,7 +2128,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if( empty( $params['skip_callbacks'] ) )
-            $this->trigger_phs_hooks( self::H_BEFORE_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => true ) );
+            $this->trigger_phs_hooks( self::H_BEFORE_MKDIR, [ 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => true ] );
 
         if( $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
          or $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL )
@@ -2226,9 +2226,106 @@ class PHS_Ftp extends PHS_Library
         }
 
         if( empty( $params['skip_callbacks'] ) )
-            $this->trigger_phs_hooks( self::H_AFTER_MKDIR, array( 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => true ) );
+            $this->trigger_phs_hooks( self::H_AFTER_MKDIR, [ 'server' => $ftp_settings, 'dir' => $dir, 'remote_dir' => $remote_dir, 'params' => $params, 'success' => true ] );
 
         return true;
+    }
+
+    /**
+     * @param string $old_dir
+     * @param string $new_dir
+     * @param false|array $params
+     *
+     * @return bool
+     */
+    public function rename( $old_dir, $new_dir, $params = false )
+    {
+        $this->reset_error();
+
+        if( !$this->can_connect() )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'FTP object not setup.' );
+            return false;
+        }
+
+        if( !is_string( $old_dir )
+         || $old_dir === '' )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Please provide remote directory to be renamed.' );
+            return false;
+        }
+
+        if( !is_string( $new_dir )
+         || $new_dir === '' )
+        {
+            $this->set_error( self::ERR_PARAMETERS, 'Please provide new remote directory name to be used for rename.' );
+            return false;
+        }
+
+        $ftp_settings = $this->settings();
+
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+        if( !isset( $params['skip_callbacks'] ) )
+            $params['skip_callbacks'] = false;
+
+        if( empty( $params['skip_callbacks'] ) )
+            $this->trigger_phs_hooks( self::H_BEFORE_RENAME, [ 'server' => $ftp_settings, 'old_dir' => $old_dir, 'new_dir' => $new_dir, 'params' => $params, 'success' => true ] );
+
+        $return_val = true;
+        switch( $ftp_settings['connection_mode'] )
+        {
+            case self::CON_TYPE_SSH:
+                if( !$this->is_connected() && !$this->connect() )
+                {
+                    if( !$this->has_error() )
+                        $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
+
+                    $return_val = false;
+                } else
+                {
+                    if( substr( $old_dir, 0, 1 ) !== '/'
+                     && ($win_drive = substr($old_dir, 1, 2)) !== ':/'
+                     && $win_drive !== ':\\' )
+                    {
+                        $old_dir = trim( $old_dir, '/\\' );
+                        $old_remote_dir = rtrim( $this->internal_settings['remote_dir'], '/\\' ).
+                                          ($old_dir !== '' ? '/' . $old_dir : '');
+                    } else
+                        $old_remote_dir = $old_dir;
+
+                    if( substr( $new_dir, 0, 1 ) !== '/'
+                     && ($win_drive = substr($new_dir, 1, 2)) !== ':/'
+                     && $win_drive !== ':\\' )
+                    {
+                        $new_dir = trim( $new_dir, '/\\' );
+                        $new_remote_dir = rtrim( $this->internal_settings['remote_dir'], '/\\' ) .
+                                          ($new_dir !== '' ? '/' . $new_dir : '');
+                    } else
+                        $new_remote_dir = $new_dir;
+
+                    if( !@ssh2_sftp_rename( $this->internal_settings['con'], $old_remote_dir, $new_remote_dir ) )
+                    {
+                        $this->set_error( self::ERR_REMOTE_LOCATION, 'FTP cannot rename remote directory.' );
+                        $return_val = false;
+                    }
+                }
+            break;
+
+            case self::CON_TYPE_NORMAL:
+            case self::CON_TYPE_NORMAL_SSL:
+            case self::CON_TYPE_CURL:
+            case self::CON_TYPE_CURL_SSL:
+            default:
+                $this->set_error( self::ERR_FUNCTIONALITY, 'FTP rename not implemented for you connection type.' );
+                $return_val = false;
+            break;
+        }
+
+        if( empty( $params['skip_callbacks'] ) )
+            $this->trigger_phs_hooks( self::H_AFTER_RENAME, [ 'server' => $ftp_settings, 'old_dir' => $old_dir, 'new_dir' => $new_dir, 'params' => $params, 'success' => true ] );
+
+        return $return_val;
     }
 
     /**
@@ -2276,7 +2373,7 @@ class PHS_Ftp extends PHS_Library
         $this->internal_settings = self::_default_internal_settings();
 
         if( empty( $params['skip_callbacks'] ) )
-            $this->trigger_phs_hooks( self::H_AFTER_CLOSE, array( 'server' => $ftp_settings, 'success' => true ) );
+            $this->trigger_phs_hooks( self::H_AFTER_CLOSE, [ 'server' => $ftp_settings, 'success' => true ] );
 
         return true;
     }
@@ -2289,8 +2386,8 @@ class PHS_Ftp extends PHS_Library
      */
     private function trigger_phs_hooks( $hook_name, $hook_args = false )
     {
-        if( empty( $hook_args ) or !is_array( $hook_args ) )
-            $hook_args = array();
+        if( empty( $hook_args ) || !is_array( $hook_args ) )
+            $hook_args = [];
 
         $hook_args['ftp_obj'] = $this;
 
