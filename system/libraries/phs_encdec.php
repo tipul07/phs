@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 //! @version 1.33
 
-class PHS_encdec extends PHS_Language
+class PHS_Encdec extends PHS_Language
 {
     // Default crypting keys
     // this array must have max 34 elements!!! and all elements must have same length

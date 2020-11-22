@@ -625,7 +625,7 @@ class PHS_Language_Container extends PHS_Error
         $return_str = '';
         foreach( $lines_arr as $lang_key => $lang_val )
         {
-            $return_str .= PHS_utils::csv_line( array( $lang_key, $lang_val ),
+            $return_str .= PHS_Utils::csv_line( array( $lang_key, $lang_val ),
                                                 $csv_settings['line_delimiter'],
                                                 $csv_settings['columns_delimiter'],
                                                 $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] );

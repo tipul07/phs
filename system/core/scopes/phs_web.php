@@ -7,7 +7,7 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Notifications;
 use \phs\system\core\views\PHS_View;
 
@@ -40,7 +40,7 @@ class PHS_Scope_Web extends PHS_Scope
 
             if( !$in_special_page )
                 PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired %s ago. For security reasons, please <a href="%s">change your password</a>.',
-                                                                   PHS_utils::parse_period( $expiration_arr['expired_for_seconds'] ),
+                                                                   PHS_Utils::parse_period( $expiration_arr['expired_for_seconds'] ),
                                                                    PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), array( 'password_expired' => 1 ) ) ) );
 
             if( empty( $expiration_arr['show_only_warning'] )

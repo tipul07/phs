@@ -115,8 +115,8 @@ define( 'PHS_SESSION_AUTOSTART', false );
 //
 // define( 'PHS_DB_CONNECTION', 'db_domain_default' );
 //
-// if( !PHS_db::add_db_connection( PHS_DB_DOMAIN_CONNECTION, $mysql_settings ) )
+// if( !PHS_Db::add_db_connection( PHS_DB_DOMAIN_CONNECTION, $mysql_settings ) )
 // {
-//    PHS_db::st_throw_error();
+//    PHS_Db::st_throw_error();
 //    exit;
 // }

@@ -4,7 +4,7 @@ namespace phs\system\core\models;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Model_Roles extends PHS_Model
 {
@@ -51,13 +51,13 @@ class PHS_Model_Roles extends PHS_Model
             'roles_cache_size' => array(
                 'display_name' => 'Role cache size',
                 'display_hint' => 'How many records to read from roles table. Increase this value if you use more roles.',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 1000,
             ),
             'units_cache_size' => array(
                 'display_name' => 'Role units cache size',
                 'display_hint' => 'How many records to read from role units table. Increase this value if you use more role units.',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 1000,
             ),
         );
@@ -1382,7 +1382,7 @@ class PHS_Model_Roles extends PHS_Model
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Account not found in database.' ) );
             return false;
         }
-        
+
         if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
          or !is_array( $role_ids )
          or !($flow_params_ru = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) ))

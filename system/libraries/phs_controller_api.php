@@ -13,6 +13,6 @@ abstract class PHS_Controller_Api extends PHS_Controller
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_API );
+        return [ PHS_Scope::SCOPE_API ];
     }
 }

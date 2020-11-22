@@ -274,7 +274,7 @@ class PHS_Hooks extends PHS_Registry
     public static function default_api_hook_args()
     {
         return self::hook_args_definition( array(
-            // Instantiated API instance. If no plugin picks up PHS_Hooks::H_API_REQUEST_INIT hook call \phs\PHS_api class instance will be used
+            // Instantiated API instance. If no plugin picks up PHS_Hooks::H_API_REQUEST_INIT hook call \phs\PHS_Api class instance will be used
             'api_obj' => false,
 
             // This is an array of API route tokens (NOT a PHS route)
@@ -283,7 +283,7 @@ class PHS_Hooks extends PHS_Registry
             // (array)
             'api_route_tokens' => false,
 
-            // Plugins should set this to an API tokenized path (see PHS_api::tokenize_api_route()) (array)
+            // Plugins should set this to an API tokenized path (see PHS_Api::tokenize_api_route()) (array)
             'altered_api_route_tokens' => false,
 
             // Matched API route defined in plugins (if any) after comparing api_route_tokens against route segments of each API route

@@ -3,11 +3,11 @@
 namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Change_password extends PHS_Action
@@ -70,7 +70,7 @@ class PHS_Action_Change_password extends PHS_Action
         $forgot_account_arr = false;
         if( !($current_user = PHS::user_logged_in()) )
         {
-            if( !($confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML )) )
+            if( !($confirmation_param = PHS_Params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML )) )
             {
                 PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
@@ -95,7 +95,7 @@ class PHS_Action_Change_password extends PHS_Action
 
         if( !($accounts_settings = $accounts_plugin->get_plugin_settings()) )
             $accounts_settings = array();
-        
+
         if( empty( $accounts_settings['min_password_length'] ) )
         {
             if( !empty( $accounts_model ) )
@@ -104,24 +104,24 @@ class PHS_Action_Change_password extends PHS_Action
                 $accounts_settings['min_password_length'] = 8;
         }
 
-        if( !($external_args = PHS_params::_gp( 'external_args', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_ASIS ) )) )
+        if( !($external_args = PHS_Params::_gp( 'external_args', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_ASIS ) )) )
             $external_args = array();
 
-        if( PHS_params::_g( 'password_expired', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'password_expired', PHS_Params::T_INT ) )
             PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired. For security reasons, please change it.' ) );
-        if( ($password_changed = PHS_params::_g( 'password_changed', PHS_params::T_INT )) )
+        if( ($password_changed = PHS_Params::_g( 'password_changed', PHS_Params::T_INT )) )
         {
             $password_changed = true;
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success.' ) );
         } else
             $password_changed = false;
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
-        $pass1 = PHS_params::_p( 'pass1', PHS_params::T_ASIS );
-        $pass2 = PHS_params::_p( 'pass2', PHS_params::T_ASIS );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $pass = PHS_Params::_p( 'pass', PHS_Params::T_ASIS );
+        $pass1 = PHS_Params::_p( 'pass1', PHS_Params::T_ASIS );
+        $pass2 = PHS_Params::_p( 'pass2', PHS_Params::T_ASIS );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( !empty( $do_submit )
         and !PHS_Notifications::have_notifications_errors() )

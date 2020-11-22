@@ -2,8 +2,8 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
-use \phs\PHS_db;
+use \phs\libraries\PHS_Params;
+use \phs\PHS_Db;
 
 class PHS_Step_finish extends PHS_Step
 {

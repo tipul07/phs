@@ -6,14 +6,14 @@ include_once( PHS_CORE_DIR.'phs_cli_plugins_trait.php' );
 
 use \phs\PHS;
 use \phs\PHS_Maintenance;
-use \phs\PHS_cli;
-use phs\libraries\PHS_utils;
-use \phs\traits\PHS_cli_plugins_trait;
+use \phs\PHS_Cli;
+use phs\libraries\PHS_Utils;
+use \phs\traits\PHS_Cli_plugins_trait;
 use \phs\libraries\PHS_Plugin;
 
-class PHSMaintenance extends PHS_cli
+class PHSMaintenance extends PHS_Cli
 {
-    use PHS_cli_plugins_trait;
+    use PHS_Cli_plugins_trait;
 
     const APP_NAME = 'PHSMaintenance',
           APP_VERSION = '1.0.0',
@@ -212,7 +212,7 @@ class PHSMaintenance extends PHS_cli
     {
         $this->reset_error();
 
-        echo self::_t( 'Update URL vailable for %s.', $this->cli_color( PHS_utils::parse_period( PHS::UPDATE_TOKEN_LIFETIME ), 'green' ) )."\n";
+        echo self::_t( 'Update URL vailable for %s.', $this->cli_color( PHS_Utils::parse_period( PHS::UPDATE_TOKEN_LIFETIME ), 'green' ) )."\n";
         echo self::_t( 'NOTE: Provided URL is forced to use HTTPS, if you don\'t have HTTPS enabled, change the link to use HTTP protocol.' )."\n";
         echo "\n";
         echo PHS::get_framework_update_url_with_token()."\n";

@@ -5,9 +5,9 @@ namespace phs\plugins\backup;
 use \phs\PHS;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Hooks;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
 class PHS_Plugin_Backup extends PHS_Plugin
 {
@@ -77,7 +77,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             'location' => array(
                 'display_name' => $this->_pt( 'Default backups location' ),
                 'display_hint' => $this->_pt( 'A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => self::DIRNAME_IN_UPLOADS,
                 'custom_renderer' => array( $this, 'plugin_settings_render_location' ),
                 'custom_save' => array( $this, 'plugin_settings_save_location' ),
@@ -85,13 +85,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
             'mysqldump_bin' => array(
                 'display_name' => $this->_pt( 'mysqldump binary location' ),
                 'display_hint' => $this->_pt( 'Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => $mysql_dump_path,
             ),
             'zip_bin' => array(
                 'display_name' => $this->_pt( 'zip binary location' ),
                 'display_hint' => $this->_pt( 'Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => $zip_path,
             ),
         );
@@ -393,7 +393,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $mkdir_params = array();
             $mkdir_params['root'] = $location_details['location_root'];
 
-            if( !PHS_utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
+            if( !PHS_Utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
             {
                 if( empty( $params['error_if_not_found'] ) )
                     return $location_details;

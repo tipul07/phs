@@ -3,14 +3,14 @@
 namespace phs\plugins\accounts\models;
 
 use \phs\PHS;
-use \phs\PHS_crypt;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Crypt;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -781,7 +781,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $clean_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] );
+        $clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] );
 
         $obfuscated_pass = substr( $clean_pass, 0, 1 ).str_repeat( '*', strlen( $clean_pass ) - 2 ).substr( $clean_pass, -1 );
 
@@ -805,7 +805,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !($clean_pass = PHS_crypt::quick_decode( $account_arr['pass_clear'] )) )
+        if( !($clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain account password.' ) );
             return false;
@@ -1553,7 +1553,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $hook_args['account_data'] = $account_arr['id'];
 
-        if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ), $hook_args ) )
+        if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ), $hook_args ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_ACCOUNT_ACTION );
@@ -1593,7 +1593,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+        if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_EMAIL );
@@ -1653,7 +1653,7 @@ class PHS_Model_Accounts extends PHS_Model
             $return_arr['activation_email_required'] = true;
 
             // send activation email...
-            if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+            if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
             {
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
@@ -1714,7 +1714,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( !empty( $params['fields']['email'] )
-         && !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
+         && !PHS_Params::check_type( $params['fields']['email'], PHS_Params::T_EMAIL ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid email.' ) );
             return false;
@@ -1839,7 +1839,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{pass_salt}'] ) )
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
-        $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
+        $params['fields']['pass_clear'] = PHS_Crypt::quick_encode( $params['fields']['pass'] );
         $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
         $params['fields']['last_pass_change'] = $now_date;
 
@@ -2131,7 +2131,7 @@ class PHS_Model_Accounts extends PHS_Model
                 if( !empty( $history_details['history_count'] )
                  && !empty( $history_details['oldest_password_date_timestamp'] ) )
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in last %s, one of last %s passwords. Please provide another one.',
-                                                                  PHS_utils::parse_period( abs( time() - $history_details['oldest_password_date_timestamp'] ), array( 'only_big_part' => true ) ),
+                                                                  PHS_Utils::parse_period( abs( time() - $history_details['oldest_password_date_timestamp'] ), array( 'only_big_part' => true ) ),
                                                                   $history_details['history_count'] ) );
                 else
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in the past. Please provide another one.' ) );
@@ -2148,7 +2148,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             $params['{old_pass_salt}'] = $old_pass_salt_arr;
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
-            $params['fields']['pass_clear'] = PHS_crypt::quick_encode( $params['fields']['pass'] );
+            $params['fields']['pass_clear'] = PHS_Crypt::quick_encode( $params['fields']['pass'] );
             $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
             $params['fields']['last_pass_change'] = date( self::DATETIME_DB );
 
@@ -2176,7 +2176,7 @@ class PHS_Model_Accounts extends PHS_Model
              || $params['fields']['status'] !== self::STATUS_DELETED )
             {
                 if( empty( $params['fields']['email'] )
-                 || !PHS_params::check_type( $params['fields']['email'], PHS_params::T_EMAIL ) )
+                 || !PHS_Params::check_type( $params['fields']['email'], PHS_Params::T_EMAIL ) )
                 {
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'Invalid email address.' ) );
                     return false;
@@ -2356,7 +2356,7 @@ class PHS_Model_Accounts extends PHS_Model
              && !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
             {
                 // send password changed email...
-                PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg' ), array( 'uid' => $existing_data['id'] ) );
+                PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg' ), array( 'uid' => $existing_data['id'] ) );
             }
         }
 
@@ -2576,7 +2576,7 @@ class PHS_Model_Accounts extends PHS_Model
         while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( empty( $users_arr['pass_clear'] )
-             || !($pass_clear = PHS_crypt::quick_decode( $users_arr['pass_clear'] )) )
+             || !($pass_clear = PHS_Crypt::quick_decode( $users_arr['pass_clear'] )) )
             {
                 PHS_Logger::logf( 'Couldn\'t convert password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
                 continue;

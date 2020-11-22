@@ -59,7 +59,7 @@ var PHS_RActive_Main_app = PHS_RActive_Main_app || new PHS_RActive({
 
     onrender: function()
     {
-        phs_refresh_input_skins();
+        //phs_refresh_input_skins();
     }
 
 });

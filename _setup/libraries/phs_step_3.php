@@ -2,8 +2,8 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
-use \phs\PHS_db;
+use \phs\libraries\PHS_Params;
+use \phs\PHS_Db;
 
 class PHS_Step_3 extends PHS_Step
 {
@@ -53,18 +53,18 @@ class PHS_Step_3 extends PHS_Step
         if( empty( $data ) or !is_array( $data ) )
             $data = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        if( !($phs_timezone_continent = PHS_params::_p( 'phs_timezone_continent', PHS_params::T_NOHTML )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        if( !($phs_timezone_continent = PHS_Params::_p( 'phs_timezone_continent', PHS_Params::T_NOHTML )) )
             $phs_timezone_continent = '';
-        if( !($phs_timezone_city = PHS_params::_p( 'phs_timezone_city', PHS_params::T_NOHTML )) )
+        if( !($phs_timezone_city = PHS_Params::_p( 'phs_timezone_city', PHS_Params::T_NOHTML )) )
             $phs_timezone_city = '';
-        $phs_site_name = PHS_params::_p( 'phs_site_name', PHS_params::T_NOHTML );
-        $phs_contact_email = PHS_params::_p( 'phs_contact_email', PHS_params::T_NOHTML );
-        $phs_sitebuild_version = PHS_params::_p( 'phs_sitebuild_version', PHS_params::T_NOHTML );
-        $phs_debug_mode = PHS_params::_p( 'phs_debug_mode', PHS_params::T_INT );
-        $phs_php_cli_path = PHS_params::_p( 'phs_php_cli_path', PHS_params::T_NOHTML );
+        $phs_site_name = PHS_Params::_p( 'phs_site_name', PHS_Params::T_NOHTML );
+        $phs_contact_email = PHS_Params::_p( 'phs_contact_email', PHS_Params::T_NOHTML );
+        $phs_sitebuild_version = PHS_Params::_p( 'phs_sitebuild_version', PHS_Params::T_NOHTML );
+        $phs_debug_mode = PHS_Params::_p( 'phs_debug_mode', PHS_Params::T_INT );
+        $phs_php_cli_path = PHS_Params::_p( 'phs_php_cli_path', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
 
         if( !($all_timezones_arr = @timezone_identifiers_list()) )
             $all_timezones_arr = array();
@@ -112,7 +112,7 @@ class PHS_Step_3 extends PHS_Step
             {
                 foreach( $contact_emails_arr as $contact_email )
                 {
-                    if( !PHS_params::check_type( $contact_email, PHS_params::T_EMAIL ) )
+                    if( !PHS_Params::check_type( $contact_email, PHS_Params::T_EMAIL ) )
                         $this->add_error_msg( $this->_pt( '%s is not a valid email address for site contact email.', $contact_email ) );
                 }
             }

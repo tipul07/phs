@@ -48,6 +48,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_controller_api.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_controller_background.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_action.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_api_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_contract.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_contract_list.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
@@ -82,13 +83,13 @@ include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 
 
 use \phs\PHS;
-use \phs\PHS_db;
+use \phs\PHS_Db;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Language;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 // These are special cases as there might be 3 definitions of same constant
 // and framework will take first framework constant, then default constant if domain constant is not defined
@@ -167,7 +168,7 @@ if( PHS::st_debugging_mode() )
 // Default database settings
 //
 $mysql_settings = array();
-$mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
+$mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
 $mysql_settings['host'] = PHS_DB_HOSTNAME;
 $mysql_settings['user'] = PHS_DB_USERNAME;
 $mysql_settings['password'] = PHS_DB_PASSWORD;
@@ -193,10 +194,10 @@ if( !is_array( $mysql_settings['driver_settings'] ) )
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
-PHS_db::default_db_driver( PHS_db::DB_DRIVER_MYSQLI );
-PHS_db::check_db_fields_boundaries( true );
+PHS_Db::default_db_driver( PHS_Db::DB_DRIVER_MYSQLI );
+PHS_Db::check_db_fields_boundaries( true );
 
-if( !PHS_db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
+if( !PHS_Db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {
     echo 'ERROR ';
     exit;
@@ -225,8 +226,8 @@ include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 if( defined( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && defined( 'PHS_INSTALLING_FLOW' )
  && constant( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && constant( 'PHS_INSTALLING_FLOW' )
  && (
-     !($pub_key = PHS_params::_gp( PHS::PARAM_UPDATE_TOKEN_PUBKEY, PHS_params::T_NOHTML ))
-     || !($hash = PHS_params::_gp( PHS::PARAM_UPDATE_TOKEN_HASH, PHS_params::T_NOHTML ))
+     !($pub_key = PHS_Params::_gp( PHS::PARAM_UPDATE_TOKEN_PUBKEY, PHS_Params::T_NOHTML ))
+     || !($hash = PHS_Params::_gp( PHS::PARAM_UPDATE_TOKEN_HASH, PHS_Params::T_NOHTML ))
      || !PHS::validate_framework_update_params( $pub_key, $hash )
     ) )
 {

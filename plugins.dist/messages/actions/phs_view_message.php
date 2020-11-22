@@ -4,7 +4,7 @@ namespace phs\plugins\messages\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
@@ -66,8 +66,8 @@ class PHS_Action_View_message extends PHS_Action
             return self::default_action_result();
         }
 
-        $mid = PHS_params::_g( 'mid', PHS_params::T_INT );
-        $muid = PHS_params::_g( 'muid', PHS_params::T_INT );
+        $mid = PHS_Params::_g( 'mid', PHS_Params::T_INT );
+        $muid = PHS_Params::_g( 'muid', PHS_Params::T_INT );
 
         $user_message = false;
         if( !empty( $mid ) and empty( $muid )

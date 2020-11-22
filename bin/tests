@@ -17,12 +17,12 @@
 
     include_once( __DIR__.'/../tests/vendor/autoload.php' );
 
-    use \phs\PHS_cli;
+    use \phs\PHS_Cli;
     use \phs\tests\phs\PHSTests;
 
-    if( !PHS_cli::running_in_cli() )
+    if( !PHS_Cli::running_in_cli() )
     {
-        echo PHS_cli::_t( 'This script must be run in a CLI environment.' )."\n";
+        echo PHS_Cli::_t( 'This script must be run in a CLI environment.' )."\n";
         exit;
     }
 
@@ -32,7 +32,7 @@
         if( PHSTests::st_has_error() )
             $error_msg .= PHSTests::st_get_simple_error_message();
         else
-            $error_msg .= PHS_cli::_t( 'Error obtaining PHSTests class instance.' );
+            $error_msg .= PHS_Cli::_t( 'Error obtaining PHSTests class instance.' );
 
         echo $error_msg."\n";
 

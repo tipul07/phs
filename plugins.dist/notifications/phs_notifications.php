@@ -7,7 +7,7 @@ use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Error;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Notifications extends PHS_Plugin
@@ -24,14 +24,14 @@ class PHS_Plugin_Notifications extends PHS_Plugin
             'template' => array(
                 'display_name' => 'Captcha template',
                 'display_hint' => 'What template should be used when displaying captcha image',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'notifications' ),
             ),
             'display_channels' => array(
                 'display_name' => 'Channels to be rendered',
-                'type' => PHS_params::T_ARRAY,
-                'extra_type' => array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ),
+                'type' => PHS_Params::T_ARRAY,
+                'extra_type' => array( 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ),
                 'input_type' => self::INPUT_TYPE_ONE_OR_MORE,
                 'default' => array( 'success', 'warnings', 'errors' ),
                 'values_arr' => array( 'success' => 'Success messages', 'warnings' => 'Warnings', 'errors' => 'Errors' ),

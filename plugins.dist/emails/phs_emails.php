@@ -3,14 +3,14 @@
 namespace phs\plugins\emails;
 
 use \phs\PHS;
-use \phs\PHS_crypt;
+use \phs\PHS_Crypt;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Error;
 use \phs\system\core\views\PHS_View;
-use \phs\plugins\emails\libraries\PHS_smtp;
+use \phs\plugins\emails\libraries\PHS_Smtp;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Plugin_Emails extends PHS_Plugin
 {
@@ -26,7 +26,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public static $MAIL_AUTH_KEY = 'XMailAuth';
 
-    /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+    /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
     private $smtp_library = false;
 
     public function __construct( $instance_details )
@@ -41,10 +41,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $this->reset_error();
 
         $library_params = array();
-        $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_smtp';
+        $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_Smtp';
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+        /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
         if( !($this->smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
             if( !$this->has_error() )
@@ -77,7 +77,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'template_main' => array(
                 'display_name' => 'Emails main template',
                 'display_hint' => 'What template should be used when sending emails',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'template_emails' ),
             ),
@@ -116,8 +116,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'smtp_host' => '',
             'smtp_port' => 25,
             'smtp_timeout' => 30,
-            'smtp_encryption' => PHS_smtp::ENCRYPTION_NONE,
-            'smtp_authentication' => PHS_smtp::AUTH_AUTO_DETECT,
+            'smtp_encryption' => PHS_Smtp::ENCRYPTION_NONE,
+            'smtp_authentication' => PHS_Smtp::AUTH_AUTO_DETECT,
         );
     }
 
@@ -160,12 +160,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 and !empty( $old_values[$route_name] ) and is_array( $old_values[$route_name] ) )
                 {
                     if( !empty( $old_values[$route_name]['smtp_pass'] )
-                    and ($decrypted_pass = PHS_crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
+                    and ($decrypted_pass = PHS_Crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
                     and $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS )
                         $route_arr['smtp_pass'] = $decrypted_pass;
                 }
 
-                $route_arr['smtp_pass'] = PHS_crypt::quick_encode( $route_arr['smtp_pass'] );
+                $route_arr['smtp_pass'] = PHS_Crypt::quick_encode( $route_arr['smtp_pass'] );
 
                 $return_data[$route_name] = $route_arr;
             }
@@ -219,15 +219,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $testing_error = '';
         $testing_success = false;
 
-        if( !($test_email_sending_email = PHS_params::_pg( 'test_email_sending_email', PHS_params::T_EMAIL )) )
+        if( !($test_email_sending_email = PHS_Params::_pg( 'test_email_sending_email', PHS_Params::T_EMAIL )) )
             $test_email_sending_email = '';
-        if( !($do_test_email_sending_submit = PHS_params::_p( 'do_test_email_sending_submit' )) )
+        if( !($do_test_email_sending_submit = PHS_Params::_p( 'do_test_email_sending_submit' )) )
             $do_test_email_sending_submit = false;
 
         if( !empty( $do_test_email_sending_submit ) )
         {
             if( empty( $test_email_sending_email )
-             or !PHS_params::check_type( $test_email_sending_email, PHS_params::T_EMAIL ) )
+             or !PHS_Params::check_type( $test_email_sending_email, PHS_Params::T_EMAIL ) )
                 $testing_error .= ($testing_error!==''?'<br/>':'').$this->_pt( 'Please provide a valid email address.' );
 
             else
@@ -522,7 +522,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $hook_args = PHS_Hooks::reset_email_hook_args( self::validate_array_recursive( $hook_args, PHS_Hooks::default_init_email_hook_args() ) );
 
         if( empty( $hook_args['to'] )
-         or !PHS_params::check_type( $hook_args['to'], PHS_params::T_EMAIL ) )
+         or !PHS_Params::check_type( $hook_args['to'], PHS_Params::T_EMAIL ) )
         {
             $this->set_error( self::ERR_SEND, $this->_pt( 'Destination is not an email.' ) );
 
@@ -571,7 +571,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         if( empty( $params['skip_mail_authentication'] ) )
             // for single emails it's ok, but when sending multiple emails it might take too much time
-            $predefined_headers['X-Mail-ID'] = PHS_crypt::quick_encode( self::mail_auth_key().':'.time() );
+            $predefined_headers['X-Mail-ID'] = PHS_Crypt::quick_encode( self::mail_auth_key().':'.time() );
         else
             $predefined_headers['X-SMail-ID'] = md5( self::mail_auth_key().':'.time() );
 
@@ -680,10 +680,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         $library_params = array();
-        $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_smtp';
+        $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_Smtp';
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+        /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
         if( !($smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
             if( !$this->has_error() )
@@ -696,7 +696,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $smtp_settings = $hook_args['route_settings'];
         if( !empty( $smtp_settings['smtp_pass'] ) )
-            $smtp_settings['smtp_pass'] = PHS_crypt::quick_decode( $smtp_settings['smtp_pass'] );
+            $smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode( $smtp_settings['smtp_pass'] );
 
         $smtp_library->settings( $smtp_settings );
 

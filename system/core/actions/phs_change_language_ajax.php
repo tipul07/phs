@@ -5,7 +5,7 @@ namespace phs\system\core\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Change_language_ajax extends PHS_Action
@@ -27,7 +27,7 @@ class PHS_Action_Change_language_ajax extends PHS_Action
     public function execute()
     {
         $action_result = self::default_action_result();
-        if( !($to_lang = PHS_params::_gp( self::LANG_URL_PARAMETER, PHS_params::T_NOHTML )) )
+        if( !($to_lang = PHS_Params::_gp( self::LANG_URL_PARAMETER, PHS_Params::T_NOHTML )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Please provide language you want to switch to.' ) );
             return $action_result;

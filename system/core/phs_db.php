@@ -3,10 +3,10 @@
 namespace phs;
 
 use \phs\libraries\PHS_Registry;
-use \phs\libraries\PHS_db_mysqli;
-use \phs\libraries\PHS_db_mongo;
+use \phs\libraries\PHS_Db_mysqli;
+use \phs\libraries\PHS_Db_mongo;
 
-final class PHS_db extends PHS_Registry
+final class PHS_Db extends PHS_Registry
 {
     const ERR_DATABASE = 2000;
 
@@ -280,7 +280,7 @@ final class PHS_db extends PHS_Registry
      *
      * Better use on-demand version as this would instantiate maybe un-used database drivers (still in debate if to remove this)
      *
-     * @return bool|PHS_db_mysqli Returns instance of database class management
+     * @return bool|PHS_Db_mysqli Returns instance of database class management
      */
     public static function db_drivers_init()
     {
@@ -319,7 +319,7 @@ final class PHS_db extends PHS_Registry
     /**
      * @param string $driver What driver should be instantiated
      *
-     * @return bool|\phs\libraries\PHS_db_interface Returns new or cached database driver instance
+     * @return bool|\phs\libraries\PHS_Db_interface Returns new or cached database driver instance
      */
     public static function get_db_driver_instance( $driver )
     {
@@ -337,12 +337,12 @@ final class PHS_db extends PHS_Registry
         switch( $driver )
         {
             case self::DB_DRIVER_MYSQLI:
-                /** @var PHS_db_mysqli $db_instance */
+                /** @var PHS_Db_mysqli $db_instance */
                 if( !($db_instance = self::get_data( self::DB_MYSQLI_INSTANCE )) )
                 {
                     include_once( PHS_LIBRARIES_DIR . 'phs_db_mysqli.php' );
 
-                    if( !($db_instance = new PHS_db_mysqli())
+                    if( !($db_instance = new PHS_Db_mysqli())
                      || $db_instance->has_error() )
                     {
                         if( $db_instance )
@@ -365,12 +365,12 @@ final class PHS_db extends PHS_Registry
             break;
 
             case self::DB_DRIVER_MONGO:
-                /** @var PHS_db_mongo $db_instance */
+                /** @var PHS_Db_mongo $db_instance */
                 if( !($db_instance = self::get_data( self::DB_MONGO_INSTANCE )) )
                 {
                     include_once( PHS_LIBRARIES_DIR . 'phs_db_mongo.php' );
 
-                    if( !($db_instance = new PHS_db_mongo())
+                    if( !($db_instance = new PHS_Db_mongo())
                      || $db_instance->has_error() )
                     {
                         if( $db_instance )
@@ -407,7 +407,7 @@ final class PHS_db extends PHS_Registry
      *
      * @param bool|string $connection_name Connection used with database
      *
-     * @return bool|\phs\libraries\PHS_db_interface Returns database driver instance
+     * @return bool|\phs\libraries\PHS_Db_interface Returns database driver instance
      */
     public static function db( $connection_name = false )
     {
@@ -474,7 +474,7 @@ final class PHS_db extends PHS_Registry
         if( !empty( self::$instance ) )
             return self::$instance;
 
-        self::$instance = new PHS_db();
+        self::$instance = new PHS_Db();
         return self::$instance;
     }
 }

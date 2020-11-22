@@ -3,12 +3,12 @@
 namespace phs\plugins\messages\models;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_line_params;
+use \phs\libraries\PHS_Line_params;
 
 class PHS_Model_Messages extends PHS_Model
 {
@@ -415,7 +415,7 @@ class PHS_Model_Messages extends PHS_Model
             if( empty( $message_arr['custom_settings'] ) )
                 $custom_settings_arr = array();
             else
-                $custom_settings_arr = PHS_line_params::parse_string( $message_arr['custom_settings'] );
+                $custom_settings_arr = PHS_Line_params::parse_string( $message_arr['custom_settings'] );
 
             $message_arr[self::CUSTOM_SETTINGS_KEY] = $custom_settings_arr;
         }
@@ -1296,7 +1296,7 @@ class PHS_Model_Messages extends PHS_Model
         if( empty( $settings_arr ) || !is_array( $settings_arr ) )
             $settings_arr = array();
 
-        return PHS_line_params::to_string( $settings_arr );
+        return PHS_Line_params::to_string( $settings_arr );
     }
 
     public function write_message( $params )
@@ -1710,7 +1710,7 @@ class PHS_Model_Messages extends PHS_Model
         $bg_job_params = $params['bg_job_params'];
         $bg_job_params['mid'] = $message_arr['id'];
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'messages', 'controller' => 'index_bg', 'action' => 'write_message_bg' ),
+        if( !PHS_Bg_jobs::run( array( 'plugin' => 'messages', 'controller' => 'index_bg', 'action' => 'write_message_bg' ),
                                $bg_job_params,
                                array( 'same_thread_if_bg' => true ) ) )
         {

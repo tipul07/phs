@@ -5,7 +5,7 @@ namespace phs\plugins\admin\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -102,8 +102,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             return self::default_action_result();
         }
 
-        $term = PHS_params::_g( 'term', PHS_params::T_REMSQL_CHARS );
-        if( ($_f = PHS_params::_g( '_f', PHS_params::T_INT )) )
+        $term = PHS_Params::_g( 'term', PHS_Params::T_REMSQL_CHARS );
+        if( ($_f = PHS_Params::_g( '_f', PHS_Params::T_INT )) )
             $this->autocomplete_params( 'text_format', $_f );
 
         if( !empty( $term ) )

@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
@@ -71,15 +71,15 @@ class PHS_Action_Register extends PHS_Action
             return self::default_action_result();
         }
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
-        $email = PHS_params::_pg( 'email', PHS_params::T_EMAIL );
-        $pass1 = PHS_params::_p( 'pass1', PHS_params::T_ASIS );
-        $pass2 = PHS_params::_p( 'pass2', PHS_params::T_ASIS );
-        $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $nick = PHS_Params::_pg( 'nick', PHS_Params::T_NOHTML );
+        $email = PHS_Params::_pg( 'email', PHS_Params::T_EMAIL );
+        $pass1 = PHS_Params::_p( 'pass1', PHS_Params::T_ASIS );
+        $pass2 = PHS_Params::_p( 'pass2', PHS_Params::T_ASIS );
+        $vcode = PHS_Params::_p( 'vcode', PHS_Params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
-        $registered = PHS_params::_g( 'registered', PHS_params::T_INT );
+        $registered = PHS_Params::_g( 'registered', PHS_Params::T_INT );
 
         if( empty( $foobar )
         and PHS::user_logged_in() )

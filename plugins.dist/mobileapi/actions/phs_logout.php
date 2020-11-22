@@ -4,7 +4,7 @@ namespace phs\plugins\mobileapi\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 use \phs\libraries\PHS_Action;
 
 class PHS_Action_Logout extends PHS_Action
@@ -22,8 +22,8 @@ class PHS_Action_Logout extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\PHS_api $api_obj */
-        if( !($api_obj = PHS_api::global_api_instance()) )
+        /** @var \phs\PHS_Api $api_obj */
+        if( !($api_obj = PHS_Api::global_api_instance()) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining API instance.' ) );
             return false;

@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 //! \version 2.01
 
-class PHS_line_params extends PHS_Language
+class PHS_Line_params extends PHS_Language
 {
     const NEW_LINE_REPLACEMENT = '{{PHS_LP_NL}}';
 

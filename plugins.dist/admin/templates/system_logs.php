@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     if( !($logging_files_arr = $this->view_var( 'logging_files_arr' )) )
         $logging_files_arr = array();
@@ -127,7 +127,7 @@ function send_server_request( data )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'admin', 'a' => 'system_logs' ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'admin', 'a' => 'system_logs' ) )?>", ajax_params );
 }
 <?php
 if( $we_have_logfile )

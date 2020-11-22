@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_params;
+    use \phs\libraries\PHS_Params;
 
     /** @var \phs\libraries\PHS_Paginator $paginator_obj */
     if( !($paginator_obj = $this->view_var( 'paginator' )) )
@@ -29,7 +29,7 @@
     if( !($originals_arr = $paginator_obj->get_originals()) )
         $originals_arr = array();
 
-    $show_filters = (PHS_params::_g( 'show_filters', PHS_params::T_INT )?true:false);
+    $show_filters = (PHS_Params::_g( 'show_filters', PHS_Params::T_INT )?true:false);
 
     if( !empty( $flow_params_arr['before_filters_callback'] )
     and is_callable( $flow_params_arr['before_filters_callback'] ) )
@@ -111,11 +111,11 @@
                     {
                         switch( $filter_details['type'] )
                         {
-                            case PHS_params::T_DATE:
+                            case PHS_Params::T_DATE:
                                 ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
-                            case PHS_params::T_BOOL:
+                            case PHS_Params::T_BOOL:
                                 $field_value_display = (!empty( $field_value )?$this->_pt( 'True' ):$this->_pt( 'False' ));
                                 ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="<?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox" <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;

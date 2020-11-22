@@ -1,7 +1,7 @@
 <?php
 
 use \phs\PHS;
-use \phs\PHS_ajax;
+use \phs\PHS_Ajax;
 
     /** @var \phs\system\core\views\PHS_View $this */
 
@@ -162,7 +162,7 @@ var phs_bb_editor = phs_bb_editor || {
 
             title: "<?php echo self::_e( $this->_pt( 'Document preview' ) )?>",
             method: "POST",
-            url: "<?php echo PHS_ajax::url( array( 'p' => 'bbeditor', 'a' => 'bb_editor_preview' ) )?>",
+            url: "<?php echo PHS_Ajax::url( array( 'p' => 'bbeditor', 'a' => 'bb_editor_preview' ) )?>",
             url_data: { body: document.getElementById( editor_id ).value }
         });
     }

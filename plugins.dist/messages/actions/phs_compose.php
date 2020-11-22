@@ -4,7 +4,7 @@ namespace phs\plugins\messages\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
@@ -65,13 +65,13 @@ class PHS_Action_Compose extends PHS_Action
             return self::default_action_result();
         }
 
-        $reply_to = PHS_params::_g( 'reply_to', PHS_params::T_INT );
-        $reply_to_muid = PHS_params::_g( 'reply_to_muid', PHS_params::T_INT );
-        $follow_up = PHS_params::_g( 'follow_up', PHS_params::T_INT );
-        $follow_up_muid = PHS_params::_g( 'follow_up_muid', PHS_params::T_INT );
-        $reply_to_all = PHS_params::_g( 'reply_to_all', PHS_params::T_INT );
+        $reply_to = PHS_Params::_g( 'reply_to', PHS_Params::T_INT );
+        $reply_to_muid = PHS_Params::_g( 'reply_to_muid', PHS_Params::T_INT );
+        $follow_up = PHS_Params::_g( 'follow_up', PHS_Params::T_INT );
+        $follow_up_muid = PHS_Params::_g( 'follow_up_muid', PHS_Params::T_INT );
+        $reply_to_all = PHS_Params::_g( 'reply_to_all', PHS_Params::T_INT );
 
-        if( PHS_params::_g( 'message_queued', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'message_queued', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Message queued... Server will send it as soon as possible.' ) );
 
         if( empty( $reply_to )
@@ -155,25 +155,25 @@ class PHS_Action_Compose extends PHS_Action
         if( !($roles_units_arr = $roles_model->get_all_role_units()) )
             $roles_units_arr = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $subject = PHS_params::_pg( 'subject', PHS_params::T_NOHTML );
-        $dest_type = PHS_params::_pg( 'dest_type', PHS_params::T_INT );
-        $dest_type_users_ids = PHS_params::_pg( 'dest_type_users_ids', PHS_params::T_NOHTML );
-        $dest_type_users = PHS_params::_pg( 'dest_type_users', PHS_params::T_NOHTML );
-        $dest_type_handlers = PHS_params::_pg( 'dest_type_handlers', PHS_params::T_NOHTML );
-        $dest_type_level = PHS_params::_pg( 'dest_type_level', PHS_params::T_INT );
-        $dest_type_role = PHS_params::_pg( 'dest_type_role', PHS_params::T_INT );
-        $dest_type_role_unit = PHS_params::_pg( 'dest_type_role_unit', PHS_params::T_INT );
-        $body = PHS_params::_pg( 'body', PHS_params::T_NOHTML );
-        $cannot_reply = PHS_params::_pg( 'cannot_reply', PHS_params::T_INT );
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $subject = PHS_Params::_pg( 'subject', PHS_Params::T_NOHTML );
+        $dest_type = PHS_Params::_pg( 'dest_type', PHS_Params::T_INT );
+        $dest_type_users_ids = PHS_Params::_pg( 'dest_type_users_ids', PHS_Params::T_NOHTML );
+        $dest_type_users = PHS_Params::_pg( 'dest_type_users', PHS_Params::T_NOHTML );
+        $dest_type_handlers = PHS_Params::_pg( 'dest_type_handlers', PHS_Params::T_NOHTML );
+        $dest_type_level = PHS_Params::_pg( 'dest_type_level', PHS_Params::T_INT );
+        $dest_type_role = PHS_Params::_pg( 'dest_type_role', PHS_Params::T_INT );
+        $dest_type_role_unit = PHS_Params::_pg( 'dest_type_role_unit', PHS_Params::T_INT );
+        $body = PHS_Params::_pg( 'body', PHS_Params::T_NOHTML );
+        $cannot_reply = PHS_Params::_pg( 'cannot_reply', PHS_Params::T_INT );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         $msg_type = false;
         $msg_type_id = false;
         if( PHS_Roles::user_has_role_units( $current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE ) )
         {
-            $msg_type = PHS_params::_gp( 'msg_type', PHS_params::T_NOHTML );
-            $msg_type_id = PHS_params::_gp( 'msg_type_id', PHS_params::T_INT );
+            $msg_type = PHS_Params::_gp( 'msg_type', PHS_Params::T_NOHTML );
+            $msg_type_id = PHS_Params::_gp( 'msg_type_id', PHS_Params::T_INT );
 
             if( !$messages_model->valid_type( $msg_type ) )
             {

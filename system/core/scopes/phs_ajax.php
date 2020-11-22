@@ -4,8 +4,8 @@ namespace phs\system\core\scopes;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_ajax;
-use \phs\libraries\PHS_params;
+use \phs\PHS_Ajax;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Hooks;
@@ -22,7 +22,7 @@ class PHS_Scope_Ajax extends PHS_Scope
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
-        $full_buffer = PHS_params::_gp( PHS_ajax::PARAM_FB_KEY, PHS_params::T_INT );
+        $full_buffer = PHS_Params::_gp( PHS_Ajax::PARAM_FB_KEY, PHS_Params::T_INT );
 
         if( !isset( $action_result['buffer'] ) )
             $action_result['buffer'] = '';

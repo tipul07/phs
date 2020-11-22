@@ -298,7 +298,7 @@ class PHS_Paginator extends PHS_Registry
             // date in past
             $lang_index = '%s ago';
 
-        return '<span title="'.self::_t( $lang_index, PHS_utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+        return '<span title="'.self::_t( $lang_index, PHS_Utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
     }
 
     public function pretty_date( $params )
@@ -653,7 +653,7 @@ class PHS_Paginator extends PHS_Registry
 
         $api_export = self::validate_array( $column_arr['api_export'], $this->default_api_export_fields() );
 
-        if( ($new_value = PHS_params::set_type( $value, $api_export['type'], $api_export['type_extra'] )) !== null )
+        if( ($new_value = PHS_Params::set_type( $value, $api_export['type'], $api_export['type_extra'] )) !== null )
             $value = $new_value;
 
         elseif( $api_export['invalid_value'] !== null )
@@ -678,7 +678,7 @@ class PHS_Paginator extends PHS_Registry
             // if left empty, resulting field name will be used
             'invalid_value' => null,
             // to what should be the value formatted
-            'type' => PHS_params::T_ASIS,
+            'type' => PHS_Params::T_ASIS,
             'type_extra' => false,
         );
     }
@@ -701,11 +701,11 @@ class PHS_Paginator extends PHS_Registry
 
             // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
             // 'checkbox_name': string used to form input name, if empty 'key' will be used as 'checkbox_name' ({form_prefix}{checkbox_name}_chck)
-            // 'type': is a PHS_params::T_* which will be used to validate input value
+            // 'type': is a PHS_Params::T_* which will be used to validate input value
             'checkbox_record_index_key' => array(
                 'key' => '',
                 'checkbox_name' => '',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
             ),
             'sortable' => true,
             // 0 or 1 if default sorting 0 - ascending or 1 - descending
@@ -829,7 +829,7 @@ class PHS_Paginator extends PHS_Registry
             'display_name' => '',
             'display_hint' => '',
             'display_placeholder' => '',
-            'type' => PHS_params::T_ASIS,
+            'type' => PHS_Params::T_ASIS,
             'extra_type' => false,
             'default' => null,
             'display_default_as_filter' => false,
@@ -1005,14 +1005,14 @@ class PHS_Paginator extends PHS_Registry
         $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
         $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
 
-        if( !($action = PHS_params::_gp( $action_key, PHS_params::T_NOHTML )) )
+        if( !($action = PHS_Params::_gp( $action_key, PHS_Params::T_NOHTML )) )
         {
-            if( ($bulk_action = PHS_params::_gp( $bulk_select_name.'top', PHS_params::T_NOHTML )) )
+            if( ($bulk_action = PHS_Params::_gp( $bulk_select_name.'top', PHS_Params::T_NOHTML )) )
             {
                 $this->flow_param( 'bulk_action', $bulk_action );
                 $this->flow_param( 'bulk_action_area', 'top' );
                 $action = $bulk_action;
-            } elseif( ($bulk_action = PHS_params::_gp( $bulk_select_name.'bottom', PHS_params::T_NOHTML )) )
+            } elseif( ($bulk_action = PHS_Params::_gp( $bulk_select_name.'bottom', PHS_Params::T_NOHTML )) )
             {
                 $this->flow_param( 'bulk_action', $bulk_action );
                 $this->flow_param( 'bulk_action_area', 'bottom' );
@@ -1023,9 +1023,9 @@ class PHS_Paginator extends PHS_Registry
 
         $this->_action['action'] = $action;
 
-        if( !($action_params = PHS_params::_gp( $action_params_key, PHS_params::T_ASIS )) )
+        if( !($action_params = PHS_Params::_gp( $action_params_key, PHS_Params::T_ASIS )) )
             $action_params = '';
-        if( !($action_result = PHS_params::_gp( $action_result_key, PHS_params::T_ASIS )) )
+        if( !($action_result = PHS_Params::_gp( $action_result_key, PHS_Params::T_ASIS )) )
             $action_result = '';
 
         $this->_action['action_params'] = $action_params;
@@ -1063,19 +1063,19 @@ class PHS_Paginator extends PHS_Registry
             if( empty( $filter_details['var_name'] ) or empty( $filter_details['record_field'] ) )
                 continue;
 
-            $this->_originals[$filter_details['var_name']] = PHS_params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_params::T_ASIS );
+            $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_Params::T_ASIS );
 
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
                 // Accept arrays to be passed as comma separated values...
-                if( $filter_details['type'] == PHS_params::T_ARRAY
+                if( $filter_details['type'] == PHS_Params::T_ARRAY
                 and is_string( $this->_originals[$filter_details['var_name']] )
                 and $this->_originals[$filter_details['var_name']] != '' )
                 {
-                    $value_type = PHS_params::T_ASIS;
+                    $value_type = PHS_Params::T_ASIS;
                     if( !empty( $filter_details['extra_type'] ) and is_array( $filter_details['extra_type'] )
                     and !empty( $filter_details['extra_type']['type'] )
-                    and PHS_params::valid_type( $filter_details['extra_type']['type'] ) )
+                    and PHS_Params::valid_type( $filter_details['extra_type']['type'] ) )
                         $value_type = $filter_details['extra_type']['type'];
 
                     $scope_val = array();
@@ -1084,11 +1084,11 @@ class PHS_Paginator extends PHS_Registry
                     {
                         foreach( $parts_arr as $part )
                         {
-                            $scope_val[] = PHS_params::set_type( $part, $value_type );
+                            $scope_val[] = PHS_Params::set_type( $part, $value_type );
                         }
                     }
                 } else
-                    $scope_val = PHS_params::set_type( $this->_originals[$filter_details['var_name']],
+                    $scope_val = PHS_Params::set_type( $this->_originals[$filter_details['var_name']],
                                                        $filter_details['type'],
                                                        $filter_details['extra_type'] );
 
@@ -1107,11 +1107,11 @@ class PHS_Paginator extends PHS_Registry
                     continue;
 
                 $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
-                if( ($checkbox_all_values = PHS_params::_pg( $checkbox_name_all, PHS_params::T_INT )) )
+                if( ($checkbox_all_values = PHS_Params::_pg( $checkbox_name_all, PHS_Params::T_INT )) )
                     $this->_scope[$checkbox_name_all] = 1;
 
                 // accept checkboxes to be passed as comma separated values...
-                if( ($checkbox_asis_value = PHS_params::_pg( $checkbox_name, PHS_params::T_ASIS )) !== null )
+                if( ($checkbox_asis_value = PHS_Params::_pg( $checkbox_name, PHS_Params::T_ASIS )) !== null )
                 {
                     if( is_string( $checkbox_asis_value ) )
                     {
@@ -1121,12 +1121,12 @@ class PHS_Paginator extends PHS_Registry
                         {
                             foreach( $parts_arr as $part )
                             {
-                                $scope_val[] = PHS_params::set_type( $part, $column_arr['checkbox_record_index_key']['type'] );
+                                $scope_val[] = PHS_Params::set_type( $part, $column_arr['checkbox_record_index_key']['type'] );
                             }
                         }
 
                         $this->_scope[$checkbox_name] = $scope_val;
-                    } elseif( ($checkbox_array_value = PHS_params::set_type( $checkbox_asis_value, PHS_params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
+                    } elseif( ($checkbox_array_value = PHS_Params::set_type( $checkbox_asis_value, PHS_Params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
                         $this->_scope[$checkbox_name] = $checkbox_array_value;
                 }
 
@@ -1139,21 +1139,21 @@ class PHS_Paginator extends PHS_Registry
         {
             if( !empty( $pagination_params['page_var_name'] ) )
             {
-                $page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['page_var_name'], PHS_params::T_INT );
+                $page = PHS_Params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['page_var_name'], PHS_Params::T_INT );
                 $this->pagination_params( 'page', $page );
             }
             if( !empty( $pagination_params['per_page_var_name'] ) )
             {
-                if( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'top', PHS_params::T_INT )) !== null )
+                if( ($per_page = PHS_Params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'top', PHS_Params::T_INT )) !== null )
                     $this->pagination_params( 'records_per_page', $per_page );
-                elseif( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'bottom', PHS_params::T_INT )) !== null )
+                elseif( ($per_page = PHS_Params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'].'bottom', PHS_Params::T_INT )) !== null )
                     $this->pagination_params( 'records_per_page', $per_page );
-                elseif( ($per_page = PHS_params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'], PHS_params::T_INT )) !== null )
+                elseif( ($per_page = PHS_Params::_pg( $flow_params_arr['form_prefix'] . $pagination_params['per_page_var_name'], PHS_Params::T_INT )) !== null )
                     $this->pagination_params( 'records_per_page', $per_page );
             }
 
-            $sort = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort', PHS_params::T_INT );
-            $sort_by = PHS_params::_pg( $flow_params_arr['form_prefix'] . 'sort_by', PHS_params::T_NOHTML );
+            $sort = PHS_Params::_pg( $flow_params_arr['form_prefix'] . 'sort', PHS_Params::T_INT );
+            $sort_by = PHS_Params::_pg( $flow_params_arr['form_prefix'] . 'sort_by', PHS_Params::T_NOHTML );
             $db_sort_by = '';
 
             if( !empty( $columns_arr ) )

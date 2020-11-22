@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_params;
+    use \phs\libraries\PHS_Params;
     use \phs\libraries\PHS_Instantiable;
     use \phs\libraries\PHS_Plugin;
 
@@ -388,12 +388,12 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
             {
                 switch( $field_details['type'] )
                 {
-                    case PHS_params::T_DATE:
+                    case PHS_Params::T_DATE:
                         ?>
                         <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="datepicker form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                     break;
 
-                    case PHS_params::T_BOOL:
+                    case PHS_Params::T_BOOL:
                         ?><input type="checkbox" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="<?php echo $field_details['extra_classes'] ?>" value="1" rel="skin_checkbox" <?php echo (!empty($field_value) ? 'checked="checked"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
                     break;
 

@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.3.5' );
+define( 'PHS_KNOWN_VERSION', '1.1.4.0' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '{{PHS_SITEBUILD_VERSION}}' ); // Default: 1.0.0
@@ -68,9 +68,9 @@ define( 'PHS_DB_DRIVER_SETTINGS', {{PHS_DB_DRIVER_SETTINGS}} ); // Default: @jso
 //
 // define( 'PHS_NEW_CONNECTION', 'db_new_connection' );
 //
-// if( !PHS_db::add_db_connection( PHS_NEW_CONNECTION, $mysql_settings ) )
+// if( !PHS_Db::add_db_connection( PHS_NEW_CONNECTION, $mysql_settings ) )
 // {
-//    PHS_db::st_throw_error();
+//    PHS_Db::st_throw_error();
 //    exit;
 // }
 
@@ -126,8 +126,8 @@ define( 'PHS_DEBUG_THROW_ERRORS', {{PHS_DEBUG_THROW_ERRORS}} ); // Default: fals
 include_once( PHS_PATH.'bootstrap.php' );
 
 use \phs\PHS;
-use \phs\PHS_ajax;
-use \phs\PHS_db;
+use \phs\PHS_Ajax;
+use \phs\PHS_Db;
 use \phs\libraries\PHS_Logger;
 
 // Set any cascading themes here...
@@ -145,7 +145,7 @@ PHS::set_multi_language( {{PHS_MULTI_LANGUAGE}} ); // Default: true
 PHS::set_utf8_conversion( {{PHS_LANGUAGE_UTF8_CONVERSION}} ); // Default: true
 
 // After how many seconds will an Ajax URL expire (if user stays on page and javascript will request same URL)
-PHS_ajax::checksum_timeout( {{PHS_AJAX_CHECKSUM_TIMEOUT}} ); // Default: 86400
+PHS_Ajax::checksum_timeout( {{PHS_AJAX_CHECKSUM_TIMEOUT}} ); // Default: 86400
 
 // Loggin settings (overwritten from bootstrap.php)
 PHS_Logger::logging_enabled( {{PHS_LOGGING_ENABLED}} ); // Default: true
@@ -154,7 +154,7 @@ PHS_Logger::logging_dir( {{PHS_LOGS_DIR}} ); // Default: PHS_LOGS_DIR
 
 // Tell database drivers to try to restrict data sent to database based on field boundaries
 // defined in table definition (if applicable)
-PHS_db::check_db_fields_boundaries( {{PHS_CHECK_DB_FIELDS_BOUNDARIES}} ); // Default: true
+PHS_Db::check_db_fields_boundaries( {{PHS_CHECK_DB_FIELDS_BOUNDARIES}} ); // Default: true
 
 // This can be changed with anything required (includes or function calls) for current platform
 // Default: ''

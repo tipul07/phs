@@ -952,11 +952,11 @@ final class PHS extends PHS_Registry
     /**
      * Parse request route. Route is something like:
      *
-     * {plugin}/{controller}/{action} If controller is part of a plugin
+     * {plugin}/{controller}/[{action_dir}__]{action} If controller is part of a plugin
      * or
-     * {controller}/{action} If controller is a core controller
+     * {controller}/[{action_dir}__]{action} If controller is a core controller
      * or
-     * {plugin}-{action} Controller will be 'index'
+     * {plugin}-[{action_dir}__]{action} Controller will be 'index'
      *
      * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
      * @return bool Returns true on success or false on error
@@ -1005,6 +1005,16 @@ final class PHS extends PHS_Registry
     {
         if( empty( $part ) or !is_string( $part )
          or preg_match( '@[^a-zA-Z0-9_]@', $part ) )
+            return false;
+
+        return $part;
+    }
+
+    // No _ allowed in action directories
+    public static function safe_escape_route_action_dir( $part )
+    {
+        if( empty( $part ) or !is_string( $part )
+         or preg_match( '@[^a-zA-Z0-9/]@', $part ) )
             return false;
 
         return $part;
@@ -1212,7 +1222,7 @@ final class PHS extends PHS_Registry
     public static function generate_framework_update_token()
     {
         $pub_key = time() + self::UPDATE_TOKEN_LIFETIME;
-        $clean_str = $pub_key.':'.PHS_crypt::crypting_key();
+        $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
         if( @function_exists( 'hash' )
          && ($hash_algos = @hash_algos())
          && in_array( 'sha256', $hash_algos, true ) )
@@ -1234,7 +1244,7 @@ final class PHS extends PHS_Registry
          || $pub_key < time() )
             return false;
 
-        $clean_str = $pub_key.':'.PHS_crypt::crypting_key();
+        $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
         if( @function_exists( 'hash' )
          && ($hash_algos = @hash_algos())
          && @in_array( 'sha256', $hash_algos, true ) )
@@ -1270,18 +1280,18 @@ final class PHS extends PHS_Registry
         if( !($plugin = self::get_data( self::ROUTE_PLUGIN )) )
             $plugin = false;
         if( !($controller = self::get_data( self::ROUTE_CONTROLLER ))
-         or $controller === self::ROUTE_DEFAULT_CONTROLLER )
+         || $controller === self::ROUTE_DEFAULT_CONTROLLER )
             $controller = false;
         if( !($action_dir = self::get_data( self::ROUTE_ACTION_DIR )) )
             $action_dir = false;
         if( !($action = self::get_data( self::ROUTE_ACTION ))
-         or $action === self::ROUTE_DEFAULT_ACTION )
+         || $action === self::ROUTE_DEFAULT_ACTION )
             $action = false;
 
         if( !($query_string = self::current_page_query_string_as_array()) )
             $query_string = false;
 
-        return self::url( array( 'p' => $plugin, 'c' => $controller, 'ad' => $action_dir, 'a' => $action ), $query_string );
+        return self::url( [ 'p' => $plugin, 'c' => $controller, 'ad' => $action_dir, 'a' => $action ], $query_string );
     }
 
     /**
@@ -1324,6 +1334,16 @@ final class PHS extends PHS_Registry
         return $query_arr;
     }
 
+    public static function validate_action_dir_in_url( $ad )
+    {
+        if( !is_string( $ad )
+         || $ad === '' )
+            return '';
+
+        // Allow actions subdirs, but replace / (subdirs separators) with _ in action directory parameter
+        return str_replace( '/', '_', str_replace( '_', '', $ad ) );
+    }
+
     /**
      * @param bool|array $parts
      *
@@ -1342,7 +1362,7 @@ final class PHS extends PHS_Registry
         $action_str = (!empty( $parts['a'] )?$parts['a']:'');
         if( !empty( $parts['ad'] )
         and !empty( $action_str ) )
-            $action_str = $parts['ad'].self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
+            $action_str = self::validate_action_dir_in_url( $parts['ad'] ).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
 
         if( empty( $parts['p'] ) )
             $parts['p'] = '';
@@ -1415,7 +1435,7 @@ final class PHS extends PHS_Registry
          or (!empty( $route_arr['p'] ) and !self::safe_escape_route_parts( $route_arr['p'] ))
          or (!empty( $route_arr['c'] ) and !self::safe_escape_route_parts( $route_arr['c'] ))
          or (!empty( $route_arr['a'] ) and !self::safe_escape_route_parts( $route_arr['a'] ))
-         or (!empty( $route_arr['ad'] ) and !self::safe_escape_route_parts( $route_arr['ad'] )) )
+         or (!empty( $route_arr['ad'] ) and !self::safe_escape_route_action_dir( $route_arr['ad'] )) )
             return false;
 
         return $route_arr;
@@ -1466,6 +1486,7 @@ final class PHS extends PHS_Registry
     {
         $route_arr = self::validate_route_from_parts( $route_arr, true );
 
+        // As we run in a background job we don't know if initial request was made using https, so we force https links
         if( in_array( PHS_Scope::current_scope(), [ PHS_Scope::SCOPE_BACKGROUND, PHS_Scope::SCOPE_AGENT ], true ) )
             $route_arr['force_https'] = true;
 
@@ -1504,7 +1525,7 @@ final class PHS extends PHS_Registry
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
         // which is passed as a parameter in a JavaScript script
-        // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
+        // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
         if( !empty( $extra['raw_route'] ) && is_string( $extra['raw_route'] ) )
         {
             $extra['raw_args'][self::ROUTE_PARAM] = $extra['raw_route'];
@@ -1781,7 +1802,7 @@ final class PHS extends PHS_Registry
      * @param string|array $template
      * @param bool|array $template_data
      *
-     * @return bool|\phs\system\core\views\PHS_view
+     * @return bool|\phs\system\core\views\PHS_View
      */
     public static function spawn_view_in_context( $route_arr, $template, $template_data = false )
     {
@@ -2145,6 +2166,10 @@ final class PHS extends PHS_Registry
         if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
+        // From this point on, $action_dir is a system path...
+        if( $action_dir !== '' )
+            $action_dir = str_replace( '_', '/', $action_dir );
+
         /** @var \phs\libraries\PHS_Action */
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION, true, $action_dir )) )
         {
@@ -2196,6 +2221,10 @@ final class PHS extends PHS_Registry
 
         if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
+
+        // From this point on, $contract_dir is a system path...
+        if( $contract_dir !== '' )
+            $contract_dir = str_replace( '_', '/', $contract_dir );
 
         /** @var \phs\libraries\PHS_Action */
         if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir )) )

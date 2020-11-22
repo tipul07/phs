@@ -5,11 +5,11 @@ namespace phs\plugins\emails\libraries;
 use \phs\libraries\PHS_Library;
 
 /*! \file phs_smtp.php
- *  \brief Contains PHS_smtp class (send emails trough smtp)
+ *  \brief Contains PHS_Smtp class (send emails trough smtp)
  *  \version 1.10
  */
 
-class PHS_smtp extends PHS_Library
+class PHS_Smtp extends PHS_Library
 {
     const CLASS_VERSION = '1.10';
 

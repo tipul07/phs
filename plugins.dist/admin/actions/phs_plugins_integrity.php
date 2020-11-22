@@ -4,12 +4,12 @@ namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Instantiable;
 
 class PHS_Action_Plugins_integrity extends PHS_Action
@@ -53,10 +53,10 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $plugin_names_arr = array();
 
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        if( !($check_plugin = PHS_params::_pg( 'check_plugin', PHS_params::T_NOHTML )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        if( !($check_plugin = PHS_Params::_pg( 'check_plugin', PHS_Params::T_NOHTML )) )
             $check_plugin = '';
-        $command = PHS_params::_pg( 'command', PHS_params::T_NOHTML );
+        $command = PHS_Params::_pg( 'command', PHS_Params::T_NOHTML );
 
         if( !empty( $command )
         and !in_array( $command, array( 'integrity_check', 'download_file' ) ) )
@@ -272,7 +272,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         if( !empty( $params['contract'] ) )
             $script_params['co'] = $params['contract'];
 
-        if( !($bg_action_result = PHS_bg_jobs::run( array(
+        if( !($bg_action_result = PHS_Bg_jobs::run( array(
                                                       'plugin' => 'admin',
                                                       'controller' => 'index_bg',
                                                       'action' => 'plugins_integrity_bg',

@@ -3,7 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
-use \phs\PHS_db;
+use \phs\PHS_Db;
 
 abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 {
@@ -41,7 +41,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
      */
     public function get_model_driver()
     {
-        return PHS_db::DB_DRIVER_MONGO;
+        return PHS_Db::DB_DRIVER_MONGO;
     }
 
     /**
@@ -105,9 +105,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
         $db_connection = $this->get_db_connection( $params );
 
-        /** @var \phs\libraries\PHS_db_mongo $mongo_driver */
+        /** @var \phs\libraries\PHS_Db_mongo $mongo_driver */
         if( empty( $id )
-         or !($mongo_driver = PHS_db::db( $db_connection )) )
+         or !($mongo_driver = PHS_Db::db( $db_connection )) )
             return false;
 
         $id_obj = false;
@@ -778,7 +778,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
         switch( $field_details['type'] )
         {
             case self::FTYPE_INTEGER:
-                if( ($value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr )) === null )
+                if( ($value = PHS_Params::set_type( $value, PHS_Params::T_INT, $phs_params_arr )) === null )
                     $value = 0;
             break;
 
@@ -801,7 +801,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
                 $phs_params_arr['digits'] = $digits;
 
-                if( ($value = PHS_params::set_type( $value, PHS_params::T_FLOAT, $phs_params_arr )) === null )
+                if( ($value = PHS_Params::set_type( $value, PHS_Params::T_FLOAT, $phs_params_arr )) === null )
                     $value = 0;
             break;
         }
@@ -1137,15 +1137,15 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
          or !($field2_arr = $this->_validate_field( $field2_arr )) )
             return true;
 
-        if( intval( $field1_arr['type'] ) != intval( $field2_arr['type'] )
+        if( (int)$field1_arr['type'] !== (int)$field2_arr['type']
          // for lengths with comma
-         or str_replace( ' ', '', $field1_arr['length'] ) != str_replace( ' ', '', $field2_arr['length'] )
-         or $field1_arr['primary'] != $field1_arr['primary']
-         or $field1_arr['auto_increment'] != $field1_arr['auto_increment']
-         or $field1_arr['index'] != $field1_arr['index']
-         or $field1_arr['default'] !== $field1_arr['default']
-         or $field1_arr['nullable'] !== $field1_arr['nullable']
-         or trim( $field1_arr['comment'] ) !== trim( $field1_arr['comment'] )
+         or str_replace( ' ', '', $field1_arr['length'] ) !== str_replace( ' ', '', $field2_arr['length'] )
+         or $field1_arr['primary'] !== $field2_arr['primary']
+         or $field1_arr['auto_increment'] !== $field2_arr['auto_increment']
+         or $field1_arr['index'] !== $field2_arr['index']
+         or $field1_arr['default'] !== $field2_arr['default']
+         or $field1_arr['nullable'] !== $field2_arr['nullable']
+         or trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
         )
             return true;
 
@@ -2065,9 +2065,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
 
         $db_connection = $this->get_db_connection( $params );
 
-        /** @var \phs\libraries\PHS_db_mongo $mongo_driver */
+        /** @var \phs\libraries\PHS_Db_mongo $mongo_driver */
         if( empty( $constrain_arr ) or !is_array( $constrain_arr )
-         or !($mongo_driver = PHS_db::db( $db_connection )) )
+         or !($mongo_driver = PHS_Db::db( $db_connection )) )
             return false;
 
         if( empty( $params['query_fields']['read_preference'] ) or !is_array( $params['query_fields']['read_preference'] ) )

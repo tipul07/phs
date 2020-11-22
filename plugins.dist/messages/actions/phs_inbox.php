@@ -3,7 +3,7 @@
 namespace phs\plugins\messages\actions;
 
 use \phs\PHS;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
@@ -144,9 +144,9 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             'listing_title' => $this->_pt( 'Inbox' ),
         );
 
-        if( PHS_params::_g( 'unknown_message', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_message', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Message details not found in database.' ) );
-        if( PHS_params::_g( 'unknown_thread', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_thread', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Message thread details not found in database.' ) );
 
         if( !PHS_Roles::user_has_role_units( PHS::current_user(), $messages_plugin::ROLEU_WRITE_MESSAGE ) )
@@ -177,7 +177,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'var_name' => 'ffrom',
                 'record_field' => '`'.$m_table_name.'`.from_handle',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
@@ -186,7 +186,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'var_name' => 'fto',
                 'record_field' => '`'.$m_table_name.'`.dest_str',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
@@ -195,7 +195,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 'var_name' => 'fsubject',
                 'record_field' => '`'.$m_table_name.'`.subject',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
         );
@@ -258,7 +258,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'mu_id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             );
         }
 

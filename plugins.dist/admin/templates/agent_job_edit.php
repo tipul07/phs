@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Utils;
 
     if( !($agent_routes = $this->view_var( 'agent_routes' )) )
         $agent_routes = array();

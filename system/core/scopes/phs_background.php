@@ -6,7 +6,6 @@ use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Logger;
-use \phs\PHS_bg_jobs;
 
 class PHS_Scope_Background extends PHS_Scope
 {

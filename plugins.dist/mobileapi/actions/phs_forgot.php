@@ -3,9 +3,9 @@
 namespace phs\plugins\mobileapi\actions;
 
 use \phs\PHS;
-use phs\PHS_bg_jobs;
+use phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 use \phs\libraries\PHS_Action;
 
 class PHS_Action_Forgot extends PHS_Action
@@ -23,8 +23,8 @@ class PHS_Action_Forgot extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\PHS_api $api_obj */
-        if( !($api_obj = PHS_api::global_api_instance()) )
+        /** @var \phs\PHS_Api $api_obj */
+        if( !($api_obj = PHS_Api::global_api_instance()) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining API instance.' ) );
             return false;
@@ -46,7 +46,7 @@ class PHS_Action_Forgot extends PHS_Action
             exit;
         }
 
-        if( !($request_arr = PHS_api::get_request_body_as_json_array())
+        if( !($request_arr = PHS_Api::get_request_body_as_json_array())
          or empty( $request_arr['email'] ) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_BAD_REQUEST, $this->_pt( 'Please provide credentials.' ) ) )
@@ -69,7 +69,7 @@ class PHS_Action_Forgot extends PHS_Action
             exit;
         }
 
-        if( !PHS_bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'forgot_password_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+        if( !PHS_Bg_jobs::run( array( 'plugin' => 'accounts', 'action' => 'forgot_password_bg' ), array( 'uid' => $account_arr['id'] ) ) )
         {
             if( self::st_has_error() )
                 $error_msg = self::st_get_error_message();

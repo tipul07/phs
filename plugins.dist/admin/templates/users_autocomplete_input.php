@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     if( !($id_id = $this->view_var( 'id_id' ))
      or !($id_name = $this->view_var( 'id_name' ))

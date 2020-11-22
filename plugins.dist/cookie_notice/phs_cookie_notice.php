@@ -6,7 +6,7 @@ use \phs\PHS_Session;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Error;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Cookie_notice extends PHS_Plugin
@@ -25,20 +25,20 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
             'template' => array(
                 'display_name' => 'Notice template',
                 'display_hint' => 'What template should be used when displaying fact that site uses cookies',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'cookie_notice' ),
             ),
             'rejection_url' => array(
                 'display_name' => 'Rejection URL',
                 'display_hint' => 'In case end-user doesn\'t accept cookies policy, system will redirect to this URL (leave empty to hide the link in template)',
-                'type' => PHS_params::T_URL,
+                'type' => PHS_Params::T_URL,
                 'default' => 'https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications',
             ),
             'read_more_url' => array(
                 'display_name' => 'Read mode URL',
                 'display_hint' => 'End-user will be presented option to read more about cookies policy. System will redirect to this URL. (leave empty to hide the link in template)',
-                'type' => PHS_params::T_URL,
+                'type' => PHS_Params::T_URL,
                 'default' => 'https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications',
             ),
         );

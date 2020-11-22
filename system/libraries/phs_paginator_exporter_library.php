@@ -14,13 +14,14 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     private $_paginator_obj = false;
 
     /**
-     * Transforms record array sent from PHS_paginator to a string which will be outputed using record_to_output method
+     * Transforms record array sent from PHS_Paginator to a string which will be outputed using record_to_output method
      *
-     * @param array $record_data Record data sent from PHS_paginator to be transformed in string
+     * @param array $record_data Record data sent from PHS_Paginator to be transformed in string
+     * @param array|bool $record_data Parameters (if any)
      *
      * @return mixed
      */
-    abstract public function record_to_buffer( $record_data );
+    abstract public function record_to_buffer( $record_data, $params = false );
 
     function __construct( $init_params = false )
     {

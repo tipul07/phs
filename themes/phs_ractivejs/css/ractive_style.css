@@ -1,6 +1,9 @@
 /** Simple selector **/
 .phs_ractive { }
 
+.input-group-prepend a { text-decoration: none !important; font-size: 1.6rem; color: #666666 !important; }
+.input-group-prepend a:visited { text-decoration: none !important; color: #666666 !important; }
+
 /**region Notifications */
 .phs_ractive_notifications_container {
     padding: 2px;

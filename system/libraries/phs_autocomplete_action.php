@@ -110,7 +110,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     public function get_id_input_value()
     {
         if( !($id_name = $this->autocomplete_params( 'id_name' ))
-         or null === ($id_val = PHS_params::_pg( $id_name )) )
+         or null === ($id_val = PHS_Params::_pg( $id_name )) )
             return null;
 
         return $id_val;
@@ -123,7 +123,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     public function get_text_input_value()
     {
         if( !($text_name = $this->autocomplete_params( 'text_name' ))
-         or null === ($text_val = PHS_params::_pg( $text_name )) )
+         or null === ($text_val = PHS_Params::_pg( $text_name )) )
             return null;
 
         return $text_val;
@@ -143,9 +143,9 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
             return $before_action;
         }
 
-        if( null === ($term = PHS_params::_g( 'term', PHS_params::T_REMSQL_CHARS )) )
+        if( null === ($term = PHS_Params::_g( 'term', PHS_Params::T_REMSQL_CHARS )) )
             $term = '';
-        if( null !== ($_f = PHS_params::_g( '_f', PHS_params::T_NOHTML )) )
+        if( null !== ($_f = PHS_Params::_g( '_f', PHS_Params::T_NOHTML )) )
             $_f = '';
 
         $this->autocomplete_params( array(

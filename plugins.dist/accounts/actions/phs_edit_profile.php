@@ -3,11 +3,11 @@
 namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Edit_profile extends PHS_Action
@@ -74,7 +74,7 @@ class PHS_Action_Edit_profile extends PHS_Action
             return self::default_action_result();
         }
 
-        $reason = PHS_params::_g( 'reason', PHS_params::T_NOHTML );
+        $reason = PHS_Params::_g( 'reason', PHS_Params::T_NOHTML );
 
         if( !($current_user = PHS::user_logged_in()) )
         {
@@ -97,9 +97,9 @@ class PHS_Action_Edit_profile extends PHS_Action
         if( !($plugin_settings = $this->get_plugin_settings()) )
             $plugin_settings = array();
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
-        if( PHS_params::_g( 'confirmation_email', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'confirmation_email', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $current_user['details_id'] )
@@ -115,18 +115,18 @@ class PHS_Action_Edit_profile extends PHS_Action
         else
             $verify_email_link = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'verify_email' => 1 ) );
 
-        $verify_email = PHS_params::_g( 'verify_email', PHS_params::T_INT );
-        $verification_email_sent = PHS_params::_g( 'verification_email_sent', PHS_params::T_INT );
+        $verify_email = PHS_Params::_g( 'verify_email', PHS_Params::T_INT );
+        $verification_email_sent = PHS_Params::_g( 'verification_email_sent', PHS_Params::T_INT );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
-        $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );
-        $phone = PHS_params::_p( 'phone', PHS_params::T_NOHTML );
-        $company = PHS_params::_p( 'company', PHS_params::T_NOHTML );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $email = PHS_Params::_p( 'email', PHS_Params::T_EMAIL );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $fname = PHS_Params::_p( 'fname', PHS_Params::T_NOHTML );
+        $lname = PHS_Params::_p( 'lname', PHS_Params::T_NOHTML );
+        $phone = PHS_Params::_p( 'phone', PHS_Params::T_NOHTML );
+        $company = PHS_Params::_p( 'company', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( !empty( $verification_email_sent ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
@@ -134,7 +134,7 @@ class PHS_Action_Edit_profile extends PHS_Action
         if( !empty( $verify_email )
         and $accounts_model->needs_email_verification( $current_user ) )
         {
-            if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'verify_email_bg', 'c' => 'index_bg' ), array( 'uid' => $current_user['id'] ) ) )
+            if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'verify_email_bg', 'c' => 'index_bg' ), array( 'uid' => $current_user['id'] ) ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t send verification email. Please try again.' ) );
 
             else

@@ -5,7 +5,7 @@ namespace phs\plugins\mailchimp\libraries;
 use \phs\PHS;
 use \phs\libraries\PHS_Library;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
 class Mailchimp extends PHS_Library
 {
@@ -404,7 +404,7 @@ class Mailchimp extends PHS_Library
             $this->_api_params( 'payload', $payload_str );
         }
 
-        if( !($response = PHS_utils::quick_curl( $api_url, $api_params ))
+        if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
          or empty( $response['http_code'] ) )
         {
             PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $mailchimp_plugin::LOG_CHANNEL );

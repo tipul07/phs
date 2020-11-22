@@ -5,7 +5,7 @@ namespace phs\plugins\bbeditor\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -51,7 +51,7 @@ class PHS_Action_Bb_editor_preview extends PHS_Action
             return $action_result;
         }
 
-        $body = PHS_params::_p( 'body', PHS_params::T_ASIS );
+        $body = PHS_Params::_p( 'body', PHS_Params::T_ASIS );
 
         $data = array(
             'bb_text' => $bbcode_obj->bb_to_html( $body ),

@@ -3,11 +3,11 @@
 namespace phs;
 
 use \phs\libraries\PHS_Language;
-use \phs\libraries\PHS_encdec;
+use \phs\libraries\PHS_Encdec;
 
 //! @version 1.10
 
-class PHS_crypt extends PHS_Language
+class PHS_Crypt extends PHS_Language
 {
     static private $internal_keys = array();
     static private $crypt_key = '';
@@ -66,7 +66,7 @@ class PHS_crypt extends PHS_Language
         if( empty( $params['internal_keys'] ) or !is_array( $params['internal_keys'] ) )
             $params['internal_keys'] = self::get_internal_keys();
 
-        $enc_dec = new PHS_encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
+        $enc_dec = new PHS_Encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
 
         $enc_dec->set_internal_keys( $params['internal_keys'] );
 
@@ -91,7 +91,7 @@ class PHS_crypt extends PHS_Language
         if( empty( $params['internal_keys'] ) or !is_array( $params['internal_keys'] ) )
             $params['internal_keys'] = self::get_internal_keys();
 
-        $enc_dec = new PHS_encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
+        $enc_dec = new PHS_Encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
 
         $enc_dec->set_internal_keys( $params['internal_keys'] );
 

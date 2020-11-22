@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     if( !($id_id = $this->view_var( 'id_id' ))
      or !($text_id = $this->view_var( 'text_id' ))
@@ -37,7 +37,7 @@ if( $include_js_on_ready )
     ?>
 
     PHS_JSEN.do_autocomplete( "#<?php echo $text_id?>", {
-        url: "<?php echo PHS_ajax::url( $route_arr, $route_params_arr )?>",
+        url: "<?php echo PHS_Ajax::url( $route_arr, $route_params_arr )?>",
         autocomplete_obj: {
             minLength: <?php echo $this->view_var( 'min_text_length' )?>,
             select: function( event, ui )

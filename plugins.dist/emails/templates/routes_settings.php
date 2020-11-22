@@ -1,11 +1,11 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 
-    use \phs\PHS_crypt;
+    use \phs\PHS_Crypt;
 
     if( !($email_routes = $this->view_var( 'email_routes' )) )
         $email_routes = array();
-    /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+    /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
     if( !($smtp_library = $this->view_var( 'smtp_library' )) )
         $smtp_library = false;
     /** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */

@@ -1072,7 +1072,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['plugin_name'] = $plugin_name;
         $plugin_details['type'] = $this->instance_type();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
-        $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
+        $plugin_details['settings'] = PHS_Line_params::to_string( $this->get_default_settings() );
         $plugin_details['version'] = $this->get_plugin_version();
 
         if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))

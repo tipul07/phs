@@ -5,7 +5,7 @@ namespace phs\plugins\mobileapi\actions;
 use phs\libraries\PHS_Hooks;
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
@@ -27,8 +27,8 @@ class PHS_Action_Register extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\PHS_api $api_obj */
-        if( !($api_obj = PHS_api::global_api_instance()) )
+        /** @var \phs\PHS_Api $api_obj */
+        if( !($api_obj = PHS_Api::global_api_instance()) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining API instance.' ) );
             return false;
@@ -65,7 +65,7 @@ class PHS_Action_Register extends PHS_Action
             exit;
         }
 
-        if( !($request_arr = PHS_api::get_request_body_as_json_array())
+        if( !($request_arr = PHS_Api::get_request_body_as_json_array())
          or empty( $request_arr['nick'] )
          or empty( $request_arr['email'] )
          or !isset( $request_arr['pass'] ) )

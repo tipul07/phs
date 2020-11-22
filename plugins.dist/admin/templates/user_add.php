@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Utils;
 
     /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */

@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-class PHS_file_upload extends PHS_Registry
+class PHS_File_upload extends PHS_Registry
 {
     //! /descr Class was initialised successfully
     const ERR_OK = 0;
@@ -42,7 +42,7 @@ class PHS_file_upload extends PHS_Registry
     private $copy_result;
 
     /**
-     * PHS_file_upload constructor.
+     * PHS_File_upload constructor.
      *
      * @param bool|array $params
      */
@@ -128,8 +128,8 @@ class PHS_file_upload extends PHS_Registry
         $extra['timeout'] = (int)$extra['timeout'];
         $extra['buffer_size'] = (int)$extra['buffer_size'];
 
-        $url_info_arr = PHS_utils::myparse_url( $source_arr['url_file'] );
-        $url_file_arr = PHS_utils::mypathinfo( $url_info_arr['path'] );
+        $url_info_arr = PHS_Utils::myparse_url( $source_arr['url_file'] );
+        $url_file_arr = PHS_Utils::mypathinfo( $url_info_arr['path'] );
 
         if( empty( $url_info_arr ) or empty( $url_info_arr['scheme'] ) or empty( $url_info_arr['host'] ) )
         {
@@ -143,7 +143,7 @@ class PHS_file_upload extends PHS_Registry
 
         if( !@file_exists( $extra['location'] ) )
         {
-            if( !PHS_utils::mkdir_tree( $extra['location'] ) )
+            if( !PHS_Utils::mkdir_tree( $extra['location'] ) )
             {
                 $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot create directory.' ) );
                 $this->_update_copy_result( array(
@@ -168,7 +168,7 @@ class PHS_file_upload extends PHS_Registry
         if( $local_filename === '' )
             $local_filename = $url_file_arr['filename'];
 
-        $file_name_ext = PHS_utils::mypathinfo( $local_filename );
+        $file_name_ext = PHS_Utils::mypathinfo( $local_filename );
 
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
         and !in_array( strtolower( $url_file_arr['extension'] ), $extra['extensions'], true ) )
@@ -362,11 +362,11 @@ class PHS_file_upload extends PHS_Registry
             return false;
         }
 
-        $path_file_arr = PHS_utils::mypathinfo( $source_arr['local_file'] );
+        $path_file_arr = PHS_Utils::mypathinfo( $source_arr['local_file'] );
 
         if( !@file_exists( $extra['location'] ) )
         {
-            if( !PHS_utils::mkdir_tree( $extra['location'] ) )
+            if( !PHS_Utils::mkdir_tree( $extra['location'] ) )
             {
                 $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot create directory.' ) );
                 $this->_update_copy_result( array(
@@ -391,7 +391,7 @@ class PHS_file_upload extends PHS_Registry
         if( $local_filename === '' )
             $local_filename = $path_file_arr['filename'];
 
-        $file_name_ext = PHS_utils::mypathinfo( $local_filename );
+        $file_name_ext = PHS_Utils::mypathinfo( $local_filename );
 
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] ) and !in_array( strtolower( $path_file_arr['extension'] ), $extra['extensions'] ) )
         {
@@ -547,7 +547,7 @@ class PHS_file_upload extends PHS_Registry
 
         if( !@file_exists( $extra['location'] ) )
         {
-            if( !PHS_utils::mkdir_tree( $extra['location'] ) )
+            if( !PHS_Utils::mkdir_tree( $extra['location'] ) )
             {
                 $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot create directory.' ) );
                 $this->_update_copy_result( array(
@@ -573,8 +573,8 @@ class PHS_file_upload extends PHS_Registry
          or $local_filename === '' )
             $local_filename = $finfo['name'];
 
-        $file_name_ext = PHS_utils::mypathinfo( $local_filename );
-        $finfo_arr = PHS_utils::mypathinfo( $finfo['name'] );
+        $file_name_ext = PHS_Utils::mypathinfo( $local_filename );
+        $finfo_arr = PHS_Utils::mypathinfo( $finfo['name'] );
 
         if( !empty( $extra['extensions'] ) and is_array( $extra['extensions'] )
         and !in_array( strtolower( $finfo_arr['extension'] ), $extra['extensions'], true ) )
@@ -670,7 +670,7 @@ class PHS_file_upload extends PHS_Registry
         if( empty( $extra['file_mode'] ) )
             $extra['file_mode'] = 0775;
 
-        $destination_details = PHS_utils::mypathinfo( $destination_file );
+        $destination_details = PHS_Utils::mypathinfo( $destination_file );
 
         $destination_arr = array();
         $destination_arr['local'] = array();
@@ -960,7 +960,7 @@ class PHS_file_upload extends PHS_Registry
             $params['local']['path'] = substr( $params['local']['path'], 0, -1 );
 
         $params['local']['full_file'] = $params['local']['path'].'/'.$params['local']['file'];
-        $params['local']['path_arr'] = PHS_utils::mypathinfo( $params['local']['full_file'] );
+        $params['local']['path_arr'] = PHS_Utils::mypathinfo( $params['local']['full_file'] );
 
         if( empty( $params['local']['file_prefix'] ) )
             $params['local']['file_prefix'] = $def_params['local']['file_prefix'];
@@ -1101,7 +1101,7 @@ class PHS_file_upload extends PHS_Registry
         }
 
         if( !@file_exists( $destination_arr['local']['path'] )
-        and !PHS_utils::mkdir_tree( $destination_arr['local']['path'], array( 'dir_mode' => $destination_arr['local']['dir_mode'] ) ) )
+        and !PHS_Utils::mkdir_tree( $destination_arr['local']['path'], array( 'dir_mode' => $destination_arr['local']['dir_mode'] ) ) )
         {
             if( !self::st_has_error() )
                 $this->set_error( self::ERR_DESTINATION_DIR, self::_t( 'Cannot create destination directory.' ) );

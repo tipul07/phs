@@ -3,7 +3,8 @@
 namespace phs\libraries;
 
 use \phs\PHS;
-use \phs\PHS_db;
+use \phs\PHS_Db;
+use phs\PHS_Maintenance;
 use \phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
@@ -268,7 +269,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         if( empty( $db_driver ) )
             $db_driver = $this->get_model_driver();
 
-        return PHS_db::default_db_connection( $db_driver );
+        return PHS_Db::default_db_connection( $db_driver );
     }
 
     /**
@@ -527,7 +528,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
-        
+
         if( !($table_definition = $this->get_table_columns_as_definition( $flow_params, $force ))
          or !is_array( $table_definition ) )
         {
@@ -535,7 +536,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t get definition for table %s.', $flow_table_name ) );
             return false;
         }
-        
+
         if( !array_key_exists( $field, $table_definition ) )
             return false;
 
@@ -943,13 +944,13 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( $field_name === self::T_DETAILS_KEY
              or $field_name === self::EXTRA_INDEXES_KEY )
                 continue;
-            
+
             if( isset( $field_details['default'] ) )
                 $data_arr[$field_name] = $field_details['default'];
             else
                 $data_arr[$field_name] = $this->_validate_field_value( 0, $field_name, $field_details );
         }
-        
+
         $hook_params = PHS_Hooks::default_model_empty_data_hook_args();
         $hook_params['data_arr'] = $data_arr;
         $hook_params['flow_params'] = $params;
@@ -1213,7 +1214,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
         $plugin_details['plugin'] = $this->instance_plugin_name();
         $plugin_details['type'] = $this->instance_type();
         $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
-        $plugin_details['settings'] = PHS_line_params::to_string( $this->get_default_settings() );
+        $plugin_details['settings'] = PHS_Line_params::to_string( $this->get_default_settings() );
         $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
         $plugin_details['version'] = $this->get_model_version();
 
@@ -1621,14 +1622,14 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             return false;
         }
 
-        PHS_Logger::logf( 'Updating model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] Updating model...' );
 
         if( !$this->custom_update( $old_version, $new_version ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom update functionality failed.' ) );
 
-            PHS_Logger::logf( '!!! Error in model custom update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom update functionality: '.$this->get_error_message() );
 
             return false;
         }
@@ -1638,7 +1639,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
 
-            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error instantiating plugins model.' );
 
             return false;
         }
@@ -1656,7 +1657,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after missing tables update functionality failed.' ) );
 
-            PHS_Logger::logf( '!!! Error in model custom after missing tables update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom after missing tables update functionality: '.$this->get_error_message() );
 
             return false;
         }
@@ -1674,7 +1675,7 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after update functionality failed.' ) );
 
-            PHS_Logger::logf( '!!! Error in model custom after update functionality. ['.$this->instance_id().']: '.$this->get_error_message(), PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom after update functionality: '.$this->get_error_message() );
 
             return false;
         }
@@ -1694,12 +1695,12 @@ abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
             else
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving model details to database.' ) );
 
-            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error updating model details in database: '.$this->get_error_message() );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Updating model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] DONE Updating model' );
 
         return $db_details['new_data'];
     }

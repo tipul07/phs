@@ -13,20 +13,20 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
     use \phs\libraries\PHS_Logger;
 
     PHS_Logger::logf( ' --- Started ajax request...', PHS_Logger::TYPE_AJAX );
 
-    if( !PHS_ajax::validate_input() )
+    if( !PHS_Ajax::validate_input() )
         exit;
 
-    if( !($run_result = PHS_ajax::run_route()) )
+    if( !($run_result = PHS_Ajax::run_route()) )
     {
         PHS_Logger::logf( 'Error running ajax request.', PHS_Logger::TYPE_AJAX );
 
-        if( PHS_ajax::st_has_error() )
-            PHS_Logger::logf( 'Error: ['.PHS_ajax::st_get_error_message().']', PHS_Logger::TYPE_AJAX );
+        if( PHS_Ajax::st_has_error() )
+            PHS_Logger::logf( 'Error: ['.PHS_Ajax::st_get_error_message().']', PHS_Logger::TYPE_AJAX );
     } elseif( ($debug_data = PHS::platform_debug_data()) )
     {
         PHS_Logger::logf( 'Ajax route ['.PHS::get_route_as_string().'] run with success: '.$debug_data['db_queries_count'].' queries, '.

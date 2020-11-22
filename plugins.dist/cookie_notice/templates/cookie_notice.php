@@ -1,7 +1,7 @@
 <?php
     /** @var \phs\system\core\views\PHS_View $this */
 
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     /** @var \phs\plugins\cookie_notice\PHS_Plugin_Cookie_notice $plugin_obj */
     if( !($plugin_obj = $this->view_var( 'plugin_obj' ))
@@ -51,6 +51,6 @@ function phs_cookie_policy_agree()
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'cookie_notice', 'a' => 'cookie_notice_ajax' ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'cookie_notice', 'a' => 'cookie_notice_ajax' ) )?>", ajax_params );
 }
 </script>

@@ -2,13 +2,13 @@
 
 namespace phs\plugins\backup\actions;
 
-use phs\libraries\PHS_utils;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
+use \phs\libraries\PHS_Utils;
 
 class PHS_Action_D extends PHS_Action
 {
@@ -58,9 +58,9 @@ class PHS_Action_D extends PHS_Action
             return self::default_action_result();
         }
 
-        $inline = PHS_params::_g( 'inline', PHS_params::T_INT );
+        $inline = PHS_Params::_g( 'inline', PHS_Params::T_INT );
 
-        if( !($brfid = PHS_params::_g( 'brfid', PHS_params::T_INT ))
+        if( !($brfid = PHS_Params::_g( 'brfid', PHS_Params::T_INT ))
          or !($brf_flow_params = $results_model->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
          or !($backup_file_arr = $results_model->get_details( $brfid, $brf_flow_params )) )
         {
@@ -91,7 +91,7 @@ class PHS_Action_D extends PHS_Action
         @header( 'Pragma: public' );
         @header( 'Content-Length: ' . $backup_file_arr['size'] );
 
-        if( ($mime_type = PHS_utils::mimetype( $backup_file_arr['file'] )) )
+        if( ($mime_type = PHS_Utils::mimetype( $backup_file_arr['file'] )) )
             @header( 'Content-Type: '.$mime_type );
 
         @readfile( $backup_file_arr['file'] );

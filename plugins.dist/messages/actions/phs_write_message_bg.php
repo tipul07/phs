@@ -4,7 +4,7 @@ namespace phs\plugins\messages\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Action;
 
@@ -20,7 +20,7 @@ class PHS_Action_Write_message_bg extends PHS_Action
     public function execute()
     {
         /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
-        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+        if( !($params = PHS_Bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['mid'] )
          or !($messages_model = PHS::load_model( 'messages', 'messages' ))

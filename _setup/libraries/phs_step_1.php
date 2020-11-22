@@ -2,7 +2,7 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Step_1 extends PHS_Step
 {
@@ -51,17 +51,17 @@ class PHS_Step_1 extends PHS_Step
         if( empty( $data ) or !is_array( $data ) )
             $data = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $phs_path = PHS_params::_p( 'phs_path', PHS_params::T_NOHTML );
-        $phs_domain = PHS_params::_p( 'phs_domain', PHS_params::T_NOHTML );
-        $phs_ssl_domain = PHS_params::_p( 'phs_ssl_domain', PHS_params::T_NOHTML );
-        $phs_cookie_domain = PHS_params::_p( 'phs_cookie_domain', PHS_params::T_NOHTML );
-        $phs_session_name = PHS_params::_p( 'phs_session_name', PHS_params::T_NOHTML );
-        $phs_port = PHS_params::_p( 'phs_port', PHS_params::T_NOHTML );
-        $phs_ssl_port = PHS_params::_p( 'phs_ssl_port', PHS_params::T_NOHTML );
-        $phs_domain_path = PHS_params::_p( 'phs_domain_path', PHS_params::T_NOHTML );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $phs_path = PHS_Params::_p( 'phs_path', PHS_Params::T_NOHTML );
+        $phs_domain = PHS_Params::_p( 'phs_domain', PHS_Params::T_NOHTML );
+        $phs_ssl_domain = PHS_Params::_p( 'phs_ssl_domain', PHS_Params::T_NOHTML );
+        $phs_cookie_domain = PHS_Params::_p( 'phs_cookie_domain', PHS_Params::T_NOHTML );
+        $phs_session_name = PHS_Params::_p( 'phs_session_name', PHS_Params::T_NOHTML );
+        $phs_port = PHS_Params::_p( 'phs_port', PHS_Params::T_NOHTML );
+        $phs_ssl_port = PHS_Params::_p( 'phs_ssl_port', PHS_Params::T_NOHTML );
+        $phs_domain_path = PHS_Params::_p( 'phs_domain_path', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
 
         if( !empty( $do_submit ) )
         {

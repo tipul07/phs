@@ -484,7 +484,7 @@ class PHS_Agent extends PHS_Registry
 
         $pub_key = microtime( true );
 
-        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.PHS_crypt::quick_encode( $job_arr['id'].'::'.(!empty( $extra['force_run'] )?'1':'0').'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
+        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.PHS_Crypt::quick_encode( $job_arr['id'].'::'.(!empty( $extra['force_run'] )?'1':'0').'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
 
         if( stripos( PHP_OS, 'win' ) === 0 )
         {
@@ -637,7 +637,7 @@ class PHS_Agent extends PHS_Registry
         $pub_key = $parts_arr[1];
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if( !($decrypted_data = PHS_crypt::quick_decode( $crypted_data ))
+        if( !($decrypted_data = PHS_Crypt::quick_decode( $crypted_data ))
          || !($decrypted_parts = explode( '::', $decrypted_data, 3 ))
          || empty( $decrypted_parts[0] ) || !isset( $decrypted_parts[1] ) || empty( $decrypted_parts[2] )
          || !($job_id = (int)$decrypted_parts[0])

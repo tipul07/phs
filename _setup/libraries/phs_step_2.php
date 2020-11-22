@@ -2,8 +2,8 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
-use \phs\PHS_db;
+use \phs\libraries\PHS_Params;
+use \phs\PHS_Db;
 
 class PHS_Step_2 extends PHS_Step
 {
@@ -29,7 +29,7 @@ class PHS_Step_2 extends PHS_Step
 
         // Define special connection with provided settings...
         $mysql_settings = array();
-        $mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
+        $mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
         $mysql_settings['host'] = PHS_DB_HOSTNAME;
         $mysql_settings['user'] = PHS_DB_USERNAME;
         $mysql_settings['password'] = PHS_DB_PASSWORD;
@@ -57,7 +57,7 @@ class PHS_Step_2 extends PHS_Step
             return false;
         }
 
-        PHS_db::default_db_connection( PHS_db::DB_DRIVER_MYSQLI, PHS_SETUP_DB_CONNECTION );
+        PHS_Db::default_db_connection( PHS_Db::DB_DRIVER_MYSQLI, PHS_SETUP_DB_CONNECTION );
 
         return true;
     }
@@ -67,7 +67,7 @@ class PHS_Step_2 extends PHS_Step
         if( empty( $connection_name ) )
             $connection_name = 'phs_tmp_db_connection_'.microtime( true );
 
-        if( !($settings_arr = PHS_db::add_db_connection( $connection_name, $db_settings )) )
+        if( !($settings_arr = PHS_Db::add_db_connection( $connection_name, $db_settings )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_CREATE_CONNECTION );
@@ -121,20 +121,20 @@ class PHS_Step_2 extends PHS_Step
         if( empty( $data ) or !is_array( $data ) )
             $data = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $phs_db_hostname = PHS_params::_p( 'phs_db_hostname', PHS_params::T_NOHTML );
-        $phs_db_username = PHS_params::_p( 'phs_db_username', PHS_params::T_NOHTML );
-        $phs_db_password = PHS_params::_p( 'phs_db_password', PHS_params::T_NOHTML );
-        $phs_db_database = PHS_params::_p( 'phs_db_database', PHS_params::T_NOHTML );
-        $phs_db_prefix = PHS_params::_p( 'phs_db_prefix', PHS_params::T_NOHTML );
-        $phs_db_port = PHS_params::_p( 'phs_db_port', PHS_params::T_NOHTML );
-        $phs_db_charset = PHS_params::_p( 'phs_db_charset', PHS_params::T_NOHTML );
-        if( !($phs_db_use_pconnect = PHS_params::_p( 'phs_db_use_pconnect', PHS_params::T_BOOL )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $phs_db_hostname = PHS_Params::_p( 'phs_db_hostname', PHS_Params::T_NOHTML );
+        $phs_db_username = PHS_Params::_p( 'phs_db_username', PHS_Params::T_NOHTML );
+        $phs_db_password = PHS_Params::_p( 'phs_db_password', PHS_Params::T_NOHTML );
+        $phs_db_database = PHS_Params::_p( 'phs_db_database', PHS_Params::T_NOHTML );
+        $phs_db_prefix = PHS_Params::_p( 'phs_db_prefix', PHS_Params::T_NOHTML );
+        $phs_db_port = PHS_Params::_p( 'phs_db_port', PHS_Params::T_NOHTML );
+        $phs_db_charset = PHS_Params::_p( 'phs_db_charset', PHS_Params::T_NOHTML );
+        if( !($phs_db_use_pconnect = PHS_Params::_p( 'phs_db_use_pconnect', PHS_Params::T_BOOL )) )
             $phs_db_use_pconnect = false;
-        $phs_db_driver_settings = PHS_params::_p( 'phs_db_driver_settings', PHS_params::T_NOHTML );
+        $phs_db_driver_settings = PHS_Params::_p( 'phs_db_driver_settings', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
-        $do_test_connection = PHS_params::_p( 'do_test_connection', PHS_params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
+        $do_test_connection = PHS_Params::_p( 'do_test_connection', PHS_Params::T_NOHTML );
 
         if( !empty( $do_test_connection ) or !empty( $do_submit ) )
         {
@@ -170,7 +170,7 @@ class PHS_Step_2 extends PHS_Step
         {
             // Define special connection with provided settings...
             $mysql_settings = array();
-            $mysql_settings['driver'] = PHS_db::DB_DRIVER_MYSQLI;
+            $mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
             $mysql_settings['host'] = $phs_db_hostname;
             $mysql_settings['user'] = $phs_db_username;
             $mysql_settings['password'] = $phs_db_password;

@@ -9,7 +9,7 @@ use \phs\PHS;
 use \phs\PHS_Session;
 use \phs\libraries\PHS_Language;
 use \phs\libraries\PHS_Hooks;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 $hook_args = PHS_Hooks::default_language_definition_hook_args();
 $hook_args['languages_arr'] = PHS_Language::get_defined_languages();
@@ -35,7 +35,7 @@ and ($session_lang = PHS_Language::valid_language( $session_lang )) )
     PHS_Language::set_current_language( $session_lang );
 }
 
-if( ($url_lang = PHS_params::_gp( PHS_Language::LANG_URL_PARAMETER ))
+if( ($url_lang = PHS_Params::_gp( PHS_Language::LANG_URL_PARAMETER ))
 and ($url_lang = PHS_Language::valid_language( $url_lang )) )
 {
     $request_lang_set = $url_lang;

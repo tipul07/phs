@@ -3,11 +3,11 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 use phs\PHS_Agent;
 
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
@@ -102,9 +102,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             'listing_title' => $this->_pt( 'Agent Jobs' ),
         ];
 
-        if( PHS_params::_g( 'unknown_job', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_job', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid agent job or agent job was not found in database.' ) );
-        if( PHS_params::_g( 'job_added', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'job_added', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Agent job details saved in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
@@ -147,7 +147,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'var_name' => 'fhandler',
                 'record_field' => 'handler',
                 'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ],
             [
@@ -156,7 +156,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'var_name' => 'froute',
                 'record_field' => 'route',
                 'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ],
             [
@@ -165,14 +165,14 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'var_name' => 'fplugin',
                 'record_field' => 'plugin',
                 'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ],
             [
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $statuses_arr,
             ],
@@ -254,7 +254,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key' => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             ];
         }
 
@@ -735,7 +735,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         if( empty( $params['record']['timed_seconds'] ) )
             $params['record']['timed_seconds'] = 0;
 
-        $runs_every_x_str = $this->_pt( 'Runs every %s', PHS_utils::parse_period( $params['record']['timed_seconds'] ) );
+        $runs_every_x_str = $this->_pt( 'Runs every %s', PHS_Utils::parse_period( $params['record']['timed_seconds'] ) );
 
         if( !empty( $params['request_render_type'] ) )
         {

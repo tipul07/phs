@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Action_System_logs extends PHS_Action
 {
@@ -43,11 +43,11 @@ class PHS_Action_System_logs extends PHS_Action
         if( !($logging_files_arr = PHS_Logger::get_logging_files()) )
             $logging_files_arr = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $log_file = PHS_params::_pg( 'log_file', PHS_params::T_NOHTML );
-        $log_lines = PHS_params::_pg( 'log_lines', PHS_params::T_INT );
-        $search_term = PHS_params::_pg( 'search_term', PHS_params::T_NOHTML );
-        $command = PHS_params::_pg( 'command', PHS_params::T_NOHTML );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $log_file = PHS_Params::_pg( 'log_file', PHS_Params::T_NOHTML );
+        $log_lines = PHS_Params::_pg( 'log_lines', PHS_Params::T_INT );
+        $search_term = PHS_Params::_pg( 'search_term', PHS_Params::T_NOHTML );
+        $command = PHS_Params::_pg( 'command', PHS_Params::T_NOHTML );
 
         if( empty( $log_lines ) or $log_lines < 0 )
             $log_lines = 20;

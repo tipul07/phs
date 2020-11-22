@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-interface PHS_db_interface
+interface PHS_Db_interface
 {
     // Getter and setter for connection settings
     public function connection_settings( $connection_name, $mysql_settings = false );

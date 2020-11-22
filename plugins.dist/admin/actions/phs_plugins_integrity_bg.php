@@ -4,7 +4,7 @@ namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 
@@ -25,7 +25,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
             'instance_details' => false,
         );
 
-        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+        if( !($params = PHS_Bg_jobs::get_current_job_parameters())
          or empty( $params['p'] ) )
         {
             $action_result['buffer'] = $this->_pt( 'Plugin name not provided for validity check' );

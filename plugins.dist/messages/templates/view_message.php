@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
     use \phs\libraries\PHS_Roles;
 
     /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
@@ -185,6 +185,6 @@ function _load_messages( html_container, location, offset )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'append_messages' ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'messages', 'a' => 'append_messages' ) )?>", ajax_params );
 }
 </script>

@@ -3,7 +3,7 @@
 namespace phs\tests\phs\contexts;
 
 use \phs\PHS;
-use \phs\PHS_cli;
+use \phs\PHS_Cli;
 use \phs\PHS_Scope;
 use PHPUnit\Framework\Assert;
 use Behat\Behat\Tester\Exception\PendingException;
@@ -28,7 +28,7 @@ class PHSCommonContext extends PHSAbstractContext
      */
     public function scriptIsRunningInCLIMode()
     {
-        return (PHS_cli::running_in_cli()?true:false);
+        return (PHS_Cli::running_in_cli()?true:false);
     }
 
     /**

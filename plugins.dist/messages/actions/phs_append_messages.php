@@ -5,7 +5,7 @@ namespace phs\plugins\messages\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -73,10 +73,10 @@ class PHS_Action_Append_messages extends PHS_Action
             return self::default_action_result();
         }
 
-        $muid = PHS_params::_p( 'muid', PHS_params::T_INT );
-        $max_messages = PHS_params::_p( 'max_messages', PHS_params::T_INT );
-        $offset = PHS_params::_p( 'offset', PHS_params::T_INT );
-        $location = PHS_params::_p( 'location', PHS_params::T_NOHTML );
+        $muid = PHS_Params::_p( 'muid', PHS_Params::T_INT );
+        $max_messages = PHS_Params::_p( 'max_messages', PHS_Params::T_INT );
+        $offset = PHS_Params::_p( 'offset', PHS_Params::T_INT );
+        $location = PHS_Params::_p( 'location', PHS_Params::T_NOHTML );
 
         if( empty( $location )
          or !in_array( $location, array( 'before', 'after',  ) ) )

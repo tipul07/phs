@@ -3,10 +3,10 @@
 namespace phs\plugins\backup\actions;
 
 use \phs\PHS;
-use \phs\PHS_ajax;
+use \phs\PHS_Ajax;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -76,13 +76,13 @@ class PHS_Action_Result_files extends PHS_Action
 
         $current_scope = PHS_Scope::current_scope();
 
-        if( PHS_params::_gp( 'file_deleted', PHS_params::T_INT ) )
+        if( PHS_Params::_gp( 'file_deleted', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Backup file deleted with success.' ) );
 
-        $result_id = PHS_params::_gp( 'result_id', PHS_params::T_INT );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
-        $action = PHS_params::_gp( 'action', PHS_params::T_NOHTML );
-        $brfid = PHS_params::_gp( 'brfid', PHS_params::T_INT );
+        $result_id = PHS_Params::_gp( 'result_id', PHS_Params::T_INT );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
+        $action = PHS_Params::_gp( 'action', PHS_Params::T_NOHTML );
+        $brfid = PHS_Params::_gp( 'brfid', PHS_Params::T_INT );
 
         if( empty( $result_id )
          or !($result_arr = $results_model->get_details( $result_id ))
@@ -140,7 +140,7 @@ class PHS_Action_Result_files extends PHS_Action
                             $url_params = array( 'result_id' => $result_arr['id'], 'back_page' => $back_page, 'file_deleted' => 1 );
 
                             if( $current_scope == PHS_Scope::SCOPE_AJAX )
-                                $action_result['redirect_to_url'] = PHS_ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ), $url_params );
+                                $action_result['redirect_to_url'] = PHS_Ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ), $url_params );
                             else
                                 $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'backup', 'a' => 'result_files' ), $url_params );
                         } else

@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Utils;
 
     if( !($current_user = PHS::user_logged_in()) )
         $current_user = false;
@@ -73,7 +73,7 @@
                     } else
                         echo $this->_pt( 'Password should pass regular expresion: %s.', $pass_regexp );
                 }
-                        
+
                 ?></small>
                 </div>
             </fieldset>

@@ -7,7 +7,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Error;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\system\core\views\PHS_View;
 use \phs\libraries\PHS_Model;
 
@@ -140,26 +140,26 @@ class PHS_Plugin_Messages extends PHS_Plugin
             'summary_template' => array(
                 'display_name' => 'Summary template',
                 'display_hint' => 'What template should be used when displaying messages summary',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'summary' ),
             ),
             'summary_limit' => array(
                 'display_name' => 'Messages sumary count',
                 'display_hint' => 'How many messages should be presented in summary. 0 to disable summary',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 5,
             ),
             'send_emails' => array(
                 'display_name' => 'Alert by emails',
                 'display_hint' => 'Alert user by email when he/she receives an internal message',
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'include_body' => array(
                 'display_name' => 'Body message in email',
                 'display_hint' => 'When sending email alert, also include body of the message in the email',
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => false,
             ),
         );

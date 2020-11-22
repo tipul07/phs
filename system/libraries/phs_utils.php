@@ -3,11 +3,11 @@
 namespace phs\libraries;
 
 /*! \file phs_utils.php
- *  \brief Contains PHS_utils class (different utility functions...)
+ *  \brief Contains PHS_Utils class (different utility functions...)
  *  \version 1.5
  */
 
-class PHS_utils extends PHS_Language
+class PHS_Utils extends PHS_Language
 {
     //! Error related to directories
     const ERR_DIRECTORY = 1;
@@ -1230,7 +1230,7 @@ class PHS_utils extends PHS_Language
         else
             $params['timeout'] = (int)$params['timeout'];
         if( empty( $params['user_agent'] ) )
-            $params['user_agent'] = 'PHS/PHS_utils v'.PHS_VERSION;
+            $params['user_agent'] = 'PHS/PHS_Utils v'.PHS_VERSION;
         if( empty( $params['extra_get_params'] ) or !is_array( $params['extra_get_params'] ) )
             $params['extra_get_params'] = array();
         // END Default CURL params...
@@ -1487,7 +1487,7 @@ class PHS_utils extends PHS_Language
      *   'gigi2' => array( '@attr1' => 1, '@attr2' => 'attr2', '#' => array( 'key1' => 1, 'key2' => 2 ) ),
      *   );
      *
-     * PHS_utils::array_to_xml( $xml_arr, array( 'root_tag' => 'root' ) );
+     * PHS_Utils::array_to_xml( $xml_arr, array( 'root_tag' => 'root' ) );
      *
      **/
     /**

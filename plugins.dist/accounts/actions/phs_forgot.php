@@ -4,10 +4,10 @@ namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Notifications;
 
@@ -67,12 +67,12 @@ class PHS_Action_Forgot extends PHS_Action
             return $action_result;
         }
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $email = PHS_params::_pg( 'email', PHS_params::T_EMAIL );
-        $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $email = PHS_Params::_pg( 'email', PHS_Params::T_EMAIL );
+        $vcode = PHS_Params::_p( 'vcode', PHS_Params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
-        if( PHS_params::_g( 'email_sent', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'email_sent', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Email with instructions sent to provided email address.' ) );
 
         if( !empty( $do_submit ) )
@@ -95,7 +95,7 @@ class PHS_Action_Forgot extends PHS_Action
 
             else
             {
-                if( !PHS_bg_jobs::run( array( 'p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+                if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
                 {
                     if( self::st_has_error() )
                         $error_msg = self::st_get_error_message();

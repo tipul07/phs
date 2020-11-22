@@ -86,8 +86,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         return array(
             // Used to know how to render this field in plugin settings
-            'type' => PHS_params::T_ASIS,
-            // When we validate the input is there extra parameters to send to PHS_params class?
+            'type' => PHS_Params::T_ASIS,
+            // When we validate the input is there extra parameters to send to PHS_Params class?
             'extra_type' => false,
             // If type key doesn't define well how this field should be rendered in plugin details use this to know how to reneder it
             // This is a string (empty string means render as default depending on type key)

@@ -3,7 +3,7 @@
 namespace phs\plugins\foobar\models;
 
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Model_Foobar extends PHS_Model
 {
@@ -39,20 +39,20 @@ class PHS_Model_Foobar extends PHS_Model
             'minutes_to_stall' => array(
                 'display_name' => 'Minutes to stall',
                 'display_hint' => 'After how many minutes should we consider a job as stalling',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 15,
             ),
             'another_foobar_var' => array(
                 'display_name' => 'Just a foobar value',
                 'display_hint' => 'Bla bla...',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 2,
                 'editable' => false,
             ),
             'check_update' => array(
                 'display_name' => 'Just a foobar value',
                 'display_hint' => 'Bla bla...',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 2,
                 'editable' => false,
             ),

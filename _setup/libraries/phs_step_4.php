@@ -2,7 +2,7 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Step_4 extends PHS_Step
 {
@@ -72,12 +72,12 @@ class PHS_Step_4 extends PHS_Step
         if( empty( $data ) or !is_array( $data ) )
             $data = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $do_generate_keys = PHS_params::_p( 'do_generate_keys', PHS_params::T_INT );
-        $phs_crypt_key = PHS_params::_p( 'phs_crypt_key', PHS_params::T_ASIS );
-        $phs_crypt_internal_keys_arr = PHS_params::_p( 'phs_crypt_internal_keys_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $do_generate_keys = PHS_Params::_p( 'do_generate_keys', PHS_Params::T_INT );
+        $phs_crypt_key = PHS_Params::_p( 'phs_crypt_key', PHS_Params::T_ASIS );
+        $phs_crypt_internal_keys_arr = PHS_Params::_p( 'phs_crypt_internal_keys_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML ) );
 
-        $do_submit = PHS_params::_p( 'do_submit', PHS_params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
 
         if( empty( $phs_crypt_internal_keys_arr )
          or !is_array( $phs_crypt_internal_keys_arr )

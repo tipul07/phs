@@ -3,13 +3,13 @@
 namespace phs;
 
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Registry;
-use \phs\PHS_crypt;
+use \phs\PHS_Crypt;
 
 //! @version 1.00
 
-class PHS_ajax extends PHS_Registry
+class PHS_Ajax extends PHS_Registry
 {
     const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004;
 
@@ -39,7 +39,7 @@ class PHS_ajax extends PHS_Registry
     public static function url( $route_arr = false, $args = false, $extra = false )
     {
         self::st_reset_error();
-        
+
         if( empty( $route_arr ) or !is_array( $route_arr ) )
             $route_arr = array();
 
@@ -52,7 +52,7 @@ class PHS_ajax extends PHS_Registry
         $args = self::get_ajax_validation_params( $args );
 
         $extra['for_scope'] = PHS_Scope::SCOPE_AJAX;
-        
+
         return PHS::url( $route_arr, $args, $extra );
     }
 
@@ -62,7 +62,7 @@ class PHS_ajax extends PHS_Registry
             $args = array();
 
         $pub_key = time() - self::TIME_OFFSET;
-        $check_sum = md5( $pub_key.':'.PHS_crypt::crypting_key() );
+        $check_sum = md5( $pub_key.':'.PHS_Crypt::crypting_key() );
 
         $args[self::PARAM_PUB_KEY] = $pub_key;
         $args[self::PARAM_CHECK_SUM] = $check_sum;
@@ -72,15 +72,15 @@ class PHS_ajax extends PHS_Registry
 
     public static function validate_input()
     {
-        if( !($pub_key = PHS_params::_g( self::PARAM_PUB_KEY, PHS_params::T_INT ))
-         or !($check_sum = PHS_params::_g( self::PARAM_CHECK_SUM, PHS_params::T_ASIS )) )
+        if( !($pub_key = PHS_Params::_g( self::PARAM_PUB_KEY, PHS_Params::T_INT ))
+         or !($check_sum = PHS_Params::_g( self::PARAM_CHECK_SUM, PHS_Params::T_ASIS )) )
         {
             PHS_Logger::logf( 'Required parameters not found.', PHS_Logger::TYPE_AJAX );
             return false;
         }
 
-        $computed_checksum = md5( $pub_key.':'.PHS_crypt::crypting_key() );
-        
+        $computed_checksum = md5( $pub_key.':'.PHS_Crypt::crypting_key() );
+
         $pub_key += self::TIME_OFFSET;
 
         if( $computed_checksum != $check_sum

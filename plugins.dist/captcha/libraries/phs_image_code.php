@@ -6,7 +6,7 @@ use \phs\libraries\PHS_Library;
 
 //! /version 1.53
 
-class PHS_image_code extends PHS_Library
+class PHS_Image_code extends PHS_Library
 {
     const ERR_NOGD = 1, ERR_NOIMG = 2;
 

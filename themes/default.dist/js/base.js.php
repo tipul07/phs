@@ -2,6 +2,7 @@
 
     @header( 'Content-type: text/javascript' );
 
+    define( 'PHS_PREVENT_SESSION', true );
     include( '../../../main.php' );
 
     use \phs\PHS;
@@ -14,12 +15,12 @@ function dialog_from_container( container, o )
         container = '';
     if( typeof o == 'undefined' )
         o = {};
-    
+
     if( PHS_JSEN )
     {
         var dialog_options = { suffix: 'd_container', source_obj: container, url: null,
             width: 800, height: 600, close_outside_click: false, resizable:true, title: '...' };
-            
+
             var options = $.extend( dialog_options, o );
 
         PHS_JSEN.createAjaxDialog( options );
@@ -69,7 +70,7 @@ function show_submit_protection( msg, extr_msg )
         $protection_container_obj.appendTo('body');
         $protection_container_obj.show();
         //$protection_container_obj.css({height: document.getElementsByTagName('html')[0].scrollHeight}); //this is done by CSS
-    }    
+    }
 }
 
 function close_dialog( suffix )

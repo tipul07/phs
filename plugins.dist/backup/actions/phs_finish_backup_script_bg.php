@@ -4,7 +4,7 @@ namespace phs\plugins\backup\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Logger;
 
@@ -25,7 +25,7 @@ class PHS_Action_Finish_backup_script_bg extends PHS_Action
         }
 
         /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
-        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+        if( !($params = PHS_Bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['result_id'] )
          or !($results_model = PHS::load_model( 'results', 'backup' ))

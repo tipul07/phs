@@ -3,8 +3,8 @@
 namespace phs\plugins\backup\actions;
 
 use \phs\PHS;
-use \phs\PHS_ajax;
-use \phs\libraries\PHS_params;
+use \phs\PHS_Ajax;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
@@ -123,7 +123,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 			'listing_title' => $this->_pt( 'Backup Results' ),
         );
 
-        if( PHS_params::_g( 'unknown_backup_result', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_backup_result', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid backup result or backup result not found in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
@@ -154,14 +154,14 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 'var_name' => 'ftitle',
                 'record_field' => '`'.$rules_table_name.'`.title',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $statuses_arr,
             ),
@@ -228,7 +228,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             );
         }
 
@@ -581,7 +581,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
                 title: "<?php echo self::_e( $this->_pt( 'Backup Result Files' ) )?>",
                 method: "get",
-                url: "<?php echo PHS_ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>",
+                url: "<?php echo PHS_Ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>",
                 url_data: { result_id: id }
            });
         }

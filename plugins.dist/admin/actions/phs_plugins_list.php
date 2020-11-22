@@ -5,7 +5,7 @@ namespace phs\plugins\admin\actions;
 use \phs\PHS;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Instantiable;
@@ -70,7 +70,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
          or !is_array( $scope_arr ) )
             $scope_arr = array();
 
-        if( PHS_params::_g( 'unknown_plugin', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_plugin', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Plugin ID is invalid or plugin was not found.' ) );
 
         $records_arr = array();
@@ -232,7 +232,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'display_hint' => $this->_pt( 'All plugins for which name contains this value' ),
                 'var_name' => 'fplugin',
                 'record_field' => 'plugin',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
@@ -240,14 +240,14 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'display_hint' => $this->_pt( 'All plugins from specified vendor' ),
                 'var_name' => 'fvendor',
                 'record_field' => 'plugin',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $plugins_statuses,
             ),

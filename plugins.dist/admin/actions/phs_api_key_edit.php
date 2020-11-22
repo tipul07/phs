@@ -5,10 +5,10 @@ namespace phs\plugins\admin\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 
 class PHS_Action_Api_key_edit extends PHS_Action
 {
@@ -46,10 +46,10 @@ class PHS_Action_Api_key_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !($api_obj = PHS_api::api_factory()) )
+        if( !($api_obj = PHS_Api::api_factory()) )
         {
-            if( !PHS_api::st_has_error() )
-                $error_msg = $this->_pt( 'Error creating API instance: %s', PHS_api::st_get_error_message() );
+            if( !PHS_Api::st_has_error() )
+                $error_msg = $this->_pt( 'Error creating API instance: %s', PHS_Api::st_get_error_message() );
             else
                 $error_msg = $this->_pt( 'Couldn\'t obtain an API instance.' );
 
@@ -71,8 +71,8 @@ class PHS_Action_Api_key_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        $aid = PHS_params::_gp( 'aid', PHS_params::T_INT );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
+        $aid = PHS_Params::_gp( 'aid', PHS_Params::T_INT );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( empty( $aid )
          or !($apikey_arr = $apikeys_model->get_details( $aid )) )
@@ -97,25 +97,25 @@ class PHS_Action_Api_key_edit extends PHS_Action
             return $action_result;
         }
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'API key details saved.' ) );
 
         if( !($api_methods_arr = $api_obj->allowed_http_methods()) )
             $api_methods_arr = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $uid = PHS_params::_p( 'uid', PHS_params::T_INT );
-        $autocomplete_uid = PHS_params::_p( 'autocomplete_uid', PHS_params::T_NOHTML );
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $api_key = PHS_params::_p( 'api_key', PHS_params::T_NOHTML );
-        $api_secret = PHS_params::_p( 'api_secret', PHS_params::T_NOHTML );
-        $allow_sw = PHS_params::_p( 'allow_sw', PHS_params::T_NUMERIC_BOOL );
-        if( !($allowed_methods = PHS_params::_p( 'allowed_methods', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ) )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $uid = PHS_Params::_p( 'uid', PHS_Params::T_INT );
+        $autocomplete_uid = PHS_Params::_p( 'autocomplete_uid', PHS_Params::T_NOHTML );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $api_key = PHS_Params::_p( 'api_key', PHS_Params::T_NOHTML );
+        $api_secret = PHS_Params::_p( 'api_secret', PHS_Params::T_NOHTML );
+        $allow_sw = PHS_Params::_p( 'allow_sw', PHS_Params::T_NUMERIC_BOOL );
+        if( !($allowed_methods = PHS_Params::_p( 'allowed_methods', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ) )) )
             $allowed_methods = array();
-        if( !($denied_methods = PHS_params::_p( 'denied_methods', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ) )) )
+        if( !($denied_methods = PHS_Params::_p( 'denied_methods', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ) )) )
             $denied_methods = array();
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
         {

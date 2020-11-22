@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Utils;
     use \phs\libraries\PHS_Roles;
 
     if( !($remember_me_session_minutes = $this->view_var( 'remember_me_session_minutes' )) )
@@ -46,9 +46,9 @@
 
             <fieldset class="fixskin">
                 <label for="do_remember"><input type="checkbox" value="1" name="do_remember" id="do_remember" rel="skin_checkbox" <?php echo $this->view_var( 'do_remember' )?> />
-                    <strong><?php echo $this->_pt( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this->_pt( ' (for %s)', PHS_utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
+                    <strong><?php echo $this->_pt( 'Remember Me' ).(!empty( $remember_me_session_minutes )?$this->_pt( ' (for %s)', PHS_Utils::parse_period( $remember_me_session_minutes * 60, array( 'only_big_part' => true ) ) ):'')?></strong></label>
                 <div class="clearfix"></div>
-                <small><?php echo $this->_pt( 'Normal sessions will expire in %s.', PHS_utils::parse_period( $this->view_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>
+                <small><?php echo $this->_pt( 'Normal sessions will expire in %s.', PHS_Utils::parse_period( $this->view_var( 'normal_session_minutes' ) * 60, array( 'only_big_part' => true ) ) )?></small>
             </fieldset>
 
             <fieldset class="login_button">

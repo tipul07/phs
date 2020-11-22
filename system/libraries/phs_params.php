@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 //! \version 1.90
 
-class PHS_params
+class PHS_Params
 {
     const ERR_OK = 0, ERR_PARAMS = 1;
 
@@ -104,7 +104,7 @@ class PHS_params
     {
         if( $val === null )
             return null;
-        
+
         if( empty( $extra ) or !is_array( $extra ) )
             $extra = array();
 

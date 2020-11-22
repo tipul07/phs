@@ -7,7 +7,7 @@ use \phs\PHS_Scope;
 use \phs\PHS_Session;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Action_Cookie_notice_ajax extends PHS_Action
 {
@@ -31,7 +31,7 @@ class PHS_Action_Cookie_notice_ajax extends PHS_Action
             return $action_result;
         }
 
-        $agree_cookies = PHS_params::_pg( 'agree_cookies', PHS_params::T_INT );
+        $agree_cookies = PHS_Params::_pg( 'agree_cookies', PHS_Params::T_INT );
 
         if( !empty( $agree_cookies )
         and $plugin_obj->accept_cookie_agreement() )

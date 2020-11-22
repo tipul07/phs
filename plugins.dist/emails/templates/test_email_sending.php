@@ -3,7 +3,7 @@
 
     if( !($default_route = $this->view_var( 'default_route' )) )
         $default_route = array();
-    /** @var \phs\plugins\emails\libraries\PHS_smtp $smtp_library */
+    /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
     if( !($smtp_library = $this->view_var( 'smtp_library' )) )
         $smtp_library = false;
     /** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */

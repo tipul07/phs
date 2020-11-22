@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
 use \phs\PHS;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
     if( !($current_user = $this->view_var( 'current_user' )) )
         $current_user = array( 'nick' => $this->_pt( 'N/A' ) );
@@ -18,7 +18,7 @@ use \phs\libraries\PHS_utils;
         <fieldset>
             <p><?php
             echo $this->_pt( 'Update URL vailable for %s.',
-                             '<strong>'.PHS_utils::parse_period( PHS::UPDATE_TOKEN_LIFETIME ).'</strong>'
+                             '<strong>'.PHS_Utils::parse_period( PHS::UPDATE_TOKEN_LIFETIME ).'</strong>'
             )?></p>
 
             <p><?php echo $this->_pt( 'NOTE: Provided URL is forced to use HTTPS, if you don\'t have HTTPS enabled, change the link to use HTTP protocol.' )?></p>

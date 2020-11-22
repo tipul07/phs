@@ -7,7 +7,7 @@ use \phs\PHS_Session;
 use \phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Plugin;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\system\core\views\PHS_View;
 
 class PHS_Plugin_Captcha extends PHS_Plugin
@@ -41,30 +41,30 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             'template' => array(
                 'display_name' => 'Captcha template',
                 'display_hint' => 'What template should be used when displaying captcha image',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'captcha' ),
             ),
             'font' => array(
                 'display_name' => 'Font used for captcha',
                 'display_hint' => 'Make sure this file exists in fonts directory in plugin',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'default' => 'default.ttf',
             ),
             'reference_code' => array(
                 'display_name' => 'Captcha private key',
                 'display_hint' => 'This acts as a private key when generating captcha codes. Once you setup plugin don\'t change this.',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '!!Captcha private KEY!!Change this default value to something else!!',
             ),
             'characters_count' => array(
                 'display_name' => 'Captcha caracters',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 5,
             ),
             'image_format' => array(
                 'display_name' => 'Captcha output image format',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => self::OUTPUT_PNG,
                 'extra_style' => 'min-width: 100px;',
                 'values_arr' => $this->get_output_as_key_vals(),
@@ -72,13 +72,13 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             'default_width' => array(
                 'display_name' => 'Default captcha width',
                 'display_hint' => 'Width and height of captcha can be overridden in view',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 200,
             ),
             'default_height' => array(
                 'display_name' => 'Default captcha height',
                 'display_hint' => 'Width and height of captcha can be overridden in view',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 50,
             ),
         );
@@ -126,7 +126,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             $cimage_code = '';
 
         $library_params = array();
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_image_code';
+        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
         $library_params['init_params'] = array(
             'cnumbers' => $settings_arr['characters_count'],
             'param_code' => $cimage_code,
@@ -135,7 +135,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         );
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\captcha\libraries\PHS_image_code $img_library */
+        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
         if( !($img_library = $this->load_library( 'phs_image_code', $library_params )) )
         {
             if( !$this->has_error() )
@@ -176,7 +176,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             $cimage_code = '';
 
         $library_params = array();
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_image_code';
+        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
         $library_params['init_params'] = array(
             'cnumbers' => $settings_arr['characters_count'],
             'param_code' => $cimage_code,
@@ -184,7 +184,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         );
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\captcha\libraries\PHS_image_code $img_library */
+        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
         if( !($img_library = $this->load_library( 'phs_image_code', $library_params )) )
         {
             if( !$this->has_error() )

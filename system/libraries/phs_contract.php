@@ -174,7 +174,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
                     $recurring_items_no++;
 
-                    $inside_knti = PHS_params::set_type( $knti, $node_arr['recurring_key_type'],
+                    $inside_knti = PHS_Params::set_type( $knti, $node_arr['recurring_key_type'],
                         (!empty( $node_arr['recurring_key_type_extra'] )?$node_arr['recurring_key_type_extra']:false) );
 
                     $return_arr[$node_arr['inside_key']][$inside_knti] = $result_item;
@@ -207,7 +207,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             }
 
             // Scalar value...
-            $return_arr[$node_arr['inside_key']] = PHS_params::set_type( $outside_data[$node_arr['outside_key']], $node_arr['type'],
+            $return_arr[$node_arr['inside_key']] = PHS_Params::set_type( $outside_data[$node_arr['outside_key']], $node_arr['type'],
                     (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
         }
 
@@ -521,7 +521,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
                     $recurring_items_no++;
 
-                    $inside_knti = PHS_params::set_type( $knti, $node_arr['recurring_key_type'],
+                    $inside_knti = PHS_Params::set_type( $knti, $node_arr['recurring_key_type'],
                         (!empty( $node_arr['recurring_key_type_extra'] )?$node_arr['recurring_key_type_extra']:false) );
 
                     $return_arr[$node_arr['outside_key']][$inside_knti] = $result_item;
@@ -554,7 +554,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             }
 
             // Scalar value...
-            $return_arr[$node_arr['outside_key']] = PHS_params::set_type( $inside_data[$node_arr['inside_key']], $node_arr['type'],
+            $return_arr[$node_arr['outside_key']] = PHS_Params::set_type( $inside_data[$node_arr['inside_key']], $node_arr['type'],
                     (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
         }
 
@@ -611,8 +611,8 @@ abstract class PHS_Contract extends PHS_Instantiable
             // If not set, key which defined this node will be used
             'outside_key' => '',
             // Type of data to be exported (useful when exporting to type-oriented languages)
-            'type' => PHS_params::T_ASIS,
-            // Extra parameters used in PHS_params::set_type()
+            'type' => PHS_Params::T_ASIS,
+            // Extra parameters used in PHS_Params::set_type()
             'type_extra' => false,
             // If this is defined will be used for both default_inside and default_outside
             'default' => null,
@@ -636,8 +636,8 @@ abstract class PHS_Contract extends PHS_Instantiable
             // just define the right number of records you want returned in your contract definition
             'recurring_max_items' => 10000,
             // What type should be set on each key of recurring data
-            'recurring_key_type' => PHS_params::T_ASIS,
-            // Extra parameters used in PHS_params::set_type()
+            'recurring_key_type' => PHS_Params::T_ASIS,
+            // Extra parameters used in PHS_Params::set_type()
             'recurring_key_type_extra' => false,
 
             // Try obtaining data from a model if we are provided no data from inside source

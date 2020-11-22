@@ -14,7 +14,7 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\PHS_bg_jobs;
+    use \phs\PHS_Bg_jobs;
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Action;
 
@@ -24,7 +24,7 @@
     if( !empty( $_SERVER['argv'] ) and is_array( $_SERVER['argv'] ) and !empty( $_SERVER['argv'][1] ) )
         $input = $_SERVER['argv'][1];
 
-    if( !($parsed_input = PHS_bg_jobs::bg_validate_input( $input ))
+    if( !($parsed_input = PHS_Bg_jobs::bg_validate_input( $input ))
      or empty( $parsed_input['job_data'] ) )
     {
         PHS_Logger::logf( 'INVALID job input.', PHS_Logger::TYPE_BACKGROUND );
@@ -36,12 +36,12 @@
     $run_job_extra = array();
     $run_job_extra['bg_jobs_model'] = (!empty( $parsed_input['bg_jobs_model'] )?$parsed_input['bg_jobs_model']:false);
 
-    if( !($action_result = PHS_bg_jobs::bg_run_job( $job_arr, $run_job_extra )) )
+    if( !($action_result = PHS_Bg_jobs::bg_run_job( $job_arr, $run_job_extra )) )
     {
         PHS_Logger::logf( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
 
-        if( PHS_bg_jobs::st_has_error() )
-            PHS_Logger::logf( 'Job error: ['.PHS_bg_jobs::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND );
+        if( PHS_Bg_jobs::st_has_error() )
+            PHS_Logger::logf( 'Job error: ['.PHS_Bg_jobs::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND );
     } elseif( ($debug_data = PHS::platform_debug_data()) )
     {
         PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.$debug_data['db_queries_count'].' queries, '.

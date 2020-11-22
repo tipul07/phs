@@ -3,10 +3,10 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -60,8 +60,8 @@ class PHS_Action_Role_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        $rid = PHS_params::_gp( 'rid', PHS_params::T_INT );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
+        $rid = PHS_Params::_gp( 'rid', PHS_Params::T_INT );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( empty( $rid )
          or !($role_arr = $roles_model->get_details( $rid ))
@@ -87,15 +87,15 @@ class PHS_Action_Role_edit extends PHS_Action
             return $action_result;
         }
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Role details saved.' ) );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $name = PHS_params::_p( 'name', PHS_params::T_NOHTML );
-        $description = PHS_params::_p( 'description', PHS_params::T_NOHTML );
-        $ru_slugs = PHS_params::_p( 'ru_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML, 'trim_before' => true ) );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $name = PHS_Params::_p( 'name', PHS_Params::T_NOHTML );
+        $description = PHS_Params::_p( 'description', PHS_Params::T_NOHTML );
+        $ru_slugs = PHS_Params::_p( 'ru_slugs', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ) );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
         {

@@ -2,12 +2,12 @@
 
 namespace phs\libraries;
 
-use \phs\PHS_db;
+use \phs\PHS_Db;
 
 /**
  *  MySQL class parser for PHS suite...
  */
-abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
+abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
 {
     //! Cannot connect to server.
     const ERR_CONNECT = 1;
@@ -18,7 +18,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
 
     //! Database settings - array with connection settings (can hold one or more database connection settings).
     //! Eg. $my_settings['default']['host'] = 'localhost'; $my_settings['default']['port'] = 'XXXX'; ... etc
-    // /see PHS_db_mysql::settings()
+    // /see PHS_Db_mysql::settings()
     protected $my_settings;
 
     //! Default connection index from $my_settings array
@@ -71,7 +71,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
     {
         return array(
             // defaults to MySQLi driver...
-            'driver' => PHS_db::DB_DRIVER_MYSQLI,
+            'driver' => PHS_Db::DB_DRIVER_MYSQLI,
             'driver_settings' => array(),
             'default' => false,
         );
@@ -276,7 +276,7 @@ abstract class PHS_db_class extends PHS_Registry implements PHS_db_interface
             return false;
         }
 
-        if( !($connection_identifier = PHS_db::get_connection_identifier( $dump_params['connection_name'] ))
+        if( !($connection_identifier = PHS_Db::get_connection_identifier( $dump_params['connection_name'] ))
          or empty( $connection_identifier['identifier'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t get connection identifier for database connection.' ) );

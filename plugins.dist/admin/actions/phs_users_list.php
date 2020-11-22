@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Paginator;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
@@ -63,11 +63,11 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
-        if( PHS_params::_g( 'account_created', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'account_created', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
-        if( PHS_params::_g( 'unknown_account', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_account', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Account not found in database.' ) );
 
         $accounts_model = $this->_paginator_model;
@@ -125,8 +125,8 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'var_name' => 'fids',
                 'record_field' => 'id',
                 'record_check' => array( 'check' => 'IN', 'value' => '(%s)' ),
-                'type' => PHS_params::T_ARRAY,
-                'extra_type' => array( 'type' => PHS_params::T_INT ),
+                'type' => PHS_Params::T_ARRAY,
+                'extra_type' => array( 'type' => PHS_Params::T_INT ),
                 'default' => array(),
                 'extra_records_style' => 'vertical-align:middle;',
             ),
@@ -136,7 +136,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'var_name' => 'fnick',
                 'record_field' => 'nick',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'extra_records_style' => 'vertical-align:middle;',
             ),
@@ -146,7 +146,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'var_name' => 'femail',
                 'record_field' => 'email',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'extra_records_style' => 'vertical-align:middle;',
             ),
@@ -154,7 +154,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_name' => $this->_pt( 'Level' ),
                 'var_name' => 'flevel',
                 'record_field' => 'level',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $users_levels,
                 'extra_records_style' => 'vertical-align:middle;',
@@ -163,7 +163,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $users_statuses,
                 'extra_records_style' => 'vertical-align:middle;',
@@ -176,7 +176,7 @@ class PHS_Action_Users_list extends PHS_Action_Generic_list
                 'record_field' => 'id',
                 'checkbox_record_index_key' => array(
                     'key' => 'id',
-                    'type' => PHS_params::T_INT,
+                    'type' => PHS_Params::T_INT,
                 ),
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'min-width:50px;max-width:80px;',

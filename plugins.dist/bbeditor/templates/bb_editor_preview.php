@@ -1,7 +1,6 @@
 <?php
 
 use \phs\PHS;
-use \phs\PHS_ajax;
 
     /** @var \phs\system\core\views\PHS_View $this */
 
@@ -17,5 +16,4 @@ use \phs\PHS_ajax;
 .phs_bb_preview table { width: 100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
 .ui-dialog .ui-dialog-content { padding: 0 !important; overflow: hidden; }
 </style>
-bububububu
 <div style="height:100%; width:100%;overflow: scroll;"><?php echo $bb_text?></div>

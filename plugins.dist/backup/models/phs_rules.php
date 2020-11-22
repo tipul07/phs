@@ -3,15 +3,15 @@
 namespace phs\plugins\backup\models;
 
 use \phs\PHS;
-use phs\PHS_crypt;
-use \phs\PHS_db;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Crypt;
+use \phs\PHS_Db;
+use \phs\PHS_Bg_jobs;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_db_class;
-use \phs\libraries\PHS_utils;
-use \phs\libraries\PHS_line_params;
+use \phs\libraries\PHS_Db_class;
+use \phs\libraries\PHS_Utils;
+use \phs\libraries\PHS_Line_params;
 
 class PHS_Model_Rules extends PHS_Model
 {
@@ -627,7 +627,7 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         // If no database connection is defined, return true so we don't trigger errors
-        if( !($db_connections = PHS_db::get_db_connection())
+        if( !($db_connections = PHS_Db::get_db_connection())
          or !is_array( $db_connections ) )
         {
             PHS_Logger::logf( 'No database connections defined.', $backup_plugin::LOG_CHANNEL );
@@ -651,7 +651,7 @@ class PHS_Model_Rules extends PHS_Model
         else
             $zip_bin = 'zip';
 
-        $dump_params = PHS_db_class::default_dump_parameters();
+        $dump_params = PHS_Db_class::default_dump_parameters();
         $dump_params['zip_dump'] = $params['zip_dump'];
         $dump_params['output_dir'] = $output_dir;
         $dump_params['binaries'] = array(
@@ -1025,7 +1025,7 @@ class PHS_Model_Rules extends PHS_Model
 
         if( empty( $bg_script_commands ) or !is_array( $bg_script_commands ) )
         {
-            PHS_utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
+            PHS_Utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'No backup commands to pass to shell script.' ) );
 
@@ -1045,7 +1045,7 @@ class PHS_Model_Rules extends PHS_Model
 
         if( !($result_arr = $results_model->insert( $insert_arr )) )
         {
-            PHS_utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
+            PHS_Utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
 
             if( $results_model->has_error() )
                 $this->copy_error( $results_model );
@@ -1058,12 +1058,12 @@ class PHS_Model_Rules extends PHS_Model
         $bg_job_params = array();
         $bg_job_params['result_id'] = $result_arr['id'];
 
-        if( !($bg_job = PHS_bg_jobs::run( array( 'plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg' ),
+        if( !($bg_job = PHS_Bg_jobs::run( array( 'plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg' ),
                                $bg_job_params,
                                array( 'return_command' => true ) ))
          or empty( $bg_job['cmd'] ) )
         {
-            PHS_utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
+            PHS_Utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
 
             if( self::st_has_error() )
                 $error_msg = self::st_get_error_message();
@@ -1082,7 +1082,7 @@ class PHS_Model_Rules extends PHS_Model
         $shell_file = $run_path.'/run.sh';
         if( !$this->create_backup_script_from_commands( $result_arr['id'], $shell_file, $bg_script_commands ) )
         {
-            PHS_utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
+            PHS_Utils::rmdir_tree( $run_path, array( 'recursive' => true ) );
             $results_model->act_delete( $result_arr );
 
             if( !$this->has_error() )
@@ -1404,11 +1404,11 @@ class PHS_Model_Rules extends PHS_Model
 
         else
         {
-            if( !($rule_arr['{ftp_settings}'] = PHS_line_params::parse_string( $rule_arr['ftp_settings'] )) )
+            if( !($rule_arr['{ftp_settings}'] = PHS_Line_params::parse_string( $rule_arr['ftp_settings'] )) )
                 $rule_arr['{ftp_settings}'] = array();
 
             if( !empty( $rule_arr['{ftp_settings}']['pass'] ) )
-                $rule_arr['{ftp_settings}']['pass'] = PHS_crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] );
+                $rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] );
         }
 
         return $rule_arr;
@@ -1625,7 +1625,7 @@ class PHS_Model_Rules extends PHS_Model
                 if( !empty( $params['fields']['ftp_settings'] ) )
                 {
                     if( !is_array( $params['fields']['ftp_settings'] ) )
-                        $params['fields']['ftp_settings'] = PHS_line_params::parse_string( $params['fields']['ftp_settings'] );
+                        $params['fields']['ftp_settings'] = PHS_Line_params::parse_string( $params['fields']['ftp_settings'] );
                 }
 
                 if( empty( $params['fields']['ftp_settings'] )
@@ -1639,9 +1639,9 @@ class PHS_Model_Rules extends PHS_Model
                 if( empty( $params['fields']['ftp_settings']['pass'] ) )
                     $params['fields']['ftp_settings']['pass'] = '';
 
-                $params['fields']['ftp_settings']['pass'] = PHS_crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+                $params['fields']['ftp_settings']['pass'] = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
 
-                $params['fields']['ftp_settings'] = PHS_line_params::to_string( $params['fields']['ftp_settings'] );
+                $params['fields']['ftp_settings'] = PHS_Line_params::to_string( $params['fields']['ftp_settings'] );
                 break;
             }
         }
@@ -1827,7 +1827,7 @@ class PHS_Model_Rules extends PHS_Model
                         if( !empty( $params['fields']['ftp_settings'] ) )
                         {
                             if( !is_array( $params['fields']['ftp_settings'] ) )
-                                $params['fields']['ftp_settings'] = PHS_line_params::parse_string( $params['fields']['ftp_settings'] );
+                                $params['fields']['ftp_settings'] = PHS_Line_params::parse_string( $params['fields']['ftp_settings'] );
                         }
 
                         if( empty( $params['fields']['ftp_settings'] )
@@ -1841,9 +1841,9 @@ class PHS_Model_Rules extends PHS_Model
                         if( empty( $params['fields']['ftp_settings']['pass'] ) )
                             $params['fields']['ftp_settings']['pass'] = '';
 
-                        $params['fields']['ftp_settings']['pass'] = PHS_crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+                        $params['fields']['ftp_settings']['pass'] = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
 
-                        $params['fields']['ftp_settings'] = PHS_line_params::to_string( $params['fields']['ftp_settings'] );
+                        $params['fields']['ftp_settings'] = PHS_Line_params::to_string( $params['fields']['ftp_settings'] );
                     break;
                 }
             }

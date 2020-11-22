@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 
 class PHS_Action_Verify_email_bg extends PHS_Action
 {
@@ -27,7 +27,7 @@ class PHS_Action_Verify_email_bg extends PHS_Action
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+        if( !($params = PHS_Bg_jobs::get_current_job_parameters())
          or !is_array( $params )
          or empty( $params['uid'] )
          or !($accounts_plugin = PHS::load_plugin( $this->instance_plugin_name() ))

@@ -4,7 +4,7 @@ namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
@@ -51,8 +51,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return self::default_action_result();
         }
 
-        $pid = PHS_params::_gp( 'pid', PHS_params::T_ASIS );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
+        $pid = PHS_Params::_gp( 'pid', PHS_Params::T_ASIS );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( $pid !== PHS_Instantiable::CORE_PLUGIN
         and (!($instance_details = PHS_Instantiable::valid_instance_id( $pid ))
@@ -125,9 +125,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
             'plugin_obj' => $this->_plugin_obj,
         );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $selected_module = PHS_params::_gp( 'selected_module', PHS_params::T_NOHTML );
-        $do_submit = PHS_params::_gp( 'do_submit', PHS_params::T_NOHTML );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $selected_module = PHS_Params::_gp( 'selected_module', PHS_Params::T_NOHTML );
+        $do_submit = PHS_Params::_gp( 'do_submit', PHS_Params::T_NOHTML );
 
         $form_data = array();
         $form_data['selected_module'] = $selected_module;
@@ -364,10 +364,10 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return $field_value;
         }
 
-        $form_data[$field_name] = PHS_params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
+        $form_data[$field_name] = PHS_Params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
 
         if( !empty( $is_post )
-        and (int)$field_details['type'] === PHS_params::T_BOOL )
+        and (int)$field_details['type'] === PHS_Params::T_BOOL )
             $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
 
         if( !empty( $field_details['custom_save'] ) )

@@ -4,7 +4,7 @@ namespace phs\plugins\mobileapi\models;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Logger;
 
 class PHS_Model_Api_online extends PHS_Model
@@ -200,7 +200,7 @@ class PHS_Model_Api_online extends PHS_Model
     public function act_delete( $record_data )
     {
         $this->reset_error();
-        
+
         if( empty( $record_data )
          or !($record_arr = $this->data_to_array( $record_data, array( 'table_name' => 'mobileapi_online' ) )) )
         {
@@ -230,34 +230,34 @@ class PHS_Model_Api_online extends PHS_Model
         return array(
             'uid' => array(
                 'key' => 'account_id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'api_key' => array(
                 'key' => 'api_key',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'api_secret' => array(
                 'key' => 'api_secret',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'last_update' => array(
                 'key' => 'last_update',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             self::DEVICE_KEY => array(
                 'key' => 'device_data',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
         );
@@ -272,60 +272,60 @@ class PHS_Model_Api_online extends PHS_Model
         return array(
             'owner_id' => array(
                 'key' => 'owner_id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'uid' => array(
                 'key' => 'account_id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'device_type' => array(
                 'key' => 'device_type',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_name' => array(
                 'key' => 'device_name',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_version' => array(
                 'key' => 'device_version',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'device_token' => array(
                 'key' => 'device_token',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'source' => array(
                 'key' => 'source',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'lat' => array(
                 'key' => 'lat',
-                'type' => PHS_params::T_FLOAT,
+                'type' => PHS_Params::T_FLOAT,
                 'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'long' => array(
                 'key' => 'long',
-                'type' => PHS_params::T_FLOAT,
+                'type' => PHS_Params::T_FLOAT,
                 'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
             ),
             'last_update' => array(
                 'key' => 'last_update',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => self::DATETIME_DB ),
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
             ),

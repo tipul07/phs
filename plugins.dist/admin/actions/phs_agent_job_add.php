@@ -4,10 +4,10 @@ namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
 use \phs\PHS_Agent;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Instantiable;
@@ -59,17 +59,17 @@ class PHS_Action_Agent_job_add extends PHS_Action
         if( !($agent_routes = PHS_Agent::get_agent_routes()) )
             $agent_routes = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $plugin = PHS_params::_p( 'plugin', PHS_params::T_NOHTML );
-        $controller = PHS_params::_p( 'controller', PHS_params::T_NOHTML );
-        $action = PHS_params::_p( 'action', PHS_params::T_NOHTML );
-        $handler = PHS_params::_p( 'handler', PHS_params::T_NOHTML );
-        $params = PHS_params::_p( 'params', PHS_params::T_ASIS );
-        $timed_seconds = PHS_params::_p( 'timed_seconds', PHS_params::T_INT );
-        $run_async = PHS_params::_p( 'run_async', PHS_params::T_BOOL );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $plugin = PHS_Params::_p( 'plugin', PHS_Params::T_NOHTML );
+        $controller = PHS_Params::_p( 'controller', PHS_Params::T_NOHTML );
+        $action = PHS_Params::_p( 'action', PHS_Params::T_NOHTML );
+        $handler = PHS_Params::_p( 'handler', PHS_Params::T_NOHTML );
+        $params = PHS_Params::_p( 'params', PHS_Params::T_ASIS );
+        $timed_seconds = PHS_Params::_p( 'timed_seconds', PHS_Params::T_INT );
+        $run_async = PHS_Params::_p( 'run_async', PHS_Params::T_BOOL );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( !empty( $do_submit ) )
         {

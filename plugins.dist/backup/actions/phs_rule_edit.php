@@ -5,7 +5,7 @@ namespace phs\plugins\backup\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -67,8 +67,8 @@ class PHS_Action_Rule_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        $rid = PHS_params::_gp( 'rid', PHS_params::T_INT );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
+        $rid = PHS_Params::_gp( 'rid', PHS_Params::T_INT );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( empty( $rid )
          or !($rule_arr = $rules_model->get_details( $rid, $r_flow_params )) )
@@ -103,30 +103,30 @@ class PHS_Action_Rule_edit extends PHS_Action
             60 => $this->_pt( '60 days' ),
         );
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Backup rule details saved.' ) );
-        if( PHS_params::_g( 'ftp_connection_success', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'ftp_connection_success', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Connected to FTP server with success.' ) );
-        if( PHS_params::_g( 'ftp_connection_failed', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'ftp_connection_failed', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Failed connecting to FTP server.' ) );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $hour = PHS_params::_p( 'hour', PHS_params::T_INT );
-        $delete_after_days = PHS_params::_p( 'delete_after_days', PHS_params::T_INT );
-        $cdelete_after_days = PHS_params::_p( 'cdelete_after_days', PHS_params::T_INT );
-        $copy_results = PHS_params::_p( 'copy_results', PHS_params::T_INT );
-        if( !($ftp_settings = PHS_params::_p( 'ftp_settings', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_ASIS ) )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $hour = PHS_Params::_p( 'hour', PHS_Params::T_INT );
+        $delete_after_days = PHS_Params::_p( 'delete_after_days', PHS_Params::T_INT );
+        $cdelete_after_days = PHS_Params::_p( 'cdelete_after_days', PHS_Params::T_INT );
+        $copy_results = PHS_Params::_p( 'copy_results', PHS_Params::T_INT );
+        if( !($ftp_settings = PHS_Params::_p( 'ftp_settings', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_ASIS ) )) )
             $ftp_settings = array();
-        if( !($target_arr = PHS_params::_p( 'target_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
+        if( !($target_arr = PHS_Params::_p( 'target_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_INT ) )) )
             $target_arr = array();
-        if( !($days_arr = PHS_params::_p( 'days_arr', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_INT ) )) )
+        if( !($days_arr = PHS_Params::_p( 'days_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_INT ) )) )
             $days_arr = array();
-        if( !($location = PHS_params::_p( 'location', PHS_params::T_NOHTML )) )
+        if( !($location = PHS_Params::_p( 'location', PHS_Params::T_NOHTML )) )
             $location = '';
 
-        $do_submit = PHS_params::_p( 'do_submit' );
-        $do_test_ftp = PHS_params::_pg( 'do_test_ftp' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
+        $do_test_ftp = PHS_Params::_pg( 'do_test_ftp' );
 
         if( !empty( $do_test_ftp ) )
             $do_submit = true;

@@ -5,15 +5,15 @@ namespace phs\tests\phs;
 include_once( PHS_CORE_DIR.'phs_cli_plugins_trait.php' );
 
 use \phs\PHS;
-use \phs\PHS_cli;
-use \phs\traits\PHS_cli_plugins_trait;
-use \phs\libraries\PHS_utils;
+use \phs\PHS_Cli;
+use \phs\traits\PHS_Cli_plugins_trait;
+use \phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Plugin;
 use \Behat\Testwork\ServiceContainer\Configuration\ConfigurationLoader;
 
-class PHSTests extends PHS_cli
+class PHSTests extends PHS_Cli
 {
-    use PHS_cli_plugins_trait;
+    use PHS_Cli_plugins_trait;
 
     const APP_NAME = 'PHSTests',
           APP_VERSION = '1.0.0',
@@ -174,28 +174,28 @@ class PHSTests extends PHS_cli
         }
 
         if( !@is_dir( $behat_dir )
-        and !PHS_utils::mkdir_tree( $behat_dir ) )
+        and !PHS_Utils::mkdir_tree( $behat_dir ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating Behat directory. Please check directory rights in tests directory.' ) );
             return false;
         }
 
         if( !@is_dir( $behat_features_dir )
-        and !PHS_utils::mkdir_tree( $behat_features_dir ) )
+        and !PHS_Utils::mkdir_tree( $behat_features_dir ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating Behat features directory. Please check directory rights in tests directory.' ) );
             return false;
         }
 
         if( !@is_dir( $behat_contexts_dir )
-        and !PHS_utils::mkdir_tree( $behat_contexts_dir ) )
+        and !PHS_Utils::mkdir_tree( $behat_contexts_dir ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating Behat contexts directory. Please check directory rights in tests directory.' ) );
             return false;
         }
 
         if( !@is_dir( $behat_config_dir )
-        and !PHS_utils::mkdir_tree( $behat_config_dir ) )
+        and !PHS_Utils::mkdir_tree( $behat_config_dir ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating Behat config directory. Please check directory rights in tests directory.' ) );
             return false;
@@ -282,7 +282,7 @@ class PHSTests extends PHS_cli
         }
 
         if( !@is_dir( $phpunit_dir )
-        and !PHS_utils::mkdir_tree( $phpunit_dir ) )
+        and !PHS_Utils::mkdir_tree( $phpunit_dir ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating PHPUnit directory. Please check directory rights in tests directory.' ) );
             return false;

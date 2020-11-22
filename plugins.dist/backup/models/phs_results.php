@@ -3,12 +3,12 @@
 namespace phs\plugins\backup\models;
 
 use \phs\PHS;
-use \phs\PHS_db;
+use \phs\PHS_Db;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_db_class;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Db_class;
+use \phs\libraries\PHS_Utils;
 
 class PHS_Model_Results extends PHS_Model
 {
@@ -223,7 +223,7 @@ class PHS_Model_Results extends PHS_Model
         if( !$this->unlink_all_result_files_for_result( $record_arr, array( 'update_result' => false ) ) )
             return false;
 
-        PHS_utils::rmdir_tree( $record_arr['run_dir'], array( 'recursive' => true ) );
+        PHS_Utils::rmdir_tree( $record_arr['run_dir'], array( 'recursive' => true ) );
 
         return $this->hard_delete( $record_arr );
     }

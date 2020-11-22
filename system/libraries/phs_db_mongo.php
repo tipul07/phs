@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-use \phs\PHS_db;
+use \phs\PHS_Db;
 
 //! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
 /**
@@ -13,7 +13,7 @@ define( 'PHS_MONGO_DEF_CONNECTION_NAME', '@def_mongo_connection@' );
 /**
  *  Mongo class for PHS suite...
  */
-class PHS_db_mongo extends PHS_db_class
+class PHS_Db_mongo extends PHS_Db_class
 {
     const DEFAULT_CONNECTION_NAME = '@def_mongo_connection@';
 
@@ -104,7 +104,7 @@ class PHS_db_mongo extends PHS_db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_db::DB_DRIVER_MONGO)
+         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_Db::DB_DRIVER_MONGO)
          or (
                 (!isset( $conn_settings['database'] ) or !isset( $conn_settings['user'] ) or !isset( $conn_settings['password'] ))
                 and

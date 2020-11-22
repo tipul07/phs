@@ -5,7 +5,7 @@ namespace phs\plugins\captcha\actions;
 use \phs\PHS_Session;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Action_Index extends PHS_Action
 {
@@ -30,7 +30,7 @@ class PHS_Action_Index extends PHS_Action
         {
             foreach( $vars_check as $var => $index )
             {
-                $var_val = PHS_params::_g( $var, PHS_params::T_INT );
+                $var_val = PHS_Params::_g( $var, PHS_Params::T_INT );
 
                 $params[$index] = $var_val;
             }
@@ -60,7 +60,7 @@ class PHS_Action_Index extends PHS_Action
             $cimage_code = '';
 
         $library_params = array();
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_image_code';
+        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
         $library_params['init_params'] = array(
             'cnumbers' => $params['characters_count'],
             'param_code' => $cimage_code,
@@ -68,7 +68,7 @@ class PHS_Action_Index extends PHS_Action
         );
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\captcha\libraries\PHS_image_code $img_library */
+        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
         if( !($img_library = $plugin_instance->load_library( 'phs_image_code', $library_params )) )
         {
             if( $plugin_instance->has_error() )

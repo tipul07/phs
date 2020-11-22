@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Model_Agent_jobs extends PHS_Model
 {
@@ -49,7 +49,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             'minutes_to_stall' => [
                 'display_name' => 'Minutes to stall',
                 'display_hint' => 'After how many minutes should we consider agent as stalling',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 15,
             ],
         ];

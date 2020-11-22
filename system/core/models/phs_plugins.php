@@ -3,11 +3,11 @@
 namespace phs\system\core\models;
 
 use \phs\PHS;
-use \phs\PHS_crypt;
+use \phs\PHS_Crypt;
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_line_params;
+use \phs\libraries\PHS_Line_params;
 use \phs\libraries\PHS_Instantiable;
-use \phs\libraries\PHS_logger;
+use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Hooks;
 
 class PHS_Model_Plugins extends PHS_Model
@@ -328,7 +328,7 @@ class PHS_Model_Plugins extends PHS_Model
         else
         {
             // parse settings in database...
-            self::$plugin_settings[$instance_id] = PHS_line_params::parse_string( $db_details['settings'] );
+            self::$plugin_settings[$instance_id] = PHS_Line_params::parse_string( $db_details['settings'] );
 
             if( !empty( $obfuscating_keys ) )
             {
@@ -339,7 +339,7 @@ class PHS_Model_Plugins extends PHS_Model
                     {
                         // In case we are in install mode and errors will get thrown
                         try {
-                            self::$plugin_settings[$instance_id][$ob_key] = PHS_crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
+                            self::$plugin_settings[$instance_id][$ob_key] = PHS_Crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
                         } catch( \Exception $e )
                         {
                         }
@@ -439,7 +439,7 @@ class PHS_Model_Plugins extends PHS_Model
         else
         {
             // parse settings in database...
-            self::$plugin_registry[$instance_id] = PHS_line_params::parse_string( $db_details['registry'] );
+            self::$plugin_registry[$instance_id] = PHS_Line_params::parse_string( $db_details['registry'] );
 
             $hook_args = PHS_Hooks::default_common_hook_args();
             $hook_args['registry_arr'] = self::$plugin_registry[$instance_id];
@@ -837,7 +837,7 @@ class PHS_Model_Plugins extends PHS_Model
         {
             if( empty( $update_params['skip_merging_old_settings'] )
             and !empty( $existing_arr ) and !empty( $existing_arr['settings'] ) )
-                $new_fields_arr['settings'] = self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['settings'] ), PHS_line_params::parse_string( $new_fields_arr['settings'] ) );
+                $new_fields_arr['settings'] = self::merge_array_assoc( PHS_Line_params::parse_string( $existing_arr['settings'] ), PHS_Line_params::parse_string( $new_fields_arr['settings'] ) );
 
             if( !empty( $obfuscating_keys ) and is_array( $obfuscating_keys ) )
             {
@@ -845,11 +845,11 @@ class PHS_Model_Plugins extends PHS_Model
                 {
                     if( array_key_exists( $ob_key, $new_fields_arr['settings'] )
                     and is_scalar( $new_fields_arr['settings'][$ob_key] ) )
-                        $new_fields_arr['settings'][$ob_key] = PHS_crypt::quick_encode( $new_fields_arr['settings'][$ob_key] );
+                        $new_fields_arr['settings'][$ob_key] = PHS_Crypt::quick_encode( $new_fields_arr['settings'][$ob_key] );
                 }
             }
 
-            $new_fields_arr['settings'] = PHS_line_params::to_string( $new_fields_arr['settings'] );
+            $new_fields_arr['settings'] = PHS_Line_params::to_string( $new_fields_arr['settings'] );
 
             PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
@@ -1027,9 +1027,9 @@ class PHS_Model_Plugins extends PHS_Model
         if( !empty( $new_fields_arr['registry'] ) )
         {
             if( !empty( $existing_arr ) and !empty( $existing_arr['registry'] ) )
-                $new_fields_arr['registry'] = self::merge_array_assoc( PHS_line_params::parse_string( $existing_arr['registry'] ), PHS_line_params::parse_string( $new_fields_arr['registry'] ) );
+                $new_fields_arr['registry'] = self::merge_array_assoc( PHS_Line_params::parse_string( $existing_arr['registry'] ), PHS_Line_params::parse_string( $new_fields_arr['registry'] ) );
 
-            $new_fields_arr['registry'] = PHS_line_params::to_string( $new_fields_arr['registry'] );
+            $new_fields_arr['registry'] = PHS_Line_params::to_string( $new_fields_arr['registry'] );
 
             $new_fields_arr['last_update'] = $cdate;
 

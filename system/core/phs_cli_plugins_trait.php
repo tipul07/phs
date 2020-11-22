@@ -10,7 +10,7 @@ use \phs\PHS;
  * @method \phs\libraries\PHS_Error::copy_error()
  * @method \phs\libraries\PHS_Language::_t()
  */
-trait PHS_cli_plugins_trait
+trait PHS_Cli_plugins_trait
 {
     /** @var \phs\system\core\models\PHS_Model_Plugins $_plugins_model */
     protected $_plugins_model = false;

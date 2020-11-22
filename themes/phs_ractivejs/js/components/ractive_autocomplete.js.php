@@ -38,6 +38,7 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             hide_component: false,
             text_is_readonly: false,
             display_show_all: false,
+            showing_all_records: false,
             input_lazyness: 500,
 
             // Data source
@@ -70,8 +71,9 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
 
     observe: {
         'text_input_value': {
-            handler( newval ) {
-                if( this.get( "text_is_readonly" ) )
+            handler( newval, oldval ) {
+                if( this.get( "text_is_readonly" )
+                 && this.get( "id_input_value" ) === 0 )
                     return;
 
                 if( newval === "" ) {
@@ -85,35 +87,55 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         }
     },
 
-    hide_filtered_items: function() {
-        this.set( "show_filtered_items", false );
+    on: {
+        // Default event when clicking show all icon. Handle "PHSAutocomplete.event_show_all_results_custom" event for custom functionality
+        // with a function which returns false to stop default behaviour when clicking "Show all" icon.
+        "event_show_all_results": function( context ) {
+
+            var showing_all_records = this.get( "showing_all_records" );
+            if( showing_all_records )
+                return;
+
+            var show_filtered_items = this.get( "show_filtered_items" );
+            if( show_filtered_items )
+                this.hide_filtered_items();
+
+            this.set( "showing_all_records", true )
+
+            this.get_items_by_term( "" );
+        }
     },
 
-    select_item: function( id, input_value ) {
+    hide_filtered_items: function() {
+        this.set( { "show_filtered_items": false, "showing_all_records": false } );
+    },
+
+    select_item: function( id, input_value, item_obj ) {
         this.set({
             "text_is_readonly": true,
             "id_input_value": id,
             "text_input_value": input_value
         });
         this.hide_filtered_items();
+
+        // Trigger select item event
+        this.fire( "event_select_item", {}, item_obj );
     },
 
     start_search: function( term ) {
+
+        this.fire( "event_start_search", term );
+
         this.start_loading_animation();
 
         this.set( "filtered_items", this.get_items_by_term( term ) );
     },
 
     stop_search: function() {
+
+        this.fire( "event_stop_search", term );
+
         this.stop_loading_animation();
-    },
-
-    do_show_all_results: function() {
-        var show_filtered_items = this.get( "show_filtered_items" );
-        if( show_filtered_items )
-            return;
-
-        this.get_items_by_term( "" );
     },
 
     get_items_by_term: function( term ) {
@@ -190,6 +212,11 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             },
             function() {
                 inner_this.stop_loading_animation();
+            }, {
+                queue_request: true,
+                queue_response_cache: true,
+                queue_response_cache_timeout: 10,
+                stack_request: true
             }
         );
     },
@@ -234,6 +261,8 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             text_is_readonly: false,
             show_filtered_items: false
         });
+
+        this.fire( "event_reset_inputs" );
     }
 });
 

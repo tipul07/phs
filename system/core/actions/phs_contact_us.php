@@ -5,7 +5,7 @@ namespace phs\system\core\actions;
 use \phs\PHS;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Error;
@@ -28,14 +28,14 @@ class PHS_Action_Contact_us extends PHS_Action
 
     public function execute()
     {
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $email = PHS_params::_pg( 'email', PHS_params::T_NOHTML );
-        $subject = PHS_params::_pg( 'subject', PHS_params::T_NOHTML );
-        $body = PHS_params::_pg( 'body', PHS_params::T_NOHTML );
-        $vcode = PHS_params::_p( 'vcode', PHS_params::T_NOHTML );
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $email = PHS_Params::_pg( 'email', PHS_Params::T_NOHTML );
+        $subject = PHS_Params::_pg( 'subject', PHS_Params::T_NOHTML );
+        $body = PHS_Params::_pg( 'body', PHS_Params::T_NOHTML );
+        $vcode = PHS_Params::_p( 'vcode', PHS_Params::T_NOHTML );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
-        $sent = PHS_params::_g( 'sent', PHS_params::T_INT );
+        $sent = PHS_Params::_g( 'sent', PHS_Params::T_INT );
 
         if( !empty( $sent ) )
             PHS_Notifications::add_success_notice( self::_t( 'Your message was succesfully sent. Thank you!' ) );
@@ -66,7 +66,7 @@ class PHS_Action_Contact_us extends PHS_Action
                 {
                     $email_addr = trim( $email_addr );
                     if( empty( $email_addr )
-                     or !PHS_params::check_type( $email_addr, PHS_params::T_EMAIL ) )
+                     or !PHS_Params::check_type( $email_addr, PHS_Params::T_EMAIL ) )
                     {
                         PHS_Notifications::add_error_notice( '['.$email_addr.'] doesn\'t seem to be an email address. Please change your PHS_CONTACT_EMAIL constant in main.php file.' );
                         continue;
@@ -83,7 +83,7 @@ class PHS_Action_Contact_us extends PHS_Action
              or (empty( $user_logged_in ) and empty( $vcode )) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide mandatory fields in the form.' ) );
 
-            elseif( !PHS_params::check_type( $email, PHS_params::T_EMAIL ) )
+            elseif( !PHS_Params::check_type( $email, PHS_Params::T_EMAIL ) )
                 PHS_Notifications::add_error_notice( self::_t( 'Please provide a valid email address.' ) );
 
             elseif( empty( $user_logged_in )

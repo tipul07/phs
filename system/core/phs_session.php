@@ -3,7 +3,7 @@
 namespace phs;
 
 use \phs\libraries\PHS_Registry;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
 final class PHS_Session extends PHS_Registry
 {
@@ -542,7 +542,7 @@ final class PHS_Session extends PHS_Registry
             return true;
 
         if( !@is_dir( $path ) )
-            PHS_utils::mkdir_tree( $path, array( 'dir_mode' => 0775 ) );
+            PHS_Utils::mkdir_tree( $path, array( 'dir_mode' => 0775 ) );
 
         return true;
     }
@@ -584,7 +584,7 @@ final class PHS_Session extends PHS_Registry
                 $sess_root = rtrim( $sess_root, '/\\' );
 
             // maybe we should create directory...
-            if( !(PHS_utils::mkdir_tree( $sess_dir, array( 'root' => $sess_root, 'dir_mode' => 0775 ) )) )
+            if( !(PHS_Utils::mkdir_tree( $sess_dir, array( 'root' => $sess_root, 'dir_mode' => 0775 ) )) )
                 return false;
         }
 
@@ -687,7 +687,7 @@ final class PHS_Session extends PHS_Registry
             {
                 foreach( $empty_dir_maybe as $check_dir => $true )
                 {
-                    PHS_utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
+                    PHS_Utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
                 }
             }
         }

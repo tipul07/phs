@@ -4,12 +4,12 @@ namespace phs;
 
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Hooks;
 
 //! @version 1.00
 
-class PHS_api extends PHS_api_base
+class PHS_Api extends PHS_Api_base
 {
     const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001;
 
@@ -17,11 +17,11 @@ class PHS_api extends PHS_api_base
     private static $_api_routes = array();
 
     // Last API instance obtained with self::api_factory()
-    /** @var bool|\phs\PHS_api_base $_last_api_obj */
+    /** @var bool|\phs\PHS_Api_base $_last_api_obj */
     private static $_last_api_obj = false;
 
     // THE API instance that should respond to current request
-    /** @var bool|\phs\PHS_api_base $_global_api_obj */
+    /** @var bool|\phs\PHS_Api_base $_global_api_obj */
     private static $_global_api_obj = false;
 
     final public static function api_factory( $init_query_params = false )
@@ -37,7 +37,7 @@ class PHS_api extends PHS_api_base
         and !empty( $hook_args['api_obj'] )
         and ($api_obj = $hook_args['api_obj']) )
         {
-            if( !($api_obj instanceof PHS_api_base) )
+            if( !($api_obj instanceof PHS_Api_base) )
             {
                 self::st_set_error( self::ERR_API_INIT, self::_t( 'Invalid API instance obtained from hook call.' ) );
                 return false;
@@ -46,7 +46,7 @@ class PHS_api extends PHS_api_base
 
         // If we don't have an instance provided by hook result, instantiate default API class
         if( empty( $api_obj )
-        and !($api_obj = new PHS_api()) )
+        and !($api_obj = new PHS_Api()) )
         {
             self::st_set_error( self::ERR_API_INIT, self::_t( 'Error obtaining API instance.' ) );
             return false;
@@ -130,7 +130,7 @@ class PHS_api extends PHS_api_base
 
             // in case this node is dynamic we should check if it's value respects the type, see if we should consider this
             // as parameter in action and where to move it (if required): in get or post
-            'type' => PHS_params::T_ASIS,
+            'type' => PHS_Params::T_ASIS,
             'extra_type' => false,
             'default' => null,
             'var_name' => '', // in case we should move this from route to _GET or _POST, how should we call this variable
@@ -165,7 +165,7 @@ class PHS_api extends PHS_api_base
             // If API route doesn't require authentication to run put this to false
             'authentication_required' => true,
             // If API route requires special API authentication you can define here what method/function to call to do the authentication
-            // Method receives as parameters an array (like PHS_api_base::default_api_authentication_callback_params()) and should return false
+            // Method receives as parameters an array (like PHS_Api_base::default_api_authentication_callback_params()) and should return false
             // in case authentication failed or it can safetly send headers back to browser and exit directly
             // !!! If authetication passes it MUST return true
             'authentication_callback' => false,
@@ -250,7 +250,7 @@ class PHS_api extends PHS_api_base
                 if( empty( $api_element['var_name'] ) )
                     return false;
 
-                if( null === ($el_value = PHS_params::set_type( $request_token, $api_element['type'], $api_element['extra_type'] )) )
+                if( null === ($el_value = PHS_Params::set_type( $request_token, $api_element['type'], $api_element['extra_type'] )) )
                     $el_value = $api_element['default'];
 
                 if( !empty( $api_element['append_to_get'] ) )
@@ -393,9 +393,9 @@ class PHS_api extends PHS_api_base
     }
 
     /**
-     * @param null|PHS_api_base $api_obj API instance to be set as request API instance
+     * @param null|PHS_Api_base $api_obj API instance to be set as request API instance
      *
-     * @return bool|PHS_api_base Return request API instance or false if none set
+     * @return bool|PHS_Api_base Return request API instance or false if none set
      */
     public static function global_api_instance( $api_obj = null )
     {
@@ -411,7 +411,7 @@ class PHS_api extends PHS_api_base
         }
 
         if( !is_object( $api_obj )
-         or !($api_obj instanceof PHS_api_base) )
+         or !($api_obj instanceof PHS_Api_base) )
         {
             self::st_set_error( self::ERR_API_INIT, self::_t( 'Invalid API instance.' ) );
             return false;

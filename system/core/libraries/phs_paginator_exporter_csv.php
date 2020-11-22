@@ -3,7 +3,7 @@
 namespace phs\system\core\libraries;
 
 use \phs\libraries\PHS_Paginator_exporter_library;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
 class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
 {
@@ -20,7 +20,7 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function record_to_buffer( $record_data )
+    public function record_to_buffer( $record_data, $params = false )
     {
         if( empty( $record_data ) or !is_array( $record_data )
          or empty( $record_data['record_arr'] ) or !is_array( $record_data['record_arr'] ) )
@@ -36,7 +36,7 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
             $this->export_registry( 'csv_format', $csv_format );
         }
 
-        if( ($csv_line = PHS_utils::csv_line( $record_data['record_arr'],
+        if( ($csv_line = PHS_Utils::csv_line( $record_data['record_arr'],
                                     $csv_format['line_delimiter'], $csv_format['column_delimiter'],
                                     $csv_format['field_enclosure'], $csv_format['enclosure_escape'] )
         ) )

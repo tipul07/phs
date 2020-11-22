@@ -3,10 +3,10 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -75,8 +75,8 @@ class PHS_Action_User_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        $uid = PHS_params::_gp( 'uid', PHS_params::T_INT );
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_ASIS );
+        $uid = PHS_Params::_gp( 'uid', PHS_Params::T_INT );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( empty( $uid )
          or !($account_arr = $accounts_model->get_details( $uid ))
@@ -110,23 +110,23 @@ class PHS_Action_User_edit extends PHS_Action
         if( !($account_details_arr = $accounts_model->get_account_details( $account_arr, array( 'populate_with_empty_data' => true ) )) )
             $account_details_arr = array();
 
-        if( PHS_params::_g( 'changes_saved', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Account details saved in database.' ) );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $nick = PHS_params::_p( 'nick', PHS_params::T_NOHTML );
-        $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
-        $pass2 = PHS_params::_p( 'pass2', PHS_params::T_ASIS );
-        $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
-        $level = PHS_params::_p( 'level', PHS_params::T_INT );
-        $account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) );
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
-        $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );
-        $phone = PHS_params::_p( 'phone', PHS_params::T_NOHTML );
-        $company = PHS_params::_p( 'company', PHS_params::T_NOHTML );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $nick = PHS_Params::_p( 'nick', PHS_Params::T_NOHTML );
+        $pass = PHS_Params::_p( 'pass', PHS_Params::T_ASIS );
+        $pass2 = PHS_Params::_p( 'pass2', PHS_Params::T_ASIS );
+        $email = PHS_Params::_p( 'email', PHS_Params::T_EMAIL );
+        $level = PHS_Params::_p( 'level', PHS_Params::T_INT );
+        $account_roles_slugs = PHS_Params::_p( 'account_roles_slugs', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML ) );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $fname = PHS_Params::_p( 'fname', PHS_Params::T_NOHTML );
+        $lname = PHS_Params::_p( 'lname', PHS_Params::T_NOHTML );
+        $phone = PHS_Params::_p( 'phone', PHS_Params::T_NOHTML );
+        $company = PHS_Params::_p( 'company', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
         {

@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-use \phs\PHS_db;
+use \phs\PHS_Db;
 
 //! \author Andy (andy [at] sqnp [dot] net)
 //! \version 2.01
@@ -16,7 +16,7 @@ define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
 /**
  *  MySQL class parser for PHS suite...
  */
-class PHS_db_mysqli extends PHS_db_class
+class PHS_Db_mysqli extends PHS_Db_class
 {
     const DEFAULT_CONNECTION_NAME = '@def_connection@';
 
@@ -119,7 +119,7 @@ class PHS_db_mysqli extends PHS_db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_db::DB_DRIVER_MYSQLI)
+         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_Db::DB_DRIVER_MYSQLI)
          or !isset( $conn_settings['database'] ) or !isset( $conn_settings['user'] ) or !isset( $conn_settings['password'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Database, user or password not pressent in settings array.' ) );

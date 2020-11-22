@@ -2,12 +2,12 @@
 
 namespace phs\plugins\backup\actions;
 
-use phs\libraries\PHS_utils;
 use \phs\PHS;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
+use \phs\libraries\PHS_Utils;
 
 /** @property \phs\plugins\backup\models\PHS_Model_Rules $_paginator_model */
 class PHS_Action_Rules_list extends PHS_Action_Generic_list
@@ -107,9 +107,9 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 			'listing_title' => $this->_pt( 'Backup Rules' ),
         );
 
-        if( PHS_params::_g( 'unknown_rule', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_rule', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid backup rule or backup rule not found in database.' ) );
-        if( PHS_params::_g( 'rule_added', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'rule_added', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Backup rule details saved in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
@@ -159,14 +159,14 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 'var_name' => 'ftitle',
                 'record_field' => 'title',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $statuses_arr,
             ),
@@ -241,7 +241,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             );
         }
 
@@ -619,7 +619,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         $delete_str = '';
         if( !empty( $params['record']['delete_after_days'] ) )
-            $delete_str = '<br/>'.$this->_pt( 'Delete after %s', PHS_utils::parse_period( $params['record']['delete_after_days'] * 86400, array( 'show_period' => PHS_utils::PERIOD_DAYS ) ) );
+            $delete_str = '<br/>'.$this->_pt( 'Delete after %s', PHS_Utils::parse_period( $params['record']['delete_after_days'] * 86400, array( 'show_period' => PHS_Utils::PERIOD_DAYS ) ) );
 
         return $days_str_arr.$hour_str.$delete_str;
     }

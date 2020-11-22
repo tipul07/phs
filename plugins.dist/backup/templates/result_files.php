@@ -3,7 +3,7 @@
 
     use \phs\PHS;
     use \phs\PHS_Scope;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
     use \phs\libraries\PHS_Notifications;
 
     $current_user = PHS::user_logged_in();
@@ -258,7 +258,7 @@ function result_file_delete_result_file( id )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'backup', 'a' => 'result_files' ) )?>", ajax_params );
 }
 
 function backup_result_file_hide_messages()

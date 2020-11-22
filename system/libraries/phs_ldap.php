@@ -627,7 +627,7 @@ class PHS_Ldap extends PHS_Registry
         $return_arr = array();
 
         if( !empty( $meta_buffer ) )
-            $return_arr = self::validate_array( PHS_line_params::parse_string( $meta_buffer ), self::default_meta_data() );
+            $return_arr = self::validate_array( PHS_Line_params::parse_string( $meta_buffer ), self::default_meta_data() );
 
         return $return_arr;
     }
@@ -714,11 +714,11 @@ class PHS_Ldap extends PHS_Registry
             $existing_meta = array();
         }
 
-        $new_meta = PHS_line_params::update_line_params( $existing_meta, $ldap_data['ldap_meta_arr'] );
+        $new_meta = PHS_Line_params::update_line_params( $existing_meta, $ldap_data['ldap_meta_arr'] );
 
         $new_meta['last_save'] = date( 'd-m-Y H:i:s' );
 
-        $new_meta_str = PHS_line_params::to_string( $new_meta );
+        $new_meta_str = PHS_Line_params::to_string( $new_meta );
 
         $retries = 5;
         while( !($fil = @fopen( $ldap_data['ldap_full_meta_file_path'], 'wt' )) and $retries > 0 )
@@ -901,7 +901,7 @@ class PHS_Ldap extends PHS_Registry
             return false;
 
         if( !empty( $existing_config ) )
-            $return_arr = PHS_line_params::parse_string( $existing_config );
+            $return_arr = PHS_Line_params::parse_string( $existing_config );
 
         $return_arr = self::validate_array( $return_arr, self::default_settings() );
 
@@ -955,7 +955,7 @@ class PHS_Ldap extends PHS_Registry
 
         $settings['config_last_save'] = date( 'd-m-Y H:i:s' );
 
-        @fwrite( $fil, PHS_line_params::to_string( $settings ) );
+        @fwrite( $fil, PHS_Line_params::to_string( $settings ) );
         @fflush( $fil );
         @fclose( $fil );
 

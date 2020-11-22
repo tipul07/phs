@@ -15,10 +15,11 @@
         }
     }
 
+    define( 'PHS_PREVENT_SESSION', true );
     include( $check_main_dir.'/main.php' );
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     if( !($view_obj = PHS::spawn_view_in_context(
         [ 'a' => 'index' ], 'index' )) )
@@ -32,10 +33,30 @@
     if( !($empty_img_url = $view_obj->get_resource_url( 'images/empty.png' )) )
         $empty_img_url = '';
 ?>
+//var PHS_RActive_AJAX_requests_count = 0;
+//var PHS_RActive_AJAX_max_requests = 30;
+//var PHS_RActive_AJAX_calls_handler = false;
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
     debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
     submit_protections_count: 0,
+
+    //onconstruct: function() {
+    //    var self = this;
+    //    PHS_RActive_AJAX_calls_handler = setTimeout( function(){ self.disable_ajax_timer( self ); }, 1000 );
+    //},
+    //
+    //ondestruct: function() {
+    //    if( PHS_RActive_AJAX_calls_handler )
+    //        clearTimeout( PHS_RActive_AJAX_calls_handler );
+    //
+    //    PHS_RActive_AJAX_calls_handler = false;
+    //},
+    //
+    //disable_ajax_timer: function( self ) {
+    //    PHS_RActive_AJAX_calls_handler = false;
+    //    PHS_RActive_AJAX_requests_count = PHS_RActive_AJAX_max_requests;
+    //},
 
     // These decorators help adding skinning on inputs (as in classic PHS default theme)
     // Chosen selects update chosen skinning when:
@@ -213,27 +234,6 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         PHS_RActive_Main_app.phs_add_success_message( msg, timeout );
     },
 
-    read_data: function ( route, data, success, failure ) {
-        if( typeof data === "undefined" )
-            data = false;
-        if( typeof success === "undefined" )
-            success = false;
-        if( typeof failure === "undefined" )
-            failure = false;
-
-        var ajax_params = {
-            cache_response: false,
-            method: "post",
-            url_data: data,
-            data_type: "json",
-
-            onsuccess: success,
-            onfailed: failure
-        };
-
-        return PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
-    },
-
     valid_default_response_from_read_data: function( response ) {
         return (typeof response !== "undefined"
             && response !== null
@@ -260,7 +260,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         return error_msg;
     },
 
-    read_html: function ( route, data, success, failure ) {
+    read_data: function ( route, data, success, failure, ajax_opts ) {
         if( typeof data === "undefined" )
             data = false;
         if( typeof success === "undefined" )
@@ -268,7 +268,30 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         if( typeof failure === "undefined" )
             failure = false;
 
-        var ajax_params = {
+        var default_ajax_params = {
+            cache_response: false,
+            method: "post",
+            url_data: data,
+            data_type: "json",
+
+            onsuccess: success,
+            onfailed: failure
+        };
+
+        var ajax_params = $.extend( {}, default_ajax_params, ajax_opts );
+
+        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
+    },
+
+    read_html: function ( route, data, success, failure, ajax_opts ) {
+        if( typeof data === "undefined" )
+            data = false;
+        if( typeof success === "undefined" )
+            success = false;
+        if( typeof failure === "undefined" )
+            failure = false;
+
+        var default_ajax_params = {
             cache_response: false,
             method: "post",
             url_data: data,
@@ -278,7 +301,9 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             onfailed: failure
         };
 
-        return PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
+        var ajax_params = $.extend( {}, default_ajax_params, ajax_opts );
+
+        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
     }
 });
 

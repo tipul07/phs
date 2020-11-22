@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
 use \phs\PHS_Scope;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 
 class PHS_Action_Account_action_bg extends PHS_Action
 {
@@ -20,7 +20,7 @@ class PHS_Action_Account_action_bg extends PHS_Action
     public function execute()
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($params = PHS_bg_jobs::get_current_job_parameters())
+        if( !($params = PHS_Bg_jobs::get_current_job_parameters())
          || !($hook_args = self::validate_array( $params, PHS_Hooks::default_account_action_hook_args() ))
          || empty( $hook_args['account_data'] )
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))

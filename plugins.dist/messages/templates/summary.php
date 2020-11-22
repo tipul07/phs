@@ -2,9 +2,9 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
+    use \phs\PHS_Ajax;
     use \phs\libraries\PHS_Hooks;
     use \phs\libraries\PHS_Roles;
-    use \phs\PHS_ajax;
 
     /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
     /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
@@ -57,7 +57,7 @@ function phs_messages_summary_delete_message( id )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'messages', 'a' => 'inbox' ) )?>", ajax_params );
 }
 </script><div id="messages-summary-popup">
 <div id="messages-summary-popup-title">

@@ -4,7 +4,7 @@ namespace phs\plugins\accounts\actions;
 
 use \phs\PHS;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\PHS_Scope;
 
@@ -47,7 +47,7 @@ class PHS_Action_Activation extends PHS_Action
             return self::default_action_result();
         }
 
-        $confirmation_param = PHS_params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_params::T_NOHTML );
+        $confirmation_param = PHS_Params::_gp( $accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML );
 
         if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param )) )
         {

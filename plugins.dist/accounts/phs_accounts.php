@@ -3,11 +3,11 @@
 namespace phs\plugins\accounts;
 
 use \phs\PHS;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 use \phs\PHS_Scope;
 use \phs\PHS_Session;
-use \phs\PHS_crypt;
-use \phs\libraries\PHS_params;
+use \phs\PHS_Crypt;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Roles;
@@ -34,42 +34,42 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return array(
             'email_mandatory' => array(
                 'display_name' => $this->_pt( 'Email mandatory at registration' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'replace_nick_with_email' => array(
                 'display_name' => $this->_pt( 'Replace nick with email' ),
                 'display_hint' => $this->_pt( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'no_nickname_only_email' => array(
                 'display_name' => $this->_pt( 'Use only email, no nickname' ),
                 'display_hint' => $this->_pt( 'Hide nickname complately and use only email as nickname.' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => false,
             ),
             'account_requires_activation' => array(
                 'display_name' => $this->_pt( 'Account requires activation' ),
                 'display_hint' => $this->_pt( 'Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'generate_pass_if_not_present' => array(
                 'display_name' => $this->_pt( 'Generate password if not present' ),
                 'display_hint' => $this->_pt( 'If, by any reasons, password is not present when creating an account autogenerate a password or return error?' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'email_unique' => array(
                 'display_name' => $this->_pt( 'Emails should be unique' ),
                 'display_hint' => $this->_pt( 'Should account creation fail if same email already exists in database?' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'min_password_length' => array(
                 'display_name' => $this->_pt( 'Minimum password length' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 8,
             ),
             // Make sure password generator method in accounts model follows this rule... (escape char is /)
@@ -77,55 +77,55 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             'password_regexp' => array(
                 'display_name' => $this->_pt( 'Password reg-exp' ),
                 'display_hint' => $this->_pt( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.' ),
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'default' => '',
             ),
             'password_regexp_explanation' => array(
                 'display_name' => $this->_pt( 'Password explanation' ),
                 'display_hint' => $this->_pt( 'Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.' ),
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'default' => '',
             ),
             'pass_salt_length' => array(
                 'display_name' => $this->_pt( 'Password salt length' ),
                 'display_hint' => $this->_pt( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 8,
             ),
             'expire_passwords_days' => array(
                 'display_name' => $this->_pt( 'Expire passwords days' ),
                 'display_hint' => $this->_pt( 'After how many days should passwords expire (0 - no expiration)' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
             ),
             'passwords_history_count' => array(
                 'display_name' => $this->_pt( 'Old passwords history' ),
                 'display_hint' => $this->_pt( 'When changing password, keep a history of older passwords and don\'t allow using an old one as the new password. (0 - no history)' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
             ),
             'block_after_expiration' => array(
                 'display_name' => $this->_pt( 'Block expired accounts time' ),
                 'display_hint' => $this->_pt( 'After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don\'t block, only alerts)' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
             ),
             'announce_pass_change' => array(
                 'display_name' => $this->_pt( 'Announce password change' ),
                 'display_hint' => $this->_pt( 'Should system send an email to account\'s email address when password changes?' ),
-                'type' => PHS_params::T_BOOL,
+                'type' => PHS_Params::T_BOOL,
                 'default' => true,
             ),
             'session_expire_minutes_remember' => array(
                 'display_name' => $this->_pt( 'Password lifetime (long) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 2880, // 2 days
             ),
             'session_expire_minutes_normal' => array(
                 'display_name' => $this->_pt( 'Password lifetime (short) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 60, // 1 hour
             ),
         );
@@ -353,7 +353,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $link_expire_seconds = time() + $params['link_expire_seconds'];
 
         $pub_key = str_replace( '.', '', microtime( true ) );
-        $confirmation_param = PHS_crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
+        $confirmation_param = PHS_Crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
 
         return array(
             'expiration_time' => $link_expire_seconds,
@@ -380,7 +380,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $pub_key = $parts_arr[1];
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($decrypted_data = PHS_crypt::quick_decode( $crypted_data ))
+        if( !($decrypted_data = PHS_Crypt::quick_decode( $crypted_data ))
          or !($decrypted_parts = explode( '::', $decrypted_data, 4 ))
          or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] ) or !isset( $decrypted_parts[2] ) or empty( $decrypted_parts[3] )
          or !($account_id = intval( $decrypted_parts[0] ))
@@ -483,7 +483,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Account doesn\'t require activation.' ) );
                     return false;
                 }
-                
+
                 if( !($account_arr = $accounts_model->activate_account_after_registration( $account_arr )) )
                 {
                     $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Failed activating account. Please try again.' ) );
@@ -650,7 +650,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         // Check if we are in API scope and we have a valid API instance...
         if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
-        and ($api_obj = PHS_api::global_api_instance()) )
+        and ($api_obj = PHS_Api::global_api_instance()) )
         {
             $online_db_details = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
 

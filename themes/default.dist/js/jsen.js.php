@@ -1,11 +1,12 @@
 <?php
 
+    define( 'PHS_PREVENT_SESSION', true );
     include( '../../../main.php' );
 
     @header( 'Content-type: text/javascript' );
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
     use \phs\libraries\PHS_Language;
 ?>
 if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
@@ -25,7 +26,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     var PHS_JSEN = {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.32,
+        version: 1.4,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -35,6 +36,22 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         dialogs_prefix: "PHS_JSENd",
 
         dialogs_options: [],
+
+        // Hash AJAX requests by route and parameters and allow a single request per hash
+        // Having a response from first request, it will be served to all other callbacks in the queue
+        ajax_queue: {},
+        // Allow only a number of simultaneous AJAX requests
+        // the rest will be added to this stack and next AJAX request in this stack will be executed once current AJAX requests are completed
+        requests_stack: [],
+        simultaneous_requests_running: 0,
+        max_simultaneous_requests_allowed: 3,
+
+        max_simultaneous_requests: function( req_no ) {
+            if( typeof req_no === "undefined" )
+                return PHS_JSEN.max_simultaneous_requests_allowed;
+
+            PHS_JSEN.max_simultaneous_requests_allowed = parseInt( req_no );
+        },
 
         keys : function( o ) {
             var keys = [];
@@ -50,12 +67,8 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         objects_are_equal: function ( object1, object2 ) {
             var obj1_empty = true, obj2_empty = true;
             if( (obj1_empty = (typeof object1 === "undefined" || object1 == null))
-             || (obj2_empty = (typeof object2 === "undefined" || object2 == null)) )
-            {
-                if( obj1_empty && obj2_empty )
-                    return true;
-
-                return false;
+             || (obj2_empty = (typeof object2 === "undefined" || object2 == null)) ) {
+                return (obj1_empty && obj2_empty);
             }
 
             const keys1 = Object.keys( object1 );
@@ -64,7 +77,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             if( keys1.length !== keys2.length )
                 return false;
 
-            for( const key of keys1 ) {
+            for( const key in keys1 ) {
                 const val1 = object1[key];
                 const val2 = object2[key];
                 const areObjects = (val1 != null && typeof val1 === "object"
@@ -123,6 +136,20 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return result;
         },
 
+        hash_string: function( str ) {
+            var hash = 0, str_len = str.length;
+            if( str_len === 0 )
+                return hash;
+
+            for( var i = 0; i < str_len; i++ ) {
+                var char = str.charCodeAt( i );
+                hash = ((hash << 5) - hash) + char;
+                //hash = hash & hash; // Convert to 32bit integer
+            }
+
+            return hash;
+        },
+
         bool_value_to_numeric: function( val ) {
             if( val )
                 return 1;
@@ -162,8 +189,8 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
          * @param message_box_container String with container ID, container JQuery object
          */
         js_messages: function( messages_arr, type, message_box_container ) {
-            if( typeof messages_arr == "undefined" || !messages_arr
-             || typeof messages_arr.length == "undefined" || !messages_arr.length )
+            if( typeof messages_arr === "undefined" || !messages_arr
+             || typeof messages_arr.length === "undefined" || !messages_arr.length )
                 return;
 
             var message_box = false;
@@ -237,8 +264,243 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }, options.autocomplete_obj ) );
         },
 
+        // Add this request in the queue
+        // private
+        remove_ajax_request_from_queue: function ( request_hash ) {
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+                return;
+
+            delete PHS_JSEN.ajax_queue[request_hash];
+        },
+
+        // Add this request in the queue
+        // private
+        add_ajax_request_to_queue: function ( request_hash, onsuccess, onfailed, queue_options ) {
+            var defaults = {
+                cache: false,
+                cache_timeout: 10
+            };
+            var options = $.extend( {}, defaults, queue_options );
+
+            var queue_item = {};
+            if( typeof PHS_JSEN.ajax_queue[request_hash] !== "undefined" ) {
+                queue_item = PHS_JSEN.ajax_queue[request_hash];
+            } else {
+                queue_item = {
+                    cache: options.cache,
+                    cache_timeout: options.cache_timeout,
+                    response_received: false,
+                    response_success: false,
+                    response_data: false,
+                    remove_from_queue_handler: false,
+                    success_callbacks: [],
+                    failed_callbacks: []
+                };
+            }
+
+            if( queue_item.remove_from_queue_handler )
+                clearTimeout( queue_item.remove_from_queue_handler );
+
+            queue_item.success_callbacks.push( onsuccess );
+            queue_item.failed_callbacks.push( onfailed );
+
+            queue_item.remove_from_queue_handler = setTimeout( function(){ PHS_JSEN.remove_ajax_request_from_queue( request_hash ); }, 1000 * options.cache_timeout );
+
+            PHS_JSEN.ajax_queue[request_hash] = queue_item;
+        },
+
+        // If we have a request like this in the queue, add success and failed callbacks in the queue
+        // If we also have a response (failed or success), just call the callback function with cached response
+        // return true if request is already queued, false if request is not yet queued
+        // private
+        check_ajax_queue_for_request: function ( request_hash, onsuccess, onfailed, queue_options ) {
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+                return false;
+
+            var queue_item = PHS_JSEN.ajax_queue[request_hash];
+
+            if( typeof queue_item.response_received !== "undefined"
+             && !queue_item.response_received ) {
+                PHS_JSEN.add_ajax_request_to_queue( request_hash, onsuccess, onfailed, queue_options );
+                return true;
+            }
+
+            // We already have a response...
+            var func_list = [];
+            if( queue_item.response_success ) {
+                func_list = queue_item.success_callbacks;
+            } else {
+                func_list = queue_item.failed_callbacks;
+            }
+
+            var response = null, status = null, ajax_obj = null, data = null, error_exception = null;
+            if( queue_item.response_success ) {
+                response = queue_item.response_data.result_response;
+                status = queue_item.response_data.status;
+                ajax_obj = queue_item.response_data.ajax_obj;
+                data = queue_item.response_data.data;
+            } else {
+                ajax_obj = queue_item.response_data.ajax_obj;
+                status = queue_item.response_data.status;
+                error_exception = queue_item.response_data.error_exception;
+            }
+
+            if( typeof func_list !== "undefined"
+             && typeof func_list.length !== "undefined"
+             && func_list.length > 0 )
+            {
+                for( var func in func_list )
+                {
+                    if( !func_list.hasOwnProperty( func ) )
+                        continue;
+
+                    var func_callback = func_list[func];
+
+                    if( $.isFunction( func_callback ) )
+                    {
+                        if( queue_item.response_success ) {
+                            func_callback( response, status, ajax_obj, data );
+                        } else {
+                            func_callback( ajax_obj, status, error_exception );
+                        }
+                    } else if( typeof func_callback === "string" )
+                        eval( func_callback );
+                }
+            }
+
+        },
+
+        // We received a success response for a queued request, iterate all callbacks and call them
+        // private
+        onsuccess_ajax_queue_for_request: function ( request_hash, response, status, ajax_obj, data ) {
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+                return false;
+
+            var queue_item = PHS_JSEN.ajax_queue[request_hash];
+
+            var cached_response = { result_response: response, status: status, ajax_obj: ajax_obj, data: data };
+
+            queue_item.response_received = true;
+            queue_item.response_success = true;
+            queue_item.response_data = cached_response;
+
+            var onsuccess_result = null;
+            if( typeof queue_item.success_callbacks !== "undefined"
+             && typeof queue_item.success_callbacks.length !== "undefined"
+             && queue_item.success_callbacks.length > 0 )
+            {
+                for( var func in queue_item.success_callbacks )
+                {
+                    if( !queue_item.success_callbacks.hasOwnProperty( func ) )
+                        continue;
+
+                    var func_callback = queue_item.success_callbacks[func];
+
+                    if( $.isFunction( func_callback ) )
+                        onsuccess_result = func_callback( response, status, ajax_obj, data );
+                    else if( typeof func_callback === "string" )
+                        onsuccess_result = eval( func_callback );
+                }
+            }
+
+            queue_item.success_callbacks = [];
+            queue_item.failed_callbacks = [];
+
+            PHS_JSEN.ajax_queue[request_hash] = queue_item;
+
+            return onsuccess_result;
+        },
+
+        // We received a failed response for a queued request, iterate all callbacks and call them
+        // private
+        onfailed_ajax_queue_for_request: function ( request_hash, ajax_obj, status, error_exception ) {
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+                return false;
+
+            var queue_item = PHS_JSEN.ajax_queue[request_hash];
+
+            var cached_response = { ajax_obj: ajax_obj, status: status, error_exception: error_exception };
+
+            queue_item.response_received = true;
+            queue_item.response_success = false;
+            queue_item.response_data = cached_response;
+
+            if( typeof queue_item.failed_callbacks !== "undefined"
+             && typeof queue_item.failed_callbacks.length !== "undefined"
+             && queue_item.failed_callbacks.length > 0 )
+            {
+                for( var func in queue_item.failed_callbacks )
+                {
+                    if( !queue_item.failed_callbacks.hasOwnProperty( func ) )
+                        continue;
+
+                    var func_callback = queue_item.failed_callbacks[func];
+
+                    if( $.isFunction( func_callback ) )
+                        func_callback( ajax_obj, status, error_exception );
+                    else if( typeof func_callback === "string" )
+                        eval( func_callback );
+                }
+            }
+
+            queue_item.success_callbacks = [];
+            queue_item.failed_callbacks = [];
+
+            PHS_JSEN.ajax_queue[request_hash] = queue_item;
+
+            return true;
+        },
+
+        // private
+        check_ajax_requests_stack: function() {
+
+            if( PHS_JSEN.requests_stack.length > 0 ) {
+                var stack_item = PHS_JSEN.requests_stack.shift();
+
+                if( typeof stack_item === "undefined"
+                 || !stack_item )
+                {
+                    if( PHS_JSEN.requests_stack.length > 0 )
+                        return PHS_JSEN.check_ajax_requests_stack();
+
+                    return false;
+                }
+
+                var request_hash = stack_item.request_hash, ajax_url = stack_item.ajax_url,
+                    options = stack_item.options, ajax_parameters_obj = stack_item.ajax_parameters_obj;
+
+                return $.ajax( ajax_parameters_obj );
+            }
+
+            PHS_JSEN.simultaneous_requests_running--;
+        },
+
+        // private
+        stack_ajax_request: function( request_hash, ajax_url, options, ajax_parameters_obj ) {
+            var stack_item = {
+                request_hash: request_hash,
+                ajax_url: ajax_url,
+                options: options,
+                ajax_parameters_obj: ajax_parameters_obj
+            };
+
+            PHS_JSEN.requests_stack.push( stack_item );
+        },
+
+        // public
         do_ajax: function( url, o ) {
             var defaults = {
+                // QUEUE SETTINGS
+                // Use custom queue?
+                queue_request: false,
+                // Queue response caching
+                queue_response_cache: false,
+                queue_response_cache_timeout: 10,
+
+                // STACK SETTINGS
+                stack_request: false,
+
+                // HTTP cache
                 cache_response: false,
                 method: "GET",
                 url_data: "",
@@ -253,17 +515,35 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             var options = $.extend( {}, defaults, o );
 
-            var fb_new_url = PHS_JSEN.addURLParameter( url, '<?php echo PHS_ajax::PARAM_FB_KEY?>', (options.full_buffer?1:0) );
+            var ajax_url = PHS_JSEN.addURLParameter( url, "<?php echo PHS_Ajax::PARAM_FB_KEY?>", (options.full_buffer?1:0) );
+
+            var request_hash = PHS_JSEN.hash_string( ajax_url.toLowerCase() + ":" + options.method.toLowerCase() + ":" + JSON.stringify( options.url_data ).toLowerCase() );
+
+            if( options.queue_request ) {
+                var queue_options = { cache: options.queue_response_cache, cache_timeout: options.queue_response_cache_timeout };
+
+                // If we already have a similar request, just queue this one or call success or failed callback depending on response received (if any)
+                if( PHS_JSEN.check_ajax_queue_for_request( request_hash, options.onsuccess, options.onfailed, queue_options ) ) {
+                    return true;
+                }
+
+                PHS_JSEN.add_ajax_request_to_queue( request_hash, options.onsuccess, options.onfailed, queue_options );
+            }
 
             var ajax_parameters_obj = {
                 type: options.method,
-                url: fb_new_url,
+                url: ajax_url,
                 data: options.url_data,
                 dataType: options.data_type,
                 cache: options.cache_response,
                 async: options.async,
 
                 success: function( data, status, ajax_obj ) {
+
+                    // check next AJAX requests in the stack before managing current response
+                    if( options.stack_request )
+                        PHS_JSEN.check_ajax_requests_stack();
+
                     var result_response = false;
                     if( !options.full_buffer ) {
                         if( typeof data.response == 'undefined' || !data.response )
@@ -273,17 +553,19 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     } else
                         result_response = data;
 
-                    if( options.onsuccess ) {
-                        var onsuccess_result = null;
+                    var onsuccess_result = null;
+                    if( options.queue_request ) {
+                        onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request( request_hash, result_response, status, ajax_obj, data );
+                    } else if( options.onsuccess ) {
                         if( $.isFunction( options.onsuccess ) )
                             onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
                         else if( typeof options.onsuccess == "string" )
                             onsuccess_result = eval( options.onsuccess );
-
-                        if( typeof onsuccess_result == "object"
-                         && onsuccess_result )
-                            data = onsuccess_result;
                     }
+
+                    if( typeof onsuccess_result == "object"
+                     && onsuccess_result )
+                        data = onsuccess_result;
 
                     if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length ) {
                         document.location = data.redirect_to_url;
@@ -302,7 +584,13 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                 error: function( ajax_obj, status, error_exception ) {
 
-                    if( options.onfailed ) {
+                    // check next AJAX requests in the stack before managing current response
+                    if( options.stack_request )
+                        PHS_JSEN.check_ajax_requests_stack();
+
+                    if( options.queue_request ) {
+                        PHS_JSEN.onfailed_ajax_queue_for_request( request_hash, ajax_obj, status, error_exception );
+                    } else if( options.onfailed ) {
                         if( $.isFunction( options.onfailed ) )
                             options.onfailed( ajax_obj, status, error_exception );
                         else if( typeof options.onfailed == "string" )
@@ -310,6 +598,15 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     }
                 }
             };
+
+            if( options.stack_request )
+            {
+                if( PHS_JSEN.simultaneous_requests_running >= PHS_JSEN.max_simultaneous_requests_allowed ){
+                    return PHS_JSEN.stack_ajax_request( request_hash, ajax_url, options, ajax_parameters_obj );
+                }
+
+                PHS_JSEN.simultaneous_requests_running++;
+            }
 
             return $.ajax( ajax_parameters_obj );
         },
@@ -364,7 +661,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             while( i-- ) {
                 x = parts[i].split( "=" );
 
-                if( x[0] == key ) {
+                if( x[0] === key ) {
                     x[1] = value;
                     parts[i] = x.join( "=" );
                     break;
@@ -419,7 +716,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 }
             };
 
-            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( [ 'a' => 'change_language_ajax' ] )?>", ajax_params );
+            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( [ 'a' => 'change_language_ajax' ] )?>", ajax_params );
         },
 
         dialogErrors : function( error_arr ) {

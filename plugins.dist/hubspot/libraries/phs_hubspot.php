@@ -5,8 +5,8 @@ namespace phs\plugins\hubspot\libraries;
 use \phs\PHS;
 use \phs\libraries\PHS_Library;
 use \phs\libraries\PHS_Logger;
-use \phs\libraries\PHS_utils;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Utils;
+use \phs\libraries\PHS_Params;
 
 class PHS_Hubspot extends PHS_Library
 {
@@ -286,7 +286,7 @@ class PHS_Hubspot extends PHS_Library
             $this->_api_params( 'payload', $payload_str );
         }
 
-        if( !($response = PHS_utils::quick_curl( $api_url, $api_params ))
+        if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
          or empty( $response['http_code'] ) )
         {
             PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $hubspot_plugin::LOG_CHANNEL );
@@ -302,7 +302,7 @@ class PHS_Hubspot extends PHS_Library
         }
 
         $response['json_response_arr'] = array();
-        
+
         if( isset( $response['http_code'] ) )
             $response['http_code'] = (int)$response['http_code'];
         else
@@ -832,7 +832,7 @@ class PHS_Hubspot extends PHS_Library
 
         if( empty( $contact_arr ) or !is_array( $contact_arr )
          or (empty( $contact_arr['id'] )
-                and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
+                and (empty( $contact_arr['email'] ) or !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
             )
          or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
         {
@@ -885,7 +885,7 @@ class PHS_Hubspot extends PHS_Library
 
         if( empty( $contact_arr ) or !is_array( $contact_arr )
          or (empty( $contact_arr['vid'] )
-                and (empty( $contact_arr['email'] ) or !PHS_params::check_type( $contact_arr['email'], PHS_params::T_EMAIL ))
+                and (empty( $contact_arr['email'] ) or !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
             )
          or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
         {

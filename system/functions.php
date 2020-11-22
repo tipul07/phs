@@ -5,12 +5,12 @@ if( !defined( 'DATETIME_T_EMPTY' ) )
 if( !defined( 'DATETIME_T_FORMAT' ) )
     define( 'DATETIME_T_FORMAT', 'Y-m-d\TH:i:s' );
 
-use \phs\PHS_db;
+use \phs\PHS_Db;
 use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.3.5';
+    return '1.1.4.0';
 }
 
 function phs_init_before_bootstrap()
@@ -168,10 +168,10 @@ function request_ip()
 
 function db_supress_errors( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -189,10 +189,10 @@ function db_supress_errors( $connection = false )
 
 function db_restore_errors_state( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -210,10 +210,10 @@ function db_restore_errors_state( $connection = false )
 
 function db_query_insert( $query, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -242,10 +242,10 @@ function db_query_insert( $query, $connection = false )
 
 function db_query( $query, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -280,10 +280,10 @@ function db_query( $query, $connection = false )
 
 function db_test_connection( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -310,7 +310,7 @@ function db_test_connection( $connection = false )
 
 function db_last_error( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return false;
 
     return $db_instance->get_error();
@@ -318,10 +318,10 @@ function db_last_error( $connection = false )
 
 function db_fetch_assoc( $qid, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -337,10 +337,10 @@ function db_fetch_assoc( $qid, $connection = false )
 
 function db_num_rows( $qid, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_db::st_debugging_mode() )
-            PHS_db::st_throw_error();
+        if( PHS_Db::st_debugging_mode() )
+            PHS_Db::st_throw_error();
 
         elseif( PHS_DB_SILENT_ERRORS )
             return false;
@@ -356,7 +356,7 @@ function db_num_rows( $qid, $connection = false )
 
 function db_query_count( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return 0;
 
     return $db_instance->queries_number();
@@ -364,7 +364,7 @@ function db_query_count( $connection = false )
 
 function db_affected_rows( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return 0;
 
     return $db_instance->affected_rows();
@@ -372,7 +372,7 @@ function db_affected_rows( $connection = false )
 
 function db_quick_insert( $table_name, $insert_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return '';
 
     return $db_instance->quick_insert( $table_name, $insert_arr, $connection, $params );
@@ -380,7 +380,7 @@ function db_quick_insert( $table_name, $insert_arr, $connection = false, $params
 
 function db_quick_edit( $table_name, $edit_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return '';
 
     return $db_instance->quick_edit( $table_name, $edit_arr, $connection, $params );
@@ -388,7 +388,7 @@ function db_quick_edit( $table_name, $edit_arr, $connection = false, $params = f
 
 function db_escape( $fields, $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return false;
 
     return $db_instance->escape( $fields, $connection );
@@ -396,7 +396,7 @@ function db_escape( $fields, $connection = false )
 
 function db_last_id( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return -1;
 
     return $db_instance->last_inserted_id();
@@ -404,7 +404,7 @@ function db_last_id( $connection = false )
 
 function db_settings( $connection = false )
 {
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
         return -1;
 
     return $db_instance->connection_settings( $connection );
@@ -413,7 +413,7 @@ function db_settings( $connection = false )
 function db_connection_identifier( $connection )
 {
     if( empty( $connection )
-     or !($connection_identifier = PHS_db::get_connection_identifier( $connection ))
+     or !($connection_identifier = PHS_Db::get_connection_identifier( $connection ))
      or !is_array( $connection_identifier ) )
         return false;
 
@@ -442,20 +442,20 @@ function db_database( $connection = false )
 
 function db_dump( $dump_params, $connection = false )
 {
-    PHS_db::st_reset_error();
+    PHS_Db::st_reset_error();
 
-    if( !($db_instance = PHS_db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        PHS_db::st_set_error( PHS_db::ERR_DATABASE, PHS_db::_t( 'Error obtaining database driver instance.' ) );
+        PHS_Db::st_set_error( PHS_Db::ERR_DATABASE, PHS_Db::_t( 'Error obtaining database driver instance.' ) );
         return false;
     }
 
     if( !($dump_result = $db_instance->dump_database( $dump_params )) )
     {
         if( $db_instance->has_error() )
-            PHS_db::st_copy_error( $db_instance );
+            PHS_Db::st_copy_error( $db_instance );
         else
-            PHS_db::st_set_error( PHS_db::ERR_DATABASE, PHS_db::_t( 'Error obtaining dump commands from driver instance.' ) );
+            PHS_Db::st_set_error( PHS_Db::ERR_DATABASE, PHS_Db::_t( 'Error obtaining dump commands from driver instance.' ) );
 
         return false;
     }

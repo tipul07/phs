@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\PHS_ajax;
+    use \phs\PHS_Ajax;
 
     if( !($plugin_names_arr = $this->view_var( 'plugin_names_arr' )) )
         $plugin_names_arr = array();
@@ -153,7 +153,7 @@ function send_server_request( data )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_ajax::url( array( 'p' => 'admin', 'a' => 'plugins_integrity' ), false, array( 'raw_params' => array( '_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "' ) ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'admin', 'a' => 'plugins_integrity' ), false, array( 'raw_params' => array( '_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "' ) ) )?>", ajax_params );
 }
 function finish_single_request()
 {

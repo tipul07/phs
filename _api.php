@@ -12,41 +12,41 @@
     include_once( 'main.php' );
 
     use \phs\PHS;
-    use \phs\PHS_api;
+    use \phs\PHS_Api;
     use \phs\libraries\PHS_Logger;
-    use \phs\libraries\PHS_params;
+    use \phs\libraries\PHS_Params;
 
-    if( !PHS_api::framework_allows_api_calls() )
+    if( !PHS_Api::framework_allows_api_calls() )
     {
-        PHS_api::http_header_response( PHS_api::H_CODE_SERVICE_UNAVAILABLE );
+        PHS_Api::http_header_response( PHS_Api::H_CODE_SERVICE_UNAVAILABLE );
         exit;
     }
 
     if( !PHS::is_secured_request()
-    and !PHS_api::framework_allows_api_calls_over_http() )
+    and !PHS_Api::framework_allows_api_calls_over_http() )
     {
-        PHS_api::http_header_response( PHS_api::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
+        PHS_Api::http_header_response( PHS_Api::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
         exit;
     }
 
     $api_params = array();
-    $vars_from_get = array( PHS_api::PARAM_VERSION, PHS_api::PARAM_API_ROUTE, PHS_api::PARAM_USING_REWRITE, PHS_api::PARAM_WEB_SIMULATION,  );
+    $vars_from_get = array( PHS_Api::PARAM_VERSION, PHS_Api::PARAM_API_ROUTE, PHS_Api::PARAM_USING_REWRITE, PHS_Api::PARAM_WEB_SIMULATION,  );
     foreach( $vars_from_get as $key )
     {
-        if( ($val = PHS_params::_g( $key, PHS_params::T_ASIS )) !== null )
+        if( ($val = PHS_Params::_g( $key, PHS_Params::T_ASIS )) !== null )
             $api_params[$key] = $val;
     }
 
-    if( !($api_obj = PHS_api::api_factory( $api_params )) )
+    if( !($api_obj = PHS_Api::api_factory( $api_params )) )
     {
-        if( !PHS_api::st_has_error() )
-            $error_msg = PHS_api::st_get_error_message();
+        if( !PHS_Api::st_has_error() )
+            $error_msg = PHS_Api::st_get_error_message();
         else
-            $error_msg = PHS_api::_t( 'Unknown error.' );
+            $error_msg = PHS_Api::_t( 'Unknown error.' );
 
         PHS_Logger::logf( 'Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
-        PHS_api::generic_error( $error_msg );
+        PHS_Api::generic_error( $error_msg );
 
         exit;
     }
@@ -66,11 +66,11 @@
             if( $api_obj->has_error() )
                 $error_msg = $api_obj->get_error_message();
             else
-                $error_msg = PHS_api::_t( 'Couldn\'t set content type to API object.' );
+                $error_msg = PHS_Api::_t( 'Couldn\'t set content type to API object.' );
 
             PHS_Logger::logf( 'Error setting content type in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
-            PHS_api::generic_error( $error_msg );
+            PHS_Api::generic_error( $error_msg );
 
             exit;
         }
@@ -81,11 +81,11 @@
             if( $api_obj->has_error() )
                 $error_msg = $api_obj->get_error_message();
             else
-                $error_msg = PHS_api::_t( 'Couldn\'t set HTTP method to API object.' );
+                $error_msg = PHS_Api::_t( 'Couldn\'t set HTTP method to API object.' );
 
             PHS_Logger::logf( 'Error setting HTTP method in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
-            PHS_api::generic_error( $error_msg );
+            PHS_Api::generic_error( $error_msg );
 
             exit;
         }
@@ -96,11 +96,11 @@
             if( $api_obj->has_error() )
                 $error_msg = $api_obj->get_error_message();
             else
-                $error_msg = PHS_api::_t( 'Couldn\'t set response protocol to API object.' );
+                $error_msg = PHS_Api::_t( 'Couldn\'t set response protocol to API object.' );
 
             PHS_Logger::logf( 'Error setting response protocol in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
-            PHS_api::generic_error( $error_msg );
+            PHS_Api::generic_error( $error_msg );
 
             exit;
         }
@@ -113,11 +113,11 @@
         if( $api_obj->has_error() )
             $error_msg = $api_obj->get_error_message();
         else
-            $error_msg = PHS_api::_t( 'Error running API request.' );
+            $error_msg = PHS_Api::_t( 'Error running API request.' );
 
         PHS_Logger::logf( 'Error running API route: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
-        PHS_api::generic_error( $error_msg );
+        PHS_Api::generic_error( $error_msg );
 
         exit;
     } elseif( ($debug_data = PHS::platform_debug_data()) )

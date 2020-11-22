@@ -3,10 +3,10 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_bg_jobs;
+use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
@@ -78,20 +78,20 @@ class PHS_Action_User_add extends PHS_Action
         if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
             $roles_by_slug = array();
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $nick = PHS_params::_p( 'nick', PHS_params::T_NOHTML );
-        $pass = PHS_params::_p( 'pass', PHS_params::T_ASIS );
-        $email = PHS_params::_p( 'email', PHS_params::T_EMAIL );
-        $level = PHS_params::_p( 'level', PHS_params::T_INT );
-        if( !($account_roles_slugs = PHS_params::_p( 'account_roles_slugs', PHS_params::T_ARRAY, array( 'type' => PHS_params::T_NOHTML ) )) )
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $nick = PHS_Params::_p( 'nick', PHS_Params::T_NOHTML );
+        $pass = PHS_Params::_p( 'pass', PHS_Params::T_ASIS );
+        $email = PHS_Params::_p( 'email', PHS_Params::T_EMAIL );
+        $level = PHS_Params::_p( 'level', PHS_Params::T_INT );
+        if( !($account_roles_slugs = PHS_Params::_p( 'account_roles_slugs', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML ) )) )
             $account_roles_slugs = array();
-        $title = PHS_params::_p( 'title', PHS_params::T_NOHTML );
-        $fname = PHS_params::_p( 'fname', PHS_params::T_NOHTML );
-        $lname = PHS_params::_p( 'lname', PHS_params::T_NOHTML );
-        $phone = PHS_params::_p( 'phone', PHS_params::T_NOHTML );
-        $company = PHS_params::_p( 'company', PHS_params::T_NOHTML );
+        $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
+        $fname = PHS_Params::_p( 'fname', PHS_Params::T_NOHTML );
+        $lname = PHS_Params::_p( 'lname', PHS_Params::T_NOHTML );
+        $phone = PHS_Params::_p( 'phone', PHS_Params::T_NOHTML );
+        $company = PHS_Params::_p( 'company', PHS_Params::T_NOHTML );
 
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
         {

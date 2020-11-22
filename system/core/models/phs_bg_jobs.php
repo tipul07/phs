@@ -3,7 +3,7 @@
 namespace phs\system\core\models;
 
 use \phs\libraries\PHS_Model;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 class PHS_Model_Bg_jobs extends PHS_Model
 {
@@ -39,7 +39,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
             'minutes_to_stall' => array(
                 'display_name' => 'Minutes to stall',
                 'display_hint' => 'After how many minutes should we consider a job as stalling',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 15,
             ),
         );

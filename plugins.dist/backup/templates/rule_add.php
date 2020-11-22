@@ -2,7 +2,7 @@
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;
-    use \phs\libraries\PHS_utils;
+    use \phs\libraries\PHS_Utils;
 
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
     /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */

@@ -3,7 +3,7 @@
 
     use \phs\PHS;
     use \phs\PHS_Scope;
-    use \phs\libraries\PHS_params;
+    use \phs\libraries\PHS_Params;
 
     /** @var \phs\libraries\PHS_Paginator $paginator_obj */
     if( !($paginator_obj = $this->view_var( 'paginator' )) )

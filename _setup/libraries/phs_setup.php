@@ -2,7 +2,7 @@
 
 namespace phs\setup\libraries;
 
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 
 if( !defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ) )
     exit;
@@ -170,7 +170,7 @@ class PHS_Setup
         if( empty( $this->c_step ) )
             $this->c_step = $this->max_steps;
 
-        if( !($this->forced_step = PHS_params::_gp( 'forced_step', PHS_params::T_INT ))
+        if( !($this->forced_step = PHS_Params::_gp( 'forced_step', PHS_Params::T_INT ))
          or $this->forced_step < 0 or $this->forced_step > $this->max_steps
          // Currently c_step holds maximum configured step (we cannot go over this)
          or $this->forced_step > $this->c_step )

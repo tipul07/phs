@@ -3,9 +3,9 @@
 namespace phs\libraries;
 
 use \phs\PHS;
-use \phs\libraries\PHS_utils;
+use \phs\libraries\PHS_Utils;
 
-class PHS_po_format extends PHS_Registry
+class PHS_Po_format extends PHS_Registry
 {
     const ERR_PO_FILE = 1, ERR_INPUT_BUFFER = 2, ERR_LANGUAGE_FILE = 3, ERR_EXPORT = 4;
 
@@ -96,7 +96,7 @@ class PHS_po_format extends PHS_Registry
          or !@file_exists( $lang_file ) )
             return $return_arr;
 
-        if( !($path_info = PHS_utils::mypathinfo( $lang_file ))
+        if( !($path_info = PHS_Utils::mypathinfo( $lang_file ))
          or $lang_file == PHS::relative_path( $path_info['dirname'] )
          or empty( $path_info['extension'] ) or $path_info['extension'] != 'csv'
          or empty( $path_info['basename'] ) or !self::valid_language( $path_info['basename'] ) )
@@ -212,7 +212,7 @@ class PHS_po_format extends PHS_Registry
             if( !isset( $translation_arr['translation'] ) )
                 $translation_arr['translation'] = '';
 
-            $csv_line = PHS_utils::csv_line( array( $translation_arr['index'], $translation_arr['translation'] ),
+            $csv_line = PHS_Utils::csv_line( array( $translation_arr['index'], $translation_arr['translation'] ),
                                              $params['csv_line_delimiter'], $params['csv_column_delimiter'],
                                              $params['csv_column_enclosure'], $params['csv_column_escape'] );
 
@@ -364,7 +364,7 @@ class PHS_po_format extends PHS_Registry
                 $line = 1;
                 foreach( $resulting_arr as $lang_key => $lang_val )
                 {
-                    if( !($csv_line = PHS_utils::csv_line( array( $lang_key, $lang_val ),
+                    if( !($csv_line = PHS_Utils::csv_line( array( $lang_key, $lang_val ),
                                                           $csv_settings['line_delimiter'],
                                                           $csv_settings['columns_delimiter'],
                                                           $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] ))

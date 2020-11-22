@@ -9,7 +9,7 @@ use \phs\libraries\PHS_Action;
 
 //! @version 1.00
 
-class PHS_bg_jobs extends PHS_Registry
+class PHS_Bg_jobs extends PHS_Registry
 {
     const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004;
 
@@ -336,7 +336,7 @@ class PHS_bg_jobs extends PHS_Registry
 
         $pub_key = microtime( true );
 
-        $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.PHS_crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
+        $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.PHS_Crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
 
         if( strtolower( substr( PHP_OS, 0, 3 ) ) == 'win' )
         {
@@ -372,7 +372,7 @@ class PHS_bg_jobs extends PHS_Registry
         $pub_key = $parts_arr[1];
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
-        if( !($decrypted_data = PHS_crypt::quick_decode( $crypted_data ))
+        if( !($decrypted_data = PHS_Crypt::quick_decode( $crypted_data ))
          or !($decrypted_parts = explode( '::', $decrypted_data, 2 ))
          or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] )
          or !($job_id = intval( $decrypted_parts[0] ))

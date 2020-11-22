@@ -3,7 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
-use \phs\PHS_db;
+use \phs\PHS_Db;
 
 abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 {
@@ -76,7 +76,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
      */
     public function get_model_driver()
     {
-        return PHS_db::DB_DRIVER_MYSQLI;
+        return PHS_Db::DB_DRIVER_MYSQLI;
     }
 
     /**
@@ -805,12 +805,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             if( !empty( $field_details['unsigned'] ) )
             {
                 if( !empty( $mysql_type['max_value']['unsigned'] )
-                 && 1 === PHS_utils::numeric_string_compare( $field_val, $mysql_type['max_value']['unsigned'] ) )
+                 && 1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['max_value']['unsigned'] ) )
                     return $mysql_type['max_value']['unsigned'];
             } else
             {
                 if( !empty( $mysql_type['max_value']['signed'] )
-                 && 1 === PHS_utils::numeric_string_compare( $field_val, $mysql_type['max_value']['signed'] ) )
+                 && 1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['max_value']['signed'] ) )
                     return $mysql_type['max_value']['signed'];
             }
         }
@@ -822,12 +822,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             if( !empty( $field_details['unsigned'] ) )
             {
                 if( !empty( $mysql_type['min_value']['unsigned'] )
-                 && -1 === PHS_utils::numeric_string_compare( $field_val, $mysql_type['min_value']['unsigned'] ) )
+                 && -1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['min_value']['unsigned'] ) )
                     return $mysql_type['min_value']['unsigned'];
             } else
             {
                 if( !empty( $mysql_type['min_value']['signed'] )
-                 && -1 === PHS_utils::numeric_string_compare( $field_val, $mysql_type['min_value']['signed'] ) )
+                 && -1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['min_value']['signed'] ) )
                     return $mysql_type['min_value']['signed'];
             }
         }
@@ -865,10 +865,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             case self::FTYPE_SMALLINT:
             case self::FTYPE_MEDIUMINT:
             case self::FTYPE_INT:
-                if( !($value = PHS_params::set_type( $value, PHS_params::T_INT, $phs_params_arr )) )
+                if( !($value = PHS_Params::set_type( $value, PHS_Params::T_INT, $phs_params_arr )) )
                     $value = 0;
 
-                elseif( PHS_db::check_db_fields_boundaries() )
+                elseif( PHS_Db::check_db_fields_boundaries() )
                     $value = $this->_validate_against_boundries( $value, $field_details, $mysql_type );
             break;
 
@@ -880,7 +880,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
                 if( empty( $value ) )
                     $value = 0;
 
-                elseif( PHS_db::check_db_fields_boundaries() )
+                elseif( PHS_Db::check_db_fields_boundaries() )
                     $value = $this->_validate_against_boundries( $value, $field_details, $mysql_type );
             break;
 
@@ -924,7 +924,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
                 $phs_params_arr['digits'] = $d_val;
 
-                if( null === ($value = PHS_params::set_type( $value, PHS_params::T_FLOAT, $phs_params_arr )) )
+                if( null === ($value = PHS_Params::set_type( $value, PHS_Params::T_FLOAT, $phs_params_arr )) )
                     $value = 0;
 
                 // resolve the m part (if too big)
@@ -945,7 +945,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
                 if( !empty( $mysql_type['max_bytes'] )
                  && (empty( $field_details['length'] )
-                        || 0 <= PHS_utils::numeric_string_compare( $field_details['length'], $mysql_type['max_bytes'] )
+                        || 0 <= PHS_Utils::numeric_string_compare( $field_details['length'], $mysql_type['max_bytes'] )
                     ) )
                     $max_bytes = $mysql_type['max_bytes'];
                 else
@@ -2380,10 +2380,16 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             $params['result_type'] = 'single';
         if( !isset( $params['result_key'] ) )
             $params['result_key'] = $params['table_index'];
+        if( empty( $params['join_sql'] ) )
+            $params['join_sql'] = '';
         if( empty( $params['extra_sql'] ) )
             $params['extra_sql'] = '';
         if( empty( $params['order_by'] ) )
             $params['order_by'] = '';
+        if( empty( $params['group_by'] ) )
+            $params['group_by'] = '';
+        if( empty( $params['having_sql'] ) )
+            $params['having_sql'] = '';
         if( !isset( $params['return_query_string'] ) )
             $params['return_query_string'] = false;
         else
@@ -2410,7 +2416,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         $sql = 'SELECT '.$params['details'].
                ' FROM '.$this->get_flow_table_name( $params ).
+               $params['join_sql'].
                ' WHERE '.$params['extra_sql'].
+               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
+               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
                (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
                (isset( $params['limit'] )?' LIMIT 0, '.$params['limit']:'');
 
@@ -2423,7 +2432,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
             ) )
             return false;
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['query'] = $sql;
         $return_arr['params'] = $params;
         $return_arr['qid'] = $qid;
@@ -2437,7 +2446,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
      */
     protected static function linkage_db_functions()
     {
-        return array( 'and', 'or' );
+        return [ 'and', 'or' ];
     }
 
     /**
@@ -2668,6 +2677,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
 
         if( empty( $params['extra_sql'] ) )
             $params['extra_sql'] = '';
+        if( empty( $params['join_sql'] ) )
+            $params['join_sql'] = '';
 
         if( !isset( $params['return_query_string'] ) )
             $params['return_query_string'] = false;

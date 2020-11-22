@@ -3,9 +3,9 @@
 namespace phs\plugins\mobileapi;
 
 use \phs\PHS;
-use \phs\PHS_api;
+use \phs\PHS_Api;
 use \phs\libraries\PHS_Plugin;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Hooks;
 
@@ -38,19 +38,19 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
                     'fcm_base_url' => array(
                         'display_name' => 'Firebase API URL',
                         'display_hint' => 'URL where plugin will make the call to send push notifications using Firebase library.',
-                        'type' => PHS_params::T_ASIS,
+                        'type' => PHS_Params::T_ASIS,
                         'default' => 'https://fcm.googleapis.com',
                     ),
                     'fcm_auth_key' => array(
                         'display_name' => $this->_pt( 'Firebase Authentication Key' ),
                         'display_hint' => $this->_pt( 'Key used for authentication when sending push notification using Firebase library.' ),
-                        'type' => PHS_params::T_ASIS,
+                        'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ),
                     'fcm_api_timeout' => array(
                         'display_name' => $this->_pt( 'Firebase API Timeout' ),
                         'display_hint' => $this->_pt( 'After how many seconds should request to Firebase server timeout.' ),
-                        'type' => PHS_params::T_INT,
+                        'type' => PHS_Params::T_INT,
                         'default' => 30,
                     ),
                 ),
@@ -62,7 +62,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
                     'api_session_lifetime' => array(
                         'display_name' => $this->_pt( 'API Sessions Timeout' ),
                         'display_hint' => $this->_pt( 'After how many hours should API sessions expire. (0 will not expire)' ),
-                        'type' => PHS_params::T_INT,
+                        'type' => PHS_Params::T_INT,
                         'default' => 0,
                     ),
                 ),
@@ -136,8 +136,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             // Key/Index of the node when exporting to outside reuqests
             'key' => '',
             // Type of data to be exported (useful when exporting to type-oriented languages)
-            'type' => PHS_params::T_ASIS,
-            // Extra parameters used in PHS_params::set_type()
+            'type' => PHS_Params::T_ASIS,
+            // Extra parameters used in PHS_Params::set_type()
             'type_extra' => false,
             // Default value when exporting
             'default' => null,
@@ -223,7 +223,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
                 continue;
 
             if( array_key_exists( $int_key, $data_arr ) )
-                $return_arr[$node_arr['key']] = PHS_params::set_type( $data_arr[$int_key], $node_arr['type'],
+                $return_arr[$node_arr['key']] = PHS_Params::set_type( $data_arr[$int_key], $node_arr['type'],
                     (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
 
             elseif( !empty( $node_arr['export_if_not_found'] ) )
@@ -256,7 +256,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
                 continue;
 
             if( array_key_exists( $node_arr['key'], $data_arr ) )
-                $return_arr[$int_key] = PHS_params::set_type( $data_arr[$node_arr['key']], $node_arr['type'],
+                $return_arr[$int_key] = PHS_Params::set_type( $data_arr[$node_arr['key']], $node_arr['type'],
                     (!empty( $node_arr['type_extra'] )?$node_arr['type_extra']:false) );
 
             elseif( !empty( $node_arr['import_if_not_found'] ) )
@@ -271,76 +271,76 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return array(
             'id' => array(
                 'key' => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'nick' => array(
                 'key' => 'nick',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'email' => array(
                 'key' => 'email',
-                'type' => PHS_params::T_EMAIL,
+                'type' => PHS_Params::T_EMAIL,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'pass' => array(
                 'key' => 'pass',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'default' => '',
                 'key_type' => self::API_KEY_INPUT,
             ),
             'email_verified' => array(
                 'key' => 'email_verified',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'status' => array(
                 'key' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'status_date' => array(
                 'key' => 'status_date',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'level' => array(
                 'key' => 'level',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'lastlog' => array(
                 'key' => 'lastlog',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'lastip' => array(
                 'key' => 'lastip',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             'cdate' => array(
                 'key' => 'cdate',
-                'type' => PHS_params::T_DATE,
+                'type' => PHS_Params::T_DATE,
                 'type_extra' => array( 'format' => PHS_Model::DATETIME_DB ),
                 'default' => null,
                 'key_type' => self::API_KEY_OUTPUT,
             ),
             self::ACCOUNT_DETAILS_KEY => array(
                 'key' => 'details_data',
-                'type' => PHS_params::T_ASIS,
+                'type' => PHS_Params::T_ASIS,
                 'key_type' => self::API_KEY_BOTH,
             ),
         );
@@ -351,31 +351,31 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return array(
             'title' => array(
                 'key' => 'title',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'fname' => array(
                 'key' => 'fname',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'lname' => array(
                 'key' => 'lname',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'phone' => array(
                 'key' => 'phone',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
             'company' => array(
                 'key' => 'company',
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
                 'key_type' => self::API_KEY_BOTH,
             ),
@@ -636,7 +636,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        $params = self::validate_array( $params, PHS_api::default_api_authentication_callback_params() );
+        $params = self::validate_array( $params, PHS_Api::default_api_authentication_callback_params() );
 
         if( empty( $params['api_obj'] ) )
         {
@@ -644,7 +644,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        /** @var \phs\PHS_api $api_obj */
+        /** @var \phs\PHS_Api $api_obj */
         $api_obj = $params['api_obj'];
 
         if( !($api_key = $api_obj->api_flow_value( 'api_user' ))

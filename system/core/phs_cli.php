@@ -5,7 +5,7 @@ namespace phs;
 use phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Registry;
 
-abstract class PHS_cli extends PHS_Registry
+abstract class PHS_Cli extends PHS_Registry
 {
     const APP_NAME = 'PHSCLIAPP',
           APP_VERSION = '1.0.0',
@@ -63,7 +63,7 @@ abstract class PHS_cli extends PHS_Registry
     /** @var bool|array A result after application runs which will be presented to end-user */
     protected $_app_result = false;
 
-    /** @var PHS_cli[] */
+    /** @var PHS_Cli[] */
     private static $_my_instances = array();
 
     /**
@@ -94,7 +94,7 @@ abstract class PHS_cli extends PHS_Registry
     abstract protected function _get_app_commands_definition();
 
     /**
-     * PHS_cli constructor.
+     * PHS_Cli constructor.
      */
     public function __construct()
     {
@@ -1022,7 +1022,7 @@ abstract class PHS_cli extends PHS_Registry
     /**
      * @param bool|string $app_class_name
      *
-     * @return bool|\phs\PHS_cli
+     * @return bool|\phs\PHS_Cli
      */
     public static function get_instance( $app_class_name = false )
     {
@@ -1041,7 +1041,7 @@ abstract class PHS_cli extends PHS_Registry
         if( !empty( self::$_my_instances[$app_class_name] ) )
             return self::$_my_instances[$app_class_name];
 
-        /** @var \phs\PHS_cli $app_instance */
+        /** @var \phs\PHS_Cli $app_instance */
         $app_instance = new $app_class_name();
         if( $app_instance->has_error() )
         {

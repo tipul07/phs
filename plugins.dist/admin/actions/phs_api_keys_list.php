@@ -3,7 +3,7 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
 use \phs\libraries\PHS_Roles;
@@ -84,9 +84,9 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
             'after_filters_callback' => array( $this, 'after_filters_callback' ),
         );
 
-        if( PHS_params::_g( 'unknown_api_key', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'unknown_api_key', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Invalid API key or API key was not found in database.' ) );
-        if( PHS_params::_g( 'api_key_added', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'api_key_added', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'API key details saved in database.' ) );
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
@@ -132,14 +132,14 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                 'var_name' => 'ftitle',
                 'record_field' => 'title',
                 'record_check' => array( 'check' => 'LIKE', 'value' => '%%%s%%' ),
-                'type' => PHS_params::T_NOHTML,
+                'type' => PHS_Params::T_NOHTML,
                 'default' => '',
             ),
             array(
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $statuses_arr,
             ),
@@ -211,7 +211,7 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
         {
             $columns_arr[0]['checkbox_record_index_key'] = array(
                 'key' => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             );
         }
 

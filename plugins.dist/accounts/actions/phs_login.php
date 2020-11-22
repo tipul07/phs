@@ -7,7 +7,7 @@ use \phs\PHS_Scope;
 use \phs\PHS_Session;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Hooks;
-use \phs\libraries\PHS_params;
+use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Login extends PHS_Action
@@ -53,17 +53,17 @@ class PHS_Action_Login extends PHS_Action
 
         PHS::page_settings( 'page_title', $this->_pt( 'Login' ) );
 
-        $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
-        $nick = PHS_params::_pg( 'nick', PHS_params::T_NOHTML );
-        $pass = PHS_params::_pg( 'pass', PHS_params::T_NOHTML );
-        $do_remember = PHS_params::_pg( 'do_remember', PHS_params::T_INT );
-        $do_submit = PHS_params::_p( 'do_submit' );
+        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
+        $nick = PHS_Params::_pg( 'nick', PHS_Params::T_NOHTML );
+        $pass = PHS_Params::_pg( 'pass', PHS_Params::T_NOHTML );
+        $do_remember = PHS_Params::_pg( 'do_remember', PHS_Params::T_INT );
+        $do_submit = PHS_Params::_p( 'do_submit' );
 
-        $back_page = PHS_params::_gp( 'back_page', PHS_params::T_NOHTML );
+        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_NOHTML );
 
-        $reason = PHS_params::_g( 'reason', PHS_params::T_NOHTML );
+        $reason = PHS_Params::_g( 'reason', PHS_Params::T_NOHTML );
 
-        if( ($expired_secs = PHS_params::_g( 'expired_secs', PHS_params::T_INT )) )
+        if( ($expired_secs = PHS_Params::_g( 'expired_secs', PHS_Params::T_INT )) )
             PHS_Notifications::add_warning_notice( $this->_pt( 'Your session expired. Please login again into your account.' ) );
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -75,11 +75,11 @@ class PHS_Action_Login extends PHS_Action
         and ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
             PHS_Notifications::add_success_notice( $reason_success_text );
 
-        if( PHS_params::_g( 'registered', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'registered', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Account registered and active. You can login now.' ) );
-        if( PHS_params::_g( 'password_changed', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'password_changed', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Password changed with success. You can login now.' ) );
-        if( PHS_params::_g( 'confirmation_email', PHS_params::T_INT ) )
+        if( PHS_Params::_g( 'confirmation_email', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $foobar )
