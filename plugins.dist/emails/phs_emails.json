@@ -3,5 +3,5 @@
     "vendor_name": "PHS",
     "name": "Email Sending Plugin",
     "description": "Handles all emailing functionality in platform.",
-    "version": "1.0.2"
+    "version": "1.1.0"
 }
