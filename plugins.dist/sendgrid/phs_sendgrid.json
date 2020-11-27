@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "SendGrid Email Sending",
+    "description": "Replaces default email sending plugin. In order to use this plugin you will have to disable default email plugin.",
+    "version": "1.0.0"
+}

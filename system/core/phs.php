@@ -66,20 +66,20 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return array( 'accounts', 'admin', 'messages', 'captcha', 'emails', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' );
+        return [ 'accounts', 'admin', 'messages', 'captcha', 'emails', 'sendgrid', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' ];
     }
 
     public static function get_always_active_plugins()
     {
         // These plugins cannot be inacivated as they provide basic functionality for the platform
-        return array( 'accounts', 'admin', 'captcha', 'emails', 'notifications' );
+        return [ 'accounts', 'admin', 'captcha', 'notifications' ];
     }
 
     public static function get_core_models()
     {
         // !!! Don't change order of models here unless you know what you'r doing !!!
         // Models should be placed in this array after their dependencies (eg. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return array( 'agent_jobs', 'bg_jobs', 'roles', 'api_keys' );
+        return [ 'agent_jobs', 'bg_jobs', 'roles', 'api_keys' ];
     }
 
     /**

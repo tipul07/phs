@@ -483,42 +483,42 @@ class PHS_Hooks extends PHS_Registry
     // Default hook parameters sent for hooks related to guest roles
     public static function default_guest_roles_hook_args()
     {
-        return self::hook_args_definition( array(
-            'guest_roles' => array(),
-        ) );
+        return self::hook_args_definition( [
+            'guest_roles' => [],
+       ] );
     }
 
     // Default hook parameters sent for hooks related to user account
     public static function default_user_account_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             'account_data' => false,
             'account_details_data' => false,
-        ) );
+       ] );
     }
 
     // Default hook parameters sent for hooks related to user account (including insert/edit parameters)
     public static function default_user_account_fields_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             'account_data' => false,
             'account_details_data' => false,
             'account_fields' => false,
             'account_details_fields' => false,
-        ) );
+       ] );
     }
 
     public static function default_user_registration_roles_hook_args()
     {
-        return self::hook_args_definition( array(
-            'roles_arr' => array(),
-            'account_data' => false,
-        ) );
+        return self::hook_args_definition( [
+           'roles_arr' => [],
+           'account_data' => false,
+       ] );
     }
 
     public static function default_password_expiration_data()
     {
-        return array(
+        return [
             'is_expired' => false,
             'show_only_warning' => false,
             'pass_expires_seconds' => 0,
@@ -526,12 +526,12 @@ class PHS_Hooks extends PHS_Registry
             'expiration_days' => 0,
             'expired_for_seconds' => 0,
             'account_data' => false,
-        );
+        ];
     }
 
     public static function default_user_db_details_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             'force_check' => false,
             'user_db_data' => false,
             'session_db_data' => false,
@@ -539,24 +539,24 @@ class PHS_Hooks extends PHS_Registry
             'session_expired_secs' => 0,
             // Details about password expiration
             'password_expired_data' => self::default_password_expiration_data(),
-        ) );
+       ] );
     }
 
     // Used to get account structure (including roles) Account data can be empty or an empty structure (a guest empty structure)
     public static function default_account_structure_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             // Account id or array to be transformed into account structure (input)
             'account_data' => false,
             // Account structure (from database or empty strcuture for guests)
             'account_structure' => false,
-        ) );
+        ] );
     }
 
     // Used to make extra actions on an account (including roles) Account data can be empty or an empty structure (a guest empty structure)
     public static function default_account_action_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             // Tells if current hook call is in a background script
             'in_background' => false,
             // Account id on which action was taken
@@ -568,7 +568,7 @@ class PHS_Hooks extends PHS_Registry
             'action_params' => false,
             // current route for which action was taken
             'route' => false,
-        ) );
+       ] );
     }
     //
     //endregion User account hooks
@@ -579,13 +579,21 @@ class PHS_Hooks extends PHS_Registry
     //
     public static function default_buffer_hook_args()
     {
-        return self::hook_args_definition( array(
-            // in case we are triggering this in a view which matters for requested buffer
-            'view_obj' => false,
-            'concatenate_buffer' => 'buffer',
-            'buffer_data' => array(),
-            'buffer' => '',
-        ) );
+        return self::hook_args_definition( [
+           // in case we are triggering this in a view which matters for requested buffer
+           'view_obj' => false,
+           'concatenate_buffer' => 'buffer',
+           'buffer_data' => [],
+           'buffer' => '',
+       ] );
+    }
+
+    public static function reset_buffer_hook_args( $hook_args )
+    {
+        $hook_args = self::validate_array( $hook_args, self::default_buffer_hook_args() );
+        $hook_args['buffer'] = '';
+
+        return $hook_args;
     }
     //
     //endregion Page buffer hooks
@@ -596,19 +604,19 @@ class PHS_Hooks extends PHS_Registry
     //
     public static function default_notifications_hook_args()
     {
-        return self::hook_args_definition( array(
-            'warnings' => array(),
-            'errors' => array(),
-            'success' => array(),
-            'template' => array(
-                'file' => '',
-                'extra_paths' => array(),
-            ), // default template
-            'display_channels' => array( 'warnings', 'errors', 'success' ),
-            'output_ajax_placeholders' => true,
-            'ajax_placeholders_prefix' => false,
-            'notifications_buffer' => '',
-        ) );
+        return self::hook_args_definition( [
+           'warnings' => [],
+           'errors' => [],
+           'success' => [],
+           'template' => [
+               'file' => '',
+               'extra_paths' => [],
+           ], // default template
+           'display_channels' => [ 'warnings', 'errors', 'success' ],
+           'output_ajax_placeholders' => true,
+           'ajax_placeholders_prefix' => false,
+           'notifications_buffer' => '',
+        ] );
     }
     //
     //endregion Notifications hooks
@@ -619,11 +627,11 @@ class PHS_Hooks extends PHS_Registry
     //
     public static function default_init_email_hook_args()
     {
-        return self::hook_args_definition( array(
-            'template' => array(
-                'file' => '',
-                'extra_paths' => array(),
-            ), // default template
+        return self::hook_args_definition( [
+            'template' => [
+               'file' => '',
+               'extra_paths' => [],
+            ], // default template
 
             // In case we don't use a template and we just pass a string as email body
             'body_buffer' => false,
@@ -640,27 +648,27 @@ class PHS_Hooks extends PHS_Registry
             'reply_email' => '',
             'subject' => '',
 
-            'attach_files' => array(),
+            'attach_files' => [],
 
             'also_send' => true,
             'send_as_noreply' => true,
             'with_priority' => false,
             'native_mail_function' => false,
-            'custom_headers' => array(),
-            'email_vars' => array(),
-            'internal_vars' => array(),
+            'custom_headers' => [],
+            'email_vars' => [],
+            'internal_vars' => [],
 
             'email_html_body' => false,
             'email_text_body' => false,
             'full_body' => false,
 
             'send_result' => false,
-        ) );
+       ] );
     }
 
     public static function reset_email_hook_args( $hook_args )
     {
-        if( empty( $hook_args ) or !is_array( $hook_args ) )
+        if( empty( $hook_args ) || !is_array( $hook_args ) )
             return self::default_init_email_hook_args();
 
         // in case hook arguments are cascaded...
@@ -677,11 +685,11 @@ class PHS_Hooks extends PHS_Registry
     //
     public static function default_captcha_display_hook_args()
     {
-        return self::hook_args_definition( array(
-            'template' => array(
-                'file' => '',
-                'extra_paths' => array(),
-            ), // default template
+        return self::hook_args_definition( [
+            'template' => [
+               'file' => '',
+               'extra_paths' => [],
+            ], // default template
             'font' => 'default.ttf',
             'characters_count' => 5,
             'default_width' => 200,
@@ -689,21 +697,20 @@ class PHS_Hooks extends PHS_Registry
             'extra_img_style' => '',
             'extra_img_attrs' => '',
             'captcha_buffer' => '',
-        ) );
+       ] );
     }
 
     public static function default_captcha_check_hook_args()
     {
-        return self::hook_args_definition( array(
+        return self::hook_args_definition( [
             'check_code' => '',
             'check_valid' => false,
-        ) );
+       ] );
     }
 
     public static function default_captcha_regeneration_hook_args()
     {
-        return self::hook_args_definition( array(
-        ) );
+        return self::hook_args_definition( [] );
     }
     //
     //endregion Captcha hooks
@@ -727,8 +734,8 @@ class PHS_Hooks extends PHS_Registry
             return null;
 
         if( is_array( $hook_args )
-        and !empty( $hook_args['hook_errors'] ) and is_array( $hook_args['hook_errors'] )
-        and self::arr_has_error( $hook_args['hook_errors'] ) )
+         && !empty( $hook_args['hook_errors'] ) && is_array( $hook_args['hook_errors'] )
+         && self::arr_has_error( $hook_args['hook_errors'] ) )
         {
             self::st_copy_error_from_array( $hook_args['hook_errors'] );
             return false;

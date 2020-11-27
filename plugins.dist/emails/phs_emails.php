@@ -14,9 +14,7 @@ use \phs\libraries\PHS_Params;
 
 class PHS_Plugin_Emails extends PHS_Plugin
 {
-    const ERR_VALIDATION = 40000, ERR_TEMPLATE = 40001, ERR_SEND = 40002;
-
-    const MAX_ATTACHMENT_FILE_SIZE = 20971520; // 20 Mb
+    const ERR_VALIDATION = 40000, ERR_TEMPLATE = 40001, ERR_SEND = 40002, ERR_ATTACHMENTS = 40003;
 
     const DEFAULT_ROUTE = 'default';
 
@@ -72,44 +70,50 @@ class PHS_Plugin_Emails extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        return array(
+        return [
             // default template
-            'template_main' => array(
+            'template_main' => [
                 'display_name' => 'Emails main template',
                 'display_hint' => 'What template should be used when sending emails',
                 'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'template_emails' ),
-            ),
-            'email_vars' => array(
+            ],
+            'email_vars' => [
                 'display_name' => 'Emails variables',
                 'display_hint' => 'These variables will be available in email template',
                 'input_type' => self::INPUT_TYPE_KEY_VAL_ARRAY,
-                'default' => array(
+                'default' => [
                     'site_name' => PHS_SITE_NAME,
                     'from_name' => PHS_SITE_NAME,
                     'from_email' => 'office@'.PHS_DOMAIN,
                     'from_noreply' => 'noreply@'.PHS_DOMAIN,
-                ),
-            ),
-            'routes' => array(
+                ],
+            ],
+            'routes' => [
                 'display_name' => 'Emails routes',
-                'custom_renderer' => array( $this, 'display_settings_routes' ),
-                'custom_save' => array( $this, 'save_settings_routes' ),
-                'default' => array( self::DEFAULT_ROUTE => self::get_default_smtp_settings() ),
-            ),
-            'test_email_sending' => array(
+                'custom_renderer' => [ $this, 'display_settings_routes' ],
+                'custom_save' => [ $this, 'save_settings_routes' ],
+                'default' => [ self::DEFAULT_ROUTE => self::get_default_smtp_settings() ],
+            ],
+            'max_attachment_size' => [
+                'display_name' => 'Max Attachment file size',
+                'display_hint' => 'Maximum size allowed for a file attachment (in bytes). Default: 20971520 bytes = 20 Mb, 0 to disable this check',
+                'type' => PHS_Params::T_INT,
+                'default' => 20971520, // 20Mb
+            ],
+            'test_email_sending' => [
                 'display_name' => 'Test sending emails',
-                'custom_renderer' => array( $this, 'display_test_sending_emails' ),
+                'custom_renderer' => [ $this, 'display_test_sending_emails' ],
                 'default' => false,
                 'ignore_field_value' => true,
-            ),
-        );
+            ],
+        ];
     }
 
     public static function get_default_smtp_settings()
     {
-        return array(
+        return [
             'localhost' => '',
             'smtp_user' => '',
             'smtp_pass' => '',
@@ -118,23 +122,23 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'smtp_timeout' => 30,
             'smtp_encryption' => PHS_Smtp::ENCRYPTION_NONE,
             'smtp_authentication' => PHS_Smtp::AUTH_AUTO_DETECT,
-        );
+        ];
     }
 
     public function save_settings_routes( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return null;
 
         $params = self::merge_array_assoc( self::st_default_custom_save_params(), $params );
 
         if( empty( $params['field_name'] )
-         or empty( $params['form_data'] ) or !is_array( $params['form_data'] )
-         or !in_array( $params['field_name'], array( 'routes' ) ) )
+         || empty( $params['form_data'] ) || !is_array( $params['form_data'] )
+         || !in_array( $params['field_name'], [ 'routes' ], true ) )
             return null;
 
         if( !array_key_exists( 'field_value', $params )
-         or $params['field_value'] === null )
+         || $params['field_value'] === null )
             $old_values = null;
         else
             $old_values = $params['field_value'];
@@ -142,11 +146,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $return_data = null;
         if( $params['field_name'] === 'routes' )
         {
-            if( empty( $params['form_data']['routes'] ) or !is_array( $params['form_data']['routes'] ) )
+            if( empty( $params['form_data']['routes'] ) || !is_array( $params['form_data']['routes'] ) )
                 return null;
 
             if( $old_values === null
-             or !is_array( $old_values ) )
+             || !is_array( $old_values ) )
                 $old_values = array();
 
             $default_smtp_settings = self::get_default_smtp_settings();
@@ -157,11 +161,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
                 // Check if we have a password change
                 if( !empty( $old_values )
-                and !empty( $old_values[$route_name] ) and is_array( $old_values[$route_name] ) )
+                and !empty( $old_values[$route_name] ) && is_array( $old_values[$route_name] ) )
                 {
                     if( !empty( $old_values[$route_name]['smtp_pass'] )
-                    and ($decrypted_pass = PHS_Crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
-                    and $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS )
+                     && ($decrypted_pass = PHS_Crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
+                     && $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS )
                         $route_arr['smtp_pass'] = $decrypted_pass;
                 }
 
@@ -180,15 +184,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $default_smtp_settings = self::get_default_smtp_settings();
 
-        if( empty( $params['field_value'] ) or !is_array( $params['field_value'] ) )
-            $routes_arr = array( self::DEFAULT_ROUTE => $default_smtp_settings );
+        if( empty( $params['field_value'] ) || !is_array( $params['field_value'] ) )
+            $routes_arr = [ self::DEFAULT_ROUTE => $default_smtp_settings ];
         else
             $routes_arr = $params['field_value'];
 
-        if( empty( $routes_arr[self::DEFAULT_ROUTE] ) or !is_array( $routes_arr[self::DEFAULT_ROUTE] ) )
+        if( empty( $routes_arr[self::DEFAULT_ROUTE] ) || !is_array( $routes_arr[self::DEFAULT_ROUTE] ) )
             $routes_arr[self::DEFAULT_ROUTE] = $default_smtp_settings;
 
-        $email_routes = array();
+        $email_routes = [];
         foreach( $routes_arr as $route_name => $route_arr )
         {
             $route_arr = self::merge_array_assoc( $default_smtp_settings, $route_arr );
@@ -196,7 +200,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $email_routes[$route_name] = $route_arr;
         }
 
-        $data_arr = array();
+        $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
         $data_arr['smtp_library'] = $this->smtp_library;
 
@@ -212,8 +216,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $default_route = array();
         if( !empty( $current_settings['routes'] )
-        and !empty( $current_settings['routes'][self::DEFAULT_ROUTE] )
-        and is_array( $current_settings['routes'][self::DEFAULT_ROUTE] ) )
+         && !empty( $current_settings['routes'][self::DEFAULT_ROUTE] )
+         && is_array( $current_settings['routes'][self::DEFAULT_ROUTE] ) )
             $default_route = $current_settings['routes'][self::DEFAULT_ROUTE];
 
         $testing_error = '';
@@ -227,7 +231,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !empty( $do_test_email_sending_submit ) )
         {
             if( empty( $test_email_sending_email )
-             or !PHS_Params::check_type( $test_email_sending_email, PHS_Params::T_EMAIL ) )
+             || !PHS_Params::check_type( $test_email_sending_email, PHS_Params::T_EMAIL ) )
                 $testing_error .= ($testing_error!==''?'<br/>':'').$this->_pt( 'Please provide a valid email address.' );
 
             else
@@ -235,7 +239,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $previous_error = self::st_stack_error();
                 self::st_reset_error();
 
-                $hook_args = array();
+                $hook_args = [];
                 $hook_args['subject'] = 'Site test email';
                 $hook_args['to'] = $test_email_sending_email;
                 $hook_args['to_name'] = self::_t( 'Site test email' );
@@ -247,16 +251,16 @@ class PHS_Plugin_Emails extends PHS_Plugin
                     PHS_SITE_NAME.' team<br/>'."\n";
 
                 if( !($hook_results = PHS_Hooks::trigger_email( $hook_args ))
-                 or !is_array( $hook_results )
-                 or empty( $hook_results['send_result'] ) )
+                 || !is_array( $hook_results )
+                 || empty( $hook_results['send_result'] ) )
                 {
                     if( empty( $hook_results )
-                    and self::st_has_error() )
+                     && self::st_has_error() )
                         $testing_error .= ($testing_error!==''?'<br/>':'').self::st_get_error_message();
 
                     elseif( !empty( $hook_results )
-                    and !empty( $hook_results['hook_errors'] ) and is_array( $hook_results['hook_errors'] )
-                    and self::arr_has_error( $hook_results['hook_errors'] ) )
+                     && !empty( $hook_results['hook_errors'] ) && is_array( $hook_results['hook_errors'] )
+                     && self::arr_has_error( $hook_results['hook_errors'] ) )
                         $testing_error .= ($testing_error!==''?'<br/>':'').self::arr_get_error_message( $hook_results['hook_errors'] );
 
                     else
@@ -268,7 +272,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             }
         }
 
-        $data_arr = array();
+        $data_arr = [];
         $data_arr['test_email_sending_error'] = $testing_error;
         $data_arr['test_email_sending_success'] = $testing_success;
         $data_arr['test_email_sending_email'] = $test_email_sending_email;
@@ -280,8 +284,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public static function valid_smtp_settings( $settings )
     {
-        if( empty( $settings ) or !is_array( $settings )
-         or empty( $settings['smtp_host'] ) or empty( $settings['smtp_port'] ) )
+        if( empty( $settings ) || !is_array( $settings )
+         || empty( $settings['smtp_host'] ) || empty( $settings['smtp_port'] ) )
             return false;
 
         return true;
@@ -295,10 +299,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $defined_routes;
 
         if( !($plugin_settings = $this->get_db_settings())
-         or empty( $plugin_settings['routes'] ) or !is_array( $plugin_settings['routes'] ) )
-            return array();
+         || empty( $plugin_settings['routes'] ) || !is_array( $plugin_settings['routes'] ) )
+            return [];
 
-        $route_settings_arr = array();
+        $route_settings_arr = [];
         foreach( $plugin_settings['routes'] as $route_key => $route_arr )
         {
             $route_arr = self::validate_array( $route_arr, self::get_default_smtp_settings() );
@@ -316,7 +320,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     public function get_defined_smtp_routes()
     {
         if( !($routes_settings = $this->get_smtp_routes_settings()) )
-            return array();
+            return [];
 
         return array_keys( $routes_settings );
     }
@@ -324,8 +328,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
     public function get_smtp_route_settings( $route )
     {
         if( !($routes_settings = $this->get_smtp_routes_settings())
-         or !is_array( $routes_settings )
-         or empty( $routes_settings[$route] ) )
+         || !is_array( $routes_settings )
+         || empty( $routes_settings[$route] ) )
             return false;
 
         return $routes_settings[$route];
@@ -333,14 +337,14 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public static function default_file_attachment()
     {
-        return array(
+        return [
             'file' => '',
             'file_name' => '',
             'content_type' => 'application/octet-stream',
             'transfer_encoding' => 'base64',
             'content_disposition' => 'attachment', // attachment or inline
             'file_attachment_buffer' => '',
-        );
+        ];
     }
 
     public function init_email_hook_args( $hook_args )
@@ -350,7 +354,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $hook_args = self::validate_array_recursive( $hook_args, PHS_Hooks::default_init_email_hook_args() );
 
         if( !($settings_arr = $this->get_db_settings())
-         or empty( $settings_arr['template_main'] ) )
+         || empty( $settings_arr['template_main'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
 
@@ -361,8 +365,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        $template_params = array();
-        $template_params['theme_relative_dirs'] = array( PHS_EMAILS_DIRS );
+        $template_params = [];
+        $template_params['theme_relative_dirs'] = [ PHS_EMAILS_DIRS ];
 
         if( !($email_main_template = PHS_View::validate_template_resource( $settings_arr['template_main'], $template_params )) )
         {
@@ -376,8 +380,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         if( empty( $hook_args['body_buffer'] )
-        and (empty( $hook_args['template'] )
-            or !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params ))
+         && (empty( $hook_args['template'] )
+            || !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params ))
             ) )
         {
             if( self::st_has_error() )
@@ -398,7 +402,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( empty( $hook_args['native_mail_function'] ) )
         {
             if( empty( $hook_args['route'] )
-             or !($route_settings = $this->get_smtp_route_settings( $hook_args['route'] )) )
+             || !($route_settings = $this->get_smtp_route_settings( $hook_args['route'] )) )
             {
                 PHS_Logger::logf( 'Invalid SMTP route ['.$hook_args['route'].'].', self::LOG_CHANNEL );
 
@@ -419,30 +423,30 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( empty( $hook_args['from_noreply'] ) )
             $hook_args['from_noreply'] = $settings_arr['email_vars']['from_noreply'];
 
-        if( empty( $hook_args['email_vars'] ) or !is_array( $hook_args['email_vars'] ) )
-            $hook_args['email_vars'] = array();
+        if( empty( $hook_args['email_vars'] ) || !is_array( $hook_args['email_vars'] ) )
+            $hook_args['email_vars'] = [];
 
         $hook_args['email_vars'] = self::validate_array( $hook_args['email_vars'], $settings_arr['email_vars'] );
 
         if( empty( $hook_args['subject'] ) )
             $hook_args['subject'] = 'Email from '.(!empty( $hook_args['email_vars']['site_name'] )?$hook_args['email_vars']['site_name']:PHS_SITE_NAME);
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = array(
+        $view_params['template_data'] = [
             'hook_args' => $hook_args,
             'email_content' => '',
-        );
+        ];
 
         if( !empty( $hook_args['body_buffer'] ) )
             $email_content_buffer = $hook_args['body_buffer'];
 
         elseif( empty( $email_template )
-         or !($email_template_obj = PHS_View::init_view( $email_template, $view_params ))
-         or !($email_content_buffer = $email_template_obj->render()) )
+         || !($email_template_obj = PHS_View::init_view( $email_template, $view_params ))
+         || !($email_content_buffer = $email_template_obj->render()) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
@@ -462,11 +466,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
         if( !($main_template_obj = PHS_View::init_view( $email_main_template, $view_params ))
-         or !($email_html_body = $main_template_obj->render()) )
+         || !($email_html_body = $main_template_obj->render()) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
-            elseif( !empty( $main_template_obj ) and $main_template_obj->has_error() )
+            elseif( !empty( $main_template_obj ) && $main_template_obj->has_error() )
                 $this->copy_error( $main_template_obj );
 
             if( !$this->has_error() )
@@ -481,27 +485,36 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $hook_args['email_html_body'] = $email_html_body;
 
-        $attach_files = array();
-        if( !empty( $hook_args['attach_files'] ) and is_array( $hook_args['attach_files'] ) )
+        $attach_files = [];
+        if( !empty( $hook_args['attach_files'] ) && is_array( $hook_args['attach_files'] ) )
         {
             $default_file_details = self::default_file_attachment();
-            foreach( $hook_args['attach_files'] as $file_details )
+            foreach( $hook_args['attach_files'] as $knti => $file_details )
             {
-                if( empty( $file_details ) or !is_array( $file_details ) )
+                if( empty( $file_details ) || !is_array( $file_details ) )
                     continue;
+
+                $file_details = self::validate_array( $file_details, $default_file_details );
 
                 if( !empty( $file_details['file_attachment_buffer'] ) )
                     continue;
 
-                $file_details = self::validate_array( $file_details, $default_file_details );
-                if( empty( $file_details['file'] ) or !@file_exists( $file_details['file'] ) )
-                    continue;
-
-                if( empty( $file_details['file_name'] ) )
+                if( !empty( $file_details['file'] ) && empty( $file_details['file_name'] ) )
                     $file_details['file_name'] = @basename( $file_details['file'] );
 
+                if( (empty( $file_details['file_base64_buffer'] ) && empty( $file_details['file'] ))
+                 || (!empty( $file_details['file_base64_buffer'] ) && empty( $file_details['file_name'] ))
+                 || (!empty( $file_details['file'] ) && !@file_exists( $file_details['file'] )) )
+                {
+                    $this->set_error( self::ERR_ATTACHMENTS, $this->_pt( 'Invalid parameters for attachment #%s.', $knti ) );
+
+                    $hook_args['hook_errors'] = self::arr_set_error( self::ERR_ATTACHMENTS, $this->get_simple_error_message() );
+
+                    return $hook_args;
+                }
+
                 if( empty( $file_details['content_disposition'] )
-                 or !in_array( $file_details['content_disposition'], array( 'attachment', 'inline' ) ) )
+                 or !in_array( $file_details['content_disposition'], [ 'attachment', 'inline' ] ) )
                     $file_details['content_disposition'] = 'attachment';
 
                 $attach_files[] = $file_details;
@@ -546,10 +559,14 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $hook_args['reply_name'] = $hook_args['from_name'];
 
         // Convert HTML version to text and text to HTML if necessary
-        if( empty( $hook_args['email_html_body'] ) and !empty( $hook_args['email_text_body'] ) )
+        if( empty( $hook_args['email_html_body'] ) && !empty( $hook_args['email_text_body'] ) )
             $hook_args['email_html_body'] = str_replace( '  ', ' &nbsp;', nl2br( $hook_args['email_text_body'] ) );
-        elseif( !empty( $hook_args['email_html_body'] ) and empty( $hook_args['email_text_body'] ) )
-            $hook_args['email_text_body'] = strip_tags( preg_replace( "/[\r\n]+/", "\n", str_ireplace( array( '<p>', '</p>', '<br>', '<br/>', '<br />' ), "\n", $hook_args['email_html_body'] ) ) );
+        elseif( !empty( $hook_args['email_html_body'] ) && empty( $hook_args['email_text_body'] ) )
+            $hook_args['email_text_body'] = strip_tags( preg_replace( "/[\r\n]+/",
+                                                                      "\n",
+                                                                      str_ireplace( [ '<p>', '</p>', '<br>', '<br/>', '<br />' ],
+                                                                                    "\n",
+                                                                                    $hook_args['email_html_body'] ) ) );
 
         // set multipart boundary
         $hash = md5( microtime() );
@@ -576,7 +593,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $predefined_headers['X-SMail-ID'] = md5( self::mail_auth_key().':'.time() );
 
         $final_headers_arr = $predefined_headers;
-        if( !empty( $hook_args['custom_headers'] ) and is_array( $hook_args['custom_headers'] ) )
+        if( !empty( $hook_args['custom_headers'] ) && is_array( $hook_args['custom_headers'] ) )
         {
             foreach( $hook_args['custom_headers'] as $key => $value )
                 $final_headers_arr[$key] = $value;
@@ -592,42 +609,50 @@ class PHS_Plugin_Emails extends PHS_Plugin
                                   'Content-Transfer-Encoding: 7bit' . "\n\n" .
                                   $hook_args['email_html_body'] . "\n\n";
 
-        $attach_files = array();
-        if( !empty( $hook_args['attach_files'] ) and is_array( $hook_args['attach_files'] ) )
+        $attach_files = [];
+        if( !empty( $hook_args['attach_files'] ) && is_array( $hook_args['attach_files'] ) )
         {
-            $valid_attachments = false;
             foreach( $hook_args['attach_files'] as $file_details )
             {
-                if( empty( $file_details ) or !is_array( $file_details )
-                 or empty( $file_details['file'] ) or !@file_exists( $file_details['file'] ) )
+                if( empty( $file_details ) || !is_array( $file_details ) )
                     continue;
-
-                $valid_attachments = true;
 
                 if( !empty( $file_details['file_attachment_buffer'] ) )
                     $hook_args['full_body'] .= $file_details['file_attachment_buffer'];
 
                 else
                 {
-                    if( ($file_size = @filesize( $file_details['file'] )) === false
-                     or (int)$file_size > self::MAX_ATTACHMENT_FILE_SIZE
-                     or !($file_content = @file_get_contents( $file_details['file'] )) )
+                    $file_encoded = '';
+                    if( !empty( $file_details['file_base64_buffer'] ) )
+                        $file_encoded = $file_details['file_base64_buffer'];
+
+                    elseif( !empty( $file_details['file'] ) )
                     {
-                        $this->set_error( self::ERR_SEND, $this->_pt( 'Couldn\'t read attachment file.' ) );
+                        if( false === ($file_size = @filesize( $file_details['file'] ))
+                         || (!empty( $settings_arr['max_attachment_size'] ) && (int)$file_size > $settings_arr['max_attachment_size'])
+                         || false === ($file_content = @file_get_contents( $file_details['file'] )) )
+                        {
+                            $this->set_error( self::ERR_SEND, $this->_pt( 'Couldn\'t obtain attachment file content.' ) );
 
-                        $hook_args['hook_errors'] = $this->get_error();
+                            $hook_args['hook_errors'] = $this->get_error();
 
-                        return $hook_args;
+                            return $hook_args;
+                        }
+
+                        if( $file_details['transfer_encoding'] === 'base64' )
+                            $file_encoded = @base64_encode( $file_content );
+                        else
+                            $file_encoded = $file_content;
+
+                        // Free up some memory
+                        unset( $file_content );
                     }
-
-                    if( $file_details['transfer_encoding'] === 'base64' )
-                        $file_content = base64_encode( $file_content );
 
                     $file_details['file_attachment_buffer'] = '--' . $mime_boundary . "\n" .
                         'Content-Type: '.$file_details['content_type'].';'."\n\t".' name="'.$file_details['file_name'].'"'."\n".
                         'Content-Transfer-Encoding: '.$file_details['transfer_encoding']."\n".
                         'Content-Disposition: '.$file_details['content_disposition'].';'."\n\t".' filename="'.$file_details['file_name'].'"'."\n\n".
-                        chunk_split( $file_content );
+                        chunk_split( $file_encoded );
 
                     $hook_args['full_body'] .= $file_details['file_attachment_buffer'];
                 }
@@ -664,13 +689,13 @@ class PHS_Plugin_Emails extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( empty( $hook_args ) or !is_array( $hook_args )
-         or empty( $hook_args['route_settings'] )
-         or empty( $hook_args['to'] )
-         or !isset( $hook_args['subject'] )
-         or empty( $hook_args['full_body'] )
-         or empty( $hook_args['internal_vars']['full_headers'] ) or !is_array( $hook_args['internal_vars']['full_headers'] )
-         or empty( $hook_args['internal_vars']['mime_boundary'] ) )
+        if( empty( $hook_args ) || !is_array( $hook_args )
+         || empty( $hook_args['route_settings'] )
+         || empty( $hook_args['to'] )
+         || !isset( $hook_args['subject'] )
+         || empty( $hook_args['full_body'] )
+         || empty( $hook_args['internal_vars']['full_headers'] ) || !is_array( $hook_args['internal_vars']['full_headers'] )
+         || empty( $hook_args['internal_vars']['mime_boundary'] ) )
         {
             $this->set_error( self::ERR_SEND, $this->_pt( 'Mandatory SMTP parameters not set.' ) );
 
@@ -679,7 +704,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        $library_params = array();
+        $library_params = [];
         $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_Smtp';
         $library_params['as_singleton'] = false;
 
@@ -700,7 +725,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $smtp_library->settings( $smtp_settings );
 
-        $email_settings = array(
+        $email_settings = [
             'headers' => $hook_args['internal_vars']['full_headers'],
             'to_name' => (!empty( $hook_args['to_name'] )?$hook_args['to_name']:''),
             'to_email' => $hook_args['to'],
@@ -713,7 +738,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'body_html' => $hook_args['email_html_body'],
             'body_txt' => $hook_args['email_text_body'],
             'body_full' => $hook_args['full_body'],
-        );
+        ];
 
         $smtp_library->email_details( $email_settings );
 
@@ -740,11 +765,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( empty( $hook_args ) or !is_array( $hook_args )
-         or empty( $hook_args['to'] )
-         or !isset( $hook_args['subject'] )
-         or empty( $hook_args['full_body'] )
-         or empty( $hook_args['internal_vars']['full_headers'] ) or !is_array( $hook_args['internal_vars']['full_headers'] ) )
+        if( empty( $hook_args ) || !is_array( $hook_args )
+         || empty( $hook_args['to'] )
+         || !isset( $hook_args['subject'] )
+         || empty( $hook_args['full_body'] )
+         || empty( $hook_args['internal_vars']['full_headers'] ) || !is_array( $hook_args['internal_vars']['full_headers'] ) )
         {
             $this->set_error( self::ERR_SEND, $this->_pt( 'Mandatory native mail parameters not set.' ) );
 
