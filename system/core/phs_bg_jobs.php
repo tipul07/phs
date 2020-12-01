@@ -26,10 +26,10 @@ class PHS_Bg_jobs extends PHS_Registry
     public static function get_current_job_parameters()
     {
         if( !($job_arr = self::current_job_data())
-         or !is_array( $job_arr )
-         or empty( $job_arr['params'] )
-         or !($job_params_arr = @json_decode( $job_arr['params'], true )) )
-            return array();
+         || !is_array( $job_arr )
+         || empty( $job_arr['params'] )
+         || !($job_params_arr = @json_decode( $job_arr['params'], true )) )
+            return [];
 
         return $job_params_arr;
     }
@@ -43,7 +43,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if( !($bg_jobs_model = PHS::load_model( 'bg_jobs' ))
-         or !($stalling_minutes = $bg_jobs_model->get_stalling_minutes()) )
+         || !($stalling_minutes = $bg_jobs_model->get_stalling_minutes()) )
             $stalling_minutes = 0;
 
         return $stalling_minutes;
@@ -53,8 +53,8 @@ class PHS_Bg_jobs extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if( !empty( $extra['bg_jobs_model'] ) )
@@ -63,8 +63,8 @@ class PHS_Bg_jobs extends PHS_Registry
             $bg_jobs_model = PHS::load_model( 'bg_jobs' );
 
         if( empty( $bg_jobs_model )
-         or !($job_data = self::current_job_data())
-         or !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
+         || !($job_data = self::current_job_data())
+         || !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
         {
             if( $bg_jobs_model->has_error() )
                 self::st_copy_error( $bg_jobs_model );
@@ -103,8 +103,8 @@ class PHS_Bg_jobs extends PHS_Registry
         self::st_reset_error();
 
         $route_parts = false;
-        if( (is_string( $route ) or is_array( $route ))
-        and !($route_parts = PHS::parse_route( $route, false )) )
+        if( (is_string( $route ) || is_array( $route ))
+        && !($route_parts = PHS::parse_route( $route, false )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
@@ -112,7 +112,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        if( empty( $route_parts ) or !is_array( $route_parts ) )
+        if( empty( $route_parts ) || !is_array( $route_parts ) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
@@ -126,14 +126,15 @@ class PHS_Bg_jobs extends PHS_Registry
             $route_parts['controller'] = false;
         if( !isset( $route_parts['action'] ) )
             $route_parts['action'] = false;
+        if( !isset( $route_parts['action_dir'] ) )
+            $route_parts['action_dir'] = false;
 
-        if( !($cleaned_route = PHS::route_from_parts(
-                                        array(
+        if( !($cleaned_route = PHS::route_from_parts( [
                                             'p' => $route_parts['plugin'],
                                             'c' => $route_parts['controller'],
                                             'a' => $route_parts['action'],
-                                        )
-             )) )
+                                            'ad' => $route_parts['action_dir'],
+                                          ] )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Route is invalid.' ) );
@@ -141,8 +142,8 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
 
         // Tells if we need to pass the result of action to caller script
         // In case we need result of action, job should be called in synchronous and task should run right away, not timed (async_task=false)
@@ -162,7 +163,7 @@ class PHS_Bg_jobs extends PHS_Registry
         if( !isset( $extra['async_task'] ) )
             $extra['async_task'] = true;
         else
-            $extra['async_task'] = (!empty( $extra['async_task'] )?true:false);
+            $extra['async_task'] = (!empty( $extra['async_task'] ));
 
         if( empty( $extra['timed_action'] ) )
             $extra['timed_action'] = false;
@@ -172,7 +173,7 @@ class PHS_Bg_jobs extends PHS_Registry
         if( empty( $extra['same_thread_if_bg'] ) )
             $extra['same_thread_if_bg'] = false;
         else
-            $extra['same_thread_if_bg'] = (!empty( $extra['same_thread_if_bg'] )?true:false);
+            $extra['same_thread_if_bg'] = (!empty( $extra['same_thread_if_bg'] ));
 
         if( !is_array( $params ) )
             $params = array();
@@ -188,7 +189,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         $current_user = PHS::user_logged_in();
 
-        $insert_arr = array();
+        $insert_arr = [];
         $insert_arr['uid'] = (!empty( $current_user )?$current_user['id']:0);
         $insert_arr['pid'] = 0;
         $insert_arr['route'] = $cleaned_route;
@@ -196,8 +197,8 @@ class PHS_Bg_jobs extends PHS_Registry
         $insert_arr['timed_action'] = $extra['timed_action'];
         $insert_arr['return_buffer'] = ($extra['return_buffer']?1:0);
 
-        if( !($job_arr = $bg_jobs_model->insert( array( 'fields' => $insert_arr ) ))
-         or empty( $job_arr['id'] ) )
+        if( !($job_arr = $bg_jobs_model->insert( [ 'fields' => $insert_arr ] ))
+         || empty( $job_arr['id'] ) )
         {
             if( $bg_jobs_model->has_error() )
                 self::st_copy_error( $bg_jobs_model );
@@ -213,7 +214,7 @@ class PHS_Bg_jobs extends PHS_Registry
         $cmd_extra['return_buffer'] = $extra['return_buffer'];
 
         if( !($cmd_parts = self::get_job_command( $job_arr, $cmd_extra ))
-         or empty( $cmd_parts['cmd'] ) )
+         || empty( $cmd_parts['cmd'] ) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_COMMAND, self::_t( 'Couldn\'t get background job command.' ) );
@@ -226,14 +227,14 @@ class PHS_Bg_jobs extends PHS_Registry
         if( !empty( $extra['return_command'] ) )
         {
             //!!! Be sure to hard_delete job record if you don't use it
-            return array(
+            return [
                 'cmd' => $cmd_parts['cmd'],
                 'job_data' => $job_arr,
-            );
+            ];
         }
 
         if( !empty_db_date( $extra['timed_action'] )
-        and parse_db_date( $extra['timed_action'] ) > time() )
+         && parse_db_date( $extra['timed_action'] ) > time() )
             return true;
 
         PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
@@ -242,12 +243,12 @@ class PHS_Bg_jobs extends PHS_Registry
             PHS_Logger::logf( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND );
 
         if( !empty( $extra['same_thread_if_bg'] )
-        and PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND )
+        && PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND )
         {
             $original_debug_data = PHS::platform_debug_data();
 
             // We are in background scope... just execute the route
-            $run_job_extra = array();
+            $run_job_extra = [];
             $run_job_extra['bg_jobs_model'] = $bg_jobs_model;
 
             $job_start_time = microtime( true );
@@ -279,8 +280,8 @@ class PHS_Bg_jobs extends PHS_Registry
             {
                 PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') error launching job or job returned empty buffer when we expected a response.', PHS_Logger::TYPE_BACKGROUND );
 
-                $edit_arr = array();
-                $edit_arr['fields'] = array();
+                $edit_arr = [];
+                $edit_arr['fields'] = [];
                 $edit_arr['fields']['last_error'] = 'Error launching job or job returned empty buffer when we expected a response.';
                 $edit_arr['fields']['last_action'] = date( $bg_jobs_model::DATETIME_DB );
 
@@ -301,11 +302,17 @@ class PHS_Bg_jobs extends PHS_Registry
         return $result;
     }
 
+    /**
+     * @param int|array $job_data
+     * @param false|array $extra
+     *
+     * @return array|false
+     */
     public static function get_job_command( $job_data, $extra = false )
     {
         self::st_reset_error();
 
-        if( empty( $extra ) or !is_array( $extra ) )
+        if( empty( $extra ) || !is_array( $extra ) )
             $extra = array();
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
@@ -322,11 +329,11 @@ class PHS_Bg_jobs extends PHS_Registry
         if( !isset( $extra['async_task'] ) )
             $extra['async_task'] = true;
         else
-            $extra['async_task'] = (!empty( $extra['async_task'] )?true:false);
+            $extra['async_task'] = (!empty( $extra['async_task'] ));
 
         if( empty( $job_data )
-         or empty( $bg_jobs_model )
-         or !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
+         || empty( $bg_jobs_model )
+         || !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_COMMAND, self::_t( 'Couldn\'t get background jobs details.' ) );
@@ -338,7 +345,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.PHS_Crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
 
-        if( strtolower( substr( PHP_OS, 0, 3 ) ) == 'win' )
+        if( stripos( PHP_OS, 'win' ) === 0 )
         {
             // launching background task under windows
             $cmd = 'start '.(!empty( $extra['async_task'] )?' /B ':'').$clean_cmd;
@@ -351,18 +358,18 @@ class PHS_Bg_jobs extends PHS_Registry
                 $cmd .= ' &';
         }
 
-        return array(
+        return [
             'cmd' => $cmd,
             'pub_key' => $pub_key,
-        );
+        ];
     }
 
     public static function bg_validate_input( $input_str )
     {
         if( empty( $input_str )
-         or @strstr( $input_str, '::' ) === false
-         or !($parts_arr = explode( '::', $input_str, 2 ))
-         or empty( $parts_arr[0] ) or empty( $parts_arr[1] ) )
+         || @strstr( $input_str, '::' ) === false
+         || !($parts_arr = explode( '::', $input_str, 2 ))
+         || empty( $parts_arr[0] ) || empty( $parts_arr[1] ) )
         {
             PHS_Logger::logf( 'Invalid input', PHS_Logger::TYPE_BACKGROUND );
             return false;
@@ -373,30 +380,36 @@ class PHS_Bg_jobs extends PHS_Registry
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if( !($decrypted_data = PHS_Crypt::quick_decode( $crypted_data ))
-         or !($decrypted_parts = explode( '::', $decrypted_data, 2 ))
-         or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] )
-         or !($job_id = intval( $decrypted_parts[0] ))
-         or !($bg_jobs_model = PHS::load_model( 'bg_jobs' ))
-         or !($job_arr = $bg_jobs_model->get_details( $job_id ))
-         or $decrypted_parts[1] != md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
+         || !($decrypted_parts = explode( '::', $decrypted_data, 2 ))
+         || empty( $decrypted_parts[0] ) || empty( $decrypted_parts[1] )
+         || !($job_id = (int)$decrypted_parts[0])
+         || !($bg_jobs_model = PHS::load_model( 'bg_jobs' ))
+         || !($job_arr = $bg_jobs_model->get_details( $job_id ))
+         || $decrypted_parts[1] !== md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
         {
             PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_BACKGROUND );
             return false;
         }
 
-        return array(
+        return [
             'job_data' => $job_arr,
             'pub_key' => $pub_key,
             'bg_jobs_model' => $bg_jobs_model,
-        );
+        ];
     }
 
+    /**
+     * @param int|array $job_data
+     * @param false|array $extra
+     *
+     * @return array|bool|null
+     */
     public static function bg_run_job( $job_data, $extra = false )
     {
         self::st_reset_error();
 
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
 
         if( empty( $extra['force_run'] ) )
             $extra['force_run'] = false;
@@ -411,8 +424,8 @@ class PHS_Bg_jobs extends PHS_Registry
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if( empty( $job_data )
-         or empty( $bg_jobs_model )
-         or !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
+         || empty( $bg_jobs_model )
+         || !($job_arr = $bg_jobs_model->data_to_array( $job_data )) )
         {
             if( $bg_jobs_model->has_error() )
                 self::st_copy_error( $bg_jobs_model );
@@ -427,7 +440,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         if( $bg_jobs_model->job_is_running( $job_arr ) )
         {
-            if( ($job_stalling = $bg_jobs_model->job_is_stalling( $job_arr )) === null )
+            if( null === ($job_stalling = $bg_jobs_model->job_is_stalling( $job_arr )) )
             {
                 if( $bg_jobs_model->has_error() )
                     self::st_copy_error( $bg_jobs_model );
@@ -439,7 +452,9 @@ class PHS_Bg_jobs extends PHS_Registry
             {
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Job already running.' ) );
                 return false;
-            } elseif( !empty( $job_stalling ) and empty( $extra['force_run'] ) )
+            }
+
+            if( empty( $extra['force_run'] ) )
             {
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Job seems to stall. Run not told to force execution.' ) );
                 return false;
@@ -449,10 +464,10 @@ class PHS_Bg_jobs extends PHS_Registry
         if( !($pid = @getmypid()) )
             $pid = -1;
 
-        $edit_arr = array();
+        $edit_arr = [];
         $edit_arr['pid'] = $pid;
 
-        if( !($new_job_arr = $bg_jobs_model->edit( $job_arr, array( 'fields' => $edit_arr ) )) )
+        if( !($new_job_arr = $bg_jobs_model->edit( $job_arr, [ 'fields' => $edit_arr ] )) )
         {
             if( $bg_jobs_model->has_error() )
                 self::st_copy_error( $bg_jobs_model );
@@ -468,14 +483,14 @@ class PHS_Bg_jobs extends PHS_Registry
         self::current_job_data( $job_arr );
 
         if( !PHS_Scope::current_scope( PHS_Scope::SCOPE_BACKGROUND )
-         or !PHS::set_route( $job_arr['route'] ) )
+         || !PHS::set_route( $job_arr['route'] ) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error preparing environment.' ) );
 
             $error_arr = self::st_get_error();
 
-            $error_params = array();
+            $error_params = [];
             $error_params['last_error'] = self::st_get_error_message();
 
             $bg_jobs_model->job_error_stop( $job_arr, $error_params );
@@ -485,7 +500,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        $execution_params = array();
+        $execution_params = [];
         $execution_params['die_on_error'] = false;
 
         if( !($action_result = PHS::execute_route( $execution_params )) )
@@ -495,7 +510,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
             $error_arr = self::st_get_error();
 
-            $error_params = array();
+            $error_params = [];
             $error_params['last_error'] = self::st_get_error_message();
 
             $bg_jobs_model->job_error_stop( $job_arr, $error_params );
