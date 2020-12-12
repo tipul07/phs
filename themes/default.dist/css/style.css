@@ -939,7 +939,8 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 						word-break: break-all;
 						}
 					.paginator_input { 
-						vertical-align: middle; 
+						vertical-align: middle;
+						min-height: 35px;
 						}
 	/*--- 4.1.1 - List Filter - END ------------------------------*/
 	
