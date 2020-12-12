@@ -13,7 +13,7 @@
 
     if( !($base_url = $paginator_obj->base_url()) )
         $base_url = '#';
-    if( !($full_listing_url = $paginator_obj->get_full_url( array( 'include_filters' => false ) )) )
+    if( !($full_listing_url = $paginator_obj->get_full_url( [ 'include_filters' => false ] )) )
         $full_listing_url = '#';
 
     if( !($flow_params_arr = $paginator_obj->flow_params()) )
@@ -23,22 +23,22 @@
         $filters_form_name = $flow_params_arr['form_prefix'].'paginator_filters_form';
 
     if( !($filters_arr = $paginator_obj->get_filters()) )
-        $filters_arr = array();
+        $filters_arr = [];
     if( !($scope_arr = $paginator_obj->get_scope()) )
-        $scope_arr = array();
+        $scope_arr = [];
     if( !($originals_arr = $paginator_obj->get_originals()) )
-        $originals_arr = array();
+        $originals_arr = [];
 
     $show_filters = (PHS_Params::_g( 'show_filters', PHS_Params::T_INT )?true:false);
 
     if( !empty( $flow_params_arr['before_filters_callback'] )
-    and is_callable( $flow_params_arr['before_filters_callback'] ) )
+     && @is_callable( $flow_params_arr['before_filters_callback'] ) )
     {
         $callback_params = $paginator_obj->default_others_render_call_params();
         $callback_params['filters'] = $filters_arr;
 
         if( ($cell_content = @call_user_func( $flow_params_arr['before_filters_callback'], $callback_params )) === false
-         or $cell_content === null )
+         || $cell_content === null )
             $cell_content = '[' . $this->_pt( 'Render before filters call failed.' ) . ']';
 
         echo $cell_content;
@@ -52,12 +52,12 @@
 
             <div id="<?php echo $filters_form_name?>_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;">
             <?php
-            $filters_display_arr = array();
+            $filters_display_arr = [];
             foreach( $filters_arr as $filter_details )
             {
-                if( empty( $filter_details ) or !is_array( $filter_details )
-                 or empty( $filter_details['var_name'] )
-                 or !empty( $filter_details['hidden_filter'] ))
+                if( empty( $filter_details ) || !is_array( $filter_details )
+                 || empty( $filter_details['var_name'] )
+                 || !empty( $filter_details['hidden_filter'] ))
                     continue;
 
                 if( !empty( $filter_details['display_placeholder'] ) )
@@ -94,9 +94,10 @@
                     ?></label>
                     <div class="paginator_input"><?php
 
-                    if( !empty( $filter_details['values_arr'] ) and is_array( $filter_details['values_arr'] ) )
+                    if( !empty( $filter_details['values_arr'] ) && is_array( $filter_details['values_arr'] ) )
                     {
-                        ?><select id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="chosen-select <?php echo $filter_details['extra_classes']?>" style="<?php echo $filter_details['extra_style']?>"><?php
+                        ?><select id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="chosen-select <?php echo $filter_details['extra_classes']?>"
+                                  style="<?php echo $filter_details['extra_style']?>"><?php
 
                         foreach( $filter_details['values_arr'] as $key => $val )
                         {
@@ -112,16 +113,23 @@
                         switch( $filter_details['type'] )
                         {
                             case PHS_Params::T_DATE:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" readonly="readonly"
+                                         class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']?>"
+                                         value="<?php echo form_str( $field_value )?>" style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
                             case PHS_Params::T_BOOL:
                                 $field_value_display = (!empty( $field_value )?$this->_pt( 'True' ):$this->_pt( 'False' ));
-                                ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="<?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox" <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="checkbox" id="<?php echo $field_id?>" name="<?php echo $field_name?>"
+                                         class="<?php echo $filter_details['extra_classes']?>" value="1" rel="skin_checkbox"
+                                         <?php echo (!empty( $field_value )?'checked="checked"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
 
                             default:
-                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="form-control <?php echo $filter_details['extra_classes']?>" value="<?php echo form_str( $field_value )?>" <?php echo (!empty( $field_placeholder )?'placeholder="'.form_str( $field_placeholder ).'"':'')?> style="<?php echo $filter_details['extra_style']?>" /><?php
+                                ?><input type="text" id="<?php echo $field_id?>" name="<?php echo $field_name?>"
+                                         class="form-control <?php echo $filter_details['extra_classes']?>"
+                                         value="<?php echo form_str( $field_value )?>" <?php echo (!empty( $field_placeholder )?'placeholder="'.form_str( $field_placeholder ).'"':'')?>
+                                         style="<?php echo $filter_details['extra_style']?>" /><?php
                             break;
                         }
                     }
@@ -131,7 +139,7 @@
                 <?php
 
                 if( isset( $scope_arr[$filter_details['var_name']] )
-                 or ($filter_details['default'] !== null and !empty( $filter_details['display_default_as_filter'] )) )
+                 || ($filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] )) )
                     $filters_display_arr[] = '<em>'.$filter_details['display_name'].'</em>: '.$field_value_display;
             }
             ?>
@@ -145,7 +153,7 @@
 
             <div id="<?php echo $filters_form_name?>_text" style="display:<?php echo (!$show_filters?'block':'none')?>;">
             <?php
-            $filters_str_arr = array();
+            $filters_str_arr = [];
             foreach( $filters_arr as $filter_details )
             {
                 if( empty( $filter_details['var_name'] ) )
@@ -154,7 +162,7 @@
                 $field_value = null;
                 if( isset( $scope_arr[$filter_details['var_name']] ) )
                     $field_value = $scope_arr[$filter_details['var_name']];
-                elseif( $filter_details['default'] !== null and !empty( $filter_details['display_default_as_filter'] ) )
+                elseif( $filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] ) )
                     $field_value = $filter_details['default'];
 
                 if( $field_value === null )
@@ -225,13 +233,13 @@ function toggle_filters_inputs_and_text()
 <?php
 
     if( !empty( $flow_params_arr['after_filters_callback'] )
-    and is_callable( $flow_params_arr['after_filters_callback'] ) )
+     && @is_callable( $flow_params_arr['after_filters_callback'] ) )
     {
         $callback_params = $paginator_obj->default_others_render_call_params();
         $callback_params['filters'] = $filters_arr;
 
         if( ($cell_content = @call_user_func( $flow_params_arr['after_filters_callback'], $callback_params )) === false
-         or $cell_content === null )
+         || $cell_content === null )
             $cell_content = '[' . $this->_pt( 'Render after filters call failed.' ) . ']';
 
         echo $cell_content;
