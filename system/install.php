@@ -1,7 +1,7 @@
 <?php
 
     if( !defined( 'PHS_VERSION' )
-     or !defined( 'PHS_INSTALLING_FLOW' ) or !constant( 'PHS_INSTALLING_FLOW' ) )
+     || !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
         exit;
 
     use \phs\PHS;
@@ -24,7 +24,7 @@
     }
 
     if( ($core_models = PHS::get_core_models())
-    and is_array( $core_models ) )
+     && is_array( $core_models ) )
     {
         foreach( $core_models as $core_model )
         {
@@ -42,7 +42,7 @@
     }
 
     if( ($plugins_arr = $plugins_model->cache_all_dir_details()) === false
-     or !is_array( $plugins_arr ) )
+     || !is_array( $plugins_arr ) )
     {
         if( !$plugins_model->has_error() )
             PHS::st_set_error( -1, PHS::_t( 'Error obtaining plugins list.' ) );
@@ -52,11 +52,22 @@
         return PHS::st_get_error();
     }
 
-    $priority_plugins = array( 'emails', 'accounts', 'messages', 'notifications', 'captcha', 'admin' );
-    $installing_plugins_arr = array();
+    $priority_plugins = [ 'emails', 'sendgrid', 'accounts', 'messages', 'notifications', 'captcha', 'admin' ];
+    $installing_plugins_arr = [];
     foreach( $priority_plugins as $plugin_name )
     {
         if( !isset( $plugins_arr[$plugin_name] ) )
+            continue;
+
+        $installing_plugins_arr[$plugin_name] = $plugins_arr[$plugin_name];
+    }
+
+    // Make sure distribution plugins get updated first
+    $dist_plugins = PHS::get_distribution_plugins();
+    foreach( $dist_plugins as $plugin_name )
+    {
+        if( isset( $installing_plugins_arr[$plugin_name] )
+         || !isset( $plugins_arr[$plugin_name] ) )
             continue;
 
         $installing_plugins_arr[$plugin_name] = $plugins_arr[$plugin_name];
