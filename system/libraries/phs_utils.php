@@ -14,6 +14,8 @@ class PHS_Utils extends PHS_Language
 
     const PERIOD_FULL = 0, PERIOD_SECONDS = 1, PERIOD_MINUTES = 2, PERIOD_HOURS = 3, PERIOD_DAYS = 4, PERIOD_WEEKS = 5, PERIOD_MONTHS = 6, PERIOD_YEARS = 7;
 
+    const MAX_COUNT_FILESIZE = 2097152; // 2 Mb
+
     /**
      * Compares two numeric strings and says which one is bigger. This method simulates bccomp behaviour.
      * It doesn't take in consideration float representations of numbers (eg. 9.2233720368548E+18), only "plain" numbers
@@ -168,7 +170,7 @@ class PHS_Utils extends PHS_Language
     /**
      * Returns details about running process with provided PID
      * @param int $pid Process id
-     * @return array
+     * @return array|false
      */
     public static function get_process_details( $pid )
     {
@@ -200,13 +202,13 @@ class PHS_Utils extends PHS_Language
             echo '['.$status_file_str.']';
 
             if( preg_match( '@State:\s*(.*)@i', $status_file_str, $matches_arr )
-             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+             && is_array( $matches_arr ) && !empty( $matches_arr[1] ) )
                 $return_arr['state'] = $matches_arr[1];
             if( preg_match( '@Name:\s*(.*)@i', $status_file_str, $matches_arr )
-             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+             && is_array( $matches_arr ) && !empty( $matches_arr[1] ) )
                 $return_arr['name'] = $matches_arr[1];
             if( preg_match( '@PPid:\s*(.*)@i', $status_file_str, $matches_arr )
-             && is_array( $matches_arr ) and !empty( $matches_arr[1] ) )
+             && is_array( $matches_arr ) && !empty( $matches_arr[1] ) )
                 $return_arr['parent_pid'] = (int)$matches_arr[1];
         }
 
@@ -232,14 +234,14 @@ class PHS_Utils extends PHS_Language
      */
     public static function parse_period( $seconds_span, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['only_big_part'] ) )
             $params['only_big_part'] = false;
         if( empty( $params['big_part_if_zero'] ) )
             $params['big_part_if_zero'] = false;
-        if( empty( $params['show_period'] ) or $params['show_period'] > self::PERIOD_YEARS )
+        if( empty( $params['show_period'] ) || $params['show_period'] > self::PERIOD_YEARS )
             $params['show_period'] = self::PERIOD_FULL;
         if( empty( $params['start_timestamp'] ) )
             $params['start_timestamp'] = time();
@@ -274,7 +276,7 @@ class PHS_Utils extends PHS_Language
             case self::PERIOD_FULL:
                 if( !empty( $params['only_big_part'] ) )
                 {
-                    $return_arr = array();
+                    $return_arr = [];
                     if( !empty( $years ) )
                         $return_arr[] = $years.' '.($years>1?self::_t( 'years' ):self::_t( 'year' ));
                     elseif( !empty( $months ) )
@@ -289,7 +291,7 @@ class PHS_Utils extends PHS_Language
                         $return_arr[] = $seconds.' '.($seconds>1?self::_t( 'seconds' ):self::_t( 'second' ));
                 } else
                 {
-                    $return_arr = array();
+                    $return_arr = [];
                     if( !empty( $years ) )
                         $return_arr[] = $years.' '.($years>1?self::_t( 'years' ):self::_t( 'year' ));
                     if( !empty( $months ) )
@@ -317,7 +319,7 @@ class PHS_Utils extends PHS_Language
             case self::PERIOD_MINUTES:
                 $minutes_diff = floor( $seconds_span/60 );
                 if( $minutes_diff === 0.0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -331,7 +333,7 @@ class PHS_Utils extends PHS_Language
             case self::PERIOD_HOURS:
                 $hours_diff = floor( $seconds_span/3600 );
                 if( $hours_diff === 0.0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -345,7 +347,7 @@ class PHS_Utils extends PHS_Language
             case self::PERIOD_DAYS:
                 $days_diff = floor( $seconds_span/86400 );
                 if( $days_diff === 0.0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -359,7 +361,7 @@ class PHS_Utils extends PHS_Language
             case self::PERIOD_WEEKS:
                 $weeks_diff = floor( $seconds_span/604800 );
                 if( $weeks_diff === 0.0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -372,7 +374,7 @@ class PHS_Utils extends PHS_Language
 
             case self::PERIOD_MONTHS:
                 if( $months === 0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -385,7 +387,7 @@ class PHS_Utils extends PHS_Language
 
             case self::PERIOD_YEARS:
                 if( $years === 0
-                and !empty( $params['big_part_if_zero'] ) )
+                 && !empty( $params['big_part_if_zero'] ) )
                 {
                     $params['show_period'] = self::PERIOD_FULL;
                     $params['only_big_part'] = true;
@@ -406,16 +408,16 @@ class PHS_Utils extends PHS_Language
      */
     public static function check_crawler_request( $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['user_agent'] )
-        and !empty( $_SERVER ) and isset( $_SERVER['HTTP_USER_AGENT'] ) )
+         && !empty( $_SERVER ) && isset( $_SERVER['HTTP_USER_AGENT'] ) )
             $params['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
         else
             $params['user_agent'] = '';
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['is_bot'] = false;
         $return_arr['bot_name'] = '';
 
@@ -423,11 +425,11 @@ class PHS_Utils extends PHS_Language
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'Google';
-        } elseif( false !== stripos( $params['user_agent'], 'msnbot' ) or false !== stripos( $params['user_agent'], 'msrbot' ) )
+        } elseif( false !== stripos( $params['user_agent'], 'msnbot' ) || false !== stripos( $params['user_agent'], 'msrbot' ) )
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'MSN';
-        } elseif( false !== stripos( $params['user_agent'], 'bingbot' ) or false !== stripos( $params['user_agent'], 'bingpreview' ) )
+        } elseif( false !== stripos( $params['user_agent'], 'bingbot' ) || false !== stripos( $params['user_agent'], 'bingpreview' ) )
         {
             $return_arr['is_bot'] = true;
             $return_arr['bot_name'] = 'Bing';
@@ -446,14 +448,14 @@ class PHS_Utils extends PHS_Language
     {
         self::st_reset_error();
 
-        if( !isset( $segments ) or $segments === '' )
+        if( !isset( $segments ) || $segments === '' )
         {
             self::st_set_error( self::ERR_DIRECTORY, self::_t( 'Cannot create empty directory.' ) );
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
         if( empty( $params['root'] ) )
             $params['root'] = '';
         if( !isset( $params['dir_mode'] ) )
@@ -464,7 +466,7 @@ class PHS_Utils extends PHS_Language
             $segments_arr = explode( '/', $segments );
 
         $segments_quick = implode( '/', $segments_arr );
-        if( @file_exists( $segments_quick ) and @is_dir( $segments_quick ) )
+        if( @file_exists( $segments_quick ) && @is_dir( $segments_quick ) )
             return true;
 
         $segments_path = rtrim( (string)$params['root'], '/\\' );
@@ -512,28 +514,28 @@ class PHS_Utils extends PHS_Language
      */
     public static function get_files_recursive( $directory, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( substr( $directory, -1 ) === '/' )
             $directory = substr( $directory, 0, -1 );
 
-        if( !@file_exists( $directory ) or !@is_dir( $directory ) )
-            return array();
+        if( !@file_exists( $directory ) || !@is_dir( $directory ) )
+            return [];
 
         if( empty( $params['accept_symlinks'] ) )
             $params['accept_symlinks'] = false;
 
-        if( empty( $params['extensions_arr'] ) or !is_array( $params['extensions_arr'] ) )
-            $params['extensions_arr'] = array();
+        if( empty( $params['extensions_arr'] ) || !is_array( $params['extensions_arr'] ) )
+            $params['extensions_arr'] = [];
 
         // you don't have to pas <level> as it is used internally
         if( empty( $params['{level}'] ) )
             $params['{level}'] = 0;
 
-        if( !empty( $params['extensions_arr'] ) and is_array( $params['extensions_arr'] ) )
+        if( !empty( $params['extensions_arr'] ) && is_array( $params['extensions_arr'] ) )
         {
-            $new_extensions_arr = array();
+            $new_extensions_arr = [];
             foreach( $params['extensions_arr'] as $ext )
             {
                 $new_extensions_arr[] = strtolower( $ext );
@@ -542,25 +544,25 @@ class PHS_Utils extends PHS_Language
             $params['extensions_arr'] = $new_extensions_arr;
         }
 
-        $found_files = array();
+        $found_files = [];
         if( ($directory_content = @glob( $directory.'/*' )) )
         {
             foreach( $directory_content as $filename )
             {
-                if( $filename === '.' or $filename === '..' )
+                if( $filename === '.' || $filename === '..' )
                     continue;
 
                 if( @is_file( $filename )
-                 or (@is_link( $filename ) and !empty( $params['accept_symlinks'] )) )
+                 || (@is_link( $filename ) && !empty( $params['accept_symlinks'] )) )
                 {
                     $file_ext = '';
                     if( ($file_arr = explode( '.', $filename ))
-                    and count( $file_arr ) > 1 )
+                     && count( $file_arr ) > 1 )
                         $file_ext = array_pop( $file_arr );
 
                     if( empty( $params['extensions_arr'] )
-                     or empty( $file_ext )
-                     or in_array( strtolower( $file_ext ), $params['extensions_arr'], true ) )
+                     || empty( $file_ext )
+                     || in_array( strtolower( $file_ext ), $params['extensions_arr'], true ) )
                         $found_files[$filename] = 1;
 
                     continue;
@@ -572,14 +574,14 @@ class PHS_Utils extends PHS_Language
                     $new_params['{level}']++;
 
                     if( ($dir_found_files = self::get_files_recursive( $filename, $new_params ))
-                    and is_array( $dir_found_files ) )
+                     && is_array( $dir_found_files ) )
                         $found_files = array_merge( $found_files, $dir_found_files );
                 }
             }
         }
 
         // top level...
-        if( empty( $params['{level}'] ) and !empty( $found_files ) )
+        if( empty( $params['{level}'] ) && !empty( $found_files ) )
             $found_files = array_keys( $found_files );
 
         return $found_files;
@@ -593,8 +595,8 @@ class PHS_Utils extends PHS_Language
      */
     public static function rmdir_tree( $directory, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['recursive'] ) )
             $params['recursive'] = true;
@@ -603,7 +605,7 @@ class PHS_Utils extends PHS_Language
         if( !isset( $params['only_if_empty'] ) )
             $params['only_if_empty'] = false;
         else
-            $params['only_if_empty'] = (!empty( $params['only_if_empty'] )?true:false);
+            $params['only_if_empty'] = (!empty( $params['only_if_empty'] ));
 
         // Delete directory only if there are no files or symlinks
         // !!! NOTE: If glob() returns empty directories before any files or symlinks those empty directories will be deleted
@@ -611,11 +613,11 @@ class PHS_Utils extends PHS_Language
         if( !isset( $params['only_if_no_files'] ) )
             $params['only_if_no_files'] = false;
         else
-            $params['only_if_no_files'] = (!empty( $params['only_if_no_files'] )?true:false);
+            $params['only_if_no_files'] = (!empty( $params['only_if_no_files'] ));
 
         $directory = rtrim( $directory, '/\\' );
 
-        if( !@file_exists( $directory ) or !@is_dir( $directory ) )
+        if( !@file_exists( $directory ) || !@is_dir( $directory ) )
             return true;
 
         $got_errors = false;
@@ -623,13 +625,13 @@ class PHS_Utils extends PHS_Language
         {
             foreach( $directory_content as $filename )
             {
-                if( $filename === '.' or $filename === '..' )
+                if( $filename === '.' || $filename === '..' )
                     continue;
 
                 if( !empty( $params['only_if_empty'] ) )
                     return false;
 
-                if( @is_file( $filename ) or @is_link( $filename ) )
+                if( @is_file( $filename ) || @is_link( $filename ) )
                 {
                     if( !empty( $params['only_if_no_files'] ) )
                         return false;
@@ -638,7 +640,7 @@ class PHS_Utils extends PHS_Language
                     continue;
                 }
 
-                if( @is_dir( $filename ) and !empty( $params['recursive'] ) )
+                if( !empty( $params['recursive'] ) && @is_dir( $filename ) )
                 {
                     if( !self::rmdir_tree( $filename, $params ) )
                         $got_errors = true;
@@ -650,7 +652,7 @@ class PHS_Utils extends PHS_Language
 
         $return_val = @rmdir( $directory );
 
-        if( empty( $return_val ) and !empty( $got_errors ) )
+        if( empty( $return_val ) && !empty( $got_errors ) )
             return false;
 
         return $return_val;
@@ -664,20 +666,20 @@ class PHS_Utils extends PHS_Language
      */
     public static function mimetype( $file, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['virtual_file'] ) )
             $params['virtual_file'] = false;
 
         $file = (string)$file;
         if( $file === ''
-         or (empty( $params['virtual_file'] ) and (!@file_exists( $file ) or !@is_readable( $file ))) )
+         || (empty( $params['virtual_file'] ) && (!@file_exists( $file ) || !@is_readable( $file ))) )
             return '';
 
         $file_mime_type = '';
         if( empty( $params['virtual_file'] )
-        and @function_exists( 'finfo_open' ) )
+         && @function_exists( 'finfo_open' ) )
         {
             if( !($flags = constant( 'FILEINFO_MIME' )) )
                 $flags = 0;
@@ -686,7 +688,7 @@ class PHS_Utils extends PHS_Language
                 $flags |= constant( 'FILEINFO_PRESERVE_ATIME' );
 
             if( !empty( $flags )
-            and ($finfo = @finfo_open( $flags )) )
+             && ($finfo = @finfo_open( $flags )) )
             {
                 $file_mime_type = @finfo_file( $finfo, $file );
                 @finfo_close( $finfo );
@@ -694,7 +696,7 @@ class PHS_Utils extends PHS_Language
         }
 
         if( empty( $params['virtual_file'] )
-        and empty( $file_mime_type ) )
+         && empty( $file_mime_type ) )
         {
             if( ($cmd_buf = @exec( 'file -bi ' . @escapeshellarg( $file ) )) )
                 $file_mime_type = trim( $cmd_buf );
@@ -703,7 +705,7 @@ class PHS_Utils extends PHS_Language
         if( empty( $file_mime_type ) )
         {
             $file_ext = '';
-            if( ($file_dots_arr = explode( '.', $file )) and is_array( $file_dots_arr ) and count( $file_dots_arr ) > 1 )
+            if( ($file_dots_arr = explode( '.', $file )) && is_array( $file_dots_arr ) && count( $file_dots_arr ) > 1 )
                 $file_ext = array_pop( $file_dots_arr );
 
             $file_ext = strtolower( $file_ext );
@@ -839,7 +841,7 @@ class PHS_Utils extends PHS_Language
 
     public static function mypathinfo( $str )
     {
-        $ret = array();
+        $ret = [];
         $ret['dirname'] = '';
         $ret['filename'] = '';
         $ret['basename'] = '';
@@ -887,7 +889,7 @@ class PHS_Utils extends PHS_Language
      */
     public static function myparse_url( $str )
     {
-        $ret = array();
+        $ret = [];
         $ret['scheme'] = '';
         $ret['user'] = '';
         $ret['pass'] = '';
@@ -933,19 +935,19 @@ class PHS_Utils extends PHS_Language
         $path_present = true;
         $host_present = true;
         // host is not present - only the path might be present
-        if( ($dotpos = strpos( $mystr , '.' )) === false
-        and $ret['scheme'] === '' )
+        if( $ret['scheme'] === ''
+         && ($dotpos = strpos( $mystr , '.' )) === false )
             $host_present = false;
 
         // no path is present or only a directory name is present
-        if( ($slashpos = strpos( $mystr , '/' )) === false
-        and $ret['scheme'] === '' )
+        if( $ret['scheme'] === ''
+         && ($slashpos = strpos( $mystr , '/' )) === false )
         {
             $host_present = true;
             $path_present = false;
         }
 
-        if( $host_present and $dotpos !== false  )
+        if( $host_present && $dotpos !== false  )
         {
             if( $slashpos !== false )
             {
@@ -976,7 +978,7 @@ class PHS_Utils extends PHS_Language
             } else
             {
                 $res = explode( '/', $mystr, 2 );
-                if( isset( $res[1] ) and $res[1] !== '' )
+                if( isset( $res[1] ) && $res[1] !== '' )
                     $ret['path'] = $res[1];
                 else
                     $ret['path'] = '';
@@ -1014,7 +1016,7 @@ class PHS_Utils extends PHS_Language
         if( $user_pass !== '' )
         {
             $res = explode( ':', $user_pass, 2 );
-            if( isset( $res[1] ) and $res[1] !== '' )
+            if( isset( $res[1] ) && $res[1] !== '' )
                 $ret['pass'] = $res[1];
             else
                 $ret['pass'] = '';
@@ -1030,10 +1032,10 @@ class PHS_Utils extends PHS_Language
 
     public static function rebuild_url( $url_parts )
     {
-        if( empty( $url_parts ) or !is_array( $url_parts ) )
+        if( empty( $url_parts ) || !is_array( $url_parts ) )
             return '';
 
-        $parts_arr = array( 'scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'anchor' );
+        $parts_arr = [ 'scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'anchor' ];
         foreach( $parts_arr as $part_field )
         {
             if( !isset( $url_parts[$part_field] ) )
@@ -1048,7 +1050,7 @@ class PHS_Utils extends PHS_Language
         }
 
         $final_url .= $url_parts['user'];
-        $final_url .= (!empty( $url_parts['pass'] )?':':'').$url_parts['pass'].((!empty( $url_parts['user'] ) or !empty( $url_parts['pass'] ))?'@':'');
+        $final_url .= (!empty( $url_parts['pass'] )?':':'').$url_parts['pass'].((!empty( $url_parts['user'] ) || !empty( $url_parts['pass'] ))?'@':'');
         $final_url .= $url_parts['host'];
         $final_url .= (!empty( $url_parts['port'] )?':':'').$url_parts['port'];
         $final_url .= $url_parts['path'];
@@ -1068,11 +1070,11 @@ class PHS_Utils extends PHS_Language
      */
     public static function quick_watermark( $source, $destination, $watermark, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( empty( $source ) or empty( $watermark )
-         or !@file_exists( $source ) or !@file_exists( $watermark ) )
+        if( empty( $source ) || empty( $watermark )
+         || !@file_exists( $source ) || !@file_exists( $watermark ) )
             return false;
 
         if( !isset( $params['output_details'] ) )
@@ -1094,8 +1096,8 @@ class PHS_Utils extends PHS_Language
         if( @file_exists( $destination ) )
         {
             if( @is_dir( $destination )
-             or empty( $params['overwrite_destination'] )
-             or !@unlink( $destination ) )
+             || empty( $params['overwrite_destination'] )
+             || !@unlink( $destination ) )
                 return false;
         }
 
@@ -1108,9 +1110,9 @@ class PHS_Utils extends PHS_Language
 
         $return_val = true;
         if( !empty( $params['output_details'] )
-        and ($output_details = @getimagesize( $destination )) )
+         && ($output_details = @getimagesize( $destination )) )
         {
-            $return_val = array();
+            $return_val = [];
             $return_val['width'] = $output_details[0];
             $return_val['height'] = $output_details[1];
         }
@@ -1120,11 +1122,11 @@ class PHS_Utils extends PHS_Language
 
     public static function quick_convert( $source, $destination, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( (empty( $params['width'] ) and empty( $params['height'] ))
-         or !@file_exists( $source ) )
+        if( (empty( $params['width'] ) && empty( $params['height'] ))
+         || !@file_exists( $source ) )
             return false;
 
         if( empty( $params['width'] ) )
@@ -1151,8 +1153,8 @@ class PHS_Utils extends PHS_Language
         if( @file_exists( $destination ) )
         {
             if( @is_dir( $destination )
-             or empty( $params['overwrite_destination'] )
-             or !@unlink( $destination ) )
+             || empty( $params['overwrite_destination'] )
+             || !@unlink( $destination ) )
                 return false;
         }
 
@@ -1171,9 +1173,9 @@ class PHS_Utils extends PHS_Language
 
         $return_val = true;
         if( !empty( $params['output_details'] )
-        and ($output_details = @getimagesize( $destination )) )
+         && ($output_details = @getimagesize( $destination )) )
         {
-            $return_val = array();
+            $return_val = [];
             $return_val['width'] = $output_details[0];
             $return_val['height'] = $output_details[1];
         }
@@ -1214,16 +1216,16 @@ class PHS_Utils extends PHS_Language
             return false;
 
         if( !is_array( $params ) )
-            $params = array();
+            $params = [];
 
         // Default CURL params...
-        if( empty( $params['userpass'] ) or !is_array( $params['userpass'] ) or !isset( $params['userpass']['user'] ) or !isset( $params['userpass']['pass'] ) )
+        if( empty( $params['userpass'] ) || !is_array( $params['userpass'] ) || !isset( $params['userpass']['user'] ) || !isset( $params['userpass']['pass'] ) )
             $params['userpass'] = false;
 
         if( empty( $params['follow_location'] ) )
             $params['follow_location'] = false;
         else
-            $params['follow_location'] = (!empty( $params['follow_location'] )?true:false);
+            $params['follow_location'] = (!empty( $params['follow_location'] ));
 
         if( empty( $params['timeout'] ) )
             $params['timeout'] = 30;
@@ -1231,16 +1233,16 @@ class PHS_Utils extends PHS_Language
             $params['timeout'] = (int)$params['timeout'];
         if( empty( $params['user_agent'] ) )
             $params['user_agent'] = 'PHS/PHS_Utils v'.PHS_VERSION;
-        if( empty( $params['extra_get_params'] ) or !is_array( $params['extra_get_params'] ) )
-            $params['extra_get_params'] = array();
+        if( empty( $params['extra_get_params'] ) || !is_array( $params['extra_get_params'] ) )
+            $params['extra_get_params'] = [];
         // END Default CURL params...
 
         if( !isset( $params['raw_post_str'] ) )
             $params['raw_post_str'] = '';
-        if( empty( $params['header_keys_arr'] ) or !is_array( $params['header_keys_arr'] ) )
-            $params['header_keys_arr'] = array();
-        if( empty( $params['header_arr'] ) or !is_array( $params['header_arr'] ) )
-            $params['header_arr'] = array();
+        if( empty( $params['header_keys_arr'] ) || !is_array( $params['header_keys_arr'] ) )
+            $params['header_keys_arr'] = [];
+        if( empty( $params['header_arr'] ) || !is_array( $params['header_arr'] ) )
+            $params['header_arr'] = [];
 
         // Convert old format to new format...
         if( !empty( $params['header_arr'] ) )
@@ -1257,11 +1259,11 @@ class PHS_Utils extends PHS_Language
             }
 
             // Reset raw headers array as we moved them to key => value pairs...
-            $params['header_arr'] = array();
+            $params['header_arr'] = [];
         }
 
         $post_string = '';
-        if( !empty( $params['post_arr'] ) and is_array( $params['post_arr'] ) )
+        if( !empty( $params['post_arr'] ) && is_array( $params['post_arr'] ) )
         {
             foreach( $params['post_arr'] as $key => $val )
             {
@@ -1275,7 +1277,7 @@ class PHS_Utils extends PHS_Language
                 $post_string .= $key.'='.utf8_encode( rawurlencode( $val ) ).'&';
             }
 
-            if( is_string( $post_string ) and $post_string !== '' )
+            if( is_string( $post_string ) && $post_string !== '' )
                 $post_string = substr( $post_string, 0, -1 );
 
             if( !isset( $params['header_keys_arr']['Content-Type'] ) )
@@ -1302,19 +1304,19 @@ class PHS_Utils extends PHS_Language
             }
         }
 
-        if( !empty( $params['header_keys_arr'] ) and is_array( $params['header_keys_arr'] ) )
+        if( !empty( $params['header_keys_arr'] ) && is_array( $params['header_keys_arr'] ) )
         {
             foreach( $params['header_keys_arr'] as $key => $val )
                 $params['header_arr'][] = $key.': '.$val;
         }
 
-        if( !empty( $params['header_arr'] ) and is_array( $params['header_arr'] ) )
+        if( !empty( $params['header_arr'] ) && is_array( $params['header_arr'] ) )
            @curl_setopt( $ch, CURLOPT_HTTPHEADER, $params['header_arr'] );
 
         if( !empty( $params['user_agent'] ) )
             @curl_setopt( $ch, CURLOPT_USERAGENT, $params['user_agent'] );
 
-        if( !empty( $params['http_method'] ) and is_string( $params['http_method'] ) )
+        if( !empty( $params['http_method'] ) && is_string( $params['http_method'] ) )
             @curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $params['http_method'] );
 
         @curl_setopt( $ch, CURLOPT_URL, $url );
@@ -1336,17 +1338,17 @@ class PHS_Utils extends PHS_Language
         if( isset( $return_params['userpass']['pass'] ) )
             $return_params['userpass']['pass'] = '(undisclosed_pass)';
 
-        $response = array(
+        $response = [
             'response' => $curl_response,
             'http_code' => 0,
             'request_details' => @curl_getinfo( $ch ),
             'request_error_msg' => @curl_error( $ch ),
             'request_error_no' => @curl_errno( $ch ),
             'request_params' => $return_params,
-        );
+        ];
 
-        if( !empty( $response['request_details'] ) and is_array( $response['request_details'] )
-        and isset( $response['request_details']['http_code'] ) )
+        if( !empty( $response['request_details'] ) && is_array( $response['request_details'] )
+         && isset( $response['request_details']['http_code'] ) )
             $response['http_code'] = $response['request_details']['http_code'];
 
         @curl_close( $ch );
@@ -1362,11 +1364,11 @@ class PHS_Utils extends PHS_Language
      */
     public static function xml_parse_node_attributes( $attr_str, $params = false )
     {
-        if( empty( $attr_str ) or !is_string( $attr_str ) )
+        if( empty( $attr_str ) || !is_string( $attr_str ) )
             return false;
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['attributes_to_lowercase'] ) )
             $params['attributes_to_lowercase'] = false;
@@ -1374,10 +1376,10 @@ class PHS_Utils extends PHS_Language
         $reg_exp = "/(\S+)=(\"[^\"]*\"|'[^']*'|[^\s])/Um";
         preg_match_all( $reg_exp, $attr_str, $matches, PREG_SET_ORDER );
 
-        $attrs_arr = array();
+        $attrs_arr = [];
         foreach( $matches as $match_arr )
         {
-            if( empty( $match_arr[1] ) or !isset( $match_arr[2] ) )
+            if( empty( $match_arr[1] ) || !isset( $match_arr[2] ) )
                 continue;
 
             if( !empty( $params['keys_to_lowercase'] ) )
@@ -1400,14 +1402,14 @@ class PHS_Utils extends PHS_Language
     public static function xml_to_array( $buf, $params = false )
     {
         if( empty( $buf ) )
-            return array();
+            return [];
 
         //$reg_exp = "/<(\w+)[^>]*>(.*?)<\/\\1>/s";
         $reg_exp = "/<([a-zA-Z0-9_\-]+)(\s+[^>]*|)>(.*)<\/\\1>/Usmi";
         preg_match_all( $reg_exp, $buf, $matches, PREG_SET_ORDER );
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['keys_to_lowercase'] ) )
             $params['keys_to_lowercase'] = false;
@@ -1417,8 +1419,8 @@ class PHS_Utils extends PHS_Language
         $return_arr = false;
         foreach( $matches as $key => $match_arr )
         {
-            if( empty( $match_arr ) or !is_array( $match_arr )
-             or empty( $match_arr[1] ) )
+            if( empty( $match_arr ) || !is_array( $match_arr )
+             || empty( $match_arr[1] ) )
                 continue;
 
             if( !empty( $params['keys_to_lowercase'] ) )
@@ -1426,18 +1428,18 @@ class PHS_Utils extends PHS_Language
             else
                 $key = $match_arr[1];
 
-            $node_arr = array();
+            $node_arr = [];
             // check content
             if( isset( $match_arr[3] )
-            and ($node_content = trim( $match_arr[3] )) !== '' )
+             && ($node_content = trim( $match_arr[3] )) !== '' )
             {
                 if( !($node_arr = self::xml_to_array( trim( $match_arr[3] ) )) )
-                    $node_arr = array( '#' => $match_arr[3] );
+                    $node_arr = [ '#' => $match_arr[3] ];
 
                 else
                 {
                     if( !is_array( $node_arr ) )
-                        $node_arr = array( '#' => $node_arr );
+                        $node_arr = [ '#' => $node_arr ];
 
                     elseif( !isset( $node_arr['#'] ) )
                         $node_arr['#'] = '';
@@ -1446,10 +1448,10 @@ class PHS_Utils extends PHS_Language
 
             // check attributes
             if( !empty( $match_arr[2] )
-            and ($attributes_arr = self::xml_parse_node_attributes( $match_arr[2] )) )
+             && ($attributes_arr = self::xml_parse_node_attributes( $match_arr[2] )) )
             {
                 if( !is_array( $node_arr ) )
-                    $node_arr = array( '#' => $node_arr );
+                    $node_arr = [ '#' => $node_arr ];
 
                 foreach( $attributes_arr as $attr_key => $attr_val )
                 {
@@ -1462,8 +1464,8 @@ class PHS_Utils extends PHS_Language
 
             if( isset( $return_arr[$key] ) )
             {
-                if( empty( $return_arr[$key][0] ) or !is_array( $return_arr[$key][0] ) )
-                    $return_arr[$key] = array( 0 => $return_arr[$key] );
+                if( empty( $return_arr[$key][0] ) || !is_array( $return_arr[$key][0] ) )
+                    $return_arr[$key] = [ 0 => $return_arr[$key] ];
 
                 $return_arr[$key][] = $node_arr;
             } else
@@ -1471,7 +1473,7 @@ class PHS_Utils extends PHS_Language
         }
 
         if( $return_arr === false
-        and $buf !== '' )
+         && $buf !== '' )
             return $buf;
 
         return $return_arr;
@@ -1481,13 +1483,13 @@ class PHS_Utils extends PHS_Language
     /*
      * Example:
      *
-     * $xml_arr = array(
-     *   'gigi' => array( '@attr1' => 1, '@attr2' => 'attr2', '#' => 'bubu' ),
-     *   'list' => array( 'item' => array( 0 => array( 'name' => 'vasile1', 'age' => 12 ), 1 => array( 'name' => 'vasile2', 'age' => 12 ), 2 => array( 'name' => 'vasile3', 'age' => 12 ), ) ),
-     *   'gigi2' => array( '@attr1' => 1, '@attr2' => 'attr2', '#' => array( 'key1' => 1, 'key2' => 2 ) ),
-     *   );
+     * $xml_arr = [
+     *   'gigi' => [ '@attr1' => 1, '@attr2' => 'attr2', '#' => 'bubu' ],
+     *   'list' => [ 'item' => [ 0 => [ 'name' => 'vasile1', 'age' => 12 ], 1 => [ 'name' => 'vasile2', 'age' => 12 ], 2 => [ 'name' => 'vasile3', 'age' => 12 ] ] ],
+     *   'gigi2' => [ '@attr1' => 1, '@attr2' => 'attr2', '#' => [ 'key1' => 1, 'key2' => 2 ] ],
+     *   ];
      *
-     * PHS_Utils::array_to_xml( $xml_arr, array( 'root_tag' => 'root' ) );
+     * PHS_Utils::array_to_xml( $xml_arr, [ 'root_tag' => 'root' ] );
      *
      **/
     /**
@@ -1498,11 +1500,11 @@ class PHS_Utils extends PHS_Language
      */
     public static function array_to_xml( $arr, $params = false )
     {
-        if( empty( $arr ) or !is_array( $arr ) )
+        if( empty( $arr ) || !is_array( $arr ) )
             return '';
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['root'] ) )
             $params['root'] = '';
@@ -1553,9 +1555,9 @@ class PHS_Utils extends PHS_Language
                     if( $attr_key === '' )
                         continue;
 
-                    if( is_numeric( $attr_key ) and is_array( $attr_val ) )
+                    if( is_numeric( $attr_key ) && is_array( $attr_val ) )
                     {
-                        $content_str .= self::array_to_xml( array( $root_tag => $attr_val ), $new_params );
+                        $content_str .= self::array_to_xml( [ $root_tag => $attr_val ], $new_params );
                         $only_content = true;
                         continue;
                     }
@@ -1565,7 +1567,7 @@ class PHS_Utils extends PHS_Language
                         if( is_array( $attr_val ) )
                             $content_str = self::array_to_xml( $attr_val, $new_params );
                         else
-                            $content_str = self::xml_encode( $attr_val, array( 'xml_encoding' => $params['xml_encoding'] ) );
+                            $content_str = self::xml_encode( $attr_val, [ 'xml_encoding' => $params['xml_encoding'] ] );
                     } elseif( substr( $attr_key, 0, 1 ) === '@' )
                     {
                         $attr_key = substr( $attr_key, 1 );
@@ -1573,19 +1575,20 @@ class PHS_Utils extends PHS_Language
                             continue;
 
                         // we have an attribute
-                        $attrs_str .= ' '.self::xml_encode( $attr_key, array( 'xml_encoding' => $params['xml_encoding'] ) ).'="'.self::xml_encode( $attr_val, array( 'xml_encoding' => $params['xml_encoding'] ) ).'"';
+                        $attrs_str .= ' '.self::xml_encode( $attr_key, [ 'xml_encoding' => $params['xml_encoding'] ] ).
+                                      '="' . self::xml_encode( $attr_val, [ 'xml_encoding' => $params['xml_encoding'] ] ) . '"';
                     } elseif( is_array( $attr_val ) )
                     {
-                        $content_str .= self::array_to_xml( array( $attr_key => $attr_val ), $new_params );
+                        $content_str .= self::array_to_xml( [ $attr_key => $attr_val ], $new_params );
                     } else
                     {
                         $content_str .= (!empty( $params['format_string'] )?$params['line_indent']:'').'<'.$attr_key.'>'.
-                        self::xml_encode( $attr_val, array( 'xml_encoding' => $params['xml_encoding'] ) ).
+                        self::xml_encode( $attr_val, [ 'xml_encoding' => $params['xml_encoding'] ] ) .
                                         '</'.$attr_key.'>'.(!empty( $params['format_string'] )?"\n":'');
                     }
                 }
             } else
-                $content_str = self::xml_encode( $tag_arr, array( 'xml_encoding' => $params['xml_encoding'] ) );
+                $content_str = self::xml_encode( $tag_arr, [ 'xml_encoding' => $params['xml_encoding'] ] );
 
             if( empty( $only_content ) )
                 $return_str .= (!empty( $params['format_string'] )?$params['line_indent']:'').'<'.$root_tag.$attrs_str.'>';
@@ -1596,7 +1599,7 @@ class PHS_Utils extends PHS_Language
                 $return_str .= '</'.$root_tag.'>'.(!empty( $params['format_string'] )?"\n":'');
         }
 
-        if( empty( $params['root'] ) and !empty( $params['root_tag'] ) )
+        if( empty( $params['root'] ) && !empty( $params['root_tag'] ) )
             $return_str .= '</'.$params['root_tag'].'>';
 
         return $return_str;
@@ -1611,15 +1614,15 @@ class PHS_Utils extends PHS_Language
      */
     public static function xml_encode( $string, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['xml_encoding'] ) )
             $params['xml_encoding'] = 'UTF-8';
         if( empty( $params['convert_flags'] ) )
             $params['convert_flags'] = false;
 
-        if( !is_string( $string ) or $string === '' )
+        if( !is_string( $string ) || $string === '' )
             return '';
 
         if( $params['convert_flags'] === false )
@@ -1646,7 +1649,7 @@ class PHS_Utils extends PHS_Language
     public static function csv_column( $str, $delimiter = ',', $enclosure = '"', $escape = '"' )
     {
         if( false !== strpos( $str, $enclosure )
-         or false !== strpos( $str, $delimiter ) )
+         || false !== strpos( $str, $delimiter ) )
             $str = $enclosure.str_replace( $enclosure, $escape.$enclosure, $str ).$enclosure;
 
         return $str;
@@ -1664,13 +1667,65 @@ class PHS_Utils extends PHS_Language
      */
     public static function csv_line( $line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"' )
     {
-        if( empty( $line_arr ) or !is_array( $line_arr ) )
+        if( empty( $line_arr ) || !is_array( $line_arr ) )
             return '';
 
-        $result_arr = array();
+        $result_arr = [];
         foreach( $line_arr as $line_str )
             $result_arr[] = self::csv_column( $line_str, $delimiter, $enclosure, $escape );
 
         return implode( $delimiter, $result_arr ).$line_delimiter;
+    }
+
+    /**
+     * @param string $file
+     * @param string $str
+     * @param array|false $params
+     *
+     * @return false|int
+     */
+    public static function count_string_in_file( $file, $str, $params = false )
+    {
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        if( !isset( $params['case_sensitive'] ) )
+            $params['case_sensitive'] = true;
+        else
+            $params['case_sensitive'] = (!empty( $params['case_sensitive'] ));
+
+        if( !isset( $params['ignore_size_limit'] ) )
+            $params['ignore_size_limit'] = false;
+        else
+            $params['ignore_size_limit'] = (!empty( $params['ignore_size_limit'] ));
+
+        if( empty( $params['size_limit'] ) || !is_numeric( $params['size_limit'] ) )
+            $params['size_limit'] = self::MAX_COUNT_FILESIZE;
+
+        if( !($str_len = strlen( $str )) )
+            return 0;
+
+        if( !$params['case_sensitive'] )
+            $str = strtolower( $str );
+
+        if( empty( $file )
+         || !@file_exists( $file )
+         || (!$params['ignore_size_limit'] && @filesize( $file ) > $params['size_limit'])
+         || !@is_readable( $file )
+         || !($fil = @fopen( $file, 'rb' )) )
+            return false;
+
+        $count = 0;
+        while( ($buf = @fread( $fil, 1024 )) )
+        {
+            if( !$params['case_sensitive'] )
+                $buf = strtolower( $buf );
+
+            var_dump( $buf );
+
+            $count += substr_count( $buf, $str );
+        }
+
+        return $count;
     }
 }
