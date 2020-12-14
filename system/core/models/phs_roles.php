@@ -1374,7 +1374,7 @@ class PHS_Model_Roles extends PHS_Model
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
-        and !$this->load_dependencies() )
+         && !$this->load_dependencies() )
             return false;
 
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
@@ -1384,25 +1384,26 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
-         or !is_array( $role_ids )
-         or !($flow_params_ru = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) ))
-         or !($flow_params_rul = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
-         or !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
-         or !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
-         or !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
+         || !is_array( $role_ids )
+         || !($flow_params_ru = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units' ] ))
+         || !($flow_params_rul = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units_links' ] ))
+         || !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
+         || !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
+         || !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
                                ' FROM `'.$roles_units_table.'` '.
                                ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
                                ' WHERE `'.$roles_units_links_table.'`.role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params_ru ) ))
-         or !@mysqli_num_rows( $qid ) )
-            return array();
+         || !@mysqli_num_rows( $qid ) )
+            return [];
 
-        $return_arr = array();
+        $return_arr = [];
         while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
         {
-            $return_arr[] = $slug_arr['slug'];
+            $return_arr[$slug_arr['slug']] = true;
         }
 
-        return $return_arr;
+        // Make sure we have unique role unit slugs
+        return (!empty( $return_arr )?@array_keys( $return_arr ):[]);
     }
 
     /**
