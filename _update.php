@@ -29,10 +29,10 @@
 
     echo 'DONE Installing core plugins, models, etc.'."\n\n";
 
-    echo 'Installing custom plugins, models, etc...'."\n";
+    echo 'Calling custom install plugins, models, etc...'."\n";
 
     // Walk thgrough plugins install scripts (if any special install functionality is required)...
-    foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
+    foreach( [ PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ] as $bstrap_dir )
     {
         if( ($install_scripts = @glob( $bstrap_dir . '*/install.php', GLOB_BRACE ))
         and is_array( $install_scripts ) )
@@ -50,7 +50,7 @@
         }
     }
 
-    echo 'DONE Installing custom plugins, models, etc.'."\n\n";
+    echo 'DONE Calling custom install plugins, models, etc.'."\n\n";
     echo "\n".'</pre>';
 
     if( ($debug_data = PHS::platform_debug_data()) )
