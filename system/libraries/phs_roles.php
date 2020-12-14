@@ -91,7 +91,7 @@ class PHS_Roles extends PHS_Registry
 
         if( !self::load_dependencies() )
             return false;
-        
+
         $role_model = self::$_role_model;
 
         if( ($slugs_arr = $role_model->get_user_roles_slugs( $account_data )) === false )
@@ -99,7 +99,7 @@ class PHS_Roles extends PHS_Registry
             self::st_copy_error( $role_model );
             return false;
         }
-        
+
         return $slugs_arr;
     }
 
@@ -218,7 +218,7 @@ class PHS_Roles extends PHS_Registry
         if( !self::load_dependencies() )
             return false;
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide valid parameters for this role.' ) );
             return false;
@@ -231,7 +231,7 @@ class PHS_Roles extends PHS_Registry
         }
 
         $role_units_arr = false;
-        if( !empty( $params['{role_units}'] ) and is_array( $params['{role_units}'] ) )
+        if( !empty( $params['{role_units}'] ) && is_array( $params['{role_units}'] ) )
             $role_units_arr = $params['{role_units}'];
 
         if( isset( $params['{role_units}'] ) )
@@ -239,27 +239,34 @@ class PHS_Roles extends PHS_Registry
 
         $role_model = self::$_role_model;
 
-        $constrain_arr = array();
+        $constrain_arr = [];
         $constrain_arr['slug'] = $params['slug'];
 
-        $check_params = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
+        $check_params = $role_model->fetch_default_flow_params( [ 'table_name' => 'roles' ] );
 
         if( ($role_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
-            // TODO: check $role_arr['plugin'] if it is same as $params['plugin'] (don't allow other plugins to overwrite roles)
-            $edit_fields_arr = array();
+            if( !empty( $role_arr['plugin'] ) && !empty( $params['plugin'] )
+             && (string)$role_arr['plugin'] !== (string)$params['plugin'] )
+            {
+                self::st_set_error( self::ERR_PARAMETERS,
+                                    self::_t( 'Error adding role [%s] there is already a role with same slug from other plugin.', $params['slug'] ) );
+                return false;
+            }
+
+            $edit_fields_arr = [];
             $check_fields = $role_model::get_register_edit_role_unit_fields();
-            
+
             foreach( $check_fields as $key => $def_val )
             {
                 if( array_key_exists( $key, $role_arr )
-                and array_key_exists( $key, $params )
-                and (string)$role_arr[$key] !== (string)$params[$key] )
+                 && array_key_exists( $key, $params )
+                 && (string)$role_arr[$key] !== (string)$params[$key] )
                     $edit_fields_arr[$key] = $params[$key];
             }
 
             if( empty( $role_arr['plugin'] )
-            and !empty( $params['plugin'] ) )
+             && !empty( $params['plugin'] ) )
                 $edit_fields_arr['plugin'] = $params['plugin'];
 
             if( $role_model->is_deleted( $role_arr ) )
@@ -267,7 +274,7 @@ class PHS_Roles extends PHS_Registry
 
             if( !empty( $edit_fields_arr ) )
             {
-                $edit_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
+                $edit_arr = $role_model->fetch_default_flow_params( [ 'table_name' => 'roles' ] );
                 $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
@@ -275,8 +282,9 @@ class PHS_Roles extends PHS_Registry
                     $role_arr = $new_existing_arr;
             }
 
+            // Don't append role units as we might remove some role units from role...
             if( !empty( $role_units_arr ) )
-                $role_model->link_role_units_to_role( $role_arr, $role_units_arr );
+                $role_model->link_role_units_to_role( $role_arr, $role_units_arr, [ 'append_role_units' => false ] );
 
         } else
         {
@@ -285,7 +293,7 @@ class PHS_Roles extends PHS_Registry
 
             $params['status'] = $role_model::STATUS_ACTIVE;
 
-            $insert_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles' ) );
+            $insert_arr = $role_model->fetch_default_flow_params( [ 'table_name' => 'roles' ] );
             $insert_arr['fields'] = $params;
             $insert_arr['{role_units}'] = $role_units_arr;
 

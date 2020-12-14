@@ -922,14 +922,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $this->reset_error();
 
         if( !($role_definition = $this->get_roles_definition())
-         or !is_array( $role_definition ) )
+         || !is_array( $role_definition ) )
             return true;
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing roles...' );
 
         $role_structure = self::role_structure();
         $role_unit_structure = self::role_unit_structure();
-        $db_roles_arr = array();
+        $db_roles_arr = [];
         foreach( $role_definition as $role_slug => $role_arr )
         {
             if( !($new_role_slug = PHS_Roles::transform_string_to_slug( $role_slug )) )
@@ -944,11 +944,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $role_slug = $new_role_slug;
 
             $role_arr = self::validate_array( $role_arr, $role_structure );
-            if( empty( $role_arr['role_units'] ) or !is_array( $role_arr['role_units'] ) )
-                $role_arr['role_units'] = array();
+            if( empty( $role_arr['role_units'] ) || !is_array( $role_arr['role_units'] ) )
+                $role_arr['role_units'] = [];
 
-            $role_units_slugs_arr = array();
-            $db_role_units_arr = array();
+            $role_units_slugs_arr = [];
+            $db_role_units_arr = [];
             foreach( $role_arr['role_units'] as $role_unit_slug => $role_unit_arr )
             {
                 if( !($new_role_unit_slug = PHS_Roles::transform_string_to_slug( $role_unit_slug )) )
@@ -964,7 +964,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 $role_unit_arr = self::validate_array( $role_unit_arr, $role_unit_structure );
 
-                $role_unit_details_arr = array();
+                $role_unit_details_arr = [];
                 $role_unit_details_arr['slug'] = $role_unit_slug;
                 $role_unit_details_arr['plugin'] = $this->instance_plugin_name();
                 $role_unit_details_arr['name'] = $role_unit_arr['name'];
@@ -988,7 +988,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 $role_units_slugs_arr[$role_unit['slug']] = true;
             }
 
-            $role_details_arr = array();
+            $role_details_arr = [];
             $role_details_arr['slug'] = $role_slug;
             $role_details_arr['plugin'] = $this->instance_plugin_name();
             $role_details_arr['name'] = $role_arr['name'];
