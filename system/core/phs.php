@@ -1561,6 +1561,7 @@ final class PHS extends PHS_Registry
             if( ($raw_query = array_to_query_string( $extra['raw_args'],
                                                      [ 'arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false ] )) )
                 $query_string .= ($query_string!==''?$extra['http']['arg_separator']:'').$raw_query;
+
         }
 
         switch( $extra['for_scope'] )
