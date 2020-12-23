@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Backup Plugin",
     "description": "Manages backing up framework database and files.",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "models": [ "rules", "results" ],
     "agent_jobs": {
         "backup_index_bg_run_backups_ag": {
