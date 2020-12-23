@@ -27,36 +27,36 @@ class PHS_Plugin_Backup extends PHS_Plugin
      */
     public function get_roles_definition()
     {
-        $return_arr = array(
-            self::ROLE_BACKUP_OPERATOR => array(
+        $return_arr = [
+            self::ROLE_BACKUP_OPERATOR => [
                 'name' => 'Backup Operator',
                 'description' => 'Allow user to view backup information',
-                'role_units' => array(
-                    self::ROLEU_LIST_RULES => array(
+                'role_units' => [
+                    self::ROLEU_LIST_RULES => [
                         'name' => 'Backup list rules',
                         'description' => 'Allow user to list backup rules',
-                    ),
-                    self::ROLEU_LIST_BACKUPS => array(
+                    ],
+                    self::ROLEU_LIST_BACKUPS => [
                         'name' => 'Backup list files',
                         'description' => 'Allow user to list backup files',
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+        ];
 
         $return_arr[self::ROLE_BACKUP_MANAGER] = $return_arr[self::ROLE_BACKUP_OPERATOR];
 
         $return_arr[self::ROLE_BACKUP_MANAGER]['name'] = 'Backup Manager';
         $return_arr[self::ROLE_BACKUP_MANAGER]['description'] = 'User wich has full access over backup functionality';
 
-        $return_arr[self::ROLE_BACKUP_MANAGER]['role_units'][self::ROLEU_MANAGE_RULES] = array(
+        $return_arr[self::ROLE_BACKUP_MANAGER]['role_units'][self::ROLEU_MANAGE_RULES] = [
             'name' => 'Backups Manage rules',
             'description' => 'Can manage backup rules',
-        );
-        $return_arr[self::ROLE_BACKUP_MANAGER]['role_units'][self::ROLEU_DELETE_BACKUPS] = array(
+        ];
+        $return_arr[self::ROLE_BACKUP_MANAGER]['role_units'][self::ROLEU_DELETE_BACKUPS] = [
             'name' => 'Backups delete files',
             'description' => 'Can delete backup files',
-        );
+        ];
 
         return $return_arr;
     }
@@ -73,28 +73,28 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $zip_path = 'zip';
         @ob_end_clean();
 
-        return array(
-            'location' => array(
+        return [
+            'location' => [
                 'display_name' => $this->_pt( 'Default backups location' ),
                 'display_hint' => $this->_pt( 'A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR ),
                 'type' => PHS_Params::T_NOHTML,
                 'default' => self::DIRNAME_IN_UPLOADS,
-                'custom_renderer' => array( $this, 'plugin_settings_render_location' ),
-                'custom_save' => array( $this, 'plugin_settings_save_location' ),
-            ),
-            'mysqldump_bin' => array(
+                'custom_renderer' => [ $this, 'plugin_settings_render_location' ],
+                'custom_save' => [ $this, 'plugin_settings_save_location'],
+            ],
+            'mysqldump_bin' => [
                 'display_name' => $this->_pt( 'mysqldump binary location' ),
                 'display_hint' => $this->_pt( 'Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.' ),
                 'type' => PHS_Params::T_NOHTML,
                 'default' => $mysql_dump_path,
-            ),
-            'zip_bin' => array(
+            ],
+            'zip_bin' => [
                 'display_name' => $this->_pt( 'zip binary location' ),
                 'display_hint' => $this->_pt( 'Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.' ),
                 'type' => PHS_Params::T_NOHTML,
                 'default' => $zip_path,
-            ),
-        );
+            ],
+        ];
     }
 
     public function plugin_settings_render_location( $params )
@@ -125,7 +125,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $error_msg = $this->_pt( 'At the moment directory doesn\'t exist. System will try creating it at first run.' );
 
         elseif( empty( $location_details['full_path'] )
-                    or !@is_writable( $location_details['full_path'] ) )
+                    || !@is_writable( $location_details['full_path'] ) )
             $error_msg = $this->_pt( 'Resolved directory is not writeable.' );
 
         elseif( !($stats_arr = $this->get_directory_stats( $location_details['full_path'] )) )
@@ -157,12 +157,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $params = self::validate_array( $params, self::st_default_custom_save_params() );
 
         if( empty( $params['field_name'] )
-         or empty( $params['form_data'] ) or !is_array( $params['form_data'] )
-         or $params['field_name'] !== 'location' )
+         || empty( $params['form_data'] ) || !is_array( $params['form_data'] )
+         || $params['field_name'] !== 'location' )
             return null;
 
         if( !array_key_exists( 'field_value', $params )
-         or $params['field_value'] === null )
+         || $params['field_value'] === null )
             $old_value = null;
         else
             $old_value = $params['field_value'];
@@ -188,9 +188,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
         if( $new_value === $old_value )
             return $new_value;
 
-        $this->update_db_registry( array(
+        $this->update_db_registry( [
             'old_location' => $old_value,
-        ) );
+        ] );
 
         return $new_value;
     }
@@ -200,11 +200,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
         // Even if we get an error when adding predefined backup rules don't break the install...
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
         if( !($backup_rules_model = PHS::load_model( 'rules', 'backup' ))
-         or !($flow_params = $backup_rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
-         or !($rules_days = $backup_rules_model->get_rule_days()) )
+         || !($flow_params = $backup_rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules' ] ))
+         || !($rules_days = $backup_rules_model->get_rule_days()) )
             return true;
 
-        $rule_fields = array();
+        $rule_fields = [];
         $rule_fields['title'] = $this->_pt( 'Weekly Backup (%s)', $rules_days[$backup_rules_model::DAY_SUNDAY] );
         $rule_fields['location'] = '';
         $rule_fields['hour'] = 4;
@@ -213,11 +213,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         $rule_params_arr = $flow_params;
         $rule_params_arr['fields'] = $rule_fields;
-        $rule_params_arr['{days_arr}'] = array( $backup_rules_model::DAY_SUNDAY );
+        $rule_params_arr['{days_arr}'] = [ $backup_rules_model::DAY_SUNDAY ];
 
         $backup_rules_model->insert( $rule_params_arr );
 
-        $rule_fields = array();
+        $rule_fields = [];
         $rule_fields['title'] = $this->_pt( 'Daily Backup' );
         $rule_fields['location'] = '';
         $rule_fields['hour'] = 4;
@@ -226,7 +226,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         $rule_params_arr = $flow_params;
         $rule_params_arr['fields'] = $rule_fields;
-        $rule_params_arr['{days_arr}'] = array( $backup_rules_model::DAY_ALL );
+        $rule_params_arr['{days_arr}'] = [ $backup_rules_model::DAY_ALL ];
 
         $backup_rules_model->insert( $rule_params_arr );
 
@@ -291,7 +291,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $location_path = str_replace( '\\', '/', $location_path );
 
             if( strpos( $location_path, '/' ) === 0
-             or substr( $location_path, 1, 2 ) === ':/' )
+             || substr( $location_path, 1, 2 ) === ':/' )
                 $location_root = '';
             else
                 $location_root = PHS_UPLOADS_DIR;
@@ -302,13 +302,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         $full_path = $location_root.$location_path;
 
-        $return_arr = array(
+        $return_arr = [
             'location_exists' => false,
             'location_is_dir' => false,
             'location_root' => $location_root,
             'location_path' => $location_path,
             'full_path' => $full_path,
-        );
+        ];
 
         if( !empty( $full_path ) )
         {
@@ -334,13 +334,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['error_if_not_found'] ) )
             $params['error_if_not_found'] = true;
         else
-            $params['error_if_not_found'] = (!empty( $params['error_if_not_found'] )?true:false);
+            $params['error_if_not_found'] = (!empty( $params['error_if_not_found'] ));
 
         if( empty( $params['create_location_if_not_found'] ) )
             $params['create_location_if_not_found'] = false;
@@ -358,7 +358,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         } else
         {
             if( !($setting_arr = $this->get_db_settings()) )
-                $setting_arr = array();
+                $setting_arr = [];
 
             if( empty( $setting_arr['location'] ) )
                 $setting_arr['location'] = '';
@@ -372,8 +372,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
         }
 
         if( !empty( $params['error_if_not_found'] )
-        and !empty( $location_details['location_exists'] )
-        and empty( $location_details['location_is_dir'] ) )
+         && !empty( $location_details['location_exists'] )
+         && empty( $location_details['location_is_dir'] ) )
         {
             $this->set_error( self::ERR_LOCATION_NOT_DIR, $this->_pt( 'Backup location is not a directory.' ) );
             return false;
@@ -390,7 +390,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 return false;
             }
 
-            $mkdir_params = array();
+            $mkdir_params = [];
             $mkdir_params['root'] = $location_details['location_root'];
 
             if( !PHS_Utils::mkdir_tree( $location_details['location_path'], $mkdir_params ) )
@@ -425,10 +425,10 @@ class PHS_Plugin_Backup extends PHS_Plugin
         if( !($total_space = @disk_total_space( $dir )) )
             $total_space = 0;
 
-        return array(
+        return [
             'free_space' => $free_space,
             'total_space' => $total_space,
-        );
+        ];
     }
 
     public function copy_backup_files_bg()
@@ -438,11 +438,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
         /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
         if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
-         or !($results_model = PHS::load_model( 'results', 'backup' ))
-         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
-         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
-         or !($br_flow_params = $results_model->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
-         or !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
+         || !($results_model = PHS::load_model( 'results', 'backup' ))
+         || !($r_flow_params = $rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules' ] ))
+         || !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         || !($br_flow_params = $results_model->fetch_default_flow_params( [ 'table_name' => 'backup_results' ] ))
+         || !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
             return false;
@@ -455,9 +455,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
             return false;
         }
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['results_copied'] = 0;
-        $return_arr['failed_copy_result_ids'] = array();
+        $return_arr['failed_copy_result_ids'] = [];
 
         $now_time = time();
 
@@ -467,13 +467,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND `'.$r_table_name.'`.copy_results != 0', $r_flow_params['db_connection'] ))
-         or !@mysqli_num_rows( $qid ) )
+         || !@mysqli_num_rows( $qid ) )
             return $return_arr;
 
         while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( empty( $rule_arr['copy_results'] )
-             or !($rule_with_settings = $rules_model->get_rule_ftp_settings( $rule_arr )) )
+             || !($rule_with_settings = $rules_model->get_rule_ftp_settings( $rule_arr )) )
             {
                 PHS_Logger::logf( 'Empty copy method or couldn\'t extract copy settings for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
@@ -489,8 +489,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                 case $rules_model::COPY_FTP:
                     if( empty( $rule_arr['ftp_settings'] )
-                     or empty( $rule_with_settings['{ftp_settings}'] )
-                     or !$ftp_obj->settings( $rule_with_settings['{ftp_settings}'] ) )
+                     || empty( $rule_with_settings['{ftp_settings}'] )
+                     || !$ftp_obj->settings( $rule_with_settings['{ftp_settings}'] ) )
                     {
                         if( $ftp_obj->has_error() )
                             $error_msg = $ftp_obj->get_error_message();
@@ -508,7 +508,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                         $ftp_obj->settings( $original_settings );
 
-                        if( !$ftp_obj->mkdir( $rule_with_settings['{ftp_settings}']['remote_dir'], array( 'recursive' => true ) ) )
+                        if( !$ftp_obj->mkdir( $rule_with_settings['{ftp_settings}']['remote_dir'], [ 'recursive' => true ] ) )
                         {
                             if( $ftp_obj->has_error() )
                                 $error_msg = $ftp_obj->get_error_message();
@@ -543,7 +543,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             // select results which were not copied before or ones that system tried to copy and had error, but one day old if error
             if( !($br_qid = db_query( $results_sql, $br_flow_params['db_connection'] ))
-             or !($results_count = @mysqli_num_rows( $br_qid )) )
+             || !($results_count = @mysqli_num_rows( $br_qid )) )
             {
                 PHS_Logger::logf( 'No results to copy for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
@@ -553,14 +553,14 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             // Get next file to be copied. In case we have more processes uploading files to be sure there's one that picks a transfer.
             while( ($br_qid = db_query( $results_sql.' LIMIT 0, 1', $br_flow_params['db_connection'] ))
-               and ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
+                && ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
             {
-                $edit_arr = array(
-                    'fields' => array(
+                $edit_arr = [
+                    'fields' => [
                         'copied' => date( $results_model::DATETIME_DB ),
                         'copy_error' => '',
-                    ),
-                );
+                    ],
+                ];
 
                 if( !($new_result_arr = $results_model->edit( $result_arr, $edit_arr )) )
                 {
@@ -573,7 +573,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 $result_arr = $new_result_arr;
 
                 if( !($files_arr = $results_model->get_result_files( $result_arr['id'] ))
-                 or !is_array( $files_arr ) )
+                 || !is_array( $files_arr ) )
                 {
                     if( is_array( $files_arr ) )
                     {
@@ -590,11 +590,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                         else
                             $error_msg = 'Error obtaining backup result files.';
 
-                        $edit_arr = array(
-                            'fields' => array(
+                        $edit_arr = [
+                            'fields' => [
                                 'copy_error' => $error_msg,
-                            ),
-                        );
+                            ],
+                        ];
 
                         $results_model->edit( $result_arr, $edit_arr );
 
@@ -613,7 +613,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                         $remote_dir = $rule_arr['id'].'/'.@basename( $result_arr['run_dir'] );
 
-                        if( !$ftp_obj->mkdir( $remote_dir, array( 'recursive' => true ) ) )
+                        if( !$ftp_obj->mkdir( $remote_dir, [ 'recursive' => true ] ) )
                         {
                             $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
                             $copy_action_error = true;
@@ -622,11 +622,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                             else
                                 $error_msg = 'Failed creating remote result directory.';
 
-                            $edit_arr = array(
-                                'fields' => array(
+                            $edit_arr = [
+                                'fields' => [
                                     'copy_error' => $error_msg,
-                                ),
-                            );
+                                ],
+                            ];
 
                             $results_model->edit( $result_arr, $edit_arr );
 
@@ -636,17 +636,17 @@ class PHS_Plugin_Backup extends PHS_Plugin
                             foreach( $files_arr as $file_id => $file_arr )
                             {
                                 if( empty( $file_arr['file'] )
-                                 or !@file_exists( $file_arr['file'] ) )
+                                 || !@file_exists( $file_arr['file'] ) )
                                 {
                                     $copy_action_error = true;
 
                                     $error_msg = 'Result file not found ('.(empty( $file_arr['file'] )?'N/A':$file_arr['file']).'), size: '.$file_arr['size'].' bytes.';
 
-                                    $edit_arr = array(
-                                        'fields' => array(
+                                    $edit_arr = [
+                                        'fields' => [
                                             'copy_error' => $error_msg,
-                                        ),
-                                    );
+                                        ],
+                                    ];
 
                                     $results_model->edit( $result_arr, $edit_arr );
 
@@ -660,7 +660,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                                 $start_put_time = time();
 
-                                if( !$ftp_obj->put( $file_arr['file'], array( 'remote_file' => $remote_file ) ) )
+                                if( !$ftp_obj->put( $file_arr['file'], [ 'remote_file' => $remote_file ] ) )
                                 {
                                     $copy_action_error = true;
 
@@ -671,27 +671,26 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                                     $error_msg = 'Failed uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes: '.$error_msg;
 
-                                    $edit_arr = array(
-                                        'fields' => array(
+                                    $edit_arr = [
+                                        'fields' => [
                                             'copy_error' => $error_msg,
-                                        ),
-                                    );
+                                        ],
+                                    ];
 
                                     $results_model->edit( $result_arr, $edit_arr );
 
                                     PHS_Logger::logf( 'Error uploading file: '.$error_msg, self::LOG_CHANNEL );
                                     continue;
-                                } else
-                                {
-                                    $total_put_time = time() - $start_put_time;
-
-                                    if( $total_put_time <= 0 )
-                                        $upload_speed = $file_arr['size'];
-                                    else
-                                        $upload_speed = number_format( $file_arr['size'] / $total_put_time, 4, '.', '' );
-
-                                    PHS_Logger::logf( 'DONE Uploaded result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes, @'.format_filesize( $upload_speed ).'/s', self::LOG_CHANNEL );
                                 }
+
+                                $total_put_time = time() - $start_put_time;
+
+                                if( $total_put_time <= 0 )
+                                    $upload_speed = $file_arr['size'];
+                                else
+                                    $upload_speed = number_format( $file_arr['size'] / $total_put_time, 4, '.', '' );
+
+                                PHS_Logger::logf( 'DONE Uploaded result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes, @'.format_filesize( $upload_speed ).'/s ('.$total_put_time.'s)', self::LOG_CHANNEL );
                             }
                         }
                     break;
@@ -703,8 +702,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                     PHS_Logger::logf( 'Error copying result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
                     continue;
-                } else
-                    PHS_Logger::logf( 'DONE Uploading result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                }
+
+                PHS_Logger::logf( 'DONE Uploading result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
 
                 $return_arr['results_copied']++;
             }
@@ -720,19 +720,19 @@ class PHS_Plugin_Backup extends PHS_Plugin
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
         /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
         if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
-         or !($results_model = PHS::load_model( 'results', 'backup' ))
-         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
-         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
-         or !($br_flow_params = $results_model->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
-         or !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
+         || !($results_model = PHS::load_model( 'results', 'backup' ))
+         || !($r_flow_params = $rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules' ] ))
+         || !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         || !($br_flow_params = $results_model->fetch_default_flow_params( [ 'table_name' => 'backup_results' ] ))
+         || !($br_table_name = $results_model->get_flow_table_name( $br_flow_params )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
             return false;
         }
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['results_deleted'] = 0;
-        $return_arr['failed_delete_result_ids'] = array();
+        $return_arr['failed_delete_result_ids'] = [];
 
         $now_time = time();
 
@@ -742,7 +742,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND `'.$r_table_name.'`.delete_after_days > 0', $r_flow_params['db_connection'] ))
-         or !@mysqli_num_rows( $qid ) )
+         || !@mysqli_num_rows( $qid ) )
             return $return_arr;
 
         while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
@@ -753,7 +753,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                                    ' (`'.$br_table_name.'`.status = \''.$results_model::STATUS_FINISHED.'\' OR '.
                                             ' `'.$br_table_name.'`.status = \''.$results_model::STATUS_ERROR.'\') '.
                                    ' AND `'.$br_table_name.'`.status_date <= \''.date( $results_model::DATETIME_DB, $now_time - $rule_arr['delete_after_days'] * 86400).'\'', $br_flow_params['db_connection'] ))
-             or !($results_count = @mysqli_num_rows( $br_qid )) )
+             || !($results_count = @mysqli_num_rows( $br_qid )) )
             {
                 PHS_Logger::logf( 'Nothing older than '.$rule_arr['delete_after_days'].' days to be deleted for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
@@ -767,18 +767,18 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 {
                     PHS_Logger::logf( 'Deleted result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                     $return_arr['results_deleted']++;
-                } else
-                {
-                    if( !$results_model->has_error() )
-                        $error_msg = $results_model->get_error_message();
-                    else
-                        $error_msg = 'Unknown error.';
-
-                    PHS_Logger::logf( 'Failed deleting result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
-                    PHS_Logger::logf( 'Error: '.$error_msg, self::LOG_CHANNEL );
-
-                    $return_arr['failed_delete_result_ids'][] = $result_arr['id'];
+                    continue;
                 }
+
+                if( !$results_model->has_error() )
+                    $error_msg = $results_model->get_error_message();
+                else
+                    $error_msg = 'Unknown error.';
+
+                PHS_Logger::logf( 'Failed deleting result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::logf( 'Error: '.$error_msg, self::LOG_CHANNEL );
+
+                $return_arr['failed_delete_result_ids'][] = $result_arr['id'];
             }
         }
 
@@ -791,22 +791,23 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
         if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
-         or !($r_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) ))
-         or !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
-         or !($rd_flow_params = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules_days' ) ))
-         or !($rd_table_name = $rules_model->get_flow_table_name( $rd_flow_params )) )
+         || !($r_flow_params = $rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules' ] ))
+         || !($r_table_name = $rules_model->get_flow_table_name( $r_flow_params ))
+         || !($rd_flow_params = $rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules_days' ] ))
+         || !($rd_table_name = $rules_model->get_flow_table_name( $rd_flow_params )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
             return false;
         }
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['backup_rules'] = 0;
-        $return_arr['failed_rules_ids'] = array();
+        $return_arr['failed_rules_ids'] = [];
 
         $now_time = time();
         $today_day = date( 'w', $now_time ) + 1;
-        $now_hour = date( 'G', $now_time ) + 1;
+        // 24-hour format of an hour without leading zeros
+        $now_hour = date( 'G', $now_time );
         // 0 to 365, mysql DAYOFYEAR is 1 to 366
         $day_of_year = date( 'z', $now_time ) + 1;
 
@@ -819,7 +820,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' AND (`'.$rd_table_name.'`.day = \''.$today_day.'\' OR `'.$rd_table_name.'`.day = 0)'.
                               ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\''.
                               ' AND (`'.$r_table_name.'`.last_run IS NULL OR DAYOFYEAR(`'.$r_table_name.'`.last_run) != '.$day_of_year.')', $r_flow_params['db_connection'] ))
-         or !@mysqli_num_rows( $qid ) )
+         || !@mysqli_num_rows( $qid ) )
             return $return_arr;
 
         while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
@@ -832,29 +833,39 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
+    /**
+     * @param false|array $hook_args
+     *
+     * @return array
+     */
     public function trigger_after_left_menu_admin( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
 
-        $data = array();
+        $data = [];
 
         $hook_args['buffer'] = $this->quick_render_template_for_buffer( 'left_menu_admin', $data );
 
         return $hook_args;
     }
 
+    /**
+     * @param false|array $hook_args
+     *
+     * @return array
+     */
     public function trigger_assign_registration_roles( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_registration_roles_hook_args() );
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or empty( $hook_args['account_data'] )
-         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+        if( empty( $hook_args['account_data'] )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
             return $hook_args;
 
         if( empty( $hook_args['roles_arr'] ) )
-            $hook_args['roles_arr'] = array();
+            $hook_args['roles_arr'] = [];
 
         if( $accounts_model->acc_is_admin( $account_arr ) )
             $hook_args['roles_arr'][] = self::ROLE_BACKUP_MANAGER;
@@ -863,5 +874,4 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         return $hook_args;
     }
-
 }

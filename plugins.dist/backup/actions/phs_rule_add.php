@@ -19,7 +19,7 @@ class PHS_Action_Rule_add extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     /**
@@ -67,12 +67,12 @@ class PHS_Action_Rule_add extends PHS_Action
             return self::default_action_result();
         }
 
-        $days_options_arr = array(
+        $days_options_arr = [
             7 => $this->_pt( 'One week' ),
             14 => $this->_pt( 'Two weeks' ),
             30 => $this->_pt( '30 days' ),
             60 => $this->_pt( '60 days' ),
-        );
+        ];
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
@@ -80,12 +80,12 @@ class PHS_Action_Rule_add extends PHS_Action
         $delete_after_days = PHS_Params::_p( 'delete_after_days', PHS_Params::T_INT );
         $cdelete_after_days = PHS_Params::_p( 'cdelete_after_days', PHS_Params::T_INT );
         $copy_results = PHS_Params::_p( 'copy_results', PHS_Params::T_INT );
-        if( !($ftp_settings = PHS_Params::_p( 'ftp_settings', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_ASIS ) )) )
-            $ftp_settings = array();
-        if( !($target_arr = PHS_Params::_p( 'target_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_INT ) )) )
-            $target_arr = array();
-        if( !($days_arr = PHS_Params::_p( 'days_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_INT ) )) )
-            $days_arr = array();
+        if( !($ftp_settings = PHS_Params::_p( 'ftp_settings', PHS_Params::T_ARRAY, [ 'type' => PHS_Params::T_ASIS ] )) )
+            $ftp_settings = [];
+        if( !($target_arr = PHS_Params::_p( 'target_arr', PHS_Params::T_ARRAY, [ 'type' => PHS_Params::T_INT ] )) )
+            $target_arr = [];
+        if( !($days_arr = PHS_Params::_p( 'days_arr', PHS_Params::T_ARRAY, [ 'type' => PHS_Params::T_INT ] )) )
+            $days_arr = [];
         if( !($location = PHS_Params::_p( 'location', PHS_Params::T_NOHTML )) )
             $location = '';
 
@@ -97,53 +97,53 @@ class PHS_Action_Rule_add extends PHS_Action
 
         if( !empty( $do_submit ) )
         {
-            if( $delete_after_days == -1 )
+            if( $delete_after_days === -1 )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
 
             elseif( $delete_after_days === 0 )
                 $cdelete_after_days = 0;
 
-            elseif( $delete_after_days == -2 )
+            elseif( $delete_after_days === -2 )
             {
-                if( empty( $cdelete_after_days ) or $cdelete_after_days < 0 )
+                if( empty( $cdelete_after_days ) || $cdelete_after_days < 0 )
                     $cdelete_after_days = 0;
             } else
                 $cdelete_after_days = $delete_after_days;
         }
 
         if( !($rule_days = $rules_model->get_rule_days()) )
-            $rule_days = array();
+            $rule_days = [];
         if( !($targets_arr = $rules_model->get_targets_as_key_val()) )
-            $targets_arr = array();
+            $targets_arr = [];
         if( !($rule_location = $backup_plugin->get_location_for_path( $location )) )
             $rule_location = '';
 
         if( !($copy_results_arr = $rules_model->get_copy_results_as_key_val()) )
-            $copy_results_arr = array();
+            $copy_results_arr = [];
         if( !($ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val()) )
-            $ftp_connection_modes_arr = array();
+            $ftp_connection_modes_arr = [];
 
         if( !empty( $do_submit )
-        and !PHS_Notifications::have_errors_or_warnings_notifications() )
+         && !PHS_Notifications::have_errors_or_warnings_notifications() )
         {
             if( !empty( $copy_results )
-            and $copy_results == $rules_model::COPY_FTP )
+             && $copy_results === $rules_model::COPY_FTP )
             {
-                if( empty( $ftp_settings ) or !is_array( $ftp_settings )
-                 or empty( $ftp_settings['connection_mode'] )
-                 or !$ftp_obj->valid_connection_type( $ftp_settings['connection_mode'] )
-                 or !$ftp_obj->settings_valid( $ftp_settings ) )
+                if( empty( $ftp_settings ) || !is_array( $ftp_settings )
+                 || empty( $ftp_settings['connection_mode'] )
+                 || !$ftp_obj->valid_connection_type( $ftp_settings['connection_mode'] )
+                 || !$ftp_obj::settings_valid( $ftp_settings ) )
                     PHS_Notifications::add_error_notice( $this->_pt( 'Please choose an option for delete action.' ) );
 
                 else
                 {
-                    $ftp_settings['connection_mode'] = intval( $ftp_settings['connection_mode'] );
+                    $ftp_settings['connection_mode'] = (int)$ftp_settings['connection_mode'];
 
                     // We hardcode binary transfers...
                     $ftp_settings['transfer_mode'] = $ftp_obj::TRANSFER_MODE_BINARY;
 
                     if( !empty( $ftp_settings['timeout'] ) )
-                        $ftp_settings['timeout'] = intval( $ftp_settings['timeout'] );
+                        $ftp_settings['timeout'] = (int)$ftp_settings['timeout'];
                     else
                         $ftp_settings['timeout'] = 0;
 
@@ -156,7 +156,7 @@ class PHS_Action_Rule_add extends PHS_Action
 
             if( !PHS_Notifications::have_errors_or_warnings_notifications() )
             {
-                $insert_arr = array();
+                $insert_arr = [];
                 $insert_arr['uid'] = $current_user['id'];
                 $insert_arr['title'] = $title;
                 $insert_arr['location'] = $location;
@@ -166,7 +166,7 @@ class PHS_Action_Rule_add extends PHS_Action
                 $insert_arr['ftp_settings'] = $ftp_settings;
                 $insert_arr['target'] = $target_arr;
 
-                $insert_params_arr = $rules_model->fetch_default_flow_params( array( 'table_name' => 'backup_rules' ) );
+                $insert_params_arr = $rules_model->fetch_default_flow_params( [ 'table_name' => 'backup_rules' ] );
                 $insert_params_arr['fields'] = $insert_arr;
                 $insert_params_arr['{days_arr}'] = $days_arr;
 
@@ -178,30 +178,29 @@ class PHS_Action_Rule_add extends PHS_Action
 
                     if( !empty( $do_test_ftp ) )
                     {
-                        $url_args = array(
+                        $url_args = [
                             'rid' => $new_rule['id'],
                             'changes_saved' => 1,
                             'do_test_ftp' => 1,
-                        );
+                        ];
 
-                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'backup', 'a' => 'rule_edit' ), $url_args );
+                        $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'backup', 'a' => 'rule_edit' ], $url_args );
                     } else
                     {
-                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'backup', 'a' => 'rules_list' ), array( 'rule_added' => 1 ) );
+                        $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'backup', 'a' => 'rules_list' ], [ 'rule_added' => 1 ] );
                     }
 
                     return $action_result;
-                } else
-                {
-                    if( $rules_model->has_error() )
-                        PHS_Notifications::add_error_notice( $rules_model->get_error_message() );
-                    else
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
                 }
+
+                if( $rules_model->has_error() )
+                    PHS_Notifications::add_error_notice( $rules_model->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
         }
 
-        $data = array(
+        $data = [
             'title' => $title,
             'hour' => $hour,
             'delete_after_days' => $delete_after_days,
@@ -220,7 +219,7 @@ class PHS_Action_Rule_add extends PHS_Action
             'rule_location' => $rule_location,
             'rules_model' => $rules_model,
             'backup_plugin' => $backup_plugin,
-        );
+        ];
 
         return $this->quick_render_template( 'rule_add', $data );
     }
