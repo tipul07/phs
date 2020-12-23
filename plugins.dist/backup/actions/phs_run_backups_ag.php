@@ -13,7 +13,7 @@ class PHS_Action_Run_backups_ag extends PHS_Action
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_AGENT );
+        return [ PHS_Scope::SCOPE_AGENT ];
     }
 
     public function execute()
@@ -39,8 +39,8 @@ class PHS_Action_Run_backups_ag extends PHS_Action
         {
             if( empty( $check_result['backup_rules'] ) )
                 $check_result['backup_rules'] = 0;
-            if( empty( $check_result['failed_rules_ids'] ) or !is_array( $check_result['failed_rules_ids'] ) )
-                $check_result['failed_rules_ids'] = array();
+            if( empty( $check_result['failed_rules_ids'] ) || !is_array( $check_result['failed_rules_ids'] ) )
+                $check_result['failed_rules_ids'] = [];
 
             PHS_Logger::logf( 'Run '.$check_result['backup_rules'].' rules, '.
                               count( $check_result['failed_rules_ids'] ).' failed: '.
@@ -59,8 +59,8 @@ class PHS_Action_Run_backups_ag extends PHS_Action
         {
             if( empty( $copy_result['results_copied'] ) )
                 $copy_result['results_copied'] = 0;
-            if( empty( $copy_result['failed_copy_result_ids'] ) or !is_array( $copy_result['failed_copy_result_ids'] ) )
-                $copy_result['failed_copy_result_ids'] = array();
+            if( empty( $copy_result['failed_copy_result_ids'] ) || !is_array( $copy_result['failed_copy_result_ids'] ) )
+                $copy_result['failed_copy_result_ids'] = [];
 
             PHS_Logger::logf( 'Copied '.$copy_result['results_copied'].' results, '.
                               count( $copy_result['failed_copy_result_ids'] ).' copy actions failed: '.
@@ -79,8 +79,8 @@ class PHS_Action_Run_backups_ag extends PHS_Action
         {
             if( empty( $delete_result['results_deleted'] ) )
                 $delete_result['results_deleted'] = 0;
-            if( empty( $delete_result['failed_delete_result_ids'] ) or !is_array( $delete_result['failed_delete_result_ids'] ) )
-                $delete_result['failed_delete_result_ids'] = array();
+            if( empty( $delete_result['failed_delete_result_ids'] ) || !is_array( $delete_result['failed_delete_result_ids'] ) )
+                $delete_result['failed_delete_result_ids'] = [];
 
             PHS_Logger::logf( 'Deleted '.$delete_result['results_deleted'].' results, '.
                               count( $delete_result['failed_delete_result_ids'] ).' deletions failed: '.

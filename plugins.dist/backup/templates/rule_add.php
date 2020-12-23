@@ -7,40 +7,40 @@
     /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
     /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
     if( !($backup_plugin = $this->view_var( 'backup_plugin' ))
-     or !($rules_model = $this->view_var( 'rules_model' )) )
+     || !($rules_model = $this->view_var( 'rules_model' )) )
         return $this->_pt( 'Couldn\'t load backup plugin.' );
 
     if( !($target_arr = $this->view_var( 'target_arr' )) )
-        $target_arr = array();
+        $target_arr = [];
     if( !($days_arr = $this->view_var( 'days_arr' )) )
-        $days_arr = array();
+        $days_arr = [];
     if( !($ftp_settings = $this->view_var( 'ftp_settings' )) )
-        $ftp_settings = array();
+        $ftp_settings = [];
 
     if( !($rule_location = $this->view_var( 'rule_location' )) )
-        $rule_location = array();
+        $rule_location = [];
     if( !($rule_days = $this->view_var( 'rule_days' )) )
-        $rule_days = array();
+        $rule_days = [];
     if( !($targets_arr = $this->view_var( 'targets_arr' )) )
-        $targets_arr = array();
+        $targets_arr = [];
     if( !($days_options_arr = $this->view_var( 'days_options_arr' )) )
-        $days_options_arr = array();
+        $days_options_arr = [];
     if( !($copy_results_arr = $this->view_var( 'copy_results_arr' )) )
-        $copy_results_arr = array();
+        $copy_results_arr = [];
     if( !($ftp_connection_modes_arr = $this->view_var( 'ftp_connection_modes_arr' )) )
-        $ftp_connection_modes_arr = array();
+        $ftp_connection_modes_arr = [];
 
     $error_msg = '';
     $stats_str = '';
     if( empty( $rule_location )
-     or !($location_details = $backup_plugin->resolve_directory_location( $rule_location['location_path'] )) )
+     || !($location_details = $backup_plugin->resolve_directory_location( $rule_location['location_path'] )) )
         $error_msg = $this->_pt( 'Couldn\'t obtain current location details.' );
 
     elseif( empty( $location_details['location_exists'] ) )
         $error_msg = $this->_pt( 'At the moment directory doesn\'t exist. System will try creating it at first run.' );
 
     elseif( empty( $location_details['full_path'] )
-        or !is_writeable( $location_details['full_path'] ) )
+        || !@is_writable( $location_details['full_path'] ) )
         $error_msg = $this->_pt( 'Resolved directory is not writeable.' );
 
     elseif( !($stats_arr = $backup_plugin->get_directory_stats( $location_details['full_path'] )) )
@@ -50,7 +50,7 @@
         $stats_str = $this->_pt( 'Total space: %s, Free space: %s', format_filesize( $stats_arr['total_space'] ), format_filesize( $stats_arr['free_space'] ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="add_rule_form" name="add_rule_form" action="<?php echo PHS::url( array( 'p' => 'backup', 'a' => 'rule_add' ) )?>" method="post">
+    <form id="add_rule_form" name="add_rule_form" action="<?php echo PHS::url( [ 'p' => 'backup', 'a' => 'rule_add' ] )?>" method="post">
         <input type="hidden" name="foobar" value="1" />
 
         <div class="form_container responsive" style="width: 700px;">
@@ -62,14 +62,16 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="title" name="title" class="form-control" required="required"
+                       value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 360px;" autocomplete="off" />
                 </div>
             </fieldset>
 
             <fieldset class="form-group">
                 <label for="location"><?php echo $this->_pt( 'Location' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->view_var( 'location' ) )?>" style="width: 360px;" autocomplete="off" />
+                <input type="text" id="location" name="location" class="form-control" value="<?php echo form_str( $this->view_var( 'location' ) )?>"
+                       style="width: 360px;" autocomplete="off" />
                 <br/><small><?php echo $this->_pt( 'Leave blank to use location set in plugin settings%s.', (!empty( $rule_location['location_path'] )?' ('.$rule_location['location_path'].')':'') )?></small>
                 <?php
                 if( !empty( $error_msg ) )
@@ -89,12 +91,13 @@
                 <select name="hour" id="hour" class="chosen-select" style="min-width:150px;">
                 <option value="-1"><?php echo $this->_pt( ' - Choose - ' )?></option>
                 <?php
-                $selected_hour = $this->view_var( 'hour' );
+                $selected_hour = (int)$this->view_var( 'hour' );
                 for( $hour = 0; $hour < 24; $hour++ )
                 {
-                    ?><option value="<?php echo $hour?>" <?php echo (($selected_hour !== false and $selected_hour==$hour)?'selected="selected"':'')?>><?php echo ($hour<10?'0':'').$hour?></option><?php
+                    ?><option value="<?php echo $hour?>" <?php echo (($selected_hour !== false && $selected_hour===$hour)?'selected="selected"':'')?>><?php echo ($hour<10?'0':'').$hour?></option><?php
                 }
-                ?></select>
+                ?></select><br/>
+                <small><?php echo $this->_pt( 'Current server time %s', date( 'd-m-Y H:i:s (PT)' ) )?></small>
                 </div>
             </fieldset>
 
