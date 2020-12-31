@@ -5,6 +5,7 @@ namespace phs\libraries;
 use \phs\PHS_Scope;
 use \phs\PHS_Api;
 use \phs\PHS_Api_base;
+use \phs\libraries\PHS_Params;
 
 abstract class PHS_Api_action extends PHS_Action
 {
@@ -135,5 +136,67 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params['response_data'] = $payload_arr;
 
         return $this->send_api_response( $response_params );
+    }
+
+    /**
+     * @param string $var_name What variable are we looking for
+     * @param int $type Type used for value validation
+     * @param mixed $default Default value if variable not found in request
+     * @param false|array $type_extra Extra params used in variable validation
+     * @param string $order Order in which we will do the checks (b - request body as JSON, g - get, p - post)
+     *
+     * @return mixed
+     */
+    public function request_var( $var_name, $type = PHS_Params::T_ASIS, $default = null, $type_extra = false, $order = 'bpg' )
+    {
+        static $json_request = null;
+
+        if( $json_request === null
+         && !($json_request = PHS_Api_base::get_request_body_as_json_array()) ) {
+            $json_request = false;
+        }
+
+        if( !is_string( $order )
+         || $order === '' ) {
+            return $default;
+        }
+
+        $val = null;
+        while( ($ch = substr( $order, 0, 1 )) )
+        {
+            switch( strtolower( $ch ) )
+            {
+                case 'b':
+                    if( !empty( $json_request ) && is_array( $json_request )
+                     && isset( $json_request[$var_name] ) ) {
+                        $val = $json_request[$var_name];
+                        break 2;
+                    }
+                break;
+
+                case 'p':
+                    if( null !== ($val = PHS_Params::_p( $var_name, $type, $type_extra )) ) {
+                        return $val;
+                    }
+                break;
+
+                case 'g':
+                    if( null !== ($val = PHS_Params::_g( $var_name, $type, $type_extra )) ) {
+                        return $val;
+                    }
+                break;
+            }
+
+            if( !($order = substr( $order, 1 )) ) {
+                break;
+            }
+        }
+
+        if( $val === null
+         || null === ($type_val = PHS_Params::set_type( $val, $type, $type_extra )) ) {
+            return $default;
+        }
+
+        return $type_val;
     }
 }
