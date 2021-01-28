@@ -16,12 +16,12 @@ class PHS_Action_Forgot extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_FORGOT_PASSWORD );
+        return [ self::ACT_ROLE_FORGOT_PASSWORD ];
     }
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     /**

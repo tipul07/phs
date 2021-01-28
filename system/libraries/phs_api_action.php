@@ -34,6 +34,9 @@ abstract class PHS_Api_action extends PHS_Action
         return $this->api_obj;
     }
 
+    /**
+     * @return array
+     */
     public static function default_api_response()
     {
         return [
@@ -57,7 +60,13 @@ abstract class PHS_Api_action extends PHS_Action
         ];
     }
 
-    public function send_api_response( $response_data )
+    /**
+     * @param array $response_data
+     * @param false|array $action_result_defaults Array with keys that should replace action array keys
+     *
+     * @return array|false
+     */
+    public function send_api_response( $response_data, $action_result_defaults = false )
     {
         $response_data = self::validate_array_recursive( $response_data, self::default_api_response() );
 
@@ -74,6 +83,9 @@ abstract class PHS_Api_action extends PHS_Action
             $response_data['http_code'] = PHS_Api::H_CODE_INTERNAL_SERVER_ERROR;
 
         $action_result = PHS_Action::default_action_result();
+        if( $action_result_defaults !== false
+         && is_array( $action_result_defaults ) )
+            $action_result = self::merge_array_assoc( $action_result, $action_result_defaults );
 
         if( empty( $response_data['only_response_data_node'] ) )
         {
@@ -106,7 +118,15 @@ abstract class PHS_Api_action extends PHS_Action
         return $action_result;
     }
 
-    public function send_api_error( $http_error, $error_no, $error_msg )
+    /**
+     * @param int $http_error
+     * @param int $error_no
+     * @param string $error_msg
+     * @param false|array $action_result_defaults
+     *
+     * @return array|false
+     */
+    public function send_api_error( $http_error, $error_no, $error_msg, $action_result_defaults = false )
     {
         if( !PHS_Api::valid_http_code( $http_error ) )
             $http_error = PHS_Api::H_CODE_INTERNAL_SERVER_ERROR;
@@ -122,10 +142,17 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params['error']['code'] = $error_no;
         $response_params['error']['message'] = $error_msg;
 
-        return $this->send_api_response( $response_params );
+        return $this->send_api_response( $response_params, $action_result_defaults );
     }
 
-    public function send_api_success( $payload_arr, $http_code = PHS_Api::H_CODE_OK )
+    /**
+     * @param array|null $payload_arr
+     * @param int $http_code
+     * @param false|array $action_result_defaults
+     *
+     * @return array|false
+     */
+    public function send_api_success( $payload_arr, $http_code = PHS_Api::H_CODE_OK, $action_result_defaults = false )
     {
         if( !PHS_Api::valid_http_code( $http_code ) )
             $http_code = PHS_Api::H_CODE_OK;
@@ -135,7 +162,7 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params['http_code'] = $http_code;
         $response_params['response_data'] = $payload_arr;
 
-        return $this->send_api_response( $response_params );
+        return $this->send_api_response( $response_params, $action_result_defaults );
     }
 
     /**

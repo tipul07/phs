@@ -1484,7 +1484,7 @@ final class PHS extends PHS_Registry
      * @param bool|array $args
      * @param bool|array $extra
      *
-     * @return mixed|string
+     * @return string
      */
     public static function url( $route_arr = false, $args = false, $extra = false )
     {

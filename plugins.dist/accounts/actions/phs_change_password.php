@@ -15,7 +15,7 @@ class PHS_Action_Change_password extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_CHANGE_PASSWORD, self::ACT_ROLE_PASSWORD_EXPIRED, );
+        return [ self::ACT_ROLE_CHANGE_PASSWORD, self::ACT_ROLE_PASSWORD_EXPIRED, ];
     }
 
     /**
@@ -25,7 +25,7 @@ class PHS_Action_Change_password extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB ];
     }
 
     /**
@@ -39,7 +39,7 @@ class PHS_Action_Change_password extends PHS_Action
         $hook_args['action_obj'] = $this;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_CHANGE_PASSWORD_ACTION_START, $hook_args ))
-        and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+         && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
         {
             $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
 
@@ -82,8 +82,8 @@ class PHS_Action_Change_password extends PHS_Action
             }
 
             if( !($confirmation_parts = $accounts_plugin->decode_confirmation_param( $confirmation_param ))
-             or empty( $confirmation_parts['account_data'] ) or empty( $confirmation_parts['reason'] )
-             or $confirmation_parts['reason'] != $accounts_plugin::CONF_REASON_FORGOT )
+             || empty( $confirmation_parts['account_data'] ) || empty( $confirmation_parts['reason'] )
+             || $confirmation_parts['reason'] != $accounts_plugin::CONF_REASON_FORGOT )
             {
                 if( $accounts_plugin->has_error() )
                     PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
@@ -94,7 +94,7 @@ class PHS_Action_Change_password extends PHS_Action
         }
 
         if( !($accounts_settings = $accounts_plugin->get_plugin_settings()) )
-            $accounts_settings = array();
+            $accounts_settings = [];
 
         if( empty( $accounts_settings['min_password_length'] ) )
         {
@@ -104,8 +104,8 @@ class PHS_Action_Change_password extends PHS_Action
                 $accounts_settings['min_password_length'] = 8;
         }
 
-        if( !($external_args = PHS_Params::_gp( 'external_args', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_ASIS ) )) )
-            $external_args = array();
+        if( !($external_args = PHS_Params::_gp( 'external_args', PHS_Params::T_ARRAY, [ 'type' => PHS_Params::T_ASIS ] )) )
+            $external_args = [];
 
         if( PHS_Params::_g( 'password_expired', PHS_Params::T_INT ) )
             PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired. For security reasons, please change it.' ) );
@@ -124,24 +124,24 @@ class PHS_Action_Change_password extends PHS_Action
         $do_submit = PHS_Params::_p( 'do_submit' );
 
         if( !empty( $do_submit )
-        and !PHS_Notifications::have_notifications_errors() )
+         && !PHS_Notifications::have_notifications_errors() )
         {
-            if( (!empty( $current_user ) and empty( $pass ))
-             or empty( $pass1 ) or empty( $pass2 ) )
+            if( (!empty( $current_user ) && empty( $pass ))
+             || empty( $pass1 ) || empty( $pass2 ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Please provide mandatory fields.' ) );
 
-            elseif( !empty( $current_user ) and !$accounts_model->check_pass( $current_user, $pass ) )
+            elseif( !empty( $current_user ) && !$accounts_model->check_pass( $current_user, $pass ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Wrong current password.' ) );
 
-            elseif( $pass1 != $pass2 )
+            elseif( $pass1 !== $pass2 )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Passwords mismatch.' ) );
 
             else
             {
-                $edit_arr = array();
+                $edit_arr = [];
                 $edit_arr['pass'] = $pass1;
 
-                $edit_params_arr = array();
+                $edit_params_arr = [];
                 $edit_params_arr['fields'] = $edit_arr;
 
                 if( ($new_account = $accounts_model->edit( (!empty( $current_user )?$current_user:$forgot_account_arr), $edit_params_arr )) )
@@ -154,39 +154,38 @@ class PHS_Action_Change_password extends PHS_Action
                     $args_arr['password_changed'] = 1;
 
                     if( !empty( $current_user ) )
-                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'change_password' ), $args_arr );
+                        $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'change_password' ], $args_arr );
 
                     else
                     {
                         if( !empty( $forgot_account_arr ) )
                             $args_arr['nick'] = $forgot_account_arr['nick'];
 
-                        $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args_arr );
+                        $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'login' ], $args_arr );
                     }
 
                     return $action_result;
-                } else
-                {
-                    if( $accounts_model->has_error() )
-                        PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
-                    else
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Error changing password. Please try again.' ) );
                 }
+
+                if( $accounts_model->has_error() )
+                    PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error changing password. Please try again.' ) );
             }
         }
 
-        $url_extra_args = array();
+        $url_extra_args = [];
         if( !empty( $forgot_account_arr ) )
         {
-            if( !($confirmation_parts = $accounts_plugin->get_confirmation_params( $forgot_account_arr, $accounts_plugin::CONF_REASON_FORGOT, array( 'link_expire_seconds' => 3600 ) ))
-             or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
+            if( !($confirmation_parts = $accounts_plugin->get_confirmation_params( $forgot_account_arr, $accounts_plugin::CONF_REASON_FORGOT, [ 'link_expire_seconds' => 3600 ] ))
+             || empty( $confirmation_parts['confirmation_param'] ) || empty( $confirmation_parts['pub_key'] ) )
             {
-                $url_extra_args = array( $accounts_plugin::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] );
+                $url_extra_args = [ $accounts_plugin::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ];
             } elseif( !empty( $confirmation_param ) )
-                $url_extra_args = array( $accounts_plugin::PARAM_CONFIRMATION => $confirmation_param );
+                $url_extra_args = [ $accounts_plugin::PARAM_CONFIRMATION => $confirmation_param ];
         }
 
-        $data = array(
+        $data = [
             'external_args' => $external_args,
             'url_extra_args' => $url_extra_args,
             'nick' => (!empty( $current_user )?$current_user['nick']:'N/A'),
@@ -196,7 +195,7 @@ class PHS_Action_Change_password extends PHS_Action
             'min_password_length' => $accounts_settings['min_password_length'],
             'password_regexp' => $accounts_settings['password_regexp'],
             'password_changed' => $password_changed,
-        );
+        ];
 
         return $this->quick_render_template( 'change_password', $data );
     }
