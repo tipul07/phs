@@ -15,7 +15,8 @@
         $back_page = '';
 ?>
 <div class="login_container">
-    <form id="login_form" name="login_form" action="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'login' ) )?>" method="post">
+    <form id="login_form" name="login_form" method="post"
+          action="<?php echo PHS::url( [ 'p' => 'accounts', 'a' => 'login' ] )?>">
         <input type="hidden" name="foobar" value="1" />
         <?php
         if( !empty( $back_page ) )

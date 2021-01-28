@@ -15,7 +15,7 @@ class PHS_Action_Login extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_LOGIN );
+        return [ self::ACT_ROLE_LOGIN ];
     }
 
     /**
@@ -25,7 +25,7 @@ class PHS_Action_Login extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB ];
     }
 
     /**
@@ -39,7 +39,7 @@ class PHS_Action_Login extends PHS_Action
         $hook_args['action_obj'] = $this;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_LOGIN_ACTION_START, $hook_args ))
-        and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+        && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
         {
             $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
 
@@ -55,7 +55,7 @@ class PHS_Action_Login extends PHS_Action
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         $nick = PHS_Params::_pg( 'nick', PHS_Params::T_NOHTML );
-        $pass = PHS_Params::_pg( 'pass', PHS_Params::T_NOHTML );
+        $pass = PHS_Params::_p( 'pass', PHS_Params::T_NOHTML );
         $do_remember = PHS_Params::_pg( 'do_remember', PHS_Params::T_INT );
         $do_submit = PHS_Params::_p( 'do_submit' );
 
@@ -71,8 +71,8 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
 
         if( !empty( $accounts_plugin )
-        and !empty( $reason )
-        and ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
+         && !empty( $reason )
+         && ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
             PHS_Notifications::add_success_notice( $reason_success_text );
 
         if( PHS_Params::_g( 'registered', PHS_Params::T_INT ) )
@@ -83,14 +83,14 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $foobar )
-        and PHS::user_logged_in()
-        and !PHS_Notifications::have_notifications_errors() )
+         && PHS::user_logged_in()
+         && !PHS_Notifications::have_notifications_errors() )
         {
             $hook_args = PHS_Hooks::default_page_location_hook_args();
             $hook_args['action_result'] = $action_result;
 
             if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
-            and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+            && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
                 return $new_hook_args['action_result'];
 
             PHS_Notifications::add_success_notice( $this->_pt( 'Already logged in...' ) );
@@ -103,7 +103,7 @@ class PHS_Action_Login extends PHS_Action
         }
 
         if( !($plugin_settings = $this->get_plugin_settings()) )
-            $plugin_settings = array();
+            $plugin_settings = [];
 
         if( empty( $plugin_settings['session_expire_minutes_remember'] ) )
             $plugin_settings['session_expire_minutes_remember'] = 43200; // 30 days
@@ -114,22 +114,22 @@ class PHS_Action_Login extends PHS_Action
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !empty( $do_submit )
-        and !PHS_Notifications::have_notifications_errors() )
+         && !PHS_Notifications::have_notifications_errors() )
         {
-            if( empty( $nick ) or empty( $pass ) )
+            if( empty( $nick ) || empty( $pass ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Please provide complete mandatory fields.' ) );
 
             elseif( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
 
-            elseif( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $nick ) ))
-                 or !$accounts_model->check_pass( $account_arr, $pass )
-                 or !$accounts_model->is_active( $account_arr ) )
+            elseif( !($account_arr = $accounts_model->get_details_fields( [ 'nick' => $nick ] ))
+                 || !$accounts_model->check_pass( $account_arr, $pass )
+                 || !$accounts_model->is_active( $account_arr ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Bad username or password.' ) );
 
             else
             {
-                $login_params = array();
+                $login_params = [];
                 $login_params['expire_mins'] = (!empty( $do_remember )?$plugin_settings['session_expire_minutes_remember']:$plugin_settings['session_expire_minutes_normal']);
 
                 if( $accounts_plugin->do_login( $account_arr, $login_params ) )
@@ -137,17 +137,15 @@ class PHS_Action_Login extends PHS_Action
                     if( ($account_language = $accounts_model->get_account_language( $account_arr )) )
                     {
                         if( !($current_language = self::get_current_language())
-                         or $current_language !== $account_language )
+                         || $current_language !== $account_language )
                         {
                             self::set_current_language( $account_language );
                             PHS_Session::_s( self::LANG_SESSION_KEY, $account_language );
                         }
                     }
 
-                    $hook_args = PHS_Hooks::default_page_location_hook_args();
-
-                    if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
-                    and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+                    if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, PHS_Hooks::default_page_location_hook_args() ))
+                     && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
                         return $new_hook_args['action_result'];
 
                     PHS_Notifications::add_success_notice( $this->_pt( 'Successfully logged in...' ) );
@@ -166,7 +164,7 @@ class PHS_Action_Login extends PHS_Action
             }
         }
 
-        $data = array(
+        $data = [
             'back_page' => $back_page,
             'nick' => $nick,
             'pass' => $pass,
@@ -174,7 +172,7 @@ class PHS_Action_Login extends PHS_Action
             'normal_session_minutes' => $plugin_settings['session_expire_minutes_normal'],
             'no_nickname_only_email' => $plugin_settings['no_nickname_only_email'],
             'do_remember' => (!empty( $do_remember )?'checked="checked"':''),
-        );
+        ];
 
         return $this->quick_render_template( 'login', $data );
     }

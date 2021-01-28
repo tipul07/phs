@@ -21,11 +21,11 @@
     PHS_Logger::logf( ' --- Started bg job...', PHS_Logger::TYPE_BACKGROUND );
 
     $input = '';
-    if( !empty( $_SERVER['argv'] ) and is_array( $_SERVER['argv'] ) and !empty( $_SERVER['argv'][1] ) )
+    if( !empty( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) && !empty( $_SERVER['argv'][1] ) )
         $input = $_SERVER['argv'][1];
 
     if( !($parsed_input = PHS_Bg_jobs::bg_validate_input( $input ))
-     or empty( $parsed_input['job_data'] ) )
+     || empty( $parsed_input['job_data'] ) )
     {
         PHS_Logger::logf( 'INVALID job input.', PHS_Logger::TYPE_BACKGROUND );
         exit;
@@ -33,7 +33,7 @@
 
     $job_arr = $parsed_input['job_data'];
 
-    $run_job_extra = array();
+    $run_job_extra = [];
     $run_job_extra['bg_jobs_model'] = (!empty( $parsed_input['bg_jobs_model'] )?$parsed_input['bg_jobs_model']:false);
 
     if( !($action_result = PHS_Bg_jobs::bg_run_job( $job_arr, $run_job_extra )) )

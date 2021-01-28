@@ -12,12 +12,12 @@ class PHS_Action_Login extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_LOGIN );
+        return [ self::ACT_ROLE_LOGIN ];
     }
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_API );
+        return [ PHS_Scope::SCOPE_API ];
     }
 
     public function execute()
@@ -73,7 +73,7 @@ class PHS_Action_Login extends PHS_Action
             exit;
         }
 
-        if( !($account_arr = $accounts_model->get_details_fields( array( 'nick' => $request_arr['nick'] ) ))
+        if( !($account_arr = $accounts_model->get_details_fields( [ 'nick' => $request_arr['nick'] ] ))
          or !$accounts_model->check_pass( $account_arr, $request_arr['pass'] )
          or !$accounts_model->is_active( $account_arr ) )
         {
@@ -106,7 +106,7 @@ class PHS_Action_Login extends PHS_Action
 
         $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr['device_info'], $online_model::get_api_data_device_fields() );
 
-        if( !($new_session_arr = $online_model->update_session( $session_arr, $device_data, $account_arr['id'], array( 'regenerate_keys' => true ) )) )
+        if( !($new_session_arr = $online_model->update_session( $session_arr, $device_data, $account_arr['id'], [ 'regenerate_keys' => true ] )) )
         {
             if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error updating session.' ) ) )
             {

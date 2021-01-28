@@ -12,12 +12,12 @@ class PHS_Action_Change_password extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_CHANGE_PASSWORD );
+        return [ self::ACT_ROLE_CHANGE_PASSWORD ];
     }
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_API );
+        return [ PHS_Scope::SCOPE_API ];
     }
 
     public function execute()

@@ -14,7 +14,7 @@ use \phs\libraries\PHS_Utils;
 
 class PHS_Model_Accounts extends PHS_Model
 {
-    const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003;
+    const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003, ERR_CHANGE_PASS = 10004, ERR_PASS_CHECK = 10005;
 
     const PASSWORDS_ALGO = 'sha256';
 
@@ -48,7 +48,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.2.2';
+        return '1.2.3';
     }
 
     /**
@@ -234,6 +234,48 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
 
         return $user_arr;
+    }
+
+    /**
+     * @param int|array $account_data
+     * @param bool|array $params
+     *
+     * @return bool|array
+     */
+    public function populate_account_data_for_account_contract( $account_data, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $account_data )
+         || !($account_arr = $this->data_to_array( $account_data ))
+         || $this->is_deleted( $account_arr ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return false;
+        }
+
+        // As we announce account action, we should have updated values...
+        $structure_hook_args = PHS_Hooks::default_account_structure_hook_args();
+        $structure_hook_args['account_data'] = $account_arr;
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
+        if( ($plugin_obj = $this->get_plugin_instance())
+         && ($account_structure = $plugin_obj->get_account_structure( $structure_hook_args ))
+         && !empty( $account_structure['account_structure'] ) )
+            $account_arr = $account_structure['account_structure'];
+
+        if( !empty( $account_arr[self::ROLES_USER_KEY] ) )
+        {
+            $account_arr['roles'] = $account_arr[self::ROLES_USER_KEY];
+            unset( $account_arr[self::ROLES_USER_KEY] );
+        }
+        if( !empty( $account_arr[self::ROLE_UNITS_USER_KEY] ) )
+        {
+            $account_arr['roles_units'] = $account_arr[self::ROLE_UNITS_USER_KEY];
+            unset( $account_arr[self::ROLE_UNITS_USER_KEY] );
+        }
+
+        return $account_arr;
     }
 
     /**

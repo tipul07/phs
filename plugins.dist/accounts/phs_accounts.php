@@ -31,112 +31,117 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        return array(
-            'email_mandatory' => array(
+        return [
+            'email_mandatory' => [
                 'display_name' => $this->_pt( 'Email mandatory at registration' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'replace_nick_with_email' => array(
+            ],
+            'replace_nick_with_email' => [
                 'display_name' => $this->_pt( 'Replace nick with email' ),
                 'display_hint' => $this->_pt( 'If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'no_nickname_only_email' => array(
+            ],
+            'no_nickname_only_email' => [
                 'display_name' => $this->_pt( 'Use only email, no nickname' ),
                 'display_hint' => $this->_pt( 'Hide nickname complately and use only email as nickname.' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => false,
-            ),
-            'account_requires_activation' => array(
+            ],
+            'account_requires_activation' => [
                 'display_name' => $this->_pt( 'Account requires activation' ),
                 'display_hint' => $this->_pt( 'Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'generate_pass_if_not_present' => array(
+            ],
+            'generate_pass_if_not_present' => [
                 'display_name' => $this->_pt( 'Generate password if not present' ),
                 'display_hint' => $this->_pt( 'If, by any reasons, password is not present when creating an account autogenerate a password or return error?' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'email_unique' => array(
+            ],
+            'email_unique' => [
                 'display_name' => $this->_pt( 'Emails should be unique' ),
                 'display_hint' => $this->_pt( 'Should account creation fail if same email already exists in database?' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'min_password_length' => array(
+            ],
+            'min_password_length' => [
                 'display_name' => $this->_pt( 'Minimum password length' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 8,
-            ),
+            ],
             // Make sure password generator method in accounts model follows this rule... (escape char is /)
             // password regular expression (leave empty if not wanted)
-            'password_regexp' => array(
+            'password_regexp' => [
                 'display_name' => $this->_pt( 'Password reg-exp' ),
                 'display_hint' => $this->_pt( 'If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.' ),
                 'type' => PHS_Params::T_ASIS,
                 'default' => '',
-            ),
-            'password_regexp_explanation' => array(
+            ],
+            'password_regexp_explanation' => [
                 'display_name' => $this->_pt( 'Password explanation' ),
                 'display_hint' => $this->_pt( 'Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.' ),
                 'type' => PHS_Params::T_ASIS,
                 'default' => '',
-            ),
-            'pass_salt_length' => array(
+            ],
+            'pass_salt_length' => [
                 'display_name' => $this->_pt( 'Password salt length' ),
                 'display_hint' => $this->_pt( 'Each account uses it\'s own password salt. (Google salt for more details)' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 8,
-            ),
-            'expire_passwords_days' => array(
+            ],
+            'expire_passwords_days' => [
                 'display_name' => $this->_pt( 'Expire passwords days' ),
                 'display_hint' => $this->_pt( 'After how many days should passwords expire (0 - no expiration)' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 0,
-            ),
-            'passwords_history_count' => array(
+            ],
+            'passwords_history_count' => [
                 'display_name' => $this->_pt( 'Old passwords history' ),
                 'display_hint' => $this->_pt( 'When changing password, keep a history of older passwords and don\'t allow using an old one as the new password. (0 - no history)' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 0,
-            ),
-            'block_after_expiration' => array(
+            ],
+            'block_after_expiration' => [
                 'display_name' => $this->_pt( 'Block expired accounts time' ),
                 'display_hint' => $this->_pt( 'After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don\'t block, only alerts)' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 0,
-            ),
-            'announce_pass_change' => array(
+            ],
+            'announce_pass_change' => [
                 'display_name' => $this->_pt( 'Announce password change' ),
                 'display_hint' => $this->_pt( 'Should system send an email to account\'s email address when password changes?' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'session_expire_minutes_remember' => array(
+            ],
+            'session_expire_minutes_remember' => [
                 'display_name' => $this->_pt( 'Password lifetime (long) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 2880, // 2 days
-            ),
-            'session_expire_minutes_normal' => array(
+            ],
+            'session_expire_minutes_normal' => [
                 'display_name' => $this->_pt( 'Password lifetime (short) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 60, // 1 hour
-            ),
-        );
+            ],
+        ];
     }
 
+    /**
+     * @param null|string $key
+     *
+     * @return string
+     */
     public static function session_key( $key = null )
     {
         if( $key === null )
             return self::$_session_key;
 
-        if( ! is_string( $key ) )
+        if( !is_string( $key ) )
             return false;
 
         self::$_session_key = $key;
@@ -144,7 +149,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return self::$_session_key;
     }
 
-    // This method should not set any errors as it runs independent of user actions...
+    /**
+     * This method should not set any errors as it runs independent of user actions...
+     * @return bool
+     */
     public function resolve_idler_sessions()
     {
         // preserve previous errors...
@@ -158,8 +166,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         // If current request doesn't have a session ID which means it's a logged in user, there's no use in cleaning old sessions...
-        if( !($online_db_data = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model ) ))
-         or seconds_passed( $online_db_data['idle'] ) < self::IDLERS_GC_SECONDS )
+        if( !($online_db_data = $this->_get_current_session_data( [ 'accounts_model' => $accounts_model ] ))
+         || seconds_passed( $online_db_data['idle'] ) < self::IDLERS_GC_SECONDS )
         {
             if( !empty( $online_db_data ) )
                 $accounts_model->update_current_session( $online_db_data );
@@ -172,7 +180,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         // if session expired refresh cached session data...
         if( parse_db_date( $online_db_data['expire_date'] ) < time()
-        and !($online_db_data = $this->_get_current_session_data( array( 'force' => true, 'accounts_model' => $accounts_model ) )) )
+         && !($online_db_data = $this->_get_current_session_data( [ 'force' => true, 'accounts_model' => $accounts_model ] )) )
         {
             $this->restore_errors( $prev_errors );
             return true;
@@ -185,15 +193,18 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function do_logout_subaccount()
     {
         $this->reset_error();
 
         if( !($db_details = $this->get_current_user_db_details())
-         or empty( $db_details['session_db_data'] )
-         or !is_array( $db_details['session_db_data'] )
-         or empty( $db_details['session_db_data']['id'] )
-         or empty( $db_details['session_db_data']['auid'] ) )
+         || empty( $db_details['session_db_data'] )
+         || !is_array( $db_details['session_db_data'] )
+         || empty( $db_details['session_db_data']['id'] )
+         || empty( $db_details['session_db_data']['auid'] ) )
             return true;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -218,13 +229,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function do_logout()
     {
         $this->reset_error();
 
         if( !($db_details = $this->get_current_user_db_details())
-         or empty( $db_details['session_db_data'] ) or !is_array( $db_details['session_db_data'] )
-         or empty( $db_details['session_db_data']['id'] ) or empty( $db_details['session_db_data']['uid'] ) )
+         || empty( $db_details['session_db_data'] ) || !is_array( $db_details['session_db_data'] )
+         || empty( $db_details['session_db_data']['id'] ) || empty( $db_details['session_db_data']['uid'] ) )
             return true;
 
         if( !empty( $db_details['session_db_data']['auid'] ) )
@@ -258,40 +272,44 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param false|array $params
+     *
+     * @return array|bool
+     */
     public function do_login( $account_data, $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['expire_mins'] ) )
             $params['expire_mins'] = 0;
         else
-            $params['expire_mins'] = intval( $params['expire_mins'] );
+            $params['expire_mins'] = (int)$params['expire_mins'];
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( ! ($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
+        if( !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() )) )
         {
             $this->set_error( self::ERR_LOGIN, $this->_pt( 'Couldn\'t load accounts model.' ) );
-
             return false;
         }
 
         if( empty( $account_data )
-         or !($account_arr = $accounts_model->data_to_array( $account_data ))
-         or ! $accounts_model->is_active( $account_arr ) )
+         || !($account_arr = $accounts_model->data_to_array( $account_data ))
+         || ! $accounts_model->is_active( $account_arr ) )
         {
             $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown or inactive account.' ) );
-
             return false;
         }
 
-        $login_params = array();
+        $login_params = [];
         $login_params['expire_mins'] = $params['expire_mins'];
 
         if( !($onuser_arr = $accounts_model->login( $account_arr, $login_params ))
-         or empty( $onuser_arr['wid'] ) )
+         || empty( $onuser_arr['wid'] ) )
         {
             if( $accounts_model->has_error() )
                 $this->copy_error( $accounts_model, self::ERR_LOGIN );
@@ -306,7 +324,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $accounts_model->session_logout( $onuser_arr );
 
             $this->set_error( self::ERR_LOGIN, $this->_pt( 'Login failed. Please try again.' ) );
-
             return false;
         }
 
@@ -315,6 +332,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $onuser_arr;
     }
 
+    /**
+     * @param int|array $account_data
+     * @param false|string $reason
+     * @param false|array $params
+     *
+     * @return array|false
+     */
     public function get_confirmation_params( $account_data, $reason = false, $params = false )
     {
         $this->reset_error();
@@ -336,14 +360,14 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if( empty( $account_data )
-         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+         || !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Unknown account.' ) );
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['link_expire_seconds'] ) )
             $params['link_expire_seconds'] = 0; // 0 means it doesn't expire
@@ -355,22 +379,27 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $pub_key = str_replace( '.', '', microtime( true ) );
         $confirmation_param = PHS_Crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
 
-        return array(
+        return [
             'expiration_time' => $link_expire_seconds,
             'confirmation_param' => $confirmation_param,
             'pub_key' => $pub_key,
             'account_data' => $account_arr,
-        );
+        ];
     }
 
+    /**
+     * @param string $param_str
+     *
+     * @return array|false
+     */
     public function decode_confirmation_param( $param_str )
     {
         $this->reset_error();
 
         if( empty( $param_str )
-         or @strstr( $param_str, '::' ) === false
-         or !($parts_arr = explode( '::', $param_str, 2 ))
-         or empty( $parts_arr[0] ) or empty( $parts_arr[1] ) )
+         || @strpos( $param_str, '::' ) === false
+         || !($parts_arr = explode( '::', $param_str, 2 ))
+         || empty( $parts_arr[0] ) || empty( $parts_arr[1] ) )
         {
             $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Confirmation parameter is invalid or expired.' ) );
             return false;
@@ -381,45 +410,60 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($decrypted_data = PHS_Crypt::quick_decode( $crypted_data ))
-         or !($decrypted_parts = explode( '::', $decrypted_data, 4 ))
-         or empty( $decrypted_parts[0] ) or empty( $decrypted_parts[1] ) or !isset( $decrypted_parts[2] ) or empty( $decrypted_parts[3] )
-         or !($account_id = intval( $decrypted_parts[0] ))
-         or !$this->valid_confirmation_reason( $decrypted_parts[1] )
-         or (($link_expire_seconds = intval( $decrypted_parts[2] )) and $link_expire_seconds < time())
-         or !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
-         or !($account_arr = $accounts_model->get_details( $account_id ))
-         or $decrypted_parts[3] != md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) )
+         || !($decrypted_parts = explode( '::', $decrypted_data, 4 ))
+         || empty( $decrypted_parts[0] ) || empty( $decrypted_parts[1] ) || !isset( $decrypted_parts[2] ) || empty( $decrypted_parts[3] )
+         || !($account_id = (int)$decrypted_parts[0])
+         || !$this->valid_confirmation_reason( $decrypted_parts[1] )
+         || (($link_expire_seconds = (int)$decrypted_parts[2]) && $link_expire_seconds < time())
+         || !($accounts_model = PHS::load_model( 'accounts', $this->instance_plugin_name() ))
+         || !($account_arr = $accounts_model->get_details( $account_id ))
+         || $decrypted_parts[3] !== md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) )
         {
             $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Confirmation parameter is invalid or expired.' ) );
             return false;
         }
 
-        return array(
+        return [
             'reason' => $decrypted_parts[1],
             'pub_key' => $pub_key,
             'account_data' => $account_arr,
-        );
+        ];
     }
 
+    /**
+     * @return array
+     */
     public function confirmation_reasons()
     {
         // key - value pair of reson name and success message...
-        return array(
+        return [
             self::CONF_REASON_ACTIVATION => $this->_pt( 'Your account is now active.' ),
             self::CONF_REASON_EMAIL => $this->_pt( 'Your email address is now confirmed.' ),
             self::CONF_REASON_FORGOT => $this->_pt( 'You can now change your password.' ),
-        );
+        ];
     }
 
+    /**
+     * @param string $reason
+     *
+     * @return false|string
+     */
     public function valid_confirmation_reason( $reason )
     {
         if( empty( $reason )
-         or !($reasons_arr = $this->confirmation_reasons()) or empty( $reasons_arr[$reason] ) )
+         || !($reasons_arr = $this->confirmation_reasons()) || empty( $reasons_arr[$reason] ) )
             return false;
 
         return $reasons_arr[$reason];
     }
 
+    /**
+     * @param int|array $account_data
+     * @param false|string $reason
+     * @param false|array $params
+     *
+     * @return false|string
+     */
     public function get_confirmation_link( $account_data, $reason = false, $params = false )
     {
         $this->reset_error();
@@ -434,7 +478,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if( !($confirmation_parts = $this->get_confirmation_params( $account_data, $reason, $params ))
-         or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
+         || empty( $confirmation_parts['confirmation_param'] ) || empty( $confirmation_parts['pub_key'] ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t obtain confirmation parameters.' ) );
@@ -442,9 +486,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        return PHS::url( array( 'p' => 'accounts', 'a' => 'activation' ), array( self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ) );
+        return PHS::url( [ 'p' => 'accounts', 'a' => 'activation' ], [ self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ] );
     }
 
+    /**
+     * @param int|array $account_data
+     * @param string $reason
+     *
+     * @return array|false
+     */
     public function do_confirmation_reason( $account_data, $reason )
     {
         $this->reset_error();
@@ -463,7 +513,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if( empty( $account_data )
-         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+         || !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Unknown account.' ) );
             return false;
@@ -492,13 +542,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             break;
 
             case self::CONF_REASON_EMAIL:
-                if( empty( $account_arr['email_verified'] ) )
+                if( empty( $account_arr['email_verified'] )
+                 && !($account_arr = $accounts_model->email_verified( $account_arr )) )
                 {
-                    if( !($account_arr = $accounts_model->email_verified( $account_arr )) )
-                    {
-                        $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Failed confirming email address. Please try again.' ) );
-                        return false;
-                    }
+                    $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Failed confirming email address. Please try again.' ) );
+                    return false;
                 }
             break;
 
@@ -509,8 +557,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     return false;
                 }
 
-                if( !($confirmation_parts = $this->get_confirmation_params( $account_arr, self::CONF_REASON_FORGOT, array( 'link_expire_seconds' => 3600 ) ))
-                 or empty( $confirmation_parts['confirmation_param'] ) or empty( $confirmation_parts['pub_key'] ) )
+                if( !($confirmation_parts = $this->get_confirmation_params( $account_arr, self::CONF_REASON_FORGOT, [ 'link_expire_seconds' => 3600 ] ))
+                 || empty( $confirmation_parts['confirmation_param'] ) || empty( $confirmation_parts['pub_key'] ) )
                 {
                     if( !$this->has_error() )
                         $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Couldn\'t obtain change password page parameters. Please try again.' ) );
@@ -518,28 +566,33 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     return false;
                 }
 
-                $redirect_url = PHS::url( array( 'p' => $this->instance_plugin_name(), 'a' => 'change_password' ), array( self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ) );
+                $redirect_url = PHS::url( [ 'p' => $this->instance_plugin_name(), 'a' => 'change_password' ], [ self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param'] ] );
             break;
         }
 
-        return array(
+        return [
             'redirect_url' => $redirect_url,
             'account_data' => $account_arr,
-        );
+        ];
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return array|false
+     */
     private function _get_current_session_data( $params = false )
     {
         static $online_db_details = false;
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['force'] ) )
             $params['force'] = false;
 
         if( !empty( $online_db_details )
-        and empty( $params['force'] ) )
+         && empty( $params['force'] ) )
             return $online_db_details;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -549,21 +602,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $accounts_model = $params['accounts_model'];
 
         if( empty( $accounts_model )
-         or !($skey_value = PHS_Session::_g( self::session_key() ))
-         or !($online_db_details = $accounts_model->get_details_fields(
-                array(
-                    'wid' => $skey_value,
-                ),
-                array(
-                    'table_name' => 'online',
-                )
-            ))
-        )
+         || !($skey_value = PHS_Session::_g( self::session_key() ))
+         || !($online_db_details = $accounts_model->get_details_fields( [ 'wid' => $skey_value, ], [ 'table_name' => 'online', ] )) )
             return false;
 
         return $online_db_details;
     }
 
+    /**
+     * @return array|false
+     */
     public function get_empty_account_structure()
     {
         static $empty_structure = false;
@@ -577,8 +625,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $empty_structure = $accounts_model->get_empty_data();
 
-        $roles_slugs_arr = array();
-        $role_units_slugs_arr = array();
+        $roles_slugs_arr = [];
+        $role_units_slugs_arr = [];
         if( ($guest_roles = $this->get_guest_roles_and_role_units()) )
         {
             $roles_slugs_arr = $guest_roles['roles_slugs'];
@@ -591,12 +639,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $empty_structure;
     }
 
+    /**
+     * @param false|array $hook_args
+     *
+     * @return array
+     */
     public function get_account_structure( $hook_args = false )
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_structure_hook_args() );
 
         if( empty( $hook_args['account_data'] )
-         or (is_array( $hook_args['account_data'] ) and empty( $hook_args['account_data']['id'] )) )
+         || (is_array( $hook_args['account_data'] ) && empty( $hook_args['account_data']['id'] )) )
         {
             $hook_args['account_structure'] = $this->get_empty_account_structure();
 
@@ -608,7 +661,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $hook_args;
 
         if( !($hook_args['account_structure'] = $accounts_model->data_to_array( $hook_args['account_data'] ))
-         or !is_array( $hook_args['account_structure'] ) )
+         || !is_array( $hook_args['account_structure'] ) )
             $hook_args['account_structure'] = false;
 
         else
@@ -616,7 +669,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( !isset( $hook_args['account_structure'][$accounts_model::ROLES_USER_KEY] ) )
             {
                 if( !($slugs_arr = PHS_Roles::get_user_roles_slugs( $hook_args['account_structure'] )) )
-                    $slugs_arr = array();
+                    $slugs_arr = [];
 
                 $hook_args['account_structure'][$accounts_model::ROLES_USER_KEY] = $slugs_arr;
             }
@@ -624,7 +677,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( !isset( $hook_args['account_structure'][$accounts_model::ROLE_UNITS_USER_KEY] ) )
             {
                 if( !($units_slugs_arr = PHS_Roles::get_user_role_units_slugs( $hook_args['account_structure'] )) )
-                    $units_slugs_arr = array();
+                    $units_slugs_arr = [];
 
                 $hook_args['account_structure'][$accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
             }
@@ -634,6 +687,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @param false|array $hook_args
+     *
+     * @return array|bool
+     */
     public function get_current_user_db_details( $hook_args = false )
     {
         static $check_result = false;
@@ -641,7 +699,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_user_db_details_hook_args() );
 
         if( empty( $hook_args['force_check'] )
-        and !empty( $check_result ) )
+         && !empty( $check_result ) )
             return $check_result;
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -650,13 +708,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         // Check if we are in API scope and we have a valid API instance...
         if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
-        and ($api_obj = PHS_Api::global_api_instance()) )
+         && ($api_obj = PHS_Api::global_api_instance()) )
         {
-            $online_db_details = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+            $online_db_details = $accounts_model->get_empty_data( [ 'table_name' => 'online' ] );
 
             if( !($account_id = $api_obj->api_user_account_id())
-             or !($user_db_details = $accounts_model->get_details( $account_id ))
-             or !$accounts_model->is_active( $user_db_details ) )
+             || !($user_db_details = $accounts_model->get_details( $account_id ))
+             || !$accounts_model->is_active( $user_db_details ) )
             {
                 $hook_args['session_db_data'] = $online_db_details;
                 $hook_args['user_db_data'] = $this->get_empty_account_structure();
@@ -666,25 +724,25 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         } else
         {
             if( !($skey_value = PHS_Session::_g( self::session_key() ))
-             or !($online_db_details = $this->_get_current_session_data( array( 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ) )) )
+             || !($online_db_details = $this->_get_current_session_data( [ 'accounts_model' => $accounts_model, 'force' => $hook_args['force_check'] ] )) )
             {
-                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['session_db_data'] = $accounts_model->get_empty_data( [ 'table_name' => 'online' ] );
                 $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
                 return $hook_args;
             }
 
             if( empty( $online_db_details['uid'] )
-             or !($user_db_details = $accounts_model->get_details( $online_db_details['uid'] ))
-             or !$accounts_model->is_active( $user_db_details )
+             || !($user_db_details = $accounts_model->get_details( $online_db_details['uid'] ))
+             || !$accounts_model->is_active( $user_db_details )
             )
             {
-                $accounts_model->hard_delete( $online_db_details, array( 'table_name' => 'online' ) );
+                $accounts_model->hard_delete( $online_db_details, [ 'table_name' => 'online' ] );
 
                 // session expired?
                 $hook_args['session_expired_secs'] = seconds_passed( $online_db_details['idle'] );
 
-                $hook_args['session_db_data'] = $accounts_model->get_empty_data( array( 'table_name' => 'online' ) );
+                $hook_args['session_db_data'] = $accounts_model->get_empty_data( [ 'table_name' => 'online' ] );
                 $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
                 return $hook_args;
@@ -692,9 +750,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if( !($units_slugs_arr = PHS_Roles::get_user_role_units_slugs( $user_db_details )) )
-            $units_slugs_arr = array();
+            $units_slugs_arr = [];
         if( !($slugs_arr = PHS_Roles::get_user_roles_slugs( $user_db_details )) )
-            $slugs_arr = array();
+            $slugs_arr = [];
 
         $user_db_details[$accounts_model::ROLES_USER_KEY] = $slugs_arr;
         $user_db_details[$accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
@@ -712,6 +770,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $hook_args;
     }
 
+    /**
+     * @return array
+     */
     public function get_guest_roles_and_role_units()
     {
         static $resulting_roles = false;
@@ -719,25 +780,24 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if( !empty( $resulting_roles ) )
             return $resulting_roles;
 
-        $guest_roles = array( PHS_Roles::ROLE_GUEST );
+        $guest_roles = [ PHS_Roles::ROLE_GUEST ];
 
-        $hook_params = array();
+        $hook_params = [];
         $hook_params['guest_roles'] = $guest_roles;
 
         if( ($hook_params = PHS_Hooks::trigger_guest_roles( $hook_params ))
-        and !empty( $hook_params['guest_roles'] ) and is_array( $hook_params['guest_roles'] ) )
+         && !empty( $hook_params['guest_roles'] ) && is_array( $hook_params['guest_roles'] ) )
             $guest_roles = self::array_merge_unique_values( $guest_roles, $hook_params['guest_roles'] );
 
         if( empty( $guest_roles )
-         or !($units_slugs_arr = PHS_Roles::get_role_units_slugs_from_roles_slugs( $guest_roles )) )
-            $units_slugs_arr = array();
+         || !($units_slugs_arr = PHS_Roles::get_role_units_slugs_from_roles_slugs( $guest_roles )) )
+            $units_slugs_arr = [];
 
-        $resulting_roles = array(
+        $resulting_roles = [
             'roles_slugs' => $guest_roles,
             'role_units_slugs' => $units_slugs_arr,
-        );
+        ];
 
         return $resulting_roles;
     }
-
 }

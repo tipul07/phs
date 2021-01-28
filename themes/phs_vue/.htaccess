@@ -1,0 +1,18 @@
+# PHP files will not be called directly...
+
+<FilesMatch ".*\.vue\.php$">
+    Require all granted
+</FilesMatch>
+
+<FilesMatch ".*\.vue$">
+    Require all granted
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-l
+    RewriteCond %{THE_REQUEST} (.*)\.vue
+    RewriteRule ^(.*)$ $1.php [L,NC,NE]
+
+</IfModule>

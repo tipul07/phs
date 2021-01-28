@@ -13,7 +13,7 @@ class PHS_Action_Logout extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_LOGOUT );
+        return [ self::ACT_ROLE_LOGOUT ];
     }
 
     /**
@@ -23,7 +23,7 @@ class PHS_Action_Logout extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB ];
     }
 
     /**
@@ -31,13 +31,11 @@ class PHS_Action_Logout extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
         $hook_args = PHS_Hooks::default_action_execute_hook_args();
         $hook_args['action_obj'] = $this;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_LOGOUT_ACTION_START, $hook_args ))
-            and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+         && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
         {
             $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
 

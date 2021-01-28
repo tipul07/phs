@@ -1721,8 +1721,6 @@ class PHS_Utils extends PHS_Language
             if( !$params['case_sensitive'] )
                 $buf = strtolower( $buf );
 
-            var_dump( $buf );
-
             $count += substr_count( $buf, $str );
         }
 

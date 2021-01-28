@@ -325,6 +325,11 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
+    /**
+     * @param false|array $credentials_arr
+     *
+     * @return array|bool
+     */
     public function api_authentication( $credentials_arr = false )
     {
         $this->reset_error();

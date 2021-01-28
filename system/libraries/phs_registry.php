@@ -387,6 +387,30 @@ class PHS_Registry extends PHS_Language
     }
 
     /**
+     * @param array $arr Array to be validated for keys
+     * @param array $definition_arr Array of key definitions. Keys not found in arr will not be returned in resulting array
+     *
+     * @return array If default array is not an array returns false else validated array is returned
+     */
+    public static function validate_array_keys_from_definition( $arr, $definition_arr )
+    {
+        if( empty( $definition_arr ) || !is_array( $definition_arr )
+         || empty( $arr ) or !is_array( $arr ))
+            return [];
+
+        $new_arr = [];
+        foreach( $arr as $key => $val )
+        {
+            if( !array_key_exists( $key, $definition_arr ) )
+                continue;
+
+            $new_arr[$key] = $val;
+        }
+
+        return $new_arr;
+    }
+
+    /**
      * @param array $arr Array to be validated
      * @param array $default_arr Array keys and default values which should be present in array to be validated
      *
