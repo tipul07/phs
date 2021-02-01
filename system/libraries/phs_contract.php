@@ -828,7 +828,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             // Tells if this node definition repeats (used for lists)
             // If this is true, key from source will be used and structure that repeats is defined in nodes
             'recurring_node' => false,
-            // If this is a recurring node it moght me an array of scalar values, if so, put this to true
+            // If this is a recurring node, it might be an array of scalar values. If so, put this to true
             'recurring_scalar_node' => false,
             // Maximumum number of items to read from source array
             // Capped to 10000 to be sure we don't run out of memory. If you need more than 10000 of records,
@@ -908,6 +908,9 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach( $definition_arr as $int_key => $node_arr )
         {
+            if( empty( $node_arr ) || !is_array( $node_arr ) )
+                continue;
+
             if( !isset( $node_arr['inside_key'] )
              || (string)$node_arr['inside_key'] === ''
              || !is_scalar( $node_arr['inside_key'] ) )
