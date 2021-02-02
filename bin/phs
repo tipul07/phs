@@ -4,22 +4,22 @@
     if( !@file_exists( __DIR__.'/apps/bootstrap.php' ) )
     {
         echo 'Couldn\'t find bootstrap.php in apps directory.'."\n";
-        exit;
+        exit( 254 );
     }
 
     if( !@file_exists( __DIR__.'/apps/PHSMaintenance.php' ) )
     {
         echo 'Couldn\'t find PHSMaintenance app in apps directory.'."\n";
-        exit;
+        exit( 254 );
     }
 
     if( empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] ) )
-        $_SERVER['argv'] = array();
+        $_SERVER['argv'] = [];
 
     if( in_array( 'phs_setup', $_SERVER['argv'], true ) )
     {
         define( 'PHS_INSTALLING_FLOW', true );
-        $_SERVER['argv'] = array( (!empty( $_SERVER['argv'][0] )?$_SERVER['argv'][0]:'phs'), 'update' );
+        $_SERVER['argv'] = [ (!empty( $_SERVER['argv'][0] )? $_SERVER['argv'][0]:'phs'), 'update' ];
     }
 
     include_once( __DIR__.'/apps/bootstrap.php' );
@@ -31,7 +31,7 @@
     if( !PHS_Cli::running_in_cli() )
     {
         echo PHS_Cli::_t( 'This script must be run in a CLI environment.' )."\n";
-        exit;
+        exit( 254 );
     }
 
     if( !($phs_app = PHSMaintenance::get_instance()) )
@@ -44,7 +44,7 @@
 
         echo $error_msg."\n";
 
-        exit;
+        exit( 254 );
     }
 
     $phs_app->_echo( $phs_app::_t( 'Script executed using PHP version: %s', $phs_app->cli_color( trim( PHP_VERSION ), 'red' ) ) );
