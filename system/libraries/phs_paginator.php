@@ -503,13 +503,18 @@ class PHS_Paginator extends PHS_Registry
         return $action_args;
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return string
+     */
     public function get_full_url( $params = false )
     {
         if( empty( $this->_originals ) )
             $this->extract_filters_scope();
 
         if( empty( $params ) || !is_array( $params ) )
-            $params = array();
+            $params = [];
 
         if( !isset( $params['include_pagination_params'] ) )
             $params['include_pagination_params'] = true;
@@ -519,7 +524,7 @@ class PHS_Paginator extends PHS_Registry
             $params['include_filters'] = true;
 
         if( empty( $params['extra_params'] ) || !is_array( $params['extra_params'] ) )
-            $params['extra_params'] = array();
+            $params['extra_params'] = [];
 
         if( empty( $params['action'] ) )
             $params['action'] = false;
@@ -542,7 +547,7 @@ class PHS_Paginator extends PHS_Registry
                 unset( $params['sort_by'] );
         }
 
-        $query_arr = array();
+        $query_arr = [];
         if( !empty( $params['include_filters'] )
          && !empty( $params['force_scope'] ) )
             $query_arr = array_merge( $query_arr, $params['force_scope'] );
@@ -551,7 +556,7 @@ class PHS_Paginator extends PHS_Registry
          && ($flow_params = $this->flow_params())
          && ($pagination_params = $this->pagination_params()) )
         {
-            $add_args = array();
+            $add_args = [];
             $add_args[$flow_params['form_prefix'].$pagination_params['page_var_name']] = $pagination_params['page'];
             $add_args[$flow_params['form_prefix'].$pagination_params['per_page_var_name']] = $pagination_params['records_per_page'];
             $add_args[$flow_params['form_prefix'].'sort_by'] = (isset( $params['sort_by'] )?$params['sort_by']:$pagination_params['sort_by']);
@@ -664,15 +669,15 @@ class PHS_Paginator extends PHS_Registry
         else
             $field_name = $this->get_column_name( $column_arr, $for_scope );
 
-        return array(
+        return [
             'key' => $field_name,
             'value' => $value,
-        );
+        ];
     }
 
     public function default_api_export_fields()
     {
-        return array(
+        return [
             // if left empty, resulting field name will be used
             'field_name' => '',
             // if left empty, resulting field name will be used
@@ -680,12 +685,12 @@ class PHS_Paginator extends PHS_Registry
             // to what should be the value formatted
             'type' => PHS_Params::T_ASIS,
             'type_extra' => false,
-        );
+        ];
     }
 
     public function default_column_fields()
     {
-        return array(
+        return [
             'column_title' => '',
             // Extra text to add after column_title (outsize sort link)
             'column_title_extra' => '',
@@ -702,11 +707,11 @@ class PHS_Paginator extends PHS_Registry
             // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
             // 'checkbox_name': string used to form input name, if empty 'key' will be used as 'checkbox_name' ({form_prefix}{checkbox_name}_chck)
             // 'type': is a PHS_Params::T_* which will be used to validate input value
-            'checkbox_record_index_key' => array(
+            'checkbox_record_index_key' => [
                 'key' => '',
                 'checkbox_name' => '',
                 'type' => PHS_Params::T_ASIS,
-            ),
+            ],
             'sortable' => true,
             // 0 or 1 if default sorting 0 - ascending or 1 - descending
             'default_sort' => false,
@@ -736,7 +741,7 @@ class PHS_Paginator extends PHS_Registry
             'extra_records_classes' => '',
             // Raw attributes to be added to record td
             'raw_records_attrs' => '',
-        );
+        ];
     }
 
     public function set_columns( $columns_arr )
@@ -749,7 +754,7 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        $new_columns = array();
+        $new_columns = [];
         $default_column_fields = $this->default_column_fields();
         foreach( $columns_arr as $column )
         {
@@ -774,7 +779,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_columns()
     {
-        $this->_columns_definition_arr = array();
+        $this->_columns_definition_arr = [];
     }
 
     public function get_columns()
@@ -895,7 +900,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_filters()
     {
-        $this->_filters = array();
+        $this->_filters = [];
     }
 
     public function get_filters()
@@ -957,7 +962,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_bulk_actions()
     {
-        $this->_bulk_actions = array();
+        $this->_bulk_actions = [];
     }
 
     public function get_bulk_actions()
@@ -1260,7 +1265,7 @@ class PHS_Paginator extends PHS_Registry
             {
                 // Allow empty buffer for listing (for scopes which don't need an output buffer)
                 if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
-                    $filters_buffer = array();
+                    $filters_buffer = [];
                 else
                     $filters_buffer = '';
             }
@@ -1377,7 +1382,7 @@ class PHS_Paginator extends PHS_Registry
 
         if( empty( $params['exporter_library'] ) )
         {
-            $exporter_library_params = array();
+            $exporter_library_params = [];
             $exporter_library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_Paginator_exporter_csv';
             $exporter_library_params['init_params'] = $params['exporter_library_params'];
 
@@ -1622,9 +1627,9 @@ class PHS_Paginator extends PHS_Registry
 
         if( !($columns_arr = $this->get_columns_for_scope( $scope ))
          || !is_array( $columns_arr ) )
-            return array();
+            return [];
 
-        $return_arr = array();
+        $return_arr = [];
         foreach( $columns_arr as $column_array_index => $column_arr )
         {
             if( empty( $column_arr ) || !is_array( $column_arr ) )
