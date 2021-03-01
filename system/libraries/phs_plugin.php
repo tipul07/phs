@@ -1425,7 +1425,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 else
                     $old_version = $model_details['version'];
 
-                if( !$model_obj->update( $old_version, $model_obj->get_model_version() ) )
+                $current_version = $model_obj->get_model_version();
+
+                if( version_compare( $old_version, $current_version, '==' )
+                 && !$model_obj->dynamic_table_structure() )
+                {
+                    PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$model_obj->instance_name().'] Same version...' );
+                    continue;
+                }
+
+                if( !$model_obj->update( $old_version, $current_version ) )
                 {
                     if( $model_obj->has_error() )
                         $this->copy_error( $model_obj, self::ERR_UPDATE );
