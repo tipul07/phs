@@ -1382,7 +1382,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Updating plugin...' );
+        PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Updating plugin from ['.$old_version.'] to ['.$new_version.']...' );
 
         if( !$this->custom_update( $old_version, $new_version ) )
         {
@@ -1421,20 +1421,20 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if( !($model_details = $model_obj->get_db_details( true ))
                  || empty( $model_details['version'] ) )
-                    $old_version = '0.0.0';
+                    $old_model_version = '0.0.0';
                 else
-                    $old_version = $model_details['version'];
+                    $old_model_version = $model_details['version'];
 
                 $current_version = $model_obj->get_model_version();
 
-                if( version_compare( $old_version, $current_version, '==' )
+                if( version_compare( $old_model_version, $current_version, '==' )
                  && !$model_obj->dynamic_table_structure() )
                 {
-                    PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$model_obj->instance_name().'] Same version...' );
+                    PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$model_obj->instance_name().'] Same version ['.$current_version.']...' );
                     continue;
                 }
 
-                if( !$model_obj->update( $old_version, $current_version ) )
+                if( !$model_obj->update( $old_model_version, $current_version ) )
                 {
                     if( $model_obj->has_error() )
                         $this->copy_error( $model_obj, self::ERR_UPDATE );
