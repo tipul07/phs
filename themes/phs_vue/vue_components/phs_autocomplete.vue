@@ -1,5 +1,5 @@
 <template>
-<v-select label="listing_title" :placeholder="placeholder"
+<v-select label="listing_title" :placeholder="placeholder" :disabled="disabled"
           v-model="localval"
           :options="options" @search="onsearch">
     <template v-slot:no-options="{ search, searching, loading }">
@@ -26,6 +26,10 @@ module.exports = {
         phsVueApp: {
             type: Object,
             default: () => null
+        },
+        disabled: {
+            type: Boolean,
+            default: false
         },
         placeholder: {
             type: String,

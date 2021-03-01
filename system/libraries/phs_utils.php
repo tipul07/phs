@@ -1267,6 +1267,9 @@ class PHS_Utils extends PHS_Language
         {
             foreach( $params['post_arr'] as $key => $val )
             {
+                if( !is_scalar( $val ) )
+                    continue;
+
                 // workaround for '@/local/file' fields...
                 if( substr( $val, 0, 1 ) === '@' )
                 {

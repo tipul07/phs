@@ -169,12 +169,9 @@ class PHS_Contract_Account extends PHS_Contract
                 'default' => [],
                 'recurring_key_type' => PHS_Params::T_INT,
                 'recurring_node' => true,
+                'recurring_scalar_node' => true,
                 'key_type' => self::FROM_INSIDE,
-                'nodes' => [
-                    'title' => 'Role slug',
-                    'type' => PHS_Params::T_NOHTML,
-                    'default' => '',
-                ],
+                'type' => PHS_Params::T_NOHTML,
             ],
             'roles_units' => [
                 'title' => 'List of role units assigned to user',
@@ -182,12 +179,9 @@ class PHS_Contract_Account extends PHS_Contract
                 'default' => [],
                 'recurring_key_type' => PHS_Params::T_INT,
                 'recurring_node' => true,
+                'recurring_scalar_node' => true,
                 'key_type' => self::FROM_INSIDE,
-                'nodes' => [
-                    'title' => 'Role slug',
-                    'type' => PHS_Params::T_NOHTML,
-                    'default' => '',
-                ],
+                'type' => PHS_Params::T_NOHTML,
             ],
         ];
     }

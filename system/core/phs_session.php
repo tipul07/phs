@@ -12,8 +12,8 @@ final class PHS_Session extends PHS_Registry
     const SESS_DIR_LENGTH = 2, SESS_DIR_MAX_SEGMENTS = 4;
 
     const SESS_DATA = 'sess_data',
-          SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path', SESS_SAMESITE = 'sess_samesite',
-          SESS_AUTOSTART = 'sess_autostart', SESS_STARTED = 'sess_started';
+          SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path',
+          SESS_SAMESITE = 'sess_samesite', SESS_AUTOSTART = 'sess_autostart', SESS_STARTED = 'sess_started';
 
     // Make sure session is not considered garbage by adding a parameter in session with a "random" number
     const SESS_TIME_PARAM_NAME = '__phs_t';
@@ -47,18 +47,24 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
+    /**
+     * Delete a session value
+     * @param null|string $key
+     *
+     * @return bool|null
+     */
     public static function _d( $key = null )
     {
         if( PHS::prevent_session()
-         or !self::start() )
+         || (!self::is_started() && !self::start()) )
             return null;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
-         or !is_array( $sess_arr ) )
-            $sess_arr = array();
+         || !is_array( $sess_arr ) )
+            $sess_arr = [];
 
         if( $key === null )
-            $sess_arr = array();
+            $sess_arr = [];
         elseif( isset( $sess_arr[$key] ) )
             unset( $sess_arr[$key] );
 
@@ -67,15 +73,21 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
+    /**
+     * Get a value from session for provided key or if key is null return all session data
+     * @param null|string $key
+     *
+     * @return array|mixed|null
+     */
     public static function _g( $key = null )
     {
         if( PHS::prevent_session()
-         or !self::start() )
+         || (!self::is_started() && !self::start()) )
             return null;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
-         or !is_array( $sess_arr ) )
-            $sess_arr = array();
+         || !is_array( $sess_arr ) )
+            $sess_arr = [];
 
         if( $key === null )
             return $sess_arr;
@@ -86,15 +98,23 @@ final class PHS_Session extends PHS_Registry
         return $sess_arr[$key];
     }
 
+    /**
+     * Set a key-value pair which will be saved in session
+     *
+     * @param string $key
+     * @param string $val
+     *
+     * @return bool
+     */
     public static function _s( $key, $val )
     {
         if( PHS::prevent_session()
-         or !self::start() )
+         || (!self::is_started() && !self::start()) )
             return false;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
-         or !is_array( $sess_arr ) )
-            $sess_arr = array();
+         || !is_array( $sess_arr ) )
+            $sess_arr = [];
 
         $sess_arr[$key] = $val;
 
@@ -110,26 +130,21 @@ final class PHS_Session extends PHS_Registry
      */
     public static function validate_cookie_params( $options_arr = false )
     {
-        if( empty( $options_arr ) or !is_array( $options_arr ) )
-            $options_arr = array();
+        if( empty( $options_arr ) || !is_array( $options_arr ) )
+            $options_arr = [];
 
         if( empty( $options_arr['expires'] ) )
             $options_arr['expires'] = 0;
-        if( empty( $options_arr['path'] ) or !is_string( $options_arr['path'] ) )
+        if( empty( $options_arr['path'] ) || !is_string( $options_arr['path'] ) )
             $options_arr['path'] = '/';
-        if( empty( $options_arr['domain'] ) or !is_string( $options_arr['domain'] ) )
+        if( empty( $options_arr['domain'] ) || !is_string( $options_arr['domain'] ) )
             $options_arr['domain'] = PHS_DOMAIN;
-        if( empty( $options_arr['secure'] ) )
-            $options_arr['secure'] = false;
-        else
-            $options_arr['secure'] = true;
-        if( empty( $options_arr['httponly'] ) )
-            $options_arr['httponly'] = false;
-        else
-            $options_arr['httponly'] = true;
 
-        if( empty( $options_arr['samesite'] ) or !is_array( $options_arr['samesite'] )
-         or !in_array( strtolower( $options_arr['samesite'] ), array( 'none', 'lax', 'strict' ) ) )
+        $options_arr['secure'] = (empty( $options_arr['secure'] ));
+        $options_arr['httponly'] = (empty( $options_arr['httponly'] ));
+
+        if( empty( $options_arr['samesite'] ) || !is_string( $options_arr['samesite'] )
+         || !in_array( strtolower( $options_arr['samesite'] ), [ 'none', 'lax', 'strict' ], true ) )
             $options_arr['samesite'] = 'Lax';
         else
             $options_arr['samesite'] = ucfirst( strtolower( $options_arr['samesite'] ) );
@@ -141,15 +156,19 @@ final class PHS_Session extends PHS_Registry
      * @param string $name
      * @param string|int $value
      * @param array|bool $options_arr
+     * @return bool
      */
     public static function raw_setcookie( $name, $value, $options_arr = false )
     {
         $options_arr = self::validate_cookie_params( $options_arr );
 
+        if( @headers_sent() )
+            return false;
+
         $header = 'Set-Cookie: ';
         $header .= rawurlencode( $name ) . '=' . rawurlencode( $value ) . ';';
         $header .= 'expires=' . \gmdate( 'D, d-M-Y H:i:s T', $options_arr['expires'] ) . ';';
-        $header .= 'Max-Age=' . max( 0, (int)($options_arr['expires'] - time())) . ';';
+        $header .= 'Max-Age=' . max( 0, ($options_arr['expires'] - time()) ) . ';';
         $header .= 'path=' . rawurlencode( $options_arr['path'] ). ';';
         $header .= 'domain=' . rawurlencode( $options_arr['domain'] ) . ';';
 
@@ -162,6 +181,8 @@ final class PHS_Session extends PHS_Registry
 
         @header( $header, false );
         $_COOKIE[$name] = $value;
+
+        return true;
     }
 
     /**
@@ -175,7 +196,7 @@ final class PHS_Session extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $name ) or !is_string( $name ) )
+        if( empty( $name ) || !is_string( $name ) )
         {
             self::st_set_error( self::ERR_COOKIE, self::_t( 'Please provide valid cookie name.' ) );
             return false;
@@ -193,60 +214,38 @@ final class PHS_Session extends PHS_Registry
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        $params = self::validate_cookie_params( $params );
 
         if( !isset( $params['alter_globals'] ) )
             $params['alter_globals'] = true;
         else
-            $params['alter_globals'] = (!empty( $params['alter_globals'] )?true:false);
+            $params['alter_globals'] = (!empty( $params['alter_globals'] ));
 
         if( !isset( $params['expire_secs'] ) )
             $params['expire_secs'] = 0;
         else
             $params['expire_secs'] = (int)$params['expire_secs'];
 
-        if( !isset( $params['path'] ) )
-            $params['path'] = '/';
-
-        if( !isset( $params['httponly'] ) )
-            $params['httponly'] = false;
-        else
-            $params['httponly'] = (!empty( $params['httponly'] )?true:false);
-
-        if( !isset( $params['secure'] ) )
-            $params['secure'] = false;
-        else
-            $params['secure'] = (!empty( $params['secure'] )?true:false);
-
-        if( !isset( $params['samesite'] )
-         or !in_array( strtolower( $params['samesite'] ), array( 'none', 'lax', 'strict' ), true ) )
-            $params['samesite'] = 'Lax';
-        else
-            $params['samesite'] = ucfirst( strtolower( $params['samesite'] ) );
-
         if( $params['expire_secs'] < 0 )
             return self::delete_cookie( $name, $params );
 
         $time_expire = time() + $params['expire_secs'];
 
-        $cookie_params = array(
+        $cookie_params = [
             'expires' => $time_expire,
             'path' => $params['path'],
             'domain' => PHS_DOMAIN,
             'secure' => $params['secure'],
             'httponly' => $params['httponly'],
             'samesite' => $params['samesite'],
-        );
+        ];
 
-        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        if( defined( 'PHP_VERSION' ) && version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
         {
             if( !@setcookie( $name, $val, $cookie_params ) )
                 return false;
         } elseif( !self::raw_setcookie( $name, $val, $cookie_params ) )
-        {
             return false;
-        }
 
         if( !empty( $params['alter_globals'] ) )
         {
@@ -267,7 +266,7 @@ final class PHS_Session extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $name ) or !is_string( $name ) )
+        if( empty( $name ) || !is_string( $name ) )
         {
             self::st_set_error( self::ERR_COOKIE, self::_t( 'Please provide valid cookie name and value.' ) );
             return false;
@@ -285,53 +284,30 @@ final class PHS_Session extends PHS_Registry
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        $params = self::validate_cookie_params( $params );
 
         if( !isset( $params['alter_globals'] ) )
             $params['alter_globals'] = true;
         else
-            $params['alter_globals'] = (!empty( $params['alter_globals'] )?true:false);
-
-        if( !isset( $params['path'] ) )
-            $params['path'] = '/';
-
-        if( !isset( $params['httponly'] ) )
-            $params['httponly'] = false;
-        else
-            $params['httponly'] = (!empty( $params['httponly'] )?true:false);
-
-        if( !isset( $params['secure'] ) )
-            $params['secure'] = false;
-        else
-            $params['secure'] = (!empty( $params['secure'] )?true:false);
-
-        if( !isset( $params['samesite'] )
-         or !in_array( strtolower( $params['samesite'] ), array( 'none', 'lax', 'strict' ), true ) )
-            $params['samesite'] = 'Lax';
-        else
-            $params['samesite'] = ucfirst( strtolower( $params['samesite'] ) );
+            $params['alter_globals'] = (!empty( $params['alter_globals'] ));
 
         $time_expire = time() - 90000;
 
-        $cookie_params = array(
+        $cookie_params = [
             'expires' => $time_expire,
             'path' => $params['path'],
             'domain' => PHS_DOMAIN,
             'secure' => $params['secure'],
             'httponly' => $params['httponly'],
             'samesite' => $params['samesite'],
-        );
+        ];
 
-        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        if( defined( 'PHP_VERSION' ) && version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
         {
             if( !@setcookie( $name, '', $cookie_params ) )
                 return false;
-        } else
-        {
-            if( !self::raw_setcookie( $name, '', $cookie_params ) )
-                return false;
-        }
+        } elseif( !self::raw_setcookie( $name, '', $cookie_params ) )
+            return false;
 
         if( !empty( $params['alter_globals'] ) )
         {
@@ -351,8 +327,8 @@ final class PHS_Session extends PHS_Registry
      */
     public static function get_cookie( $name )
     {
-        if( empty( $_COOKIE ) or !is_array( $_COOKIE )
-         or !isset( $_COOKIE[$name] ) )
+        if( empty( $_COOKIE ) || !is_array( $_COOKIE )
+         || !isset( $_COOKIE[$name] ) )
             return null;
 
         return $_COOKIE[$name];
@@ -369,19 +345,19 @@ final class PHS_Session extends PHS_Registry
         if( self::is_started() )
             return true;
 
-        if( !defined( 'PHS_DOMAIN' ) or !constant( 'PHS_DOMAIN' ) )
+        if( !defined( 'PHS_DOMAIN' ) || !constant( 'PHS_DOMAIN' ) )
         {
             self::st_set_error( self::ERR_DOMAIN, self::_t( 'Domain not set.' ) );
             return false;
         }
 
         @session_set_save_handler(
-            array( '\\phs\\PHS_Session', 'sf_open' ),
-            array( '\\phs\\PHS_Session', 'sf_close' ),
-            array( '\\phs\\PHS_Session', 'sf_read' ),
-            array( '\\phs\\PHS_Session', 'sf_write' ),
-            array( '\\phs\\PHS_Session', 'sf_destroy' ),
-            array( '\\phs\\PHS_Session', 'sf_gc' )
+            [ '\\phs\\PHS_Session', 'sf_open' ],
+            [ '\\phs\\PHS_Session', 'sf_close' ],
+            [ '\\phs\\PHS_Session', 'sf_read' ],
+            [ '\\phs\\PHS_Session', 'sf_write' ],
+            [ '\\phs\\PHS_Session', 'sf_destroy' ],
+            [ '\\phs\\PHS_Session', 'sf_gc' ]
         );
 
         @session_save_path( self::get_data( self::SESS_DIR ) );
@@ -389,39 +365,37 @@ final class PHS_Session extends PHS_Registry
         @session_name( self::get_data( self::SESS_NAME ) );
 
         // SameSite session cookie...
-        if( defined( 'PHP_VERSION' ) and version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
+        if( defined( 'PHP_VERSION' ) && version_compare( constant( 'PHP_VERSION' ), '7.3.0', '>=' ) )
         {
-            @session_set_cookie_params( array(
+            @session_set_cookie_params( [
                                         'lifetime' => self::get_data( self::SESS_COOKIE_LIFETIME ),
                                         'path' => self::get_data( self::SESS_COOKIE_PATH ),
                                         'domain' => PHS_DOMAIN,
-                                        'secure' => (PHS::is_secured_request()?true:false),
+                                        'secure' => PHS::is_secured_request(),
                                         'httponly' => true,
-                                        'samesite' => self::get_data( self::SESS_SAMESITE ) ) );
+                                        'samesite' => self::get_data( self::SESS_SAMESITE ) ] );
         } else
         {
             @session_set_cookie_params( self::get_data( self::SESS_COOKIE_LIFETIME ),
                                         self::get_data( self::SESS_COOKIE_PATH ),
                                         PHS_DOMAIN,
-                                        (PHS::is_secured_request()?true:false),
+                                        PHS::is_secured_request(),
                                         true );
         }
 
-        @register_shutdown_function( array( '\\phs\\PHS_Session', 'session_close' ) );
+        @register_shutdown_function( [ '\\phs\\PHS_Session', 'session_close' ] );
 
         @session_start();
 
         // If provided session ID is not safe, generate a new one
         if( !self::safe_session_id( @session_id() ) )
-        {
             @session_regenerate_id( true );
-        }
 
         self::set_data( self::SESS_STARTED, true );
 
         // safe...
-        if( empty( $_SESSION ) or !is_array( $_SESSION ) )
-            $_SESSION = array();
+        if( empty( $_SESSION ) || !is_array( $_SESSION ) )
+            $_SESSION = [];
 
         self::set_data( self::SESS_DATA, $_SESSION );
 
@@ -430,8 +404,8 @@ final class PHS_Session extends PHS_Registry
 
     public static function safe_session_id( $id )
     {
-        if( empty( $id ) or !is_string( $id )
-         or preg_match( '@[^a-zA-Z0-9_]@', $id ) )
+        if( empty( $id ) || !is_string( $id )
+         || !preg_match( '/^[-,a-zA-Z0-9]{1,128}$/', $id ) )
             return false;
 
         return $id;
@@ -444,11 +418,11 @@ final class PHS_Session extends PHS_Registry
      */
     public static function get_session_id_dir_as_array( $id )
     {
-        if( empty( $id ) or !is_string( $id )
-         or !self::safe_session_id( $id )
-         or !($return_arr = @str_split( $id, self::SESS_DIR_LENGTH ))
-         or !is_array( $return_arr ) )
-            return array();
+        if( empty( $id ) || !is_string( $id )
+         || !self::safe_session_id( $id )
+         || !($return_arr = @str_split( $id, self::SESS_DIR_LENGTH ))
+         || !is_array( $return_arr ) )
+            return [];
 
         if( count( $return_arr ) > self::SESS_DIR_MAX_SEGMENTS )
             $return_arr = @array_slice( $return_arr, 0, self::SESS_DIR_MAX_SEGMENTS );
@@ -463,8 +437,8 @@ final class PHS_Session extends PHS_Registry
      */
     public static function get_session_id_dir( $id )
     {
-        if( empty( $id ) or !is_string( $id )
-         or !self::safe_session_id( $id ) )
+        if( empty( $id ) || !is_string( $id )
+         || !self::safe_session_id( $id ) )
             return '';
 
         $sess_dir = '';
@@ -517,13 +491,13 @@ final class PHS_Session extends PHS_Registry
     public static function session_close( $params = false )
     {
         if( PHS::prevent_session()
-         or !self::is_started()
-         or !self::safe_session_id( @session_id() ) )
+         || !self::is_started()
+         || !self::safe_session_id( @session_id() ) )
             return true;
 
         if( !($sess_arr = self::get_data( self::SESS_DATA ))
-         or !is_array( $sess_arr ) )
-            $sess_arr = array();
+         || !is_array( $sess_arr ) )
+            $sess_arr = [];
 
         $_SESSION = $sess_arr;
 
@@ -542,7 +516,7 @@ final class PHS_Session extends PHS_Registry
             return true;
 
         if( !@is_dir( $path ) )
-            PHS_Utils::mkdir_tree( $path, array( 'dir_mode' => 0775 ) );
+            PHS_Utils::mkdir_tree( $path, [ 'dir_mode' => 0775 ] );
 
         return true;
     }
@@ -554,37 +528,35 @@ final class PHS_Session extends PHS_Registry
 
     public static function sf_read( $id )
     {
-        if( PHS::prevent_session() )
-            return true;
-
-        if( !self::safe_session_id( $id )
-         or !($sess_file = self::get_session_id_file_name( $id ))
-         or !@file_exists( $sess_file )
-         or !($ret_val = @file_get_contents( $sess_file )) )
-            $ret_val = '';
+        if( PHS::prevent_session()
+         || !($sess_file = self::get_session_id_file_name( $id ))
+         || !@file_exists( $sess_file )
+         || !($ret_val = @file_get_contents( $sess_file )) )
+            return '';
 
         return $ret_val;
     }
 
     public static function sf_write( $id, $data )
     {
-        if( !self::safe_session_id( $id )
-         or PHS::prevent_session() )
+        if( PHS::prevent_session()
+         || !self::safe_session_id( $id ) )
             return true;
 
         if( !($sess_file = self::get_session_id_file_name( $id )) )
             return false;
 
         if( !@file_exists( $sess_file )
-        and ($sess_dir = self::get_session_id_dir( $id ))
-        and !@is_dir( $sess_dir ) )
+        && ($sess_dir = self::get_session_id_dir( $id ))
+        && !@is_dir( $sess_dir ) )
         {
-            $sess_root = '';
             if( ($sess_root = self::get_data( self::SESS_DATA )) )
                 $sess_root = rtrim( $sess_root, '/\\' );
+            else
+                $sess_root = '';
 
             // maybe we should create directory...
-            if( !(PHS_Utils::mkdir_tree( $sess_dir, array( 'root' => $sess_root, 'dir_mode' => 0775 ) )) )
+            if( !(PHS_Utils::mkdir_tree( $sess_dir, [ 'root' => $sess_root, 'dir_mode' => 0775 ] )) )
                 return false;
         }
 
@@ -600,12 +572,11 @@ final class PHS_Session extends PHS_Registry
 
     public static function sf_destroy( $id )
     {
-        if( !self::safe_session_id( $id )
-         or PHS::prevent_session() )
+        if( PHS::prevent_session() )
             return true;
 
         if( ($sess_file = self::get_session_id_file_name( $id ))
-        and @file_exists( $sess_file ) )
+         && @file_exists( $sess_file ) )
             @unlink( $sess_file );
 
         return true;
@@ -613,11 +584,13 @@ final class PHS_Session extends PHS_Registry
 
     public static function sf_gc( $maxlifetime )
     {
-        if( PHS::prevent_session()
-         or self::sessions_gc( $maxlifetime ) )
+        if( PHS::prevent_session() )
             return true;
 
-        return false;
+        if( !self::sessions_gc( $maxlifetime ) )
+            return false;
+
+        return true;
     }
 
     /**
@@ -631,7 +604,7 @@ final class PHS_Session extends PHS_Registry
             $sess_dir = rtrim( $sess_dir, '/\\' );
 
         if( empty( $sess_dir )
-        and defined( 'PHS_SESSION_DIR' ) )
+         && defined( 'PHS_SESSION_DIR' ) )
             $sess_dir = constant( 'PHS_SESSION_DIR' );
 
         if( empty( $sess_dir ) )
@@ -640,7 +613,7 @@ final class PHS_Session extends PHS_Registry
         $sess_dir = rtrim( $sess_dir, '/\\' );
 
         if( $maxlifetime === false
-        and defined( 'PHS_SESSION_COOKIE_LIFETIME' ) )
+        && defined( 'PHS_SESSION_COOKIE_LIFETIME' ) )
             $maxlifetime = constant( 'PHS_SESSION_COOKIE_LIFETIME' );
 
         $maxlifetime = (int)$maxlifetime;
@@ -653,7 +626,7 @@ final class PHS_Session extends PHS_Registry
         for( $i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++ )
             $dir_pattern .= '/*';
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['sess_dir'] = $sess_dir;
         $return_arr['dir_pattern'] = $dir_pattern;
         $return_arr['maxlifetime'] = $maxlifetime;
@@ -662,14 +635,14 @@ final class PHS_Session extends PHS_Registry
 
         if( ($file_list = @glob( $dir_pattern.'/'.self::get_session_file_name_for_id( '*' ).'*' )) )
         {
-            $empty_dir_maybe = array();
+            $empty_dir_maybe = [];
 
             foreach( $file_list as $file )
             {
                 $return_arr['total']++;
 
                 if( @file_exists( $file )
-                and @filemtime( $file ) + $maxlifetime < time() )
+                && @filemtime( $file ) + $maxlifetime < time() )
                 {
                     @unlink( $file );
 
@@ -687,7 +660,7 @@ final class PHS_Session extends PHS_Registry
             {
                 foreach( $empty_dir_maybe as $check_dir => $true )
                 {
-                    PHS_Utils::rmdir_tree( $check_dir, array( 'recursive' => true, 'only_if_no_files' => true ) );
+                    PHS_Utils::rmdir_tree( $check_dir, [ 'recursive' => true, 'only_if_no_files' => true ] );
                 }
             }
         }
@@ -709,7 +682,7 @@ final class PHS_Session extends PHS_Registry
         self::set_data( self::SESS_AUTOSTART, false );
 
         self::set_data( self::SESS_STARTED, false );
-        self::set_data( self::SESS_DATA, array() );
+        self::set_data( self::SESS_DATA, [] );
     }
 
 }

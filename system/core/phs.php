@@ -297,11 +297,17 @@ final class PHS extends PHS_Registry
         return self::page_settings( 'page_body_class', trim( $existing_body_classes.' '.ltrim( $css_class ) ) );
     }
 
+    /**
+     * @return bool
+     */
     public static function is_secured_request()
     {
         return (self::get_data( self::REQUEST_HTTPS )?true:false);
     }
 
+    /**
+     * @return bool
+     */
     public static function prevent_session()
     {
         return (defined( 'PHS_PREVENT_SESSION' ) && constant( 'PHS_PREVENT_SESSION' ));

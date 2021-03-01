@@ -55,46 +55,39 @@ class PHS_Params
             break;
 
             case self::T_INT:
-                if( preg_match( self::REGEX_INT, $val ) ) {
+                if( preg_match( self::REGEX_INT, $val ) )
                     return true;
-                }
             break;
 
             case self::T_FLOAT:
-                if( preg_match( self::REGEX_FLOAT, $val ) ) {
+                if( preg_match( self::REGEX_FLOAT, $val ) )
                     return true;
-                }
             break;
 
             case self::T_ALPHANUM:
-                if( ctype_alnum( $val ) ) {
+                if( ctype_alnum( $val ) )
                     return true;
-                }
             break;
 
             case self::T_EMAIL:
-                if( preg_match( self::REGEX_EMAIL, $val ) ) {
+                if( preg_match( self::REGEX_EMAIL, $val ) )
                     return true;
-                }
             break;
 
             case self::T_DATE:
-                if( !empty( $val ) && @strtotime( $val ) !== false ) {
+                if( !empty( $val ) && @strtotime( $val ) !== false )
                     return true;
-                }
             break;
 
             case self::T_TIMESTAMP:
                 if( !empty( $val )
-                 && (is_numeric( $val ) || @strtotime( $val ) !== false) ) {
+                 && (is_numeric( $val ) || @strtotime( $val ) !== false) )
                     return true;
-                }
             break;
 
             case self::T_URL:
-                if( preg_match( self::REGEX_URL, $val ) ) {
+                if( preg_match( self::REGEX_URL, $val ) )
                     return true;
-                }
             break;
         }
 
@@ -110,22 +103,18 @@ class PHS_Params
      */
     public static function set_type( $val, $type, $extra = false )
     {
-        if( $val === null ) {
+        if( $val === null )
             return null;
-        }
 
-        if( empty( $extra ) || !is_array( $extra ) ) {
+        if( empty( $extra ) || !is_array( $extra ) )
             $extra = [];
-        }
 
-        if( empty( $extra['trim_before'] ) ) {
+        if( empty( $extra['trim_before'] ) )
             $extra['trim_before'] = false;
-        }
 
         if( !empty( $extra['trim_before'] )
-         && is_scalar( $val ) ) {
+         && is_scalar( $val ) )
             $val = trim( $val );
-        }
 
         $type = (int)$type;
         switch( $type )
@@ -136,21 +125,18 @@ class PHS_Params
             break;
 
             case self::T_INT:
-                if( empty( $extra['trim_before'] ) ) {
+                if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
-                }
 
-                if( $val !== '' ) {
+                if( $val !== '' )
                     $val = (int)$val;
-                }
 
                 return $val;
             break;
 
             case self::T_FLOAT:
-                if( empty( $extra['trim_before'] ) ) {
+                if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
-                }
 
                 if( empty( $extra ) || !is_array( $extra ) )
                     $extra = [];
@@ -158,22 +144,20 @@ class PHS_Params
                 if( empty( $extra['digits'] ) )
                     $extra['digits'] = self::FLOAT_PRECISION;
 
-                if( $val !== '' ) {
-                    if( @function_exists( 'bcmul' ) ) {
+                if( $val !== '' )
+                {
+                    if( @function_exists( 'bcmul' ) )
                         $val = @bcmul( $val, 1, $extra['digits'] );
-                    } else {
+                    else
                         $val = @number_format( $val, $extra['digits'], '.', '' );
-                    }
 
                     if( strpos( $val, '.' ) !== false )
                     {
                         $val = trim( $val, '0' );
-                        if( substr( $val, -1 ) === '.' ) {
+                        if( substr( $val, -1 ) === '.' )
                             $val = substr( $val, 0, -1 );
-                        }
-                        if( substr( $val, 0, 1 ) === '.' ) {
+                        if( substr( $val, 0, 1 ) === '.' )
                             $val = '0' . $val;
-                        }
                     }
 
                     $val = (float)$val;
@@ -201,55 +185,46 @@ class PHS_Params
             break;
 
             case self::T_ARRAY:
-                if( empty( $val ) || !is_array( $val ) ) {
+                if( empty( $val ) || !is_array( $val ) )
                     return [];
-                }
 
-                if( empty( $extra ) || !is_array( $extra ) ) {
+                if( empty( $extra ) || !is_array( $extra ) )
                     $extra = [];
-                }
 
-                if( empty( $extra['type'] ) ) {
+                if( empty( $extra['type'] ) )
                     $extra['type'] = self::T_ASIS;
-                }
 
-                foreach( $val as $key => $vval ) {
+                foreach( $val as $key => $vval )
                     $val[$key] = self::set_type( $vval, $extra['type'], $extra );
-                }
 
                 return $val;
             break;
 
             case self::T_DATE:
-                if( empty( $extra['trim_before'] ) ) {
+                if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
-                }
 
-                if( empty( $val ) || ($val = @strtotime( $val )) === false || $val === -1 ) {
+                if( empty( $val ) || ($val = @strtotime( $val )) === false || $val === -1 )
                     $val = false;
-                } elseif( !empty( $extra['format'] ) ) {
+                elseif( !empty( $extra['format'] ) )
                         $val = @date( $extra['format'], $val );
-                }
 
                 return $val;
             break;
 
             case self::T_TIMESTAMP:
-                if( empty( $extra['trim_before'] ) ) {
+                if( empty( $extra['trim_before'] ) )
                     $val = trim( $val );
-                }
 
-                if( empty( $val ) ) {
+                if( empty( $val ) )
                     $val = 0;
-                } elseif( is_numeric( $val ) ) {
+                elseif( is_numeric( $val ) )
                     $val = (int)$val;
-                } elseif( ($val = @strtotime( $val )) === false || $val === -1 ) {
+                elseif( ($val = @strtotime( $val )) === false || $val === -1 )
                     $val = 0;
-                }
 
-                if( $val < 0 ) {
+                if( $val < 0 )
                     $val = 0;
-                }
 
                 return $val;
             break;
@@ -263,20 +238,17 @@ class PHS_Params
 
                     $low_val = strtolower( $val );
 
-                    if( $low_val === 'true' ) {
+                    if( $low_val === 'true' )
                         $val = true;
-                    } elseif( $low_val === 'false' ) {
+                    elseif( $low_val === 'false' )
                         $val = false;
-                    }
                 }
 
-                if( $type === self::T_BOOL ) {
+                if( $type === self::T_BOOL )
                     return (!empty( $val ));
-                }
 
-                if( $type === self::T_NUMERIC_BOOL ) {
+                if( $type === self::T_NUMERIC_BOOL )
                     return (!empty( $val )?1:0);
-                }
             break;
         }
 
@@ -293,15 +265,12 @@ class PHS_Params
      */
     public static function _gp( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( !empty( $_POST )
-         && isset( $_POST[$v] ) ) {
+        if( !empty( $_POST ) && isset( $_POST[$v] ) )
             $var = $_POST[$v];
-        } elseif( !empty( $_GET )
-             && isset( $_GET[$v] ) ) {
+        elseif( !empty( $_GET ) && isset( $_GET[$v] ) )
             $var = $_GET[$v];
-        } else {
+        else
             return null;
-        }
 
         return self::set_type( $var, $type, $extra );
     }
@@ -316,15 +285,12 @@ class PHS_Params
      */
     public static function _pg( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( !empty( $_POST )
-         && isset( $_POST[$v] ) ) {
+        if( !empty( $_POST ) && isset( $_POST[$v] ) )
             $var = $_POST[$v];
-        } elseif( !empty( $_GET )
-             && isset( $_GET[$v] ) ) {
+        elseif( !empty( $_GET ) && isset( $_GET[$v] ) )
             $var = $_GET[$v];
-        } else {
+        else
             return null;
-        }
 
         return self::set_type( $var, $type, $extra );
     }
@@ -341,9 +307,8 @@ class PHS_Params
      */
     public static function _var( $from, $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $from ) ) {
+        if( empty( $from ) )
             return null;
-        }
 
         $from = strtolower( $from );
         while( !empty( $from[0] ) )
@@ -351,43 +316,36 @@ class PHS_Params
             switch( $from[0] )
             {
                 case 'g':
-                    if( !empty( $_GET ) && isset( $_GET[$v] ) ) {
+                    if( !empty( $_GET ) && isset( $_GET[$v] ) )
                         return self::_g( $v, $type, $extra );
-                    }
                 break;
                 case 'p':
-                    if( !empty( $_POST ) && isset( $_POST[$v] ) ) {
+                    if( !empty( $_POST ) && isset( $_POST[$v] ) )
                         return self::_p( $v, $type, $extra );
-                    }
                 break;
                 case 's':
-                    if( !empty( $_SESSION ) && isset( $_SESSION[$v] ) ) {
+                    if( !empty( $_SESSION ) && isset( $_SESSION[$v] ) )
                         return self::_s( $v, $type, $extra );
-                    }
                 break;
                 case 'f':
-                    if( !empty( $_FILES ) && isset( $_FILES[$v] ) ) {
+                    if( !empty( $_FILES ) && isset( $_FILES[$v] ) )
                         return self::_f( $v );
-                    }
                 break;
                 case 'c':
                     if( !empty( $_COOKIE ) && isset( $_COOKIE[$v] ) )
                         return self::_c( $v, $type, $extra );
                 break;
                 case 'r':
-                    if( !empty( $_REQUEST ) && isset( $_REQUEST[$v] ) ) {
+                    if( !empty( $_REQUEST ) && isset( $_REQUEST[$v] ) )
                         return self::_r( $v, $type, $extra );
-                    }
                 break;
                 case 'e':
-                    if( !empty( $_ENV ) && isset( $_ENV[$v] ) ) {
+                    if( !empty( $_ENV ) && isset( $_ENV[$v] ) )
                         return self::_e( $v, $type, $extra );
-                    }
                 break;
                 case 'v':
-                    if( !empty( $_SERVER ) && isset( $_SERVER[$v] ) ) {
+                    if( !empty( $_SERVER ) && isset( $_SERVER[$v] ) )
                         return self::_v( $v, $type, $extra );
-                    }
                 break;
             }
 
@@ -399,20 +357,16 @@ class PHS_Params
 
     public static function _g( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_GET )
-         || !isset( $_GET[$v] ) ) {
+        if( empty( $_GET ) || !isset( $_GET[$v] ) )
             return null;
-        }
 
         return self::set_type( $_GET[$v], $type, $extra );
     }
 
     public static function _p( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_POST )
-         || !isset( $_POST[$v] ) ) {
+        if( empty( $_POST ) || !isset( $_POST[$v] ) )
             return null;
-        }
 
         return self::set_type( $_POST[$v], $type, $extra );
     }
@@ -427,54 +381,48 @@ class PHS_Params
         if( empty( $_FILES )
          || !isset( $_FILES[$v] )
          || !isset( $_FILES[$v]['name'] )
-         || $_FILES[$v]['name'] === '' ) {
+         || $_FILES[$v]['name'] === '' )
             return null;
-        }
 
         return $_FILES[$v];
     }
 
     public static function _s( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_SESSION ) || !isset( $_SESSION[$v] ) ) {
+        if( empty( $_SESSION ) || !isset( $_SESSION[$v] ) )
             return null;
-        }
 
         return self::set_type( $_SESSION[$v], $type, $extra );
     }
 
     public static function _c( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_COOKIE ) || !isset( $_COOKIE[$v] ) ) {
+        if( empty( $_COOKIE ) || !isset( $_COOKIE[$v] ) )
             return null;
-        }
 
         return self::set_type( $_COOKIE[$v], $type, $extra );
     }
 
     public static function _r( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_REQUEST ) || !isset( $_REQUEST[$v] ) ) {
+        if( empty( $_REQUEST ) || !isset( $_REQUEST[$v] ) )
             return null;
-        }
 
         return self::set_type( $_REQUEST[$v], $type, $extra );
     }
 
     public static function _v( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_SERVER ) || !isset( $_SERVER[$v] ) ) {
+        if( empty( $_SERVER ) || !isset( $_SERVER[$v] ) )
             return null;
-        }
 
         return self::set_type( $_SERVER[$v], $type, $extra );
     }
 
     public static function _e( $v, $type = self::T_ASIS, $extra = false )
     {
-        if( empty( $_ENV ) || !isset( $_ENV[$v] ) ) {
+        if( empty( $_ENV ) || !isset( $_ENV[$v] ) )
             return null;
-        }
 
         return self::set_type( $_ENV[$v], $type, $extra );
     }

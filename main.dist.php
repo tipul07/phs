@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.4.2' );
+define( 'PHS_KNOWN_VERSION', '1.1.4.3' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '{{PHS_SITEBUILD_VERSION}}' ); // Default: 1.0.0
@@ -40,7 +40,7 @@ define( 'PHS_DB_PORT', '{{PHS_DB_PORT}}' ); // Default: 3306
 define( 'PHS_DB_TIMEZONE', {{PHS_DB_TIMEZONE}} ); // Default: date( 'P' )
 define( 'PHS_DB_CHARSET', {{PHS_DB_CHARSET}} ); // Default: 'UTF8'
 define( 'PHS_DB_USE_PCONNECT', {{PHS_DB_PCONNECT}} ); // Default: true
-define( 'PHS_DB_DRIVER_SETTINGS', {{PHS_DB_DRIVER_SETTINGS}} ); // Default: @json_encode( array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' ) )
+define( 'PHS_DB_DRIVER_SETTINGS', {{PHS_DB_DRIVER_SETTINGS}} ); // Default: @json_encode( [ 'sql_mode' => '-ONLY_FULL_GROUP_BY' ] )
 
 // Controlling database library behaviour (if different than default one)
 // if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
@@ -112,9 +112,9 @@ global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 // Copy&paste result of the script in this array
 // After you complete this step you can delete _new_crypt_keys.php script
 // You can replace PHS_CRYPT_INTERNAL_KEYS with comma separated strings (see _new_crypt_keys.php). !!! THIS CANNOT BE EMPTY !!!
-$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = array(
+$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = [
 {{PHS_CRYPT_INTERNAL_KEYS}}
-);
+];
 
 // php binary executable full path (point this to your CLI executable)
 define( 'PHP_EXEC', '{{PHS_PHP_EXEC}}' ); // Default: /usr/bin/php

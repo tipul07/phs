@@ -56,13 +56,15 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
     protected function default_paginator_params()
     {
-        return array(
+        return [
             'base_url' => '',
             'flow_parameters' => false,
             'bulk_actions' => false,
             'filters_arr' => false,
             'columns_arr' => false,
-        );
+            // an action result array or false
+            'force_action_result' => false,
+        ];
     }
 
     /**
@@ -83,38 +85,38 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      */
     public function insert_columns_arr( $current_columns_arr, $where, $new_columns_arr )
     {
-        if( empty( $new_columns_arr ) or !is_array( $new_columns_arr ) )
+        if( empty( $new_columns_arr ) || !is_array( $new_columns_arr ) )
         {
-            if( empty( $current_columns_arr ) or !is_array( $current_columns_arr ) )
-                $current_columns_arr = array();
+            if( empty( $current_columns_arr ) || !is_array( $current_columns_arr ) )
+                $current_columns_arr = [];
 
             return $current_columns_arr;
         }
 
-        if( empty( $current_columns_arr ) or !is_array( $current_columns_arr ) )
+        if( empty( $current_columns_arr ) || !is_array( $current_columns_arr ) )
             return $new_columns_arr;
 
         if( empty( $where )
-         or (!is_string( $where ) and !is_array( $where ))
-         or (is_array( $where )
-                and (empty( $where[0] ) or empty( $where[1] ) or !is_string( $where[0] ) or !is_string( $where[1] )
+         || (!is_string( $where ) && !is_array( $where ))
+         || (is_array( $where )
+                && (empty( $where[0] ) || empty( $where[1] ) || !is_string( $where[0] ) || !is_string( $where[1] )
              ) )
         )
             return $current_columns_arr;
 
         if( is_string( $where ) )
-            $where = array( 'record_field', $where );
+            $where = [ 'record_field', $where ];
 
         $where_column_key = $where[0];
         $where_column_val = $where[1];
 
-        $columns_arr = array();
+        $columns_arr = [];
         $new_columns_added = false;
         foreach( $current_columns_arr as $column_key => $column_arr )
         {
-            if( empty( $column_arr ) or !is_array( $column_arr )
-             or empty( $column_arr[$where_column_key] )
-             or $column_arr[$where_column_key] != $where_column_val )
+            if( empty( $column_arr ) || !is_array( $column_arr )
+             || empty( $column_arr[$where_column_key] )
+             || $column_arr[$where_column_key] != $where_column_val )
             {
                 if( !is_numeric( $column_key ) )
                     $columns_arr[$column_key] = $column_arr;
@@ -174,9 +176,10 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if( !($paginator_params = $this->load_paginator_params())
-         or !is_array( $paginator_params )
-         or !($paginator_params = self::validate_array( $paginator_params, $this->default_paginator_params() ))
-         or empty( $paginator_params['base_url'] ) )
+         || !is_array( $paginator_params )
+         || !($paginator_params = self::validate_array( $paginator_params, $this->default_paginator_params() ))
+         // Complain about base_url not set only if we are not forced to return an action result already
+         || (empty( $paginator_params['base_url'] ) && empty( $paginator_params['force_action_result'] )) )
         {
             if( $this->has_error() )
                 PHS_Notifications::add_error_notice( $this->get_error_message() );
@@ -186,13 +189,16 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return self::default_action_result();
         }
 
+        if( !empty( $paginator_params['force_action_result'] ) )
+            return self::validate_array( $paginator_params['force_action_result'], self::default_action_result() );
+
         // Generic action hooks...
         $hook_args = PHS_Hooks::default_paginator_action_parameters_hook_args();
         $hook_args['paginator_action_obj'] = $this;
         $hook_args['paginator_params'] = $paginator_params;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS, $hook_args ))
-        and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
+         && !empty( $hook_args['paginator_params'] ) && is_array( $hook_args['paginator_params'] ) )
             $paginator_params = self::validate_array( $hook_args['paginator_params'], $this->default_paginator_params() );
 
         // Particular action hooks...
@@ -201,11 +207,11 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $hook_args['paginator_params'] = $paginator_params;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGINATOR_ACTION_PARAMETERS.$this->instance_id(), $hook_args ))
-        and !empty( $hook_args['paginator_params'] ) and is_array( $hook_args['paginator_params'] ) )
+         && !empty( $hook_args['paginator_params'] ) && is_array( $hook_args['paginator_params'] ) )
             $paginator_params = self::validate_array( $hook_args['paginator_params'], $this->default_paginator_params() );
 
         if( !($this->_paginator = new PHS_Paginator( $paginator_params['base_url'], $paginator_params['flow_parameters'] ))
-         or !$this->we_have_paginator() )
+         || !$this->we_have_paginator() )
         {
             if( $this->has_error() )
                 PHS_Notifications::add_error_notice( $this->get_error_message() );
@@ -217,19 +223,19 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         $init_went_ok = true;
         if( !$this->_paginator->set_columns( $paginator_params['columns_arr'] )
-         or (!empty( $paginator_params['filters_arr'] ) and !$this->_paginator->set_filters( $paginator_params['filters_arr'] ))
-         or (!empty( $this->_paginator_model ) and !$this->_paginator->set_model( $this->_paginator_model ))
-         or (!empty( $paginator_params['bulk_actions'] ) and !$this->_paginator->set_bulk_actions( $paginator_params['bulk_actions'] )) )
+         || (!empty( $paginator_params['filters_arr'] ) && !$this->_paginator->set_filters( $paginator_params['filters_arr'] ))
+         || (!empty( $this->_paginator_model ) && !$this->_paginator->set_model( $this->_paginator_model ))
+         || (!empty( $paginator_params['bulk_actions'] ) && !$this->_paginator->set_bulk_actions( $paginator_params['bulk_actions'] )) )
         {
             if( $this->_paginator->has_error() )
                 $error_msg = $this->_paginator->get_error_message();
             else
                 $error_msg = self::_t( 'Something went wrong while preparing paginator class.' );
 
-            $data = array(
+            $data = [
                 'filters' => $error_msg,
                 'listing' => '',
-            );
+            ];
 
             $init_went_ok = false;
         }
@@ -248,24 +254,24 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
             // check actions...
             if( ($current_action = $this->_paginator->get_current_action())
-            and is_array( $current_action )
-            and !empty( $current_action['action'] ) )
+             && is_array( $current_action )
+             && !empty( $current_action['action'] ) )
             {
                 if( !($pagination_action_result = $this->manage_action( $current_action )) )
                 {
                     if( $this->has_error() )
                         PHS_Notifications::add_error_notice( $this->get_error_message() );
                 } elseif( is_array( $pagination_action_result )
-                          and !empty( $pagination_action_result['action'] ) )
+                       && !empty( $pagination_action_result['action'] ) )
                 {
                     $pagination_action_result = self::validate_array( $pagination_action_result, $this->_paginator->default_action_params() );
 
-                    $url_params = array(
+                    $url_params = [
                         'action' => $pagination_action_result,
-                    );
+                    ];
 
                     if( !empty( $pagination_action_result['action_redirect_url_params'] )
-                        and is_array( $pagination_action_result['action_redirect_url_params'] ) )
+                     && is_array( $pagination_action_result['action_redirect_url_params'] ) )
                         $url_params = self::merge_array_assoc( $pagination_action_result['action_redirect_url_params'], $url_params );
 
                     $action_result = self::default_action_result();
@@ -276,40 +282,39 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 }
             }
 
-            if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
+            if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
             {
                 // Prepare API response
                 $action_result = PHS_Action::default_action_result();
 
                 if( !($json_result = $this->_paginator->get_listing_result())
-                 or !is_array( $json_result ) )
-                    $json_result = array();
+                 || !is_array( $json_result ) )
+                    $json_result = [];
 
                 $action_result['api_json_result_array'] = $json_result;
 
                 return $action_result;
             }
 
-            $data = array(
+            $data = [
                 'filters' => $this->_paginator->get_filters_result(),
                 'listing' => $this->_paginator->get_listing_result(),
                 'paginator_params' => $this->_paginator->pagination_params(),
                 'flow_params' => $this->_paginator->flow_params(),
-            );
+            ];
         }
 
         if( empty( $data ) )
         {
             PHS_Notifications::add_error_notice( self::_t( 'Error rendering paginator details.' ) );
 
-            $data = array(
-                'paginator_params' => array(),
+            $data = [
+                'paginator_params' => [],
                 'filters' => self::_t( 'Something went wrong...' ),
                 'listing' => '',
-            );
+            ];
         }
 
         return $this->quick_render_template( 'paginator_default_template', $data );
     }
-
 }

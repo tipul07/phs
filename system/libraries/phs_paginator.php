@@ -60,7 +60,7 @@ class PHS_Paginator extends PHS_Registry
     public static function valid_render_type( $render_type )
     {
         if( empty( $render_type )
-         or !in_array( $render_type, array( self::CELL_RENDER_HTML, self::CELL_RENDER_TEXT, self::CELL_RENDER_JSON ) ) )
+         || !in_array( $render_type, [ self::CELL_RENDER_HTML, self::CELL_RENDER_TEXT, self::CELL_RENDER_JSON ] ) )
             return false;
 
         return true;
@@ -176,17 +176,17 @@ class PHS_Paginator extends PHS_Registry
     }
 
     /**
-     * @param null|string $key Null to return full array or a string which is the key to set a value or array key of value to be returned
+     * @param null|string|array $key Null to return full array or a string which is the key to set a value or array key of value to be returned
      * @param null|mixed $val Null or a value to be set for specified key
      *
      * @return array|bool|null
      */
     public function pagination_params( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null )
             return $this->_pagination_params_arr;
 
-        if( $key !== null and $val === null )
+        if( $key !== null && $val === null )
         {
             if( is_array( $key ) )
             {
@@ -194,13 +194,13 @@ class PHS_Paginator extends PHS_Registry
                 return $this->_pagination_params_arr;
             }
 
-            if( is_string( $key ) and isset( $this->_pagination_params_arr[$key] ) )
+            if( is_string( $key ) && isset( $this->_pagination_params_arr[$key] ) )
                 return $this->_pagination_params_arr[$key];
 
             return null;
         }
 
-        if( is_string( $key ) and isset( $this->_pagination_params_arr[$key] ) )
+        if( is_string( $key ) && isset( $this->_pagination_params_arr[$key] ) )
         {
             $this->_pagination_params_arr[$key] = $val;
             return true;
@@ -229,7 +229,7 @@ class PHS_Paginator extends PHS_Registry
         if( empty( $this->_flow_params_arr ) )
             $this->_flow_params_arr = $this->default_flow_params();
 
-        if( !is_string( $key ) or !isset( $this->_flow_params_arr[$key] ) )
+        if( !is_string( $key ) || !isset( $this->_flow_params_arr[$key] ) )
             return false;
 
         if( $val === null )
@@ -258,7 +258,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function pretty_date_independent( $date, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             $params = array();
 
         if( empty( $params['date_format'] ) )
@@ -267,8 +267,8 @@ class PHS_Paginator extends PHS_Registry
             $params['request_render_type'] = false;
 
         if( empty( $date )
-         or !($date_time = is_db_date( $date ))
-         or empty_db_date( $date ) )
+         || !($date_time = is_db_date( $date ))
+         || empty_db_date( $date ) )
             return false;
 
         if( !empty( $params['date_format'] ) )
@@ -304,17 +304,17 @@ class PHS_Paginator extends PHS_Registry
     public function pretty_date( $params )
     {
         if( !($params = self::validate_array( $params, $this->default_cell_render_call_params() ))
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or empty( $params['column'] ) or !is_array( $params['column'] )
-         or (empty( $params['column']['record_field'] ) and empty( $params['column']['record_db_field'] )) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || empty( $params['column'] ) || !is_array( $params['column'] )
+         || (empty( $params['column']['record_field'] ) && empty( $params['column']['record_db_field'] )) )
             return false;
 
         if( !($field_name = $this->get_column_name( $params['column'], $params['for_scope'] )) )
             $field_name = false;
 
         if( empty( $field_name )
-         or !array_key_exists( $field_name, $params['record'] ) )
+         || !array_key_exists( $field_name, $params['record'] ) )
             return false;
 
         $pretty_params = array();
@@ -361,10 +361,10 @@ class PHS_Paginator extends PHS_Registry
 
     public function get_checkbox_name_for_column( $column_arr )
     {
-        if( empty( $column_arr ) or !is_array( $column_arr )
-         or empty( $column_arr['checkbox_record_index_key'] ) or !is_array( $column_arr['checkbox_record_index_key'] )
-         or empty( $column_arr['checkbox_record_index_key']['key'] )
-         or !($flow_params_arr = $this->flow_params()) )
+        if( empty( $column_arr ) || !is_array( $column_arr )
+         || empty( $column_arr['checkbox_record_index_key'] ) || !is_array( $column_arr['checkbox_record_index_key'] )
+         || empty( $column_arr['checkbox_record_index_key']['key'] )
+         || !($flow_params_arr = $this->flow_params()) )
             return '';
 
         if( empty( $column_arr['checkbox_record_index_key']['checkbox_name'] ) )
@@ -376,14 +376,14 @@ class PHS_Paginator extends PHS_Registry
     public function display_checkbox_column( $params )
     {
         if( !($params = self::validate_array( $params, $this->default_cell_render_call_params() ))
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or empty( $params['column'] ) or !is_array( $params['column'] )
-         or !($checkbox_name = $this->get_checkbox_name_for_column( $params['column'] ))
-         or empty( $params['column']['checkbox_record_index_key'] )
-         or !is_array( $params['column']['checkbox_record_index_key'] )
-         or empty( $params['column']['checkbox_record_index_key']['key'] )
-         or !isset( $params['record'][$params['column']['checkbox_record_index_key']['key']] ) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || empty( $params['column'] ) || !is_array( $params['column'] )
+         || !($checkbox_name = $this->get_checkbox_name_for_column( $params['column'] ))
+         || empty( $params['column']['checkbox_record_index_key'] )
+         || !is_array( $params['column']['checkbox_record_index_key'] )
+         || empty( $params['column']['checkbox_record_index_key']['key'] )
+         || !isset( $params['record'][$params['column']['checkbox_record_index_key']['key']] ) )
             return false;
 
         if( empty( $params['preset_content'] ) )
@@ -407,12 +407,12 @@ class PHS_Paginator extends PHS_Registry
         $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
 
         $checkbox_checked = false;
-        if( !empty( $scope_arr ) and is_array( $scope_arr ) )
+        if( !empty( $scope_arr ) && is_array( $scope_arr ) )
         {
             if( !empty( $scope_arr[$checkbox_name_all] )
-             or (!empty( $scope_arr[$checkbox_name] )
-                and is_array( $scope_arr[$checkbox_name] )
-                and in_array( $checkbox_value, $scope_arr[$checkbox_name] )
+             || (!empty( $scope_arr[$checkbox_name] )
+                && is_array( $scope_arr[$checkbox_name] )
+                && in_array( $checkbox_value, $scope_arr[$checkbox_name] )
                 ) )
                 $checkbox_checked = true;
         }
@@ -466,7 +466,7 @@ class PHS_Paginator extends PHS_Registry
     public function parse_action_parameter( $action )
     {
         if( empty( $action )
-         or !($action_parameter_names = $this->get_action_parameter_names()) )
+         || !($action_parameter_names = $this->get_action_parameter_names()) )
             return false;
 
         $action_key = $action_parameter_names['action'];
@@ -503,13 +503,18 @@ class PHS_Paginator extends PHS_Registry
         return $action_args;
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return string
+     */
     public function get_full_url( $params = false )
     {
         if( empty( $this->_originals ) )
             $this->extract_filters_scope();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['include_pagination_params'] ) )
             $params['include_pagination_params'] = true;
@@ -518,18 +523,18 @@ class PHS_Paginator extends PHS_Registry
         if( !isset( $params['include_filters'] ) )
             $params['include_filters'] = true;
 
-        if( empty( $params['extra_params'] ) or !is_array( $params['extra_params'] ) )
-            $params['extra_params'] = array();
+        if( empty( $params['extra_params'] ) || !is_array( $params['extra_params'] ) )
+            $params['extra_params'] = [];
 
         if( empty( $params['action'] ) )
             $params['action'] = false;
 
-        if( !isset( $params['force_scope'] ) or !is_array( $params['force_scope'] ) )
+        if( !isset( $params['force_scope'] ) || !is_array( $params['force_scope'] ) )
             $params['force_scope'] = $this->_scope;
 
         if( empty( $params['include_action_params'] )
-         or !($action_params = $this->parse_action_parameter( $params['action'] ))
-         or !is_array( $action_params ) )
+         || !($action_params = $this->parse_action_parameter( $params['action'] ))
+         || !is_array( $action_params ) )
             $action_params = false;
 
         if( isset( $params['sort'] ) )
@@ -542,16 +547,16 @@ class PHS_Paginator extends PHS_Registry
                 unset( $params['sort_by'] );
         }
 
-        $query_arr = array();
+        $query_arr = [];
         if( !empty( $params['include_filters'] )
-        and !empty( $params['force_scope'] ) )
+         && !empty( $params['force_scope'] ) )
             $query_arr = array_merge( $query_arr, $params['force_scope'] );
 
         if( !empty( $params['include_pagination_params'] )
-        and ($flow_params = $this->flow_params())
-        and ($pagination_params = $this->pagination_params()) )
+         && ($flow_params = $this->flow_params())
+         && ($pagination_params = $this->pagination_params()) )
         {
-            $add_args = array();
+            $add_args = [];
             $add_args[$flow_params['form_prefix'].$pagination_params['page_var_name']] = $pagination_params['page'];
             $add_args[$flow_params['form_prefix'].$pagination_params['per_page_var_name']] = $pagination_params['records_per_page'];
             $add_args[$flow_params['form_prefix'].'sort_by'] = (isset( $params['sort_by'] )?$params['sort_by']:$pagination_params['sort_by']);
@@ -565,7 +570,7 @@ class PHS_Paginator extends PHS_Registry
 
         $url = $this->_base_url;
 
-        if( strstr( $url, '?' ) === false )
+        if( strpos( $url, '?' ) === false )
             $url .= '?';
 
         $query_string = '';
@@ -573,7 +578,7 @@ class PHS_Paginator extends PHS_Registry
         // Don't run $action_params through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
         // eg. action_params might be an id passed as javascript function parameter
         if( !empty( $params['include_action_params'] )
-        and !empty( $action_params ) and is_array( $action_params ) )
+         && !empty( $action_params ) && is_array( $action_params ) )
         {
             foreach( $action_params as $key => $val )
             {
@@ -583,11 +588,11 @@ class PHS_Paginator extends PHS_Registry
                 if( isset( $query_arr[$key] ) )
                     unset( $query_arr[$key] );
 
-                $query_string .= ($query_string!=''?'&':'').$key.'='.$val;
+                $query_string .= ($query_string!==''?'&':'').$key.'='.$val;
             }
         }
 
-        $query_string .= ($query_string!=''?'&':'').array_to_query_string( $query_arr );
+        $query_string .= ($query_string!==''?'&':'').array_to_query_string( $query_arr );
 
         $url .= '&'.$query_string;
 
@@ -596,7 +601,7 @@ class PHS_Paginator extends PHS_Registry
 
     private function reset_records()
     {
-        $this->_records_arr = array();
+        $this->_records_arr = [];
         $this->_query_id = false;
     }
 
@@ -615,7 +620,7 @@ class PHS_Paginator extends PHS_Registry
         $this->reset_records();
 
         if( $qid
-        and !($qid instanceof \mysqli_result) )
+         && !($qid instanceof \mysqli_result) )
             return false;
 
         if( empty( $qid ) )
@@ -625,7 +630,7 @@ class PHS_Paginator extends PHS_Registry
 
         $records_count = 0;
         if( $qid
-        and !($records_count = @mysqli_num_rows( $qid )) )
+         && !($records_count = @mysqli_num_rows( $qid )) )
             $records_count = 0;
 
         $this->pagination_params( 'listing_records_count', $records_count );
@@ -647,8 +652,8 @@ class PHS_Paginator extends PHS_Registry
 
     public function format_api_export( $value, $column_arr, $for_scope = false )
     {
-        if( empty( $column_arr ) or !is_array( $column_arr )
-         or empty( $column_arr['api_export'] ) or !is_array( $column_arr['api_export'] ) )
+        if( empty( $column_arr ) || !is_array( $column_arr )
+         || empty( $column_arr['api_export'] ) || !is_array( $column_arr['api_export'] ) )
             return false;
 
         $api_export = self::validate_array( $column_arr['api_export'], $this->default_api_export_fields() );
@@ -664,15 +669,15 @@ class PHS_Paginator extends PHS_Registry
         else
             $field_name = $this->get_column_name( $column_arr, $for_scope );
 
-        return array(
+        return [
             'key' => $field_name,
             'value' => $value,
-        );
+        ];
     }
 
     public function default_api_export_fields()
     {
-        return array(
+        return [
             // if left empty, resulting field name will be used
             'field_name' => '',
             // if left empty, resulting field name will be used
@@ -680,12 +685,12 @@ class PHS_Paginator extends PHS_Registry
             // to what should be the value formatted
             'type' => PHS_Params::T_ASIS,
             'type_extra' => false,
-        );
+        ];
     }
 
     public function default_column_fields()
     {
-        return array(
+        return [
             'column_title' => '',
             // Extra text to add after column_title (outsize sort link)
             'column_title_extra' => '',
@@ -702,11 +707,11 @@ class PHS_Paginator extends PHS_Registry
             // 'key': should contain key in record fields that should be put as value in checkbox (it also defined checkbox name)
             // 'checkbox_name': string used to form input name, if empty 'key' will be used as 'checkbox_name' ({form_prefix}{checkbox_name}_chck)
             // 'type': is a PHS_Params::T_* which will be used to validate input value
-            'checkbox_record_index_key' => array(
+            'checkbox_record_index_key' => [
                 'key' => '',
                 'checkbox_name' => '',
                 'type' => PHS_Params::T_ASIS,
-            ),
+            ],
             'sortable' => true,
             // 0 or 1 if default sorting 0 - ascending or 1 - descending
             'default_sort' => false,
@@ -736,26 +741,26 @@ class PHS_Paginator extends PHS_Registry
             'extra_records_classes' => '',
             // Raw attributes to be added to record td
             'raw_records_attrs' => '',
-        );
+        ];
     }
 
     public function set_columns( $columns_arr )
     {
         $this->reset_columns();
 
-        if( empty( $columns_arr ) or !is_array( $columns_arr ) )
+        if( empty( $columns_arr ) || !is_array( $columns_arr ) )
         {
             $this->set_error( self::ERR_COLUMNS, self::_t( 'Bad columns format.' ) );
             return false;
         }
 
-        $new_columns = array();
+        $new_columns = [];
         $default_column_fields = $this->default_column_fields();
         foreach( $columns_arr as $column )
         {
             if( empty( $column )
-             or !is_array( $column )
-             or !($new_column = self::validate_array_to_new_array_recursive( $column, $default_column_fields )) )
+             || !is_array( $column )
+             || !($new_column = self::validate_array_to_new_array_recursive( $column, $default_column_fields )) )
                 continue;
 
             if( empty( $new_column['column_title'] ) )
@@ -774,7 +779,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_columns()
     {
-        $this->_columns_definition_arr = array();
+        $this->_columns_definition_arr = [];
     }
 
     public function get_columns()
@@ -782,27 +787,34 @@ class PHS_Paginator extends PHS_Registry
         return $this->_columns_definition_arr;
     }
 
+    /**
+     * @param false|int $scope
+     *
+     * @return array
+     */
     public function get_columns_for_scope( $scope = false )
     {
         $columns_arr = $this->get_columns();
 
         if( $scope === false )
             $scope = PHS_Scope::current_scope();
+        else
+            $scope = (int)$scope;
 
         if( !PHS_Scope::valid_scope( $scope ) )
             return $columns_arr;
 
         $scope_columns_arr = $columns_arr;
-        if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+        if( !empty( $columns_arr ) && is_array( $columns_arr ) )
         {
             $scope_columns_arr = array();
             foreach( $columns_arr as $column_arr )
             {
-                if( (!empty( $column_arr['hide_for_scopes'] ) and is_array( $column_arr['hide_for_scopes'] )
-                        and in_array( $scope, $column_arr['hide_for_scopes'] ))
-                    or
-                    (!empty( $column_arr['show_for_scopes'] ) and is_array( $column_arr['show_for_scopes'] )
-                        and !in_array( $scope, $column_arr['show_for_scopes'] ))
+                if( (!empty( $column_arr['hide_for_scopes'] ) && is_array( $column_arr['hide_for_scopes'] )
+                        && in_array( $scope, $column_arr['hide_for_scopes'], true ))
+                    ||
+                    (!empty( $column_arr['show_for_scopes'] ) && is_array( $column_arr['show_for_scopes'] )
+                        && !in_array( $scope, $column_arr['show_for_scopes'], true ))
                 )
                     continue;
 
@@ -815,15 +827,27 @@ class PHS_Paginator extends PHS_Registry
 
     public static function default_filter_fields()
     {
-        return array(
+        return [
             'hidden_filter' => false,
+            // Variable name of the filter. This is mandatory and it should be present in GET or POST in order for this filter to be taken in consideration
             'var_name' => '',
             // Name of field in database model that will have to check this value
             'record_field' => '',
-            // Database function passed to model to check value for this field (if false will be same as default field check eg. '=', array( 'check' => 'LIKE' ) )
+            // If this filter doesn't target a specific field in the query, we just pass here a raw query
+            // Filter value will be added in the raw query string as %s
+            // Used for queries like EXISTS (SELECT 1 FROM ...)
+            'raw_query' => '',
+            // In case we want to select different filter functionality based on value provided for that filter
+            // Usually this is used for filters that involve more fields in database based on value of the filter
+            // eg. Filter option 1: 'Logged in users' -> status = active and last_log !== null,
+            // Filter Options 2: 'Never logged in users' -> status = active and last_log === null
+            'switch_filter' => false, // Array
+            // Database function passed to model to check value for this field (if false will be same as default field check eg. '=', [ 'check' => 'LIKE' ] )
             // If this is an array and 'value' key is not provided, script will create a 'value' key with value which coresponds from _scope array.
             // If 'value' key is passed it should contain a %s placeholder which will be replaced with value from _scope array.
             'record_check' => false,
+            // This is similar with 'record_check', but if an array is provided at this key it will be used "as-it-is" for the field
+            'raw_record_check' => false,
             // In case record_check parameter refers to other model, provide model to be used
             'record_check_model' => false,
             'display_name' => '',
@@ -839,29 +863,30 @@ class PHS_Paginator extends PHS_Registry
             // In case there are more filters using a single field how should these be linked logically in sql
             // last filter will overwrite linkage_func of previous filters
             'linkage_func' => '',
-        );
+        ];
     }
 
     public function set_filters( $filters_arr )
     {
         $this->reset_filters();
 
-        if( empty( $filters_arr ) or !is_array( $filters_arr ) )
+        if( empty( $filters_arr ) || !is_array( $filters_arr ) )
         {
             $this->set_error( self::ERR_FILTERS, self::_t( 'Bad filters format.' ) );
             return false;
         }
 
-        $new_filters = array();
+        $new_filters = [];
         $default_filters_fields = self::default_filter_fields();
         foreach( $filters_arr as $filter )
         {
             if( !($new_filter = self::validate_array_to_new_array( $filter, $default_filters_fields )) )
                 continue;
 
-            if( empty( $new_filter['var_name'] ) or empty( $new_filter['record_field'] ) )
+            if( empty( $new_filter['var_name'] )
+             || (empty( $new_filter['record_field'] ) && empty( $new_filter['switch_filter'] ) && empty( $new_filter['raw_query'] )) )
             {
-                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or record_field not provided for %s filter.', (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
+                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or (record_field, raw_query) not provided for %s filter.', (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
                 return false;
             }
 
@@ -875,7 +900,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_filters()
     {
-        $this->_filters = array();
+        $this->_filters = [];
     }
 
     public function get_filters()
@@ -885,7 +910,7 @@ class PHS_Paginator extends PHS_Registry
 
     public static function default_bulk_actions_fields()
     {
-        return array(
+        return [
             'display_in_top' => true,
             'display_in_bottom' => true,
             'display_name' => '',
@@ -893,14 +918,14 @@ class PHS_Paginator extends PHS_Registry
             'js_callback' => '',
             // name of column which holds the checkboxes that matter for this bulk action ('record_field'/'record_db_field' key in columns array)
             'checkbox_column' => '',
-        );
+        ];
     }
 
     public function set_bulk_actions( $actions_arr )
     {
         $this->reset_bulk_actions();
 
-        if( empty( $actions_arr ) or !is_array( $actions_arr ) )
+        if( empty( $actions_arr ) || !is_array( $actions_arr ) )
         {
             $this->set_error( self::ERR_BULK_ACTIONS, self::_t( 'Bad bulk actions format.' ) );
             return false;
@@ -913,7 +938,7 @@ class PHS_Paginator extends PHS_Registry
             if( !($new_action = self::validate_array_to_new_array( $action, $default_actions_fields )) )
                 continue;
 
-            if( empty( $new_action['action'] ) or empty( $new_action['js_callback'] ) )
+            if( empty( $new_action['action'] ) || empty( $new_action['js_callback'] ) )
             {
                 $this->set_error( self::ERR_FILTERS, self::_t( 'No action or js_callback provided for bulk action %s.', (!empty( $new_action['display_name'] )?$new_action['display_name']:'(???)') ) );
                 return false;
@@ -937,7 +962,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_bulk_actions()
     {
-        $this->_bulk_actions = array();
+        $this->_bulk_actions = [];
     }
 
     public function get_bulk_actions()
@@ -980,7 +1005,7 @@ class PHS_Paginator extends PHS_Registry
     {
         $this->reset_error();
 
-        if( empty( $model ) or !($model instanceof PHS_Model) )
+        if( empty( $model ) || !($model instanceof PHS_Model) )
         {
             $this->set_error( self::ERR_MODEL, self::_t( 'Model is invalid.' ) );
             return false;
@@ -1044,8 +1069,8 @@ class PHS_Paginator extends PHS_Registry
 
     private function extract_filters_scope()
     {
-        $this->_scope = array();
-        $this->_originals = array();
+        $this->_scope = [];
+        $this->_originals = [];
 
         if( !($filters_arr = $this->get_filters()) )
             return true;
@@ -1055,12 +1080,13 @@ class PHS_Paginator extends PHS_Registry
 
         // Allow filters even on hidden columns
         if( !($columns_arr = $this->get_columns())
-         or !is_array( $columns_arr ) )
-            $columns_arr = array();
+         || !is_array( $columns_arr ) )
+            $columns_arr = [];
 
         foreach( $filters_arr as $filter_details )
         {
-            if( empty( $filter_details['var_name'] ) or empty( $filter_details['record_field'] ) )
+            if( empty( $filter_details['var_name'] )
+             || (empty( $filter_details['record_field'] ) && empty( $filter_details['switch_filter'] ) && empty( $filter_details['raw_query'] )) )
                 continue;
 
             $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_Params::T_ASIS );
@@ -1068,19 +1094,19 @@ class PHS_Paginator extends PHS_Registry
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
                 // Accept arrays to be passed as comma separated values...
-                if( $filter_details['type'] == PHS_Params::T_ARRAY
-                and is_string( $this->_originals[$filter_details['var_name']] )
-                and $this->_originals[$filter_details['var_name']] != '' )
+                if( $filter_details['type'] === PHS_Params::T_ARRAY
+                 && is_string( $this->_originals[$filter_details['var_name']] )
+                 && $this->_originals[$filter_details['var_name']] !== '' )
                 {
                     $value_type = PHS_Params::T_ASIS;
-                    if( !empty( $filter_details['extra_type'] ) and is_array( $filter_details['extra_type'] )
-                    and !empty( $filter_details['extra_type']['type'] )
-                    and PHS_Params::valid_type( $filter_details['extra_type']['type'] ) )
+                    if( !empty( $filter_details['extra_type'] ) && is_array( $filter_details['extra_type'] )
+                    && !empty( $filter_details['extra_type']['type'] )
+                    && PHS_Params::valid_type( $filter_details['extra_type']['type'] ) )
                         $value_type = $filter_details['extra_type']['type'];
 
-                    $scope_val = array();
+                    $scope_val = [];
                     if( ($parts_arr = explode( ',', $this->_originals[$filter_details['var_name']] ))
-                    and is_array( $parts_arr ) )
+                    && is_array( $parts_arr ) )
                     {
                         foreach( $parts_arr as $part )
                         {
@@ -1093,7 +1119,7 @@ class PHS_Paginator extends PHS_Registry
                                                        $filter_details['extra_type'] );
 
                 if( $filter_details['default'] !== false
-                and $scope_val != $filter_details['default'] )
+                && $scope_val != $filter_details['default'] )
                     $this->_scope[$filter_details['var_name']] = $scope_val;
             }
         }
@@ -1115,9 +1141,9 @@ class PHS_Paginator extends PHS_Registry
                 {
                     if( is_string( $checkbox_asis_value ) )
                     {
-                        $scope_val = array();
+                        $scope_val = [];
                         if( ($parts_arr = explode( ',', $checkbox_asis_value ))
-                        and is_array( $parts_arr ) )
+                        && is_array( $parts_arr ) )
                         {
                             foreach( $parts_arr as $part )
                             {
@@ -1126,7 +1152,7 @@ class PHS_Paginator extends PHS_Registry
                         }
 
                         $this->_scope[$checkbox_name] = $scope_val;
-                    } elseif( ($checkbox_array_value = PHS_Params::set_type( $checkbox_asis_value, PHS_Params::T_ARRAY, array( 'type' => $column_arr['checkbox_record_index_key']['type'] ) )) )
+                    } elseif( ($checkbox_array_value = PHS_Params::set_type( $checkbox_asis_value, PHS_Params::T_ARRAY, [ 'type' => $column_arr['checkbox_record_index_key']['type'] ] )) )
                         $this->_scope[$checkbox_name] = $checkbox_array_value;
                 }
 
@@ -1135,7 +1161,7 @@ class PHS_Paginator extends PHS_Registry
 
         // Extract pagination vars...
         if( ($pagination_params = $this->pagination_params())
-        and is_array( $pagination_params ) )
+        && is_array( $pagination_params ) )
         {
             if( !empty( $pagination_params['page_var_name'] ) )
             {
@@ -1189,7 +1215,7 @@ class PHS_Paginator extends PHS_Registry
                         }
                     }
 
-                    if( $sort_by == $field_name )
+                    if( $sort_by === $field_name )
                     {
                         $sort_by_valid = true;
                         $db_sort_by = $column_arr['record_field'];
@@ -1197,16 +1223,16 @@ class PHS_Paginator extends PHS_Registry
                     }
                 }
 
-                if( !$sort_by_valid and $default_sort_by !== false )
+                if( !$sort_by_valid && $default_sort_by !== false )
                 {
                     $sort_by = $default_sort_by;
                     $db_sort_by = $default_db_sort_by;
                 }
-                if( $sort === null and $default_sort !== false )
+                if( $sort === null && $default_sort !== false )
                     $sort = $default_sort;
             }
 
-            if( empty( $sort ) or strtolower( $sort ) === 'asc' )
+            if( empty( $sort ) || strtolower( $sort ) === 'asc' )
                 $sort = 0;
             else
                 $sort = 1;
@@ -1238,8 +1264,8 @@ class PHS_Paginator extends PHS_Registry
             else
             {
                 // Allow empty buffer for listing (for scopes which don't need an output buffer)
-                if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
-                    $filters_buffer = array();
+                if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
+                    $filters_buffer = [];
                 else
                     $filters_buffer = '';
             }
@@ -1250,7 +1276,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function set_records_count( $count )
     {
-        $count = intval( $count );
+        $count = (int)$count;
 
         $page = $this->pagination_params( 'page' );
         $records_per_page = max( 2, $this->pagination_params( 'records_per_page' ) );
@@ -1273,10 +1299,10 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_record_data( $record_data )
     {
-        if( empty( $record_data ) or !is_array( $record_data ) )
+        if( empty( $record_data ) || !is_array( $record_data ) )
             return $this->default_export_record_data();
 
-        $record_data['record_arr'] = array();
+        $record_data['record_arr'] = [];
         $record_data['record_buffer'] = '';
 
         return $record_data;
@@ -1284,7 +1310,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function default_export_record_data()
     {
-        return array(
+        return [
             // Tells if current "record" to be parsed is the actual header of export
             'is_header' => false,
             // Index of record in records array
@@ -1292,15 +1318,15 @@ class PHS_Paginator extends PHS_Registry
             // Counter of current record in export list
             'record_count' => 0,
             // Actual record as array after "rendering" contents
-            'record_arr' => array(),
+            'record_arr' => [],
             // Record after parsing its content for output
             'record_buffer' => '',
-        );
+        ];
     }
 
     public function export_result_array()
     {
-        return array(
+        return [
             'export_file_dir' => '',
             'export_file_name' => '',
             // Full location to export file
@@ -1308,9 +1334,14 @@ class PHS_Paginator extends PHS_Registry
             // How many successful exports
             'exports_successful' => 0,
             'exports_failed' => 0,
-        );
+        ];
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return array|false
+     */
     public function do_export_records( $params = false)
     {
         $this->reset_error();
@@ -1318,20 +1349,20 @@ class PHS_Paginator extends PHS_Registry
         $export_action_scope = PHS_Scope::SCOPE_WEB;
 
         if( !($columns_arr = $this->get_columns_for_scope( $export_action_scope ))
-         or !is_array( $columns_arr ) )
+         || !is_array( $columns_arr ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'No columns defined for paginator. Export failed.' ) );
             return false;
         }
 
         $columns_count = 0;
-        if( !empty( $columns_arr ) and is_array( $columns_arr ) )
+        if( !empty( $columns_arr ) && is_array( $columns_arr ) )
             $columns_count = count( $columns_arr );
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( empty( $params['filter_records_fields'] ) or !is_array( $params['filter_records_fields'] ) )
+        if( empty( $params['filter_records_fields'] ) || !is_array( $params['filter_records_fields'] ) )
             $params['filter_records_fields'] = false;
 
         if( empty( $params['ignore_headers'] ) )
@@ -1343,15 +1374,15 @@ class PHS_Paginator extends PHS_Registry
             $params['model_query_params'] = false;
 
         if( empty( $params['request_render_type'] )
-         or !self::valid_render_type( $params['request_render_type'] ) )
+         || !self::valid_render_type( $params['request_render_type'] ) )
             $params['request_render_type'] = self::CELL_RENDER_TEXT;
 
-        if( empty( $params['exporter_library_params'] ) or !is_array( $params['exporter_library_params'] ) )
+        if( empty( $params['exporter_library_params'] ) || !is_array( $params['exporter_library_params'] ) )
             $params['exporter_library_params'] = false;
 
         if( empty( $params['exporter_library'] ) )
         {
-            $exporter_library_params = array();
+            $exporter_library_params = [];
             $exporter_library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_Paginator_exporter_csv';
             $exporter_library_params['init_params'] = $params['exporter_library_params'];
 
@@ -1367,7 +1398,7 @@ class PHS_Paginator extends PHS_Registry
 
         /** @var \phs\libraries\PHS_Paginator_exporter_library $exporter_library_obj */
         if( !($exporter_library_obj = $params['exporter_library'])
-         or !($exporter_library_obj instanceof PHS_Paginator_exporter_library) )
+         || !($exporter_library_obj instanceof PHS_Paginator_exporter_library) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Provided library is not a paginator export library.' ) );
             return false;
@@ -1396,7 +1427,7 @@ class PHS_Paginator extends PHS_Registry
         $record_data = $this->default_export_record_data();
 
         if( empty( $params['ignore_headers'] )
-        and ($header_arr = $this->get_columns_header_as_array( $export_action_scope )) )
+        && ($header_arr = $this->get_columns_header_as_array( $export_action_scope )) )
         {
             $record_data['is_header'] = true;
             $record_data['record_arr'] = $header_arr;
@@ -1428,12 +1459,12 @@ class PHS_Paginator extends PHS_Registry
         $return_arr['export_full_file_path'] = $exporter_library_obj->export_registry( 'export_full_file_path' );
 
         // sanity check
-        if( empty( $records_arr ) or !is_array( $records_arr ) )
+        if( empty( $records_arr ) || !is_array( $records_arr ) )
             $records_arr = false;
-        if( empty( $query_id ) or !($query_id instanceof \mysqli_result) )
+        if( empty( $query_id ) || !($query_id instanceof \mysqli_result) )
             $query_id = false;
 
-        if( empty( $records_arr ) and empty( $query_id ) )
+        if( empty( $records_arr ) && empty( $query_id ) )
         {
             $exporter_library_obj->finish_output();
 
@@ -1443,7 +1474,7 @@ class PHS_Paginator extends PHS_Registry
         // Records have query fields in keys (usually unique ids, but not necessary consecutive)
         $records_keys_arr = false;
         $records_keys_index = 0;
-        if( !empty( $records_arr ) and is_array( $records_arr ) )
+        if( !empty( $records_arr ) && is_array( $records_arr ) )
             $records_keys_arr = array_keys( $records_arr );
 
         $record_index = '';
@@ -1478,7 +1509,7 @@ class PHS_Paginator extends PHS_Registry
             {
                 // get record from $records_arr array
                 if( !isset( $records_keys_arr[$records_keys_index] )
-                 or !($db_record_arr = $records_arr[$records_keys_arr[$records_keys_index]]) )
+                 || !($db_record_arr = $records_arr[$records_keys_arr[$records_keys_index]]) )
                     $db_record_arr = false;
 
                 else
@@ -1502,10 +1533,10 @@ class PHS_Paginator extends PHS_Registry
             $cell_render_params['table_field'] = false;
             $cell_render_params['preset_content'] = '';
 
-            $record_arr = array();
+            $record_arr = [];
             foreach( $columns_arr as $column_arr )
             {
-                if( empty( $column_arr ) or !is_array( $column_arr ) )
+                if( empty( $column_arr ) || !is_array( $column_arr ) )
                     continue;
 
                 $cell_render_params['column'] = $column_arr;
@@ -1524,13 +1555,13 @@ class PHS_Paginator extends PHS_Registry
 
             // Validate selection filters based on record field keys
             if( $fields_filters === false
-            and !empty( $params['filter_records_fields'] ) )
+            && !empty( $params['filter_records_fields'] ) )
             {
-                $fields_filters = array();
+                $fields_filters = [];
                 foreach( $params['filter_records_fields'] as $field_key => $filter_values )
                 {
                     if( !isset( $record_arr[$field_key] )
-                     or empty( $filter_values ) or !is_array( $filter_values ) )
+                     || empty( $filter_values ) || !is_array( $filter_values ) )
                         continue;
 
                     $fields_filters[$field_key] = $filter_values;
@@ -1543,7 +1574,7 @@ class PHS_Paginator extends PHS_Registry
                 foreach( $fields_filters as $field_key => $filter_values )
                 {
                     if( isset( $record_arr[$field_key] )
-                    and !in_array( $record_arr[$field_key], $filter_values ) )
+                    && !in_array( $record_arr[$field_key], $filter_values ) )
                     {
                         $should_continue = true;
                         break;
@@ -1584,19 +1615,24 @@ class PHS_Paginator extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param false|int $scope
+     *
+     * @return array
+     */
     public function get_columns_header_as_array( $scope = false )
     {
         if( $scope === false )
             $scope = PHS_Scope::current_scope();
 
         if( !($columns_arr = $this->get_columns_for_scope( $scope ))
-         or !is_array( $columns_arr ) )
-            return array();
+         || !is_array( $columns_arr ) )
+            return [];
 
-        $return_arr = array();
+        $return_arr = [];
         foreach( $columns_arr as $column_array_index => $column_arr )
         {
-            if( empty( $column_arr ) or !is_array( $column_arr ) )
+            if( empty( $column_arr ) || !is_array( $column_arr ) )
                 continue;
 
             $return_arr[$column_array_index] = (!empty( $column_arr['column_title'] )?$column_arr['column_title']:'');
@@ -1605,12 +1641,17 @@ class PHS_Paginator extends PHS_Registry
         return $return_arr;
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return bool
+     */
     protected function query_records_for_export( $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         // In case we want to export all records or only records from current page...
         if( empty( $params['export_all_records'] ) )
@@ -1618,7 +1659,7 @@ class PHS_Paginator extends PHS_Registry
         else
             $params['export_all_records'] = true;
 
-        $records_params = array();
+        $records_params = [];
         if( !empty( $params['export_all_records'] ) )
         {
             $records_params['store_query_id'] = true;
@@ -1632,12 +1673,17 @@ class PHS_Paginator extends PHS_Registry
         return $this->query_model_for_records( $records_params );
     }
 
+    /**
+     * @param false|array $params
+     *
+     * @return bool
+     */
     public function query_model_for_records( $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['force'] ) )
             $params['force'] = false;
@@ -1657,8 +1703,8 @@ class PHS_Paginator extends PHS_Registry
         $current_records = $this->get_records();
 
         if( empty( $params['force'] )
-        and (!empty( $current_records )
-                or $this->flow_param( 'did_query_database' )) )
+        && (!empty( $current_records )
+                || $this->flow_param( 'did_query_database' )) )
             return true;
 
         if( !empty( $params['force'] )
@@ -1676,16 +1722,16 @@ class PHS_Paginator extends PHS_Registry
 
         if( !($scope_arr = $this->get_scope())
          || !is_array( $scope_arr ) )
-            $scope_arr = array();
+            $scope_arr = [];
 
         if( !($filters_arr = $this->get_filters())
          || !is_array( $filters_arr ) )
-            $filters_arr = array();
+            $filters_arr = [];
 
-        $initial_fields = array();
+        $initial_fields = [];
         if( !($list_arr = $this->flow_param( 'initial_list_arr' ))
          || !is_array( $list_arr ) )
-            $list_arr = array();
+            $list_arr = [];
 
         elseif( !empty( $list_arr['fields'] )
              && is_array( $list_arr['fields'] ) )
@@ -1705,15 +1751,35 @@ class PHS_Paginator extends PHS_Registry
 
         foreach( $filters_arr as $filter_arr )
         {
+            // Accept empty $filter_arr['record_field'], but this means it will be a raw query...
             if( empty( $filter_arr ) || !is_array( $filter_arr )
              || empty( $filter_arr['var_name'] )
-             || empty( $filter_arr['record_field'] )
+             || (empty( $filter_arr['record_field'] ) && empty( $filter_arr['switch_filter'] ) && empty( $filter_arr['raw_query'] ))
              || !isset( $scope_arr[$filter_arr['var_name']] )
              || ($filter_arr['default'] !== false && $scope_arr[$filter_arr['var_name']] == $filter_arr['default']) )
                 continue;
 
-            if( !empty( $filter_arr['record_check'] )
-             && is_array( $filter_arr['record_check'] ) )
+            // If we have a "switch" filter, check value for provided filter and merge any options for specific case
+            if( !empty( $filter_arr['switch_filter'] ) && is_array( $filter_arr['switch_filter'] ) )
+            {
+                if( empty( $filter_arr['switch_filter'][$scope_arr[$filter_arr['var_name']]] )
+                 || !is_array( $filter_arr['switch_filter'][$scope_arr[$filter_arr['var_name']]] ) )
+                    continue;
+
+                $new_filter = $filter_arr['switch_filter'][$scope_arr[$filter_arr['var_name']]];
+                foreach( [ 'var_name', 'default' ] as $key )
+                {
+                    if( isset( $new_filter[$key] ) )
+                        unset( $new_filter[$key] );
+                }
+
+                $filter_arr = self::merge_array_assoc( $filter_arr, $new_filter );
+            }
+
+            if( !empty( $filter_arr['raw_record_check'] ) && is_array( $filter_arr['raw_record_check'] ) )
+            {
+                $check_value = $filter_arr['raw_record_check'];
+            } elseif( !empty( $filter_arr['record_check'] ) && is_array( $filter_arr['record_check'] ) )
             {
                 if( isset( $filter_arr['record_check']['value'] )
                  && strpos( $filter_arr['record_check']['value'], '%s' ) !== false )
@@ -1757,44 +1823,54 @@ class PHS_Paginator extends PHS_Registry
             }
 
             if( empty( $check_value )
-             || empty( $filter_arr['record_check'] ) )
+             || (empty( $filter_arr['record_check'] ) && empty( $filter_arr['raw_record_check'] )) )
                 $check_value = $scope_arr[$filter_arr['var_name']];
 
-            // If in initial list we were passed predefined filters and now we have an end-user filter,
-            // discard predefined filter and use what end-user passed us
-            if( !empty( $initial_fields )
-             && !empty( $initial_fields[$filter_arr['record_field']] )
-             && isset( $list_arr['fields'][$filter_arr['record_field']] ) )
+            // Accept empty $filter_arr['record_field'], but this means it will be a raw query...
+            if( empty( $filter_arr['record_field'] ) )
             {
-                unset( $list_arr['fields'][$filter_arr['record_field']] );
-                unset( $initial_fields[$filter_arr['record_field']] );
+                if( strpos( $filter_arr['raw_query'], '%s' ) !== false )
+                    $filter_arr['raw_query'] = self::sprintf_all( $filter_arr['raw_query'], $scope_arr[$filter_arr['var_name']] );
 
-                if( empty( $initial_fields ) )
-                    $initial_fields = array();
-            }
-
-            // 'record_field' is always what we send to database...
-            if( isset( $list_arr['fields'][$filter_arr['record_field']] ) )
-            {
-                if( !is_array( $list_arr['fields'][$filter_arr['record_field']] )
-                 || empty( $list_arr['fields'][$filter_arr['record_field']][0] ) )
-                {
-                    $list_arr['fields'][$filter_arr['record_field']] = array( $list_arr['fields'][$filter_arr['record_field']] );
-                    $count_list_arr['fields'][$filter_arr['record_field']] = array( $count_list_arr['fields'][$filter_arr['record_field']] );
-                }
-
-                $list_arr['fields'][$filter_arr['record_field']][] = $check_value;
-                $count_list_arr['fields'][$filter_arr['record_field']][] = $check_value;
-
-                if( !empty( $filter_arr['linkage_func'] ) )
-                {
-                    $list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
-                    $count_list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
-                }
+                $list_arr['fields'][] = [ 'raw' => $filter_arr['raw_query'] ];
             } else
             {
-                $list_arr['fields'][$filter_arr['record_field']] = $check_value;
-                $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
+                // If in initial list we were passed predefined filters and now we have an end-user filter,
+                // discard predefined filter and use what end-user passed us
+                if( !empty( $initial_fields )
+                 && !empty( $initial_fields[$filter_arr['record_field']] )
+                 && isset( $list_arr['fields'][$filter_arr['record_field']] ) )
+                {
+                    unset( $list_arr['fields'][$filter_arr['record_field']] );
+                    unset( $initial_fields[$filter_arr['record_field']] );
+
+                    if( empty( $initial_fields ) )
+                        $initial_fields = [];
+                }
+
+                // 'record_field' is always what we send to database...
+                if( isset( $list_arr['fields'][$filter_arr['record_field']] ) )
+                {
+                    if( !is_array( $list_arr['fields'][$filter_arr['record_field']] )
+                     || empty( $list_arr['fields'][$filter_arr['record_field']][0] ) )
+                    {
+                        $list_arr['fields'][$filter_arr['record_field']] = [ $list_arr['fields'][$filter_arr['record_field']] ];
+                        $count_list_arr['fields'][$filter_arr['record_field']] = [ $count_list_arr['fields'][$filter_arr['record_field']] ];
+                    }
+
+                    $list_arr['fields'][$filter_arr['record_field']][] = $check_value;
+                    $count_list_arr['fields'][$filter_arr['record_field']][] = $check_value;
+
+                    if( !empty( $filter_arr['linkage_func'] ) )
+                    {
+                        $list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
+                        $count_list_arr['fields'][$filter_arr['record_field']]['linkage_func'] = $filter_arr['linkage_func'];
+                    }
+                } else
+                {
+                    $list_arr['fields'][$filter_arr['record_field']] = $check_value;
+                    $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
+                }
             }
         }
 
@@ -1827,7 +1903,7 @@ class PHS_Paginator extends PHS_Registry
 
         $sort_type_added = false;
         if( ($db_sort_by = $this->pagination_params( 'db_sort_by' ))
-        and is_string( $db_sort_by ) )
+        && is_string( $db_sort_by ) )
         {
             if( strpos( $db_sort_by, '%s' ) !== false )
             {
@@ -1839,11 +1915,11 @@ class PHS_Paginator extends PHS_Registry
         }
 
         elseif( ($sort_by = $this->pagination_params( 'sort_by' ))
-        and is_string( $sort_by ) )
+        && is_string( $sort_by ) )
             $list_arr['order_by'] = ((strpos( $sort_by, '.' ) === false)?'`'.$model_obj->get_flow_table_name( $model_flow_params ).'`.':'').$sort_by;
 
         if( !empty( $list_arr['order_by'] )
-        and empty( $sort_type_added ) )
+        && empty( $sort_type_added ) )
             $list_arr['order_by'] .= ' '.(empty( $sort )?'ASC':'DESC');
 
         if( !empty( $params['store_query_id'] ) )
@@ -1858,7 +1934,7 @@ class PHS_Paginator extends PHS_Registry
         else
         {
             if( empty( $query_result ) )
-                $query_result = array();
+                $query_result = [];
 
             $this->set_records( $query_result );
         }
@@ -1868,7 +1944,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function get_column_name( $column_arr, $for_scope = false )
     {
-        if( empty( $column_arr ) or !is_array( $column_arr ) )
+        if( empty( $column_arr ) || !is_array( $column_arr ) )
             return false;
 
         if( $for_scope === false )
@@ -1876,10 +1952,10 @@ class PHS_Paginator extends PHS_Registry
 
         $column_name = false;
         if( $for_scope == PHS_Scope::SCOPE_API
-        and !empty( $column_arr['record_api_field'] ) )
+        && !empty( $column_arr['record_api_field'] ) )
             $column_name = $column_arr['record_api_field'];
 
-        elseif( !empty( $column_arr['record_field'] ) or !empty( $column_arr['record_db_field'] ) )
+        elseif( !empty( $column_arr['record_field'] ) || !empty( $column_arr['record_db_field'] ) )
         {
             if( !empty( $column_arr['record_db_field'] ) )
                 $column_name = $column_arr['record_db_field'];
@@ -1892,15 +1968,15 @@ class PHS_Paginator extends PHS_Registry
 
     public function render_column_for_record( $render_params )
     {
-        if( empty( $render_params ) or !is_array( $render_params ) )
+        if( empty( $render_params ) || !is_array( $render_params ) )
             $render_params = array();
 
         if( empty( $render_params['request_render_type'] )
-         or !self::valid_render_type( $render_params['request_render_type'] ) )
+         || !self::valid_render_type( $render_params['request_render_type'] ) )
             $render_params['request_render_type'] = self::CELL_RENDER_HTML;
 
-        if( empty( $render_params['record'] ) or !is_array( $render_params['record'] )
-         or empty( $render_params['column'] ) or !is_array( $render_params['column'] ) )
+        if( empty( $render_params['record'] ) || !is_array( $render_params['record'] )
+         || empty( $render_params['column'] ) || !is_array( $render_params['column'] ) )
             return '!'.self::_t( 'Unkown column or invalid record' ).'!';
 
         $column_arr = $render_params['column'];
@@ -1914,23 +1990,23 @@ class PHS_Paginator extends PHS_Registry
 
         $field_exists_in_record = false;
         if( !empty( $field_name )
-        and array_key_exists( $field_name, $record_arr ) )
+        && array_key_exists( $field_name, $record_arr ) )
             $field_exists_in_record = true;
 
         $cell_content = null;
         if( empty( $column_arr['record_field'] )
-        and empty( $column_arr['record_db_field'] )
-        and empty( $column_arr['record_api_field'] )
-        and empty( $column_arr['display_callback'] ) )
+        && empty( $column_arr['record_db_field'] )
+        && empty( $column_arr['record_api_field'] )
+        && empty( $column_arr['display_callback'] ) )
             $cell_content = '!'.self::_t( 'Bad column setup' ).'!';
 
         elseif( $render_params['for_scope'] != PHS_Scope::SCOPE_API
-             or empty( $field_exists_in_record ) )
+             || empty( $field_exists_in_record ) )
         {
             if( !empty( $column_arr['display_key_value'] )
-            and is_array( $column_arr['display_key_value'] )
-            and !empty( $field_name )
-            and isset( $record_arr[$field_name] ) )
+            && is_array( $column_arr['display_key_value'] )
+            && !empty( $field_name )
+            && isset( $record_arr[$field_name] ) )
             {
                 if( isset( $column_arr['display_key_value'][$record_arr[$field_name]] ) )
                     $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
@@ -1939,10 +2015,10 @@ class PHS_Paginator extends PHS_Registry
             }
 
             elseif( !empty( $model_obj )
-                and !empty( $field_name )
-                and $field_exists_in_record
-                and ($field_details = $model_obj->table_field_details( $field_name ))
-                and is_array( $field_details ) )
+                && !empty( $field_name )
+                && $field_exists_in_record
+                && ($field_details = $model_obj->table_field_details( $field_name ))
+                && is_array( $field_details ) )
             {
                 switch( $field_details['type'] )
                 {
@@ -1961,12 +2037,12 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if( $cell_content === null
-        and !empty( $field_name )
-        and $field_exists_in_record )
+        && !empty( $field_name )
+        && $field_exists_in_record )
             $cell_content = $record_arr[$field_name];
 
-        if( ($cell_content === null or $render_params['for_scope'] != PHS_Scope::SCOPE_API)
-        and !empty( $column_arr['display_callback'] ) )
+        if( ($cell_content === null || $render_params['for_scope'] != PHS_Scope::SCOPE_API)
+        && !empty( $column_arr['display_callback'] ) )
         {
             if( !@is_callable( $column_arr['display_callback'] ) )
                 $cell_content = '!'.self::_t( 'Cell callback failed.' ).'!';
@@ -1974,9 +2050,9 @@ class PHS_Paginator extends PHS_Registry
             else
             {
                 if( empty( $field_name )
-                 or !$field_exists_in_record
-                 or !($field_details = $model_obj->table_field_details( $field_name ))
-                 or !is_array( $field_details ) )
+                 || !$field_exists_in_record
+                 || !($field_details = $model_obj->table_field_details( $field_name ))
+                 || !is_array( $field_details ) )
                     $field_details = false;
 
                 $cell_callback_params = $render_params;
@@ -1985,19 +2061,19 @@ class PHS_Paginator extends PHS_Registry
                 $cell_callback_params['extra_callback_params'] = (!empty( $column_arr['extra_callback_params'] )?$column_arr['extra_callback_params']:false);
 
                 if( ($cell_content = @call_user_func( $column_arr['display_callback'], $cell_callback_params )) === false
-                 or $cell_content === null )
+                 || $cell_content === null )
                     $cell_content = '!' . $this::_t( 'Render cell call failed.' ) . '!';
             }
         }
 
         // Allow display_callback parameter on checkbox fields...
         if( $render_params['for_scope'] != PHS_Scope::SCOPE_API
-        and $this->get_checkbox_name_for_column( $column_arr ) )
+        && $this->get_checkbox_name_for_column( $column_arr ) )
         {
             if( empty( $field_name )
-             or !isset( $record_arr[$field_name] )
-             or !($field_details = $model_obj->table_field_details( $field_name ))
-             or !is_array( $field_details ) )
+             || !isset( $record_arr[$field_name] )
+             || !($field_details = $model_obj->table_field_details( $field_name ))
+             || !is_array( $field_details ) )
                 $field_details = false;
 
             $cell_callback_params = $render_params;
@@ -2005,7 +2081,7 @@ class PHS_Paginator extends PHS_Registry
             $cell_callback_params['preset_content'] = ($cell_content === null?'':$cell_content);
 
             if( ($checkbox_content = $this->display_checkbox_column( $cell_callback_params )) !== false
-            and $checkbox_content !== null and is_string( $checkbox_content ) )
+            && $checkbox_content !== null && is_string( $checkbox_content ) )
                 $cell_content = $checkbox_content;
         }
 
@@ -2028,8 +2104,8 @@ class PHS_Paginator extends PHS_Registry
             $records_arr = array();
 
         if( empty( $records_arr )
-        and $this->get_model()
-        and !$this->flow_param( 'did_query_database' ) )
+        && $this->get_model()
+        && !$this->flow_param( 'did_query_database' ) )
         {
             if( !$this->query_model_for_records() )
             {
@@ -2044,8 +2120,8 @@ class PHS_Paginator extends PHS_Registry
 
         // If records was provided from outside paginator class and no records count was provided just assume these are all records...
         if( !empty( $records_arr )
-        and is_array( $records_arr )
-        and $this->pagination_params( 'total_records' ) == -1 )
+        && is_array( $records_arr )
+        && $this->pagination_params( 'total_records' ) == -1 )
             $this->set_records_count( count( $records_arr ) );
 
         if( !($listing_buffer = $this->render_template( 'paginator_list' )) )
@@ -2069,24 +2145,30 @@ class PHS_Paginator extends PHS_Registry
     public function get_full_buffer()
     {
         if( !($listing_buffer = $this->get_listing_result())
-         or !is_string( $listing_buffer ) )
+         || !is_string( $listing_buffer ) )
             $listing_buffer = '';
 
         if( !($filters_buffer = $this->get_filters_result())
-         or !is_string( $filters_buffer ) )
+         || !is_string( $filters_buffer ) )
             $filters_buffer = '';
 
         return $filters_buffer.$listing_buffer;
     }
 
+    /**
+     * @param $template
+     * @param false|array $template_data
+     *
+     * @return bool|string
+     */
     final public function render_template( $template, $template_data = false )
     {
         $this->reset_error();
 
-        if( empty( $template_data ) or !is_array( $template_data ) )
-            $template_data['paginator'] = $this;
+        if( empty( $template_data ) || !is_array( $template_data ) )
+            $template_data = [ 'paginator' => $this ];
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['plugin'] = false;
@@ -2101,8 +2183,8 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $rendering_params = false;
-        if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
-            $rendering_params = array( 'only_string_result' => false );
+        if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
+            $rendering_params = [ 'only_string_result' => false ];
 
         // in API scope return could be an array to place in response
         if( ($buffer = $view_obj->render( false, false, $rendering_params )) === false )
