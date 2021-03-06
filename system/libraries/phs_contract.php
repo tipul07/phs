@@ -51,10 +51,11 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @param array $outside_data_arr
      * @param false|array $params_arr
+     * @param false|array $extra_arr
      *
      * @return mixed
      */
-    public function pre_processing_from_outside_source( $outside_data_arr, $params_arr = false )
+    public function pre_processing_from_outside_source( $outside_data_arr, $params_arr = false, $extra_arr = false )
     {
         return $outside_data_arr;
     }
@@ -65,10 +66,11 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @param array $inside_data_arr
      * @param false|array $params_arr
+     * @param false|array $extra_arr
      *
      * @return mixed
      */
-    public function pre_processing_from_inside_source( $inside_data_arr, $params_arr = false )
+    public function pre_processing_from_inside_source( $inside_data_arr, $params_arr = false, $extra_arr = false )
     {
         return $inside_data_arr;
     }
@@ -79,10 +81,11 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @param mixed $result_arr
      * @param false|array $params_arr
+     * @param false|array $extra_arr
      *
      * @return mixed
      */
-    public function post_processing_from_outside_source( $result_arr, $params_arr = false )
+    public function post_processing_from_outside_source( $result_arr, $params_arr = false, $extra_arr = false )
     {
         return $result_arr;
     }
@@ -93,10 +96,11 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @param mixed $result_arr
      * @param false|array $params_arr
+     * @param false|array $extra_arr
      *
      * @return mixed
      */
-    public function post_processing_from_inside_source( $result_arr, $params_arr = false )
+    public function post_processing_from_inside_source( $result_arr, $params_arr = false, $extra_arr = false )
     {
         return $result_arr;
     }
@@ -236,9 +240,13 @@ abstract class PHS_Contract extends PHS_Instantiable
         if( empty( $params['post_processing_params'] ) || !is_array( $params['post_processing_params'] ) )
             $params['post_processing_params'] = false;
 
+        $processing_params = [];
+        $processing_params['lvl'] = $params['lvl'];
+        $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
+
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract'])
-         && null !== ($new_outside_data = $lvl_contract->pre_processing_from_outside_source( $outside_data, $params['pre_processing_params'] )) )
+         && null !== ($new_outside_data = $lvl_contract->pre_processing_from_outside_source( $outside_data, $params['pre_processing_params'], $processing_params )) )
             $outside_data = $new_outside_data;
 
         $return_arr = [];
@@ -286,7 +294,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                      && ($contract_obj = $node_arr['nodes_from_contract']) )
                     {
                         // If post processing returns null, we ignore this record
-                        if( null === ($result_item = $contract_obj->post_processing_from_outside_source( $result_item, $params['post_processing_params'] )) )
+                        if( null === ($result_item = $contract_obj->post_processing_from_outside_source( $result_item, $params['post_processing_params'], $processing_params )) )
                             continue;
                     }
 
@@ -326,7 +334,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                  && ($contract_obj = $node_arr['nodes_from_contract']) )
                 {
                     // If post processing returns null, we ignore this record
-                    if( null === ($result_item = $contract_obj->post_processing_from_outside_source( $result_item, $params['post_processing_params'] )) )
+                    if( null === ($result_item = $contract_obj->post_processing_from_outside_source( $result_item, $params['post_processing_params'], $processing_params )) )
                         continue;
                 }
 
@@ -341,7 +349,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         }
 
         // Post-process for "root" object
-        if( null === ($return_arr = $this->post_processing_from_outside_source( $return_arr, $params['post_processing_params'] )) )
+        if( null === ($return_arr = $this->post_processing_from_outside_source( $return_arr, $params['post_processing_params'], $processing_params )) )
             return false;
 
         return $return_arr;
@@ -594,9 +602,13 @@ abstract class PHS_Contract extends PHS_Instantiable
         if( empty( $params['post_processing_params'] ) || !is_array( $params['post_processing_params'] ) )
             $params['post_processing_params'] = false;
 
+        $processing_params = [];
+        $processing_params['lvl'] = $params['lvl'];
+        $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
+
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract'])
-         && null !== ($new_inside_data = $lvl_contract->pre_processing_from_inside_source( $inside_data, $params['pre_processing_params'] )) )
+         && null !== ($new_inside_data = $lvl_contract->pre_processing_from_inside_source( $inside_data, $params['pre_processing_params'], $processing_params )) )
             $inside_data = $new_inside_data;
 
         $return_arr = [];
@@ -651,7 +663,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                              && ($contract_obj = $node_arr['nodes_from_contract']) )
                             {
                                 // If post processing returns null, we ignore this record
-                                if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'] )) )
+                                if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'], $processing_params )) )
                                     continue;
                             }
 
@@ -697,7 +709,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                      && ($contract_obj = $node_arr['nodes_from_contract']) )
                     {
                         // If post processing returns null, we ignore this record
-                        if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'] )) )
+                        if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'], $processing_params )) )
                             continue;
                     }
 
@@ -737,7 +749,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                  && ($contract_obj = $node_arr['nodes_from_contract']) )
                 {
                     // If post processing returns null, we ignore this record
-                    if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'] )) )
+                    if( null === ($result_item = $contract_obj->post_processing_from_inside_source( $result_item, $params['post_processing_params'], $processing_params )) )
                         continue;
                 }
 
@@ -752,7 +764,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         }
 
         // Post-process for "root" object
-        if( null === ($return_arr = $this->post_processing_from_inside_source( $return_arr, $params['post_processing_params'] )) )
+        if( null === ($return_arr = $this->post_processing_from_inside_source( $return_arr, $params['post_processing_params'], $processing_params )) )
             return false;
 
         return $return_arr;
