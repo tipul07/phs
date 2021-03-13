@@ -26,7 +26,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /** @var bool|array $_plugin_json_details */
     private $_plugin_json_details = false;
 
-    private $_custom_lang_files_included = false;
+    // For which languages we already checked plugin language file
+    // Languages might be defined by other plugins at bootstrap and current language might change
+    private $_custom_lang_files_included = [];
 
     final public function instance_type()
     {
@@ -214,11 +216,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function include_plugin_language_files()
     {
-        if( $this->_custom_lang_files_included
-         || !($current_language = self::get_current_language()) )
+        if( !($current_language = self::get_current_language())
+         || !empty( $this->_custom_lang_files_included[$current_language] ) )
             return;
 
-        $this->_custom_lang_files_included = true;
+        $this->_custom_lang_files_included[$current_language] = true;
 
         $languages_dir = $this->instance_plugin_languages_path();
 

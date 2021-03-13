@@ -439,7 +439,7 @@ class PHSTests extends PHS_Cli
         $this->_echo( '' );
         $this->_echo( self::_t( 'Behat integration' ).':' );
         if( empty( $plugin_info['behat'] ) or !is_array( $plugin_info['behat'] ) )
-            $this->_echo( self::_t( '  N/A' ) );
+            $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
         {
@@ -489,7 +489,7 @@ class PHSTests extends PHS_Cli
         $this->_echo( '' );
         $this->_echo( self::_t( 'PHPUnit integration' ).':' );
         if( empty( $plugin_info['phpunit'] ) or !is_array( $plugin_info['phpunit'] ) )
-            $this->_echo( self::_t( '  N/A' ) );
+            $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
         {

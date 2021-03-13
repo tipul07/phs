@@ -176,7 +176,7 @@ trait PHS_Cli_plugins_trait
 
         $this->_echo( self::_t( 'Models' ).':' );
         if( empty( $plugin_info['models'] ) or !is_array( $plugin_info['models'] ) )
-            $this->_echo( self::_t( '  N/A' ) );
+            $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
         {
@@ -191,7 +191,7 @@ trait PHS_Cli_plugins_trait
 
         $this->_echo( self::_t( 'Agent jobs' ).':' );
         if( empty( $plugin_info['agent_jobs'] ) or !is_array( $plugin_info['agent_jobs'] ) )
-            $this->_echo( self::_t( '  N/A' ) );
+            $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
         {
