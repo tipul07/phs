@@ -9,13 +9,13 @@
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
-if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) or !constant( 'PHS_DEFAULT_CRYPT_KEY' ) )
+if( !defined( 'PHS_DEFAULT_CRYPT_KEY' ) || !constant( 'PHS_DEFAULT_CRYPT_KEY' ) )
 {
     echo 'You should generate first your crypting key and update main.php <em>PHS_DEFAULT_CRYPT_KEY</em> constant.';
     exit;
 }
 
-if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) or !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) || !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
 {
     echo 'You should generate first your crypting keys and update main.php '.
          ' <em>$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR</em> array variable using <em>_new_crypt_keys.php</em> script.';
@@ -155,7 +155,7 @@ if( PHS::st_debugging_mode() )
     ini_set( 'display_errors', true );
     ini_set( 'display_startup_errors', true );
 
-    $old_error_handler = @set_error_handler( array( '\phs\PHS', 'error_handler' ) );
+    $old_error_handler = @set_error_handler( [ '\phs\PHS', 'error_handler' ] );
 } else
 {
     // Make sure we don't display errors if we'r not in debugging mode
@@ -167,7 +167,7 @@ if( PHS::st_debugging_mode() )
 //
 // Default database settings
 //
-$mysql_settings = array();
+$mysql_settings = [];
 $mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
 $mysql_settings['host'] = PHS_DB_HOSTNAME;
 $mysql_settings['user'] = PHS_DB_USERNAME;
@@ -179,7 +179,7 @@ $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
 $mysql_settings['charset'] = PHS_DB_CHARSET;
 $mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
-$mysql_settings['driver_settings'] = array();
+$mysql_settings['driver_settings'] = [];
 if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )
     $mysql_settings['driver_settings'] = constant( 'PHS_DB_DRIVER_SETTINGS' );
 
@@ -190,7 +190,7 @@ if( !empty( $mysql_settings['driver_settings'] ) )
 }
 
 if( !is_array( $mysql_settings['driver_settings'] ) )
-    $mysql_settings['driver_settings'] = array();
+    $mysql_settings['driver_settings'] = [];
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
@@ -199,7 +199,7 @@ PHS_Db::check_db_fields_boundaries( true );
 
 if( !PHS_Db::add_db_connection( PHS_DB_DEFAULT_CONNECTION, $mysql_settings ) )
 {
-    echo 'ERROR ';
+    echo 'ERROR adding default database connection settings.';
     exit;
 }
 //
@@ -278,7 +278,7 @@ if( !($plugins_model = PHS::load_model( 'plugins' )) )
 {
     echo PHS::_t( 'ERROR Instantiating plugins model.' )."\n";
     if( PHS::st_debugging_mode() )
-        PHS::var_dump( PHS::st_get_error(), array( 'max_level' => 5 ) );
+        PHS::var_dump( PHS::st_get_error(), [ 'max_level' => 5 ] );
     exit;
 }
 
@@ -295,16 +295,16 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
             echo PHS::_t( 'ERROR Connecting to database. Please check your database connection settings.' );
 
             if( PHS::arr_has_error( $plugins_model_err )
-            and PHS::st_debugging_mode() )
-                PHS::var_dump( $plugins_model_err, array( 'max_level' => 5 ) );
+             && PHS::st_debugging_mode() )
+                PHS::var_dump( $plugins_model_err, [ 'max_level' => 5 ] );
             exit;
         }
 
-        $active_plugins = array();
+        $active_plugins = [];
     }
 
     if( empty( $active_plugins )
-    and !$plugins_model->check_table_exists( array( 'table_name' => 'plugins' )) )
+     && !$plugins_model->check_table_exists( [ 'table_name' => 'plugins' ] ) )
     {
         if( !@is_dir( PHS_SETUP_DIR ) )
             echo 'It seems you didn\'t run yet install script.';
@@ -312,17 +312,20 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
         // If we have a main.php script it means platform was setup before
         // Don't redirect to setup script
         elseif( !@is_file( PHS_PATH.'main.php' ) )
-            echo 'It seems plugins table is missing. Please check framework setup.';
+            echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_update in CLI.';
 
         else
-            @header( 'Location: '.PHS_SETUP_WWW );
+        {
+            @header( 'Location: ' . PHS_SETUP_WWW );
+            echo 'You should run ./bin/phs phs_update in CLI to setup database.';
+        }
 
         exit;
     }
 } else
 {
     if( !($active_plugins = $plugins_model->get_all_plugins()) )
-        $active_plugins = array();
+        $active_plugins = [];
 
     echo 'Checking plugins module installation... ';
 
@@ -335,11 +338,11 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
     echo PHS::_t( 'DONE' )."\n\n";
 }
 
-$bootstrap_scripts = array();
-$bootstrap_scripts_numbers = array( 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 );
+$bootstrap_scripts = [];
+$bootstrap_scripts_numbers = [ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 ];
 // Make sure we have right order for keys in array
 foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
-    $bootstrap_scripts[$bootstrap_scripts_number_i] = array();
+    $bootstrap_scripts[$bootstrap_scripts_number_i] = [];
 
 foreach( $active_plugins as $plugin_name => $plugin_db_arr )
 {
@@ -352,7 +355,7 @@ foreach( $active_plugins as $plugin_name => $plugin_db_arr )
 
 foreach( $bootstrap_scripts as $bootstrap_scripts_number_i => $bootstrap_scripts_arr )
 {
-    if( empty( $bootstrap_scripts_arr ) or !is_array( $bootstrap_scripts_arr ) )
+    if( empty( $bootstrap_scripts_arr ) || !is_array( $bootstrap_scripts_arr ) )
         continue;
 
     foreach( $bootstrap_scripts_arr as $bootstrap_script )
