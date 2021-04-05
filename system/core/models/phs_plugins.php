@@ -841,7 +841,8 @@ class PHS_Model_Plugins extends PHS_Model
             {
                 foreach( $obfuscating_keys as $ob_key )
                 {
-                    if( array_key_exists( $ob_key, $new_fields_arr['settings'] )
+                    if( is_array( $new_fields_arr['settings'] )
+                     && array_key_exists( $ob_key, $new_fields_arr['settings'] )
                      && is_scalar( $new_fields_arr['settings'][$ob_key] ) )
                         $new_fields_arr['settings'][$ob_key] = PHS_Crypt::quick_encode( $new_fields_arr['settings'][$ob_key] );
                 }

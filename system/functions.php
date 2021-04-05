@@ -149,7 +149,12 @@ function validate_ip( $ip )
 function request_ip()
 {
     $guessed_ip = '';
-    if( !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
+    // CloudFlare proxy
+    if( !empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) )
+        $guessed_ip = validate_ip( $_SERVER['HTTP_CF_CONNECTING_IP'] );
+
+    if( empty( $guessed_ip )
+     && !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
         $guessed_ip = validate_ip( $_SERVER['HTTP_CLIENT_IP'] );
 
     if( empty( $guessed_ip )
