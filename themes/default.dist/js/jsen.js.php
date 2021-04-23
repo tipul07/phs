@@ -1120,7 +1120,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                             if( options.onfailed ) {
                                 if( $.isFunction( options.onfailed ) )
-                                    options.onfailed();
+                                    options.onfailed( dialog_obj );
                                 else if( typeof options.onfailed == "string" )
                                     eval( options.onfailed );
                             }

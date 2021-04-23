@@ -112,7 +112,8 @@ class PHS_Scope_Ajax extends PHS_Scope
                 @header( 'Content-Type: text/html' );
                 if( is_string( $ajax_data ) )
                     echo $ajax_data;
-                elseif( !empty( $action_result['ajax_result'] ) )
+                elseif( !empty( $action_result['ajax_result'] )
+                     && is_string( $action_result['ajax_result'] ) )
                     echo $action_result['ajax_result'];
             } else
             {

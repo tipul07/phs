@@ -50,6 +50,9 @@ abstract class PHS_Api_action extends PHS_Action
             'response_data' => null,
             // Don't include error node automatically in response_data (send response_data node only to client)
             'only_response_data_node' => false,
+            // Tells if HTTP code should be interpretted as error
+            // In Ajax scope this means we will set response headers, so AJAX request can be interpreted as error
+            'http_code_is_error' => false,
             // HTTP code to return in response
             'http_code' => PHS_Api::H_CODE_OK,
             // If error.code != 0 and http_code == 200 => http_code = 500
@@ -111,6 +114,11 @@ abstract class PHS_Api_action extends PHS_Action
             }
         } elseif( $scope === PHS_Scope::SCOPE_AJAX )
         {
+            if( !empty( $response_data['http_code_is_error'] )
+             && !PHS_Api_base::http_header_response( $response_data['http_code'] ) )
+            {
+                return false;
+            }
         }
 
         $action_result['ajax_result'] = $response_data['response_data'];
@@ -139,6 +147,7 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_error;
+        $response_params['http_code_is_error'] = true;
         $response_params['error']['code'] = $error_no;
         $response_params['error']['message'] = $error_msg;
 
