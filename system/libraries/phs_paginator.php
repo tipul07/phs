@@ -1742,6 +1742,11 @@ class PHS_Paginator extends PHS_Registry
             }
         }
 
+        $linkage_func = 'AND';
+        if( !empty( $list_arr['fields']['{linkage_func}'] )
+         && in_array( strtolower( $list_arr['fields']['{linkage_func}'] ), [ 'and', 'or' ], true ) )
+            $linkage_func = strtoupper( $list_arr['fields']['{linkage_func}'] );
+
         if( !($count_list_arr = $this->flow_param( 'initial_count_list_arr' ))
          || !is_array( $count_list_arr ) )
             $count_list_arr = $list_arr;
@@ -1814,8 +1819,8 @@ class PHS_Paginator extends PHS_Registry
                         $linkage_params['extra_sql'] = self::sprintf_all( $linkage_params['extra_sql'], $final_value );
 
                         // In case we have complex linkages...
-                        $list_arr['extra_sql'] .= '('.$linkage_params['extra_sql'].')';
-                        $count_list_arr['extra_sql'] .= '('.$linkage_params['extra_sql'].')';
+                        $list_arr['extra_sql'] .= (!empty( $list_arr['extra_sql'] )?' '.$linkage_func.' ':'').' ('.$linkage_params['extra_sql'].')';
+                        $count_list_arr['extra_sql'] .= (!empty( $count_list_arr['extra_sql'] )?' '.$linkage_func.' ':'').' ('.$linkage_params['extra_sql'].')';
 
                         continue;
                     }
