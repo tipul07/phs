@@ -1009,7 +1009,7 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'edit';
         }
 
-        PHS_Logger::logf( 'Plugins model registry action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
+        PHS_Logger::logf( 'Plugins model registry action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          || empty( $validate_fields['data_arr'] ) )
@@ -1032,7 +1032,7 @@ class PHS_Model_Plugins extends PHS_Model
 
             $new_fields_arr['last_update'] = $cdate;
 
-            PHS_Logger::logf( 'New registry ['.$new_fields_arr['registry'].']', PHS_Logger::TYPE_INFO );
+            PHS_Logger::logf( 'New registry ['.$new_fields_arr['registry'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         $details_arr = $this->fetch_default_flow_params( [ 'table_name' => 'plugins_registry' ] );
@@ -1051,12 +1051,12 @@ class PHS_Model_Plugins extends PHS_Model
             if( !$this->has_error() )
                 $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin registry to database.' ) );
 
-            PHS_Logger::logf( '!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_INFO );
+            PHS_Logger::logf( '!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_INFO );
+        PHS_Logger::logf( 'DONE Plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         self::$db_registry[$fields_arr['instance_id']] = $plugin_registry_arr;
 
