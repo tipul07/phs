@@ -240,6 +240,14 @@ abstract class PHS_Contract extends PHS_Instantiable
         if( empty( $params['post_processing_params'] ) || !is_array( $params['post_processing_params'] ) )
             $params['post_processing_params'] = false;
 
+        if( empty( $params['ignore_nodes'] ) || !is_array( $params['ignore_nodes'] ) )
+            $params['ignore_nodes'] = false;
+        if( empty( $params['ignore_outside_nodes'] ) || !is_array( $params['ignore_outside_nodes'] ) )
+            $params['ignore_outside_nodes'] = false;
+
+        if( !($ignore_nodes = self::array_merge_unique_values( $params['ignore_nodes'], $params['ignore_outside_nodes'] )) )
+            $ignore_nodes = false;
+
         $processing_params = [];
         $processing_params['lvl'] = $params['lvl'];
         $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
@@ -252,7 +260,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach( $definition_arr as $node_key => $node_arr )
         {
-            if( $node_arr['key_type'] === self::FROM_INSIDE )
+            if( $node_arr['key_type'] === self::FROM_INSIDE
+             || (!empty( $ignore_nodes ) && in_array( $node_key, $ignore_nodes, true )) )
                 continue;
 
             // Make sure that we have a data to process
@@ -274,8 +283,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                     continue;
 
                 $rec_params = $params;
+                $rec_lvl = $rec_params['lvl'];
+
+                if( !empty( $node_arr['outside_parsing_params'] ) && is_array( $node_arr['outside_parsing_params'] ) )
+                    $rec_params = self::merge_array_assoc( $rec_params, $node_arr['outside_parsing_params'] );
+
                 $rec_params['lvl_contract'] = (!empty( $node_arr['nodes_from_contract'] )?$node_arr['nodes_from_contract']:null);
-                $rec_params['lvl']++;
+                // Make sure lvl doesn't get overwritten
+                $rec_params['lvl'] = $rec_lvl+1;
 
                 $recurring_items_no = 0;
                 foreach( $outside_data[$node_arr['outside_key']] as $knti => $outside_item )
@@ -322,8 +337,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                 $return_arr[$node_arr['inside_key']] = [];
 
                 $rec_params = $params;
+                $rec_lvl = $rec_params['lvl'];
+
+                if( !empty( $node_arr['outside_parsing_params'] ) && is_array( $node_arr['outside_parsing_params'] ) )
+                    $rec_params = self::merge_array_assoc( $rec_params, $node_arr['outside_parsing_params'] );
+
                 $rec_params['lvl_contract'] = (!empty( $node_arr['nodes_from_contract'] )?$node_arr['nodes_from_contract']:null);
-                $rec_params['lvl']++;
+                // Make sure lvl doesn't get overwritten
+                $rec_params['lvl'] = $rec_lvl+1;
 
                 if( false === ($result_item = $this->_parse_data_from_outside_source( $node_arr['nodes'], $outside_data[$node_arr['outside_key']], $rec_params )) )
                     continue;
@@ -602,6 +623,14 @@ abstract class PHS_Contract extends PHS_Instantiable
         if( empty( $params['post_processing_params'] ) || !is_array( $params['post_processing_params'] ) )
             $params['post_processing_params'] = false;
 
+        if( empty( $params['ignore_nodes'] ) || !is_array( $params['ignore_nodes'] ) )
+            $params['ignore_nodes'] = false;
+        if( empty( $params['ignore_inside_nodes'] ) || !is_array( $params['ignore_inside_nodes'] ) )
+            $params['ignore_inside_nodes'] = false;
+
+        if( !($ignore_nodes = self::array_merge_unique_values( $params['ignore_nodes'], $params['ignore_inside_nodes'] )) )
+            $ignore_nodes = false;
+
         $processing_params = [];
         $processing_params['lvl'] = $params['lvl'];
         $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
@@ -614,7 +643,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach( $definition_arr as $node_key => $node_arr )
         {
-            if( $node_arr['key_type'] === self::FROM_OUTSIDE )
+            if( $node_arr['key_type'] === self::FROM_OUTSIDE
+             || (!empty( $ignore_nodes ) && in_array( $node_key, $ignore_nodes, true )) )
                 continue;
 
             // Check if we have data to process for current node
@@ -652,8 +682,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                     {
                         $rec_params = $params;
                         $rec_params['max_data_recursive_lvl'] = $max_data_recursive_lvl;
+                        $rec_lvl = $rec_params['lvl'];
+
+                        if( !empty( $node_arr['inside_parsing_params'] ) && is_array( $node_arr['inside_parsing_params'] ) )
+                            $rec_params = self::merge_array_assoc( $rec_params, $node_arr['inside_parsing_params'] );
+
                         $rec_params['lvl_contract'] = (!empty( $node_arr['nodes_from_contract'] )?$node_arr['nodes_from_contract']:null);
-                        $rec_params['lvl']++;
+                        // Make sure lvl doesn't get overwritten
+                        $rec_params['lvl'] = $rec_lvl+1;
 
                         if( false !== ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $db_record_arr, $rec_params )) )
                         {
@@ -689,8 +725,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                     continue;
 
                 $rec_params = $params;
+                $rec_lvl = $rec_params['lvl'];
+
+                if( !empty( $node_arr['inside_parsing_params'] ) && is_array( $node_arr['inside_parsing_params'] ) )
+                    $rec_params = self::merge_array_assoc( $rec_params, $node_arr['inside_parsing_params'] );
+
                 $rec_params['lvl_contract'] = (!empty( $node_arr['nodes_from_contract'] )?$node_arr['nodes_from_contract']:null);
-                $rec_params['lvl']++;
+                // Make sure lvl doesn't get overwritten
+                $rec_params['lvl'] = $rec_lvl+1;
 
                 $recurring_items_no = 0;
                 foreach( $inside_data[$node_arr['inside_key']] as $knti => $input_item )
@@ -737,8 +779,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                 $return_arr[$node_arr['outside_key']] = [];
 
                 $rec_params = $params;
+                $rec_lvl = $rec_params['lvl'];
+
+                if( !empty( $node_arr['inside_parsing_params'] ) && is_array( $node_arr['inside_parsing_params'] ) )
+                    $rec_params = self::merge_array_assoc( $rec_params, $node_arr['inside_parsing_params'] );
+
                 $rec_params['lvl_contract'] = (!empty( $node_arr['nodes_from_contract'] )?$node_arr['nodes_from_contract']:null);
-                $rec_params['lvl']++;
+                // Make sure lvl doesn't get overwritten
+                $rec_params['lvl'] = $rec_lvl+1;
 
                 if( false === ($result_item = $this->_parse_data_from_inside_source( $node_arr['nodes'], $inside_data[$node_arr['inside_key']], $rec_params )) )
                     continue;
@@ -829,6 +877,13 @@ abstract class PHS_Contract extends PHS_Instantiable
             'default_inside' => null,
             // Default value when transforming inside data to outside data
             'default_outside' => null,
+
+            // array of strings which represents nodes keys to be ignored when parsing contract
+            // ignore_inside_nodes ignore inside source node keys, ignore_outside_nodes ignore outside source node keys, ignore_nodes (for both)
+            'ignore_nodes' => false,
+            'ignore_inside_nodes' => false,
+            'ignore_outside_nodes' => false,
+
             // false - don't import missing keys/indexes from input data array
             // true - import missing keys from input data array with default value
             'import_if_not_found' => true,
@@ -837,6 +892,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             'export_if_not_found' => true,
             // Tells if current node should be accepted only as input, output or both
             'key_type' => self::FROM_BOTH,
+
             // Tells if this node definition repeats (used for lists)
             // If this is true, key from source will be used and structure that repeats is defined in nodes
             'recurring_node' => false,
@@ -867,6 +923,14 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             // Maximum number of recursive calls from this node forward 0 - no limit
             'max_data_recursive_lvl' => 0,
+
+            // In case we want to overwrite parameters sent to _parse_data_from_inside_source only for this node and its children
+            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, etc)
+            'inside_parsing_params' => false,
+
+            // In case we want to overwrite parameters sent to _parse_data_from_outside_source only for this node and its children
+            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, etc)
+            'outside_parsing_params' => false,
 
             // (OPTIONAL) Descriptive info about this node (can generate documentation based on this
             'title' => '',
