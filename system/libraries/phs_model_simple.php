@@ -1,7 +1,7 @@
 <?php
 namespace phs\libraries;
 
-abstract class PHS_Model_Core_Generator extends PHS_Model_Core_Base
+abstract class PHS_Model_Core_generator extends PHS_Model_Core_base
 {
     function get_details_fields_gen( $constrain_arr, $params = false )
     {

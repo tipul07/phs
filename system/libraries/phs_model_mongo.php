@@ -5,7 +5,7 @@ namespace phs\libraries;
 use \phs\PHS;
 use \phs\PHS_Db;
 
-abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
+abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 {
     const FTYPE_DOUBLE = 1, FTYPE_STRING = 2, FTYPE_OBJECT = 3, FTYPE_ARRAY = 4, FTYPE_BINARY_DATA = 5, FTYPE_UNDEFINED = 6,
           FTYPE_OBJECT_ID = 7, FTYPE_BOOLEAN = 8, FTYPE_DATE = 9, FTYPE_NULL = 10, FTYPE_REGULAR_EXPRESSION = 11, FTYPE_JAVASCRIPT = 12,
@@ -896,7 +896,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_Base
     }
 
     /**
-     * Called right after finding a record in database in PHS_Model_Core_Base::insert_or_edit() with provided conditions. This helps unsetting some fields which should not
+     * Called right after finding a record in database in PHS_Model_Core_base::insert_or_edit() with provided conditions. This helps unsetting some fields which should not
      * be passed to edit function in case we execute an edit.
      *
      * @param array $existing_arr Data which already exists in database (array with all database fields)

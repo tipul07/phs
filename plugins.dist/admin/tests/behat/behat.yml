@@ -3,13 +3,13 @@ default:
 
     default:
       paths:
-        features: features/admin/
+        features: behat/features/admin/
       contexts:
         - phs\tests\behat\contexts\admin\PHSAdminContext
 
     admin:
       paths:
-        features: features/admin/
+        features: behat/features/admin/
       contexts:
         - phs\tests\phs\contexts\PHSCommonContext
         - phs\tests\phs\contexts\PHSAccountsContext

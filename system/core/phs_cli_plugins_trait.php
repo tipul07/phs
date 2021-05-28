@@ -17,18 +17,18 @@ trait PHS_Cli_plugins_trait
 
     protected static function _get_default_model_info_definition()
     {
-        return array(
+        return [
             'name' => '',
             'driver' => '',
             'version' => '',
             'main_table' => '',
             'tables' => [],
-        );
+        ];
     }
 
     protected static function _get_default_plugin_info_definition()
     {
-        return array(
+        return [
             'is_core' => false,
             'is_distribution' => false,
             'is_installed' => false,
@@ -43,7 +43,7 @@ trait PHS_Cli_plugins_trait
             'models_count' => 0,
             'models' => [],
             'agent_jobs' => [],
-        );
+        ];
     }
 
     protected function _gather_plugin_info( $plugin_name )
@@ -97,9 +97,9 @@ trait PHS_Cli_plugins_trait
         }
 
         // Get model details...
-        if( empty( $plugin_info['models'] ) or !is_array( $plugin_info['models'] ) )
+        if( empty( $plugin_info['models'] ) || !is_array( $plugin_info['models'] ) )
         {
-            $plugin_info['models'] = array();
+            $plugin_info['models'] = [];
             if( ($models_arr = $plugin_obj->get_models()) )
             {
                 $plugin_info['models_count'] = count( $models_arr );
@@ -113,14 +113,14 @@ trait PHS_Cli_plugins_trait
             }
         }
 
-        if( !empty( $plugin_info['models'] ) and is_array( $plugin_info['models'] ) )
+        if( !empty( $plugin_info['models'] ) && is_array( $plugin_info['models'] ) )
         {
-            $new_models = array();
+            $new_models = [];
             foreach( $plugin_info['models'] as $model_arr )
             {
                 /** @var \phs\libraries\PHS_Model $model_obj */
                 if( empty( $model_arr['name'] )
-                 or !($model_obj = PHS::load_model( $model_arr['name'], $plugin_name )) )
+                 || !($model_obj = PHS::load_model( $model_arr['name'], $plugin_name )) )
                 {
                     // make sure we don't propagate error because model initialization failed
                     PHS::st_reset_error();
@@ -175,7 +175,7 @@ trait PHS_Cli_plugins_trait
         );
 
         $this->_echo( self::_t( 'Models' ).':' );
-        if( empty( $plugin_info['models'] ) or !is_array( $plugin_info['models'] ) )
+        if( empty( $plugin_info['models'] ) || !is_array( $plugin_info['models'] ) )
             $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
@@ -190,7 +190,7 @@ trait PHS_Cli_plugins_trait
         }
 
         $this->_echo( self::_t( 'Agent jobs' ).':' );
-        if( empty( $plugin_info['agent_jobs'] ) or !is_array( $plugin_info['agent_jobs'] ) )
+        if( empty( $plugin_info['agent_jobs'] ) || !is_array( $plugin_info['agent_jobs'] ) )
             $this->_echo( '  '.self::_t( 'N/A' ) );
 
         else
@@ -215,7 +215,7 @@ trait PHS_Cli_plugins_trait
             return false;
 
         if( ($plugins_arr = $plugins_model->get_all_plugin_names_from_dir()) === false
-         or !is_array( $plugins_arr ) )
+         || !is_array( $plugins_arr ) )
         {
             if( !$plugins_model->has_error() )
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error obtaining plugins list.' ) );

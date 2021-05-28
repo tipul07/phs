@@ -124,15 +124,15 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     public static function default_custom_renderer_params()
     {
-        return array(
+        return [
             'field_id' => '',
             'field_name' => '',
             'field_details' => false,
             'field_value' => null,
-            'form_data' => array(),
+            'form_data' => [],
             'editable' => true,
             'plugin_obj' => false,
-        );
+        ];
     }
 
     public function default_custom_save_params()

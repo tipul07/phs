@@ -24,3 +24,18 @@ Namespaces for plugin contexts must be like ``phs\tests\behat\contexts\PLUGIN_NA
 ``tests`` script will look for a ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml`` in plugin's directory. If this file is not present, script will consider plugin is not Behat ready. If you don't want to change any configuration in Behat, just create an empty ``PROJECT_DIR/plugins/PLUGIN_NAME/tests/behat/behat.yml`` file in your plugin.
 
 Learning by example... Check ``admin`` plugin for ``tests`` directory to have a better understanding on how to integrate Behat. More details will follow here in a future release.
+
+#### Installation notes
+
+PHS comes with a ``composer.json`` file which includes latest versions of Behat and PHPUnit known to work well with PHS tests structure. Also, in ``PROJECT_DIR/tests`` there is a composer.phar known to work with PHS tests integration.
+
+If you want to change any version (composer, Behat or PHPUnit) you are free to do it, but be sure that new versions still work with PHS integration for tests suite.
+
+When installing Behat and PHPUnit it is recommended you do it using composer:
+
+``php composer.phar require --dev behat/behat``
+
+and
+
+``php composer.phar require --dev phpunit/phpunit ^9``
+
