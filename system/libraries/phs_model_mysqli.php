@@ -5,7 +5,7 @@ namespace phs\libraries;
 use \phs\PHS;
 use \phs\PHS_Db;
 
-abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
+abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 {
     const FTYPE_UNKNOWN = 0,
           FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
@@ -1077,7 +1077,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_Base
     }
 
     /**
-     * Called right after finding a record in database in PHS_Model_Core_Base::insert_or_edit() with provided conditions. This helps unsetting some fields which should not
+     * Called right after finding a record in database in PHS_Model_Core_base::insert_or_edit() with provided conditions. This helps unsetting some fields which should not
      * be passed to edit function in case we execute an edit.
      *
      * @param array $existing_arr Data which already exists in database (array with all database fields)

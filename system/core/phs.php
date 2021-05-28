@@ -71,7 +71,7 @@ final class PHS extends PHS_Registry
 
     public static function get_always_active_plugins()
     {
-        // These plugins cannot be inacivated as they provide basic functionality for the platform
+        // These plugins cannot be inactivated as they provide basic functionality for the platform
         return [ 'accounts', 'admin', 'captcha', 'notifications' ];
     }
 

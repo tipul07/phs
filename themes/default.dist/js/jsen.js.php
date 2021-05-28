@@ -1003,6 +1003,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 suffix            : "",
                 cache_response    : false,
                 stack             : true,
+                adjust_top_for_height : true,
 
                 // Source of dialog content
                 url               : null,
@@ -1119,7 +1120,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
                             if( options.onfailed ) {
                                 if( $.isFunction( options.onfailed ) )
-                                    options.onfailed();
+                                    options.onfailed( dialog_obj );
                                 else if( typeof options.onfailed == "string" )
                                     eval( options.onfailed );
                             }
@@ -1181,7 +1182,8 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 PHS_JSEN.dialogOptions( options.suffix, options );
             }
 
-            if( window.innerHeight < options.height ) {
+            if( options.adjust_top_for_height
+             && window.innerHeight < options.height ) {
                 setTimeout(function() {
                     dialog_obj.parent().css( "top", "30px" );
                 }, 500 );

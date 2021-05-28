@@ -7,7 +7,7 @@ use \phs\PHS_Db;
 use phs\PHS_Maintenance;
 use \phs\system\core\models\PHS_Model_Plugins;
 
-abstract class PHS_Model_Core_Base extends PHS_Has_db_settings
+abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 {
     const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
           ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,

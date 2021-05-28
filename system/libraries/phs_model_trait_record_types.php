@@ -171,4 +171,14 @@ trait PHS_Model_Trait_record_types
 
         return $record_type['table_name'];
     }
+
+    /**
+     * @param string $record_type
+     *
+     * @return bool|string
+     */
+    public function record_type_to_table_name( $record_type )
+    {
+        return $this->_record_type_to_table_name( $record_type );
+    }
 }

@@ -218,7 +218,7 @@ class PHS_Po_format extends PHS_Registry
 
             if( !empty( $csv_f ) )
             {
-                @fputs( $csv_f, $csv_line );
+                @fwrite( $csv_f, $csv_line );
                 @fflush( $csv_f );
             } else
                 echo $csv_line;
@@ -233,10 +233,16 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param string $po_file
+     * @param false|array $params
+     *
+     * @return array|false
+     */
     public function update_language_files( $po_file, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['language'] ) )
             $params['language'] = false;
@@ -247,33 +253,30 @@ class PHS_Po_format extends PHS_Registry
             return false;
         }
 
-        if( empty( $params['update_language_files'] ) )
-            $params['update_language_files'] = false;
-        else
-            $params['update_language_files'] = true;
+        $params['update_language_files'] = (!empty( $params['update_language_files'] ));
 
         if( !isset( $params['backup_language_files'] ) )
             $params['backup_language_files'] = true;
         else
-            $params['backup_language_files'] = (!empty( $params['backup_language_files'] )?true:false);
+            $params['backup_language_files'] = (!empty( $params['backup_language_files'] ));
 
         if( !isset( $params['merge_with_old_files'] ) )
             $params['merge_with_old_files'] = true;
         else
-            $params['merge_with_old_files'] = (!empty( $params['merge_with_old_files'] )?true:false);
+            $params['merge_with_old_files'] = (!empty( $params['merge_with_old_files'] ));
 
         if( !$this->parse_language_from_po_file( $po_file, $params ) )
             return false;
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['new_indexes'] = 0;
         $return_arr['updated_indexes'] = 0;
-        $return_arr['updated_files'] = array();
-        $return_arr['update_errors'] = array();
+        $return_arr['updated_files'] = [];
+        $return_arr['update_errors'] = [];
 
         if( !$this->indexes_count
-         or empty( $this->parsed_indexes )
-         or !is_array( $this->parsed_indexes ) )
+         || empty( $this->parsed_indexes )
+         || !is_array( $this->parsed_indexes ) )
             return $return_arr;
 
         if( !($csv_settings = self::lang_files_csv_settings()) )
@@ -293,8 +296,8 @@ class PHS_Po_format extends PHS_Registry
             } else
             {
                 if( !@file_exists( $lang_file )
-                 or !($existing_lines_arr = self::get_language_file_lines( $lang_file, $this->parsed_language )) )
-                    $existing_lines_arr = array();
+                 || !($existing_lines_arr = self::get_language_file_lines( $lang_file, $this->parsed_language )) )
+                    $existing_lines_arr = [];
 
                 // Language file exists... see what we can update / add
                 $resulting_arr = $existing_lines_arr;
@@ -302,7 +305,7 @@ class PHS_Po_format extends PHS_Registry
                 {
                     if( !isset( $resulting_arr[$lang_key] ) )
                         $new_indexes++;
-                    elseif( $lang_val != $resulting_arr[$lang_key] )
+                    elseif( $lang_val !== $resulting_arr[$lang_key] )
                         $updated_indexes ++;
                     else
                         // Same thing...
@@ -312,14 +315,14 @@ class PHS_Po_format extends PHS_Registry
                 }
             }
 
-            if( empty( $new_indexes ) and empty( $updated_indexes )
-            and !empty( $resulting_arr ) )
+            if( empty( $new_indexes ) && empty( $updated_indexes )
+             && !empty( $resulting_arr ) )
                 continue;
 
             if( !empty( $params['update_language_files'] ) )
             {
                 if( !empty( $params['backup_language_files'] )
-                and !$this->backup_language_file( $lang_file ) )
+                 && !$this->backup_language_file( $lang_file ) )
                 {
                     $error_msg = self::_t( 'Error creating backup for language file [%s]', $lang_file );
 
@@ -329,7 +332,7 @@ class PHS_Po_format extends PHS_Registry
                     continue;
                 }
 
-                if( !($fp = @fopen( $lang_file, 'w' )) )
+                if( !($fp = @fopen( $lang_file, 'wb' )) )
                 {
                     $error_msg = self::_t( 'Error creating language file [%s]', $lang_file );
 
@@ -340,15 +343,16 @@ class PHS_Po_format extends PHS_Registry
                 }
 
                 if( ($header_str = self::get_language_file_header_str())
-                and !@fwrite( $fp, $header_str ) )
+                 && !@fwrite( $fp, $header_str ) )
                 {
                     PHS_Logger::logf( 'Error writing header for language file ['.$lang_file.']', PHS_Logger::TYPE_MAINTENANCE );
                 }
             }
 
-            if( empty( $new_indexes ) and empty( $updated_indexes ) )
+            if( empty( $new_indexes ) && empty( $updated_indexes ) )
             {
-                if( !empty( $params['update_language_files'] ) )
+                if( !empty( $params['update_language_files'] )
+                 && $fp )
                 {
                     @fflush( $fp );
                     @fclose( $fp );

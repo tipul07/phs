@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-if( (!defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ))
+if( (!defined( 'PHS_SETUP_FLOW' ) || !constant( 'PHS_SETUP_FLOW' ))
 and !defined( 'PHS_VERSION' ) )
     exit;
 
@@ -153,6 +153,16 @@ class PHS_Language extends PHS_Error
     }
 
     /**
+     * @param string $lang For which language we want to reload the files
+     *
+     * @return bool Returns if language will be reloaded or not
+     */
+    public static function force_reload_language_files( $lang )
+    {
+        return self::language_container()->force_reload_language_files( $lang );
+    }
+
+    /**
      * @param string $lang Language to be checked
      *
      * @return string|bool Returns language key if language is valid or false if language is not defined
@@ -195,7 +205,7 @@ class PHS_Language extends PHS_Error
 
         $language_container = self::language_container();
 
-        if( !($return_arr = $language_container->get_language_file_lines( $file, $lang )) )
+        if( false === ($return_arr = $language_container->get_language_file_lines( $file, $lang )) )
         {
             if( $language_container->has_error() )
                 self::st_copy_error( $language_container );
@@ -273,13 +283,13 @@ class PHS_Language extends PHS_Error
     public function _pt( $index )
     {
         /** @var PHS_Plugin|PHS_Library $this */
-        if( (!($this instanceof PHS_Instantiable) and !($this instanceof PHS_Library))
-         or !($plugin_obj = $this->get_plugin_instance()) )
+        if( (!($this instanceof PHS_Instantiable) && !($this instanceof PHS_Library))
+         || !($plugin_obj = $this->get_plugin_instance()) )
             return self::_t( func_get_args() );
 
         $plugin_obj->include_plugin_language_files();
 
-        if( !($result = @forward_static_call_array( array( '\phs\libraries\PHS_Language', '_t' ), func_get_args() )) )
+        if( !($result = @forward_static_call_array( [ '\phs\libraries\PHS_Language', '_t' ], func_get_args() )) )
             $result = '';
 
         return $result;
@@ -293,11 +303,11 @@ class PHS_Language extends PHS_Error
     public static function st_pt( $index )
     {
         if( !($called_class = @get_called_class())
-         or !($clean_class_name = ltrim( $called_class, '\\' ))
-         or stripos( $clean_class_name, 'phs\\plugins\\' ) !== 0
-         or !($parts_arr = explode( '\\', $clean_class_name, 4 ))
-         or empty( $parts_arr[2] )
-         or !($plugin_obj = PHS::load_plugin( $parts_arr[2] )) )
+         || !($clean_class_name = ltrim( $called_class, '\\' ))
+         || stripos( $clean_class_name, 'phs\\plugins\\' ) !== 0
+         || !($parts_arr = explode( '\\', $clean_class_name, 4 ))
+         || empty( $parts_arr[2] )
+         || !($plugin_obj = PHS::load_plugin( $parts_arr[2] )) )
             return self::_t( func_get_args() );
 
         $plugin_obj->include_plugin_language_files();

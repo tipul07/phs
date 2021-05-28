@@ -10,7 +10,7 @@ use \phs\libraries\PHS_Model;
 
 function phs_version()
 {
-    return '1.1.4.4';
+    return '1.1.4.5';
 }
 
 function phs_init_before_bootstrap()
@@ -149,7 +149,12 @@ function validate_ip( $ip )
 function request_ip()
 {
     $guessed_ip = '';
-    if( !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
+    // CloudFlare proxy
+    if( !empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) )
+        $guessed_ip = validate_ip( $_SERVER['HTTP_CF_CONNECTING_IP'] );
+
+    if( empty( $guessed_ip )
+     && !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
         $guessed_ip = validate_ip( $_SERVER['HTTP_CLIENT_IP'] );
 
     if( empty( $guessed_ip )

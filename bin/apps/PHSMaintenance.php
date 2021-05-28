@@ -336,7 +336,7 @@ class PHSMaintenance extends PHS_Cli
                     $extra_info .= ($extra_info!==''?', ':'').$plugin_info['models_count'].' models';
             }
 
-            $this->_echo( ' - '.$this->cli_color( $plugin_name, 'blue' ).($extra_info!==''?': ':'').$extra_info );
+            $this->_echo( ' - '.$this->cli_color( $plugin_name, 'yellow' ).($extra_info!==''?': ':'').$extra_info );
         }
 
         $this->_echo( 'DONE' );

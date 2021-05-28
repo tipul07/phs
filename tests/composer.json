@@ -1,19 +1,16 @@
 {
-  "require-dev": {
-    "roave/security-advisories": "dev-master",
-    "behat/behat": "^3.6",
-    "phpunit/phpunit": "*",
-    "phpunit/php-invoker": "*",
-    "phpunit/dbunit": "*"
-  },
-  "require": {
-    "ext-json": "*"
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "phs\\tests\\phs\\" : "phs",
-      "phs\\tests\\behat\\" : "behat",
-      "phs\\tests\\phpunit\\" : "phpunit"
-    }
-  }
+    "require-dev": {
+        "behat/behat": "^3.8",
+        "phpunit/phpunit": "^9"
+    },
+    "require": {
+        "ext-json": "*"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "phs\\tests\\phs\\" : "phs",
+            "phs\\tests\\behat\\" : "behat",
+            "phs\\tests\\phpunit\\" : "phpunit"
+        }
+    } 
 }

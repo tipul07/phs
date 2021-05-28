@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-abstract class PHS_Model_Core_Generator extends PHS_Model_Core_Base
+abstract class PHS_Model_Core_generator extends PHS_Model_Core_base
 {
     /**
      * @param array $constrain_arr Conditional db fields

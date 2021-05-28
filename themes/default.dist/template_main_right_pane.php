@@ -133,7 +133,7 @@
                 $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
                 ?>
-                <li class="phs_language_<?php echo $lang?><?php echo ($current_language==$lang?' phs_language_selected':'')?>"><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
+                <li class="phs_language_<?php echo $lang?><?php echo ($current_language===$lang?' phs_language_selected':'')?>"><a href="<?php echo $language_link?>"><?php echo $language_flag.$lang_details['title']?></a></li>
                 <?php
             }
             ?>
