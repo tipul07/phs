@@ -1557,7 +1557,7 @@ final class PHS extends PHS_Registry
         foreach( $args as $key => $val )
             $new_args[$key] = $val;
 
-        if( !($query_string = @http_build_query( $new_args, null, $extra['http']['arg_separator'], $extra['enc_type'] )) )
+        if( !($query_string = @http_build_query( $new_args, null, $extra['http']['arg_separator'], $extra['http']['enc_type'] )) )
             $query_string = '';
 
         if( !empty( $extra['raw_args'] ) && is_array( $extra['raw_args'] ) )
