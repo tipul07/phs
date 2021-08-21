@@ -1,0 +1,3 @@
+<FilesMatch ".*\.zip$">
+    Require all denied
+</FilesMatch>
