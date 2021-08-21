@@ -1,0 +1,207 @@
+<?php
+
+namespace phs\plugins\accounts_3rd\libraries;
+
+use \phs\PHS;
+use phs\libraries\PHS_Params;
+use \phs\libraries\PHS_Library;
+use \phs\libraries\PHS_Logger;
+use \phs\libraries\PHS_utils;
+
+class Google extends PHS_Library
+{
+    const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
+
+    const SDK_DIR = 'google';
+
+    /** @var bool|\phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $_accounts_3rd_plugin */
+    private $_accounts_3rd_plugin = false;
+
+    private function _load_dependencies()
+    {
+        $this->reset_error();
+
+        if( empty( $this->_accounts_3rd_plugin )
+         && !($this->_accounts_3rd_plugin = PHS::load_plugin( 'accounts_3rd' )) )
+        {
+            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Couldn\'t load accounts 3rd party plugin instance.' ) );
+            return false;
+        }
+
+        if( !($settings_arr = $this->_accounts_3rd_plugin->get_plugin_settings())
+         || !is_array( $settings_arr )
+         || empty( $settings_arr['enable_3rd_party'] )
+         || empty( $settings_arr['enable_google'] ) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( '3rd party Google services are not enabled.' ) );
+            return false;
+        }
+
+        if( !($googlelib_paths = $this->get_google_dir_paths()) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining phpseclib library directory paths.' ) );
+
+            return false;
+        }
+
+        $autoload_file = $googlelib_paths['path'].'vendor/autoload.php';
+
+        if( !@file_exists( $autoload_file ) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Autoload for Google 3rd party functionality not found.' ) );
+            return false;
+        }
+
+        include_once( $autoload_file );
+
+        return true;
+    }
+
+    public function get_google_dir_paths()
+    {
+        $this->reset_error();
+
+        if( !($library_paths = $this->get_library_location_paths()) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining Google 3rd party library directory paths.' ) );
+            return false;
+        }
+
+        $return_arr = [];
+        $return_arr['www'] = $library_paths['library_www'].self::SDK_DIR.'/';
+        $return_arr['path'] = $library_paths['library_path'].self::SDK_DIR.'/';
+
+        return $return_arr;
+    }
+
+    /**
+     * @param false|array{as_static:bool,return_url_params:false|array} $params
+     *
+     * @return bool|\Google\Client
+     */
+    public function get_client_instance( $params = false )
+    {
+        /** @var \Google\Client $client_obj */
+        static $client_obj = null;
+
+        if( !$this->_load_dependencies() )
+            return false;
+
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        $params['as_static'] = (!empty( $params['as_static'] ));
+
+        if( empty( $params['return_url_params'] ) || !is_array( $params['return_url_params'] ) )
+            $params['return_url_params'] = [];
+
+        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
+
+        if( !($settings_arr = $accounts_3rd_plugin->get_plugin_settings())
+         || empty( $settings_arr['google_client_id'] ) || empty( $settings_arr['google_client_secret'] ) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining Google 3rd party services settings.' ) );
+            return false;
+        }
+
+        if( !($return_url = PHS::url( [ 'a' => 'google', 'c' => 'index', 'p' => 'accounts_3rd' ], $params['return_url_params'] )) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining return URL for Google 3rd party services.' ) );
+            return false;
+        }
+
+        $return_url = PHS::get_base_url( true ).'google/oauth/login';
+
+        if( !$params['as_static'] )
+        {
+            try
+            {
+                $return_obj = new \Google\Client();
+            } catch( \Exception $e )
+            {
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining an instance of Google 3rd party client.' ) );
+                return false;
+            }
+        }
+
+        elseif( $client_obj !== null )
+            $return_obj = $client_obj;
+
+        if( empty( $return_obj ) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining an instance of Google 3rd party client.' ) );
+            return false;
+        }
+
+        $return_obj->setAccessType( 'offline' );
+        $return_obj->setClientId( $settings_arr['google_client_id'] );
+        $return_obj->setClientSecret( $settings_arr['google_client_secret'] );
+        $return_obj->setRedirectUri( $return_url );
+
+        $return_obj->addScope( [ 'email', 'profile' ] );
+
+        if( $params['as_static'] )
+            $client_obj = $return_obj;
+
+        return $return_obj;
+    }
+
+    /**
+     * @param false|string $google_code
+     *
+     * @return false|array
+     */
+    public function get_account_details_by_code( $google_code = false )
+    {
+        $this->reset_error();
+
+        if( !$this->_load_dependencies() )
+            return false;
+
+        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
+
+        if( ($google_code === false && !($google_code = PHS_Params::_g( 'code', PHS_Params::T_NOHTML )))
+         || !is_string( $google_code ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error obtaining Google verification code.' ) );
+            return false;
+        }
+
+        if( !($google_obj = $this->get_client_instance()) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google 3rd party services instance.' ) );
+
+            return false;
+        }
+
+        try {
+            if( !($token = $google_obj->fetchAccessTokenWithAuthCode( $google_code ))
+             || !is_array( $token )
+             || empty( $token['access_token'] ) )
+            {
+                if( !empty( $token ) && is_array( $token )
+                 && !empty( $token['error'] ) )
+                {
+                    PHS_Logger::logf( '[ERROR] Error fetching access token: '.
+                                      $token['error'].(!empty( $token['error_description'] )?' ('.$token['error_description'].')':''), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
+                }
+
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining access token for Google 3rd party services.' ) );
+                return false;
+            }
+
+            $google_obj->setAccessToken( $token['access_token'] );
+
+            $google_oauth = new \Google\Service\Oauth2( $google_obj );
+            $google_account_info = $google_oauth->userinfo->get();
+        } catch( \Exception $e )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google account details.' ) );
+            return false;
+        }
+
+        return $google_account_info;
+    }
+}

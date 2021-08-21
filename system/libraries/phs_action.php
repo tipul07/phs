@@ -216,13 +216,13 @@ abstract class PHS_Action extends PHS_Instantiable
      */
     final public static function default_action_result()
     {
-        return array(
+        return [
             // Action "content"
-            'action_data' => array(), // Data which was used when running action
+            'action_data' => [], // Data which was used when running action
             'buffer' => '',
             'ajax_result' => false,
             'ajax_only_result' => false,
-            'custom_headers' => array(), // key - value headers...
+            'custom_headers' => [], // key - value headers...
 
             // This is specific to API calls.
             // When generating response, API class will check this array first, then ajax_result, then will check if we have an api_buffer set
@@ -235,7 +235,7 @@ abstract class PHS_Action extends PHS_Instantiable
             // If current action requires a logged in user set this to true.
             // Logging in is dependent on used scope (on API we should return Unauthenticated header, on web we redirect to login page, etc)
             'request_login' => false,
-            'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
+            'redirect_to_url' => '',// any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template' => 'template_main', // if empty, scope template will be used...
 
             // page related variables
@@ -245,7 +245,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
             // false means use current scope
             'scope' => false,
-        );
+        ];
     }
 
     final public function set_action_defaults()

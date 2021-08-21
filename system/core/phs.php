@@ -66,7 +66,7 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return [ 'accounts', 'admin', 'messages', 'captcha', 'emails', 'sendgrid', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' ];
+        return [ 'accounts', 'accounts_3rd', 'admin', 'messages', 'captcha', 'emails', 'sendgrid', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' ];
     }
 
     public static function get_always_active_plugins()
@@ -1746,7 +1746,7 @@ final class PHS extends PHS_Registry
             if( $controller_obj->has_error() )
                 self::st_copy_error( $controller_obj );
             else
-                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].', $route_details[self::ROUTE_ACTION] ) );
+                self::st_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error executing action [%s].!!!', $route_details[self::ROUTE_ACTION] ) );
         }
 
         $controller_error_arr = self::st_get_error();

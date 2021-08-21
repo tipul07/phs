@@ -5,7 +5,7 @@ use \phs\PHS;
 use \phs\libraries\PHS_Utils;
 
     if( !($current_user = $this->view_var( 'current_user' )) )
-        $current_user = array( 'nick' => $this->_pt( 'N/A' ) );
+        $current_user = [ 'nick' => $this->_pt( 'N/A' ) ];
 ?>
 <div style="width:100%;">
 

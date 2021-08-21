@@ -429,10 +429,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Checking installation...' );
 
-        if( !$this->install_roles()
-         || !$this->install_agent_jobs() )
-            return false;
-
         if( !($db_details = $this->get_db_details()) )
         {
             $this->reset_error();
@@ -456,7 +452,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     else
                         $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
 
-                    PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error loading plugin model ['.$model_obj->instance_id().']: '.$this->get_error_message() );
+                    PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error loading plugin model ['.$model_name.']: '.$this->get_error_message() );
 
                     return false;
                 }
@@ -1031,8 +1027,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing plugin...' );
-
         if( !$this->_load_plugins_instance() )
         {
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error instantiating plugins model.' );
@@ -1052,6 +1046,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             return false;
         }
+
+        PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing plugin...' );
+
+        if( !$this->install_roles()
+         || !$this->install_agent_jobs() )
+            return false;
 
         if( !$this->custom_install() )
         {
@@ -1385,6 +1385,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Updating plugin from ['.$old_version.'] to ['.$new_version.']...' );
+
+        if( !$this->install_roles()
+         || !$this->install_agent_jobs() )
+            return false;
 
         if( !$this->custom_update( $old_version, $new_version ) )
         {

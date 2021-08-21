@@ -1283,10 +1283,6 @@ class PHS_Paginator extends PHS_Registry
 
         $max_pages = ceil( $count / $records_per_page );
 
-        if( $page > $max_pages-1 )
-            $page = $max_pages - 1;
-        if( $page < 0 )
-            $page = 0;
 
         $offset = ($page * $records_per_page);
 

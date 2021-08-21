@@ -10,8 +10,10 @@
 
 Latest version 1.1.4.5
 
-Minimum PHP version required 5.4+.
+Minimum PHP version required 5.6+ (required in 3rd party register/login)
 
-Using gitflow starting with 1.1.4.0.
+**NOTE**: until 1.1.4.5 minimum PHP version required was 5.4+.
 
-Read our documentation (work in progress): [Here](https://github.com/tipul07/phs/wiki)
+**NOTE**: Using gitflow starting with 1.1.4.0.
+
+Please, read our documentation (work in progress): [Here](https://github.com/tipul07/phs/wiki)

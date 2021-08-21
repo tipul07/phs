@@ -9,3 +9,4 @@
 /languages/*.dist/*_bk*.csv
 
 composer.phar
+test.php
