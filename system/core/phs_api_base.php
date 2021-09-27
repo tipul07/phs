@@ -246,7 +246,7 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->init_query_params = $this->default_query_params();
 
         if( !empty( $this->raw_query_params[self::PARAM_VERSION] ) )
-            $this->init_query_params[self::PARAM_VERSION] = floatval( $this->raw_query_params[self::PARAM_VERSION] );
+            $this->init_query_params[self::PARAM_VERSION] = (float)$this->raw_query_params[self::PARAM_VERSION];
 
         else
             $this->init_query_params[self::PARAM_VERSION] = self::DEFAULT_VERSION;

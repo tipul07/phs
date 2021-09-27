@@ -1,0 +1,8 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Remote PHS Connections",
+    "description": "Handles 3rd party PHS platform connections.",
+    "version": "1.0.1",
+    "models": [ "phs_remote_domains" ]
+}

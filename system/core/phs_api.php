@@ -17,11 +17,11 @@ class PHS_Api extends PHS_Api_base
     private static $_api_routes = [];
 
     // Last API instance obtained with self::api_factory()
-    /** @var bool|\phs\PHS_Api_base $_last_api_obj */
+    /** @var false|\phs\PHS_Api_base $_last_api_obj */
     private static $_last_api_obj = false;
 
     // THE API instance that should respond to current request
-    /** @var bool|\phs\PHS_Api_base $_global_api_obj */
+    /** @var false|\phs\PHS_Api_base $_global_api_obj */
     private static $_global_api_obj = false;
 
     final public static function api_factory( $init_query_params = false )
@@ -506,7 +506,7 @@ class PHS_Api extends PHS_Api_base
         $http_method = $this->http_method();
 
         if( !empty( $apikey_arr['allowed_methods'] )
-         && !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], array( 'to_lowercase' => true ) ), true ) )
+         && !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], [ 'to_lowercase' => true ] ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {

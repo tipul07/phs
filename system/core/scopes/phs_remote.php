@@ -10,11 +10,11 @@ use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Hooks;
 
-class PHS_Scope_Api extends PHS_Scope
+class PHS_Scope_Remote extends PHS_Scope
 {
     public function get_scope_type()
     {
-        return self::SCOPE_API;
+        return self::SCOPE_REMOTE;
     }
 
     public function process_action_result( $action_result, $static_error_arr = false )

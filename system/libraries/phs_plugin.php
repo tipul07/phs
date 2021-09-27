@@ -456,7 +456,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     else
                         $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
 
-                    PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error loading plugin model ['.$model_obj->instance_id().']: '.$this->get_error_message() );
+                    PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error loading plugin model ['.$model_name.']: '.$this->get_error_message() );
 
                     return false;
                 }

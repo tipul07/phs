@@ -53,6 +53,7 @@ final class PHS extends PHS_Registry
     private static $_AGENT_SCRIPT = '_agent_bg';
     private static $_AJAX_SCRIPT = '_ajax';
     private static $_API_SCRIPT = '_api';
+    private static $_REMOTE_SCRIPT = '_remote';
     private static $_UPDATE_SCRIPT = '_update';
 
     public function __construct()
@@ -655,7 +656,7 @@ final class PHS extends PHS_Registry
     public static function get_base_url( $force_https = false )
     {
         if( !empty( $force_https )
-         || self::get_data( self::REQUEST_HTTPS ) )
+         || self::is_secured_request() )
         {
             // if domain settings are set
             if( defined( 'PHS_HTTPS' ) )
@@ -1131,6 +1132,26 @@ final class PHS extends PHS_Registry
     }
 
     /**
+     * Change default remote script (default is _remote). .php file extension will be added by platform.
+     *
+     * @param bool|string $script New remote script (default is _remote). No extension should be provided (.php will be appended)
+     *
+     * @return bool|string
+     */
+    public static function remote_script( $script = false )
+    {
+        if( $script === false )
+            return self::$_REMOTE_SCRIPT.'.php';
+
+        if( !self::safe_escape_root_script( $script )
+         || !@file_exists( PHS_PATH.$script.'.php' ) )
+            return false;
+
+        self::$_REMOTE_SCRIPT = $script;
+        return self::$_REMOTE_SCRIPT.'.php';
+    }
+
+    /**
      * Change default update script (default is _update). .php file extension will be added by platform.
      *
      * @param bool|string $script New upate script (default is _update). No extension should be provided (.php will be appended)
@@ -1160,30 +1181,75 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::agent_script();
     }
 
+    /**
+     * @param bool $force_https
+     * @param bool $slash_terminated
+     * @param false|string $for_domain
+     *
+     * @return false|string
+     */
+    public static function get_domain_url( $force_https = false, $slash_terminated = false, $for_domain = false )
+    {
+        if( $for_domain !== false )
+        {
+            if( !is_string( $for_domain ) )
+                return false;
+
+            if( $force_https
+             || self::is_secured_request() )
+            {
+                if( stripos( $for_domain, 'https://' ) !== 0 )
+                    $for_domain = 'https://'.$for_domain;
+
+                $base_url = $for_domain;
+            } else
+            {
+                if( stripos( $for_domain, 'http://' ) !== 0 )
+                    $for_domain = 'http://'.$for_domain;
+
+                $base_url = $for_domain;
+            }
+        } elseif( !($base_url = self::get_base_url( $force_https )) )
+            return false;
+
+        if( $slash_terminated
+         && substr( $base_url, -1 ) !== '/' )
+            $base_url .= '/';
+
+        return $base_url;
+    }
+
+    /**
+     * @param bool $force_https
+     * @param false|string $for_domain
+     *
+     * @return false|string
+     */
+    public static function get_interpret_url( $force_https = false, $for_domain = false )
+    {
+        if( !($base_url = self::get_domain_url( $force_https, true, $for_domain )) )
+            return false;
+
+        return $base_url.self::interpret_script();
+    }
+
     public static function get_interpret_path()
     {
         return PHS_PATH.self::interpret_script();
     }
 
-    public static function get_update_script_path()
-    {
-        return PHS_PATH.self::update_script();
-    }
-
     /**
      * @param bool $force_https
+     * @param false|string $for_domain
      *
-     * @return bool|string
+     * @return false|string
      */
-    public static function get_interpret_url( $force_https = false )
+    public static function get_ajax_url( $force_https = false, $for_domain = false )
     {
-        if( !($base_url = self::get_base_url( $force_https )) )
+        if( !($base_url = self::get_domain_url( $force_https, true, $for_domain )) )
             return false;
 
-        if( substr( $base_url, -1 ) !== '/' )
-            $base_url .= '/';
-
-        return $base_url.self::interpret_script();
+        return $base_url.self::ajax_script();
     }
 
     public static function get_ajax_path()
@@ -1191,15 +1257,22 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::ajax_script();
     }
 
-    public static function get_ajax_url( $force_https = false )
+    /**
+     * @param bool $force_https
+     * @param bool $use_rewrite
+     * @param false|string $for_domain
+     *
+     * @return false|string
+     */
+    public static function get_api_url( $force_https = false, $use_rewrite = true, $for_domain = false )
     {
-        if( !($base_url = self::get_base_url( $force_https )) )
+        if( !($base_url = self::get_domain_url( $force_https, true, $for_domain )) )
             return false;
 
-        if( substr( $base_url, -1 ) !== '/' )
-            $base_url .= '/';
+        if( !$use_rewrite )
+            return $base_url.self::api_script();
 
-        return $base_url.self::ajax_script();
+        return $base_url.'api/v1/';
     }
 
     public static function get_api_path()
@@ -1207,26 +1280,46 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::api_script();
     }
 
-    public static function get_api_url( $force_https = false )
+    /**
+     * @param bool $force_https
+     * @param bool $use_rewrite
+     * @param false|string $for_domain
+     *
+     * @return false|string
+     */
+    public static function get_remote_script_url( $force_https = false, $use_rewrite = true, $for_domain = false )
     {
-        if( !($base_url = self::get_base_url( $force_https )) )
+        if( !($base_url = self::get_domain_url( $force_https, true, $for_domain )) )
             return false;
 
-        if( substr( $base_url, -1 ) !== '/' )
-            $base_url .= '/';
+        if( !$use_rewrite )
+            return $base_url.self::remote_script();
 
-        return $base_url.self::api_script();
+        return $base_url.'remote/v1/';
     }
 
-    public static function get_update_script_url( $force_https = false )
+    public static function get_remote_script_path()
     {
-        if( !($base_url = self::get_base_url( $force_https )) )
+        return PHS_PATH.self::remote_script();
+    }
+
+    /**
+     * @param bool $force_https
+     * @param false|string $for_domain
+     *
+     * @return false|string
+     */
+    public static function get_update_script_url( $force_https = false, $for_domain = false )
+    {
+        if( !($base_url = self::get_domain_url( $force_https, true, $for_domain )) )
             return false;
 
-        if( substr( $base_url, -1 ) !== '/' )
-            $base_url .= '/';
-
         return $base_url.self::update_script();
+    }
+
+    public static function get_update_script_path()
+    {
+        return PHS_PATH.self::update_script();
     }
 
     public static function generate_framework_update_token()
@@ -1531,6 +1624,11 @@ final class PHS extends PHS_Registry
         if( empty( $extra['for_scope'] ) || !PHS_Scope::valid_scope( $extra['for_scope'] ) )
             $extra['for_scope'] = PHS_Scope::SCOPE_WEB;
 
+        if( empty( $extra['for_domain'] ) || !is_string( $extra['for_domain'] ) )
+            $extra['for_domain'] = false;
+
+        $extra['use_rewrite_url'] = (!empty( $extra['use_rewrite_url'] ));
+
         $new_args = [];
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
@@ -1562,7 +1660,7 @@ final class PHS extends PHS_Registry
 
         if( !empty( $extra['raw_args'] ) && is_array( $extra['raw_args'] ) )
         {
-            // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded and we might add javascript code in parameters
+            // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded, and we might add javascript code in parameters
             // eg. $extra['raw_args'] might be an id passed as javascript function parameter
             if( ($raw_query = array_to_query_string( $extra['raw_args'],
                                                      [ 'arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false ] )) )
@@ -1573,15 +1671,19 @@ final class PHS extends PHS_Registry
         switch( $extra['for_scope'] )
         {
             default:
-                $stock_url = self::get_interpret_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
+                $stock_url = self::get_interpret_url( $route_arr['force_https'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
             break;
 
             case PHS_Scope::SCOPE_AJAX:
-                $stock_url = self::get_ajax_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
+                $stock_url = self::get_ajax_url( $route_arr['force_https'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
             break;
 
             case PHS_Scope::SCOPE_API:
-                $stock_url = self::get_api_url( $route_arr['force_https'] ).($query_string!==''?'?'.$query_string:'');
+                $stock_url = self::get_api_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
+            break;
+
+            case PHS_Scope::SCOPE_REMOTE:
+                $stock_url = self::get_remote_script_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
             break;
         }
 

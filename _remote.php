@@ -7,7 +7,7 @@
     header( 'Pragma: no-cache' );
 
     define( 'PHS_PREVENT_SESSION', true );
-    define( 'PHS_SCRIPT_SCOPE', 'api' );
+    define( 'PHS_SCRIPT_SCOPE', 'remote' );
 
     include_once( 'main.php' );
 
@@ -22,15 +22,14 @@
         exit;
     }
 
-    if( !PHS::is_secured_request()
-     && !PHS_Api::framework_allows_api_calls_over_http() )
+    if( !PHS::is_secured_request() )
     {
         PHS_Api::http_header_response( PHS_Api::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
         exit;
     }
 
     $api_params = [];
-    $vars_from_get = [ PHS_Api::PARAM_VERSION, PHS_Api::PARAM_API_ROUTE, PHS_Api::PARAM_USING_REWRITE, PHS_Api::PARAM_WEB_SIMULATION, ];
+    $vars_from_get = [ PHS_Api::PARAM_VERSION, PHS_Api::PARAM_API_ROUTE, PHS_Api::PARAM_USING_REWRITE, ];
     foreach( $vars_from_get as $key )
     {
         if( ($val = PHS_Params::_g( $key, PHS_Params::T_ASIS )) !== null )
@@ -113,9 +112,9 @@
         if( $api_obj->has_error() )
             $error_msg = $api_obj->get_error_message();
         else
-            $error_msg = PHS_Api::_t( 'Error running API request.' );
+            $error_msg = PHS_Api::_t( 'Error running REMOTE request.' );
 
-        PHS_Logger::logf( 'Error running API route: ['.$error_msg.']', PHS_Logger::TYPE_API );
+        PHS_Logger::logf( 'Error running REMOTE route: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
         PHS_Api::generic_error( $error_msg );
 
@@ -124,7 +123,7 @@
 
     if( ($debug_data = PHS::platform_debug_data()) )
     {
-        PHS_Logger::logf( 'API route ['.PHS::get_route_as_string().'] run with success: '.$debug_data['db_queries_count'].' queries, '.
+        PHS_Logger::logf( 'REMOTE route ['.PHS::get_route_as_string().'] run with success: '.$debug_data['db_queries_count'].' queries, '.
                           ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
                           ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s', PHS_Logger::TYPE_API );
     }
