@@ -726,7 +726,7 @@ class PHS_Model_Accounts extends PHS_Model
                 $ret = $ch.$ret;
         }
 
-        // Add a special char if none was added already
+        // Add a digit char if none was added already
         while( $digit_chars < 2 )
         {
             $ch = substr( $digits_dict, mt_rand( 0, $digits_dict_len - 1 ), 1 );

@@ -68,7 +68,7 @@ class PHS_Action_Add extends PHS_Action
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $title = PHS_params::_pg( 'title', PHS_params::T_NOHTML );
         $handle = PHS_params::_pg( 'handle', PHS_params::T_NOHTML );
-        $domain = PHS_params::_pg( 'domain', PHS_params::T_NOHTML );
+        $remote_www = PHS_params::_pg( 'remote_www', PHS_params::T_NOHTML );
         $apikey_id = PHS_params::_p( 'apikey_id', PHS_params::T_INT );
         $out_apikey = PHS_params::_p( 'out_apikey', PHS_params::T_NOHTML );
         $out_apisecret = PHS_params::_p( 'out_apisecret', PHS_params::T_NOHTML );
@@ -92,7 +92,7 @@ class PHS_Action_Add extends PHS_Action
             $insert_arr['added_by_uid'] = $current_user['id'];
             $insert_arr['title'] = $title;
             $insert_arr['handle'] = $handle;
-            $insert_arr['domain'] = $domain;
+            $insert_arr['remote_www'] = $remote_www;
             $insert_arr['apikey_id'] = $apikey_id;
             $insert_arr['out_apikey'] = $out_apikey;
             $insert_arr['out_apisecret'] = $out_apisecret;
@@ -125,7 +125,7 @@ class PHS_Action_Add extends PHS_Action
         $data = [
             'title' => $title,
             'handle' => $handle,
-            'domain' => $domain,
+            'remote_www' => $remote_www,
             'apikey_id' => $apikey_id,
             'out_apikey' => $out_apikey,
             'out_apisecret' => $out_apisecret,
@@ -137,6 +137,7 @@ class PHS_Action_Add extends PHS_Action
 
             'accounts_model' => $accounts_model,
             'apikeys_model' => $apikeys_model,
+            'domains_model' => $domains_model,
         ];
 
         return $this->quick_render_template( 'domains/add', $data );

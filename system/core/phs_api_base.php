@@ -576,6 +576,12 @@ abstract class PHS_Api_base extends PHS_Registry
         return $action_result;
     }
 
+    /**
+     * Based on API Key sent in request, return Api Key record from api_keys table (if available)
+     * @param string $apikey
+     *
+     * @return false|array
+     */
     public function get_apikey_by_apikey( $apikey )
     {
         $this->reset_error();
@@ -595,6 +601,18 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->api_flow_value( 'api_key_user_id', (int)$apikey_arr['uid'] );
         else
             $this->api_flow_value( 'api_key_user_id', 0 );
+
+        return $apikey_arr;
+    }
+
+    /**
+     * Returns Api Key used when authenticating request (if any)
+     * @return false|array
+     */
+    public function get_request_apikey()
+    {
+        if( !($apikey_arr = $this->api_flow_value( 'api_key_data')) )
+            return false;
 
         return $apikey_arr;
     }

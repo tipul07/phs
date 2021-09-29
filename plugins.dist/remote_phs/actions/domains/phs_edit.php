@@ -96,7 +96,7 @@ class PHS_Action_Edit extends PHS_Action
         $foobar = PHS_params::_p( 'foobar', PHS_params::T_INT );
         $title = PHS_params::_pg( 'title', PHS_params::T_NOHTML );
         $handle = PHS_params::_pg( 'handle', PHS_params::T_NOHTML );
-        $domain = PHS_params::_pg( 'domain', PHS_params::T_NOHTML );
+        $remote_www = PHS_params::_pg( 'remote_www', PHS_params::T_NOHTML );
         $apikey_id = PHS_params::_p( 'apikey_id', PHS_params::T_INT );
         $out_apikey = PHS_params::_p( 'out_apikey', PHS_params::T_NOHTML );
         $out_apisecret = PHS_params::_p( 'out_apisecret', PHS_params::T_NOHTML );
@@ -118,7 +118,7 @@ class PHS_Action_Edit extends PHS_Action
         {
             $title = $domain_arr['title'];
             $handle = $domain_arr['handle'];
-            $domain = $domain_arr['domain'];
+            $remote_www = $domain_arr['remote_www'];
             $apikey_id = $domain_arr['apikey_id'];
             $out_apikey = $domain_arr['out_apikey'];
             $out_apisecret = $domain_arr['out_apisecret'];
@@ -133,7 +133,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['title'] = $title;
             if( (int)$domain_arr['source'] === $domains_model::SOURCE_MANUALLY )
                 $edit_arr['handle'] = $handle;
-            $edit_arr['domain'] = $domain;
+            $edit_arr['remote_www'] = $remote_www;
             $edit_arr['apikey_id'] = $apikey_id;
             $edit_arr['out_apikey'] = $out_apikey;
             $edit_arr['out_apisecret'] = $out_apisecret;
@@ -144,7 +144,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
 
-            if( ($new_domain = $payment_categories_model->edit( $domain_arr, $edit_params_arr )) )
+            if( ($new_domain = $domains_model->edit( $domain_arr, $edit_params_arr )) )
             {
                 PHS_Notifications::add_success_notice( $this->_pt( 'Remote PHS domain details saved in database.' ) );
 
@@ -156,8 +156,8 @@ class PHS_Action_Edit extends PHS_Action
                 return $action_result;
             }
 
-            if( $payment_categories_model->has_error() )
-                PHS_Notifications::add_error_notice( $payment_categories_model->get_error_message() );
+            if( $domains_model->has_error() )
+                PHS_Notifications::add_error_notice( $domains_model->get_error_message() );
             else
                 PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
         }
@@ -169,7 +169,7 @@ class PHS_Action_Edit extends PHS_Action
 
             'title' => $title,
             'handle' => $handle,
-            'domain' => $domain,
+            'remote_www' => $remote_www,
             'apikey_id' => $apikey_id,
             'out_apikey' => $out_apikey,
             'out_apisecret' => $out_apisecret,

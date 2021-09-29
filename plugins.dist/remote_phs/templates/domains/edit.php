@@ -74,11 +74,11 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="domain"><?php echo $this->_pt( 'Remote Domain' )?></label>
+            <label for="remote_www"><?php echo $this->_pt( 'Full Remote Domain URL' )?></label>
             <div class="lineform_line">
-                <input type="text" id="domain" name="domain" class="form-control"
-                       value="<?php echo form_str( $this->view_var( 'domain' ) )?>" /><br/>
-                <small><?php echo $this->_pt( 'Only domain name of PHS remote domain (eg. www.example.com)' )?></small>
+                <input type="text" id="remote_www" name="remote_www" class="form-control"
+                       value="<?php echo form_str( $this->view_var( 'remote_www' ) )?>" /><br/>
+                <small><?php echo $this->_pt( 'Full URL to root of PHS remote domain including domain path - if required - (eg. www.example.com/phs/)' )?></small>
             </div>
         </fieldset>
 

@@ -3,6 +3,7 @@
 namespace phs\plugins\remote_phs\actions\domains;
 
 use \phs\PHS;
+use phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Action_Generic_list;
@@ -102,9 +103,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         $domains_model = $this->_paginator_model;
+        $apikeys_model = $this->_apikeys_model;
 
         $list_arr = [];
         $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => $domains_model::STATUS_DELETED ];
+        $list_arr['flags'] = [ 'include_api_keys_details' ];
 
         $flow_params = [
             'listing_title' => $this->_pt( 'Remote PHS Domains List' ),
@@ -122,9 +125,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if( !($statuses_arr = $this->_paginator_model->get_statuses_as_key_val()) )
             $statuses_arr = [];
+        if( !($api_keys_arr = $this->_apikeys_model->get_all_api_keys_as_key_val()) )
+            $api_keys_arr = [];
+
+        $filter_api_keys_arr = $api_keys_arr;
 
         if( !empty( $statuses_arr ) )
             $statuses_arr = self::merge_array_assoc( [ 0 => $this->_pt( ' - Choose - ' ) ], $statuses_arr );
+        if( !empty( $filter_api_keys_arr ) )
+            $filter_api_keys_arr = self::merge_array_assoc( [ 0 => $this->_pt( ' - Choose - ' ) ], $filter_api_keys_arr );
 
         if( isset( $statuses_arr[$domains_model::STATUS_DELETED] ) )
             unset( $statuses_arr[$domains_model::STATUS_DELETED] );
@@ -136,15 +145,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             $bulk_actions = [
                 [
-                    'display_name' => $this->_pt( 'Inactivate' ),
-                    'action' => 'bulk_inactivate',
-                    'js_callback' => 'phs_remote_domains_list_bulk_inactivate',
+                    'display_name' => $this->_pt( 'Connect' ),
+                    'action' => 'bulk_connect',
+                    'js_callback' => 'phs_remote_domains_list_bulk_connect',
                     'checkbox_column' => 'id',
                 ],
                 [
-                    'display_name' => $this->_pt( 'Activate' ),
-                    'action' => 'bulk_activate',
-                    'js_callback' => 'phs_remote_domains_list_bulk_activate',
+                    'display_name' => $this->_pt( 'Suspend' ),
+                    'action' => 'bulk_suspend',
+                    'js_callback' => 'phs_remote_domains_list_bulk_suspend',
                     'checkbox_column' => 'id',
                 ],
                 [
@@ -167,13 +176,39 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default' => '',
             ],
             [
-                'display_name' => $this->_pt( 'Domain' ),
-                'display_hint' => $this->_pt( 'All records containing this value at domain field' ),
-                'var_name' => 'fdomain',
-                'record_field' => 'domain',
+                'display_name' => $this->_pt( 'Handle' ),
+                'display_hint' => $this->_pt( 'All records containing this value at handle field' ),
+                'var_name' => 'fhandle',
+                'record_field' => 'handle',
                 'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
                 'type' => PHS_params::T_NOHTML,
                 'default' => '',
+            ],
+            [
+                'display_name' => $this->_pt( 'Domain URL' ),
+                'display_hint' => $this->_pt( 'All records containing this value at domain field' ),
+                'var_name' => 'fremote_www',
+                'record_field' => 'remote_www',
+                'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ],
+            [
+                'display_name' => $this->_pt( 'Outgoing API Key' ),
+                'display_hint' => $this->_pt( 'All records containing this value at outgoing API key' ),
+                'var_name' => 'fout_apikey',
+                'record_field' => 'out_apikey',
+                'record_check' => [ 'check' => 'LIKE', 'value' => '%%%s%%' ],
+                'type' => PHS_params::T_NOHTML,
+                'default' => '',
+            ],
+            [
+                'display_name' => $this->_pt( 'Incomming API Key' ),
+                'var_name' => 'fapikey_id',
+                'record_field' => 'apikey_id',
+                'type' => PHS_params::T_INT,
+                'default' => 0,
+                'values_arr' => $filter_api_keys_arr,
             ],
             [
                 'display_name' => $this->_pt( 'Status' ),
@@ -197,16 +232,37 @@ class PHS_Action_List extends PHS_Action_Generic_list
             [
                 'column_title' => $this->_pt( 'Title' ),
                 'record_field' => 'title',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ],
             [
-                'column_title' => $this->_pt( 'Domain' ),
-                'record_field' => 'domain',
+                'column_title' => $this->_pt( 'Domain URL' ),
+                'record_field' => 'remote_www',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+            ],
+            [
+                'column_title' => $this->_pt( 'Outgoing API Key' ),
+                'record_field' => 'out_apikey',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+            ],
+            [
+                'column_title' => $this->_pt( 'Incomming API Key' ),
+                'record_field' => 'apikey_id',
+                'display_key_value' => $api_keys_arr,
+                'invalid_value' => '-',
+                'extra_style' => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+                'display_callback' => [ $this, 'display_incomming_api_key' ],
+                'extra_callback_params' => [ 'api_keys_arr' => $api_keys_arr ],
             ],
             [
                 'column_title' => $this->_pt( 'Status' ),
                 'record_field' => 'status',
                 'display_key_value' => $statuses_arr,
                 'invalid_value' => $this->_pt( 'Undefined' ),
+                'extra_style' => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
             [
@@ -283,15 +339,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return true;
             break;
 
-            case 'bulk_activate':
+            case 'bulk_suspend':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required remote PHS domains activated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required remote PHS domains suspended with success.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating selected remote PHS domains failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Suspending selected remote PHS domains failed. Please try again.' ) );
                     elseif( $action['action_result'] === 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed activating all selected remote PHS domains. Remote PHS domains which failed activation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed suspending all selected remote PHS domains. Remote PHS domains which failed suspention are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -313,11 +369,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = [];
-                foreach( $scope_arr[$scope_key] as $company_type_id )
+                foreach( $scope_arr[$scope_key] as $record_id )
                 {
-                    if( !$this->_paginator_model->act_connect( $company_type_id ) )
+                    if( !$this->_paginator_model->act_suspend( $record_id ) )
                     {
-                        $remaining_ids_arr[] = $company_type_id;
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -344,15 +400,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
             break;
 
-            case 'bulk_inactivate':
+            case 'bulk_connect':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required remote PHS domains inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Started connection procedure for required remote PHS domains.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating selected remote PHS domains failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Starting connection procedure for selected remote PHS domains failed. Please try again.' ) );
                     elseif( $action['action_result'] === 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed inactivating all selected remote PHS domains. Remote PHS domains which failed inactivation are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed starting connection procedure for all selected remote PHS domains. Remote PHS domains for which starting connection failed are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -374,11 +430,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = [];
-                foreach( $scope_arr[$scope_key] as $company_type_id )
+                foreach( $scope_arr[$scope_key] as $record_id )
                 {
-                    if( !$this->_paginator_model->act_suspend( $company_type_id ) )
+                    if( !$this->_paginator_model->act_connect( $record_id ) )
                     {
-                        $remaining_ids_arr[] = $company_type_id;
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -435,11 +491,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
 
                 $remaining_ids_arr = [];
-                foreach( $scope_arr[$scope_key] as $company_type_id )
+                foreach( $scope_arr[$scope_key] as $record_id )
                 {
-                    if( !$this->_paginator_model->act_delete( $company_type_id ) )
+                    if( !$this->_paginator_model->act_delete( $record_id ) )
                     {
-                        $remaining_ids_arr[] = $company_type_id;
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -466,13 +522,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
             break;
 
-            case 'do_activate':
+            case 'do_connect':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Remote PHS domain activated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Connecting procedure started for remote PHS domain.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating remote PHS domain failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Starting connect procedure for remote PHS domain failed. Please try again.' ) );
 
                     return true;
                 }
@@ -490,7 +546,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 if( empty( $action['action_params'] )
                  || !($payment_category_arr = $this->_paginator_model->get_details( $action['action_params'] )) )
                 {
-                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot activate remote PHS domain. Remote PHS domain not found in database.' ) );
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'Cannot connect to remote PHS domain. Remote PHS domain not found in database.' ) );
                     return false;
                 }
 
@@ -500,13 +556,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     $action_result_params['action_result'] = 'success';
             break;
 
-            case 'do_inactivate':
+            case 'do_suspend':
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Remote PHS domain inactivated with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Remote PHS domain suspended with success.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating remote PHS domain failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Suspending remote PHS domain failed. Please try again.' ) );
 
                     return true;
                 }
@@ -577,6 +633,40 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return '';
     }
 
+    public function display_incomming_api_key( $params )
+    {
+        if( empty( $params )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] ) )
+            return false;
+
+        if( !($current_user = PHS::user_logged_in())
+         || empty( $params['preset_content'] ) )
+            return '-';
+
+        $paginator_obj = $this->_paginator;
+
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    return $params['record']['apikey_id'];
+                break;
+            }
+        }
+
+        if( PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_API_KEYS )
+         && ($edit_apikey_url = PHS::url( [ 'p' => 'admin', 'a' => 'api_key_edit' ],
+                                          [ 'aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url() ] )) )
+            return '<a href="'.$edit_apikey_url.'">'.$params['preset_content'].'</a>'.
+                   (!empty( $params['record']['api_keys_api_key'] )?'<br/>'.$params['record']['api_keys_api_key']:'');
+
+        return $params['preset_content'].
+               (!empty( $params['record']['api_keys_api_key'] )?'<br/>'.$params['record']['api_keys_api_key']:'');
+    }
+
     public function display_actions( $params )
     {
         if( empty( $this->_paginator_model )
@@ -605,14 +695,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
          || $this->_paginator_model->is_suspended( $domain_arr ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_remote_domains_list_activate( '<?php echo $domain_arr['id']?>' )">
+            <a href="javascript:void(0)" onclick="phs_remote_domains_list_connect( '<?php echo $domain_arr['id']?>' )">
                 <i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Connect remote PHS domain' )?>"></i></a>
             <?php
         }
         if( $this->_paginator_model->is_connected( $domain_arr ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_remote_domains_list_inactivate( '<?php echo $domain_arr['id']?>' )">
+            <a href="javascript:void(0)" onclick="phs_remote_domains_list_suspend( '<?php echo $domain_arr['id']?>' )">
                 <i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Suspend remote PHS domain' )?>"></i></a>
             <?php
         }
@@ -660,27 +750,27 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_remote_domains_list_activate( id )
+        function phs_remote_domains_list_connect( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this remote PHS domain?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to connect to this remote PHS domain?', '"' )?>" ) )
             {
                 <?php
                 $url_params = [];
                 $url_params['action'] = [
-                    'action' => 'do_activate',
+                    'action' => 'do_connect',
                     'action_params' => '" + id + "',
                 ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
-        function phs_remote_domains_list_inactivate( id )
+        function phs_remote_domains_list_suspend( id )
         {
-            if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this remote PHS domain?', '"' )?>" ) )
+            if( confirm( "<?php echo self::_e( 'Are you sure you want to suspend this remote PHS domain?', '"' )?>" ) )
             {
                 <?php
                 $url_params = [];
                 $url_params['action'] = [
-                    'action' => 'do_inactivate',
+                    'action' => 'do_suspend',
                     'action_params' => '" + id + "',
                 ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
@@ -710,17 +800,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return checkboxes_list.length;
         }
 
-        function phs_remote_domains_list_bulk_activate()
+        function phs_remote_domains_list_bulk_suspend()
         {
             var total_checked = phs_remote_domains_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select remote PHS domains you want to activate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select remote PHS domains you want to suspend first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to activate %s remote PHS domains?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to suspend %s remote PHS domains?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
@@ -729,17 +819,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
         }
 
-        function phs_remote_domains_list_bulk_inactivate()
+        function phs_remote_domains_list_bulk_connect()
         {
             var total_checked = phs_remote_domains_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e( 'Please select remote PHS domains you want to inactivate first.', '"' )?>" );
+                alert( "<?php echo self::_e( 'Please select remote PHS domains you want to connect to first.', '"' )?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to inactivate %s remote PHS domains?', '"' ), '" + total_checked + "' )?>" ) )
+            if( confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to connect to %s remote PHS domains?', '"' ), '" + total_checked + "' )?>" ) )
 
             {
                 var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");

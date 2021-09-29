@@ -67,7 +67,8 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return [ 'accounts', 'admin', 'messages', 'captcha', 'emails', 'sendgrid', 'notifications', 'backup', 'cookie_notice', 'bbeditor', 'mailchimp' ];
+        return [ 'accounts', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice', 'emails', 'hubspot', 'mailchimp', 'messages',
+                 'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
     }
 
     public static function get_always_active_plugins()
@@ -674,6 +675,37 @@ final class PHS extends PHS_Registry
             // if default domain settings are set
             if( defined( 'PHS_DEFAULT_HTTP' ) )
                 return PHS_DEFAULT_HTTP;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param bool $force_https
+     *
+     * @return bool|string
+     */
+    public static function get_base_domain_and_path( $force_https = false )
+    {
+        if( !empty( $force_https )
+         || self::is_secured_request() )
+        {
+            // if domain settings are set
+            if( defined( 'PHS_FULL_SSL_PATH_WWW' ) )
+                return PHS_FULL_SSL_PATH_WWW;
+
+            // if default domain settings are set
+            if( defined( 'PHS_DEFAULT_FULL_SSL_PATH_WWW' ) )
+                return PHS_DEFAULT_FULL_SSL_PATH_WWW;
+        } else
+        {
+            // if domain settings are set
+            if( defined( 'PHS_FULL_PATH_WWW' ) )
+                return PHS_FULL_PATH_WWW;
+
+            // if default domain settings are set
+            if( defined( 'PHS_DEFAULT_FULL_PATH_WWW' ) )
+                return PHS_DEFAULT_FULL_PATH_WWW;
         }
 
         return false;
@@ -1627,16 +1659,24 @@ final class PHS extends PHS_Registry
         if( empty( $extra['for_domain'] ) || !is_string( $extra['for_domain'] ) )
             $extra['for_domain'] = false;
 
-        $extra['use_rewrite_url'] = (!empty( $extra['use_rewrite_url'] ));
+        // Rewrite URLs are supported only for API and Remote scopes...
+        if( !in_array( $extra['for_scope'], [ PHS_Scope::SCOPE_API, PHS_Scope::SCOPE_REMOTE ], true ) )
+            $extra['use_rewrite_url'] = false;
+        else
+            $extra['use_rewrite_url'] = (!empty( $extra['use_rewrite_url'] ));
 
         $new_args = [];
+        $rewrite_route = '';
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
         // which is passed as a parameter in a JavaScript script
         // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
         if( !empty( $extra['raw_route'] ) && is_string( $extra['raw_route'] ) )
         {
-            $extra['raw_args'][self::ROUTE_PARAM] = $extra['raw_route'];
+            if( $extra['use_rewrite_url'] )
+                $rewrite_route = $extra['raw_route'];
+            else
+                $extra['raw_args'][self::ROUTE_PARAM] = $extra['raw_route'];
         } elseif( !($route = self::route_from_parts( $route_arr )) )
         {
             return '#invalid_path['.
@@ -1646,7 +1686,10 @@ final class PHS extends PHS_Registry
                    (!empty( $route_arr['a'] )?$route_arr['a']:'').']';
         } else
         {
-            $new_args[self::ROUTE_PARAM] = $route;
+            if( $extra['use_rewrite_url'] )
+                $rewrite_route = $route;
+            else
+                $new_args[self::ROUTE_PARAM] = $route;
         }
 
         if( isset( $args[self::ROUTE_PARAM] ) )
@@ -1679,11 +1722,15 @@ final class PHS extends PHS_Registry
             break;
 
             case PHS_Scope::SCOPE_API:
-                $stock_url = self::get_api_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
+                $stock_url = self::get_api_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).
+                             ($extra['use_rewrite_url']?$rewrite_route:'').
+                             ($query_string!==''?'?'.$query_string:'');
             break;
 
             case PHS_Scope::SCOPE_REMOTE:
-                $stock_url = self::get_remote_script_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).($query_string!==''?'?'.$query_string:'');
+                $stock_url = self::get_remote_script_url( $route_arr['force_https'], $extra['use_rewrite_url'], $extra['for_domain'] ).
+                             ($extra['use_rewrite_url']?$rewrite_route:'').
+                             ($query_string!==''?'?'.$query_string:'');
             break;
         }
 

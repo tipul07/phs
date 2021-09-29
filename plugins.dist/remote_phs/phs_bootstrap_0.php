@@ -52,6 +52,22 @@ if( ($remote_phs_plugin = PHS::load_plugin( 'remote_phs' ))
                 'description' => 'Send a request to a 3rd party PHS platform to connect',
             ]
         );
+
+        PHS_Api::register_api_route( [
+                [ 'exact_match' => 'phs_remote', ],
+                [ 'exact_match' => 'connect_confirm', ],
+            ], [
+                'p' => 'remote_phs',
+                'c' => 'index_api',
+                'a' => 'connect_confirm',
+                'ad' => 'connection',
+            ], [
+                'authentication_required' => true,
+                'method' => 'post',
+                'name' => 'Confirm connection with 3rd PHS platform',
+                'description' => 'Send a request to a 3rd party PHS platform to confirm a connection',
+            ]
+        );
     }
 
     PHS::register_hook(
