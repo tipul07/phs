@@ -4,6 +4,7 @@ namespace phs\plugins\remote_phs\models;
 
 use \phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Crypt;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Model;
@@ -448,13 +449,6 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( $this->is_connected( $domain_arr ) )
             return $domain_arr;
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-        if( !($remote_plugin = PHS::load_plugin( 'remote_phs' )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading required resources.' ) );
-            return false;
-        }
-
         $crypt_key = self::generate_crypt_key();
         $crypt_internal_keys = self::generate_crypt_internal_keys();
 
@@ -480,7 +474,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].'.', $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
             return false;
@@ -512,7 +506,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
             }
 
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error connecting with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error connecting with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
 
             // Error sending request to remote domain
             $edit_arr = [];
@@ -524,7 +518,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
             if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
             {
-                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', $remote_plugin::LOG_CHANNEL );
+                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
                 return false;
@@ -543,7 +537,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when waiting connection '.$domain_arr['title'].' #'.$domain_arr['id'].'.', $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when waiting connection '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
             return false;
@@ -573,7 +567,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
             }
 
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error sending connection confirmation with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error sending connection confirmation with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
 
             // Error sending request to remote domain
             $edit_arr = [];
@@ -585,7 +579,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
             if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
             {
-                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', $remote_plugin::LOG_CHANNEL );
+                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
                 return false;
@@ -690,13 +684,6 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-        if( !($remote_plugin = PHS::load_plugin( 'remote_phs' )) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error loading remote PHS plugin.' ) );
-            return false;
-        }
-
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
 
@@ -725,7 +712,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             $params['payload_arr'] = false;
         if( empty( $params['log_channel'] )
          || !PHS_Logger::defined_channel( $params['log_channel'] ) )
-            $params['log_channel'] = $remote_plugin::LOG_CHANNEL;
+            $params['log_channel'] = PHS_Logger::TYPE_REMOTE;
 
         $log_channel = $params['log_channel'];
 
@@ -895,7 +882,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             $settings_arr[$key] = $connection_settings_arr[$key];
         }
 
-        return @json_encode( $settings_arr );
+        return PHS_Crypt::quick_encode( @json_encode( $settings_arr ) );
     }
 
     public function decode_connection_settings( $domain_data )
@@ -912,7 +899,8 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $defaults_arr = $this->get_default_connection_settings_arr();
 
         if( empty( $domain_arr['connection_settings'] )
-         || !($settings_arr = @json_decode( $domain_arr['connection_settings'], true )) )
+         || !($settings_str = PHS_Crypt::quick_decode( $domain_arr['connection_settings'] ))
+         || !($settings_arr = @json_decode( $settings_str, true )) )
             return $defaults_arr;
 
         $new_settings_arr = [];

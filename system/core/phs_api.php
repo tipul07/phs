@@ -2,6 +2,7 @@
 
 namespace phs;
 
+use phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Params;
@@ -67,6 +68,20 @@ class PHS_Api extends PHS_Api_base
             self::$_global_api_obj = $api_obj;
 
         return $api_obj;
+    }
+
+    public function __construct( $init_query_params = false )
+    {
+        parent::__construct();
+
+        if( $init_query_params !== false
+         && !($this->_init_api_query_params( $init_query_params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_API_INIT, self::_t( 'Couldn\'t initialize API object.' ) );
+        }
+
+        // We don't update self::$_last_api_obj or self::$_global_api_obj as we explicitly asked for this instance
     }
 
     public static function get_api_routes()

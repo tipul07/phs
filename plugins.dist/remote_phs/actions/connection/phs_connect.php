@@ -26,10 +26,8 @@ class PHS_Action_Connect extends PHS_Api_action
                 $this->_pt( 'Error obtaining API key details.' ) );
         }
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
         /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
-        if( !($remote_plugin = PHS::load_plugin( 'remote_phs' ))
-         || !($domains_model = PHS::load_model( 'phs_remote_domains', 'remote_phs' )) )
+        if( !($domains_model = PHS::load_model( 'phs_remote_domains', 'remote_phs' )) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                                           $this->_pt( 'Error loading required resources.' ) );
@@ -57,7 +55,7 @@ class PHS_Action_Connect extends PHS_Api_action
 
         if( !($connection_settings = $domains_model->encode_connection_settings( $settings_arr )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error obtaining connection settings for incomming remote domain request for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error obtaining connection settings for incomming remote domain request for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt( 'Error obtaining connection settings.' ) );
@@ -74,7 +72,7 @@ class PHS_Action_Connect extends PHS_Api_action
 
         if( !($new_domain_arr = $domains_model->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating incomming remote domain connection for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating incomming remote domain connection for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt( 'Error updating remote domain details.' ) );

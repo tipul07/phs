@@ -17,12 +17,10 @@ class PHS_Action_Connect_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
         /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
         if( !($params = PHS_bg_jobs::get_current_job_parameters())
          || !is_array( $params )
          || empty( $params['rdid'] )
-         || !($remote_plugin = PHS::load_plugin( 'remote_phs' ))
          || !($domains_model = PHS::load_model( 'phs_remote_domains', 'remote_phs' ))
          || !($domain_arr = $domains_model->get_details( $params['rdid'] )) )
         {
@@ -37,7 +35,7 @@ class PHS_Action_Connect_bg extends PHS_Action
             else
                 $error_msg = 'Unknown error connecting to PHS remote domain ['.$domain_arr['title'].'] #'.$domain_arr['id'];
 
-            PHS_Logger::logf( '[ERROR] Error connecting to PHS remote domain: '.$error_msg, $remote_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[ERROR] Error connecting to PHS remote domain: '.$error_msg, PHS_Logger::TYPE_REMOTE );
         }
 
         return PHS_Action::default_action_result();

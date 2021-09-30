@@ -29,21 +29,21 @@
     }
 
     $api_params = [];
-    $vars_from_get = [ PHS_Api::PARAM_VERSION, PHS_Api::PARAM_API_ROUTE, PHS_Api::PARAM_USING_REWRITE, ];
+    $vars_from_get = [ PHS_Api::PARAM_VERSION, PHS_Api::PARAM_USING_REWRITE, ];
     foreach( $vars_from_get as $key )
     {
         if( ($val = PHS_Params::_g( $key, PHS_Params::T_ASIS )) !== null )
             $api_params[$key] = $val;
     }
 
-    if( !($api_obj = PHS_Api::api_factory( $api_params )) )
+    if( !($api_obj = new PHS_Api( $api_params )) )
     {
         if( !PHS_Api::st_has_error() )
             $error_msg = PHS_Api::st_get_error_message();
         else
             $error_msg = PHS_Api::_t( 'Unknown error.' );
 
-        PHS_Logger::logf( 'Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
+        PHS_Logger::logf( 'Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_REMOTE );
 
         PHS_Api::generic_error( $error_msg );
 
@@ -106,6 +106,12 @@
     }
 
     $api_obj->set_api_credentials();
+
+    // Process JSON body
+    if( !($json_arr = $api_obj::get_request_body_as_json_array()) )
+    {
+
+    }
 
     if( !($action_result = $api_obj->run_route()) )
     {

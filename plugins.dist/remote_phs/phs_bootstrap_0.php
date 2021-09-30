@@ -9,8 +9,6 @@ use \phs\libraries\PHS_Logger;
 if( ($remote_phs_plugin = PHS::load_plugin( 'remote_phs' ))
  && $remote_phs_plugin->plugin_active() )
 {
-    PHS_Logger::define_channel( $remote_phs_plugin::LOG_CHANNEL );
-
     PHS::register_hook(
         PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
         [ $remote_phs_plugin, 'trigger_after_left_menu_admin' ],
