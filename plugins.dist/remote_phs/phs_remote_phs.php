@@ -25,6 +25,8 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
 
     private function _load_dependencies()
     {
+        $this->reset_error();
+
         if( empty( $this->_accounts_model )
          && !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
@@ -200,6 +202,21 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
                 'default' => false,
             ],
         ];
+    }
+
+    public function is_remote_enabled()
+    {
+        return (($settings_arr = $this->get_plugin_settings()) && !empty( $settings_arr['enable_remotes'] ));
+    }
+
+    public function is_remote_calls_enabled()
+    {
+        return (($settings_arr = $this->get_plugin_settings()) && !empty( $settings_arr['allow_remote_calls'] ));
+    }
+
+    public function is_accepting_remote_calls()
+    {
+        return ($this->is_remote_enabled() && $this->is_remote_calls_enabled());
     }
 
     //

@@ -13,117 +13,81 @@
 
     use \phs\PHS;
     use \phs\PHS_Api;
+    use \phs\PHS_Api_remote;
     use \phs\libraries\PHS_Logger;
     use \phs\libraries\PHS_Params;
 
-    if( !PHS_Api::framework_allows_api_calls() )
+    if( !PHS_Api_remote::framework_allows_api_calls() )
     {
-        PHS_Api::http_header_response( PHS_Api::H_CODE_SERVICE_UNAVAILABLE );
+        PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_SERVICE_UNAVAILABLE );
         exit;
     }
 
     if( !PHS::is_secured_request() )
     {
-        PHS_Api::http_header_response( PHS_Api::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
+        PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.' );
+        exit;
+    }
+
+    /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
+    if( !($remote_plugin = PHS::load_plugin( 'remote_phs' ))
+     || !$remote_plugin->is_accepting_remote_calls() )
+    {
+        PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_SERVICE_UNAVAILABLE, 'Service unavailable.' );
         exit;
     }
 
     $api_params = [];
-    $vars_from_get = [ PHS_Api::PARAM_VERSION, PHS_Api::PARAM_USING_REWRITE, ];
+    $vars_from_get = [ PHS_Api_remote::PARAM_VERSION, PHS_Api_remote::PARAM_USING_REWRITE, PHS_Api_remote::PARAM_WEB_SIMULATION, ];
     foreach( $vars_from_get as $key )
     {
         if( ($val = PHS_Params::_g( $key, PHS_Params::T_ASIS )) !== null )
             $api_params[$key] = $val;
     }
 
-    if( !($api_obj = new PHS_Api( $api_params )) )
+    if( !($api_obj = new PHS_Api_remote( $api_params )) )
     {
-        if( !PHS_Api::st_has_error() )
-            $error_msg = PHS_Api::st_get_error_message();
-        else
-            $error_msg = PHS_Api::_t( 'Unknown error.' );
+        PHS_Logger::logf( 'Error instantiating remote API.', PHS_Logger::TYPE_REMOTE );
 
-        PHS_Logger::logf( 'Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_REMOTE );
-
-        PHS_Api::generic_error( $error_msg );
-
+        PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_INTERNAL_SERVER_ERROR, 'Error instantiating remote API.' );
         exit;
     }
 
-    if( !empty( $_SERVER ) && is_array( $_SERVER ) )
+    if( !$api_obj->extract_api_request_details() )
     {
-        $content_type = false;
-        if( !empty( $_SERVER['CONTENT_TYPE'] ) )
-            $content_type = $_SERVER['CONTENT_TYPE'];
+        if( $api_obj->has_error() )
+            $error_msg = $api_obj->get_simple_error_message();
+        else
+            $error_msg = $api_obj::_t( 'Unknow error.' );
 
-        elseif( !empty( $_SERVER['HTTP_CONTENT_TYPE'] ) )
-            $content_type = $_SERVER['HTTP_CONTENT_TYPE'];
-
-        if( !empty( $content_type )
-         && !$api_obj->set_content_type( strtolower( trim( $content_type ) ) ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set content type to API object.' );
-
-            PHS_Logger::logf( 'Error setting content type in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
-
-        if( !empty( $_SERVER['REQUEST_METHOD'] )
-         && !$api_obj->set_http_method( $_SERVER['REQUEST_METHOD'] ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set HTTP method to API object.' );
-
-            PHS_Logger::logf( 'Error setting HTTP method in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
-
-        if( !empty( $_SERVER['SERVER_PROTOCOL'] )
-         && !$api_obj->set_http_protocol( trim( $_SERVER['SERVER_PROTOCOL'] ) ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set response protocol to API object.' );
-
-            PHS_Logger::logf( 'Error setting response protocol in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
+        PHS_Api::generic_error( $error_msg );
+        exit;
     }
 
     $api_obj->set_api_credentials();
 
-    // Process JSON body
-    if( !($json_arr = $api_obj::get_request_body_as_json_array()) )
-    {
-
-    }
-
     if( !($action_result = $api_obj->run_route()) )
     {
         if( $api_obj->has_error() )
-            $error_msg = $api_obj->get_error_message();
+            $error_msg = $api_obj->get_simple_error_message();
         else
             $error_msg = PHS_Api::_t( 'Error running REMOTE request.' );
 
-        PHS_Logger::logf( 'Error running REMOTE route: ['.$error_msg.']', PHS_Logger::TYPE_API );
+        $http_code = $api_obj::H_CODE_INTERNAL_SERVER_ERROR;
+        switch( ($error_no = $api_obj->get_error_code()) )
+        {
+            case $api_obj::ERR_PARAMETERS:
+                $http_code = $api_obj::H_CODE_BAD_REQUEST;
+            break;
 
-        PHS_Api::generic_error( $error_msg );
+            case $api_obj::ERR_AUTHENTICATION:
+                $http_code = $api_obj::H_CODE_UNAUTHORIZED;
+            break;
+        }
 
+        PHS_Logger::logf( 'Error running REMOTE route: ['.$error_no.': '.$error_msg.']', PHS_Logger::TYPE_REMOTE );
+
+        PHS_Api_remote::http_header_response( $http_code, $error_msg );
         exit;
     }
 

@@ -76,8 +76,9 @@ include_once( PHS_CORE_DIR.'phs_agent.php' );
 include_once( PHS_CORE_DIR.'phs_ajax.php' );
 include_once( PHS_CORE_DIR.'phs_api_base.php' );
 include_once( PHS_CORE_DIR.'phs_api.php' );
+include_once( PHS_CORE_DIR.'phs_api_remote.php' );
 // Used to manage big number of files (initialize repositories in plugin's phs_bootstrap_x.php files)
-// Make sure you create repositories' directories in uploads dir and you don't initialize a LDAP repository directly in uploads dir - unless you know what you'r doing!!!)
+// Make sure you create repositories' directories in uploads dir, and you don't initialize a LDAP repository directly in uploads dir - unless you know what you're doing!!!)
 // eg. if uploads directory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
 include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 

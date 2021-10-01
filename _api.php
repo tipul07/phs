@@ -47,63 +47,18 @@
         PHS_Logger::logf( 'Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
 
         PHS_Api::generic_error( $error_msg );
-
         exit;
     }
 
-    if( !empty( $_SERVER ) && is_array( $_SERVER ) )
+    if( !$api_obj->extract_api_request_details() )
     {
-        $content_type = false;
-        if( !empty( $_SERVER['CONTENT_TYPE'] ) )
-            $content_type = $_SERVER['CONTENT_TYPE'];
+        if( $api_obj->has_error() )
+            $error_msg = $api_obj->get_simple_error_message();
+        else
+            $error_msg = $api_obj::_t( 'Unknow error.' );
 
-        elseif( !empty( $_SERVER['HTTP_CONTENT_TYPE'] ) )
-            $content_type = $_SERVER['HTTP_CONTENT_TYPE'];
-
-        if( !empty( $content_type )
-         && !$api_obj->set_content_type( strtolower( trim( $content_type ) ) ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set content type to API object.' );
-
-            PHS_Logger::logf( 'Error setting content type in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
-
-        if( !empty( $_SERVER['REQUEST_METHOD'] )
-         && !$api_obj->set_http_method( $_SERVER['REQUEST_METHOD'] ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set HTTP method to API object.' );
-
-            PHS_Logger::logf( 'Error setting HTTP method in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
-
-        if( !empty( $_SERVER['SERVER_PROTOCOL'] )
-         && !$api_obj->set_http_protocol( trim( $_SERVER['SERVER_PROTOCOL'] ) ) )
-        {
-            if( $api_obj->has_error() )
-                $error_msg = $api_obj->get_error_message();
-            else
-                $error_msg = PHS_Api::_t( 'Couldn\'t set response protocol to API object.' );
-
-            PHS_Logger::logf( 'Error setting response protocol in API instance: ['.$error_msg.']', PHS_Logger::TYPE_API );
-
-            PHS_Api::generic_error( $error_msg );
-
-            exit;
-        }
+        PHS_Api::generic_error( $error_msg );
+        exit;
     }
 
     $api_obj->set_api_credentials();
