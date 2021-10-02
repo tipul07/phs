@@ -1121,7 +1121,7 @@ class PHS_Paginator extends PHS_Registry
                                                        $filter_details['extra_type'] );
 
                 if( $filter_details['default'] !== false
-                && $scope_val != $filter_details['default'] )
+                && $scope_val !== $filter_details['default'] )
                     $this->_scope[$filter_details['var_name']] = $scope_val;
             }
         }

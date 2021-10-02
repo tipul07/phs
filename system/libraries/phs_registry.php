@@ -216,16 +216,16 @@ class PHS_Registry extends PHS_Language
         if( !is_string( $str ) )
             return '';
 
-        if( !is_string( $args ) and !is_array( $args ) )
+        if( !is_scalar( $args ) && !is_array( $args ) )
             return $str;
 
         if( !is_array( $args ) )
-            $args = array( $args );
+            $args = [ $args ];
 
         if( !($args_count = count( $args )) )
             return $str;
 
-        $new_args = array();
+        $new_args = [];
         // in case we don't have numeric indexes for the args array
         $keys = array_keys( $args );
         // we will cycle through $args array
@@ -233,7 +233,7 @@ class PHS_Registry extends PHS_Language
             $perc_s = 0;
 
         $keyi = 0;
-        $new_args = array();
+        $new_args = [];
         while( $perc_s > 0 )
         {
             // safe...
