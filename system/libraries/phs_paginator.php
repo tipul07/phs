@@ -831,7 +831,7 @@ class PHS_Paginator extends PHS_Registry
     {
         return [
             'hidden_filter' => false,
-            // Variable name of the filter. This is mandatory and it should be present in GET or POST in order for this filter to be taken in consideration
+            // Variable name of the filter. This is mandatory, and it should be present in GET or POST in order for this filter to be taken in consideration
             'var_name' => '',
             // Name of field in database model that will have to check this value
             'record_field' => '',
@@ -841,8 +841,8 @@ class PHS_Paginator extends PHS_Registry
             'raw_query' => '',
             // In case we want to select different filter functionality based on value provided for that filter
             // Usually this is used for filters that involve more fields in database based on value of the filter
-            // eg. Filter option 1: 'Logged in users' -> status = active and last_log !== null,
-            // Filter Options 2: 'Never logged in users' -> status = active and last_log === null
+            // e.g. Filter option 1: 'Logged-in users' -> status = active and last_log !== null,
+            // Filter Options 2: 'Never logged-in users' -> status = active and last_log === null
             'switch_filter' => false, // Array
             // Database function passed to model to check value for this field (if false will be same as default field check eg. '=', [ 'check' => 'LIKE' ] )
             // If this is an array and 'value' key is not provided, script will create a 'value' key with value which coresponds from _scope array.
@@ -865,6 +865,8 @@ class PHS_Paginator extends PHS_Registry
             // In case there are more filters using a single field how should these be linked logically in sql
             // last filter will overwrite linkage_func of previous filters
             'linkage_func' => '',
+            // In case this filter should display an autocomplete field, provide here all autocomplete action details...
+            'autocomplete' => false,
         ];
     }
 
@@ -888,7 +890,18 @@ class PHS_Paginator extends PHS_Registry
             if( empty( $new_filter['var_name'] )
              || (empty( $new_filter['record_field'] ) && empty( $new_filter['switch_filter'] ) && empty( $new_filter['raw_query'] )) )
             {
-                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or (record_field, raw_query) not provided for %s filter.', (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
+                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or (record_field, raw_query) not provided for %s filter.',
+                                                                        (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
+                return false;
+            }
+
+            if( !empty( $new_filter['autocomplete'] )
+             && (!is_array( $new_filter['autocomplete'] )
+                    || empty( $new_filter['autocomplete']['action'] ) || !($new_filter['autocomplete']['action'] instanceof PHS_Action_Autocomplete)
+                ) )
+            {
+                $this->set_error( self::ERR_FILTERS, self::_t( 'Filter %s doesn\'t have a valid autocomplete action.',
+                                                                        (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
                 return false;
             }
 
@@ -1093,6 +1106,9 @@ class PHS_Paginator extends PHS_Registry
 
             $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_Params::T_ASIS );
 
+            if( !empty( $new_filter['autocomplete'] ) )
+                $this->_originals[$filter_details['var_name'].'_phs_ac_name'] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'].'_phs_ac_name', PHS_Params::T_NOHTML );
+
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
                 // Accept arrays to be passed as comma separated values...
@@ -1122,7 +1138,12 @@ class PHS_Paginator extends PHS_Registry
 
                 if( $filter_details['default'] !== false
                 && $scope_val !== $filter_details['default'] )
+                {
                     $this->_scope[$filter_details['var_name']] = $scope_val;
+                    if( !empty( $new_filter['autocomplete'] )
+                     && isset( $this->_originals[$filter_details['var_name'].'_phs_ac_name'] ) )
+                        $this->_scope[$filter_details['var_name'].'_phs_ac_name'] = $this->_originals[$filter_details['var_name'].'_phs_ac_name'];
+                }
             }
         }
 
