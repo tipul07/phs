@@ -377,11 +377,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $link_expire_seconds = time() + $params['link_expire_seconds'];
 
         $pub_key = str_replace( '.', '', microtime( true ) );
-        $confirmation_param = PHS_Crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) ).'::'.$pub_key;
+
+        if( false === ($encoded_part = PHS_Crypt::quick_encode( $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'.md5( $account_arr['nick'].':'.$pub_key.':'.$account_arr['email'] ) )) )
+        {
+            $this->set_error( self::ERR_CONFIRMATION, $this->_pt( 'Error obtaining confirmation parameter. Please try again.' ) );
+            return false;
+        }
 
         return [
             'expiration_time' => $link_expire_seconds,
-            'confirmation_param' => $confirmation_param,
+            'confirmation_param' => $encoded_part.'::'.$pub_key,
             'pub_key' => $pub_key,
             'account_data' => $account_arr,
         ];

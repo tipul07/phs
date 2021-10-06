@@ -1060,10 +1060,18 @@ abstract class PHS_Contract extends PHS_Instantiable
     /**
      * Normalize an array with definitions of data nodes to be used in this contract
      * @param array|bool $definition_arr Definition of nodes of current node or false to normalize all definition
+     * @param array|bool $params_arr Parameters sent to normalization method
+     *
      * @return bool|array Normalized definition array, false if we had errors
      */
-    protected function _normalize_definition_of_nodes( $definition_arr = false )
+    protected function _normalize_definition_of_nodes( $definition_arr = false, $params_arr = false )
     {
+        if( empty( $params_arr ) || !is_array( $params_arr ) )
+            $params_arr = [];
+
+        if( empty( $params_arr['parent_contracts'] ) || !is_array( $params_arr['parent_contracts'] ) )
+            $params_arr['parent_contracts'] = [];
+
         if( $definition_arr === false )
         {
             if( !($definition_arr = $this->get_contract_data_definition())
@@ -1119,6 +1127,15 @@ abstract class PHS_Contract extends PHS_Instantiable
                 return false;
             }
 
+            $contract_instance_id = false;
+            if( !empty( $contract_obj ) )
+                $contract_instance_id = $contract_obj->instance_id();
+
+            // Check recurring loop in contracts definition
+            if( !empty( $params_arr['parent_contracts'] )
+             && in_array( $contract_instance_id, $params_arr['parent_contracts'], true ) )
+                continue;
+
             if( !empty( $contract_obj )
              && !($node_arr['nodes'] = $contract_obj->get_contract_data_definition()) )
                 $node_arr['nodes'] = false;
@@ -1169,8 +1186,12 @@ abstract class PHS_Contract extends PHS_Instantiable
                 return false;
             }
 
+            $rec_params_arr = $params_arr;
+            if( !empty( $contract_instance_id ) )
+                $rec_params_arr['parent_contracts'][] = $contract_instance_id;
+
             if( !empty( $node_arr['nodes'] ) && is_array( $node_arr['nodes'] )
-             && false === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes( $node_arr['nodes'] )) )
+             && false === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes( $node_arr['nodes'], $rec_params_arr )) )
                 return false;
 
             $return_arr[$int_key] = $node_arr;

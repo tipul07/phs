@@ -1459,8 +1459,12 @@ class PHS_Model_Rules extends PHS_Model
             if( !($rule_arr['{ftp_settings}'] = PHS_Line_params::parse_string( $rule_arr['ftp_settings'] )) )
                 $rule_arr['{ftp_settings}'] = [];
 
-            if( !empty( $rule_arr['{ftp_settings}']['pass'] ) )
-                $rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] );
+            if( !empty( $rule_arr['{ftp_settings}']['pass'] )
+             && false === ($rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] )) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error obtaining FTP credentials.' ) );
+                return false;
+            }
         }
 
         return $rule_arr;
@@ -1695,7 +1699,13 @@ class PHS_Model_Rules extends PHS_Model
                 if( empty( $params['fields']['ftp_settings']['pass'] ) )
                     $params['fields']['ftp_settings']['pass'] = '';
 
-                $params['fields']['ftp_settings']['pass'] = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+                if( false === ($encoded_pass = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] )) )
+                {
+                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error encoding FTP credentials. Please try again.' ) );
+                    return false;
+                }
+
+                $params['fields']['ftp_settings']['pass'] = $encoded_pass;
 
                 $params['fields']['ftp_settings'] = PHS_Line_params::to_string( $params['fields']['ftp_settings'] );
                 break;
@@ -1890,14 +1900,20 @@ class PHS_Model_Rules extends PHS_Model
                          or !is_array( $params['fields']['ftp_settings'] )
                          or !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
                         {
-                            $this->set_error( self::ERR_INSERT, $this->_pt( 'Invalid FTP settings.' ) );
+                            $this->set_error( self::ERR_EDIT, $this->_pt( 'Invalid FTP settings.' ) );
                             return false;
                         }
 
                         if( empty( $params['fields']['ftp_settings']['pass'] ) )
                             $params['fields']['ftp_settings']['pass'] = '';
 
-                        $params['fields']['ftp_settings']['pass'] = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] );
+                        if( false === ($encoded_pass = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] )) )
+                        {
+                            $this->set_error( self::ERR_EDIT, $this->_pt( 'Error encoding FTP credentials. Please try again.' ) );
+                            return false;
+                        }
+
+                        $params['fields']['ftp_settings']['pass'] = $encoded_pass;
 
                         $params['fields']['ftp_settings'] = PHS_Line_params::to_string( $params['fields']['ftp_settings'] );
                     break;

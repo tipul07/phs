@@ -16,6 +16,15 @@ abstract class PHS_Contract_list extends PHS_Contract
     abstract public function get_contract_data_list_definition();
 
     /**
+     * If nodes in list are defined in a contract, return contract instance here
+     * @return \phs\libraries\PHS_Contract|null
+     */
+    public function get_list_node_contract()
+    {
+        return null;
+    }
+
+    /**
      * Returns an array with data nodes definition
      * @return array|bool
      * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
@@ -43,6 +52,7 @@ abstract class PHS_Contract_list extends PHS_Contract
                 'recurring_key_type' => PHS_Params::T_INT,
                 'recurring_node' => true,
                 'key_type' => self::FROM_INSIDE,
+                'nodes_from_contract' => $this->get_list_node_contract(),
                 'nodes' => $this->get_contract_data_list_definition(),
             ],
         ];

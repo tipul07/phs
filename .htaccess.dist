@@ -80,6 +80,7 @@
     RewriteRule .* - [L,R=405]
 
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
+    RewriteRule ^remote/(v([0-9]+)/|)(.*)$ _remote.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
     {{HTACCESS_PHS_REWRITE_RULES}}
 
 #+--------------------------------------------------------

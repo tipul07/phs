@@ -81,6 +81,13 @@ body { font-family: 'Open Sans', 'Segoe UI', Arial, Helvetica, 'Trebuchet MS', s
     background: white url("../images/ui-anim_basic_16x16.gif") right center no-repeat;
 }
 
+/* Hack for autocomplete action icons inside input groups */
+.phs_autocomplete_group a { text-decoration: none !important; color: inherit !important; }
+.phs_autocomplete_group a:visited { text-decoration: none !important; color: inherit !important; }
+
+.ui-autocomplete.ui-widget-content .ui-menu-item a { text-decoration: none !important; color: inherit !important; }
+.ui-autocomplete.ui-widget-content .ui-menu-item a:visited { text-decoration: none !important; color: inherit !important; }
+
 /* Hack for chosen dropdowns width 0 bug... */
 .chosen-container.chosen-container-single[style*="width: 0"] { min-width: 150px !important; width: 100% !important; }
 
@@ -935,7 +942,8 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 					margin-right: 0;
 					}
 				fieldset.paginator_filter {}
-					.paginator_filter label { 
+				fieldset.paginator_filter a:hover { text-decoration: none; }
+					.paginator_filter label {
 						word-break: break-all;
 						}
 					.paginator_input { 
