@@ -5,7 +5,7 @@ namespace phs\system\core\scopes;
 use phs\libraries\PHS_Logger;
 use \phs\PHS;
 use \phs\PHS_Scope;
-use \phs\PHS_Api;
+use \phs\PHS_Api_remote;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Hooks;
@@ -23,11 +23,11 @@ class PHS_Scope_Remote extends PHS_Scope
         if( !empty( $static_error_arr )
          && self::arr_has_error( $static_error_arr ) )
         {
-            PHS_Api::http_header_response( PHS_Api::H_CODE_INTERNAL_SERVER_ERROR, self::arr_get_error_message( $static_error_arr ) );
+            PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_INTERNAL_SERVER_ERROR, self::arr_get_error_message( $static_error_arr ) );
             exit;
         }
 
-        if( !($api_obj = PHS_Api::global_api_instance()) )
+        if( !($api_obj = PHS_Api_remote::api_factory()) )
             $api_obj = false;
 
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
@@ -45,7 +45,7 @@ class PHS_Scope_Remote extends PHS_Scope
             if( !empty( $action_result['request_login'] )
              && !$api_obj->api_user_account_id() )
             {
-                PHS_Api::http_header_response( PHS_Api::H_CODE_UNAUTHORIZED );
+                PHS_Api_remote::http_header_response( PHS_Api_remote::H_CODE_UNAUTHORIZED );
                 exit;
             }
         } else
@@ -128,7 +128,10 @@ class PHS_Scope_Remote extends PHS_Scope
                 $errors_arr = PHS_Notifications::notifications_errors();
 
             if( ($new_json_response = $api_obj->create_response_envelope( $json_array, $errors_arr )) )
+            {
+                $new_json_response['timezone'] = (int)date( 'Z' );
                 $json_array = $new_json_response;
+            }
 
             // we assume Content-Type header was set by action
             $action_result['api_buffer'] = @json_encode( $json_array );

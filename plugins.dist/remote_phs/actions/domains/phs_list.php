@@ -3,6 +3,7 @@
 namespace phs\plugins\remote_phs\actions\domains;
 
 use \phs\PHS;
+use phs\PHS_Ajax;
 use phs\libraries\PHS_Roles;
 use \phs\libraries\PHS_params;
 use \phs\libraries\PHS_Notifications;
@@ -203,7 +204,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default' => '',
             ],
             [
-                'display_name' => $this->_pt( 'Incomming API Key' ),
+                'display_name' => $this->_pt( 'Incoming API Key' ),
                 'var_name' => 'fapikey_id',
                 'record_field' => 'apikey_id',
                 'type' => PHS_params::T_INT,
@@ -248,13 +249,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'extra_records_style' => 'text-align:center;',
             ],
             [
-                'column_title' => $this->_pt( 'Incomming API Key' ),
+                'column_title' => $this->_pt( 'Incoming API Key' ),
                 'record_field' => 'apikey_id',
                 'display_key_value' => $api_keys_arr,
                 'invalid_value' => '-',
                 'extra_style' => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
-                'display_callback' => [ $this, 'display_incomming_api_key' ],
+                'display_callback' => [ $this, 'display_incoming_api_key' ],
                 'extra_callback_params' => [ 'api_keys_arr' => $api_keys_arr ],
             ],
             [
@@ -633,7 +634,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return '';
     }
 
-    public function display_incomming_api_key( $params )
+    public function display_incoming_api_key( $params )
     {
         if( empty( $params )
          || !is_array( $params )
@@ -687,11 +688,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         ob_start();
         ?>
+        <a href="javascript:void(0)" onclick="phs_remote_domains_list_info( '<?php echo $domain_arr['id']?>' )">
+            <i class="fa fa-info action-icons" title="<?php echo $this->_pt( 'Remote PHS domain details' )?>"></i></a>
         <a href="<?php echo PHS::url( [ 'p' => 'remote_phs', 'c' => 'admin', 'a' => 'edit', 'ad' => 'domains' ],
                                       [ 'did' => $domain_arr['id'], 'back_page' => $this->_paginator->get_full_url() ] )?>">
             <i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt( 'Edit remote PHS domain' )?>"></i></a>
         <?php
         if( $this->_paginator_model->is_not_connected( $domain_arr )
+         || $this->_paginator_model->is_connection_error( $domain_arr )
          || $this->_paginator_model->is_suspended( $domain_arr ) )
         {
             ?>
@@ -707,10 +711,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        ?>
-        <a href="javascript:void(0)" onclick="phs_remote_domains_list_delete( '<?php echo $domain_arr['id']?>' )">
-            <i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete remote PHS domain' )?>"></i></a>
-        <?php
+        if( !$this->_paginator_model->is_waiting_connection( $domain_arr ) )
+        {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_remote_domains_list_delete( '<?php echo $domain_arr['id']?>' )">
+                <i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete remote PHS domain' )?>"></i></a>
+            <?php
+        }
 
         return ob_get_clean();
     }
@@ -775,6 +782,21 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
+        }
+        function phs_remote_domains_list_info( id )
+        {
+            PHS_JSEN.createAjaxDialog( {
+                width: 800,
+                height: 600,
+                suffix: "phs_info_remote_domain",
+                resizable: true,
+                close_outside_click: false,
+
+                title: "<?php echo self::_e( $this->_pt( 'Remote Domain Details' ) )?>",
+                method: "GET",
+                url: "<?php echo PHS_Ajax::url( [ 'p' => 'remote_phs', 'a' => 'info_ajax', 'ad' => 'domains' ] )?>",
+                url_data: { domain_id: id }
+            });
         }
         function phs_remote_domains_list_delete( id )
         {

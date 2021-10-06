@@ -100,6 +100,7 @@ class PHS_Action_Edit extends PHS_Action
         $apikey_id = PHS_params::_p( 'apikey_id', PHS_params::T_INT );
         $out_apikey = PHS_params::_p( 'out_apikey', PHS_params::T_NOHTML );
         $out_apisecret = PHS_params::_p( 'out_apisecret', PHS_params::T_NOHTML );
+        $out_timeout = PHS_params::_p( 'out_timeout', PHS_params::T_INT );
         $ips_whihtelist = PHS_params::_p( 'ips_whihtelist', PHS_params::T_NOHTML );
 
         if( PHS_params::_p( 'allow_incoming', PHS_params::T_INT ) )
@@ -112,6 +113,11 @@ class PHS_Action_Edit extends PHS_Action
         else
             $log_requests = false;
 
+        if( PHS_params::_p( 'log_body', PHS_params::T_INT ) )
+            $log_body = true;
+        else
+            $log_body = false;
+
         $do_submit = PHS_params::_p( 'do_submit' );
 
         if( empty( $foobar ) )
@@ -122,9 +128,11 @@ class PHS_Action_Edit extends PHS_Action
             $apikey_id = $domain_arr['apikey_id'];
             $out_apikey = $domain_arr['out_apikey'];
             $out_apisecret = $domain_arr['out_apisecret'];
+            $out_timeout = $domain_arr['out_timeout'];
             $ips_whihtelist = $domain_arr['ips_whihtelist'];
             $allow_incoming = $domain_arr['allow_incoming'];
             $log_requests = $domain_arr['log_requests'];
+            $log_body = $domain_arr['log_body'];
         }
 
         if( !empty( $do_submit ) )
@@ -137,9 +145,11 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['apikey_id'] = $apikey_id;
             $edit_arr['out_apikey'] = $out_apikey;
             $edit_arr['out_apisecret'] = $out_apisecret;
+            $edit_arr['out_timeout'] = $out_timeout;
             $edit_arr['ips_whihtelist'] = $ips_whihtelist;
             $edit_arr['allow_incoming'] = $allow_incoming;
             $edit_arr['log_requests'] = $log_requests;
+            $edit_arr['log_body'] = $log_body;
 
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
@@ -173,9 +183,11 @@ class PHS_Action_Edit extends PHS_Action
             'apikey_id' => $apikey_id,
             'out_apikey' => $out_apikey,
             'out_apisecret' => $out_apisecret,
+            'out_timeout' => $out_timeout,
             'ips_whihtelist' => $ips_whihtelist,
             'allow_incoming' => $allow_incoming,
             'log_requests' => $log_requests,
+            'log_body' => $log_body,
 
             'apikeys_arr' => $apikeys_arr,
 

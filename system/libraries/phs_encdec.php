@@ -9,7 +9,7 @@ class PHS_Encdec extends PHS_Language
     // Default crypting keys
     // this array must have max 34 elements!!! and all elements must have same length
     // ONCE YOU START ENCODING STRINGS WITH A SET OF INTERNAL KEYS DON'T CHANGE THEM
-    private $internal_keys = array(
+    private $internal_keys = [
         '7105adad1f765d1066756cbb9b14664a',
         '164785354dd2a185fd5f6ba0a751c9b6',
         '7f637c2c12939c635757b78248cc1576',
@@ -44,7 +44,7 @@ class PHS_Encdec extends PHS_Language
         '0297c2317a7b935a479f9843f1f4ff51',
         'd30a0fd5c5394b4621c90f98519c65d7',
         'a3f60905c42e9bebb39a671ad5cef5d0',
-    );
+    ];
 
     private $internal_keys_count, $internal_keys_len;
     private $private_key, $encoded_private_key, $encoded_private_key_len;
@@ -56,20 +56,35 @@ class PHS_Encdec extends PHS_Language
      * @since     0.3
      * @access    private
      */
-    private $use_base64_encode = true;
+    private $use_base64_encode;
 
-    public function __construct( $priv_key, $use_base64 = true )
+    /**
+     * @param string $priv_key
+     * @param bool $use_base64
+     * @param false|array $internal_keys
+     */
+    public function __construct( $priv_key, $use_base64 = true, $internal_keys = false )
     {
         parent::__construct();
 
         if( !is_string( $priv_key )
-         or $priv_key === '' )
+         || $priv_key === '' )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Private key is empty.' ) );
             return;
         }
 
-        if( $this->check_internal_keys() === false )
+        if( $internal_keys !== false && is_array( $internal_keys ) )
+        {
+            if( !$this->set_internal_keys( $internal_keys ) )
+            {
+                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid internal keys.' ) );
+                return;
+            }
+        }
+
+        // Force error if no internal keys are provided
+        elseif( $this->_check_internal_keys() === false )
             return;
 
         $this->private_key = $priv_key;
@@ -78,6 +93,11 @@ class PHS_Encdec extends PHS_Language
         $this->use_base64_encode = $use_base64;
     }
 
+    /**
+     * @param array $keys_array
+     *
+     * @return bool
+     */
     public function set_internal_keys( $keys_array )
     {
         if( !is_array( $keys_array ) )
@@ -86,13 +106,18 @@ class PHS_Encdec extends PHS_Language
         $this->internal_keys = $keys_array;
         $this->internal_keys_count = count( $this->internal_keys );
 
-        return $this->check_internal_keys();
+        return $this->_check_internal_keys();
 
     }
 
-    private function check_internal_keys()
+    /**
+     * @return bool
+     */
+    private function _check_internal_keys()
     {
-        if( empty( $this->internal_keys ) or !is_array( $this->internal_keys ) or !isset( $this->internal_keys[0] ) )
+        $this->reset_error();
+
+        if( empty( $this->internal_keys ) || !is_array( $this->internal_keys ) || !isset( $this->internal_keys[0] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid!' ) );
             return false;
@@ -101,8 +126,8 @@ class PHS_Encdec extends PHS_Language
         $this->internal_keys_count = count( $this->internal_keys );
         $this->internal_keys_len = strlen( $this->internal_keys[0] );
 
-        if( !$this->internal_keys_count or !$this->internal_keys_len
-         or $this->internal_keys_count > 35 )
+        if( !$this->internal_keys_count || !$this->internal_keys_len
+         || $this->internal_keys_count > 35 )
         {
             $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
             return false;
@@ -142,8 +167,8 @@ class PHS_Encdec extends PHS_Language
         $encrypted_str = base_convert( $internal_key_index, 10, 35 );
 
         $offset = 32;
-        $chars_replace = array();
-        $translation_arr = array();
+        $chars_replace = [];
+        $translation_arr = [];
         for( $i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++ )
         {
             // make sure we generate unique pairs...
@@ -208,8 +233,8 @@ class PHS_Encdec extends PHS_Language
         $internal_key = strtoupper( $this->internal_keys[$internal_key_index] );
 
         $offset = 32;
-        $chars_replace = array();
-        $translation_arr = array();
+        $chars_replace = [];
+        $translation_arr = [];
         for( $i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++ )
         {
             // make sure we generate unique pairs...
@@ -246,7 +271,6 @@ class PHS_Encdec extends PHS_Language
         for( $i = 1, $knti = 0; $i < $str_len; $i += 2, $knti++ )
         {
             $str_check = substr( $str, $i, 2 );
-            //if( ($key_found_pos = array_search( $str[$i].$str[$i+1], $translation_arr )) === false )
             if( ($key_found_pos = array_search( $str_check, $translation_arr, true )) === false )
             {
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t decode the string.' ) );

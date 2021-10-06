@@ -114,6 +114,11 @@ abstract class PHS_Api_base extends PHS_Registry
             'phs_route' => false,
             'api_route' => false,
 
+            // Remote domain record
+            'remote_domain' => false,
+            // Remote domain request message
+            'remote_domain_message' => false,
+
             // Values used in HTTP Authorization header (not necessary an user and password in the system)
             'api_user' => '',
             'api_pass' => '',

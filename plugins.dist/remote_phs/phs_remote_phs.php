@@ -18,7 +18,9 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
 
     const ROLE_OPERATOR = 'phs_remote_operator', ROLE_MANAGER = 'phs_remote_manager';
 
-    const ROLEU_ADM_LIST_DOMAINS = 'phs_remote_adm_list_domains', ROLEU_ADM_MANAGE_DOMAINS = 'phs_remote_adm_manage_domains';
+    const ROLEU_ADM_LIST_DOMAINS = 'phs_remote_adm_list_domains', ROLEU_ADM_MANAGE_DOMAINS = 'phs_remote_adm_manage_domains',
+          ROLEU_ADM_PING_DOMAIN = 'phs_remote_adm_ping_domain',
+          ROLEU_ADM_LIST_LOGS = 'phs_remote_adm_list_logs', ROLEU_ADM_MANAGE_LOGS = 'phs_remote_adm_manage_logs';
 
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model  */
     private $_accounts_model = false;
@@ -87,6 +89,42 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
 
         return $user_arr;
     }
+
+    public function can_admin_ping_domains( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, self::ROLEU_ADM_PING_DOMAIN ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function can_admin_list_logs( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, self::ROLEU_ADM_LIST_LOGS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    public function can_admin_manage_logs( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, self::ROLEU_ADM_MANAGE_LOGS ) )
+            return false;
+
+        return $user_arr;
+    }
     //
     //endregion is_* and can_* functions
     //
@@ -105,6 +143,9 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
             'admin' => [
                 'manage_domains' => false,
                 'list_domains' => false,
+                'ping_domains' => false,
+                'manage_logs' => false,
+                'list_logs' => false,
             ],
         ];
     }
@@ -132,6 +173,12 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
             $view_rights['admin']['manage_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
         if( $this->can_admin_list_domains( $user_arr ) )
             $view_rights['admin']['list_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
+        if( $this->can_admin_ping_domains( $user_arr ) )
+            $view_rights['admin']['ping_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
+        if( $this->can_admin_manage_logs( $user_arr ) )
+            $view_rights['admin']['manage_logs'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
+        if( $this->can_admin_list_logs( $user_arr ) )
+            $view_rights['admin']['list_logs'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
 
         if( (int)$cuser_arr['id'] === (int)$user_arr['id'] )
             $cuser_rights = $view_rights;
@@ -158,6 +205,11 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
             'name' => 'Remote Domains List (as admin)',
             'description' => 'Gives user rights to view list of PHS remote domains',
         ];
+
+        $return_arr[self::ROLE_OPERATOR]['role_units'][self::ROLEU_ADM_LIST_LOGS] = [
+            'name' => 'Remote Domains Logs List (as admin)',
+            'description' => 'Gives user rights to view list logs of PHS remote domains',
+        ];
         //
         //  END Operator
         //
@@ -172,7 +224,18 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
 
         $return_arr[self::ROLE_MANAGER]['role_units'][self::ROLEU_ADM_MANAGE_DOMAINS] = [
             'name' => 'Remote Domains Management (as admin)',
-            'description' => 'Gives user rights to manage PHS remote domains in admin interface', ];
+            'description' => 'Gives user rights to manage PHS remote domains in admin interface',
+        ];
+
+        $return_arr[self::ROLE_MANAGER]['role_units'][self::ROLEU_ADM_PING_DOMAIN] = [
+            'name' => 'Remote Domains Ping (as admin)',
+            'description' => 'Gives user rights to ping PHS remote domains in admin interface',
+        ];
+
+        $return_arr[self::ROLE_MANAGER]['role_units'][self::ROLEU_ADM_MANAGE_LOGS] = [
+            'name' => 'Remote Domains Logs Management (as admin)',
+            'description' => 'Gives user rights to manage logs of PHS remote domains in admin interface',
+        ];
         //
         //  END Manager
         //
@@ -196,7 +259,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
                 'default' => false,
             ],
             'allow_remote_calls' => [
-                'display_name' => $this->_pt( 'Allow Incomming Calls' ),
+                'display_name' => $this->_pt( 'Allow Incoming Calls' ),
                 'display_hint' => $this->_pt( 'Allow remote domains to send actions to this PHS platform.' ),
                 'type' => PHS_Params::T_BOOL,
                 'default' => false,

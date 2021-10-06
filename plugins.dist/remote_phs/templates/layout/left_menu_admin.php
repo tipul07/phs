@@ -17,6 +17,8 @@ use \phs\PHS;
 
     $can_list_domains = (!empty( $view_rights['admin']['list_domains'] ));
     $can_manage_domains = (!empty( $view_rights['admin']['manage_domains'] ));
+    $can_list_logs = (!empty( $view_rights['admin']['list_logs'] ));
+    $can_manage_logs = (!empty( $view_rights['admin']['manage_logs'] ));
 
 ?>
 <li><?php echo $this->_pt( 'PHS Remote' ) ?>
@@ -37,6 +39,15 @@ use \phs\PHS;
         <li><a href="<?php echo PHS::url( [
                   'a' => 'list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs'
             ]) ?>"><?php echo $this->_pt( 'List Remote Domains' ) ?></a>
+        </li>
+        <?php
+    }
+    if( $can_list_logs || $can_manage_logs )
+    {
+        ?>
+        <li><a href="<?php echo PHS::url( [
+                  'a' => 'logs_list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs'
+            ]) ?>"><?php echo $this->_pt( 'List Logs' ) ?></a>
         </li>
         <?php
     }

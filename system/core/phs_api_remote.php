@@ -11,7 +11,7 @@ use \phs\libraries\PHS_Hooks;
 
 class PHS_Api_remote extends PHS_Api_base
 {
-    const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001;
+    const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001, ERR_REMOTE_MESSAGE = 40002;
 
     /** @var false|\phs\PHS_Api_remote $_api_obj */
     private static $_api_obj = false;
@@ -68,19 +68,33 @@ class PHS_Api_remote extends PHS_Api_base
         if( $this->is_web_simulation() )
         {
             PHS_Scope::emulated_scope( PHS_Scope::SCOPE_WEB );
+        }
 
-            if( ($request_body = $this::get_php_input())
-             && ($json_arr = @json_decode( $request_body, true )) )
+        if( ($message_arr = $this->api_flow_value( 'remote_domain_message' ))
+         && is_array( $message_arr ) )
+        {
+            // In case we run in an environment where $_POST or $_GET are not defined
+            global $_POST, $_GET;
+
+            if( !empty( $message_arr['post_arr'] ) && is_array( $message_arr['post_arr'] ) )
             {
-                // In case we run in an environment where $_POST is not defined
-                global $_POST;
-
                 if( empty( $_POST ) || !is_array( $_POST ) )
                     $_POST = [];
 
-                foreach( $json_arr as $key => $val )
+                foreach( $message_arr['post_arr'] as $key => $val )
                 {
                     $_POST[$key] = $val;
+                }
+            }
+
+            if( !empty( $message_arr['get_arr'] ) && is_array( $message_arr['get_arr'] ) )
+            {
+                if( empty( $_GET ) || !is_array( $_GET ) )
+                    $_GET = [];
+
+                foreach( $message_arr['get_arr'] as $key => $val )
+                {
+                    $_GET[$key] = $val;
                 }
             }
         }
@@ -139,9 +153,10 @@ class PHS_Api_remote extends PHS_Api_base
         }
 
         $http_method = $this->http_method();
-
         if( !empty( $apikey_arr['allowed_methods'] )
-         && !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], [ 'to_lowercase' => true ] ), true ) )
+         && (empty( $http_method )
+                || !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], [ 'to_lowercase' => true ] ), true )
+            ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
@@ -155,7 +170,9 @@ class PHS_Api_remote extends PHS_Api_base
         }
 
         if( !empty( $apikey_arr['denied_methods'] )
-         && in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], [ 'to_lowercase' => true ] ), true ) )
+         && (empty( $http_method )
+                || in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], [ 'to_lowercase' => true ] ), true )
+            ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
@@ -189,18 +206,28 @@ class PHS_Api_remote extends PHS_Api_base
     private function _parse_remote_message()
     {
         if( !$this->_load_dependencies() )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading required resources.' ) );
             return false;
+        }
 
         $domain_model = self::$_domains_model;
 
         // Process JSON body
         if( !($root_json_arr = self::get_request_body_as_json_array())
          || empty( $root_json_arr['remote_id'] )
+         || empty( $root_json_arr['msg'] ) || !is_string( $root_json_arr['msg'] )
          || !($remote_id = (int)$root_json_arr['remote_id'])
          || !($domain_arr = $domain_model->get_details( $remote_id, [ 'table_name' => 'phs_remote_domains' ] ))
          || !$domain_model->is_connected( $domain_arr ) )
         {
             $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Invalid request.' ) );
+            return false;
+        }
+
+        if( !$domain_model->should_allow_incoming_requests( $domain_arr ) )
+        {
+            $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access denied.' ) );
             return false;
         }
 
@@ -212,9 +239,25 @@ class PHS_Api_remote extends PHS_Api_base
         {
             PHS_Logger::logf( 'IP denied (#'.$domain_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_REMOTE );
 
-            $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access not allowed.' ) );
+            $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access denied.' ) );
             return false;
         }
+
+        if( !($message_str = $domain_model->quick_decode( $domain_arr, $root_json_arr['msg'] ))
+         || !($message_arr = @json_decode( $message_str, true ))
+         || !($message_arr = $domain_model->validate_communication_message( $message_arr )) )
+        {
+            PHS_Logger::logf( 'Error decoding message (#'.$domain_arr['id'].').'.
+                              ($domain_model->has_error()?' Error: '.$domain_model->get_simple_error_message():''), PHS_Logger::TYPE_REMOTE );
+
+            $this->set_error( self::ERR_REMOTE_MESSAGE, $this->_pt( 'Error decoding message.' ) );
+            return false;
+        }
+
+        return [
+            'domain_data' => $domain_arr,
+            'message_data' => $message_arr,
+        ];
     }
 
     /**
@@ -233,7 +276,7 @@ class PHS_Api_remote extends PHS_Api_base
         if( empty( $extra ) || !is_array( $extra ) )
             $extra = [];
 
-        if( !$this->_parse_remote_message() )
+        if( !($request_arr = $this->_parse_remote_message()) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error interpreting the request.' ) );
@@ -241,110 +284,40 @@ class PHS_Api_remote extends PHS_Api_base
             return false;
         }
 
+        $domain_model = self::$_domains_model;
 
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Request API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+        $domain_arr = $request_arr['domain_data'];
+        $message_arr = $request_arr['message_data'];
 
-        $this->api_flow_value( 'original_api_route_tokens', $final_api_route_tokens );
+        $this->api_flow_value( 'remote_domain', $domain_arr );
+        $this->api_flow_value( 'remote_domain_message', $message_arr );
 
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Final API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+        $phs_route = PHS::validate_route_from_parts( $message_arr['route'], true );
 
-        $phs_route = false;
-        $api_route = false;
-        if( ($matched_route = PHS_Api::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
+        // Check if we have authentication...
+        if( !$this->_check_api_authentication()
+         || !($apikey_arr = $this->get_request_apikey())
+         || empty( $apikey_arr['id'] )
+         || empty( $domain_arr['apikey_id'] )
+         || (int)$domain_arr['apikey_id'] !== (int)$apikey_arr['id'] )
         {
-            $phs_route = $matched_route['phs_route'];
-            $api_route = $matched_route['api_route'];
-        } else
-        {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'No defined API route matched request.', PHS_Logger::TYPE_API );
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
 
-            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
-            {
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_RUN_ROUTE );
-                else
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route into a framework route.' ) );
-
-                return false;
-            }
+            return false;
         }
-
-        $phs_route = PHS::validate_route_from_parts( $phs_route, true );
 
         if( PHS::st_debugging_mode() )
         {
             if( !($route_str = PHS::route_from_parts( $phs_route )) )
                 $route_str = 'N/A';
 
-            PHS_Logger::logf( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
+            PHS_Logger::logf( 'Remote PHS route ['.$route_str.']', PHS_Logger::TYPE_REMOTE );
         }
 
         $this->api_flow_value( 'phs_route', $phs_route );
-        $this->api_flow_value( 'api_route', $api_route );
 
         PHS::set_route( $phs_route );
-
-        // Check if we should have authentication...
-        // If we didn't find an API route, we found a "standard" route to be run which requires authentication
-        // If we have a matching API route check if API route requires authentication, custom authentication or no authentication at all
-        if( empty( $api_route ) || !is_array( $api_route ) )
-        {
-            if( !$this->_check_api_authentication() )
-            {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-
-                return false;
-            }
-        } elseif( !empty( $api_route['authentication_required'] ) )
-        {
-            if( empty( $api_route['authentication_callback'] ) )
-            {
-                if( !$this->_check_api_authentication() )
-                {
-                    if( !$this->has_error() )
-                        $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-
-                    return false;
-                }
-            } else
-            {
-                if( !@is_callable( $api_route['authentication_callback'] ) )
-                {
-                    if( !($route_str = PHS::route_from_parts( $phs_route )) )
-                        $route_str = 'N/A';
-
-                    PHS_Logger::logf( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
-
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-                    return false;
-                }
-
-                $callback_params = self::default_api_authentication_callback_params();
-                $callback_params['api_obj'] = $this;
-                $callback_params['api_route'] = $api_route;
-                $callback_params['phs_route'] = $phs_route;
-
-                if( ($result = @call_user_func( $api_route['authentication_callback'], $callback_params )) === null
-                 || $result === false )
-                {
-                    if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
-                    {
-                        $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );
-                        return false;
-                    }
-
-                    exit;
-                }
-            }
-        } else
-        {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'Authentication not required!', PHS_Logger::TYPE_API );
-        }
 
         if( !$this->_before_route_run() )
         {
@@ -353,6 +326,34 @@ class PHS_Api_remote extends PHS_Api_base
 
             return false;
         }
+
+        // Update last_incoming for the domain...
+        $edit_arr = $domain_model->fetch_default_flow_params( [ 'table_name' => 'phs_remote_domains' ] );
+        $edit_arr['fields'] = [];
+        $edit_arr['fields']['last_incoming'] = date( $domain_model::DATETIME_DB );
+
+        if( ($new_domain_arr = $domain_model->edit( $domain_arr, $edit_arr )) )
+            $domain_arr = $new_domain_arr;
+
+        // Log request right before running the actual action...
+        $remote_log_arr = false;
+        if( $domain_model->should_log_requests( $domain_arr ) )
+        {
+            if( !$domain_model->should_log_request_body( $domain_arr )
+             || !($req_body_arr = $this->api_flow_value( 'remote_domain_message' ))
+             || !($req_body_str = @json_encode( $req_body_arr )) )
+                $req_body_str = null;
+
+            $log_fields = [];
+            $log_fields['route'] = PHS::get_route_as_string();
+            $log_fields['body'] = $req_body_str;
+
+            if( !($remote_log_arr = $domain_model->domain_incoming_log( $domain_arr, $log_fields )) )
+                $remote_log_arr = false;
+        }
+
+        // Reset any edit errors as we don't care about them...
+        $domain_model->reset_error();
 
         $execution_params = [];
         $execution_params['die_on_error'] = false;
@@ -364,6 +365,17 @@ class PHS_Api_remote extends PHS_Api_base
             else
                 $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
 
+            if( !empty( $remote_log_arr ) )
+            {
+                $log_fields = [];
+                $log_fields['status'] = $domain_model::LOG_STATUS_ERROR;
+                $log_fields['error_log'] = $this->get_simple_error_message();
+
+                // We don't care about errors...
+                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+                    $domain_model->reset_error();
+            }
+
             return false;
         }
 
@@ -372,7 +384,28 @@ class PHS_Api_remote extends PHS_Api_base
             if( !$this->has_error() )
                 $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Flow was stopped by API instance after action run.' ) );
 
+            if( !empty( $remote_log_arr ) )
+            {
+                $log_fields = [];
+                $log_fields['status'] = $domain_model::LOG_STATUS_ERROR;
+                $log_fields['error_log'] = $this->get_simple_error_message();
+
+                // We don't care about errors...
+                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+                    $domain_model->reset_error();
+            }
+
             return false;
+        }
+
+        if( !empty( $remote_log_arr ) )
+        {
+            $log_fields = [];
+            $log_fields['status'] = $domain_model::LOG_STATUS_RECEIVED;
+
+            // We don't care about errors...
+            if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+                $domain_model->reset_error();
         }
 
         return $action_result;

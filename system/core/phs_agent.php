@@ -484,7 +484,13 @@ class PHS_Agent extends PHS_Registry
 
         $pub_key = microtime( true );
 
-        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.PHS_Crypt::quick_encode( $job_arr['id'].'::'.(!empty( $extra['force_run'] )?'1':'0').'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
+        if( false === ($ecrypted_params = PHS_Crypt::quick_encode( $job_arr['id'].'::'.(!empty( $extra['force_run'] )?'1':'0').'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )) )
+        {
+            $this->set_error( self::ERR_COMMAND, self::_t( 'Error obtaining background job command arguments.' ) );
+            return false;
+        }
+
+        $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.$ecrypted_params.'::'.$pub_key;
 
         if( stripos( PHP_OS, 'win' ) === 0 )
         {

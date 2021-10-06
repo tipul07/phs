@@ -100,7 +100,8 @@ abstract class PHS_Api_action extends PHS_Action
             $response_data['response_data'] = $response;
         }
 
-        if( $scope === PHS_Scope::SCOPE_API )
+        if( $scope === PHS_Scope::SCOPE_API
+         || $scope === PHS_Scope::SCOPE_REMOTE )
         {
             if( !empty( $response_data['api_obj'] )
              && ($response_data['api_obj'] instanceof PHS_Api_base))

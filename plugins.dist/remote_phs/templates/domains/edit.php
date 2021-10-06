@@ -74,7 +74,9 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="remote_www"><?php echo $this->_pt( 'Full Remote Domain URL' )?></label>
+            <label for="remote_www"><?php echo $this->_pt( 'Full Remote Domain URL' )?>
+                <i class="fa fa-exclamation-circle" title="<?php echo $this->_pt( 'If you change this value, you will have to reconnect with the remote domain.' )?>"></i>
+            </label>
             <div class="lineform_line">
                 <input type="text" id="remote_www" name="remote_www" class="form-control"
                        value="<?php echo form_str( $this->view_var( 'remote_www' ) )?>" /><br/>
@@ -83,8 +85,9 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="apikey_id"><?php echo $this->_pt( 'Incomming API Key' )?>
+            <label for="apikey_id"><?php echo $this->_pt( 'Incoming API Key' )?>
                 <i class="fa fa-question-circle" title="<?php echo $this->_pt( 'What API Key will remote PHS domain use to send requests to this platform.' )?>"></i>
+                <i class="fa fa-exclamation-circle" title="<?php echo $this->_pt( 'If you change this value, you will have to reconnect with the remote domain.' )?>"></i>
             </label>
             <div class="lineform_line">
             <select name="apikey_id" id="apikey_id" class="chosen-select-nosearch w-100p">
@@ -101,7 +104,9 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="out_apikey"><?php echo $this->_pt( 'Outgoing API Key' )?></label>
+            <label for="out_apikey"><?php echo $this->_pt( 'Outgoing API Key' )?>
+                <i class="fa fa-exclamation-circle" title="<?php echo $this->_pt( 'If you change this value, you will have to reconnect with the remote domain.' )?>"></i>
+            </label>
             <div class="lineform_line">
                 <input type="text" id="out_apikey" name="out_apikey" class="form-control"
                        value="<?php echo form_str( $this->view_var( 'out_apikey' ) )?>" />
@@ -109,7 +114,9 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="out_apisecret"><?php echo $this->_pt( 'Outgoing API Secret' )?></label>
+            <label for="out_apisecret"><?php echo $this->_pt( 'Outgoing API Secret' )?>
+                <i class="fa fa-exclamation-circle" title="<?php echo $this->_pt( 'If you change this value, you will have to reconnect with the remote domain.' )?>"></i>
+            </label>
             <div class="lineform_line">
                 <input type="text" id="out_apisecret" name="out_apisecret" class="form-control"
                        value="<?php echo form_str( $this->view_var( 'out_apisecret' ) )?>" /><br/>
@@ -118,17 +125,26 @@
         </fieldset>
 
         <fieldset class="form-group">
-            <label for="ips_whihtelist"><?php echo $this->_pt( 'Incomming IPs Whitelist' )?></label>
+            <label for="out_timeout"><?php echo $this->_pt( 'Outgoing Timeout' )?></label>
+            <div class="lineform_line">
+                <input type="text" id="out_timeout" name="out_timeout" class="form-control"
+                       value="<?php echo form_str( $this->view_var( 'out_timeout' ) )?>" /><br/>
+                <small><?php echo $this->_pt( 'After how many seconds should a request sent to this remote domain timeout? 0 - no timeout' )?></small>
+            </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+            <label for="ips_whihtelist"><?php echo $this->_pt( 'Incoming IPs Whitelist' )?></label>
             <div class="lineform_line">
                 <input type="text" id="ips_whihtelist" name="ips_whihtelist" class="form-control"
                        value="<?php echo form_str( $this->view_var( 'ips_whihtelist' ) )?>" /><br/>
-                <small><?php echo $this->_pt( 'Comma separated IPs from where we will allow incomming requests. Empty = No restriction' )?></small>
+                <small><?php echo $this->_pt( 'Comma separated IPs from where we will allow incoming requests. Empty = No restriction' )?></small>
             </div>
         </fieldset>
 
         <fieldset class="form-group">
             <label for="allow_incoming">
-                <?php echo $this->_pt( 'Allow incomming calls' )?>
+                <?php echo $this->_pt( 'Allow incoming calls' )?>
                 <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'Allow running actions with requests comming from this domain.' )?>"></i>
             </label>
             <div class="lineform_line">
@@ -148,8 +164,20 @@
             </div>
         </fieldset>
 
+        <fieldset class="form-group">
+            <label for="log_body">
+                <?php echo $this->_pt( 'Log Requests Body' )?>
+                <i class="fa fa-question-circle" title="<?php echo $this->_pte( 'If logging requests, should requests body be also logged?' )?>"></i>
+            </label>
+            <div class="lineform_line">
+                <input type="checkbox" value="1" name="log_body" id="log_body" rel="skin_checkbox"
+                    <?php echo ($this->view_var( 'log_body' )?'checked="checked"':'')?> />
+            </div>
+        </fieldset>
+
         <fieldset>
-            <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
+            <input type="submit" id="do_submit" name="do_submit"
+                   class="btn btn-primary submit-protection ignore_hidden_required"
                    value="<?php echo $this->_pte( 'Save Changes' )?>" />
         </fieldset>
 

@@ -823,11 +823,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] );
+        if( false === ($clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining obfuscated password.' ) );
+            return false;
+        }
 
-        $obfuscated_pass = substr( $clean_pass, 0, 1 ).str_repeat( '*', strlen( $clean_pass ) - 2 ).substr( $clean_pass, -1 );
-
-        return $obfuscated_pass;
+        return substr( $clean_pass, 0, 1 ).str_repeat( '*', strlen( $clean_pass ) - 2 ).substr( $clean_pass, -1 );
     }
 
     /**
@@ -1881,7 +1883,13 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{pass_salt}'] ) )
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
-        $params['fields']['pass_clear'] = PHS_Crypt::quick_encode( $params['fields']['pass'] );
+        if( false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
+        {
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Error encrypting account password. Please retry.' ) );
+            return false;
+        }
+
+        $params['fields']['pass_clear'] = $encoded_clear;
         $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
         $params['fields']['last_pass_change'] = $now_date;
 
@@ -2188,9 +2196,15 @@ class PHS_Model_Accounts extends PHS_Model
                 $old_pass_salt_arr = false;
             }
 
+            if( false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
+            {
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error encrypting account password. Please retry.' ) );
+                return false;
+            }
+
             $params['{old_pass_salt}'] = $old_pass_salt_arr;
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
-            $params['fields']['pass_clear'] = PHS_Crypt::quick_encode( $params['fields']['pass'] );
+            $params['fields']['pass_clear'] = $encoded_clear;
             $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
             $params['fields']['last_pass_change'] = date( self::DATETIME_DB );
 

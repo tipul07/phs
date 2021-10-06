@@ -45,7 +45,7 @@
             $api_params[$key] = $val;
     }
 
-    if( !($api_obj = new PHS_Api_remote( $api_params )) )
+    if( !($api_obj = PHS_Api_remote::api_factory( $api_params )) )
     {
         PHS_Logger::logf( 'Error instantiating remote API.', PHS_Logger::TYPE_REMOTE );
 
@@ -95,5 +95,5 @@
     {
         PHS_Logger::logf( 'REMOTE route ['.PHS::get_route_as_string().'] run with success: '.$debug_data['db_queries_count'].' queries, '.
                           ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
-                          ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s', PHS_Logger::TYPE_API );
+                          ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s', PHS_Logger::TYPE_REMOTE );
     }
