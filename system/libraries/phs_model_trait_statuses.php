@@ -16,16 +16,16 @@ trait PHS_Model_Trait_statuses
      */
     public function get_statuses( $lang = false )
     {
-        static $statuses_arr = array();
+        static $statuses_arr = [];
 
         if( empty( self::$STATUSES_ARR ) )
-            return array();
+            return [];
 
         if( $lang === false
-        and !empty( $statuses_arr ) )
+         && !empty( $statuses_arr ) )
             return $statuses_arr;
 
-        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
+        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, [ 'title' ], $lang );
 
         if( $lang === false )
             $statuses_arr = $result_arr;
@@ -43,10 +43,10 @@ trait PHS_Model_Trait_statuses
         static $statuses_key_val_arr = false;
 
         if( $lang === false
-        and $statuses_key_val_arr !== false )
+         && $statuses_key_val_arr !== false )
             return $statuses_key_val_arr;
 
-        $key_val_arr = array();
+        $key_val_arr = [];
         if( ($statuses = $this->get_statuses( $lang )) )
         {
             foreach( $statuses as $key => $val )
@@ -74,7 +74,7 @@ trait PHS_Model_Trait_statuses
     {
         $all_statuses = $this->get_statuses( $lang );
         if( empty( $status )
-         or !isset( $all_statuses[$status] ) )
+         || !isset( $all_statuses[$status] ) )
             return false;
 
         return $all_statuses[$status];

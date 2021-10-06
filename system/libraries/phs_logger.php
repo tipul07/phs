@@ -10,16 +10,16 @@ class PHS_Logger extends PHS_Registry
 {
     const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
           TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
-          TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log',
-          // this constants are used only to tell log_channels() method it should log redefined sets of channels
+          TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
+          // these constants are used only to tell log_channels() method it should log redefined sets of channels
           TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
     /** @var bool $_logging */
     private static $_logging = true;
     /** @var array $_custom_channels */
-    private static $_custom_channels = array();
+    private static $_custom_channels = [];
     /** @var array $_channels */
-    private static $_channels = array();
+    private static $_channels = [];
     /** @var bool|string */
     private static $_logs_dir = false;
     /** @var bool|string */
@@ -32,15 +32,17 @@ class PHS_Logger extends PHS_Registry
 
     public static function get_types()
     {
-        return array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                      self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-                      self::TYPE_TESTS, self::TYPE_CLI );
+        return [
+            self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
+            self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+            self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+        ];
     }
 
     public static function valid_type( $type )
     {
         if( empty( $type )
-         or !($types_arr = self::get_types()) or !in_array( (string)$type, $types_arr, true ) )
+         || !($types_arr = self::get_types()) || !in_array( (string)$type, $types_arr, true ) )
             return false;
 
         return true;
@@ -48,8 +50,8 @@ class PHS_Logger extends PHS_Registry
 
     public static function defined_channel( $channel )
     {
-        if( empty( self::$_channels ) or !is_array( self::$_channels )
-         or empty( self::$_channels[$channel] ) )
+        if( empty( self::$_channels ) || !is_array( self::$_channels )
+         || empty( self::$_channels[$channel] ) )
             return false;
 
         return true;
@@ -57,8 +59,8 @@ class PHS_Logger extends PHS_Registry
 
     public static function safe_escape_log_channel( $channel )
     {
-        if( empty( $channel ) or !is_string( $channel )
-         or preg_match( '@[^a-zA-Z0-9_\-]@', $channel ) )
+        if( empty( $channel ) || !is_string( $channel )
+         || preg_match( '@[^a-zA-Z0-9_\-]@', $channel ) )
             return false;
 
         return $channel;
@@ -71,7 +73,7 @@ class PHS_Logger extends PHS_Registry
      */
     public static function define_channel( $channel )
     {
-        if( empty( $channel ) or !is_string( $channel ) )
+        if( empty( $channel ) || !is_string( $channel ) )
             return false;
 
         if( strtolower( substr( $channel, -4 ) ) === '.log' )
@@ -93,7 +95,7 @@ class PHS_Logger extends PHS_Registry
         if( $log === null )
             return self::$_logging;
 
-        self::$_logging = (!empty( $log )?true:false);
+        self::$_logging = (!empty( $log ));
         return self::$_logging;
     }
 
@@ -103,7 +105,7 @@ class PHS_Logger extends PHS_Registry
             return self::$_logs_dir;
 
         $dir = rtrim( trim( $dir ), '/\\' );
-        if( empty( $dir ) or !@is_dir( $dir ) or !@is_writable( $dir ) )
+        if( empty( $dir ) || !@is_dir( $dir ) || !@is_writable( $dir ) )
             return false;
 
         $dir .= '/';
@@ -126,20 +128,26 @@ class PHS_Logger extends PHS_Registry
                 break;
 
                 case self::TYPE_DEF_ALL:
-                    $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-                                        self::TYPE_TESTS, self::TYPE_CLI );
+                    $types_arr = [
+                        self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
+                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+                        self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+                    ];
                 break;
 
                 case self::TYPE_DEF_DEBUG:
-                    $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
-                                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
-                                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI );
+                    $types_arr = [
+                        self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
+                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
+                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+                    ];
                 break;
 
                 case self::TYPE_DEF_PRODUCTION:
-                    $types_arr = array( self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND,
-                                        self::TYPE_AGENT, self::TYPE_API, self::TYPE_CLI );
+                    $types_arr = [
+                        self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND,
+                        self::TYPE_AGENT, self::TYPE_API, self::TYPE_CLI, self::TYPE_REMOTE,
+                    ];
                 break;
             }
         }
@@ -158,10 +166,10 @@ class PHS_Logger extends PHS_Registry
 
     public static function get_file_header_arr()
     {
-        return array(
+        return [
             '          Date          |    Identifier   |      IP         |  Log',
             '------------------------+-----------------+-----------------+---------------------------------------------------',
-        );
+        ];
     }
 
     public static function get_file_header_str()
@@ -180,9 +188,9 @@ class PHS_Logger extends PHS_Registry
         }
 
         if( !($log_files_arr = @glob( $logs_dir.'*.log' )) )
-            return array();
+            return [];
 
-        $return_arr = array();
+        $return_arr = [];
         foreach( $log_files_arr as $file_name )
         {
             if( !($base_name = @basename( $file_name )) )
@@ -215,7 +223,7 @@ class PHS_Logger extends PHS_Registry
             $filename .= '.log';
 
         if( !PHS::safe_escape_root_script( $check_channel )
-         or !@file_exists( $filename ) )
+         || !@file_exists( $filename ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Invalid logging file.' ) );
             return false;
@@ -245,7 +253,7 @@ class PHS_Logger extends PHS_Registry
             $using_mb = true;
 
         // While we would like more
-        while( ($ftell_val = @ftell( $f )) > 0 and $lines >= 0 )
+        while( ($ftell_val = @ftell( $f )) > 0 && $lines >= 0 )
         {
             // Figure out how far back we should jump
             $seek = min( $ftell_val, $buffer );
@@ -287,22 +295,22 @@ class PHS_Logger extends PHS_Registry
             return true;
 
         if( !($logs_dir = self::logging_dir())
-         or !($args_num = func_num_args())
-         or !($args_arr = func_get_args()) )
+         || !($args_num = func_num_args())
+         || !($args_arr = func_get_args()) )
             return false;
 
         $str = array_shift( $args_arr );
 
         $channel = self::TYPE_INFO;
-        if( !empty( $args_arr ) and is_array( $args_arr )
-        and ($len = count( $args_arr ))
-        and self::defined_channel( $args_arr[$len-1] ) )
+        if( !empty( $args_arr ) && is_array( $args_arr )
+         && ($len = count( $args_arr ))
+         && self::defined_channel( $args_arr[$len-1] ) )
         {
             $channel = (string)$args_arr[$len - 1];
             array_pop( $args_arr );
 
             if( empty( $args_arr ) )
-                $args_arr = array();
+                $args_arr = [];
         }
 
         if( $channel === self::TYPE_INFO )
@@ -328,6 +336,9 @@ class PHS_Logger extends PHS_Registry
                 case PHS_Scope::SCOPE_CLI:
                     $channel = self::TYPE_CLI;
                 break;
+                case PHS_Scope::SCOPE_REMOTE:
+                    $channel = self::TYPE_REMOTE;
+                break;
             }
         }
 
@@ -347,20 +358,20 @@ class PHS_Logger extends PHS_Registry
 
         $log_time = date( 'd-m-Y H:i:s T' );
 
-        $hook_args = self::validate_array( array(
+        $hook_args = self::validate_array( [
             'stop_logging' => false,
             'log_file' => $log_file,
             'log_time' => $log_time,
             'request_identifier' => self::$_request_identifier,
             'request_ip' => $request_ip,
             'str' => $str,
-        ), PHS_Hooks::default_common_hook_args() );
+        ], PHS_Hooks::default_common_hook_args() );
 
         $stop_logging = false;
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_LOG, $hook_args ))
-        and is_array( $hook_args ) )
+         && is_array( $hook_args ) )
         {
-            $stop_logging = (!empty( $hook_args['stop_logging'] )?true:false);
+            $stop_logging = (!empty($hook_args['stop_logging'] ));
             if( !empty( $hook_args['request_ip'] ) )
                 $request_ip = $hook_args['request_ip'];
             if( !empty( $hook_args['str'] ) )

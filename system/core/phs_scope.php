@@ -14,69 +14,86 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     const SCOPE_VAR_PREFIX = '__scp_pre_';
 
-    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7;
+    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
 
     /** @var array $SCOPES_ARR */
-    private static $SCOPES_ARR = array(
-        self::SCOPE_WEB => array(
+    private static $SCOPES_ARR = [
+        self::SCOPE_WEB => [
             'title' => 'Web',
             'plugin' => false,
             'class_name' => 'web',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'web',
-        ),
+        ],
 
-        self::SCOPE_BACKGROUND => array(
+        self::SCOPE_BACKGROUND => [
             'title' => 'Background',
             'plugin' => false,
             'class_name' => 'background',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'background',
-        ),
+        ],
 
-        self::SCOPE_AJAX => array(
+        self::SCOPE_AJAX => [
             'title' => 'Ajax',
             'plugin' => false,
             'class_name' => 'ajax',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'ajax',
-        ),
+        ],
 
-        self::SCOPE_API => array(
+        self::SCOPE_API => [
             'title' => 'API',
             'plugin' => false,
             'class_name' => 'api',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'api',
-        ),
+        ],
 
-        self::SCOPE_AGENT => array(
+        self::SCOPE_AGENT => [
             'title' => 'Agent',
             'plugin' => false,
             'class_name' => 'agent',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'agent',
-        ),
+        ],
 
-        self::SCOPE_TESTS => array(
+        self::SCOPE_TESTS => [
             'title' => 'Test Suite',
             'plugin' => false,
             'class_name' => 'test',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'test',
-        ),
+        ],
 
-        self::SCOPE_CLI => array(
+        self::SCOPE_CLI => [
             'title' => 'CLI',
             'plugin' => false,
             'class_name' => 'cli',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'cli',
-        ),
-    );
+        ],
 
+        self::SCOPE_REMOTE => [
+            'title' => 'Remote PHS',
+            'plugin' => false,
+            'class_name' => 'remote',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'remote',
+        ],
+    ];
+
+    /**
+     * @return int
+     */
     abstract public function get_scope_type();
 
+    /**
+     * @param false|array $action_result
+     * @param false|array $static_error_arr
+     *
+     * @return mixed
+     */
     abstract public function process_action_result( $action_result, $static_error_arr = false );
 
     /**
@@ -103,7 +120,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     public static function valid_scope( $scope )
     {
         $scope = (int)$scope;
-        if( !($scopes_arr = self::get_scopes()) or empty( $scopes_arr[$scope] ) )
+        if( !($scopes_arr = self::get_scopes()) || empty( $scopes_arr[$scope] ) )
             return false;
 
         return $scopes_arr[$scope];
@@ -123,22 +140,25 @@ abstract class PHS_Scope extends PHS_Instantiable
         foreach( $scopes_arr as $scope_id => $scope_details )
         {
             if( !empty( $scope_details['constant_name'] )
-            and $scope_details['constant_name'] === $const_scope )
+             && $scope_details['constant_name'] === $const_scope )
                 return $scope_id;
         }
 
         return false;
     }
 
+    /**
+     * @return array
+     */
     public static function default_scope_params()
     {
-        return array(
+        return [
             'title' => '',
             'plugin' => false,
             'class_name' => '',
             'front_template' => '',
             'admin_template' => '',
-        );
+        ];
     }
 
     /**
@@ -150,23 +170,23 @@ abstract class PHS_Scope extends PHS_Instantiable
     {
         self::st_reset_error();
 
-        if( empty( $scope_params ) or !is_array( $scope_params )
-         or !($scope_params = self::validate_array( $scope_params, self::default_scope_params() ))
-         or empty( $scope_params['title'] )
-         or empty( $scope_params['class_name'] ) )
+        if( empty( $scope_params ) || !is_array( $scope_params )
+         || !($scope_params = self::validate_array( $scope_params, self::default_scope_params() ))
+         || empty( $scope_params['title'] )
+         || empty( $scope_params['class_name'] ) )
         {
             self::_t( 'Invalid scope parameters.' );
             return false;
         }
 
-        if( empty( $scope_params['plugin'] ) or $scope_params['plugin'] === PHS_Instantiable::CORE_PLUGIN )
+        if( empty( $scope_params['plugin'] ) || $scope_params['plugin'] === PHS_Instantiable::CORE_PLUGIN )
             $scope_params['plugin'] = false;
 
         $scope_key = count( self::$SCOPES_ARR );
 
         self::$SCOPES_ARR[] = $scope_params;
 
-        return array( 'scope_key' => $scope_key, 'scope_params' => $scope_params );
+        return [ 'scope_key' => $scope_key, 'scope_params' => $scope_params ];
     }
 
     /**
@@ -267,7 +287,7 @@ abstract class PHS_Scope extends PHS_Instantiable
             $scope = self::current_scope();
 
         if( !($scope_details = self::valid_scope( $scope ))
-         or !($scope_instance = PHS::load_scope( $scope_details['class_name'], $scope_details['plugin'] )) )
+         || !($scope_instance = PHS::load_scope( $scope_details['class_name'], $scope_details['plugin'] )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_INSTANCE, self::_t( 'Error spawning scope instance.' ) );
@@ -288,6 +308,12 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $one_scope;
     }
 
+    /**
+     * @param false|array $action_result
+     * @param false $static_error_arr
+     *
+     * @return array|bool
+     */
     public function generate_response( $action_result = false, $static_error_arr = false )
     {
         $this->reset_error();

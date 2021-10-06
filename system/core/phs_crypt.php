@@ -9,7 +9,7 @@ use \phs\libraries\PHS_Encdec;
 
 class PHS_Crypt extends PHS_Language
 {
-    static private $internal_keys = array();
+    static private $internal_keys = [];
     static private $crypt_key = '';
 
     /**
@@ -39,9 +39,9 @@ class PHS_Crypt extends PHS_Language
      *
      * @return bool
      */
-    public static function set_internal_keys( $keys_arr = array() )
+    public static function set_internal_keys( $keys_arr = [] )
     {
-        if( empty( $keys_arr ) or !is_array( $keys_arr ) )
+        if( empty( $keys_arr ) || !is_array( $keys_arr ) )
             return false;
 
         self::$internal_keys = $keys_arr;
@@ -50,50 +50,52 @@ class PHS_Crypt extends PHS_Language
 
     /**
      * @param string $str
-     * @param bool|array $params
+     * @param false|array $params
      *
-     * @return string
+     * @return false|string
      */
     public static function quick_encode( $str, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['use_base64'] ) )
             $params['use_base64'] = true;
-        if( empty( $params['crypting_key'] ) or !is_string( $params['crypting_key'] ) )
+        if( empty( $params['crypting_key'] ) || !is_string( $params['crypting_key'] ) )
             $params['crypting_key'] = self::crypting_key();
-        if( empty( $params['internal_keys'] ) or !is_array( $params['internal_keys'] ) )
+        if( empty( $params['internal_keys'] ) || !is_array( $params['internal_keys'] ) )
             $params['internal_keys'] = self::get_internal_keys();
 
-        $enc_dec = new PHS_Encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
+        $enc_dec = new PHS_Encdec( $params['crypting_key'], !empty( $params['use_base64'] ), $params['internal_keys'] );
 
-        $enc_dec->set_internal_keys( $params['internal_keys'] );
+        if( $enc_dec->has_error() )
+            return false;
 
         return $enc_dec->encrypt( $str );
     }
 
     /**
      * @param string $str
-     * @param bool|array $params
+     * @param false|array $params
      *
-     * @return string
+     * @return false|string
      */
     public static function quick_decode( $str, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['use_base64'] ) )
             $params['use_base64'] = true;
-        if( empty( $params['crypting_key'] ) or !is_string( $params['crypting_key'] ) )
+        if( empty( $params['crypting_key'] ) || !is_string( $params['crypting_key'] ) )
             $params['crypting_key'] = self::crypting_key();
-        if( empty( $params['internal_keys'] ) or !is_array( $params['internal_keys'] ) )
+        if( empty( $params['internal_keys'] ) || !is_array( $params['internal_keys'] ) )
             $params['internal_keys'] = self::get_internal_keys();
 
-        $enc_dec = new PHS_Encdec( $params['crypting_key'], (!empty( $params['use_base64'] )?true:false) );
+        $enc_dec = new PHS_Encdec( $params['crypting_key'], !empty( $params['use_base64'] ), $params['internal_keys'] );
 
-        $enc_dec->set_internal_keys( $params['internal_keys'] );
+        if( $enc_dec->has_error() )
+            return false;
 
         return $enc_dec->decrypt( $str );
     }

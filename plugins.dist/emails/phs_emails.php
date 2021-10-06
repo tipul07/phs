@@ -164,12 +164,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 and !empty( $old_values[$route_name] ) && is_array( $old_values[$route_name] ) )
                 {
                     if( !empty( $old_values[$route_name]['smtp_pass'] )
-                     && ($decrypted_pass = PHS_Crypt::quick_decode( $old_values[$route_name]['smtp_pass'] ))
-                     && $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS )
+                     && $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS
+                     && ($decrypted_pass = PHS_Crypt::quick_decode( $old_values[$route_name]['smtp_pass'] )) )
                         $route_arr['smtp_pass'] = $decrypted_pass;
                 }
 
-                $route_arr['smtp_pass'] = PHS_Crypt::quick_encode( $route_arr['smtp_pass'] );
+                if( false === ($encoded_pass = PHS_Crypt::quick_encode( $route_arr['smtp_pass'] )) )
+                    return null;
+
+                $route_arr['smtp_pass'] = $encoded_pass;
 
                 $return_data[$route_name] = $route_arr;
             }
@@ -586,9 +589,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $predefined_headers['Content-Transfer-Encoding'] = '7bit';
         $predefined_headers['X-Script-Time'] = time();
 
-        if( empty( $params['skip_mail_authentication'] ) )
+        if( empty( $params['skip_mail_authentication'] )
+         && false !== ($mail_id = PHS_Crypt::quick_encode( self::mail_auth_key().':'.time() )) )
             // for single emails it's ok, but when sending multiple emails it might take too much time
-            $predefined_headers['X-Mail-ID'] = PHS_Crypt::quick_encode( self::mail_auth_key().':'.time() );
+            $predefined_headers['X-Mail-ID'] = $mail_id;
         else
             $predefined_headers['X-SMail-ID'] = md5( self::mail_auth_key().':'.time() );
 
@@ -720,8 +724,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         $smtp_settings = $hook_args['route_settings'];
-        if( !empty( $smtp_settings['smtp_pass'] ) )
-            $smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode( $smtp_settings['smtp_pass'] );
+        if( !empty( $smtp_settings['smtp_pass'] )
+         && false === ($smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode( $smtp_settings['smtp_pass'] )) )
+        {
+            $this->set_error( self::ERR_SEND, $this->_pt( 'Error obtaining SMTP credentials.' ) );
+
+            $hook_args['hook_errors'] = $this->get_error();
+
+            return $hook_args;
+        }
 
         $smtp_library->settings( $smtp_settings );
 
