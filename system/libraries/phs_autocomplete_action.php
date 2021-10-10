@@ -27,10 +27,13 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         'include_js_script_tags' => true,
         'include_js_on_ready' => true,
         'lock_on_init' => true,
+        'show_loading_animation' => true,
 
         // styling
-        'text_css_classes' => 'form-control',
+        'text_css_classes' => '',
         'text_css_style' => '',
+        // Class that should be used while autocomplete Ajax call is running
+        'loading_animation_class' => '',
 
         'id_value' => 0,
         // Default value will say what value should lock the input when initializing autocomplete input
