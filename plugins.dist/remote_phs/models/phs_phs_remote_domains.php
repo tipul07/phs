@@ -890,13 +890,18 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             }
         }
 
-        ob_start();
-        var_dump( $api_response );
-        $buf = @ob_get_clean();
+        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
+        if( ($remote_plugin = PHS::load_plugin( 'remote_phs' ))
+         && $remote_plugin->log_all_outgoing_calls() )
+        {
+            ob_start();
+            var_dump( $api_response );
+            $buf = @ob_get_clean();
 
-        PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
-                          'Payload: '.(!empty( $payload_str )?$payload_str:'N/A').
-                          'Response: '.$buf."\n", $log_channel );
+            PHS_Logger::logf('REMOTE API URL: '.$full_url."\n".
+                             'Payload: '.(!empty($payload_str) ? $payload_str : 'N/A')."\n".
+                             'Response: '.$buf, $log_channel);
+        }
 
         return $api_response;
     }
@@ -1654,6 +1659,10 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
+        if( empty( $params['fields']['source'] )
+         || !$this->valid_status( $params['fields']['source'] ) )
+            $params['fields']['source'] = self::SOURCE_MANUALLY;
+
         if( !empty( $params['fields']['remote_www'] ) )
         {
             if( stripos( $params['fields']['remote_www'], 'https://' ) === 0 )
@@ -1666,25 +1675,31 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 $params['fields']['remote_www'] .= '/';
         }
 
-        if( empty( $params['fields']['remote_www'] ) )
+        // For programmatically added remote domains don't impose restrictions on fields
+
+        if( empty( $params['fields']['remote_www'] )
+         && $params['fields']['source'] !== self::SOURCE_PROGRAMMATICALLY )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide remote domain address.' ) );
             return false;
         }
 
+        // Handle is mandatory all times
         if( empty( $params['fields']['handle'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a handle for this remote domain.' ) );
             return false;
         }
 
-        if( empty( $params['fields']['out_apikey'] ) && empty( $params['fields']['out_apisecret'] ) )
+        if( empty( $params['fields']['out_apikey'] ) && empty( $params['fields']['out_apisecret'] )
+         && $params['fields']['source'] !== self::SOURCE_PROGRAMMATICALLY )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide outgoing API key details for this remote domain.' ) );
             return false;
         }
 
-        if( empty( $params['fields']['apikey_id'] ) )
+        if( empty( $params['fields']['apikey_id'] )
+         && $params['fields']['source'] !== self::SOURCE_PROGRAMMATICALLY )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an incoming API key for this remote domain.' ) );
             return false;
@@ -1708,10 +1723,6 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         }
 
         $cdate = date( self::DATETIME_DB );
-
-        if( empty( $params['fields']['source'] )
-         || !$this->valid_status( $params['fields']['source'] ) )
-            $params['fields']['source'] = self::SOURCE_MANUALLY;
 
         if( empty( $params['fields']['status'] )
          || !$this->valid_status( $params['fields']['status'] ) )
