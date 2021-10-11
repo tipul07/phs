@@ -264,6 +264,12 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
                 'type' => PHS_Params::T_BOOL,
                 'default' => false,
             ],
+            'log_outgoing_calls' => [
+                'display_name' => $this->_pt( 'Log All Outgoing Calls' ),
+                'display_hint' => $this->_pt( 'For debugging purposes, log each request going out to any remote domains.' ),
+                'type' => PHS_Params::T_BOOL,
+                'default' => false,
+            ],
         ];
     }
 
@@ -280,6 +286,11 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     public function is_accepting_remote_calls()
     {
         return ($this->is_remote_enabled() && $this->is_remote_calls_enabled());
+    }
+
+    public function log_all_outgoing_calls()
+    {
+        return (($settings_arr = $this->get_plugin_settings()) && !empty( $settings_arr['log_outgoing_calls'] ));
     }
 
     //
