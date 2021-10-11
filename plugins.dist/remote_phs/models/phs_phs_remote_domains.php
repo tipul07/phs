@@ -1086,6 +1086,22 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
     /**
      * @param string $domain_handler
+     *
+     * @return array|false
+     */
+    public function get_domain_by_handler( $domain_handler )
+    {
+        $this->reset_error();
+
+        if( empty( $domain_handler )
+         || !($domain_arr = $this->get_details_fields( [ 'handle' => $domain_handler ], [ 'table_name' => 'phs_remote_domains' ] )) )
+            return false;
+
+        return $domain_arr;
+    }
+
+    /**
+     * @param string $domain_handler
      * @param array $message_arr
      *
      * @return array|false
@@ -1095,7 +1111,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $this->reset_error();
 
         if( empty( $domain_handler )
-         || !($domain_arr = $this->get_details_fields( [ 'handle' => $domain_handler ], [ 'table_name' => 'phs_remote_domains' ] )) )
+         || !($domain_arr = $this->get_domain_by_handler( $domain_handler )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Remote domain details not found in database.' ) );
             return false;
