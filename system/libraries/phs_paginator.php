@@ -17,26 +17,27 @@ class PHS_Paginator extends PHS_Registry
     const CELL_RENDER_HTML = 1, CELL_RENDER_TEXT = 2, CELL_RENDER_JSON = 3;
 
     // Bulk actions array
-    private $_bulk_actions = array();
+    private $_bulk_actions = [];
     // Filters array
-    private $_filters = array();
+    private $_filters = [];
     // Variables as provided in post or get
-    private $_originals = array();
+    private $_originals = [];
     // Parsed variables extracted from request
-    private $_scope = array();
+    private $_scope = [];
     // Action request (if any)
     private $_action = false;
 
     /** @var bool|\phs\libraries\PHS_Model  */
     private $_model = false;
 
-    private $_flow_params_arr = array();
+    private $_flow_params_arr = [];
     private $_pagination_params_arr = false;
-    private $_columns_definition_arr = array();
+    private $_columns_definition_arr = [];
 
     // Array with records to be displayed (limit set based on paginator parameters from model or provided array of records from external source)
-    private $_records_arr = array();
-    // If exporting records we store query result here so we can iterate results rather than obtaining a huge (maybe) array with all records
+    private $_records_arr = [];
+    // If exporting records we store query result here, so we can iterate results rather than obtaining a huge (maybe) array with all records
+    /** @var bool|\mysqli_result $_query_id  */
     private $_query_id = false;
 
     /** @var string */
@@ -59,8 +60,9 @@ class PHS_Paginator extends PHS_Registry
 
     public static function valid_render_type( $render_type )
     {
+        $render_type = (int)$render_type;
         if( empty( $render_type )
-         || !in_array( $render_type, [ self::CELL_RENDER_HTML, self::CELL_RENDER_TEXT, self::CELL_RENDER_JSON ] ) )
+         || !in_array( $render_type, [ self::CELL_RENDER_HTML, self::CELL_RENDER_TEXT, self::CELL_RENDER_JSON ], true ) )
             return false;
 
         return true;
@@ -68,32 +70,32 @@ class PHS_Paginator extends PHS_Registry
 
     public function default_api_listing_response()
     {
-        return array(
+        return [
             'offset' => 0,
             'records_per_page' => 0,
             'total_records' => 0,
             'listing_records_count' => 0,
             'page' => 0,
             'max_pages' => 0,
-            'filters' => array(
+            'filters' => [
                 'sort' => 1,
                 'sort_by' => '',
-            ),
-            'list' => array(),
-        );
+            ],
+            'list' => [],
+        ];
     }
 
     public function default_others_render_call_params()
     {
-        return array(
-            'columns' => array(),
-            'filters' => array(),
-        );
+        return [
+            'columns' => [],
+            'filters' => [],
+        ];
     }
 
     public function default_cell_render_call_params()
     {
-        return array(
+        return [
             'request_render_type' => self::CELL_RENDER_HTML,
             'page_index' => 0,
             'list_index' => 0,
@@ -106,19 +108,19 @@ class PHS_Paginator extends PHS_Registry
             'paginator_obj' => false,
             'extra_callback_params' => false,
             'for_scope' => false,
-        );
+        ];
     }
 
     public function default_flow_params()
     {
-        return array(
+        return [
             'form_prefix' => '',
             'unique_id' => str_replace( '.', '_', microtime( true ) ),
             'term_singular' => self::_t( 'record' ),
             'term_plural' => self::_t( 'records' ),
             'listing_title' => self::_t( 'Displaying results...' ),
-            'initial_list_arr' => array(),
-            'initial_count_list_arr' => array(),
+            'initial_list_arr' => [],
+            'initial_count_list_arr' => [],
 
             // Tells if we did query database to get records already
             'did_query_database' => false,
@@ -141,12 +143,12 @@ class PHS_Paginator extends PHS_Registry
 
             'table_after_headers_callback' => false,
             'table_before_footer_callback' => false,
-        );
+        ];
     }
 
     public function default_pagination_params()
     {
-        return array(
+        return [
             'page_var_name' => 'page',
             'per_page_var_name' => 'per_page',
             'records_per_page' => self::DEFAULT_PER_PAGE,
@@ -162,17 +164,17 @@ class PHS_Paginator extends PHS_Registry
             'sort' => 0,
             'sort_by' => '',
             'db_sort_by' => '',
-        );
+        ];
     }
 
     public function default_action_params()
     {
-        return array(
+        return [
             'action' => '',
             'action_params' => '',
             'action_result' => '',
             'action_redirect_url_params' => false,
-        );
+        ];
     }
 
     /**
@@ -245,13 +247,13 @@ class PHS_Paginator extends PHS_Registry
 
         $this->_base_url = '';
 
-        $this->_filters = array();
-        $this->_scope = array();
-        $this->_originals = array();
+        $this->_filters = [];
+        $this->_scope = [];
+        $this->_originals = [];
 
         $this->_flow_params_arr = $this->default_flow_params();
         $this->_pagination_params_arr = $this->default_pagination_params();
-        $this->_columns_definition_arr = array();
+        $this->_columns_definition_arr = [];
 
         $this->reset_records();
     }
@@ -259,7 +261,7 @@ class PHS_Paginator extends PHS_Registry
     public function pretty_date_independent( $date, $params = false )
     {
         if( empty( $params ) || !is_array( $params ) )
-            $params = array();
+            $params = [];
 
         if( empty( $params['date_format'] ) )
             $params['date_format'] = false;
@@ -298,7 +300,7 @@ class PHS_Paginator extends PHS_Registry
             // date in past
             $lang_index = '%s ago';
 
-        return '<span title="'.self::_t( $lang_index, PHS_Utils::parse_period( $seconds_ago, array( 'only_big_part' => true ) ) ).'">'.$date_str.'</span>';
+        return '<span title="'.self::_t( $lang_index, PHS_Utils::parse_period( $seconds_ago, [ 'only_big_part' => true ] ) ).'">'.$date_str.'</span>';
     }
 
     public function pretty_date( $params )
@@ -317,7 +319,7 @@ class PHS_Paginator extends PHS_Registry
          || !array_key_exists( $field_name, $params['record'] ) )
             return false;
 
-        $pretty_params = array();
+        $pretty_params = [];
         $pretty_params['date_format'] = (!empty( $params['column']['date_format'] )?$params['column']['date_format']:false);
         $pretty_params['request_render_type'] = (!empty( $params['request_render_type'] )?$params['request_render_type']:false);
 
@@ -401,7 +403,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if( !($scope_arr = $this->get_scope()) )
-            $scope_arr = array();
+            $scope_arr = [];
 
         $checkbox_value = $params['record'][$params['column']['checkbox_record_index_key']['key']];
         $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
@@ -451,11 +453,11 @@ class PHS_Paginator extends PHS_Registry
         $action_params_key = $flow_params['form_prefix'].self::ACTION_PARAMS_PARAM_NAME;
         $action_result_key = $flow_params['form_prefix'].self::ACTION_RESULT_PARAM_NAME;
 
-        return array(
+        return [
             'action' => $action_key,
             'action_params' => $action_params_key,
             'action_result' => $action_result_key,
-        );
+        ];
     }
 
     /**
@@ -473,7 +475,7 @@ class PHS_Paginator extends PHS_Registry
         $action_params_key = $action_parameter_names['action_params'];
         $action_result_key = $action_parameter_names['action_result'];
 
-        $action_args = array();
+        $action_args = [];
         $action_args[$action_key] = '';
         $action_args[$action_params_key] = null;
         $action_args[$action_result_key] = null;
@@ -807,7 +809,7 @@ class PHS_Paginator extends PHS_Registry
         $scope_columns_arr = $columns_arr;
         if( !empty( $columns_arr ) && is_array( $columns_arr ) )
         {
-            $scope_columns_arr = array();
+            $scope_columns_arr = [];
             foreach( $columns_arr as $column_arr )
             {
                 if( (!empty( $column_arr['hide_for_scopes'] ) && is_array( $column_arr['hide_for_scopes'] )
@@ -829,7 +831,7 @@ class PHS_Paginator extends PHS_Registry
     {
         return [
             'hidden_filter' => false,
-            // Variable name of the filter. This is mandatory and it should be present in GET or POST in order for this filter to be taken in consideration
+            // Variable name of the filter. This is mandatory, and it should be present in GET or POST in order for this filter to be taken in consideration
             'var_name' => '',
             // Name of field in database model that will have to check this value
             'record_field' => '',
@@ -839,8 +841,8 @@ class PHS_Paginator extends PHS_Registry
             'raw_query' => '',
             // In case we want to select different filter functionality based on value provided for that filter
             // Usually this is used for filters that involve more fields in database based on value of the filter
-            // eg. Filter option 1: 'Logged in users' -> status = active and last_log !== null,
-            // Filter Options 2: 'Never logged in users' -> status = active and last_log === null
+            // e.g. Filter option 1: 'Logged-in users' -> status = active and last_log !== null,
+            // Filter Options 2: 'Never logged-in users' -> status = active and last_log === null
             'switch_filter' => false, // Array
             // Database function passed to model to check value for this field (if false will be same as default field check eg. '=', [ 'check' => 'LIKE' ] )
             // If this is an array and 'value' key is not provided, script will create a 'value' key with value which coresponds from _scope array.
@@ -863,6 +865,8 @@ class PHS_Paginator extends PHS_Registry
             // In case there are more filters using a single field how should these be linked logically in sql
             // last filter will overwrite linkage_func of previous filters
             'linkage_func' => '',
+            // In case this filter should display an autocomplete field, provide here all autocomplete action details...
+            'autocomplete' => false,
         ];
     }
 
@@ -886,7 +890,18 @@ class PHS_Paginator extends PHS_Registry
             if( empty( $new_filter['var_name'] )
              || (empty( $new_filter['record_field'] ) && empty( $new_filter['switch_filter'] ) && empty( $new_filter['raw_query'] )) )
             {
-                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or (record_field, raw_query) not provided for %s filter.', (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
+                $this->set_error( self::ERR_FILTERS, self::_t( 'var_name or (record_field, raw_query) not provided for %s filter.',
+                                                                        (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
+                return false;
+            }
+
+            if( !empty( $new_filter['autocomplete'] )
+             && (!is_array( $new_filter['autocomplete'] )
+                    || empty( $new_filter['autocomplete']['action'] ) || !($new_filter['autocomplete']['action'] instanceof PHS_Action_Autocomplete)
+                ) )
+            {
+                $this->set_error( self::ERR_FILTERS, self::_t( 'Filter %s doesn\'t have a valid autocomplete action.',
+                                                                        (!empty( $new_filter['display_name'] )?$new_filter['display_name']:'(???)') ) );
                 return false;
             }
 
@@ -931,7 +946,7 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        $new_actions = array();
+        $new_actions = [];
         $default_actions_fields = self::default_bulk_actions_fields();
         foreach( $actions_arr as $action )
         {
@@ -1091,6 +1106,9 @@ class PHS_Paginator extends PHS_Registry
 
             $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_Params::T_ASIS );
 
+            if( !empty( $new_filter['autocomplete'] ) )
+                $this->_originals[$filter_details['var_name'].'_phs_ac_name'] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'].'_phs_ac_name', PHS_Params::T_NOHTML );
+
             if( $this->_originals[$filter_details['var_name']] !== null )
             {
                 // Accept arrays to be passed as comma separated values...
@@ -1119,8 +1137,13 @@ class PHS_Paginator extends PHS_Registry
                                                        $filter_details['extra_type'] );
 
                 if( $filter_details['default'] !== false
-                && $scope_val != $filter_details['default'] )
+                && $scope_val !== $filter_details['default'] )
+                {
                     $this->_scope[$filter_details['var_name']] = $scope_val;
+                    if( !empty( $new_filter['autocomplete'] )
+                     && isset( $this->_originals[$filter_details['var_name'].'_phs_ac_name'] ) )
+                        $this->_scope[$filter_details['var_name'].'_phs_ac_name'] = $this->_originals[$filter_details['var_name'].'_phs_ac_name'];
+                }
             }
         }
 
@@ -1261,14 +1284,12 @@ class PHS_Paginator extends PHS_Registry
             if( $this->has_error() )
                 $filters_buffer = self::_t( 'Error obtaining filters buffer.' ).' - '.$this->get_error_message();
 
+            // Allow empty buffer for listing (for scopes which don't need an output buffer)
+            elseif( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
+                $filters_buffer = [];
+
             else
-            {
-                // Allow empty buffer for listing (for scopes which don't need an output buffer)
-                if( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
-                    $filters_buffer = [];
-                else
-                    $filters_buffer = '';
-            }
+                $filters_buffer = '';
         }
 
         return $filters_buffer;
@@ -1834,6 +1855,7 @@ class PHS_Paginator extends PHS_Registry
                     $filter_arr['raw_query'] = self::sprintf_all( $filter_arr['raw_query'], $scope_arr[$filter_arr['var_name']] );
 
                 $list_arr['fields'][] = [ 'raw' => $filter_arr['raw_query'] ];
+                $count_list_arr['fields'][] = [ 'raw' => $filter_arr['raw_query'] ];
             } else
             {
                 // If in initial list we were passed predefined filters and now we have an end-user filter,
@@ -1843,6 +1865,8 @@ class PHS_Paginator extends PHS_Registry
                  && isset( $list_arr['fields'][$filter_arr['record_field']] ) )
                 {
                     unset( $list_arr['fields'][$filter_arr['record_field']] );
+                    if( isset( $count_list_arr['fields'][$filter_arr['record_field']] ) )
+                        unset( $count_list_arr['fields'][$filter_arr['record_field']] );
                     unset( $initial_fields[$filter_arr['record_field']] );
 
                     if( empty( $initial_fields ) )
@@ -1970,7 +1994,7 @@ class PHS_Paginator extends PHS_Registry
     public function render_column_for_record( $render_params )
     {
         if( empty( $render_params ) || !is_array( $render_params ) )
-            $render_params = array();
+            $render_params = [];
 
         if( empty( $render_params['request_render_type'] )
          || !self::valid_render_type( $render_params['request_render_type'] ) )
@@ -2102,7 +2126,7 @@ class PHS_Paginator extends PHS_Registry
             $this->extract_filters_scope();
 
         if( !($records_arr = $this->get_records()) )
-            $records_arr = array();
+            $records_arr = [];
 
         if( empty( $records_arr )
         && $this->get_model()
@@ -2122,7 +2146,7 @@ class PHS_Paginator extends PHS_Registry
         // If records was provided from outside paginator class and no records count was provided just assume these are all records...
         if( !empty( $records_arr )
         && is_array( $records_arr )
-        && $this->pagination_params( 'total_records' ) == -1 )
+        && $this->pagination_params( 'total_records' ) === -1 )
             $this->set_records_count( count( $records_arr ) );
 
         if( !($listing_buffer = $this->render_template( 'paginator_list' )) )
@@ -2130,14 +2154,12 @@ class PHS_Paginator extends PHS_Registry
             if( $this->has_error() )
                 $listing_buffer = self::_t( 'Error obtaining listing buffer.' ).' - '.$this->get_error_message();
 
+            // Allow empty buffer for listing (for scopes which don't need an output buffer)
+            elseif( PHS_Scope::current_scope() === PHS_Scope::SCOPE_API )
+                    $listing_buffer = [];
+
             else
-            {
-                // Allow empty buffer for listing (for scopes which don't need an output buffer)
-                if( PHS_Scope::current_scope() == PHS_Scope::SCOPE_API )
-                    $listing_buffer = array();
-                else
-                    $listing_buffer = '';
-            }
+                $listing_buffer = '';
         }
 
         return $listing_buffer;

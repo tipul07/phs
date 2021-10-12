@@ -18,6 +18,12 @@ class PHS_Scope_Ajax extends PHS_Scope
         return self::SCOPE_AJAX;
     }
 
+    /**
+     * @param array|false $action_result
+     * @param false|array $static_error_arr
+     *
+     * @return bool
+     */
     public function process_action_result( $action_result, $static_error_arr = false )
     {
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
@@ -31,21 +37,21 @@ class PHS_Scope_Ajax extends PHS_Scope
 
         if( !empty( $action_result['request_login'] ) )
         {
-            $args = array();
+            $args = [];
             if( !empty( $action_result['redirect_to_url'] ) )
                 $args['back_page'] = $action_result['redirect_to_url'];
             else
                 // we cannot redirect user to same page as we are in an AJAX request...
                 $args['back_page'] = PHS::url();
 
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'login' ], $args );
         }
 
         // send custom headers as we will echo page content here...
         if( !@headers_sent() )
         {
-            $result_headers = array();
-            if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+            $result_headers = [];
+            if( !empty( $action_result['custom_headers'] ) && is_array( $action_result['custom_headers'] ) )
             {
                 foreach( $action_result['custom_headers'] as $key => $val )
                 {
@@ -61,7 +67,7 @@ class PHS_Scope_Ajax extends PHS_Scope
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
-            $result_headers = self::unify_array_insensitive( $result_headers, array( 'trim_keys' => true ) );
+            $result_headers = self::unify_array_insensitive( $result_headers, [ 'trim_keys' => true ] );
 
             foreach( $result_headers as $key => $val )
             {
@@ -83,22 +89,22 @@ class PHS_Scope_Ajax extends PHS_Scope
 
             else
             {
-                $ajax_data = array();
-                $ajax_data['status'] = array(
+                $ajax_data = [];
+                $ajax_data['status'] = [
                     'success_messages' => PHS_Notifications::notifications_success(),
                     'warning_messages' => PHS_Notifications::notifications_warnings(),
                     'error_messages' => PHS_Notifications::notifications_errors(),
-                );
+                ];
 
                 if( !empty( $full_buffer )
-                and PHS_Notifications::have_any_notifications() )
+                 && PHS_Notifications::have_any_notifications() )
                 {
                     $hook_args = PHS_Hooks::default_notifications_hook_args();
                     $hook_args['output_ajax_placeholders'] = false;
 
                     if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_NOTIFICATIONS_DISPLAY, $hook_args ))
-                    and is_array( $hook_args )
-                    and !empty( $hook_args['notifications_buffer'] ) )
+                     && is_array( $hook_args )
+                     && !empty( $hook_args['notifications_buffer'] ) )
                         $action_result['ajax_result'] = $hook_args['notifications_buffer'].$action_result['ajax_result'];
                 }
 

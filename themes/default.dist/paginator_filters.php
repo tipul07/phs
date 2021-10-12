@@ -29,7 +29,7 @@
     if( !($originals_arr = $paginator_obj->get_originals()) )
         $originals_arr = [];
 
-    $show_filters = (PHS_Params::_g( 'show_filters', PHS_Params::T_INT )?true:false);
+    $show_filters = (bool) PHS_Params::_g( 'show_filters', PHS_Params::T_INT );
 
     if( !empty( $flow_params_arr['before_filters_callback'] )
      && @is_callable( $flow_params_arr['before_filters_callback'] ) )
@@ -43,6 +43,8 @@
 
         echo $cell_content;
     }
+
+    $phs_first_ac_autocomplete_action = false;
 ?>
 <div class="list_filters_container">
     <form id="<?php echo $filters_form_name?>" name="<?php echo $filters_form_name?>" action="<?php echo $full_listing_url?>" method="post">
@@ -57,7 +59,10 @@
             {
                 if( empty( $filter_details ) || !is_array( $filter_details )
                  || empty( $filter_details['var_name'] )
-                 || !empty( $filter_details['hidden_filter'] ))
+                 || !empty( $filter_details['hidden_filter'] )
+                 || (!empty( $filter_details['autocomplete'] )
+                        && (!is_array( $filter_details['autocomplete'] ) || empty( $filter_details['autocomplete']['action'] ))
+                    ) )
                     continue;
 
                 if( !empty( $filter_details['display_placeholder'] ) )
@@ -89,12 +94,64 @@
                             ?> <i class="fa fa-question-circle" title="<?php echo form_str( $filter_details['display_hint'] )?>"></i> <?php
                         }
 
-                        ?> <a href="javascript:void(0)" onclick="clear_filter_value( '<?php echo $field_id?>' )"><i class="fa fa-times-circle" title="<?php echo $this->_pt( 'Clear filter' )?>"></i></a> <?php
+                        $default_value = '';
+                        if( is_scalar( $filter_details['default'] ) )
+                            $default_value = $filter_details['default'];
+
+                        ?> <a href="javascript:void(0)"
+                              onclick="this.blur();clear_filter_value( '<?php echo $field_id?>', '<?php echo $this::_e( $default_value, '\'' )?>', <?php echo (!empty( $filter_details['autocomplete'] )?'true':'false')?> )"
+                            <i class="fa fa-times-circle" title="<?php echo $this->_pt( 'Clear filter' )?>"></i></a> <?php
 
                     ?></label>
                     <div class="paginator_input"><?php
 
-                    if( !empty( $filter_details['values_arr'] ) && is_array( $filter_details['values_arr'] ) )
+                    if( !empty( $filter_details['autocomplete'] ) )
+                    {
+                        /** @var \phs\libraries\PHS_Action_Autocomplete $ac_action */
+                        $ac_action = $filter_details['autocomplete']['action'];
+
+                        if( empty( $filter_details['autocomplete']['display_data_format'] ) )
+                            $filter_details['autocomplete']['display_data_format'] = false;
+
+                        if( !empty( $scope_arr[$filter_details['var_name'].'_phs_ac_name'] ) )
+                            $field_value_display = $scope_arr[$filter_details['var_name'].'_phs_ac_name'];
+
+                        elseif( !empty( $field_value )
+                             && $filter_details['default'] !== null
+                             && $filter_details['default'] != $field_value )
+                        {
+                            if( !($field_value_display = $ac_action->format_data( $field_value, $filter_details['autocomplete']['display_data_format'], true )) )
+                                $field_value_display = '['.$this->_pt( 'Unknown value.' ).']';
+                        }
+
+                        else
+                            $field_value_display = '';
+
+                        if( empty( $filter_details['autocomplete']['input_vars'] )
+                         || !is_array( $filter_details['autocomplete']['input_vars'] ) )
+                            $filter_details['autocomplete']['input_vars'] = [];
+
+                        $input_vars = $filter_details['autocomplete']['input_vars'];
+                        $input_vars['id_id'] = $field_id;
+                        $input_vars['id_name'] = $field_name;
+                        $input_vars['text_id'] = $field_id.'_phs_ac_name';
+                        $input_vars['text_name'] = $field_name.'_phs_ac_name';
+
+                        if( $filter_details['default'] !== null )
+                            $input_vars['default_value'] = $filter_details['default'];
+
+                        $input_vars['id_value'] = $field_value;
+                        $input_vars['text_value'] = $field_value_display;
+                        if( !empty( $field_placeholder ) )
+                            $input_vars['text_placeholder'] = $field_placeholder;
+
+                        $ac_action->autocomplete_params( $input_vars );
+
+                        echo $ac_action->autocomplete_inputs( $input_vars );
+                        echo $ac_action->js_autocomplete_functionality( $input_vars );
+
+                        $phs_first_ac_autocomplete_action = $ac_action;
+                    } elseif( !empty( $filter_details['values_arr'] ) && is_array( $filter_details['values_arr'] ) )
                     {
                         ?><select id="<?php echo $field_id?>" name="<?php echo $field_name?>" class="chosen-select <?php echo $filter_details['extra_classes']?>"
                                   style="<?php echo $filter_details['extra_style']?>"><?php
@@ -138,8 +195,10 @@
                 </fieldset>
                 <?php
 
-                if( isset( $scope_arr[$filter_details['var_name']] )
-                 || ($filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] )) )
+                if( $field_value_display !== null
+                 && (isset( $scope_arr[$filter_details['var_name']] )
+                        || ($filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] ))
+                     ) )
                     $filters_display_arr[] = '<em>'.$filter_details['display_name'].'</em>: '.$field_value_display;
             }
             ?>
@@ -153,26 +212,41 @@
 
             <div id="<?php echo $filters_form_name?>_text" style="display:<?php echo (!$show_filters?'block':'none')?>;">
             <?php
-            $filters_str_arr = [];
-            foreach( $filters_arr as $filter_details )
-            {
-                if( empty( $filter_details['var_name'] ) )
-                    continue;
-
-                $field_value = null;
-                if( isset( $scope_arr[$filter_details['var_name']] ) )
-                    $field_value = $scope_arr[$filter_details['var_name']];
-                elseif( $filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] ) )
-                    $field_value = $filter_details['default'];
-
-                if( $field_value === null )
-                    continue;
-
-                if( is_array( $field_value ) )
-                    $field_value = implode( ',', $field_value );
-
-                $filters_str_arr[] = $filter_details['display_name'].': '.$field_value;
-            }
+            // $filters_str_arr = [];
+            // foreach( $filters_arr as $filter_details )
+            // {
+            //     if( empty( $filter_details['var_name'] ) )
+            //         continue;
+            //
+            //     $field_value = null;
+            //     /** @var \phs\libraries\PHS_Action_Autocomplete $ac_action */
+            //     if( !empty( $filter_details['autocomplete'] )
+            //      && is_array( $filter_details['autocomplete'] )
+            //      && ($ac_action = $filter_details['autocomplete']['action']) )
+            //     {
+            //         if( isset( $scope_arr[$filter_details['var_name']] ) )
+            //         {
+            //             if( empty( $filter_details['autocomplete']['display_data_format'] ) )
+            //                 $filter_details['autocomplete']['display_data_format'] = false;
+            //
+            //             if( !($field_value = $ac_action->format_data( $scope_arr[$filter_details['var_name']], $filter_details['autocomplete']['display_data_format'], true )) )
+            //                 $field_value = null;
+            //
+            //             var_dump( $field_value );
+            //         }
+            //     } elseif( isset( $scope_arr[$filter_details['var_name']] ) )
+            //         $field_value = $scope_arr[$filter_details['var_name']];
+            //     elseif( $filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] ) )
+            //         $field_value = $filter_details['default'];
+            //
+            //     if( $field_value === null )
+            //         continue;
+            //
+            //     if( is_array( $field_value ) )
+            //         $field_value = implode( ',', $field_value );
+            //
+            //     $filters_str_arr[] = $filter_details['display_name'].': '.$field_value;
+            // }
 
             if( empty( $filters_display_arr ) )
                 echo $this->_pt( 'No filters set.' );
@@ -189,6 +263,12 @@
     <div class="clearfix"></div>
 </div>
 <div class="clearfix"></div>
+<?php
+if( !empty( $phs_first_ac_autocomplete_action ) )
+{
+    echo $phs_first_ac_autocomplete_action->js_generic_functionality();
+}
+?>
 <script type="text/javascript">
 $(document).ready(function(){
     $(".phs_filter_datepicker").datepicker({
@@ -198,15 +278,20 @@ $(document).ready(function(){
         showButtonPanel: true
     });
 });
-function clear_filter_value( obj_id )
+function clear_filter_value( obj_id, scalar_default_val, for_autocomplete )
 {
+    if( for_autocomplete ) {
+        phs_autocomplete_input_reset( obj_id, obj_id + "_phs_ac_name", scalar_default_val );
+        return;
+    }
+
     var obj = $("#"+obj_id);
     if( !obj )
         return;
 
-    var obj_type = obj.prop( 'type' );
-    if( obj_type != "select-one" && obj_type != "select-multiple" )
-        obj.val( '' );
+    var obj_type = obj.prop( "type" );
+    if( obj_type !== "select-one" && obj_type !== "select-multiple" )
+        obj.val( scalar_default_val );
 
     else
     {

@@ -14,21 +14,23 @@ abstract class PHS_Action extends PHS_Instantiable
 
     const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
           ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password', ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired',
-          ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password', ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language';
-    private static $_action_roles = array();
-    private static $_custom_action_roles = array();
-    private static $_builtin_action_roles = array(
-        self::ACT_ROLE_PAGE => array( 'title' => 'Common page' ),
-        self::ACT_ROLE_LOGIN => array( 'title' => 'Login' ),
-        self::ACT_ROLE_LOGOUT => array( 'title' => 'Logout' ),
-        self::ACT_ROLE_REGISTER => array( 'title' => 'Register' ),
-        self::ACT_ROLE_ACTIVATION => array( 'title' => 'Activation' ),
-        self::ACT_ROLE_CHANGE_PASSWORD => array( 'title' => 'Change password' ),
-        self::ACT_ROLE_PASSWORD_EXPIRED => array( 'title' => 'Password expired' ),
-        self::ACT_ROLE_FORGOT_PASSWORD => array( 'title' => 'Forgot Password' ),
-        self::ACT_ROLE_EDIT_PROFILE => array( 'title' => 'Edit profile' ),
-        self::ACT_ROLE_CHANGE_LANGUAGE => array( 'title' => 'Change language' ),
-    );
+          ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password', ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
+          ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
+    private static $_action_roles = [];
+    private static $_custom_action_roles = [];
+    private static $_builtin_action_roles = [
+        self::ACT_ROLE_PAGE => [ 'title' => 'Common Page' ],
+        self::ACT_ROLE_LOGIN => [ 'title' => 'Login' ],
+        self::ACT_ROLE_LOGOUT => [ 'title' => 'Logout' ],
+        self::ACT_ROLE_REGISTER => [ 'title' => 'Register' ],
+        self::ACT_ROLE_ACTIVATION => [ 'title' => 'Activation' ],
+        self::ACT_ROLE_CHANGE_PASSWORD => [ 'title' => 'Change Password' ],
+        self::ACT_ROLE_PASSWORD_EXPIRED => [ 'title' => 'Password Expired' ],
+        self::ACT_ROLE_FORGOT_PASSWORD => [ 'title' => 'Forgot Password' ],
+        self::ACT_ROLE_EDIT_PROFILE => [ 'title' => 'Edit Profile' ],
+        self::ACT_ROLE_CHANGE_LANGUAGE => [ 'title' => 'Change Language' ],
+        self::ACT_REMOTE_PHS_CALL => [ 'title' => 'Remote PHS Call' ],
+    ];
 
     /** @var PHS_Controller */
     private $_controller_obj = null;
@@ -49,7 +51,7 @@ abstract class PHS_Action extends PHS_Instantiable
      */
     public function allowed_scopes()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -57,14 +59,14 @@ abstract class PHS_Action extends PHS_Instantiable
      */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_PAGE );
+        return [ self::ACT_ROLE_PAGE ];
     }
 
     final public static function default_action_role_definition_array()
     {
-        return array(
+        return [
             'title' => '',
-        );
+        ];
     }
 
     /**
@@ -90,7 +92,7 @@ abstract class PHS_Action extends PHS_Instantiable
     final public static function valid_action_role( $role_key )
     {
         if( !($roles_arr = self::get_action_roles())
-         or empty( $roles_arr[$role_key] ) )
+         || empty( $roles_arr[$role_key] ) )
             return false;
 
         return $roles_arr[$role_key];
@@ -125,7 +127,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
         self::$_custom_action_roles[$role_key] = $role_arr;
 
-        self::$_action_roles = array();
+        self::$_action_roles = [];
 
         self::get_action_roles();
 
@@ -143,16 +145,16 @@ abstract class PHS_Action extends PHS_Instantiable
     final public function action_role_is( $role_check, $params = false )
     {
         if( !is_array( $role_check ) )
-            $role_check = array( $role_check );
+            $role_check = [ $role_check ];
 
         if( !($action_roles = $this->action_roles()) )
-            $action_roles = array( self::ACT_ROLE_PAGE );
+            $action_roles = [ self::ACT_ROLE_PAGE ];
 
         if( !is_array( $action_roles ) )
-            $action_roles = array( $action_roles );
+            $action_roles = [ $action_roles ];
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         // Action has all provided roles
         if( empty( $params['all_provided'] ) )
@@ -160,11 +162,11 @@ abstract class PHS_Action extends PHS_Instantiable
         else
             $params['all_provided'] = (!empty( $params['all_provided'] ));
 
-        $return_arr = array();
+        $return_arr = [];
         foreach( $role_check as $role_key )
         {
             if( ($role_arr = self::valid_action_role( $role_key ))
-            and in_array( $role_key, $action_roles, true ) )
+             && in_array( $role_key, $action_roles, true ) )
             {
                 $return_arr[$role_key] = $role_arr;
                 continue;
@@ -203,8 +205,8 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         if( ($allowed_scopes = $this->allowed_scopes())
-        and is_array( $allowed_scopes )
-        and !in_array( $scope, $allowed_scopes, true ) )
+         && is_array( $allowed_scopes )
+         && !in_array( $scope, $allowed_scopes, true ) )
             return false;
 
         return true;
@@ -277,7 +279,7 @@ abstract class PHS_Action extends PHS_Instantiable
     {
         $this->reset_error();
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = $this;
         $view_params['controller_obj'] = $this->get_controller();
         $view_params['parent_plugin_obj'] = $this->get_plugin_instance();
@@ -321,10 +323,10 @@ abstract class PHS_Action extends PHS_Instantiable
 
         $action_body_classes = '';
         if( ($route_as_string = PHS::get_route_as_string()) )
-            $action_body_classes .= str_replace( array( '/', '-' ), '_', $route_as_string );
+            $action_body_classes .= str_replace( [ '/', '-' ], '_', $route_as_string );
         if( ($route_as_array = PHS::get_route_details()) )
         {
-            $route_parts = array();
+            $route_parts = [];
             foreach( $route_as_array as $part_type => $part_value )
             {
                 if( empty( $part_value ) )
@@ -340,8 +342,8 @@ abstract class PHS_Action extends PHS_Instantiable
             PHS::page_body_class( $action_body_classes );
 
         if( !$this->instance_is_core()
-        and (!($plugin_instance = $this->get_plugin_instance())
-                or !$plugin_instance->plugin_active()) )
+         && (!($plugin_instance = $this->get_plugin_instance())
+                || !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active action.' ) );
             return false;
@@ -350,10 +352,10 @@ abstract class PHS_Action extends PHS_Instantiable
         $this->set_action_defaults();
 
         if( ($current_scope = PHS_Scope::current_scope())
-        and !$this->scope_is_allowed( $current_scope ) )
+         && !$this->scope_is_allowed( $current_scope ) )
         {
             if( !($emulated_scope = PHS_Scope::emulated_scope())
-             or !$this->scope_is_allowed( $emulated_scope ) )
+             || !$this->scope_is_allowed( $emulated_scope ) )
             {
                 $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Action not allowed to run in current scope.' ) );
                 return false;
@@ -367,7 +369,7 @@ abstract class PHS_Action extends PHS_Instantiable
         if( ($hook_result = PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args )) )
         {
             if( !empty( $hook_result['stop_execution'] )
-            and !empty( $hook_result['action_result'] ) )
+             && !empty( $hook_result['action_result'] ) )
             {
                 $action_result = self::validate_array( $hook_result['action_result'], self::default_action_result() );
 
@@ -386,7 +388,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
         if( ($page_settings = self::validate_array( PHS::page_settings(), PHS::get_default_page_settings() )) )
         {
-            if( empty( $action_result['page_settings'] ) or !is_array( $action_result['page_settings'] ) )
+            if( empty( $action_result['page_settings'] ) || !is_array( $action_result['page_settings'] ) )
                 $action_result['page_settings'] = $page_settings;
 
             else
@@ -394,8 +396,8 @@ abstract class PHS_Action extends PHS_Instantiable
                 foreach( $page_settings as $key => $val )
                 {
                     if( !empty( $val )
-                    and (!array_key_exists( $key, $action_result['page_settings'] )
-                            or empty( $action_result['page_settings'][$key] )) )
+                     && (!array_key_exists( $key, $action_result['page_settings'] )
+                            || empty( $action_result['page_settings'][$key] )) )
                         $action_result['page_settings'][$key] = $val;
                 }
             }
@@ -406,8 +408,8 @@ abstract class PHS_Action extends PHS_Instantiable
         $hook_args['action_result'] = $action_result;
 
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['action_result'] ) )
+         && is_array( $hook_args )
+         && !empty( $hook_args['action_result'] ) )
             $action_result = $hook_args['action_result'];
 
         $this->set_action_result( $action_result );
@@ -435,7 +437,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
     final public function is_admin_controller()
     {
-        return ($this->_controller_obj and $this->_controller_obj->is_admin_controller());
+        return ($this->_controller_obj && $this->_controller_obj->is_admin_controller());
     }
 
 }

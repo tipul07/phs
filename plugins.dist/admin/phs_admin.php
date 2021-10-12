@@ -245,13 +245,13 @@ class PHS_Plugin_Admin extends PHS_Plugin
         if( !empty( $hook_args ) && !empty( $hook_args['page_template'] ) )
         {
             if( $hook_args['page_template'] === 'template_admin'
-            && ($current_theme = PHS::get_theme()) !== 'default'
-            && ($settings_arr = $this->get_plugin_settings()) )
+             && ($current_theme = PHS::get_theme()) !== 'default'
+             && ($settings_arr = $this->get_plugin_settings()) )
             {
                 PHS::set_theme( 'default' );
 
                 if( !empty( $settings_arr['current_theme_as_default_in_admin'] )
-                && !empty( $current_theme ) )
+                 && !empty( $current_theme ) )
                     PHS::set_defaut_theme( $current_theme );
             }
         }

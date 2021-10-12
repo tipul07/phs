@@ -35,7 +35,7 @@ abstract class PHS_Api_action extends PHS_Action
     }
 
     /**
-     * @return array
+     * @return array{force_scope:false|int, api_obj:false|\phs\PHS_Api, response_data:null|array, only_response_data_node:bool, http_code_is_error:bool, http_code:int, error: array{code: int, message:string}}
      */
     public static function default_api_response()
     {
@@ -100,7 +100,8 @@ abstract class PHS_Api_action extends PHS_Action
             $response_data['response_data'] = $response;
         }
 
-        if( $scope === PHS_Scope::SCOPE_API )
+        if( $scope === PHS_Scope::SCOPE_API
+         || $scope === PHS_Scope::SCOPE_REMOTE )
         {
             if( !empty( $response_data['api_obj'] )
              && ($response_data['api_obj'] instanceof PHS_Api_base))

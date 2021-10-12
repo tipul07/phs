@@ -21,7 +21,7 @@ class PHS_Scope_Api extends PHS_Scope
     {
         // We have already an error from flow before initiating scope class
         if( !empty( $static_error_arr )
-        and self::arr_has_error( $static_error_arr ) )
+         && self::arr_has_error( $static_error_arr ) )
         {
             PHS_Api::http_header_response( PHS_Api::H_CODE_INTERNAL_SERVER_ERROR, self::arr_get_error_message( $static_error_arr ) );
             exit;
@@ -33,25 +33,25 @@ class PHS_Scope_Api extends PHS_Scope
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
         // send custom headers as we will echo page content here...
-        $api_flow_arr = array();
+        $api_flow_arr = [];
         if( !empty( $api_obj ) )
         {
             if( !($api_headers = $api_obj->response_headers( true ))
              or !is_array( $api_headers ) )
-                $api_headers = array();
+                $api_headers = [];
 
             $api_flow_arr = $api_obj->api_flow_value();
 
             if( !empty( $action_result['request_login'] )
-            and !$api_obj->api_user_account_id() )
+             && !$api_obj->api_user_account_id() )
             {
                 PHS_Api::http_header_response( PHS_Api::H_CODE_UNAUTHORIZED );
                 exit;
             }
         } else
-            $api_headers = array();
+            $api_headers = [];
 
-        if( !empty( $action_result['custom_headers'] ) and is_array( $action_result['custom_headers'] ) )
+        if( !empty( $action_result['custom_headers'] ) && is_array( $action_result['custom_headers'] ) )
         {
             foreach( $action_result['custom_headers'] as $key => $val )
             {
@@ -64,7 +64,7 @@ class PHS_Scope_Api extends PHS_Scope
 
         $api_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
-        $api_headers = self::unify_array_insensitive( $api_headers, array( 'trim_keys' => true ) );
+        $api_headers = self::unify_array_insensitive( $api_headers, [ 'trim_keys' => true ] );
 
         if( empty( $api_obj ) )
             $lowercase_api_headers = self::array_lowercase_keys( $api_headers );
@@ -74,11 +74,11 @@ class PHS_Scope_Api extends PHS_Scope
             $api_obj->set_response_headers( $api_headers, false );
 
             if( !($lowercase_api_headers = $api_obj->response_headers( false )) )
-                $lowercase_api_headers = array();
+                $lowercase_api_headers = [];
         }
 
         if( !@headers_sent()
-        and !empty( $api_headers ) )
+         && !empty( $api_headers ) )
         {
             foreach( $api_headers as $key => $val )
             {
@@ -92,7 +92,7 @@ class PHS_Scope_Api extends PHS_Scope
 
         // If we don't have a Content-Type header set, just set is as application/json (default API response)
         if( empty( $lowercase_api_headers['content-type'] )
-        and !@headers_sent() )
+         && !@headers_sent() )
         {
             $api_headers['Content-Type'] = 'application/json';
 
@@ -106,11 +106,11 @@ class PHS_Scope_Api extends PHS_Scope
                 $api_obj->set_response_headers( $api_headers, false );
 
                 if( !($lowercase_api_headers = $api_obj->response_headers( false )) )
-                    $lowercase_api_headers = array();
+                    $lowercase_api_headers = [];
             }
         }
 
-        if( !isset( $action_result['api_buffer'] ) or $action_result['api_buffer'] === '' )
+        if( !isset( $action_result['api_buffer'] ) || $action_result['api_buffer'] === '' )
         {
             $json_array = false;
             // Check for specific API reponse
@@ -121,9 +121,9 @@ class PHS_Scope_Api extends PHS_Scope
                 $json_array = $action_result['ajax_result'];
 
             if( empty( $json_array ) )
-                $json_array = array();
+                $json_array = [];
 
-            $errors_arr = array();
+            $errors_arr = [];
             if( PHS_Notifications::have_notifications_errors() )
                 $errors_arr = PHS_Notifications::notifications_errors();
 

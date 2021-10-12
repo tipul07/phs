@@ -20,7 +20,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     public function execute()
@@ -76,6 +76,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             return $action_result;
         }
+
+        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
+            PHS_Notifications::add_success_notice( $this->_pt( 'Settings saved in database.' ) );
 
         if( $pid === PHS_Instantiable::CORE_PLUGIN )
         {
@@ -187,15 +190,24 @@ class PHS_Action_Plugin_settings extends PHS_Action
             {
                 if( ($new_db_settings = $module_instance->save_db_settings( $new_settings_arr )) )
                 {
-                    $db_settings = $new_db_settings;
-                    PHS_Notifications::add_success_notice( $this->_pt( 'Settings saved in database.' ) );
-                } else
-                {
-                    if( $module_instance->has_error() )
-                        PHS_Notifications::add_error_notice( $module_instance->get_error_message() );
-                    else
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Error saving settings in database. Please try again.' ) );
+                    $action_result = self::default_action_result();
+
+                    $args = [
+                        'changes_saved' => 1,
+                        'pid' => $pid,
+                        'selected_module' => $selected_module,
+                        'back_page' => $back_page,
+                    ];
+
+                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'plugin_settings' ], $args );
+
+                    return $action_result;
                 }
+
+                if( $module_instance->has_error() )
+                    PHS_Notifications::add_error_notice( $module_instance->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving settings in database. Please try again.' ) );
             }
         }
 
@@ -330,7 +342,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $form_data[$field_name] = PHS_Params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
 
         if( !empty( $is_post )
-        and (int)$field_details['type'] === PHS_Params::T_BOOL )
+         && (int)$field_details['type'] === PHS_Params::T_BOOL )
             $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
 
         if( !empty( $field_details['custom_save'] ) )

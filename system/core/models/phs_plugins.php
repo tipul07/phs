@@ -337,7 +337,11 @@ class PHS_Model_Plugins extends PHS_Model
                     {
                         // In case we are in install mode and errors will get thrown
                         try {
-                            self::$plugin_settings[$instance_id][$ob_key] = PHS_Crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] );
+                            if( false === (self::$plugin_settings[$instance_id][$ob_key] = PHS_Crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] )) )
+                            {
+                                PHS_Logger::logf( '[CONFIG ERROR] Error decoding old config value for ['.$instance_id.']['.$ob_key.']', PHS_Logger::TYPE_DEBUG );
+                                self::$plugin_settings[$instance_id][$ob_key] = '';
+                            }
                         } catch( \Exception $e )
                         {
                         }
@@ -844,7 +848,15 @@ class PHS_Model_Plugins extends PHS_Model
                     if( is_array( $new_fields_arr['settings'] )
                      && array_key_exists( $ob_key, $new_fields_arr['settings'] )
                      && is_scalar( $new_fields_arr['settings'][$ob_key] ) )
-                        $new_fields_arr['settings'][$ob_key] = PHS_Crypt::quick_encode( $new_fields_arr['settings'][$ob_key] );
+                    {
+                        if( false === ($encrypted_data = PHS_Crypt::quick_encode( $new_fields_arr['settings'][$ob_key] )) )
+                        {
+                            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error obfuscating plugin settings.' ) );
+                            return false;
+                        }
+
+                        $new_fields_arr['settings'][$ob_key] = $encrypted_data;
+                    }
                 }
             }
 

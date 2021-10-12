@@ -19,7 +19,9 @@ abstract class PHS_Api_base extends PHS_Registry
 
     // Most used HTTP error codes
     const H_CODE_OK = 200, H_CODE_OK_CREATED = 201, H_CODE_OK_ACCEPTED = 202, H_CODE_OK_NO_CONTENT = 204,
+          H_CODE_MOVED_PERMANENTLY = 301, H_CODE_NOT_MODIFIED = 304, H_CODE_TEMPORARY_REDIRECT = 307, H_CODE_PERMANENT_REDIRECT = 308,
           H_CODE_BAD_REQUEST = 400, H_CODE_UNAUTHORIZED = 401, H_CODE_FORBIDDEN = 403, H_CODE_NOT_FOUND = 404, H_CODE_METHOD_NOT_ALLOWED = 405,
+          H_CODE_NOT_ACCEPTABLE = 406, H_CODE_CONFLICT = 409, H_CODE_UNSUPPORTED_MEDIA_TYPE = 415, H_CODE_TOO_MANY_REQUESTS = 429,
           H_CODE_INTERNAL_SERVER_ERROR = 500, H_CODE_NOT_IMPLEMENTED = 501, H_CODE_BAD_GATEWAY = 502, H_CODE_SERVICE_UNAVAILABLE = 503, H_CODE_GATEWAY_TIMEOUT = 504,
           H_CODE_INSUFFICIENT_STORAGE = 507;
 
@@ -52,6 +54,13 @@ abstract class PHS_Api_base extends PHS_Registry
      * @return bool|array Returns true if custom authentication is ok or false if authentication failed
      */
     abstract protected function _check_api_authentication();
+
+    /**
+     * @param array|bool $extra Parameters for method
+     *
+     * @return array|bool False in case of error or an action result array
+     */
+    abstract public function run_route( $extra = false );
 
     /**
      * Override this method in case you want special code to be run before running actual action
@@ -104,6 +113,11 @@ abstract class PHS_Api_base extends PHS_Registry
             'final_api_route_tokens' => false,
             'phs_route' => false,
             'api_route' => false,
+
+            // Remote domain record
+            'remote_domain' => false,
+            // Remote domain request message
+            'remote_domain_message' => false,
 
             // Values used in HTTP Authorization header (not necessary an user and password in the system)
             'api_user' => '',
@@ -246,7 +260,7 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->init_query_params = $this->default_query_params();
 
         if( !empty( $this->raw_query_params[self::PARAM_VERSION] ) )
-            $this->init_query_params[self::PARAM_VERSION] = floatval( $this->raw_query_params[self::PARAM_VERSION] );
+            $this->init_query_params[self::PARAM_VERSION] = (float)$this->raw_query_params[self::PARAM_VERSION];
 
         else
             $this->init_query_params[self::PARAM_VERSION] = self::DEFAULT_VERSION;
@@ -269,6 +283,66 @@ abstract class PHS_Api_base extends PHS_Registry
             return '';
 
         return trim( $route_str, '/- ' );
+    }
+
+    /**
+     * @return bool
+     */
+    public function extract_api_request_details()
+    {
+        if( empty( $_SERVER ) || !is_array( $_SERVER ) )
+            return true;
+
+        $content_type = false;
+        if( !empty( $_SERVER['CONTENT_TYPE'] ) )
+            $content_type = $_SERVER['CONTENT_TYPE'];
+
+        elseif( !empty( $_SERVER['HTTP_CONTENT_TYPE'] ) )
+            $content_type = $_SERVER['HTTP_CONTENT_TYPE'];
+
+        if( !empty( $content_type )
+         && !$this->set_content_type( strtolower( trim( $content_type ) ) ) )
+        {
+            if( $this->has_error() )
+                $error_msg = $this->get_simple_error_message();
+            else
+                $error_msg = self::_t( 'Couldn\'t set content type to API object.' );
+
+            PHS_Logger::logf( 'Error setting content type in API instance: ['.$error_msg.']' );
+
+            $this->set_error( self::ERR_PARAMETERS, $error_msg );
+            return false;
+        }
+
+        if( !empty( $_SERVER['REQUEST_METHOD'] )
+         && !$this->set_http_method( $_SERVER['REQUEST_METHOD'] ) )
+        {
+            if( $this->has_error() )
+                $error_msg = $this->get_simple_error_message();
+            else
+                $error_msg = self::_t( 'Couldn\'t set HTTP method to API object.' );
+
+            PHS_Logger::logf( 'Error setting HTTP method in API instance: ['.$error_msg.']' );
+
+            $this->set_error( self::ERR_PARAMETERS, $error_msg );
+            return false;
+        }
+
+        if( !empty( $_SERVER['SERVER_PROTOCOL'] )
+         && !$this->set_http_protocol( trim( $_SERVER['SERVER_PROTOCOL'] ) ) )
+        {
+            if( $this->has_error() )
+                $error_msg = $this->get_simple_error_message();
+            else
+                $error_msg = self::_t( 'Couldn\'t set response protocol to API object.' );
+
+            PHS_Logger::logf( 'Error setting response protocol in API instance: ['.$error_msg.']' );
+
+            $this->set_error( self::ERR_PARAMETERS, $error_msg );
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -395,187 +469,11 @@ abstract class PHS_Api_base extends PHS_Registry
     }
 
     /**
-     * @param array|bool $extra Parameters for method
+     * Based on API Key sent in request, return Api Key record from api_keys table (if available)
+     * @param string $apikey
      *
-     * @return array|bool False in case of error or an action result array
+     * @return false|array
      */
-    final public function run_route( $extra = false )
-    {
-        self::st_reset_error();
-
-        if( !PHS_Scope::current_scope( PHS_Scope::SCOPE_API ) )
-        {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_RUN_ROUTE );
-            else
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error preparing API environment.' ) );
-
-            return false;
-        }
-
-        if( empty( $extra ) || !is_array( $extra ) )
-            $extra = [];
-
-        if( ($final_api_route_tokens = PHS_Api::tokenize_api_route( $this->get_api_route() )) === false )
-        {
-            $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route.' ) );
-            return false;
-        }
-
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Request API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
-
-        $this->api_flow_value( 'original_api_route_tokens', $final_api_route_tokens );
-
-        // Let plugins change provided API route tokens
-        $hook_args = PHS_Hooks::default_api_hook_args();
-        $hook_args['api_obj'] = $this;
-        $hook_args['api_route_tokens'] = $final_api_route_tokens;
-
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
-         && is_array( $hook_args )
-         && !empty( $hook_args['altered_api_route_tokens'] ) && is_array( $hook_args['altered_api_route_tokens'] ) )
-        {
-            if( !($final_api_route_tokens = PHS_Api::validate_tokenized_api_route( $hook_args['altered_api_route_tokens'] )) )
-            {
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Invalid API route tokens obtained from plugins.' ) );
-                return false;
-            }
-        }
-
-        $this->api_flow_value( 'final_api_route_tokens', $final_api_route_tokens );
-
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Final API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
-
-        $phs_route = false;
-        $api_route = false;
-        if( ($matched_route = PHS_Api::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
-        {
-            $phs_route = $matched_route['phs_route'];
-            $api_route = $matched_route['api_route'];
-        } else
-        {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'No defined API route matched request.', PHS_Logger::TYPE_API );
-
-            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
-            {
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_RUN_ROUTE );
-                else
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route into a framework route.' ) );
-
-                return false;
-            }
-        }
-
-        $phs_route = PHS::validate_route_from_parts( $phs_route, true );
-
-        if( PHS::st_debugging_mode() )
-        {
-            if( !($route_str = PHS::route_from_parts( $phs_route )) )
-                $route_str = 'N/A';
-
-            PHS_Logger::logf( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
-        }
-
-        $this->api_flow_value( 'phs_route', $phs_route );
-        $this->api_flow_value( 'api_route', $api_route );
-
-        PHS::set_route( $phs_route );
-
-        // Check if we should have authentication...
-        // If we didn't find an API route, we found a "standard" route to be run which requires authentication
-        // If we have a matching API route check if API route requires authentication, custom authentication or no authentication at all
-        if( empty( $api_route ) || !is_array( $api_route ) )
-        {
-            if( !$this->_check_api_authentication() )
-            {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-
-                return false;
-            }
-        } elseif( !empty( $api_route['authentication_required'] ) )
-        {
-            if( empty( $api_route['authentication_callback'] ) )
-            {
-                if( !$this->_check_api_authentication() )
-                {
-                    if( !$this->has_error() )
-                        $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-
-                    return false;
-                }
-            } else
-            {
-                if( !@is_callable( $api_route['authentication_callback'] ) )
-                {
-                    if( !($route_str = PHS::route_from_parts( $phs_route )) )
-                        $route_str = 'N/A';
-
-                    PHS_Logger::logf( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
-
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
-                    return false;
-                }
-
-                $callback_params = self::default_api_authentication_callback_params();
-                $callback_params['api_obj'] = $this;
-                $callback_params['api_route'] = $api_route;
-                $callback_params['phs_route'] = $phs_route;
-
-                if( ($result = @call_user_func( $api_route['authentication_callback'], $callback_params )) === null
-                 || $result === false )
-                {
-                    if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
-                    {
-                        $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );
-                        return false;
-                    }
-
-                    exit;
-                }
-            }
-        } else
-        {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'Authentication not required!', PHS_Logger::TYPE_API );
-        }
-
-        if( !$this->_before_route_run() )
-        {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Running action was stopped by API instance.' ) );
-
-            return false;
-        }
-
-        $execution_params = [];
-        $execution_params['die_on_error'] = false;
-
-        if( !($action_result = PHS::execute_route( $execution_params )) )
-        {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_RUN_ROUTE );
-            else
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
-
-            return false;
-        }
-
-        if( !$this->_after_route_run() )
-        {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Flow was stopped by API instance after action run.' ) );
-
-            return false;
-        }
-
-        return $action_result;
-    }
-
     public function get_apikey_by_apikey( $apikey )
     {
         $this->reset_error();
@@ -595,6 +493,18 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->api_flow_value( 'api_key_user_id', (int)$apikey_arr['uid'] );
         else
             $this->api_flow_value( 'api_key_user_id', 0 );
+
+        return $apikey_arr;
+    }
+
+    /**
+     * Returns Api Key used when authenticating request (if any)
+     * @return false|array
+     */
+    public function get_request_apikey()
+    {
+        if( !($apikey_arr = $this->api_flow_value( 'api_key_data')) )
+            return false;
 
         return $apikey_arr;
     }
@@ -745,6 +655,24 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['api_method'];
     }
 
+    /**
+     * @param string $method
+     *
+     * @return false|string
+     */
+    public static function prepare_http_method( $method )
+    {
+        if( !is_string( $method ) )
+            return false;
+
+        return strtolower( trim( $method ) );
+    }
+
+    /**
+     * @param string $method
+     *
+     * @return false|string
+     */
     public function set_http_method( $method )
     {
         $this->reset_error();
@@ -758,7 +686,7 @@ abstract class PHS_Api_base extends PHS_Registry
             return false;
         }
 
-        $method = PHS_Api::prepare_http_method( $method );
+        $method = self::prepare_http_method( $method );
         if( empty( $method )
          || !in_array( $method, $this->allowed_http_methods() ) )
         {
@@ -771,6 +699,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['api_method'];
     }
 
+    /**
+     * @return string
+     */
     public function http_protocol()
     {
         if( empty( $this->my_flow ) )
@@ -779,6 +710,11 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['http_protocol'];
     }
 
+    /**
+     * @param string $protocol
+     *
+     * @return false|string
+     */
     public function set_http_protocol( $protocol )
     {
         $this->reset_error();
@@ -798,6 +734,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['http_protocol'];
     }
 
+    /**
+     * @return string
+     */
     public function content_type()
     {
         if( empty( $this->my_flow ) )
@@ -806,6 +745,11 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['content_type'];
     }
 
+    /**
+     * @param string $type
+     *
+     * @return false|string
+     */
     public function set_content_type( $type )
     {
         $this->reset_error();
@@ -825,6 +769,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['content_type'];
     }
 
+    /**
+     * @return int
+     */
     public function api_user_account_id()
     {
         if( empty( $this->my_flow ) )
@@ -833,6 +780,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['api_key_user_id'];
     }
 
+    /**
+     * @return array{api_obj: false|\phs\PHS_Api_base, api_route: false|array, phs_route: false|array}
+     */
     public static function default_api_authentication_callback_params()
     {
         return [
@@ -842,6 +792,9 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
+    /**
+     * @return array{api_obj: false|\phs\PHS_Api_base, api_route: false|array, phs_route: false|array}
+     */
     public static function default_api_authentication_callback_response()
     {
         return [
@@ -851,6 +804,9 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
+    /**
+     * @return array{allow_api_calls: bool, allow_api_calls_over_http: bool, api_can_simulate_web: bool}
+     */
     public static function default_framework_api_settings()
     {
         return [
@@ -860,6 +816,9 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
+    /**
+     * @return array
+     */
     public static function get_framework_api_settings()
     {
         if( !empty( self::$_framework_settings ) )
@@ -879,6 +838,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return self::$_framework_settings;
     }
 
+    /**
+     * @return bool
+     */
     public static function framework_allows_api_calls()
     {
         if( !($settings = self::get_framework_api_settings())
@@ -888,6 +850,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return (!empty( $settings['allow_api_calls'] ));
     }
 
+    /**
+     * @return bool
+     */
     public static function framework_allows_api_calls_over_http()
     {
         if( !($settings = self::get_framework_api_settings())
@@ -897,6 +862,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return (!empty( $settings['allow_api_calls_over_http'] ));
     }
 
+    /**
+     * @return bool
+     */
     public static function framework_api_can_simulate_web()
     {
         if( !($settings = self::get_framework_api_settings())
@@ -906,11 +874,20 @@ abstract class PHS_Api_base extends PHS_Registry
         return (!empty( $settings['api_can_simulate_web'] ));
     }
 
+    /**
+     * @param int $code
+     * @param false|string $msg
+     *
+     * @return bool
+     */
     public function send_header_response( $code, $msg = false )
     {
         return self::http_header_response( $code, $msg, $this->http_protocol() );
     }
 
+    /**
+     * @return array
+     */
     public static function get_request_body_as_json_array()
     {
         static $json_arr = false;
@@ -925,6 +902,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $json_arr;
     }
 
+    /**
+     * @return false|string
+     */
     public static function get_php_input()
     {
         static $input = false;
@@ -938,6 +918,11 @@ abstract class PHS_Api_base extends PHS_Registry
         return $input;
     }
 
+    /**
+     * @param false|string $msg
+     *
+     * @return bool
+     */
     public static function generic_error( $msg = false )
     {
         return self::http_header_response( self::GENERIC_ERROR_CODE, $msg );
@@ -945,8 +930,8 @@ abstract class PHS_Api_base extends PHS_Registry
 
     /**
      * @param int $code
-     * @param bool|string $msg
-     * @param bool|string $protocol
+     * @param false|string $msg
+     * @param false|string $protocol
      *
      * @return bool
      */
@@ -974,6 +959,11 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
+    /**
+     * @param int $code
+     *
+     * @return false|string
+     */
     public static function valid_http_code( $code )
     {
         $code = (int)$code;
@@ -984,6 +974,9 @@ abstract class PHS_Api_base extends PHS_Registry
         return $all_codes[$code];
     }
 
+    /**
+     * @return array<int, string>
+     */
     public static function http_response_codes()
     {
         return [
@@ -995,72 +988,74 @@ abstract class PHS_Api_base extends PHS_Registry
             102 => 'Processing (WebDAV)',
             103 => 'Checkpoint',
 
-            200 => 'OK',
-            201 => 'Created',
-            202 => 'Accepted',
+            self::H_CODE_OK => 'OK',
+            self::H_CODE_OK_CREATED => 'Created',
+            self::H_CODE_OK_ACCEPTED => 'Accepted',
             203 => 'Non-Authoritative Information',
-            204 => 'No Content',
+            self::H_CODE_OK_NO_CONTENT => 'No Content',
             205 => 'Reset Content',
             206 => 'Partial Content',
-            207 => 'Multi-Status (WebDAV)',
-            208 => 'Already Reported (WebDAV)',
+            207 => 'Multi-Status', // (WebDAV)
+            208 => 'Already Reported', // (WebDAV)
             218 => 'This is fine',
             226 => 'IM Used',
 
             300 => 'Multiple Choices',
-            301 => 'Moved Permanently',
+            self::H_CODE_MOVED_PERMANENTLY => 'Moved Permanently',
             302 => 'Found',
             303 => 'See Other',
-            304 => 'Not Modified',
+            self::H_CODE_NOT_MODIFIED => 'Not Modified',
             305 => 'Use Proxy',
             306 => '(Unused)',
-            307 => 'Temporary Redirect',
-            308 => 'Permanent Redirect (experimental)',
+            self::H_CODE_TEMPORARY_REDIRECT => 'Temporary Redirect',
+            self::H_CODE_PERMANENT_REDIRECT => 'Permanent Redirect', // Redirect while keeping requerst method
 
-            400 => 'Bad Request',
-            401 => 'Unauthorized',
+            self::H_CODE_BAD_REQUEST => 'Bad Request',
+            self::H_CODE_UNAUTHORIZED => 'Unauthorized',
             402 => 'Payment Required',
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            405 => 'Method Not Allowed',
-            406 => 'Not Acceptable',
+            self::H_CODE_FORBIDDEN => 'Forbidden',
+            self::H_CODE_NOT_FOUND => 'Not Found',
+            self::H_CODE_METHOD_NOT_ALLOWED => 'Method Not Allowed',
+            self::H_CODE_NOT_ACCEPTABLE => 'Not Acceptable',
             407 => 'Proxy Authentication Required',
             408 => 'Request Timeout',
-            409 => 'Conflict',
+            self::H_CODE_CONFLICT => 'Conflict',
             410 => 'Gone',
             411 => 'Length Required',
             412 => 'Precondition Failed',
-            413 => 'Request Entity Too Large',
-            414 => 'Request-URI Too Long',
-            415 => 'Unsupported Media Type',
-            416 => 'Requested Range Not Satisfiable',
+            413 => 'Payload Too Large',
+            414 => 'URI Too Long',
+            self::H_CODE_UNSUPPORTED_MEDIA_TYPE => 'Unsupported Media Type',
+            416 => 'Range Not Satisfiable',
             417 => 'Expectation Failed',
-            418 => 'I\'m a teapot (RFC 2324)',
-            419 => 'Page Expired (Laravel Framework)',
-            420 => 'Enhance Your Calm (Twitter)',
-            422 => 'Unprocessable Entity (WebDAV)',
-            423 => 'Locked (WebDAV)',
-            424 => 'Failed Dependency (WebDAV)',
-            425 => 'Reserved for WebDAV',
+            418 => 'I\'m a teapot', // (RFC 2324)
+            419 => 'Page Expired', // (Laravel Framework)
+            420 => 'Enhance Your Calm', // (Twitter)
+            421 => 'Misdirected Request',
+            422 => 'Unprocessable Entity', // (WebDAV)
+            423 => 'Locked', // (WebDAV)
+            424 => 'Failed Dependency', // (WebDAV)
+            425 => 'Too Early', // (WebDAV)
             426 => 'Upgrade Required',
             428 => 'Precondition Required',
-            429 => 'Too Many Requests',
+            self::H_CODE_TOO_MANY_REQUESTS => 'Too Many Requests',
             431 => 'Request Header Fields Too Large',
-            444 => 'No Response (Nginx)',
-            449 => 'Retry With (Microsoft)',
-            450 => 'Blocked by Windows Parental Controls (Microsoft)',
+            444 => 'No Response', // (Nginx)
+            449 => 'Retry With', // (Microsoft)
+            450 => 'Blocked by Windows Parental Controls', // (Microsoft)
+            451 => 'Unavailable For Legal Reasons',
             499 => 'Client Closed Request (Nginx)',
 
-            500 => 'Internal Server Error',
-            501 => 'Not Implemented',
-            502 => 'Bad Gateway',
-            503 => 'Service Unavailable',
-            504 => 'Gateway Timeout',
+            self::H_CODE_INTERNAL_SERVER_ERROR => 'Internal Server Error',
+            self::H_CODE_NOT_IMPLEMENTED => 'Not Implemented',
+            self::H_CODE_BAD_GATEWAY => 'Bad Gateway',
+            self::H_CODE_SERVICE_UNAVAILABLE => 'Service Unavailable',
+            self::H_CODE_GATEWAY_TIMEOUT => 'Gateway Timeout',
             505 => 'HTTP Version Not Supported',
-            506 => 'Variant Also Negotiates (Experimental)',
-            507 => 'Insufficient Storage (WebDAV)',
-            508 => 'Loop Detected (WebDAV)',
-            509 => 'Bandwidth Limit Exceeded (Apache)',
+            506 => 'Variant Also Negotiates',
+            self::H_CODE_INSUFFICIENT_STORAGE => 'Insufficient Storage', // (WebDAV)
+            508 => 'Loop Detected', // (WebDAV)
+            509 => 'Bandwidth Limit Exceeded', // (Apache)
             510 => 'Not Extended',
             511 => 'Network Authentication Required',
             598 => 'Network read timeout error',

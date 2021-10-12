@@ -14,14 +14,14 @@ class PHS_Api extends PHS_Api_base
     const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001;
 
     /** @var array $_api_routes */
-    private static $_api_routes = array();
+    private static $_api_routes = [];
 
     // Last API instance obtained with self::api_factory()
-    /** @var bool|\phs\PHS_Api_base $_last_api_obj */
+    /** @var false|\phs\PHS_Api_base $_last_api_obj */
     private static $_last_api_obj = false;
 
     // THE API instance that should respond to current request
-    /** @var bool|\phs\PHS_Api_base $_global_api_obj */
+    /** @var false|\phs\PHS_Api_base $_global_api_obj */
     private static $_global_api_obj = false;
 
     final public static function api_factory( $init_query_params = false )
@@ -33,9 +33,9 @@ class PHS_Api extends PHS_Api_base
         // Tell plugins we are starting an API request and check if any of them has an API object to offer
         $hook_args = PHS_Hooks::default_api_hook_args();
         if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_REQUEST_INIT, $hook_args ))
-        and is_array( $hook_args )
-        and !empty( $hook_args['api_obj'] )
-        and ($api_obj = $hook_args['api_obj']) )
+         && is_array( $hook_args )
+         && !empty( $hook_args['api_obj'] )
+         && ($api_obj = $hook_args['api_obj']) )
         {
             if( !($api_obj instanceof PHS_Api_base) )
             {
@@ -46,7 +46,7 @@ class PHS_Api extends PHS_Api_base
 
         // If we don't have an instance provided by hook result, instantiate default API class
         if( empty( $api_obj )
-        and !($api_obj = new PHS_Api()) )
+         && !($api_obj = new PHS_Api()) )
         {
             self::st_set_error( self::ERR_API_INIT, self::_t( 'Error obtaining API instance.' ) );
             return false;
@@ -69,17 +69,23 @@ class PHS_Api extends PHS_Api_base
         return $api_obj;
     }
 
+    public function __construct( $init_query_params = false )
+    {
+        parent::__construct();
+
+        if( $init_query_params !== false
+         && !($this->_init_api_query_params( $init_query_params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_API_INIT, self::_t( 'Couldn\'t initialize API object.' ) );
+        }
+
+        // We don't update self::$_last_api_obj or self::$_global_api_obj as we explicitly asked for this instance
+    }
+
     public static function get_api_routes()
     {
         return self::$_api_routes;
-    }
-
-    public static function prepare_http_method( $method )
-    {
-        if( !is_string( $method ) )
-            return false;
-
-        return strtolower( trim( $method ) );
     }
 
     public static function tokenize_api_route( $route_str )
@@ -88,13 +94,13 @@ class PHS_Api extends PHS_Api_base
             return false;
 
         $route_parts = explode( '/', trim( trim( $route_str ), '/' ) );
-        $route_tokens = array();
+        $route_tokens = [];
         foreach( $route_parts as $part )
         {
             // Allow empty API paths (empty string)
             $part = trim( $part );
             if( !empty( $route_tokens )
-            and $part === '' )
+             && $part === '' )
                 continue;
 
             $route_tokens[] = $part;
@@ -108,7 +114,7 @@ class PHS_Api extends PHS_Api_base
         if( !is_array( $route_arr ) )
             return false;
 
-        $validated_route = array();
+        $validated_route = [];
         foreach( $route_arr as $part )
         {
             if( !is_string( $part ) )
@@ -122,11 +128,11 @@ class PHS_Api extends PHS_Api_base
 
     public static function default_api_route_node()
     {
-        return array(
+        return [
             'exact_match' => '', // spare a regexp check if we want something static
             'regexp' => '',
             'regexp_modifiers' => '', // provide
-            'insensitive_match' => true, // case insensitive match on exact_match or regexp
+            'insensitive_match' => true, // case-insensitive match on exact_match or regexp
 
             // in case this node is dynamic we should check if it's value respects the type, see if we should consider this
             // as parameter in action and where to move it (if required): in get or post
@@ -140,27 +146,27 @@ class PHS_Api extends PHS_Api_base
             // for documentation / errors
             'name' => '',
             'description' => '',
-        );
+        ];
     }
 
     public static function default_api_route_structure()
     {
         $route_structure = self::default_api_route_params();
-        $route_structure['api_route'] = array();
-        $route_structure['phs_route'] = array();
+        $route_structure['api_route'] = [];
+        $route_structure['phs_route'] = [];
 
         return $route_structure;
     }
 
     public static function default_api_route_params()
     {
-        return array(
+        return [
             'method' => 'get',
             // these are useful when creating aliases for common requests
             // eg. /companies/get_latest_20 will change to list companies action with sort descending on creation date, offset 0 and limit 20
             // this means you will add filtering and sorting in get_params or post_params as required
-            'get_params' => array(),
-            'post_params' => array(),
+            'get_params' => [],
+            'post_params' => [],
 
             // If API route doesn't require authentication to run put this to false
             'authentication_required' => true,
@@ -173,7 +179,7 @@ class PHS_Api extends PHS_Api_base
             // for documentation / errors
             'name' => '',
             'description' => '',
-        );
+        ];
     }
 
     /**
@@ -187,15 +193,15 @@ class PHS_Api extends PHS_Api_base
     public static function check_route_for_tokenized_api_route( $api_route, $tokenized_request_route, $method = 'get', $skip_validations = false )
     {
         if( empty( $skip_validations )
-        and (!($api_route = self::normalize_api_route( $api_route ))
-                or !($tokenized_request_route = self::validate_tokenized_api_route( $tokenized_request_route ))
+         && (!($api_route = self::normalize_api_route( $api_route ))
+                || !($tokenized_request_route = self::validate_tokenized_api_route( $tokenized_request_route ))
             ) )
             return false;
 
         // First check if we have a good method...
-        if( !($method = self::prepare_http_method( $method ))
-         or empty( $api_route['method'] )
-         or $api_route['method'] != $method )
+        if( empty( $api_route['method'] )
+         || !($method = self::prepare_http_method( $method ))
+         || $api_route['method'] !== $method )
             return false;
 
         $api_route_tokens_count = (empty( $api_route['api_route'] )?0:count( $api_route['api_route'] ));
@@ -205,8 +211,8 @@ class PHS_Api extends PHS_Api_base
             return false;
 
         $knti = 0;
-        $append_to_get = array();
-        $append_to_post = array();
+        $append_to_get = [];
+        $append_to_post = [];
         while( $knti < $api_route_tokens_count )
         {
             $api_element = $api_route['api_route'][$knti];
@@ -215,7 +221,7 @@ class PHS_Api extends PHS_Api_base
             $knti++;
 
             if( $api_element['exact_match'] === ''
-            and empty( $api_element['regexp'] ) )
+             && empty( $api_element['regexp'] ) )
                 return false;
 
             if( $api_element['exact_match'] !== '' )
@@ -245,7 +251,7 @@ class PHS_Api extends PHS_Api_base
             }
 
             if( !empty( $api_element['append_to_get'] )
-             or !empty( $api_element['move_in_post'] ) )
+             || !empty( $api_element['move_in_post'] ) )
             {
                 if( empty( $api_element['var_name'] ) )
                     return false;
@@ -267,8 +273,8 @@ class PHS_Api extends PHS_Api_base
 
         if( !empty( $append_to_get ) )
         {
-            if( empty( $_GET ) or !is_array( $_GET ) )
-                $_GET = array();
+            if( empty( $_GET ) || !is_array( $_GET ) )
+                $_GET = [];
 
             foreach( $append_to_get as $key => $val )
                 $_GET[$key] = $val;
@@ -276,8 +282,8 @@ class PHS_Api extends PHS_Api_base
 
         if( !empty( $append_to_post ) )
         {
-            if( empty( $_POST ) or !is_array( $_POST ) )
-                $_POST = array();
+            if( empty( $_POST ) || !is_array( $_POST ) )
+                $_POST = [];
 
             foreach( $append_to_post as $key => $val )
                 $_POST[$key] = $val;
@@ -315,10 +321,10 @@ class PHS_Api extends PHS_Api_base
         {
             if( ($phs_route = self::check_route_for_tokenized_api_route( $api_route, $tokenized_api_route, $method, true )) )
             {
-                return array(
+                return [
                     'phs_route' => $phs_route,
                     'api_route' => $api_route,
-                );
+                ];
             }
         }
 
@@ -327,10 +333,10 @@ class PHS_Api extends PHS_Api_base
 
     public static function normalize_api_route_api_nodes( $api_route_nodes )
     {
-        if( empty( $api_route_nodes ) or !is_array( $api_route_nodes ) )
-            return array();
+        if( empty( $api_route_nodes ) || !is_array( $api_route_nodes ) )
+            return [];
 
-        $new_api_route_nodes = array();
+        $new_api_route_nodes = [];
         $default_node = self::default_api_route_node();
         foreach( $api_route_nodes as $route_node )
         {
@@ -343,7 +349,7 @@ class PHS_Api extends PHS_Api_base
     public static function normalize_api_route( $api_route )
     {
         $default_api_route_structure = self::default_api_route_structure();
-        if( empty( $api_route ) or !is_array( $api_route ) )
+        if( empty( $api_route ) || !is_array( $api_route ) )
             return $default_api_route_structure;
 
         $api_route = self::validate_array( $api_route, $default_api_route_structure );
@@ -374,8 +380,16 @@ class PHS_Api extends PHS_Api_base
 
         $route_params['method'] = $method;
 
+        if( !empty( $phs_route ) && is_array( $phs_route ) )
+        {
+            if( !empty( $phs_route['ad'] ) )
+                $phs_route['ad'] = PHS::validate_action_dir_in_url( $phs_route['ad'] );
+            if( !empty( $phs_route['action_dir'] ) )
+                $phs_route['action_dir'] = PHS::validate_action_dir_in_url( $phs_route['action_dir'] );
+        }
+
         if( empty( $phs_route )
-         or !($phs_route = PHS::parse_route( $phs_route, true )) )
+         || !($phs_route = PHS::parse_route( $phs_route, true )) )
         {
             self::st_set_error( self::ERR_API_ROUTE, self::_t( 'Couldn\'t parse provided PHS route for API calls.' ) );
             return false;
@@ -411,7 +425,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         if( !is_object( $api_obj )
-         or !($api_obj instanceof PHS_Api_base) )
+         || !($api_obj instanceof PHS_Api_base) )
         {
             self::st_set_error( self::ERR_API_INIT, self::_t( 'Invalid API instance.' ) );
             return false;
@@ -422,6 +436,182 @@ class PHS_Api extends PHS_Api_base
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
+    final public function run_route( $extra = false )
+    {
+        $this->reset_error();
+
+        if( false === PHS_Scope::current_scope( PHS_Scope::SCOPE_API ) )
+        {
+            $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error preparing API environment.' ) );
+            return false;
+        }
+
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
+
+        if( ($final_api_route_tokens = self::tokenize_api_route( $this->get_api_route() )) === false )
+        {
+            $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route.' ) );
+            return false;
+        }
+
+        if( PHS::st_debugging_mode() )
+            PHS_Logger::logf( 'Request API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+
+        $this->api_flow_value( 'original_api_route_tokens', $final_api_route_tokens );
+
+        // Let plugins change provided API route tokens
+        $hook_args = PHS_Hooks::default_api_hook_args();
+        $hook_args['api_obj'] = $this;
+        $hook_args['api_route_tokens'] = $final_api_route_tokens;
+
+        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_API_ROUTE, $hook_args ))
+         && is_array( $hook_args )
+         && !empty( $hook_args['altered_api_route_tokens'] ) && is_array( $hook_args['altered_api_route_tokens'] ) )
+        {
+            if( !($final_api_route_tokens = PHS_Api::validate_tokenized_api_route( $hook_args['altered_api_route_tokens'] )) )
+            {
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Invalid API route tokens obtained from plugins.' ) );
+                return false;
+            }
+        }
+
+        $this->api_flow_value( 'final_api_route_tokens', $final_api_route_tokens );
+
+        if( PHS::st_debugging_mode() )
+            PHS_Logger::logf( 'Final API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+
+        $phs_route = false;
+        $api_route = false;
+        if( ($matched_route = PHS_Api::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
+        {
+            $phs_route = $matched_route['phs_route'];
+            $api_route = $matched_route['api_route'];
+        } else
+        {
+            if( PHS::st_debugging_mode() )
+                PHS_Logger::logf( 'No defined API route matched request.', PHS_Logger::TYPE_API );
+
+            if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
+            {
+                if( self::st_has_error() )
+                    $this->copy_static_error( self::ERR_RUN_ROUTE );
+                else
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route into a framework route.' ) );
+
+                return false;
+            }
+        }
+
+        $phs_route = PHS::validate_route_from_parts( $phs_route, true );
+
+        if( PHS::st_debugging_mode() )
+        {
+            if( !($route_str = PHS::route_from_parts( $phs_route )) )
+                $route_str = 'N/A';
+
+            PHS_Logger::logf( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
+        }
+
+        $this->api_flow_value( 'phs_route', $phs_route );
+        $this->api_flow_value( 'api_route', $api_route );
+
+        PHS::set_route( $phs_route );
+
+        // Check if we should have authentication...
+        // If we didn't find an API route, we found a "standard" route to be run which requires authentication
+        // If we have a matching API route check if API route requires authentication, custom authentication or no authentication at all
+        if( empty( $api_route ) || !is_array( $api_route ) )
+        {
+            if( !$this->_check_api_authentication() )
+            {
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+
+                return false;
+            }
+        } elseif( !empty( $api_route['authentication_required'] ) )
+        {
+            if( empty( $api_route['authentication_callback'] ) )
+            {
+                if( !$this->_check_api_authentication() )
+                {
+                    if( !$this->has_error() )
+                        $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+
+                    return false;
+                }
+            } else
+            {
+                if( !@is_callable( $api_route['authentication_callback'] ) )
+                {
+                    if( !($route_str = PHS::route_from_parts( $phs_route )) )
+                        $route_str = 'N/A';
+
+                    PHS_Logger::logf( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
+
+                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+                    return false;
+                }
+
+                $callback_params = self::default_api_authentication_callback_params();
+                $callback_params['api_obj'] = $this;
+                $callback_params['api_route'] = $api_route;
+                $callback_params['phs_route'] = $phs_route;
+
+                if( ($result = @call_user_func( $api_route['authentication_callback'], $callback_params )) === null
+                 || $result === false )
+                {
+                    if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
+                    {
+                        $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Not authorized.' ) );
+                        return false;
+                    }
+
+                    exit;
+                }
+            }
+        } else
+        {
+            if( PHS::st_debugging_mode() )
+                PHS_Logger::logf( 'Authentication not required!', PHS_Logger::TYPE_API );
+        }
+
+        if( !$this->_before_route_run() )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Running action was stopped by API instance.' ) );
+
+            return false;
+        }
+
+        $execution_params = [];
+        $execution_params['die_on_error'] = false;
+
+        if( !($action_result = PHS::execute_route( $execution_params )) )
+        {
+            if( self::st_has_error() )
+                $this->copy_static_error( self::ERR_RUN_ROUTE );
+            else
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
+
+            return false;
+        }
+
+        if( !$this->_after_route_run() )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Flow was stopped by API instance after action run.' ) );
+
+            return false;
+        }
+
+        return $action_result;
+    }
+
     protected function _before_route_run()
     {
         if( $this->is_web_simulation() )
@@ -429,13 +619,13 @@ class PHS_Api extends PHS_Api_base
             PHS_Scope::emulated_scope( PHS_Scope::SCOPE_WEB );
 
             if( ($request_body = $this::get_php_input())
-            and ($json_arr = @json_decode( $request_body, true )) )
+             && ($json_arr = @json_decode( $request_body, true )) )
             {
                 // In case we run in an environment where $_POST is not defined
                 global $_POST;
 
-                if( empty( $_POST ) or !is_array( $_POST ) )
-                    $_POST = array();
+                if( empty( $_POST ) || !is_array( $_POST ) )
+                    $_POST = [];
 
                 foreach( $json_arr as $key => $val )
                 {
@@ -458,7 +648,7 @@ class PHS_Api extends PHS_Api_base
     protected function _check_api_authentication()
     {
         if( !($api_user = $this->api_flow_value( 'api_user' ))
-         or null === ($api_pass = $this->api_flow_value( 'api_pass' )) )
+         || null === ($api_pass = $this->api_flow_value( 'api_pass' )) )
         {
             if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED, 'Please provide credentials' ) )
             {
@@ -470,7 +660,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         if( !($apikey_arr = $this->get_apikey_by_apikey( $api_user ))
-         or (string)$apikey_arr['api_secret'] !== (string)$api_pass )
+         || (string)$apikey_arr['api_secret'] !== (string)$api_pass )
         {
             if( !$this->send_header_response( self::H_CODE_UNAUTHORIZED ) )
             {
@@ -482,11 +672,11 @@ class PHS_Api extends PHS_Api_base
         }
 
         if( $this->is_web_simulation()
-        and empty( $apikey_arr['allow_sw'] ) )
+         && empty( $apikey_arr['allow_sw'] ) )
         {
             if( !$this->send_header_response( self::H_CODE_FORBIDDEN ) )
             {
-                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Request not allowed.' ) );
+                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access not allowed.' ) );
                 return false;
             }
 
@@ -498,11 +688,11 @@ class PHS_Api extends PHS_Api_base
         $http_method = $this->http_method();
 
         if( !empty( $apikey_arr['allowed_methods'] )
-        and !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], array( 'to_lowercase' => true ) ), true ) )
+         && !in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['allowed_methods'], [ 'to_lowercase' => true ] ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
-                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Method not allowed.' ) );
+                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access not allowed.' ) );
                 return false;
             }
 
@@ -512,11 +702,11 @@ class PHS_Api extends PHS_Api_base
         }
 
         if( !empty( $apikey_arr['denied_methods'] )
-        and in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], array( 'to_lowercase' => true ) ), true ) )
+         && in_array( $http_method, self::extract_strings_from_comma_separated( $apikey_arr['denied_methods'], [ 'to_lowercase' => true ] ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_METHOD_NOT_ALLOWED ) )
             {
-                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Method not allowed.' ) );
+                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access not allowed.' ) );
                 return false;
             }
 
@@ -527,11 +717,11 @@ class PHS_Api extends PHS_Api_base
 
         $request_ip = request_ip();
         if( !empty( $apikey_arr['allowed_ips'] )
-        and !in_array( $request_ip, self::extract_strings_from_comma_separated( $apikey_arr['allowed_ips'], array( 'to_lowercase' => true ) ), true ) )
+         && !in_array( $request_ip, self::extract_strings_from_comma_separated( $apikey_arr['allowed_ips'], [ 'to_lowercase' => true ] ), true ) )
         {
             if( !$this->send_header_response( self::H_CODE_FORBIDDEN ) )
             {
-                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'IP not allowed.' ) );
+                $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access not allowed.' ) );
                 return false;
             }
 
@@ -549,38 +739,38 @@ class PHS_Api extends PHS_Api_base
     public function create_response_envelope( $response_arr, $errors_arr = false )
     {
         if( !is_array( $response_arr ) )
-            $response_arr = array();
+            $response_arr = [];
 
         if( !array_key_exists( 'response_status', $response_arr )
-         or is_array( $response_arr['response_status'] ) )
+         || is_array( $response_arr['response_status'] ) )
         {
             if( @class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
-                $status_data = array(
+                $status_data = [
                     'success_messages' => PHS_Notifications::notifications_success(),
                     'warning_messages' => PHS_Notifications::notifications_warnings(),
                     'error_messages' => PHS_Notifications::notifications_errors(),
-                );
+                ];
             else
             {
-                if( empty( $errors_arr ) or !is_array( $errors_arr ) )
-                    $errors_arr = array();
+                if( empty( $errors_arr ) || !is_array( $errors_arr ) )
+                    $errors_arr = [];
 
-                $status_data = array(
-                    'success_messages' => array(),
-                    'warning_messages' => array(),
+                $status_data = [
+                    'success_messages' => [],
+                    'warning_messages' => [],
                     'error_messages' => $errors_arr,
-                );
+                ];
             }
 
             if( empty( $response_arr['response_status'] ) )
-                $response_arr['response_status'] = array();
+                $response_arr['response_status'] = [];
 
             $response_arr['response_status'] = self::validate_array( $response_arr['response_status'], $status_data );
         }
 
         // Check if we should remove response_status key from response
         if( array_key_exists( 'response_status', $response_arr )
-        and $response_arr['response_status'] === null )
+         && $response_arr['response_status'] === null )
             unset( $response_arr['response_status'] );
 
         return $response_arr;

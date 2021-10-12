@@ -343,7 +343,13 @@ class PHS_Bg_jobs extends PHS_Registry
 
         $pub_key = microtime( true );
 
-        $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.PHS_Crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) ).'::'.$pub_key;
+        if( false === ($crypted_parms = PHS_Crypt::quick_encode( $job_arr['id'].'::'.md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )) )
+        {
+            self::st_set_error( self::ERR_COMMAND, self::_t( 'Error obtaining crypted background jobs arguments.' ) );
+            return false;
+        }
+
+        $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.$crypted_parms.'::'.$pub_key;
 
         if( stripos( PHP_OS, 'win' ) === 0 )
         {
