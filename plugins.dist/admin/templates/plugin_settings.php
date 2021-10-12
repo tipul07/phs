@@ -234,8 +234,11 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
             <?php echo (empty( $field_details['editable'] )?'<br/><small>'.$fthis->_pt( '[Non-editable]' ).'</small>':'')?></label>
         <div class="lineformwide_line"><?php
 
-        if( !empty( $field_details['custom_renderer'] )
-         && is_callable( $field_details['custom_renderer'] ) )
+        $use_custom_renderer = (!empty( $field_details['custom_renderer'] ) && is_callable( $field_details['custom_renderer'] ));
+        $custom_renderer_get_preset_buffer = (!empty( $field_details['custom_renderer_get_preset_buffer'] ));
+
+        $callback_params = [];
+        if( $use_custom_renderer )
         {
             $callback_params = PHS_Plugin::default_custom_renderer_params();
             $callback_params['field_id'] = $field_id;
@@ -243,9 +246,20 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
             $callback_params['field_details'] = $field_details;
             $callback_params['field_value'] = $field_value;
             $callback_params['form_data'] = $form_data;
-            $callback_params['editable'] = (empty( $field_details['editable'] )?false:true);
+            $callback_params['editable'] = (!empty( $field_details['editable'] ));
             $callback_params['plugin_obj'] = $plugin_obj;
 
+            // We should get default rendering of settings input...
+            if( $custom_renderer_get_preset_buffer )
+            {
+                ob_start();
+            }
+        }
+
+        if( $use_custom_renderer
+         && !$custom_renderer_get_preset_buffer )
+        {
+            // Default settings input rendering is not required...
             if( ($cell_content = @call_user_func( $field_details['custom_renderer'], $callback_params )) === false
              || $cell_content === null )
                 $cell_content = '[' . $fthis->_pt( 'Render settings field call failed.' ) . ']';
@@ -407,11 +421,28 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
             }
         }
 
-        if( !empty($field_details['display_hint']) )
+        if( !empty( $field_details['display_hint'] ) )
         {
             ?>
             <div class="clearfix"></div>
             <small><?php echo form_str( $field_details['display_hint'] ) ?></small><?php
+        }
+
+        if( $use_custom_renderer
+         && $custom_renderer_get_preset_buffer )
+        {
+            // We now have default rendering... call custom render function
+            if( !($default_render_buf = @ob_get_clean()) )
+                $default_render_buf = '';
+
+            $callback_params['preset_content'] = $default_render_buf;
+            $callback_params['callback_params'] = (!empty( $field_details['custom_renderer_params'] )?$field_details['custom_renderer_params']:false);
+
+            if( ($cell_content = @call_user_func( $field_details['custom_renderer'], $callback_params )) === false
+             || $cell_content === null )
+                $cell_content = '[' . $fthis->_pt( 'Render settings field call failed.' ) . ']';
+
+            echo $cell_content;
         }
 
         ?></div>
