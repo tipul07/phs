@@ -218,8 +218,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         do_autocomplete: function( container, o ) {
             var defaults = {
+                show_loading_animation: true,
+                loading_animation_class: "phs_autocomplete_input_loading",
                 url : '',
                 autocomplete_obj : {
+                    delay: 300,
                     minLength: 1,
                     select: false
                 },
@@ -232,6 +235,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 options.autocomplete_obj = $.extend( {}, defaults.autocomplete_obj, o.autocomplete_obj );
             if( typeof o.ajax_options != "undefined" )
                 options.ajax_options = $.extend( {}, defaults.ajax_options, o.ajax_options );
+
+            if( typeof options.autocomplete_obj.classes === "undefined" )
+                options.autocomplete_obj.classes = {};
+
+            options.autocomplete_obj.classes["ui-autocomplete-loading"] = options.loading_animation_class;
 
             var container_obj = false;
             if( typeof container == "string" )
@@ -251,13 +259,24 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             return container_obj.autocomplete( $.extend( {}, {
                 source: function( request, response ) {
+
+                    if( options.show_loading_animation )
+                        container_obj.addClass( options.loading_animation_class );
+
                     PHS_JSEN.do_ajax( options.url, $.extend( {}, {
                         url_data: {
                             term: request.term
                         },
                         data_type: "json",
                         onsuccess: function( data, status, ajax_obj ) {
+                            if( options.show_loading_animation )
+                                container_obj.removeClass( options.loading_animation_class );
+
                             response( data );
+                        },
+                        onfailed: function( ajax_obj, status, error_exception ) {
+                            if( options.show_loading_animation )
+                                container_obj.removeClass( options.loading_animation_class );
                         }
                     }, options.ajax_options ) );
                 }

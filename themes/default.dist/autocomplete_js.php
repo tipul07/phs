@@ -17,6 +17,13 @@
     if( !($include_js_on_ready = $this->view_var( 'include_js_on_ready' )) )
         $include_js_on_ready = false;
 
+    if( !($show_loading_animation = $this->view_var( 'show_loading_animation' )) )
+        $show_loading_animation = false;
+    else
+        $show_loading_animation = true;
+    if( !($loading_animation_class = $this->view_var( 'loading_animation_class' )) )
+        $loading_animation_class = '';
+
     $allow_view_all = (bool)$this->view_var('allow_view_all');
     if( $allow_view_all
      || !($min_text_length = $this->view_var( 'min_text_length' )) )
@@ -48,6 +55,14 @@ if( $include_js_on_ready )
 
     PHS_JSEN.do_autocomplete( "#<?php echo $text_id?>", {
         url: "<?php echo PHS_Ajax::url( $route_arr, $route_params_arr )?>",
+        show_loading_animation: <?php echo ($show_loading_animation?'true':'false')?>,
+        <?php
+        if( !empty( $loading_animation_class ) )
+        {
+            ?>loading_animation_class: "<?php echo $loading_animation_class?>",
+            <?php
+        }
+        ?>
         autocomplete_obj: {
             minLength: <?php echo $min_text_length?>,
             select: function( event, ui ) {

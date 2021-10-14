@@ -658,7 +658,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
         }
 
-        if( PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_API_KEYS )
+        if( !empty( $params['record']['apikey_id'] )
+         && PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_API_KEYS )
          && ($edit_apikey_url = PHS::url( [ 'p' => 'admin', 'a' => 'api_key_edit' ],
                                           [ 'aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url() ] )) )
             return '<a href="'.$edit_apikey_url.'">'.$params['preset_content'].'</a>'.

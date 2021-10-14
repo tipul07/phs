@@ -78,7 +78,11 @@ body { font-family: 'Open Sans', 'Segoe UI', Arial, Helvetica, 'Trebuchet MS', s
     overflow-x: hidden;
 }
 .ui-autocomplete-loading {
-    background: white url("../images/ui-anim_basic_16x16.gif") right center no-repeat;
+    background: white url("../images/working.gif") right center no-repeat;
+}
+
+.phs_autocomplete_input_loading {
+	background: white url("../images/working.gif") right center no-repeat;
 }
 
 /* Hack for autocomplete action icons inside input groups */

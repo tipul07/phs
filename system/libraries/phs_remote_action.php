@@ -34,6 +34,18 @@ abstract class PHS_Remote_action extends PHS_Api_action
     }
 
     /**
+     * @return false|array
+     */
+    public function get_action_remote_domain()
+    {
+        if( !($api_obj = $this->get_action_api_instance())
+         || !($domain_arr = $api_obj->api_flow_value( 'remote_domain' )) )
+            return false;
+
+        return $domain_arr;
+    }
+
+    /**
      * @param string $var_name What variable are we looking for
      * @param int $type Type used for value validation
      * @param mixed $default Default value if variable not found in request
@@ -49,10 +61,12 @@ abstract class PHS_Remote_action extends PHS_Api_action
         if( $json_request === null )
         {
             if( !($api_obj = $this->get_action_api_instance())
-             || !($json_request = $api_obj->api_flow_value( 'remote_domain_message' ))
-             || !is_array( $json_request )
-             || empty( $json_request['request_arr'] ) || !is_array( $json_request['request_arr'] ) )
+             || !($message_arr = $api_obj->api_flow_value( 'remote_domain_message' ))
+             || !is_array( $message_arr )
+             || empty( $message_arr['request_arr'] ) || !is_array( $message_arr['request_arr'] ) )
                 $json_request = [];
+            else
+                $json_request = $message_arr['request_arr'];
         }
 
         if( !is_string( $order )

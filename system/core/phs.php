@@ -2056,6 +2056,11 @@ final class PHS extends PHS_Registry
         return $hook_result['session_db_data'];
     }
 
+    /**
+     * @param string $library
+     *
+     * @return false|string
+     */
     public static function get_core_library_full_path( $library )
     {
         $library = PHS_Instantiable::safe_escape_library_name( $library );
@@ -2072,7 +2077,7 @@ final class PHS extends PHS_Registry
      * @param string $library Core library file to be loaded
      * @param bool|array $params Loading parameters
      *
-     * @return bool|libraries\PHS_Library
+     * @return false|libraries\PHS_Library
      */
     public static function load_core_library( $library, $params = false )
     {
@@ -2149,7 +2154,7 @@ final class PHS extends PHS_Registry
      * @param string $core_library Short library name (eg. ftp, paginator_exporter_csv, etc)
      * @param bool|array $params Parameters passed to self::load_core_library() method
      *
-     * @return bool|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
+     * @return false|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
      */
     public static function get_core_library_instance( $core_library, $params = false )
     {
@@ -2180,7 +2185,7 @@ final class PHS extends PHS_Registry
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
      * @param string|bool $plugin Plugin where model is located (false means a core model)
      *
-     * @return false|\phs\libraries\PHS_Model_Mysqli Returns false on error || an instance of loaded model
+     * @return false|\phs\libraries\PHS_Model_Mysqli Returns false on error or an instance of loaded model
      */
     public static function load_model( $model, $plugin = false )
     {
@@ -2210,9 +2215,9 @@ final class PHS extends PHS_Registry
      *
      * @param string|bool $view View to be loaded (part of class name after PHS_View_)
      * @param string|bool $plugin Plugin where view is located (false means a core view)
-     * @param bool $as_singleton Tells if view instance should be loaded as singleton || new instance
+     * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
-     * @return false|\phs\system\core\views\PHS_View Returns false on error || an instance of loaded view
+     * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
      */
     public static function load_view( $view = false, $plugin = false, $as_singleton = true )
     {
@@ -2266,7 +2271,7 @@ final class PHS extends PHS_Registry
      * @param string $controller
      * @param string|bool $plugin
      *
-     * @return false|\phs\libraries\PHS_Controller Returns false on error || an instance of loaded controller
+     * @return false|\phs\libraries\PHS_Controller Returns false on error or an instance of loaded controller
      */
     public static function load_controller( $controller, $plugin = false )
     {
@@ -2296,7 +2301,7 @@ final class PHS extends PHS_Registry
      * @param string|bool $plugin
      * @param string $action_dir
      *
-     * @return bool|\phs\libraries\PHS_Action Returns false on error || an instance of loaded action
+     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
      */
     public static function load_action( $action, $plugin = false, $action_dir = '' )
     {
