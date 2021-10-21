@@ -1,0 +1,182 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+MySQLi,MySQLi
+No city defined for this continent.,Nici un oraș definit pentru continentul acesta.
+Are you sure you want to generate new Crypto Internal Keys Array?,Sunteţi sigur că doriţi generarea unui nou array de chei de criptare internă?
+Invalid action.,Acțiune invalidă.
+Couldn't load captcha plugin.,Nu am putut încărca meniul de editare produs.
+Unknown account.,Cont necunoscut.
+Couldn't load agent jobs model.,Nu am putut încărca modelul de agent jobs.
+N/A,N/A
+No,Nu
+Couldn't load plugins model.,Nu am putut încărca meniul de editare produs.
+Error rendering template [%s].,Eroare la incărcarea template-ului. Încercaţi din nou.
+Models,Modele
+Couldn't change current language. Please try again.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+You don't have rights to use contact us form.,Nu aveti drepturi de a vedea lista de companii.
+Failed sending email. Please try again.,Eroare la citirea detaliilor produsului. Încercaţi din nou.
+Error loading autocomplete contract.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Agent job details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
+Job not found in database.,Compania nu a fost gasita in baza de date.
+Handler already defined in database.,Detaliile companiei salvate in baza de date.
+API key details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
+Error saving settings in database.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Error saving registry data in database.,Eroare la salvarea detaliilor producătorului în baza de date. Încercaţi din nou.
+Error preparing query to obtain plugins records.,Eroare la pregătirea datelor companiei ca răspuns.
+Couldn't save plugin details to database.,Detaliile companiei nu s-au găsit în baza de date.
+Error deleting registry database entry for instance %s.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Role not found in database.,Rolul nu a fost găsit în baza de date.
+Couldn't obtain route.,Nu am putut încărca meniul de editare produs.
+Couldn't parse route.,Nu am putut încărca meniul de editare produs.
+Couldn't obtain route details.,Nu am putut încărca meniul de editare produs.
+Error serving request.,Eroare la încărcarea resurselor necesare.
+Couldn't load plugin %s.,Nu am putut încărca pluginul %s.
+Couldn't save agent job details in database. Please try again.,Eroare la salvarea detaliilor producătorului în baza de date. Încercaţi din nou.
+Error preparing environment.,Eroare la pregătirea datelor companiei ca răspuns.
+Please provide credentials,"Vă rugăm, oferiţi credenţiale"
+Error preparing API environment.,Eroare la pregătirea datelor companiei ca răspuns.
+Api key not found in database.,Compania nu a fost gasita in baza de date.
+Invalid content type.,Companie necunoscuta...
+Couldn't load background jobs model.,Nu am putut încărca meniul de editare produs.
+Couldn't save database details. Please try again.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining plugin details for plugin %s.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Invalid scope parameters.,Parametrii de scope invalizi.
+Error rendering page template.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Invalid template file.,Companie necunoscuta...
+Invalid theme.,Temă invalidă.
+Error validating sub-view template.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Error rendering sub-view template.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Invalid scope.,Scope invalid.
+Action not allowed to run in current scope.,Acțiunea nu este permisă în scope-ul curent.
+Error while parsing data from outside source.,Eroare la prelucrarea datelor din sursa externă.
+You don't have rights to access this section.,Nu aveti destule drepturi pentru accesarea acestei secţiuni.
+Couldn't load action [%s].,Nu am putut încărca meniul de editare produs.
+Couldn't load foobar action.,Nu am putut încărca meniul de editare produs.
+Error creating dump credentials file.,Eroare la citirea detaliilor produsului. Încercaţi din nou.
+Unknown parameters.,Parametrii necunoscuţi.
+Unknown source.,Sursă necunoscută.
+Unknown destination.,Destinaţie necunoscută.
+Error downloading file.,Eroare la descărcarea fişierului.
+Unknown copy method.,Metodă de copiere necunoscută.
+Error saving plugin details to database.,Eroare la salvarea detaliilor de plugin în baza de date.
+Error saving model details to database.,Eroare la salvarea detaliilor de model în baza de date.
+Existing record not found in database.,Înregistrarea nu a fost găsită în baza de date.
+Model is invalid.,Model invalid.
+Error loading default CSV export library.,Eroare la incărcarea librariei default de export CSV.
+Model not set. Nothing to query.,Modelul nu e precizat.
+Couldn't load action depencies.,Nu am putut încărca dependenţele acţiunii.
+Error loading paginator parameters.,Eroare la încărcarea parametrilor paginatorului.
+Error rendering paginator details.,Eroare la randarea detaliilor paginatorului.
+Error validating template resource.,Eroare la validarea resurselor pentru template.
+Plugin not found in database.,Nu am găsit pluginul în baza de date.
+Error loading model %s.,Eroare la încărcarea modelului %s.
+Error adding role [%s] to database.,Eroare la adăugarea rolului [%s] în baza de date.
+months,luni
+month,lună
+minutes,minute
+minute,minut
+Feature files,Fişiere de feature
+Context files,Fişiere context
+Couldn't load plugin %s,Nu am putut încărca pluginul %s
+ACTIVATED,ACTIVAT
+Active,Activ
+Main table,Tabela principală
+%s ago,%s în urmă
+No plugins installed yet.,Nu este instalat nici un plugin.
+Continue,Continuă
+Contact Emails,Emailuri de Contact
+You should login first...,Trebuie mai întâi să vă logaţi...
+Yes,Da
+Your message was succesfully sent. Thank you!,Mesajul dumneavoastră a fost trimis cu succes. Mulțumim!
+Contact Us: %s,Contactaţi-ne: %s
+Welcome,Bine aţi venit
+"Your password expired %s ago. For security reasons, please <a href=\""%s\"">change your password</a>.","Parola a expirat acum %s. Din motive de securitate, va rugăm să vă <a href=\""%s\"">schimbaţi parola</a>."
+years,ani
+year,an
+DONE,GATA
+seconds,secunde
+Options,Opţiuni
+Downloaded file too big.,Fişierul este prea mare.
+second,secundă
+Site Security,Securitate Site
+PHS Root path,Rădăcina PHS (absolută)
+PHS Domain,Domeniu PHS
+PHS SSL Domain,Domeniu SSL PHS
+for HTTPS requests,pentru cereri HTTPS
+PHS Cookie Domain,Domeniu de cookie PHS
+PHS Session Name,Nume sesiune PHS
+PHS Port,Port PHS
+"for \""normal\"" requests (HTTP)",pentru cereri ”normale” (HTTP)
+"If 80, leave blank","Pentru 80, lăsați gol"
+PHS SSL Port,Port SSL PHS
+"If 443, leave blank","Pentru 443, lăsați gol"
+PHS Domain path,Cale domeniu PHS
+DB Driver,Driver DB
+DB host,Host DB
+DB Username,User DB
+DB Password,Parola DB
+Database,Baza de date
+Tables prefix,Prefix tabele
+DB Port,Port DB
+DB Charset,Charset DB
+Permanent Connections,Conexiuni permanente
+Driver Settings,Setări driver
+Test connection,Test conexiune
+Step 3,Pasul 3
+Site Timezone,Fusul orar al site-ului
+Choose,Alege
+GMT,GMT
+Selected Timezone,Fus orar selectat
+Site Name,Nume Site
+This name will be used when displaying site name.,Acest nume va fi folosit când se va afișa numele site-ului.
+Site Build Version,Versiunea Site-ului
+Site on Debug Mode,Site pe Mod Debug
+Plugin %s %s with success.,Plugin %s %s cu succes.
+INACTIVATED,INACTIVAT
+NOT INSTALLED,NU E INSTALAT
+NOT ACTIVE,NU E ACTIV
+Status %s,Status %s
+Route,Rută
+Status should be %s,Statusul ar trebui să fie %s
+not,nu
+Installed,Instalat
+Invalid validation code.,Cod de validare invalid.
+Account not found in database.,Contul nu a fost găsit în baza de date.
+Inactive,Inactiv
+Suspended,Suspendat
+Deleted,Şters
+Unknow error.,Autor necunoscut
+Error running REMOTE request.,Eroare la încărcarea resurselor necesare.
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Error obfuscating plugin settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining background job command arguments.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Error loading remote domains model.,Eroare la încărcarea resurselor necesare.
+Error obtaining remote API instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Couldn't initialize remote API object.,Nu am putut încărca meniul de editare produs.
+Request not allowed.,Cerere nepermisă.
+Method not allowed.,Metodă nepermisă.
+Invalid request.,Cerere invalidă.
+Access denied.,Acces nepermis.
+Error decoding message.,Eroare la decodarea mesajului.
+Error interpreting the request.,Eroare la interpretarea cererii.
+Commands,Comenzi
+Plugin name,Nume plugin
+Upgradable,Se poate actualiza
+Result error: %s,Eroare rezultat: %s
+Error while parsing data from inside source.,Eroare la prelucrarea datelor din sursa internă.
+Invalid internal keys.,Chei interne invalide.
+Source file too big.,Fişierul sursă este prea mare.
+Error installing plugins model.,Eroare la instalarea modelelor pluginului.
+record,înregistrare
+records,înregistrări
+Displaying results...,Afişare rezultate...
+in %s,în %s
+Error installing model %s.,Eroare la instalarea modelului %s.
+Language is invalid.,Limbajul este invalid.
+day,zi
+hours,ore
+hour,oră
+weeks,săptămâni
+week,săptămână
+Behat integration,Integrare Behat
