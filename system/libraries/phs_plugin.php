@@ -429,10 +429,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Checking installation...' );
 
-        if( !$this->install_roles()
-         || !$this->install_agent_jobs() )
-            return false;
-
         if( !($db_details = $this->get_db_details()) )
         {
             $this->reset_error();
@@ -975,7 +971,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if( !($role_unit = PHS_Roles::register_role_unit( $role_unit_details_arr )) )
                 {
-                    // TODO: in case we have error on registering role, delete all registered roles and role units for current plugin
                     if( self::st_has_error() )
                         $this->copy_static_error( self::ERR_INSTALL );
                     else
@@ -1001,7 +996,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             if( !($role = PHS_Roles::register_role( $role_details_arr )) )
             {
-                // TODO: in case we have error on registering role, delete all registered roles and role units for current plugin
                 if( self::st_has_error() )
                     $this->copy_static_error( self::ERR_INSTALL );
                 else
@@ -1052,6 +1046,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             return false;
         }
+
+        if( !$this->install_roles()
+         || !$this->install_agent_jobs() )
+            return false;
 
         if( !$this->custom_install() )
         {
@@ -1385,6 +1383,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Updating plugin from ['.$old_version.'] to ['.$new_version.']...' );
+
+        if( !$this->install_roles()
+         || !$this->install_agent_jobs() )
+            return false;
 
         if( !$this->custom_update( $old_version, $new_version ) )
         {
