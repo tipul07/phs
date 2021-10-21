@@ -14,19 +14,19 @@ class PHS_Action_Write_message_bg extends PHS_Action
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_BACKGROUND );
+        return [ PHS_Scope::SCOPE_BACKGROUND ];
     }
 
     public function execute()
     {
         /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
         if( !($params = PHS_Bg_jobs::get_current_job_parameters())
-         or !is_array( $params )
-         or empty( $params['mid'] )
-         or !($messages_model = PHS::load_model( 'messages', 'messages' ))
-         or !($m_flow_params = $messages_model->fetch_default_flow_params( array( 'table_name' => 'messages' ) ))
-         or !($message_arr = $messages_model->get_details( $params['mid'], $m_flow_params ))
-         or !$messages_model->need_write_finish( $message_arr ) )
+         || !is_array( $params )
+         || empty( $params['mid'] )
+         || !($messages_model = PHS::load_model( 'messages', 'messages' ))
+         || !($m_flow_params = $messages_model->fetch_default_flow_params( [ 'table_name' => 'messages' ] ))
+         || !($message_arr = $messages_model->get_details( $params['mid'], $m_flow_params ))
+         || !$messages_model->need_write_finish( $message_arr ) )
         {
             $this->set_error( self::ERR_UNKNOWN_MESSAGE, $this->_pt( 'Message doesn\'t require additional work.' ) );
             return false;

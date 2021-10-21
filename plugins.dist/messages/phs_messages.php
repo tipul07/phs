@@ -33,14 +33,14 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
     public static function get_msg_handler_field_definition()
     {
-        return array(
+        return [
             'type' => PHS_Model::FTYPE_VARCHAR,
             'length' => '255',
             'index' => true,
             'nullable' => true,
             'default' => null,
             'editable' => true,
-        );
+        ];
     }
 
     protected function custom_install()
@@ -50,18 +50,18 @@ class PHS_Plugin_Messages extends PHS_Plugin
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
             $this->set_error( self::ERR_INSTALL, $this->_pt( 'Error instantiating accounts details model.' ) );
             return false;
         }
 
-        $flow_params = array( 'table_name' => 'users_details' );
+        $flow_params = [ 'table_name' => 'users_details' ];
         if( !$accounts_details_model->check_column_exists( self::UD_COLUMN_MSG_HANDLER, $flow_params ) )
         {
             $field_arr = self::get_msg_handler_field_definition();
 
-            $column_params = array( 'after_column' => 'id' );
+            $column_params = [ 'after_column' => 'id' ];
             if( !($result = $accounts_details_model->alter_table_add_column( self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params )) )
             {
                 $this->set_error( self::ERR_INSTALL, $this->_pt( 'Error altering user_details table.' ) );
@@ -69,36 +69,36 @@ class PHS_Plugin_Messages extends PHS_Plugin
             }
         }
 
-        if( ($ad_flow_params = $accounts_details_model->fetch_default_flow_params( array( 'table_name' => 'users_details' ) ))
-        and ($ud_table_name = $accounts_details_model->get_flow_table_name( $ad_flow_params ))
-        and ($users_flow_params = $accounts_model->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
-        and ($users_table_name = $accounts_model->get_flow_table_name( $users_flow_params )) )
+        if( ($ad_flow_params = $accounts_details_model->fetch_default_flow_params( ['table_name' => 'users_details']))
+         && ($ud_table_name = $accounts_details_model->get_flow_table_name( $ad_flow_params ))
+         && ($users_flow_params = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
+         && ($users_table_name = $accounts_model->get_flow_table_name( $users_flow_params )) )
         {
             $list_arr = $users_flow_params;
-            $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
+            $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED ];
 
             if( ($users_list = $accounts_model->get_list( $list_arr ))
-            and is_array( $users_list ) )
+             && is_array( $users_list ) )
             {
                 foreach( $users_list as $user_id => $user_arr )
                 {
                     if( !($user_details = $accounts_model->get_account_details( $user_arr ))
-                     or empty( $user_details[self::UD_COLUMN_MSG_HANDLER] ) )
+                     || empty( $user_details[self::UD_COLUMN_MSG_HANDLER] ) )
                     {
-                        $details_arr = array();
+                        $details_arr = [];
                         $details_arr[self::UD_COLUMN_MSG_HANDLER] = $user_arr['nick'];
 
                         $accounts_model->update_user_details( $user_arr, $details_arr );
                     }
 
                     if( $accounts_model->acc_is_admin( $user_arr ) )
-                        $roles_arr = array( self::ROLE_MESSAGE_ADMIN );
+                        $roles_arr = [ self::ROLE_MESSAGE_ADMIN ];
                     elseif( $accounts_model->acc_is_operator( $user_arr ) )
-                        $roles_arr = array( self::ROLE_MESSAGE_ALL );
+                        $roles_arr = [ self::ROLE_MESSAGE_ALL ];
                     else
-                        $roles_arr = array( self::ROLE_MESSAGE_WRITER );
+                        $roles_arr = [ self::ROLE_MESSAGE_WRITER ];
 
-                    PHS_Roles::link_roles_to_user( $user_arr, $roles_arr, array( 'append_roles' => true ) );
+                    PHS_Roles::link_roles_to_user( $user_arr, $roles_arr, [ 'append_roles' => true ]);
                 }
             }
         }
@@ -119,7 +119,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return false;
         }
 
-        $flow_params = array( 'table_name' => 'users_details' );
+        $flow_params = [ 'table_name' => 'users_details' ];
 
         if( !$accounts_details_model->alter_table_drop_column( self::UD_COLUMN_MSG_HANDLER, $flow_params ) )
         {
@@ -135,34 +135,34 @@ class PHS_Plugin_Messages extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        return array(
+        return [
             // default template
-            'summary_template' => array(
+            'summary_template' => [
                 'display_name' => 'Summary template',
                 'display_hint' => 'What template should be used when displaying messages summary',
                 'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'summary' ),
-            ),
-            'summary_limit' => array(
+            ],
+            'summary_limit' => [
                 'display_name' => 'Messages sumary count',
                 'display_hint' => 'How many messages should be presented in summary. 0 to disable summary',
                 'type' => PHS_Params::T_INT,
                 'default' => 5,
-            ),
-            'send_emails' => array(
+            ],
+            'send_emails' => [
                 'display_name' => 'Alert by emails',
                 'display_hint' => 'Alert user by email when he/she receives an internal message',
                 'type' => PHS_Params::T_BOOL,
                 'default' => true,
-            ),
-            'include_body' => array(
+            ],
+            'include_body' => [
                 'display_name' => 'Body message in email',
                 'display_hint' => 'When sending email alert, also include body of the message in the email',
                 'type' => PHS_Params::T_BOOL,
                 'default' => false,
-            ),
-        );
+            ],
+        ];
     }
 
     /**
@@ -170,80 +170,80 @@ class PHS_Plugin_Messages extends PHS_Plugin
      */
     public function get_roles_definition()
     {
-        $return_arr = array(
-            self::ROLE_MESSAGE_READER => array(
+        $return_arr = [
+            self::ROLE_MESSAGE_READER => [
                 'name' => 'Messages reader',
                 'description' => 'Allow user only to read and reply to received messages',
-                'role_units' => array(
-                    self::ROLEU_READ_MESSAGE => array(
+                'role_units' => [
+                    self::ROLEU_READ_MESSAGE => [
                         'name' => 'Read received messages',
                         'description' => 'Allow user to read received messages',
-                    ),
-                    self::ROLEU_REPLY_MESSAGE => array(
+                    ],
+                    self::ROLEU_REPLY_MESSAGE => [
                         'name' => 'Reply to a message',
                         'description' => 'Allow user to reply to received messages',
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+        ];
 
         $return_arr[self::ROLE_MESSAGE_WRITER] = $return_arr[self::ROLE_MESSAGE_READER];
 
         $return_arr[self::ROLE_MESSAGE_WRITER]['name'] = 'Messages writer';
         $return_arr[self::ROLE_MESSAGE_WRITER]['description'] = 'Role units which allow users to compose messages';
 
-        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_WRITE_MESSAGE] = array(
+        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_WRITE_MESSAGE] = [
             'name' => 'Compose messages',
             'description' => 'Allow user to compose messages to other users',
-        );
-        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_FOLLOWUP_MESSAGE] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_FOLLOWUP_MESSAGE] = [
             'name' => 'Follow up messages',
             'description' => 'Allow user to send a message to destination even if destination didn\'t reply yet',
-        );
-        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_HANDLER_CHANGE] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_WRITER]['role_units'][self::ROLEU_HANDLER_CHANGE] = [
             'name' => 'Change message handler',
             'description' => 'Allow user to change messages handler (nickname of messages system)',
-        );
+        ];
 
         $return_arr[self::ROLE_MESSAGE_ALL] = $return_arr[self::ROLE_MESSAGE_WRITER];
 
         $return_arr[self::ROLE_MESSAGE_ALL]['name'] = 'Messages writer plus';
         $return_arr[self::ROLE_MESSAGE_ALL]['description'] = 'All role units defined for messages writer plus autocomplete for handlers when composing messages';
 
-        $return_arr[self::ROLE_MESSAGE_ALL]['role_units'][self::ROLEU_HANDLER_AUTOCOMPLETE] = array(
+        $return_arr[self::ROLE_MESSAGE_ALL]['role_units'][self::ROLEU_HANDLER_AUTOCOMPLETE] = [
             'name' => 'Handler autocomplete',
             'description' => 'Allow user to have autocomplete feature when writing messages',
-        );
+        ];
 
         $return_arr[self::ROLE_MESSAGE_ADMIN] = $return_arr[self::ROLE_MESSAGE_ALL];
 
         $return_arr[self::ROLE_MESSAGE_ADMIN]['name'] = 'All messages functionalities';
         $return_arr[self::ROLE_MESSAGE_ADMIN]['description'] = 'Defines role units available for admin accounts';
 
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_ALL_DESTINATIONS] = array(
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_ALL_DESTINATIONS] = [
             'name' => 'Write to all destinations',
             'description' => 'Allow user to compose to all destination types',
-        );
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_NO_REPLY_OPTION] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_NO_REPLY_OPTION] = [
             'name' => 'No reply option',
             'description' => 'Allow user to compose messages which cannot be replied',
-        );
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SEND_ANONYMOUS] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SEND_ANONYMOUS] = [
             'name' => 'Send as anonymous',
             'description' => 'Allow user to send messages with no option to see who wrote them (will appear as system messages)',
-        );
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SET_TYPE_IN_COMPOSE] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_SET_TYPE_IN_COMPOSE] = [
             'name' => 'Message type in compose',
             'description' => 'Allow user to change message type as parameter in compose form (for special messages)',
-        );
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_VIEW_ALL_MESSAGES] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_VIEW_ALL_MESSAGES] = [
             'name' => 'View all messages',
             'description' => 'Allow user to view all messages (not only threads user is involved in)',
-        );
-        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_CAN_REPLY_TO_ALL] = array(
+        ];
+        $return_arr[self::ROLE_MESSAGE_ADMIN]['role_units'][self::ROLEU_CAN_REPLY_TO_ALL] = [
             'name' => 'Reply to all messages',
             'description' => 'Allow user to reply to all messages (not only threads user is involved in)',
-        );
+        ];
 
         return $return_arr;
     }
@@ -258,18 +258,18 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $this->reset_error();
 
         if( !($current_user = PHS::user_logged_in())
-         or !PHS_Roles::user_has_role_units( $current_user, self::ROLEU_READ_MESSAGE ) )
+         || !PHS_Roles::user_has_role_units( $current_user, self::ROLEU_READ_MESSAGE ) )
             return PHS_Hooks::default_messages_summary_hook_args();
 
         if( !($settings_arr = $this->get_db_settings())
-         or empty( $settings_arr['summary_template'] ) )
+         || empty( $settings_arr['summary_template'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load summary template from plugin settings.' ) );
             return false;
         }
 
         // 0 means disable summary
-        if( empty( $settings_arr['summary_limit'] ) or $settings_arr['summary_limit'] <= 0 )
+        if( empty( $settings_arr['summary_limit'] ) || $settings_arr['summary_limit'] <= 0 )
             return self::validate_array_recursive( $hook_args, PHS_Hooks::default_messages_summary_hook_args() );
 
         if( !($summary_template = PHS_View::validate_template_resource( $settings_arr['summary_template'] )) )
@@ -314,21 +314,21 @@ class PHS_Plugin_Messages extends PHS_Plugin
         }
 
         if( empty( $hook_args['messages_list'] ) )
-            $hook_args['messages_list'] = array();
+            $hook_args['messages_list'] = [];
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = array(
+        $view_params['template_data'] = [
             'summary_container_id' => $hook_args['summary_container_id'],
             'messages_new' => $hook_args['messages_new'],
             'messages_count' => $hook_args['messages_count'],
             'messages_list' => $hook_args['messages_list'],
             'messages_model' => $messages_model,
             'messages_plugin' => $this,
-        );
+        ];
 
         if( !($view_obj = PHS_View::init_view( $summary_template, $view_params )) )
         {
@@ -363,7 +363,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
 
-        $data = array();
+        $data = [];
 
         $hook_args['buffer'] = $this->quick_render_template_for_buffer( 'main_menu_member', $data );
 
@@ -379,7 +379,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_buffer_hook_args() );
 
-        $data = array();
+        $data = [];
 
         $hook_args['buffer'] = $this->quick_render_template_for_buffer( 'main_menu_admin', $data );
 
@@ -395,8 +395,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array( $hook_args, PHS_Model::default_table_fields_hook_args() );
 
-        if( empty( $hook_args['flow_params'] ) or !is_array( $hook_args['flow_params'] )
-         or empty( $hook_args['flow_params']['table_name'] ) )
+        if( empty( $hook_args['flow_params'] ) || !is_array( $hook_args['flow_params'] )
+         || empty( $hook_args['flow_params']['table_name'] ) )
             return false;
 
         switch( $hook_args['flow_params']['table_name'] )
@@ -405,9 +405,9 @@ class PHS_Plugin_Messages extends PHS_Plugin
                 return false;
 
             case 'users_details':
-                $hook_args['fields_arr'] = array(
+                $hook_args['fields_arr'] = [
                     self::UD_COLUMN_MSG_HANDLER => self::get_msg_handler_field_definition(),
-                );
+                ];
             break;
         }
 
@@ -433,12 +433,12 @@ class PHS_Plugin_Messages extends PHS_Plugin
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( ($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
-        and ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-        and $accounts_details_model->check_column_exists( self::UD_COLUMN_MSG_HANDLER, array( 'table_name' => 'users_details' ) )
-        and ($user_details_arr = $accounts_model->get_account_details( $account_arr ))
-        and !empty( $user_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
+         && ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         && $accounts_details_model->check_column_exists( self::UD_COLUMN_MSG_HANDLER, [ 'table_name' => 'users_details' ] )
+         && ($user_details_arr = $accounts_model->get_account_details( $account_arr ))
+         && !empty( $user_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
         {
-            $details_arr = array();
+            $details_arr = [];
             $details_arr[self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
 
             if( ($new_account_arr = $accounts_model->update_user_details( $account_arr, $details_arr )) )
@@ -462,12 +462,12 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or empty( $hook_args['account_data'] )
-         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+         || empty( $hook_args['account_data'] )
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
             return $hook_args;
 
         if( empty( $hook_args['roles_arr'] ) )
-            $hook_args['roles_arr'] = array();
+            $hook_args['roles_arr'] = [];
 
         if( $accounts_model->acc_is_admin( $account_arr ) )
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ADMIN;
@@ -490,9 +490,9 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( empty( $hook_args['account_data'] )
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
-         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
             return $hook_args;
 
         $account_details_arr = false;
@@ -501,11 +501,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         elseif( !($account_details_arr = $accounts_details_model->data_to_array( $hook_args['account_details_data'] )) )
             return $hook_args;
 
-        if( empty( $hook_args['account_details_fields'] ) or !is_array( $hook_args['account_details_fields'] ) )
-            $hook_args['account_details_fields'] = array();
+        if( empty( $hook_args['account_details_fields'] ) || !is_array( $hook_args['account_details_fields'] ) )
+            $hook_args['account_details_fields'] = [];
 
-        if( empty( $account_details_arr ) or !is_array( $account_details_arr )
-         or empty( $account_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
+        if( empty( $account_details_arr ) || !is_array( $account_details_arr )
+         || empty( $account_details_arr[self::UD_COLUMN_MSG_HANDLER] ) )
             $hook_args['account_details_fields'][self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
 
         return $hook_args;
@@ -522,16 +522,16 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( empty( $hook_args['account_data'] )
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
-         or !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
             return $hook_args;
 
-        if( empty( $hook_args['account_details_data'] ) or !is_array( $hook_args['account_details_data'] )
-         or empty( $hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER] ) )
+        if( empty( $hook_args['account_details_data'] ) || !is_array( $hook_args['account_details_data'] )
+         || empty( $hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER] ) )
         {
-            if( empty( $hook_args['account_details_data'] ) or !is_array( $hook_args['account_details_data'] ) )
-                $hook_args['account_details_data'] = array();
+            if( empty( $hook_args['account_details_data'] ) || !is_array( $hook_args['account_details_data'] ) )
+                $hook_args['account_details_data'] = [];
 
             if( !($updated_account_arr = $accounts_model->update_user_details( $account_arr, $hook_args['account_details_data'] )) )
                 return $hook_args;

@@ -11,7 +11,7 @@ class PHS_Model_Accounts_details extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.2';
     }
 
     /**
@@ -19,13 +19,13 @@ class PHS_Model_Accounts_details extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'users_details' );
+        return [ 'users_details' ];
     }
 
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    function get_main_table_name()
+    public function get_main_table_name()
     {
         return 'users_details';
     }
@@ -38,12 +38,9 @@ class PHS_Model_Accounts_details extends PHS_Model
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function get_insert_prepare_params( $params )
+    protected function get_insert_prepare_params_users_details( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         if( empty( $params['fields']['uid'] ) )
@@ -51,6 +48,50 @@ class PHS_Model_Accounts_details extends PHS_Model
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an user account id.' ) );
             return false;
         }
+
+        if( !empty( $params['fields']['title'] ) )
+            $params['fields']['title'] = substr( $params['fields']['title'], 0, 20 );
+        if( !empty( $params['fields']['fname'] ) )
+            $params['fields']['fname'] = substr( $params['fields']['fname'], 0, 255 );
+        if( !empty( $params['fields']['lname'] ) )
+            $params['fields']['lname'] = substr( $params['fields']['lname'], 0, 255 );
+        if( !empty( $params['fields']['phone'] ) )
+            $params['fields']['phone'] = substr( $params['fields']['phone'], 0, 50 );
+        if( !empty( $params['fields']['company'] ) )
+            $params['fields']['company'] = substr( $params['fields']['company'], 0, 255 );
+
+        if( !isset( $params['fields']['limit_emails'] ) )
+            $params['fields']['limit_emails'] = 1;
+        else
+            $params['fields']['limit_emails'] = (!empty( $params['fields']['limit_emails'] )?1:0);
+
+        return $params;
+    }
+
+    protected function get_edit_prepare_params_users_details( $existing_data, $params )
+    {
+        if( empty( $params ) || !is_array( $params ) )
+            return false;
+
+        if( isset( $params['fields']['uid'] ) && empty( $params['fields']['uid'] ) )
+        {
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide an user account id.' ) );
+            return false;
+        }
+
+        if( !empty( $params['fields']['title'] ) )
+            $params['fields']['title'] = substr( $params['fields']['title'], 0, 20 );
+        if( !empty( $params['fields']['fname'] ) )
+            $params['fields']['fname'] = substr( $params['fields']['fname'], 0, 255 );
+        if( !empty( $params['fields']['lname'] ) )
+            $params['fields']['lname'] = substr( $params['fields']['lname'], 0, 255 );
+        if( !empty( $params['fields']['phone'] ) )
+            $params['fields']['phone'] = substr( $params['fields']['phone'], 0, 50 );
+        if( !empty( $params['fields']['company'] ) )
+            $params['fields']['company'] = substr( $params['fields']['company'], 0, 255 );
+
+        if( isset( $params['fields']['limit_emails'] ) )
+            $params['fields']['limit_emails'] = (!empty( $params['fields']['limit_emails'] )?1:0);
 
         return $params;
     }
@@ -61,51 +102,57 @@ class PHS_Model_Accounts_details extends PHS_Model
     final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
-        if( empty( $params ) or !is_array( $params )
-         or empty( $params['table_name'] ) )
+        if( empty( $params ) || !is_array( $params )
+         || empty( $params['table_name'] ) )
             return false;
 
-        $return_arr = array();
+        $return_arr = [];
         switch( $params['table_name'] )
         {
             case 'users_details':
-                $return_arr = array(
-                    'id' => array(
+                $return_arr = [
+                    'id' => [
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'uid' => array(
+                    ],
+                    'uid' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
                         'editable' => false,
-                    ),
-                    'title' => array(
+                    ],
+                    'title' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '20',
+                        'length' => 20,
                         'nullable' => true,
-                    ),
-                    'fname' => array(
+                    ],
+                    'fname' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
+                        'length' => 255,
                         'nullable' => true,
-                    ),
-                    'lname' => array(
+                    ],
+                    'lname' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
+                        'length' => 255,
                         'nullable' => true,
-                    ),
-                    'phone' => array(
+                    ],
+                    'phone' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '50',
+                        'length' => 50,
                         'nullable' => true,
-                    ),
-                    'company' => array(
+                    ],
+                    'company' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => '250',
+                        'length' => 255,
                         'nullable' => true,
-                    ),
-                );
+                    ],
+                    'limit_emails' => [
+                        'type' => self::FTYPE_TINYINT,
+                        'length' => 2,
+                        'default' => 0,
+                        'comment' => 'Try to minimize emails sent to user',
+                    ],
+                ];
             break;
        }
 
