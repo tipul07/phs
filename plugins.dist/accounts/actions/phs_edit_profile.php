@@ -15,7 +15,7 @@ class PHS_Action_Edit_profile extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_EDIT_PROFILE );
+        return [ self::ACT_ROLE_EDIT_PROFILE ];
     }
 
     /**
@@ -25,7 +25,7 @@ class PHS_Action_Edit_profile extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     /**
@@ -39,7 +39,7 @@ class PHS_Action_Edit_profile extends PHS_Action
         $hook_args['action_obj'] = $this;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_EDIT_PROFILE_ACTION_START, $hook_args ))
-        and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+         && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
         {
             $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
 
@@ -82,20 +82,20 @@ class PHS_Action_Edit_profile extends PHS_Action
 
             $action_result = self::default_action_result();
 
-            $args = array(
+            $args = [
                 'back_page' => PHS::current_url()
-            );
+            ];
 
             if( !empty( $reason ) )
                 $args['reason'] = $reason;
 
-            $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), $args );
+            $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'login' ], $args );
 
             return $action_result;
         }
 
         if( !($plugin_settings = $this->get_plugin_settings()) )
-            $plugin_settings = array();
+            $plugin_settings = [];
 
         if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Changes saved to database.' ) );
@@ -103,17 +103,17 @@ class PHS_Action_Edit_profile extends PHS_Action
             PHS_Notifications::add_success_notice( $this->_pt( 'An email with your password was sent to email provided in your account details.' ) );
 
         if( empty( $current_user['details_id'] )
-         or !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
+         || !($user_details = $accounts_details_model->get_details( $current_user['details_id'] )) )
             $user_details = false;
 
         if( !empty( $reason )
-        and ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
+         && ($reason_success_text = $accounts_plugin->valid_confirmation_reason( $reason )) )
             PHS_Notifications::add_success_notice( $reason_success_text );
 
         if( !($email_needs_verification = $accounts_model->needs_email_verification( $current_user )) )
             $verify_email_link = '#';
         else
-            $verify_email_link = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'verify_email' => 1 ) );
+            $verify_email_link = PHS::url( [ 'p' => 'accounts', 'a' => 'edit_profile' ], [ 'verify_email' => 1 ] );
 
         $verify_email = PHS_Params::_g( 'verify_email', PHS_Params::T_INT );
         $verification_email_sent = PHS_Params::_g( 'verification_email_sent', PHS_Params::T_INT );
@@ -125,6 +125,8 @@ class PHS_Action_Edit_profile extends PHS_Action
         $lname = PHS_Params::_p( 'lname', PHS_Params::T_NOHTML );
         $phone = PHS_Params::_p( 'phone', PHS_Params::T_NOHTML );
         $company = PHS_Params::_p( 'company', PHS_Params::T_NOHTML );
+        if( !($limit_emails = PHS_Params::_p( 'limit_emails', PHS_Params::T_INT )) )
+            $limit_emails = 0;
 
         $do_submit = PHS_Params::_p( 'do_submit' );
 
@@ -132,9 +134,9 @@ class PHS_Action_Edit_profile extends PHS_Action
             PHS_Notifications::add_success_notice( $this->_pt( 'Verification email sent... Please follow the steps in email to acknowledge your email address.' ) );
 
         if( !empty( $verify_email )
-        and $accounts_model->needs_email_verification( $current_user ) )
+         && $accounts_model->needs_email_verification( $current_user ) )
         {
-            if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'verify_email_bg', 'c' => 'index_bg' ), array( 'uid' => $current_user['id'] ) ) )
+            if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'verify_email_bg', 'c' => 'index_bg' ], [ 'uid' => $current_user['id'] ] ) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t send verification email. Please try again.' ) );
 
             else
@@ -143,7 +145,7 @@ class PHS_Action_Edit_profile extends PHS_Action
 
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'verification_email_sent' => 1 ) );
+                $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'edit_profile' ], [ 'verification_email_sent' => 1 ] );
 
                 return $action_result;
             }
@@ -160,23 +162,25 @@ class PHS_Action_Edit_profile extends PHS_Action
                 $lname = $user_details['lname'];
                 $phone = $user_details['phone'];
                 $company = $user_details['company'];
+                $limit_emails = $user_details['limit_emails'];
             }
         }
 
         if( !empty( $do_submit ) )
         {
-            $edit_arr = array();
+            $edit_arr = [];
             if( empty( $plugin_settings['no_nickname_only_email'] ) )
                 $edit_arr['email'] = $email;
 
-            $edit_details_arr = array();
+            $edit_details_arr = [];
             $edit_details_arr['title'] = $title;
             $edit_details_arr['fname'] = $fname;
             $edit_details_arr['lname'] = $lname;
             $edit_details_arr['phone'] = $phone;
             $edit_details_arr['company'] = $company;
+            $edit_details_arr['limit_emails'] = $limit_emails;
 
-            $edit_params_arr = array();
+            $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
             $edit_params_arr['{users_details}'] = $edit_details_arr;
 
@@ -186,19 +190,18 @@ class PHS_Action_Edit_profile extends PHS_Action
 
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'edit_profile' ), array( 'changes_saved' => 1 ) );
+                $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'edit_profile' ], [ 'changes_saved' => 1 ] );
 
                 return $action_result;
-            } else
-            {
-                if( $accounts_model->has_error() )
-                    PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
-                else
-                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
+
+            if( $accounts_model->has_error() )
+                PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
+            else
+                PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
         }
 
-        $data = array(
+        $data = [
             'nick' => $current_user['nick'],
             'email' => $email,
             'title' => $title,
@@ -206,10 +209,11 @@ class PHS_Action_Edit_profile extends PHS_Action
             'lname' => $lname,
             'phone' => $phone,
             'company' => $company,
-            'email_verified' => (!empty( $email_needs_verification )?false:true),
+            'limit_emails' => $limit_emails,
+            'email_verified' => empty( $email_needs_verification ),
             'verify_email_link' => $verify_email_link,
             'no_nickname_only_email' => $plugin_settings['no_nickname_only_email'],
-        );
+        ];
 
         return $this->quick_render_template( 'edit_profile', $data );
     }

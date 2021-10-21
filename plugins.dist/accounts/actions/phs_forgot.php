@@ -35,7 +35,7 @@ class PHS_Action_Forgot extends PHS_Action
         $hook_args['action_obj'] = $this;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_FORGOT_PASSWORD_ACTION_START, $hook_args ))
-        and is_array( $new_hook_args ) and !empty( $new_hook_args['action_result'] ) )
+         && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
         {
             $action_result = self::validate_array( $new_hook_args['action_result'], self::default_action_result() );
 
@@ -82,7 +82,7 @@ class PHS_Action_Forgot extends PHS_Action
                 PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load captcha plugin.' ) );
 
             elseif( ($hook_result = PHS_Hooks::trigger_captcha_check( $vcode )) !== null
-                and empty( $hook_result['check_valid'] ) )
+                 && empty( $hook_result['check_valid'] ) )
             {
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
                     PHS_Notifications::add_error_notice( PHS_Error::arr_get_error_message( $hook_result['hook_errors'] ) );
@@ -90,12 +90,12 @@ class PHS_Action_Forgot extends PHS_Action
                     PHS_Notifications::add_error_notice( $this->_pt( 'Invalid validation code.' ) );
             }
 
-            elseif( !($account_arr = $accounts_model->get_details_fields( array( 'email' => $email, 'status' => $accounts_model::STATUS_ACTIVE ) )) )
+            elseif( !($account_arr = $accounts_model->get_details_fields( [ 'email' => $email, 'status' => $accounts_model::STATUS_ACTIVE ] )) )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Invalid account.' ) );
 
             else
             {
-                if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+                if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg' ], [ 'uid' => $account_arr['id'] ] ) )
                 {
                     if( self::st_has_error() )
                         $error_msg = self::st_get_error_message();
@@ -112,16 +112,16 @@ class PHS_Action_Forgot extends PHS_Action
             {
                 $action_result = self::default_action_result();
 
-                $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ), array( 'email_sent' => 1 ) );
+                $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'forgot' ], [ 'email_sent' => 1 ] );
 
                 return $action_result;
             }
         }
 
-        $data = array(
+        $data = [
             'email' => $email,
             'vcode' => $vcode,
-        );
+        ];
 
         return $this->quick_render_template( 'forgot', $data );
     }

@@ -59,7 +59,7 @@
         </div>
 
         <div class="login_form_actions">
-            <a class="forgot_pass" href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'forgot' ) )?>"><?php echo $this->_pt( 'Forgot password' )?></a>
+            <a class="forgot_pass" href="<?php echo PHS::url( [ 'p' => 'accounts', 'a' => 'forgot' ] )?>"><?php echo $this->_pt( 'Forgot password' )?></a>
             <?php
             $cuser_arr = PHS::account_structure( PHS::user_logged_in() );
 
@@ -67,7 +67,7 @@
             {
                 ?>
                 <span class="separator">|</span>
-                <a class="register_acc" href="<?php echo PHS::url( array( 'p' => 'accounts', 'a' => 'register' ) )?>"><?php echo $this->_pt( 'Register an account' )?></a>
+                <a class="register_acc" href="<?php echo PHS::url( [ 'p' => 'accounts', 'a' => 'register' ] )?>"><?php echo $this->_pt( 'Register an account' )?></a>
                 <?php
             }
             ?>
