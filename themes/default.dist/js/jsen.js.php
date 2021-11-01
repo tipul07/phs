@@ -26,7 +26,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     var PHS_JSEN = {
         debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
 
-        version: 1.4,
+        version: 1.5,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url()?>",
@@ -123,6 +123,55 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
 
             return false;
+        },
+
+        load_storage: function( i_name ) {
+            let data = null;
+            if( localStorage ) {
+                data = localStorage.getItem( i_name );
+            } else {
+                data = this.get_cookie( i_name );
+            }
+
+            return data;
+        },
+        // When setting cookies, keep data by default for one week
+        save_storage: function( i_name, i_val, i_exp = 10080 ) {
+            if( localStorage )
+                localStorage.setItem( i_name, i_val );
+            else
+                this.set_cookie( i_name, i_val, i_exp );
+        },
+        reset_storage: function( i_name ) {
+            if( localStorage )
+                localStorage.removeItem( i_name );
+
+            this.delete_cookie( i_name );
+        },
+
+        set_cookie: function( cname, cvalue, exminutes ) {
+            var d = new Date();
+            d.setTime( d.getTime() + (exminutes*60*1000) );
+            var expires = "expires="+ d.toUTCString();
+            document.cookie = cname + "=" + cvalue + "; " + expires;
+        },
+        get_cookie: function( cname ) {
+            var name = cname + "=";
+            var ca = document.cookie.split(";");
+
+            for( var i = 0; i < ca.length; i++ ) {
+                var c = ca[i];
+                while( c.charAt(0) === " " )
+                    c = c.substring(1);
+
+                if( c.indexOf( name ) === 0 )
+                    return c.substring( name.length, c.length );
+            }
+
+            return "";
+        },
+        delete_cookie: function( cname ) {
+            this.set_cookie( cname, "", -1 );
         },
 
         random_string: function( length ) {
@@ -1332,4 +1381,3 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         }
     };
 }
-
