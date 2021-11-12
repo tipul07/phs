@@ -650,7 +650,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params = [];
 
         if( empty( $params['percents'] ) || !is_array( $params['percents'] ) )
-            $params['percents'] = array( 'spacial_chars' => 10, 'digits_chars' => 20, 'normal_chars' => 70, );
+            $params['percents'] = [ 'spacial_chars' => 10, 'digits_chars' => 20, 'normal_chars' => 70, ];
 
         if( !isset( $params['percents']['spacial_chars'] ) )
             $params['percents']['spacial_chars'] = 10;
@@ -797,7 +797,7 @@ class PHS_Model_Accounts extends PHS_Model
             $pass_salt = $account_arr['pass_salt'];
 
         if( empty( $pass_salt )
-         && (!($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) ))
+         && (!($account_salt_arr = $this->get_details_fields( [ 'uid' => $account_arr['id'] ], [ 'table_name' => 'users_pass_salts' ] ))
              || !isset( $account_salt_arr['pass_salt'] )
              || !$this->raw_check_pass( $account_arr['pass'], $account_salt_arr['pass_salt'], $pass )
             ) )
@@ -926,7 +926,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( empty( $account_data )
          || !($account_arr = $this->data_to_array( $account_data ))
-         || !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
+         || !($account_salt_arr = $this->get_details_fields( [ 'uid' => $account_arr['id'] ], [ 'table_name' => 'users_pass_salts' ] )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid account.' ) );
             return false;
@@ -945,7 +945,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_history' ) ))
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_history' ] ))
          || !($uph_table_name = $this->get_flow_table_name( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain flow params.' ) );
@@ -968,7 +968,7 @@ class PHS_Model_Accounts extends PHS_Model
         else
         {
             // if nothing was provided, we assume old salt is still in database...
-            if( !($account_salt_arr = $this->get_details_fields( array( 'uid' => $account_arr['id'] ), array( 'table_name' => 'users_pass_salts' ) )) )
+            if( !($account_salt_arr = $this->get_details_fields( [ 'uid' => $account_arr['id'] ], [ 'table_name' => 'users_pass_salts' ] )) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid account to save password history.' ) );
                 return false;
@@ -1042,7 +1042,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_history' ) ))
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_history' ] ))
          || !($uph_table_name = $this->get_flow_table_name( $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain flow params.' ) );
@@ -1108,7 +1108,7 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if( empty( $account_data )
-         || !($account_arr = $this->data_to_array( $account_data, array( 'table_name' => 'users' ) )) )
+         || !($account_arr = $this->data_to_array( $account_data, [ 'table_name' => 'users' ] )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
             return false;
@@ -1140,7 +1140,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( empty( $account_data )
-         || !($flow_arr = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+         || !($flow_arr = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
          || !($users_table = $this->get_flow_table_name( $flow_arr ))
          || !($account_arr = $this->data_to_array( $account_data, $flow_arr )) )
         {
@@ -1168,7 +1168,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function clear_idler_sessions()
     {
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'online' ) ))
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'online' ] ))
          || !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE expire_date < \''.date( self::DATETIME_DB ).'\'', $flow_params['db_connection'] ) )
             return false;
 
@@ -1184,7 +1184,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function update_current_session( $online_data, $params = false )
     {
         if( empty( $online_data )
-         || !($online_arr = $this->data_to_array( $online_data, array( 'table_name' => 'online' ) )) )
+         || !($online_arr = $this->data_to_array( $online_data, [ 'table_name' => 'online' ] )) )
             return false;
 
         if( empty( $params ) || !is_array( $params ) )
@@ -1239,7 +1239,7 @@ class PHS_Model_Accounts extends PHS_Model
     public function session_logout_subaccount( $online_data )
     {
         if( empty( $online_data )
-         || !($online_arr = $this->data_to_array( $online_data, array( 'table_name' => 'online' ) ))
+         || !($online_arr = $this->data_to_array( $online_data, [ 'table_name' => 'online' ] ))
          || empty( $online_arr['auid'] ) )
             return false;
 
@@ -1260,11 +1260,11 @@ class PHS_Model_Accounts extends PHS_Model
     public function session_logout( $online_data )
     {
         if( empty( $online_data )
-         || !($online_arr = $this->data_to_array( $online_data, array( 'table_name' => 'online' ) ))
+         || !($online_arr = $this->data_to_array( $online_data, [ 'table_name' => 'online' ] ))
          || empty( $online_arr['id'] ) )
             return false;
 
-        return $this->hard_delete( $online_arr, array( 'table_name' => 'online' ) );
+        return $this->hard_delete( $online_arr, [ 'table_name' => 'online' ] );
     }
 
     /**
@@ -1597,7 +1597,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $hook_args['account_data'] = $account_arr['id'];
 
-        if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ), $hook_args ) )
+        if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ], $hook_args ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_ACCOUNT_ACTION );
@@ -1637,7 +1637,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+        if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ], [ 'uid' => $account_arr['id'] ] ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_EMAIL );
@@ -1692,12 +1692,12 @@ class PHS_Model_Accounts extends PHS_Model
             return $return_arr;
 
         $registration_email_sent = false;
-        if( $this->needs_activation( $account_arr, array( 'accounts_plugin_settings' => $params['accounts_plugin_settings'] ) ) )
+        if( $this->needs_activation( $account_arr, [ 'accounts_plugin_settings' => $params['accounts_plugin_settings'] ] ) )
         {
             $return_arr['activation_email_required'] = true;
 
             // send activation email...
-            if( !PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg' ), array( 'uid' => $account_arr['id'] ) ) )
+            if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg' ], [ 'uid' => $account_arr['id'] ] ) )
             {
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
@@ -1940,7 +1940,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !empty( $params['{pass_salt}'] ) )
         {
-            $salt_insert_arr = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) );
+            $salt_insert_arr = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_salts' ] );
             $salt_insert_arr['fields']['uid'] = $insert_arr['id'];
             $salt_insert_arr['fields']['pass_salt'] = $params['{pass_salt}'];
 
@@ -1965,11 +1965,11 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if( $this->acc_is_admin( $insert_arr ) )
-            $roles_arr = array( PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN );
+            $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN ];
         elseif( $this->acc_is_operator( $insert_arr ) )
-            $roles_arr = array( PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR );
+            $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR ];
         else
-            $roles_arr = array( PHS_Roles::ROLE_MEMBER );
+            $roles_arr = [ PHS_Roles::ROLE_MEMBER ];
 
         $hook_args = PHS_Hooks::default_user_registration_roles_hook_args();
         $hook_args['roles_arr'] = $roles_arr;
@@ -2028,19 +2028,20 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params()) )
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Invalid flow parameters while updating user details.' ) );
             return false;
         }
 
-        if( !($accounts_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() )) )
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        if( !($accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining account details model instance.' ) );
             return false;
         }
 
-        if( !($account_arr = $this->data_to_array( $account_data )) )
+        if( !($account_arr = $this->data_to_array( $account_data, $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid account to update details.' ) );
             return false;
@@ -2067,7 +2068,7 @@ class PHS_Model_Accounts extends PHS_Model
             // no details yet saved...
             $user_details_arr['uid'] = $account_arr['id'];
 
-            $details_params = [];
+            $details_params = $accounts_details_model->fetch_default_flow_params( [ 'table_name' => 'users_details' ] );
             $details_params['fields'] = $user_details_arr;
 
             if( !($users_details = $accounts_details_model->insert( $details_params )) )
@@ -2081,7 +2082,7 @@ class PHS_Model_Accounts extends PHS_Model
             }
         } else
         {
-            $details_params = [];
+            $details_params = $accounts_details_model->fetch_default_flow_params( [ 'table_name' => 'users_details' ] );
             $details_params['fields'] = $user_details_arr;
 
             if( !($users_details = $accounts_details_model->edit( $users_details, $details_params )) )
@@ -2181,7 +2182,8 @@ class PHS_Model_Accounts extends PHS_Model
                 if( !empty( $history_details['history_count'] )
                  && !empty( $history_details['oldest_password_date_timestamp'] ) )
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in last %s, one of last %s passwords. Please provide another one.',
-                                                                  PHS_Utils::parse_period( abs( time() - $history_details['oldest_password_date_timestamp'] ), array( 'only_big_part' => true ) ),
+                                                                  PHS_Utils::parse_period( abs( time() - $history_details['oldest_password_date_timestamp'] ),
+                                                                                           [ 'only_big_part' => true ] ),
                                                                   $history_details['history_count'] ) );
                 else
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'You used this password in the past. Please provide another one.' ) );
@@ -2242,7 +2244,7 @@ class PHS_Model_Accounts extends PHS_Model
                 {
                     $check_arr          = [];
                     $check_arr['email'] = $params['fields']['email'];
-                    $check_arr['id']    = array( 'check' => '!=', 'value' => $existing_data['id'] );
+                    $check_arr['id']    = [ 'check' => '!=', 'value' => $existing_data['id'] ];
 
                     if( $this->get_details_fields( $check_arr ) )
                     {
@@ -2268,7 +2270,7 @@ class PHS_Model_Accounts extends PHS_Model
             {
                 $check_arr         = [];
                 $check_arr['nick'] = $params['fields']['nick'];
-                $check_arr['id']   = array( 'check' => '!=', 'value' => $existing_data['id'] );
+                $check_arr['id']   = [ 'check' => '!=', 'value' => $existing_data['id'] ];
 
                 if( $this->get_details_fields( $check_arr ) )
                 {
@@ -2326,7 +2328,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         if( !empty( $params['{users_details}'] ) && is_array( $params['{users_details}'] ) )
         {
-            if( !($existing_data = $this->update_user_details( $existing_data, $params['{users_details}'] )) )
+           if( !($existing_data = $this->update_user_details( $existing_data, $params['{users_details}'] )) )
             {
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving account details in database. Please try again.' ) );
@@ -2339,7 +2341,7 @@ class PHS_Model_Accounts extends PHS_Model
         {
             /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
             if( !($roles_model = PHS::load_model( 'roles' ))
-             || !$roles_model->link_roles_to_user( $existing_data, $params['{account_roles}'], array( 'append_roles' => false ) ) )
+             || !$roles_model->link_roles_to_user( $existing_data, $params['{account_roles}'], [ 'append_roles' => false ] ) )
             {
                 if( $roles_model->has_error() )
                     $this->copy_error( $roles_model, self::ERR_EDIT );
@@ -2353,7 +2355,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( !empty( $params['{password_was_changed}'] ) )
         {
             if( !empty( $params['{pass_salt}'] )
-             && ($salt_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) ))
+             && ($salt_flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_salts' ] ))
              && ($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
             {
                 $old_salt_arr = false;
@@ -2412,7 +2414,7 @@ class PHS_Model_Accounts extends PHS_Model
              && !empty( $params['{accounts_settings}']['announce_pass_change'] ) )
             {
                 // send password changed email...
-                PHS_Bg_jobs::run( array( 'p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg' ), array( 'uid' => $existing_data['id'] ) );
+                PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg' ], [ 'uid' => $existing_data['id'] ] );
             }
         }
 
@@ -2465,7 +2467,9 @@ class PHS_Model_Accounts extends PHS_Model
                     case 'include_account_details':
 
                         $old_error_arr = PHS::st_stack_error();
-                        if( !($account_details_model = PHS::load_model( 'accounts_details', $this->instance_plugin_name() ))
+                        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $account_details_model */
+                        if( $params['table_name'] !== 'users'
+                         || !($account_details_model = PHS::load_model( 'accounts_details', 'accounts' ))
                          || !($user_details_table = $account_details_model->get_flow_table_name()) )
                         {
                             PHS::st_restore_errors( $old_error_arr );
@@ -2476,7 +2480,8 @@ class PHS_Model_Accounts extends PHS_Model
                                                 ' `'.$user_details_table.'`.fname AS users_details_fname, '.
                                                 ' `'.$user_details_table.'`.lname AS users_details_lname, '.
                                                 ' `'.$user_details_table.'`.phone AS users_details_phone, '.
-                                                ' `'.$user_details_table.'`.company AS users_details_company ';
+                                                ' `'.$user_details_table.'`.company AS users_details_company, '.
+                                                ' `'.$user_details_table.'`.limit_emails AS users_details_limit_emails';
                         $params['join_sql'] .= ' LEFT JOIN `'.$user_details_table.'` ON `'.$user_details_table.'`.id = `'.$model_table.'`.details_id ';
                     break;
                 }
@@ -2501,7 +2506,7 @@ class PHS_Model_Accounts extends PHS_Model
             $old_error_arr = PHS::st_stack_error();
             /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
             if( !($roles_model = PHS::load_model( 'roles' ))
-             || !($roles_users_flow = $roles_model->fetch_default_flow_params( array( 'table_name' => 'roles_users' ) ))
+             || !($roles_users_flow = $roles_model->fetch_default_flow_params( [ 'table_name' => 'roles_users' ] ))
              || !($roles_users_table = $roles_model->get_flow_table_name( $roles_users_flow ))
             )
                 PHS::st_restore_errors( $old_error_arr );
@@ -2565,10 +2570,10 @@ class PHS_Model_Accounts extends PHS_Model
 
                     $roles_users_joined = true;
 
-                    $params['fields'][] = array(
+                    $params['fields'][] = [
                         'raw' => 'EXISTS (SELECT 1 FROM `'.$roles_users_table.'` '.
                                     ' WHERE `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id AND `'.$roles_users_table.'`.role_id IN ('.@implode( ',', $one_of_role_ids ).'))',
-                    );
+                    ];
                 }
 
                 // if( !empty( $params['all_roles'] )
@@ -2614,7 +2619,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         // we work with low level queries so we don't trigger functionalities from model...
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
          || !($user_table_name = $this->get_flow_table_name( $flow_params ))
          || !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
         {
@@ -2673,7 +2678,7 @@ class PHS_Model_Accounts extends PHS_Model
         PHS::st_throw_errors( false );
 
         // we work with low level queries so we don't trigger functionalities from model...
-        if( !($salt_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users_pass_salts' ) ))
+        if( !($salt_flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_salts' ] ))
          || !($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining password salts flow.' ) );
@@ -2683,7 +2688,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         // we work with low level queries so we don't trigger functionalities from model...
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'users' ) ))
+        if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
          || !($user_table_name = $this->get_flow_table_name( $flow_params ))
          || !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
         {

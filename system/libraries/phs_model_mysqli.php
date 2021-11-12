@@ -2735,7 +2735,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             'db_fields' => '',
 
             'offset' => 0,
-            'enregs_no' => 1000,
+            'enregs_no' => 0,
 
             'fields' => [],
 
@@ -2752,12 +2752,19 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || !($params = self::validate_array( $params, self::get_list_default_params() )) )
+        if( !($params = $this->fetch_default_flow_params( $params )) )
             return false;
 
+        // If we are returning an array of records, and there is no record limit provided, put something by default so we don't kill memory
+        if( !isset( $params['enregs_no'] )
+         && empty( $params['get_query_id'] ) )
+            $params['enregs_no'] = 10000;
+
+        $params = self::validate_array( $params, self::get_list_default_params() );
+
         $db_connection = $this->get_db_connection( $params );
-        $full_table_name = $this->get_flow_table_name( $params );
+        if( !($full_table_name = $this->get_flow_table_name( $params )) )
+            return false;
 
         if( !isset( $params['return_query_string'] ) )
             $params['return_query_string'] = false;
@@ -2787,7 +2794,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
                (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
                (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-               ' LIMIT '.$params['offset'].', '.$params['enregs_no'];
+               (!empty( $params['enregs_no'] )?' LIMIT '.$params['offset'].', '.$params['enregs_no']:'');
 
         $qid = false;
         if( empty( $params['return_query_string'] )

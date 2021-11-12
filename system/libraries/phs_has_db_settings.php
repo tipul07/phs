@@ -103,6 +103,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'values_arr' => false,
             // Custom rendering callback function (if available)
             'custom_renderer' => false,
+            // Custom rendering callback function extra parameters (if required)
+            'custom_renderer_params' => false,
+            // If we are using a custom renderer should we receive default framework rendering of the settings input
+            'custom_renderer_get_preset_buffer' => false,
             // If we have a custom method which should parse settings form submit...
             // this function should return value to be used for current field in settings array
             // If method returns null and static error is set, statitc error message will be used to display error
@@ -130,7 +134,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'field_details' => false,
             'field_value' => null,
             'form_data' => [],
+            // Any extra parameters sent from field (if any)
+            'callback_params' => false,
             'editable' => true,
+            'preset_content' => '',
             'plugin_obj' => false,
         ];
     }
