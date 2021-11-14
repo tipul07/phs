@@ -21,7 +21,7 @@ if( !empty( $settings_arr['enable_google'] )
     ?>
     <a href="<?php echo $google_client->createAuthUrl()?>"
        class="btn btn-success btn-medium phs_3rdparty_register_button phs_3rdparty_register_google">
-        <i class="fa fa-google"></i> Register with Google
+        <i class="fa fa-google"></i> <?php echo $this->_pt( 'Register with Google' )?>
     </a>
     <?php
 }
@@ -33,17 +33,20 @@ if( !empty( $settings_arr['enable_apple'] )
     ?>
     <a href="<?php echo $google_client->createAuthUrl()?>"
        class="btn btn-success btn-medium phs_3rdparty_register_button phs_3rdparty_register_apple">
-        <i class="fa fa-apple"></i> Register with Apple
+        <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Register with Apple' )?>
     </a>
     <?php
 }
 
+if( !empty( $settings_arr['enable_facebook'] ) )
+{
 ?>
 <a href="#"
    class="btn btn-success btn-medium phs_3rdparty_register_button phs_3rdparty_register_facebook">
-    <i class="fa fa-facebook"></i> Register with Facebook
+    <i class="fa fa-facebook"></i> <?php echo $this->_pt( 'Register with Facebook' )?>
 </a>
 <?php
+}
 
 if( ($buf = @ob_get_clean()) )
 {

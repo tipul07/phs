@@ -82,7 +82,8 @@ class PHS_Action_Google extends PHS_Action
             } elseif( !$accounts_model->is_active( $account_arr ) )
             {
                 $retry_login = true;
-                PHS_Notifications::add_error_notice( $this->_pt( 'Account linked with this email address is not active. Please try logging in using a different email address.' ) );
+                PHS_Notifications::add_error_notice( $this->_pt( 'Account linked with this email address is not active.' ).
+                                                     $this->_pt( 'Please try logging in using a different email address.' ) );
             } else
             {
                 if( !($plugin_settings = $accounts_plugin->get_plugin_settings()) )
@@ -123,7 +124,7 @@ class PHS_Action_Google extends PHS_Action
                 }
 
                 if( $accounts_plugin->has_error() )
-                    PHS_Notifications::add_error_notice( $accounts_plugin->get_error_message() );
+                    PHS_Notifications::add_error_notice( $accounts_plugin->get_simple_error_message() );
                 else
                     PHS_Notifications::add_error_notice( $this->_pt( 'Error logging in... Please try again.' ) );
             }

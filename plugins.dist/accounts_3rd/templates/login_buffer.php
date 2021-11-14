@@ -38,12 +38,15 @@ if( !empty( $settings_arr['enable_apple'] )
     <?php
 }
 
+if( !empty( $settings_arr['enable_facebook'] ) )
+{
 ?>
 <a href="#"
    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_facebook">
     <i class="fa fa-facebook"></i> Login with Facebook
 </a>
 <?php
+}
 
 if( ($buf = @ob_get_clean()) )
 {

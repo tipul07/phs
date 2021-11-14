@@ -2,93 +2,55 @@
 
 namespace phs\plugins\mobileapi\actions;
 
-use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\PHS_Api;
-use \phs\libraries\PHS_Action;
+use phs\PHS;
+use phs\PHS_Scope;
+use phs\PHS_Api;
+use phs\PHS_Api_base;
+use phs\libraries\PHS_Api_action;
 
-class PHS_Action_Device_session extends PHS_Action
+class PHS_Action_Device_session extends PHS_Api_action
 {
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_API );
+        return [ PHS_Scope::SCOPE_API ];
     }
 
     public function execute()
     {
-        /** @var \phs\PHS_Api $api_obj */
-        if( !($api_obj = PHS_Api::global_api_instance()) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining API instance.' ) );
-            return false;
-        }
-
         /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( !($online_model = PHS::load_model( 'api_online', 'mobileapi' ))
-         or !($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+         || !($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Couldn\'t load required models.' ) ) )
-            {
-                $this->set_error( $api_obj::ERR_API_INIT, $this->_pt( 'Couldn\'t load required models.' ) );
-                return false;
-            }
-
-            exit;
+            return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
+                                          $this->_pt( 'Error loading required resources.' ) );
         }
 
         if( !($request_arr = PHS_Api::get_request_body_as_json_array())
-         or empty( $request_arr['device_type'] )
-         or !$online_model->valid_device_type( $request_arr['device_type'] )
-         or empty( $request_arr['device_token'] ) )
+         || empty( $request_arr['device_type'] )
+         || !$online_model->valid_device_type( $request_arr['device_type'] )
+         || empty( $request_arr['device_token'] ) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_UNAUTHORIZED, $this->_pt( 'Please provide device details.' ) ) )
-            {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Please provide device details.' ) );
-                return false;
-            }
-
-            exit;
+            return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
+                                          $this->_pt( 'Please provide device details.' ) );
         }
-
-        //        $device_data = array();
-        //        $device_info_keys = array(
-        //            'device_type' => $online_model::DEV_TYPE_UNDEFINED,
-        //            'device_name' => '',
-        //            'device_version' => '',
-        //            'device_token' => '',
-        //            'source' => $online_model::SOURCE_NATIVE,
-        //            'lat' => 0,
-        //            'long' => 0,
-        //        );
-        //        foreach( $device_info_keys as $field => $def_value )
-        //        {
-        //            if( !array_key_exists( $field, $request_arr ) )
-        //                $device_data[$field] = $def_value;
-        //            else
-        //                $device_data[$field] = $request_arr[$field];
-        //        }
 
         $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr, $online_model::get_api_data_device_fields() );
         $device_data['uid'] = 0;
 
         if( !($session_arr = $online_model->generate_session( $device_data )) )
         {
-            if( !$api_obj->send_header_response( $api_obj::H_CODE_INTERNAL_SERVER_ERROR, $this->_pt( 'Error generating session.' ) ) )
-            {
-                $this->set_error( $api_obj::ERR_AUTHENTICATION, $this->_pt( 'Error generating session.' ) );
-                return false;
-            }
-
-            exit;
+            return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
+                                          $this->_pt( 'Error generating session.' ) );
         }
 
-        $action_result = self::default_action_result();
-
-        $action_result['api_json_result_array'] = $mobile_plugin->export_data_account_and_session( null, $session_arr );
-
-        return $action_result;
+        return $this->send_api_success(
+            $mobile_plugin->export_data_account_and_session( null, $session_arr ),
+            PHS_Api_base::H_CODE_OK,
+            false,
+            [ 'only_response_data_node' => true ]
+        );
     }
 }

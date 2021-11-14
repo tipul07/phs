@@ -1,8 +1,9 @@
 <?php
 
-use \phs\PHS;
-use \phs\libraries\PHS_Hooks;
-use \phs\libraries\PHS_Logger;
+use phs\PHS;
+use phs\PHS_Api;
+use phs\libraries\PHS_Hooks;
+use phs\libraries\PHS_Logger;
 
 /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $trd_party_plugin */
 if( ($trd_party_plugin = PHS::load_plugin( 'accounts_3rd' ))
@@ -10,6 +11,31 @@ if( ($trd_party_plugin = PHS::load_plugin( 'accounts_3rd' ))
 {
     PHS_Logger::define_channel( $trd_party_plugin::LOG_CHANNEL );
     PHS_Logger::define_channel( $trd_party_plugin::LOG_ERR_CHANNEL );
+
+    /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
+    if( ($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
+     && $mobile_plugin->plugin_active() )
+    {
+        // POST /users/google/login Login an account from 3rd party mobile app using a Google account
+        PHS_Api::register_api_route( [
+                [ 'exact_match' => 'users', ],
+                [ 'exact_match' => 'google', ],
+                [ 'exact_match' => 'login', ],
+            ],
+            [
+                'p' => 'accounts_3rd',
+                'c' => 'index_api',
+                'a' => 'google',
+                'ad' => 'api',
+            ],
+            [
+                'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
+                'method' => 'post',
+                'name' => '3rd party login',
+                'description' => 'Login functionality for 3rd party applications',
+            ]
+        );
+    }
 
     PHS::register_hook(
         $trd_party_plugin::H_ACCOUNTS_3RD_LOGIN_BUFFER,

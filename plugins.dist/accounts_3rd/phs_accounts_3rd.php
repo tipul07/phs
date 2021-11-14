@@ -42,6 +42,12 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'type' => PHS_Params::T_BOOL,
                         'default' => false,
                     ],
+                    'register_login_google' => [
+                        'display_name' => $this->_pt( 'Register at Login' ),
+                        'display_hint' => $this->_pt( 'If user tries to login with a non-existing email should be offer register option?' ),
+                        'type' => PHS_Params::T_BOOL,
+                        'default' => false,
+                    ],
                     'google_client_id' => [
                         'display_name' => $this->_pt( 'Google Client ID' ),
                         'display_hint' => $this->_pt( 'Client ID obtained when OAuth client was created in Google developer console' ),
