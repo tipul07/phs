@@ -47,10 +47,7 @@ class PHS_Action_Device_session extends PHS_Api_action
         }
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session( null, $session_arr ),
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
+            $mobile_plugin->export_data_account_and_session( null, $session_arr )
         );
     }
 }

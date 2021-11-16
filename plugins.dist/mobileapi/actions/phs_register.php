@@ -91,11 +91,6 @@ class PHS_Action_Register extends PHS_Api_action
             'account_data' => $mobile_plugin->export_data_from_account_data( $account_arr ),
         ];
 
-        return $this->send_api_success(
-            $response_arr,
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
-        );
+        return $this->send_api_success( $response_arr );
     }
 }

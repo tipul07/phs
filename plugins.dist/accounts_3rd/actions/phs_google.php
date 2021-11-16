@@ -48,7 +48,6 @@ class PHS_Action_Google extends PHS_Action
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
          || !($accounts_trd_plugin = PHS::load_plugin( 'accounts_3rd' ))
          || !($google_lib = $accounts_trd_plugin->get_google_instance())
-         || !($google_client = $google_lib->get_client_instance( [ 'return_url_params' => [ 'action' => $action ] ] ))
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
@@ -61,7 +60,7 @@ class PHS_Action_Google extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !($account_info = $google_lib->get_account_details_by_code( $google_code )) )
+        if( !($account_info = $google_lib->get_web_account_details_by_code( $google_code )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Error obtaining Google account details. Please try again.' ) );
             return self::default_action_result();

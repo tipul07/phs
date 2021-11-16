@@ -48,10 +48,7 @@ class PHS_Action_Logout extends PHS_Api_action
         }
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session( $session_data['account_arr'], $session_data['session_arr'] ),
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
+            $mobile_plugin->export_data_account_and_session( $session_data['account_arr'], $session_data['session_arr'] )
         );
     }
 }

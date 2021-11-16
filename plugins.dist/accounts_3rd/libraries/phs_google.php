@@ -10,6 +10,8 @@ use \phs\libraries\PHS_utils;
 
 class Google extends PHS_Library
 {
+    const REWRITE_RULE_LOGIN = 'google/oauth/login', REWRITE_RULE_REGISTER = 'google/oauth/login';
+
     const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
 
     const SDK_DIR = 'google';
@@ -76,11 +78,12 @@ class Google extends PHS_Library
     }
 
     /**
+     * Instantiate a generic Google client object (can be used on web or mobile)
      * @param false|array{as_static:bool,return_url_params:false|array} $params
      *
      * @return bool|\Google\Client
      */
-    public function get_client_instance( $params = false )
+    private function _get_google_instance( $params = false )
     {
         /** @var \Google\Client $client_obj */
         static $client_obj = null;
@@ -92,26 +95,6 @@ class Google extends PHS_Library
             $params = [];
 
         $params['as_static'] = (!empty( $params['as_static'] ));
-
-        if( empty( $params['return_url_params'] ) || !is_array( $params['return_url_params'] ) )
-            $params['return_url_params'] = [];
-
-        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
-
-        if( !($settings_arr = $accounts_3rd_plugin->get_plugin_settings())
-         || empty( $settings_arr['google_client_id'] ) || empty( $settings_arr['google_client_secret'] ) )
-        {
-            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining Google 3rd party services settings.' ) );
-            return false;
-        }
-
-        if( !($return_url = PHS::url( [ 'a' => 'google', 'c' => 'index', 'p' => 'accounts_3rd' ], $params['return_url_params'] )) )
-        {
-            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining return URL for Google 3rd party services.' ) );
-            return false;
-        }
-
-        $return_url = PHS::get_base_url( true ).'google/oauth/login';
 
         if( !$params['as_static'] )
         {
@@ -134,11 +117,6 @@ class Google extends PHS_Library
             return false;
         }
 
-        $return_obj->setAccessType( 'offline' );
-        $return_obj->setClientId( $settings_arr['google_client_id'] );
-        $return_obj->setClientSecret( $settings_arr['google_client_secret'] );
-        $return_obj->setRedirectUri( $return_url );
-
         $return_obj->addScope( [ 'email', 'profile' ] );
 
         if( $params['as_static'] )
@@ -148,30 +126,137 @@ class Google extends PHS_Library
     }
 
     /**
-     * @param false|string $google_code
+     * Instantiate a WEB Google client object
+     * @param string $action Prepares a WEB instance for login or register (values: login or register)
+     * @param false|array{as_static:bool} $params
+     *
+     * @return false|\Google\Client
+     */
+    private function _get_web_instance( $action, $params = false )
+    {
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        if( !($google_obj = $this->_get_google_instance( $params )) )
+            return false;
+
+        if( !in_array( $action, [ 'login', 'register' ], true ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide an action for Google 3rd party WEB services.' ) );
+            return false;
+        }
+
+        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
+
+        if( !($settings_arr = $accounts_3rd_plugin->get_plugin_settings())
+         || empty( $settings_arr['google_client_id'] ) || empty( $settings_arr['google_client_secret'] ) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining Google 3rd party WEB services settings.' ) );
+            return false;
+        }
+
+        $return_url = '';
+        if( $action === 'login' )
+        {
+            if( !empty( $settings_arr['google_web_login_return_url'] ) )
+                $return_url = PHS::get_base_url( true ).trim( $settings_arr['google_web_login_return_url'], '/' );
+            else
+                $return_url = PHS::get_base_url( true ).self::REWRITE_RULE_LOGIN;
+        } elseif( $action === 'register' )
+        {
+            if( !empty( $settings_arr['google_web_register_return_url'] ) )
+                $return_url = PHS::get_base_url( true ).trim( $settings_arr['google_web_register_return_url'], '/' );
+            else
+                $return_url = PHS::get_base_url( true ).self::REWRITE_RULE_REGISTER;
+        }
+
+        if( empty( $return_url ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide an action for Google 3rd party WEB services.' ) );
+            return false;
+        }
+
+        $google_obj->setAccessType( 'offline' );
+        $google_obj->setClientId( $settings_arr['google_client_id'] );
+        $google_obj->setClientSecret( $settings_arr['google_client_secret'] );
+        $google_obj->setRedirectUri( $return_url );
+
+        return $google_obj;
+    }
+
+    /**
+     * Instantiate a MOBILE Google client object
+     * @param false|array{as_static:bool} $params
+     *
+     * @return false|\Google\Client
+     */
+    private function _get_mobile_instance( $params = false )
+    {
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
+
+        if( !($settings_arr = $accounts_3rd_plugin->get_plugin_settings())
+         || empty( $settings_arr['google_mobile_client_id'] ) )
+        {
+            $this->set_error( self::ERR_SETTINGS, $this->_pt( 'Error obtaining Google 3rd party MOBILE services settings.' ) );
+            return false;
+        }
+
+        if( !($google_obj = $this->_get_google_instance( $params )) )
+            return false;
+
+        $google_obj->setAccessType( 'offline' );
+        $google_obj->setClientId( $settings_arr['google_mobile_client_id'] );
+
+        return $google_obj;
+    }
+
+    /**
+     * @param false|array $params
+     *
+     * @return false|\Google\Client
+     */
+    public function get_web_instance_for_login( $params = false )
+    {
+        return $this->_get_web_instance( 'login', $params );
+    }
+
+    /**
+     * @param false|array $params
+     *
+     * @return false|\Google\Client
+     */
+    public function get_web_instance_for_register( $params = false )
+    {
+        return $this->_get_web_instance( 'register', $params );
+    }
+
+    /**
+     * @param string $google_code
+     * @param false|array $params
      *
      * @return false|array
      */
-    public function get_account_details_by_code( $google_code = false )
+    public function get_web_account_details_by_code( $google_code, $params = false )
     {
-        $this->reset_error();
-
         if( !$this->_load_dependencies() )
             return false;
 
         $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
 
-        if( ($google_code === false && !($google_code = PHS_Params::_g( 'code', PHS_Params::T_NOHTML )))
-         || !is_string( $google_code ) )
+        if( empty( $google_code ) || !is_string( $google_code ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error obtaining Google verification code.' ) );
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a Google verification code.' ) );
             return false;
         }
 
-        if( !($google_obj = $this->get_client_instance()) )
+        // When verifying tokens, action doesn't really matter
+        if( !($google_obj = $this->_get_web_instance( 'login', $params )) )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google 3rd party services instance.' ) );
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google 3rd party WEB services instance.' ) );
 
             return false;
         }
@@ -184,11 +269,11 @@ class Google extends PHS_Library
                 if( !empty( $token ) && is_array( $token )
                  && !empty( $token['error'] ) )
                 {
-                    PHS_Logger::logf( '[ERROR] Error fetching access token: '.
+                    PHS_Logger::logf( '[ERROR] Error fetching WEB access token: '.
                                       $token['error'].(!empty( $token['error_description'] )?' ('.$token['error_description'].')':''), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
                 }
 
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining access token for Google 3rd party services.' ) );
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining access token for Google 3rd party WEB services.' ) );
                 return false;
             }
 
@@ -198,7 +283,56 @@ class Google extends PHS_Library
             $google_account_info = $google_oauth->userinfo->get();
         } catch( \Exception $e )
         {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google account details.' ) );
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google account details for WEB services.' ) );
+            return false;
+        }
+
+        return $google_account_info;
+    }
+
+    /**
+     * @param string $google_code
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    public function get_mobile_account_details_by_code( $google_code, $params = false )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        if( empty( $google_code ) || !is_string( $google_code ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a Google verification code.' ) );
+            return false;
+        }
+
+        // When verifying tokens, action doesn't really matter
+        if( !($google_obj = $this->_get_mobile_instance( $params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google 3rd party MOBILE services instance.' ) );
+
+            return false;
+        }
+
+        try {
+            if( !($google_account_info = $google_obj->verifyIdToken( $google_code ))
+             || !is_array( $google_account_info ) )
+            {
+                // if( !empty( $token ) && is_array( $token )
+                //  && !empty( $token['error'] ) )
+                // {
+                //     PHS_Logger::logf( '[ERROR] Error fetching WEB access token: '.
+                //                       $token['error'].(!empty( $token['error_description'] )?' ('.$token['error_description'].')':''), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
+                // }
+
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining account details for Google 3rd party MOBILE services.' ) );
+                return false;
+            }
+        } catch( \Exception $e )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google account details for MOBILE services.' ) );
             return false;
         }
 

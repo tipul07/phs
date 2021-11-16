@@ -16,7 +16,7 @@ use \phs\libraries\PHS_Roles;
 ob_start();
 if( !empty( $settings_arr['enable_google'] )
  && ($google_lib = $plugin_obj->get_google_instance())
- && ($google_client = $google_lib->get_client_instance( [ 'return_url_params' => [ 'action' => 'register' ] ] )) )
+ && ($google_client = $google_lib->get_web_instance_for_register()) )
 {
     ?>
     <a href="<?php echo $google_client->createAuthUrl()?>"
@@ -26,12 +26,10 @@ if( !empty( $settings_arr['enable_google'] )
     <?php
 }
 
-if( !empty( $settings_arr['enable_apple'] )
- && ($google_lib = $plugin_obj->get_google_instance())
- && ($google_client = $google_lib->get_client_instance( [ 'return_url_params' => [ 'action' => 'register' ] ] )) )
+if( !empty( $settings_arr['enable_apple'] ) )
 {
     ?>
-    <a href="<?php echo $google_client->createAuthUrl()?>"
+    <a href="#"
        class="btn btn-success btn-medium phs_3rdparty_register_button phs_3rdparty_register_apple">
         <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Register with Apple' )?>
     </a>

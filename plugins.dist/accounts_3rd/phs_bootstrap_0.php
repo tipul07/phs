@@ -25,14 +25,34 @@ if( ($trd_party_plugin = PHS::load_plugin( 'accounts_3rd' ))
             [
                 'p' => 'accounts_3rd',
                 'c' => 'index_api',
-                'a' => 'google',
+                'a' => 'google_login',
                 'ad' => 'api',
             ],
             [
                 'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
                 'method' => 'post',
-                'name' => '3rd party login',
-                'description' => 'Login functionality for 3rd party applications',
+                'name' => '3rd party Google mobile login',
+                'description' => 'Login functionality for 3rd party mobile applications with Google accounts',
+            ]
+        );
+
+        // POST /users/google/register Register an account from 3rd party mobile app using a Google account
+        PHS_Api::register_api_route( [
+                [ 'exact_match' => 'users', ],
+                [ 'exact_match' => 'google', ],
+                [ 'exact_match' => 'register', ],
+            ],
+            [
+                'p' => 'accounts_3rd',
+                'c' => 'index_api',
+                'a' => 'google_register',
+                'ad' => 'api',
+            ],
+            [
+                'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
+                'method' => 'post',
+                'name' => '3rd party Google mobile register',
+                'description' => 'Register functionality for 3rd party mobile applications with Google accounts',
             ]
         );
     }

@@ -13,12 +13,12 @@ use phs\libraries\PHS_Api_action;
 use \phs\libraries\PHS_Notifications;
 use \phs\PHS_Scope;
 
-class PHS_Action_Google extends PHS_Api_action
+class PHS_Action_Google_login extends PHS_Api_action
 {
     /** @inheritdoc */
     public function action_roles()
     {
-        return [ self::ACT_ROLE_REGISTER, self::ACT_ROLE_LOGIN ];
+        return [ self::ACT_ROLE_LOGIN ];
     }
 
     /**
@@ -52,12 +52,8 @@ class PHS_Action_Google extends PHS_Api_action
                                           $this->_pt( 'Error loading required resources.' ) );
         }
 
-        if( !($action = $this->request_var( 'action', PHS_Params::T_NOHTML, 'login' ))
-         || !in_array( $action, [ 'login', 'register' ], true ) )
-            $action = 'login';
-
-        if( !($regiset_if_not_found = $this->request_var( 'regiset_if_not_found', PHS_Params::T_INT, 0 )) )
-            $regiset_if_not_found = 0;
+        if( !($register_if_not_found = $this->request_var( 'register_if_not_found', PHS_Params::T_INT, 0 )) )
+            $register_if_not_found = 0;
 
         if( !($google_code = $this->request_var( 'code', PHS_Params::T_NOHTML, '' )) )
         {
@@ -80,19 +76,13 @@ class PHS_Action_Google extends PHS_Api_action
         }
         $session_arr = $session_data['session_arr'];
 
-        if( !($google_client = $google_lib->get_client_instance( [ 'return_url_params' => [ 'action' => $action ] ] )) )
-        {
-            return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
-                                          $this->_pt( 'Error loading required resources.' ) );
-        }
-
         if( !($settings_arr = $accounts_trd_plugin->get_plugin_settings()) )
             $settings_arr = [];
 
         $settings_arr['register_login_google'] = (!empty( $settings_arr['register_login_google'] ));
 
-        if( !($account_info = $google_lib->get_account_details_by_code( $google_code ))
-         || empty( $account_info['email'] ) )
+        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code ))
+         || !is_array( $account_info ) || empty( $account_info['email'] ) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                                           $this->_pt( 'Error obtaining Google account details.' ) );
@@ -100,7 +90,7 @@ class PHS_Action_Google extends PHS_Api_action
 
         if( !($account_arr = $accounts_model->get_details_fields( [ 'email' => $account_info['email'] ] )) )
         {
-            if( !$regiset_if_not_found
+            if( !$register_if_not_found
              || empty( $settings_arr['register_login_google'] ) )
             {
                 // Account not found, and also we should not create new account...
@@ -118,6 +108,14 @@ class PHS_Action_Google extends PHS_Api_action
 
             $insert_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] );
             $insert_arr['fields'] = $fields_arr;
+            if( !empty( $account_info['given_name'] ) || !empty( $account_info['family_name'] ) )
+            {
+                $insert_arr['{users_details}'] = [];
+                if( !empty( $account_info['given_name'] ) )
+                    $insert_arr['{users_details}']['fname'] = trim( $account_info['given_name'] );
+                if( !empty( $account_info['family_name'] ) )
+                    $insert_arr['{users_details}']['fname'] = trim( $account_info['family_name'] );
+            }
 
             if( !($account_arr = $accounts_model->insert( $insert_arr )) )
             {
@@ -126,8 +124,7 @@ class PHS_Action_Google extends PHS_Api_action
                 else
                     $error_msg = $this->_pt( 'Couldn\'t register user. Please try again.' );
 
-                return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
-                                              $error_msg );
+                return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY, $error_msg );
             }
         } elseif( !$accounts_model->is_active( $account_arr ) )
         {
@@ -145,10 +142,7 @@ class PHS_Action_Google extends PHS_Api_action
         $session_arr = $new_session_arr;
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session( $account_arr, $session_arr ),
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
+            $mobile_plugin->export_data_account_and_session( $account_arr, $session_arr )
         );
     }
 }

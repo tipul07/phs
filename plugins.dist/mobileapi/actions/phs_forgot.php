@@ -64,11 +64,6 @@ class PHS_Action_Forgot extends PHS_Api_action
                                           $error_msg );
         }
 
-        return $this->send_api_success(
-            [ 'email_queued' => true ],
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
-        );
+        return $this->send_api_success( [ 'email_queued' => true ] );
     }
 }

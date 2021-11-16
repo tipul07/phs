@@ -25,6 +25,12 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
      */
     public function get_settings_structure()
     {
+        if( !($google_lib = $this->get_google_instance()) )
+        {
+            $this->reset_error();
+            $google_lib = false;
+        }
+
         return [
             'enable_3rd_party' => [
                 'display_name' => $this->_pt( 'Enable 3rd Party' ),
@@ -49,14 +55,32 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'default' => false,
                     ],
                     'google_client_id' => [
-                        'display_name' => $this->_pt( 'Google Client ID' ),
-                        'display_hint' => $this->_pt( 'Client ID obtained when OAuth client was created in Google developer console' ),
+                        'display_name' => $this->_pt( 'WEB Google Client ID' ),
+                        'display_hint' => $this->_pt( 'WEB Client ID to be used with OAuth when checking accounts in WEB interface' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],
                     'google_client_secret' => [
-                        'display_name' => $this->_pt( 'Google Client ID' ),
-                        'display_hint' => $this->_pt( 'Client ID obtained when OAuth client was created in Google developer console' ),
+                        'display_name' => $this->_pt( 'WEB Google Client Secret' ),
+                        'display_hint' => $this->_pt( 'WEB Client Secret to be used with OAuth when checking accounts in WEB interface' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => '',
+                    ],
+                    'google_web_login_return_url' => [
+                        'display_name' => $this->_pt( 'WEB Google Login Return URL' ),
+                        'display_hint' => $this->_pt( 'When user wants to login using Google on WEB, what\'s the rewrite rule that redirects to Google WEB login page?' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => ($google_lib?$google_lib::REWRITE_RULE_LOGIN:''),
+                    ],
+                    'google_web_register_return_url' => [
+                        'display_name' => $this->_pt( 'WEB Google Register Return URL' ),
+                        'display_hint' => $this->_pt( 'When user wants to register using Google on WEB, what\'s the rewrite rule that redirects to Google WEB register page?' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => ($google_lib?$google_lib::REWRITE_RULE_REGISTER:''),
+                    ],
+                    'google_mobile_client_id' => [
+                        'display_name' => $this->_pt( 'MOBILE Google Client ID' ),
+                        'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from a MOBILE application' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],

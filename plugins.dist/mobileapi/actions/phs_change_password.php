@@ -68,11 +68,6 @@ class PHS_Action_Change_password extends PHS_Api_action
                                           $this->_pt( 'Error changing password.' ) );
         }
 
-        return $this->send_api_success(
-            [ 'password_changed' => true ],
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
-        );
+        return $this->send_api_success( [ 'password_changed' => true ] );
     }
 }

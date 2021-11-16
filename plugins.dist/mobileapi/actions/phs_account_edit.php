@@ -69,11 +69,6 @@ class PHS_Action_Account_edit extends PHS_Api_action
         $response_arr = $mobile_plugin->export_data_account_and_session( $account_arr['id'], $session_arr['id'] );
         $response_arr['profile_saved'] = true;
 
-        return $this->send_api_success(
-            $response_arr,
-            PHS_Api_base::H_CODE_OK,
-            false,
-            [ 'only_response_data_node' => true ]
-        );
+        return $this->send_api_success( $response_arr );
     }
 }
