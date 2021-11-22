@@ -229,7 +229,9 @@ class PHS_Encdec extends PHS_Language
             return '';
 
         // decode 'header' of encryption string
-        $internal_key_index = (int)base_convert( $str[0], 35, 10 );
+        $internal_key_index = (int)@base_convert( $str[0], 35, 10 );
+        if( !isset( $this->internal_keys[$internal_key_index] ) )
+            return $decstr;
         $internal_key = strtoupper( $this->internal_keys[$internal_key_index] );
 
         $offset = 32;

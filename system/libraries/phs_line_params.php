@@ -10,7 +10,7 @@ class PHS_Line_params extends PHS_Language
 
     public static function new_line_in_string( $str )
     {
-        $str = str_replace( "\r", "\n", str_replace( array( "\r\n", "\n\r" ), "\n", $str ) );
+        $str = str_replace( "\r", "\n", str_replace( [ "\r\n", "\n\r" ], "\n", $str ) );
 
         return str_replace( "\n", self::NEW_LINE_REPLACEMENT, $str );
     }
@@ -27,7 +27,7 @@ class PHS_Line_params extends PHS_Language
      */
     public static function value_to_string( $val )
     {
-        if( is_object( $val ) or is_resource( $val ) )
+        if( is_object( $val ) || is_resource( $val ) )
             return false;
 
         if( is_array( $val ) )
@@ -64,9 +64,9 @@ class PHS_Line_params extends PHS_Language
         if( is_numeric( $str ) )
             return $str;
 
-        if( ($tch = substr( $str, 0, 1 )) === '\'' or $tch = '"' )
+        if( ($tch = substr( $str, 0, 1 )) === '\'' || $tch = '"' )
             $str = substr( $str, 1 );
-        if( ($tch = substr( $str, -1 )) === '\'' or $tch = '"' )
+        if( ($tch = substr( $str, -1 )) === '\'' || $tch = '"' )
             $str = substr( $str, 0, -1 );
 
         $str_lower = strtolower( $str );
@@ -97,13 +97,13 @@ class PHS_Line_params extends PHS_Language
         if( trim( $line_str ) === '' )
             $line_str = '';
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['key'] = '';
         $return_arr['val'] = '';
         $return_arr['comment_no'] = $comment_no;
 
         $first_char = substr( $line_str, 0, 1 );
-        if( $line_str === '' or $first_char === '#' or $first_char === ';' )
+        if( $line_str === '' || $first_char === '#' || $first_char === ';' )
         {
             $comment_no++;
 
@@ -141,7 +141,7 @@ class PHS_Line_params extends PHS_Language
      */
     public static function to_string( $lines_data )
     {
-        if( empty( $lines_data ) or !is_array( $lines_data ) )
+        if( empty( $lines_data ) || !is_array( $lines_data ) )
             return '';
 
         $lines_str = '';
@@ -153,7 +153,7 @@ class PHS_Line_params extends PHS_Language
 
             $first_line = false;
 
-            // In normal cases there cannot be '=' char in key so we interpret that value should just be passed as-it-is
+            // In normal cases there cannot be '=' char in key, so we interpret that value should just be passed as-it-is
             if( substr( $key, 0, 1 ) === '=' )
             {
                 $lines_str .= $val;
@@ -178,21 +178,21 @@ class PHS_Line_params extends PHS_Language
     public static function parse_string( $string )
     {
         if( empty( $string )
-         or (!is_array( $string ) and !is_string( $string )) )
-            return array();
+         || (!is_array( $string ) && !is_string( $string )) )
+            return [];
 
         if( is_array( $string ) )
             return $string;
 
-        $string = str_replace( "\r", "\n", str_replace( array( "\r\n", "\n\r" ), "\n", $string ) );
+        $string = str_replace( "\r", "\n", str_replace( [ "\r\n", "\n\r" ], "\n", $string ) );
         $lines_arr = explode( "\n", $string );
 
-        $return_arr = array();
+        $return_arr = [];
         $comment_no = 1;
         foreach( $lines_arr as $line_nr => $line_str )
         {
             if( !($line_data = self::parse_string_line( $line_str, $comment_no ))
-             or !is_array( $line_data ) or !isset( $line_data['key'] ) or $line_data['key'] === '' )
+             || !is_array( $line_data ) || !isset( $line_data['key'] ) || $line_data['key'] === '' )
                 continue;
 
             $return_arr[$line_data['key']] = $line_data['val'];
@@ -210,10 +210,10 @@ class PHS_Line_params extends PHS_Language
      */
     public static function update_line_params( $current_data, $append_data )
     {
-        if( empty( $append_data ) or (!is_array( $append_data ) and !is_string( $append_data )) )
-            $append_data = array();
-        if( empty( $current_data ) or (!is_array( $current_data ) and !is_string( $current_data )) )
-            $current_data = array();
+        if( empty( $append_data ) || (!is_array( $append_data ) && !is_string( $append_data )) )
+            $append_data = [];
+        if( empty( $current_data ) || (!is_array( $current_data ) && !is_string( $current_data )) )
+            $current_data = [];
 
         if( !is_array( $append_data ) )
             $append_arr = self::parse_string( $append_data );
