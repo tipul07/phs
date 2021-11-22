@@ -9,16 +9,17 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     const ERR_PLUGINS_MODEL = 40000;
 
     const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more',
-          INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array';
+          INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array',
+          INPUT_TYPE_TEXTAREA = 'textarea';
 
     // Validated settings fields structure array
-    protected $_settings_structure = array();
+    protected $_settings_structure = [];
     // Array with default values for settings (key => val) array
-    protected $_default_settings = array();
+    protected $_default_settings = [];
     // Database record
-    protected $_db_details = array();
+    protected $_db_details = [];
     // Database settings field parsed as array
-    protected $_db_settings = array();
+    protected $_db_settings = [];
 
     /** @var bool|\phs\system\core\models\PHS_Model_Plugins $_plugins_instance */
     protected $_plugins_instance = false;
@@ -50,7 +51,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public function get_settings_structure()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -59,7 +60,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public function get_settings_keys_to_obfuscate()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -76,7 +77,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $hook_args['obfucate_keys_arr'] = $obfuscating_keys;
 
         if( ($obfuscate_keys_arr = PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_OBFUSCATED_SETTINGS_KEYS, $hook_args ))
-        and is_array( $obfuscate_keys_arr ) and !empty( $obfuscate_keys_arr['obfucate_keys_arr'] ) )
+         && is_array( $obfuscate_keys_arr ) && !empty( $obfuscate_keys_arr['obfucate_keys_arr'] ) )
             $obfuscating_keys = self::array_merge_unique_values( $obfuscate_keys_arr['obfucate_keys_arr'], $obfuscating_keys );
 
         return $obfuscating_keys;
@@ -84,7 +85,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     protected function default_settings_field()
     {
-        return array(
+        return [
             // Used to know how to render this field in plugin settings
             'type' => PHS_Params::T_ASIS,
             // When we validate the input is there extra parameters to send to PHS_Params class?
@@ -123,7 +124,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'group_fields' => false,
             // Should group fold/unfold when displayed in settings interface?
             'group_foldable' => true,
-        );
+        ];
     }
 
     public static function default_custom_renderer_params()
