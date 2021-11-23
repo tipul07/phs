@@ -21,7 +21,7 @@ if( !empty( $settings_arr['enable_google'] )
     ?>
     <a href="<?php echo $google_client->createAuthUrl()?>"
        class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_google">
-        <i class="fa fa-google"></i> Login with Google
+        <i class="fa fa-google"></i> <?php echo $this->_pt( 'Login with Google' )?>
     </a>
     <?php
 }
@@ -31,7 +31,7 @@ if( !empty( $settings_arr['enable_apple'] ) )
     ?>
     <a href="#"
        class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_apple">
-        <i class="fa fa-apple"></i> Login with Apple
+        <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Login with Apple' )?>
     </a>
     <?php
 }
@@ -41,7 +41,7 @@ if( !empty( $settings_arr['enable_facebook'] ) )
 ?>
 <a href="#"
    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_facebook">
-    <i class="fa fa-facebook"></i> Login with Facebook
+    <i class="fa fa-facebook"></i> <?php echo $this->_pt( 'Login with Facebook' )?>
 </a>
 <?php
 }

@@ -8,11 +8,9 @@ use \phs\libraries\PHS_Library;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_utils;
 
-class Google extends PHS_Library
+class Apple extends PHS_Library
 {
-    const REWRITE_RULE_LOGIN = 'google/oauth/login', REWRITE_RULE_REGISTER = 'google/oauth/register';
-
-    const AUTH_PLATFORM_ANDROID = 'android', AUTH_PLATFORM_IOS = 'ios';
+    const REWRITE_RULE_LOGIN = 'apple/oauth/login', REWRITE_RULE_REGISTER = 'apple/oauth/register';
 
     const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
 
@@ -289,7 +287,6 @@ class Google extends PHS_Library
             return false;
         }
 
-        $return_arr = [];
         try {
             if( !($token = $google_obj->fetchAccessTokenWithAuthCode( $google_code ))
              || !is_array( $token )
@@ -309,29 +306,14 @@ class Google extends PHS_Library
             $google_obj->setAccessToken( $token['access_token'] );
 
             $google_oauth = new \Google\Service\Oauth2( $google_obj );
-            if( ($google_account_info = $google_oauth->userinfo->get()) )
-            {
-                $return_arr = [
-                    'email' => $google_account_info->getEmail(),
-                    'given_name' => $google_account_info->getGivenName(),
-                    'family_name' => $google_account_info->getFamilyName(),
-                    'gender' => $google_account_info->getGender(),
-                    'hd' => $google_account_info->getHd(),
-                    'id' => $google_account_info->getId(),
-                    'link' => $google_account_info->getLink(),
-                    'locale' => $google_account_info->getLocale(),
-                    'name' => $google_account_info->getName(),
-                    'picture' => $google_account_info->getPicture(),
-                    'verified_email' => $google_account_info->getVerifiedEmail(),
-                ];
-            }
+            $google_account_info = $google_oauth->userinfo->get();
         } catch( \Exception $e )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google account details for WEB services.' ) );
             return false;
         }
 
-        return $return_arr;
+        return $google_account_info;
     }
 
     /**

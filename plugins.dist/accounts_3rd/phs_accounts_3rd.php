@@ -17,7 +17,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
 
     public function get_settings_keys_to_obfuscate()
     {
-        return [ 'google_client_id', 'google_client_secret', 'apple_client_id' ];
+        return [ 'google_client_id', 'google_client_secret', 'apple_client_id', 'google_mobile_android_client_id', 'google_mobile_ios_client_id' ];
     }
 
     /**
@@ -38,6 +38,18 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                 'type' => PHS_Params::T_BOOL,
                 'default' => false,
             ],
+            'register_login_non_existing' => [
+                'display_name' => $this->_pt( 'Ask Register at Login' ),
+                'display_hint' => $this->_pt( 'If user tries to login with a non-existing email, should we offer register option?' ),
+                'type' => PHS_Params::T_BOOL,
+                'default' => false,
+            ],
+            'register_login_forced' => [
+                'display_name' => $this->_pt( 'Force Registration at Login' ),
+                'display_hint' => $this->_pt( 'If user tries to login with a non-existing email, force registration with provided details.' ),
+                'type' => PHS_Params::T_BOOL,
+                'default' => false,
+            ],
             'google_settings_group' => [
                 'display_name' => $this->_pt( 'Google 3rd Party Settings' ),
                 'display_hint' => $this->_pt( 'Login or register with Google settings.' ),
@@ -45,12 +57,6 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                     'enable_google' => [
                         'display_name' => $this->_pt( 'Enable Google Service' ),
                         'display_hint' => $this->_pt( 'Enable login or register with Google 3rd party?' ),
-                        'type' => PHS_Params::T_BOOL,
-                        'default' => false,
-                    ],
-                    'register_login_google' => [
-                        'display_name' => $this->_pt( 'Register at Login' ),
-                        'display_hint' => $this->_pt( 'If user tries to login with a non-existing email should be offer register option?' ),
                         'type' => PHS_Params::T_BOOL,
                         'default' => false,
                     ],
@@ -78,9 +84,15 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'type' => PHS_Params::T_ASIS,
                         'default' => ($google_lib?$google_lib::REWRITE_RULE_REGISTER:''),
                     ],
-                    'google_mobile_client_id' => [
-                        'display_name' => $this->_pt( 'MOBILE Google Client ID' ),
-                        'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from a MOBILE application' ),
+                    'google_mobile_android_client_id' => [
+                        'display_name' => $this->_pt( 'MOBILE Google Client ID (Android)' ),
+                        'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from an Android MOBILE application' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => '',
+                    ],
+                    'google_mobile_ios_client_id' => [
+                        'display_name' => $this->_pt( 'MOBILE Google Client ID (iOS)' ),
+                        'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from an iOS MOBILE application' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],
@@ -97,7 +109,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'default' => false,
                     ],
                     'apple_client_id' => [
-                        'display_name' => $this->_pt( 'Google Client ID' ),
+                        'display_name' => $this->_pt( 'Apple Client ID' ),
                         'display_hint' => $this->_pt( 'Client ID obtained when OAuth client was created in Google developer console' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',

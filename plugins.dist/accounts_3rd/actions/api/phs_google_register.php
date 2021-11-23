@@ -52,6 +52,13 @@ class PHS_Action_Google_register extends PHS_Api_action
                                           $this->_pt( 'Error loading required resources.' ) );
         }
 
+        if( !($platform = $this->request_var( 'platform', PHS_Params::T_NOHTML, '' ))
+         || !($platform = $google_lib->valid_auth_platform( $platform )) )
+        {
+            return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
+                                          $this->_pt( 'Invalid authentication platform.' ) );
+        }
+
         if( !($google_code = $this->request_var( 'code', PHS_Params::T_NOHTML, '' )) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
@@ -73,7 +80,7 @@ class PHS_Action_Google_register extends PHS_Api_action
         }
         $session_arr = $session_data['session_arr'];
 
-        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code ))
+        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code, $platform ))
          || !is_array( $account_info ) || empty( $account_info['email'] ) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,

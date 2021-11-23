@@ -1033,9 +1033,6 @@ class PHS_Model_Api_online extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_insert_prepare_params_mobileapi_devices( $params )
     {
         if( empty( $params ) || !is_array( $params ) )
@@ -1071,9 +1068,6 @@ class PHS_Model_Api_online extends PHS_Model
         return $params;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_edit_prepare_params_mobileapi_devices( $existing_data, $params )
     {
         if( empty( $params ) || !is_array( $params ) )
@@ -1149,11 +1143,15 @@ class PHS_Model_Api_online extends PHS_Model
     public function get_area_center( $lat1, $long1, $lat2, $long2 )
     {
         // spare some cycles if points are same
-        if( $lat1 == $lat2 && $long1 == $long2 )
-            return array(
+        $lat1 = (float)$lat1;
+        $lat2 = (float)$lat2;
+        $long1 = (float)$long1;
+        $long2 = (float)$long2;
+        if( $lat1 === $lat2 && $long1 === $long2 )
+            return [
                 'lat' => $lat1,
                 'long' => $long1,
-            );
+            ];
 
         $center_y_dist = max( $lat1, $lat2 ) - min( $lat1, $lat2 );
         $center_x_dist = max( $long1, $long2 ) - min( $long1, $long2 );
@@ -1161,16 +1159,20 @@ class PHS_Model_Api_online extends PHS_Model
         $center_lat = min( $lat1, $lat2 ) + $center_y_dist / 2;
         $center_long = min( $long1, $long2 ) + $center_x_dist / 2;
 
-        return array(
+        return [
             'lat' => $center_lat,
             'long' => $center_long,
-        );
+        ];
     }
 
     public function distance_between_points( $lat1, $long1, $lat2, $long2 )
     {
         // spare some cycles if points are same
-        if( $lat1 == $lat2 && $long1 == $long2 )
+        $lat1 = (float)$lat1;
+        $lat2 = (float)$lat2;
+        $long1 = (float)$long1;
+        $long2 = (float)$long2;
+        if( $lat1 === $lat2 && $long1 === $long2 )
             return 0;
 
         $earth_radius = 6371;
@@ -1189,8 +1191,17 @@ class PHS_Model_Api_online extends PHS_Model
         return $angle * $earth_radius;
     }
 
+    /**
+     * @param float $lat
+     * @param float $long
+     * @param false|array $params
+     *
+     * @return array
+     */
     public function get_distance_query( $lat, $long, $params = false )
     {
+        $lat = (float)$lat;
+        $long = (float)$long;
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
 

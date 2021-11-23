@@ -55,6 +55,9 @@ class PHS_Action_Google_login extends PHS_Api_action
         if( !($register_if_not_found = $this->request_var( 'register_if_not_found', PHS_Params::T_INT, 0 )) )
             $register_if_not_found = 0;
 
+        if( !($platform = $this->request_var( 'platform', PHS_Params::T_NOHTML, '' )) )
+            $platform = '';
+
         if( !($google_code = $this->request_var( 'code', PHS_Params::T_NOHTML, '' )) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
@@ -76,12 +79,23 @@ class PHS_Action_Google_login extends PHS_Api_action
         }
         $session_arr = $session_data['session_arr'];
 
+        if( empty( $platform )
+         || !($platform = $google_lib->valid_auth_platform( $platform )) )
+        {
+            if( !($device_arr = $online_model->get_session_device( $session_arr )) )
+            {
+                return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
+                                              $this->_pt( 'Invalid authentication platform.' ) );
+            }
+        }
+
         if( !($settings_arr = $accounts_trd_plugin->get_plugin_settings()) )
             $settings_arr = [];
 
-        $settings_arr['register_login_google'] = (!empty( $settings_arr['register_login_google'] ));
+        $settings_arr['register_login_non_existing'] = (!empty( $settings_arr['register_login_non_existing'] ));
+        $settings_arr['register_login_forced'] = (!empty( $settings_arr['register_login_forced'] ));
 
-        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code ))
+        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code, $platform ))
          || !is_array( $account_info ) || empty( $account_info['email'] ) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
@@ -90,8 +104,8 @@ class PHS_Action_Google_login extends PHS_Api_action
 
         if( !($account_arr = $accounts_model->get_details_fields( [ 'email' => $account_info['email'] ] )) )
         {
-            if( !$register_if_not_found
-             || empty( $settings_arr['register_login_google'] ) )
+            if( empty( $settings_arr['register_login_forced'] )
+             && (!$register_if_not_found || empty( $settings_arr['register_login_non_existing'] )) )
             {
                 // Account not found, and also we should not create new account...
                 return $this->send_api_error( PHS_Api_base::H_CODE_NOT_FOUND, self::ERR_PARAMETERS,
