@@ -343,7 +343,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         if( !empty( $is_post )
          && (int)$field_details['type'] === PHS_Params::T_BOOL )
-            $form_data[$field_name] = (empty( $form_data[$field_name] ));
+            $form_data[$field_name] = (!empty( $form_data[$field_name] ));
 
         if( !empty( $field_details['custom_save'] ) )
             return null;
