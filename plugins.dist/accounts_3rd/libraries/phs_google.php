@@ -263,11 +263,12 @@ class Google extends PHS_Library
 
     /**
      * @param string $google_code
+     * @param string $action
      * @param false|array $params
      *
      * @return false|array
      */
-    public function get_web_account_details_by_code( $google_code, $params = false )
+    public function get_web_account_details_by_code( $google_code, $action, $params = false )
     {
         if( !$this->_load_dependencies() )
             return false;
@@ -280,8 +281,7 @@ class Google extends PHS_Library
             return false;
         }
 
-        // When verifying tokens, action doesn't really matter
-        if( !($google_obj = $this->_get_web_instance( 'login', $params )) )
+        if( !($google_obj = $this->_get_web_instance( $action, $params )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining Google 3rd party WEB services instance.' ) );

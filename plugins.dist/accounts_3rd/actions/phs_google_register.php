@@ -66,7 +66,7 @@ class PHS_Action_Google_register extends PHS_Action
         {
             $retry_action = true;
             $display_error_msg = $this->_pt( 'Invalid Google token. Please try again.' );
-        } elseif( !($account_info = $google_lib->get_web_account_details_by_code( $google_code ))
+        } elseif( !($account_info = $google_lib->get_web_account_details_by_code( $google_code, 'register' ))
                || !is_array( $account_info ) )
         {
             $retry_action = true;
