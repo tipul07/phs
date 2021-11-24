@@ -97,6 +97,10 @@ class PHS_Action_Google_register extends PHS_Api_action
             $fields_arr['status'] = $accounts_model::STATUS_ACTIVE;
             $fields_arr['lastip'] = request_ip();
 
+            if( !empty( $account_info['locale'] )
+             && self::valid_language( $account_info['locale'] ) )
+                $fields_arr['language'] = $account_info['locale'];
+
             $insert_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] );
             $insert_arr['fields'] = $fields_arr;
 
