@@ -31,6 +31,12 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
             $google_lib = false;
         }
 
+        if( !($apple_lib = $this->get_apple_instance()) )
+        {
+            $this->reset_error();
+            $apple_lib = false;
+        }
+
         return [
             'enable_3rd_party' => [
                 'display_name' => $this->_pt( 'Enable 3rd Party' ),
@@ -61,37 +67,37 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'default' => false,
                     ],
                     'google_client_id' => [
-                        'display_name' => $this->_pt( 'WEB Google Client ID' ),
+                        'display_name' => $this->_pt( 'WEB Client ID' ),
                         'display_hint' => $this->_pt( 'WEB Client ID to be used with OAuth when checking accounts in WEB interface' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],
                     'google_client_secret' => [
-                        'display_name' => $this->_pt( 'WEB Google Client Secret' ),
+                        'display_name' => $this->_pt( 'WEB Client Secret' ),
                         'display_hint' => $this->_pt( 'WEB Client Secret to be used with OAuth when checking accounts in WEB interface' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],
                     'google_web_login_return_url' => [
-                        'display_name' => $this->_pt( 'WEB Google Login Return URL' ),
+                        'display_name' => $this->_pt( 'WEB Login Return URL' ),
                         'display_hint' => $this->_pt( 'When user wants to login using Google on WEB, what\'s the rewrite rule that redirects to Google WEB login page?' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => ($google_lib?$google_lib::REWRITE_RULE_LOGIN:''),
                     ],
                     'google_web_register_return_url' => [
-                        'display_name' => $this->_pt( 'WEB Google Register Return URL' ),
+                        'display_name' => $this->_pt( 'WEB Register Return URL' ),
                         'display_hint' => $this->_pt( 'When user wants to register using Google on WEB, what\'s the rewrite rule that redirects to Google WEB register page?' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => ($google_lib?$google_lib::REWRITE_RULE_REGISTER:''),
                     ],
                     'google_mobile_android_client_id' => [
-                        'display_name' => $this->_pt( 'MOBILE Google Client ID (Android)' ),
+                        'display_name' => $this->_pt( 'MOBILE Client ID (Android)' ),
                         'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from an Android MOBILE application' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
                     ],
                     'google_mobile_ios_client_id' => [
-                        'display_name' => $this->_pt( 'MOBILE Google Client ID (iOS)' ),
+                        'display_name' => $this->_pt( 'MOBILE Client ID (iOS)' ),
                         'display_hint' => $this->_pt( 'MOBILE Client ID to be used with OAuth when checking accounts from an iOS MOBILE application' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
@@ -109,10 +115,41 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                         'default' => false,
                     ],
                     'apple_client_id' => [
-                        'display_name' => $this->_pt( 'Apple Client ID' ),
-                        'display_hint' => $this->_pt( 'Client ID obtained when OAuth client was created in Google developer console' ),
+                        'display_name' => $this->_pt( 'Client ID' ),
+                        'display_hint' => $this->_pt( 'Apple Client ID to be used when registering or logging in with Apple' ),
                         'type' => PHS_Params::T_ASIS,
                         'default' => '',
+                    ],
+                    'apple_team_id' => [
+                        'display_name' => $this->_pt( 'Team ID' ),
+                        'display_hint' => $this->_pt( 'Apple Team ID to be used when registering or logging in with Apple' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => '',
+                    ],
+                    'apple_key_id' => [
+                        'display_name' => $this->_pt( 'Key ID' ),
+                        'display_hint' => $this->_pt( 'Apple Key ID to be used when registering or logging in with Apple' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => '',
+                    ],
+                    'apple_authentication_key' => [
+                        'display_name' => $this->_pt( 'Authentication Key' ),
+                        'display_hint' => $this->_pt( 'Apple Key ID to be used when registering or logging in with Apple' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'input_type' => self::INPUT_TYPE_TEXTAREA,
+                        'default' => '',
+                    ],
+                    'apple_login_return_url' => [
+                        'display_name' => $this->_pt( 'Apple Login Return URL' ),
+                        'display_hint' => $this->_pt( 'When user wants to login using Apple, what\'s the rewrite rule that redirects to Apple login page?' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => ($apple_lib?$apple_lib::REWRITE_RULE_LOGIN:''),
+                    ],
+                    'apple_register_return_url' => [
+                        'display_name' => $this->_pt( 'Apple Register Return URL' ),
+                        'display_hint' => $this->_pt( 'When user wants to register using Apple, what\'s the rewrite rule that redirects to Apple register page?' ),
+                        'type' => PHS_Params::T_ASIS,
+                        'default' => ($apple_lib?$apple_lib::REWRITE_RULE_REGISTER:''),
                     ],
                 ],
             ],
@@ -149,6 +186,38 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
         $google_library = $loaded_library;
 
         return $google_library;
+    }
+
+    /**
+     * Returns an instance of Apple 3rd party services class
+     *
+     * @return bool|\phs\plugins\accounts_3rd\libraries\Apple
+     */
+    public function get_apple_instance()
+    {
+        static $apple_library = null;
+
+        $this->reset_error();
+
+        if( $apple_library !== null )
+            return $apple_library;
+
+        $library_params = [];
+        $library_params['full_class_name'] = '\\phs\\plugins\\accounts_3rd\\libraries\\Apple';
+        $library_params['as_singleton'] = true;
+
+        /** @var \phs\plugins\accounts_3rd\libraries\Apple $loaded_library */
+        if( !($loaded_library = $this->load_library( 'phs_apple', $library_params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading Apple 3rd party library.' ) );
+
+            return false;
+        }
+
+        $apple_library = $loaded_library;
+
+        return $apple_library;
     }
 
     /**

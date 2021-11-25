@@ -26,10 +26,12 @@ if( !empty( $settings_arr['enable_google'] )
     <?php
 }
 
-if( !empty( $settings_arr['enable_apple'] ) )
+if( !empty( $settings_arr['enable_apple'] )
+ && ($apple_lib = $plugin_obj->get_apple_instance())
+ && $apple_lib->prepare_instance_for_login() )
 {
     ?>
-    <a href="#"
+    <a href="<?php echo $apple_lib->get_url( 'login' )?>"
        class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_apple">
         <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Login with Apple' )?>
     </a>
