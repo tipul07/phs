@@ -831,6 +831,8 @@ class PHS_Paginator extends PHS_Registry
     {
         return [
             'hidden_filter' => false,
+            // Trim value before using it
+            'trim_before' => false,
             // Variable name of the filter. This is mandatory, and it should be present in GET or POST in order for this filter to be taken in consideration
             'var_name' => '',
             // Name of field in database model that will have to check this value
@@ -1104,7 +1106,9 @@ class PHS_Paginator extends PHS_Registry
              || (empty( $filter_details['record_field'] ) && empty( $filter_details['switch_filter'] ) && empty( $filter_details['raw_query'] )) )
                 continue;
 
-            $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'], PHS_Params::T_ASIS );
+            $this->_originals[$filter_details['var_name']] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'],
+                                                                              PHS_Params::T_ASIS,
+                                                                              [ 'trim_before' => (!empty( $filter_details['trim_before'] )) ] );
 
             if( !empty( $new_filter['autocomplete'] ) )
                 $this->_originals[$filter_details['var_name'].'_phs_ac_name'] = PHS_Params::_pg( $flow_params_arr['form_prefix'].$filter_details['var_name'].'_phs_ac_name', PHS_Params::T_NOHTML );

@@ -19,24 +19,24 @@ class PHS_Plugin_Notifications extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        return array(
+        return [
             // default template
-            'template' => array(
+            'template' => [
                 'display_name' => 'Captcha template',
                 'display_hint' => 'What template should be used when displaying captcha image',
                 'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'notifications' ),
-            ),
-            'display_channels' => array(
+            ],
+            'display_channels' => [
                 'display_name' => 'Channels to be rendered',
                 'type' => PHS_Params::T_ARRAY,
-                'extra_type' => array( 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ),
+                'extra_type' => [ 'type' => PHS_Params::T_NOHTML, 'trim_before' => true ],
                 'input_type' => self::INPUT_TYPE_ONE_OR_MORE,
-                'default' => array( 'success', 'warnings', 'errors' ),
-                'values_arr' => array( 'success' => 'Success messages', 'warnings' => 'Warnings', 'errors' => 'Errors' ),
-            ),
-        );
+                'default' => [ 'success', 'warnings', 'errors' ],
+                'values_arr' => [ 'success' => 'Success messages', 'warnings' => 'Warnings', 'errors' => 'Errors' ],
+            ],
+        ];
     }
 
     public function get_notifications_hook_args( $hook_args )
@@ -44,7 +44,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $this->reset_error();
 
         if( !($settings_arr = $this->get_db_settings())
-         or empty( $settings_arr['template'] ) )
+         || empty( $settings_arr['template'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
             return false;
@@ -70,17 +70,17 @@ class PHS_Plugin_Notifications extends PHS_Plugin
         $hook_args['display_channels'] = $settings_arr['display_channels'];
         $hook_args['template'] = $notifications_template;
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = array(
+        $view_params['template_data'] = [
             'output_ajax_placeholders' => $hook_args['output_ajax_placeholders'],
             'ajax_placeholders_prefix' => $hook_args['ajax_placeholders_prefix'],
             'notifications' => $notifications_arr,
             'display_channels' => $hook_args['display_channels']
-        );
+        ];
 
         if( !($view_obj = PHS_View::init_view( $notifications_template, $view_params )) )
         {

@@ -44,6 +44,10 @@
         echo $cell_content;
     }
 
+    $paginator_full_path_id = '';
+    if( ($route_as_string = PHS::get_route_as_string()) )
+        $paginator_full_path_id = 'phs_aof_'.str_replace( [ '/', '-' ], '_', $route_as_string );
+
     $phs_first_ac_autocomplete_action = false;
 ?>
 <div class="list_filters_container">
@@ -204,9 +208,28 @@
             ?>
 
             <div class="clearfix"></div>
-            <div>
-                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Filter' )?>" />
-                <input type="button" onclick="toggle_filters_inputs_and_text()" class="btn btn-primary" value="<?php echo $this->_pte( 'Hide Filters' )?>" style="margin-right:5px;" />
+            <div class="row">
+            <div class="col-6">
+                <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection ignore_hidden_required"
+                       value="<?php echo $this->_pte( 'Filter' )?>" />
+                <input type="button" onclick="toggle_filters_inputs_and_text( '<?php echo $filters_form_name?>' )" class="btn btn-primary" style="margin-right:5px;"
+                       value="<?php echo $this->_pte( 'Hide Filters' )?>" />
+            </div>
+            <?php
+            if( !empty( $paginator_full_path_id ) )
+            {
+                ?>
+                <div class="col-6 text-right">
+                    <label for="<?php echo $paginator_full_path_id?>">
+                        <input type="checkbox" value="1" rel="skin_checkbox"
+                               name="<?php echo $paginator_full_path_id?>" id="<?php echo $paginator_full_path_id?>"
+                               onchange="phs_keep_filters_opened_tick( '<?php echo $paginator_full_path_id?>' )" />
+                        <small><?php echo $this->_pt( 'Keep filters opened' )?></small>
+                    </label>
+                </div>
+                <?php
+            }
+            ?>
             </div>
             </div>
 
@@ -253,7 +276,7 @@
             else
                 echo '<strong>'.$this->_pt( 'Current filters' ).'</strong> - '.implode( ', ', $filters_display_arr ).'.';
             ?>
-            (<a href="javascript:void(0);" onclick="toggle_filters_inputs_and_text()"><?php echo $this->_pt( 'Show filters' )?></a>)
+            (<a href="javascript:void(0);" onclick="toggle_filters_inputs_and_text( '<?php echo $filters_form_name?>' )"><?php echo $this->_pt( 'Show filters' )?></a>)
             </div>
 
             <div class="clearfix"></div>
@@ -277,6 +300,11 @@ $(document).ready(function(){
         changeYear: true,
         showButtonPanel: true
     });
+
+    // check if we should keep filters opened...
+    if( phs_filters_should_be_opened( "<?php echo $paginator_full_path_id?>" ) ) {
+        phs_filters_force_open( "<?php echo $paginator_full_path_id?>", "<?php echo $filters_form_name?>" );
+    }
 });
 function clear_filter_value( obj_id, scalar_default_val, for_autocomplete )
 {
@@ -304,15 +332,58 @@ function clear_filter_value( obj_id, scalar_default_val, for_autocomplete )
         obj.trigger( "chosen:updated" );
     }
 }
-function toggle_filters_inputs_and_text()
+function toggle_filters_inputs_and_text( filters_form_name )
 {
-    var inputs_obj = $('#<?php echo $filters_form_name?>_inputs');
-    var text_obj = $('#<?php echo $filters_form_name?>_text');
+    var inputs_obj = $("#" + filters_form_name + "_inputs");
+    var text_obj = $("#" + filters_form_name + "_text");
 
     if( inputs_obj )
         inputs_obj.slideToggle('fast');
     if( text_obj )
         text_obj.slideToggle('fast');
+}
+function phs_filters_force_open( path_id, filters_form_name )
+{
+    var inputs_obj = $("#" + filters_form_name + "_inputs");
+    var text_obj = $("#" + filters_form_name + "_text");
+    var checkbox_obj = $("#" + path_id);
+
+    if( checkbox_obj )
+        checkbox_obj.prop( "checked", true );
+    if( inputs_obj )
+        inputs_obj.show();
+    if( text_obj )
+        text_obj.hide();
+}
+function phs_keep_filters_opened_tick( path_id )
+{
+    var checkbox_obj = $("#" + path_id);
+    if( !checkbox_obj )
+        return false;
+
+    let ac_opened_filters = PHS_JSEN.load_storage( "__PHS_PACF_" );
+    let opened_filters_obj = {};
+    if( ac_opened_filters && ac_opened_filters.length > 0 )
+        opened_filters_obj = JSON.parse( ac_opened_filters );
+
+    if( checkbox_obj.is( ":checked" ) ) {
+        opened_filters_obj[path_id] = true;
+    } else {
+        if( typeof opened_filters_obj[path_id] !== "undefined" )
+            delete opened_filters_obj[path_id];
+    }
+
+    PHS_JSEN.save_storage( "__PHS_PACF_", JSON.stringify( opened_filters_obj ) );
+}
+function phs_filters_should_be_opened( path_id )
+{
+    let ac_opened_filters = PHS_JSEN.load_storage( "__PHS_PACF_" );
+    if( !ac_opened_filters || ac_opened_filters.length <= 0 )
+        return false;
+
+    let opened_filters_obj = JSON.parse( ac_opened_filters );
+
+    return (typeof opened_filters_obj[path_id] !== "undefined" && opened_filters_obj[path_id]);
 }
 </script>
 <?php

@@ -324,8 +324,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
         if( empty( $field_details['editable'] ) )
         {
             // Check if default values have changed (upgrading plugin might change default value)
-            if( isset( $default_settings[$field_name] ) and isset( $db_settings[$field_name] )
-            and $default_settings[$field_name] !== $db_settings[$field_name] )
+            if( isset( $default_settings[$field_name] ) && isset( $db_settings[$field_name] )
+             && $default_settings[$field_name] !== $db_settings[$field_name] )
                 $field_value = $default_settings[$field_name];
 
             // if we have something in database use that value
@@ -343,7 +343,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         if( !empty( $is_post )
          && (int)$field_details['type'] === PHS_Params::T_BOOL )
-            $form_data[$field_name] = (empty( $form_data[$field_name] )?false:true);
+            $form_data[$field_name] = (!empty( $form_data[$field_name] ));
 
         if( !empty( $field_details['custom_save'] ) )
             return null;

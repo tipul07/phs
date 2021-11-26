@@ -380,6 +380,17 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                         <?php
                     }
                 break;
+
+                case PHS_Plugin::INPUT_TYPE_TEXTAREA:
+                    if( empty( $field_details['extra_style'] ) )
+                        $field_details['extra_style'] = 'width:100%;height:100px;';
+                    ?>
+                    <textarea id="<?php echo $field_id ?>" name="<?php echo $field_name ?>"
+                              class="form-control <?php echo $field_details['extra_classes'] ?>" style="<?php echo $field_details['extra_style'] ?>"
+                              <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?>
+                              <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?>><?php echo textarea_str( $field_value ) ?></textarea>
+                    <?php
+                break;
             }
         } else
         {
@@ -415,7 +426,11 @@ function phs_display_plugin_settings_field( $field_name, $field_details, $form_d
                         if( empty( $field_details['extra_style'] ) )
                             $field_details['extra_style'] = 'width:100%';
                         ?>
-                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>" class="form-control <?php echo $field_details['extra_classes'] ?>" value="<?php echo form_str( $field_value ) ?>" <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?> <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> style="<?php echo $field_details['extra_style'] ?>" /><?php
+                        <input type="text" id="<?php echo $field_id ?>" name="<?php echo $field_name ?>"
+                               class="form-control  style="<?php echo $field_details['extra_style'] ?>" <?php echo $field_details['extra_classes'] ?>"
+                               value="<?php echo form_str( $field_value ) ?>"
+                               <?php echo(!empty($field_placeholder) ? 'placeholder="' . form_str( $field_placeholder ) . '"' : '') ?>
+                               <?php echo (empty( $field_details['editable'] )?'disabled="disabled" readonly="readonly"' : '')?> /><?php
                     break;
                 }
             }
