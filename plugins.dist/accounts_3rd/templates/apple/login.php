@@ -24,7 +24,6 @@ use \phs\libraries\PHS_Roles;
     $register_required = (bool)$this->view_var( 'register_required' );
 ?>
 <div class="apple_login_container">
-
     <div class="form_container">
 
         <section class="heading-bordered">
@@ -46,7 +45,7 @@ use \phs\libraries\PHS_Roles;
         {
             ?>
             <fieldset class="login_button">
-                <a href="<?php echo $apple_lib->get_url( 'login' )?>"
+                <a href="<?php echo $apple_lib->get_url( $apple_lib::ACTION_LOGIN )?>"
                    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_apple">
                     <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Retry logging in with Apple' )?>
                 </a>
@@ -74,5 +73,4 @@ use \phs\libraries\PHS_Roles;
         ?>
 
     </div>
-
 </div>

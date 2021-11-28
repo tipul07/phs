@@ -12,7 +12,7 @@ use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\PHS_Scope;
 
-class PHS_Action_Google_register extends PHS_Action
+class PHS_Action_Apple_register extends PHS_Action
 {
     /** @inheritdoc */
     public function action_roles()
@@ -35,7 +35,7 @@ class PHS_Action_Google_register extends PHS_Action
      */
     public function execute()
     {
-        PHS::page_settings( 'page_title', $this->_pt( 'Register with Google' ) );
+        PHS::page_settings( 'page_title', $this->_pt( 'Register with Apple' ) );
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -43,7 +43,7 @@ class PHS_Action_Google_register extends PHS_Action
         /** @var \phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services $services_model */
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
          || !($accounts_trd_plugin = PHS::load_plugin( 'accounts_3rd' ))
-         || !($google_lib = $accounts_trd_plugin->get_google_instance())
+         || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          || !($services_model = PHS::load_model( 'accounts_services', 'accounts_3rd' )) )
         {
@@ -59,16 +59,16 @@ class PHS_Action_Google_register extends PHS_Action
         $display_error_msg = '';
         $display_message_msg = '';
 
-        if( !($google_code = PHS_Params::_gp( 'code', PHS_Params::T_NOHTML )) )
+        if( !($service_code = PHS_Params::_gp( 'code', PHS_Params::T_NOHTML )) )
         {
             $retry_action = true;
-            $display_error_msg = $this->_pt( 'Invalid Google token. Please try again.' );
-        } elseif( !($account_info = $google_lib->get_web_account_details_by_code( $google_code, 'register' ))
+            $display_error_msg = $this->_pt( 'Invalid Apple token. Please try again.' );
+        } elseif( !($account_info = $apple_lib->get_account_details_by_code( $service_code, $apple_lib::ACTION_REGISTER ))
                || !is_array( $account_info ) )
         {
             $retry_action = true;
             $account_info = false;
-            $display_error_msg = $this->_pt( 'Error obtaining Google account details. Please try again.' );
+            $display_error_msg = $this->_pt( 'Error obtaining Apple account details. Please try again.' );
         }
 
         if( !empty( $account_info ) )
@@ -77,7 +77,7 @@ class PHS_Action_Google_register extends PHS_Action
             {
                 $account_info = false;
                 $retry_action = true;
-                $display_error_msg = $this->_pt( 'Error obtaining Google account email address. Please make sure you give us rights to read Google account email address.' );
+                $display_error_msg = $this->_pt( 'Error obtaining Apple account email address. Please make sure you give us rights to read Apple account email address.' );
             } elseif( ($account_arr = $accounts_model->get_details_fields( [ 'email' => $account_info['email'] ] )) )
             {
                 $account_arr = false;
@@ -129,11 +129,11 @@ class PHS_Action_Google_register extends PHS_Action
                                      $error_msg.$this->_pt( 'Please try again.' );
             } else
             {
-                PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
+                PHS_Logger::logf( '[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
 
-                if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
+                if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
                 {
-                    PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
+                    PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
                 }
 
                 // Login user after registration...
@@ -189,21 +189,21 @@ class PHS_Action_Google_register extends PHS_Action
             'account_info' => $account_info,
             'retry_action' => $retry_action,
             'login_required' => $login_required,
-            'phs_gal_code' => ($account_info?$this->encode_google_account_data( $account_info ):''),
-            'google_lib' => $google_lib,
+            'phs_gal_code' => ($account_info?$this->encode_apple_account_data( $account_info ):''),
+            'apple_lib' => $apple_lib,
         ];
 
-        return $this->quick_render_template( 'google/register', $data_arr );
+        return $this->quick_render_template( 'apple/register', $data_arr );
     }
 
-    public function encode_google_account_data( $google_result )
+    public function encode_apple_account_data( $apple_result )
     {
-        return PHS_Crypt::quick_encode( @json_encode( $google_result ) );
+        return PHS_Crypt::quick_encode( @json_encode( $apple_result ) );
     }
 
-    public function decode_google_account_data( $google_result )
+    public function decode_apple_account_data( $apple_result )
     {
-        if( !($clean_str = PHS_Crypt::quick_decode( $google_result ))
+        if( !($clean_str = PHS_Crypt::quick_decode( $apple_result ))
          || !($result_arr = @json_decode( $clean_str, true )) )
             return false;
 

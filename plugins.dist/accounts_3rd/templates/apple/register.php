@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Roles;
     /** @var \phs\plugins\accounts_3rd\libraries\Apple $apple_lib */
     if( !($plugin_obj = $this->parent_plugin())
      || !($apple_lib = $this->view_var( 'apple_lib' )) )
-        return $this->_pt( 'Couldn\'t get parent plugin object.' );
+        return $this->_pt( 'Error loading required resources.' );
 
     if( !($phs_gal_code = $this->view_var( 'phs_gal_code' )) )
         $phs_gal_code = '';
@@ -22,7 +22,6 @@ use \phs\libraries\PHS_Roles;
     $login_required = (bool)$this->view_var( 'login_required' );
 ?>
 <div class="apple_register_container">
-
     <div class="form_container">
 
         <section class="heading-bordered">
@@ -44,7 +43,7 @@ use \phs\libraries\PHS_Roles;
         {
             ?>
             <fieldset class="login_button">
-                <a href="<?php echo $apple_lib->get_url( 'register' )?>"
+                <a href="<?php echo $apple_lib->get_url( $apple_lib::ACTION_REGISTER )?>"
                    class="btn btn-success btn-medium phs_3rdparty_register_button phs_3rdparty_register_apple">
                     <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Retry registering in with Apple' )?>
                 </a>
@@ -57,7 +56,7 @@ use \phs\libraries\PHS_Roles;
         {
             ?>
             <fieldset class="login_button">
-                <a href="<?php echo $apple_lib->get_url( 'login' )?>"
+                <a href="<?php echo $apple_lib->get_url( $apple_lib::ACTION_LOGIN )?>"
                    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_apple">
                     <i class="fa fa-apple"></i> <?php echo $this->_pt( 'Login with Apple' )?>
                 </a>
@@ -67,5 +66,4 @@ use \phs\libraries\PHS_Roles;
         ?>
 
     </div>
-
 </div>

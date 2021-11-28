@@ -7,6 +7,7 @@ use phs\PHS_Api;
 use phs\PHS_Session;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Hooks;
+use phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
@@ -41,12 +42,14 @@ class PHS_Action_Google_register extends PHS_Api_action
         /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
         /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
+        /** @var \phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services $services_model */
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
          || !($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
          || !($online_model = PHS::load_model( 'api_online', 'mobileapi' ))
          || !($accounts_trd_plugin = PHS::load_plugin( 'accounts_3rd' ))
          || !($google_lib = $accounts_trd_plugin->get_google_instance())
-         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($services_model = PHS::load_model( 'accounts_services', 'accounts_3rd' )) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                                           $this->_pt( 'Error loading required resources.' ) );
@@ -114,11 +117,18 @@ class PHS_Action_Google_register extends PHS_Api_action
                 return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                                               $error_msg );
             }
+
+            PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
         } elseif( !$accounts_model->is_active( $account_arr ) )
         {
             // Account not found, and also we should not create new account...
             return $this->send_api_error( PHS_Api_base::H_CODE_NOT_FOUND, self::ERR_PARAMETERS,
                                           $this->_pt( 'Registration failed.' ) );
+        }
+
+        if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
+        {
+            PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
         }
 
         $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr['device_info'], $online_model::get_api_data_device_fields() );

@@ -55,6 +55,46 @@ if( ($trd_party_plugin = PHS::load_plugin( 'accounts_3rd' ))
                 'description' => 'Register functionality for 3rd party mobile applications with Google accounts',
             ]
         );
+
+        // POST /users/apple/login Login an account from 3rd party mobile app using an Apple account
+        PHS_Api::register_api_route( [
+                [ 'exact_match' => 'users', ],
+                [ 'exact_match' => 'apple', ],
+                [ 'exact_match' => 'login', ],
+            ],
+            [
+                'p' => 'accounts_3rd',
+                'c' => 'index_api',
+                'a' => 'apple_login',
+                'ad' => 'api',
+            ],
+            [
+                'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
+                'method' => 'post',
+                'name' => '3rd party Apple mobile login',
+                'description' => 'Login functionality for 3rd party mobile applications with Apple accounts',
+            ]
+        );
+
+        // POST /users/apple/register Register an account from 3rd party mobile app using an Apple account
+        PHS_Api::register_api_route( [
+                [ 'exact_match' => 'users', ],
+                [ 'exact_match' => 'apple', ],
+                [ 'exact_match' => 'register', ],
+            ],
+            [
+                'p' => 'accounts_3rd',
+                'c' => 'index_api',
+                'a' => 'apple_register',
+                'ad' => 'api',
+            ],
+            [
+                'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
+                'method' => 'post',
+                'name' => '3rd party Apple mobile register',
+                'description' => 'Register functionality for 3rd party mobile applications with Apple accounts',
+            ]
+        );
     }
 
     PHS::register_hook(

@@ -14,12 +14,12 @@ use phs\libraries\PHS_Api_action;
 use \phs\libraries\PHS_Notifications;
 use \phs\PHS_Scope;
 
-class PHS_Action_Google_login extends PHS_Api_action
+class PHS_Action_Apple_register extends PHS_Api_action
 {
     /** @inheritdoc */
     public function action_roles()
     {
-        return [ self::ACT_ROLE_LOGIN ];
+        return [ self::ACT_ROLE_REGISTER ];
     }
 
     /**
@@ -47,7 +47,7 @@ class PHS_Action_Google_login extends PHS_Api_action
          || !($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
          || !($online_model = PHS::load_model( 'api_online', 'mobileapi' ))
          || !($accounts_trd_plugin = PHS::load_plugin( 'accounts_3rd' ))
-         || !($google_lib = $accounts_trd_plugin->get_google_instance())
+         || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          || !($services_model = PHS::load_model( 'accounts_services', 'accounts_3rd' )) )
         {
@@ -55,16 +55,10 @@ class PHS_Action_Google_login extends PHS_Api_action
                                           $this->_pt( 'Error loading required resources.' ) );
         }
 
-        if( !($register_if_not_found = $this->request_var( 'register_if_not_found', PHS_Params::T_INT, 0 )) )
-            $register_if_not_found = 0;
-
-        if( !($platform = $this->request_var( 'platform', PHS_Params::T_NOHTML, '' )) )
-            $platform = '';
-
-        if( !($google_code = $this->request_var( 'code', PHS_Params::T_NOHTML, '' )) )
+        if( !($service_code = $this->request_var( 'code', PHS_Params::T_NOHTML, '' )) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
-                                          $this->_pt( 'Invalid Google token.' ) );
+                                          $this->_pt( 'Invalid Apple token.' ) );
         }
 
         if( !($request_arr = PHS_Api::get_request_body_as_json_array())
@@ -82,39 +76,15 @@ class PHS_Action_Google_login extends PHS_Api_action
         }
         $session_arr = $session_data['session_arr'];
 
-        if( empty( $platform )
-         || !($platform = $google_lib->valid_auth_platform( $platform )) )
-        {
-            if( !($device_arr = $online_model->get_session_device( $session_arr )) )
-            {
-                return $this->send_api_error( PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
-                                              $this->_pt( 'Invalid authentication platform.' ) );
-            }
-        }
-
-        if( !($settings_arr = $accounts_trd_plugin->get_plugin_settings()) )
-            $settings_arr = [];
-
-        $settings_arr['register_login_non_existing'] = (!empty( $settings_arr['register_login_non_existing'] ));
-        $settings_arr['register_login_forced'] = (!empty( $settings_arr['register_login_forced'] ));
-
-        if( !($account_info = $google_lib->get_mobile_account_details_by_code( $google_code, $platform ))
+        if( !($account_info = $apple_lib->get_account_details_by_token_id( $service_code, $apple_lib::ACTION_REGISTER ))
          || !is_array( $account_info ) || empty( $account_info['email'] ) )
         {
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
-                                          $this->_pt( 'Error obtaining Google account details.' ) );
+                                          $this->_pt( 'Error obtaining Apple account details.' ) );
         }
 
         if( !($account_arr = $accounts_model->get_details_fields( [ 'email' => $account_info['email'] ] )) )
         {
-            if( empty( $settings_arr['register_login_forced'] )
-             && (!$register_if_not_found || empty( $settings_arr['register_login_non_existing'] )) )
-            {
-                // Account not found, and also we should not create new account...
-                return $this->send_api_error( PHS_Api_base::H_CODE_NOT_FOUND, self::ERR_PARAMETERS,
-                                              $this->_pt( 'Email address doesn\'t have an account associated on this platform.' ) );
-            }
-
             $fields_arr = [];
             $fields_arr['nick'] = $account_info['email'];
             $fields_arr['email'] = $account_info['email'];
@@ -123,20 +93,8 @@ class PHS_Action_Google_login extends PHS_Api_action
             $fields_arr['status'] = $accounts_model::STATUS_ACTIVE;
             $fields_arr['lastip'] = request_ip();
 
-            if( !empty( $account_info['locale'] )
-             && self::valid_language( $account_info['locale'] ) )
-                $fields_arr['language'] = $account_info['locale'];
-
             $insert_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] );
             $insert_arr['fields'] = $fields_arr;
-            if( !empty( $account_info['given_name'] ) || !empty( $account_info['family_name'] ) )
-            {
-                $insert_arr['{users_details}'] = [];
-                if( !empty( $account_info['given_name'] ) )
-                    $insert_arr['{users_details}']['fname'] = trim( $account_info['given_name'] );
-                if( !empty( $account_info['family_name'] ) )
-                    $insert_arr['{users_details}']['fname'] = trim( $account_info['family_name'] );
-            }
 
             if( !($account_arr = $accounts_model->insert( $insert_arr )) )
             {
@@ -145,20 +103,21 @@ class PHS_Action_Google_login extends PHS_Api_action
                 else
                     $error_msg = $this->_pt( 'Couldn\'t register user. Please try again.' );
 
-                return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY, $error_msg );
+                return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
+                                              $error_msg );
             }
 
-            PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
+            PHS_Logger::logf( '[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
         } elseif( !$accounts_model->is_active( $account_arr ) )
         {
             // Account not found, and also we should not create new account...
             return $this->send_api_error( PHS_Api_base::H_CODE_NOT_FOUND, self::ERR_PARAMETERS,
-                                          $this->_pt( 'Authentication failed.' ) );
+                                          $this->_pt( 'Registration failed.' ) );
         }
 
-        if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
+        if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
         {
-            PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
+            PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
         }
 
         $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr['device_info'], $online_model::get_api_data_device_fields() );

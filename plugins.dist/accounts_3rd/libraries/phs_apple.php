@@ -12,6 +12,8 @@ class Apple extends PHS_Library
 {
     const REWRITE_RULE_LOGIN = 'apple/oauth/login', REWRITE_RULE_REGISTER = 'apple/oauth/register';
 
+    const ACTION_LOGIN = 'login', ACTION_REGISTER = 'register';
+
     const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2, ERR_API_INIT = 3;
 
     /** @var bool|\phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $_accounts_3rd_plugin */
@@ -63,7 +65,7 @@ class Apple extends PHS_Library
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
 
-        if( !in_array( $action, [ 'login', 'register' ], true ) )
+        if( !in_array( $action, [ self::ACTION_LOGIN, self::ACTION_REGISTER ], true ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide an action for Apple 3rd party service.' ) );
             return false;
@@ -80,13 +82,13 @@ class Apple extends PHS_Library
         }
 
         $return_url = '';
-        if( $action === 'login' )
+        if( $action === self::ACTION_LOGIN )
         {
             if( !empty( $settings_arr['apple_login_return_url'] ) )
                 $return_url = PHS::get_base_url( true ).trim( $settings_arr['apple_login_return_url'], '/' );
             else
                 $return_url = PHS::get_base_url( true ).self::REWRITE_RULE_LOGIN;
-        } elseif( $action === 'register' )
+        } elseif( $action === self::ACTION_REGISTER )
         {
             if( !empty( $settings_arr['apple_register_return_url'] ) )
                 $return_url = PHS::get_base_url( true ).trim( $settings_arr['apple_register_return_url'], '/' );
@@ -116,7 +118,7 @@ class Apple extends PHS_Library
      */
     public function prepare_instance_for_login( $params = false )
     {
-        return $this->_prepare_instance( 'login', $params );
+        return $this->_prepare_instance( self::ACTION_LOGIN, $params );
     }
 
     /**
@@ -126,7 +128,7 @@ class Apple extends PHS_Library
      */
     public function prepare_instance_for_register( $params = false )
     {
-        return $this->_prepare_instance( 'register', $params );
+        return $this->_prepare_instance( self::ACTION_REGISTER, $params );
     }
 
     public function get_url( $action, $state = '', $scope = 'name email' )
@@ -147,6 +149,7 @@ class Apple extends PHS_Library
     }
 
     /**
+     * This method is used in web "Login with Apple" functionality
      * @param string $apple_code
      * @param string $action
      * @param false|array $params
@@ -154,6 +157,46 @@ class Apple extends PHS_Library
      * @return false|array
      */
     public function get_account_details_by_code( $apple_code, $action, $params = false )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        if( !($response = $this->_check_code_with_apple( $apple_code, $action, $params )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_API_INIT, $this->_pt( 'Error verifying token with Apple. Please try again.' ) );
+
+            return false;
+        }
+
+        return $this->_get_account_details_from_token_id( $response['id_token'], $action, $params );
+    }
+
+    /**
+     * If authentication passed, and we already have a token id, ask Apple account details based on that token id.
+     * This method is used when logging in with Apple in a mobile application
+     * @param string $token_id
+     * @param string $action
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    public function get_account_details_by_token_id( $token_id, $action, $params = false )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        return $this->_get_account_details_from_token_id( $token_id, $action, $params );
+    }
+
+    /**
+     * @param string $apple_code
+     * @param string $action
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    private function _check_code_with_apple( $apple_code, $action, $params = false )
     {
         if( !$this->_load_dependencies() )
             return false;
@@ -174,9 +217,10 @@ class Apple extends PHS_Library
             return false;
         }
 
-        if( !($jwt_token = $this->_get_jwt_token( $apple_code ))
+        if( !($jwt_token = $this->_get_jwt_token())
          || !($response = $this->_get_response( $apple_code, $jwt_token ))
-         || !is_array( $response ) )
+         || !is_array( $response )
+         || empty( $response['id_token'] ) )
         {
             $error_msg = '';
             if( !empty( $response ) && is_array( $response ) )
@@ -195,8 +239,48 @@ class Apple extends PHS_Library
             return false;
         }
 
-        if( empty( $response['id_token'] )
-         || !($payload_arr = $this->_decode_id_token( $response['id_token'] ))
+        if( self::st_debugging_mode() )
+        {
+            ob_start();
+            var_dump( $response );
+            $buf = ob_get_clean();
+
+            PHS_Logger::logf( '[APPLE] Response: '.$buf, $accounts_3rd_plugin::LOG_CHANNEL );
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $token_id
+     * @param string $action
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    private function _get_account_details_from_token_id( $token_id, $action, $params = false )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
+
+        if( empty( $token_id ) || !is_string( $token_id ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide an Apple verification code.' ) );
+            return false;
+        }
+
+        if( !$this->_prepare_instance( $action, $params ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error preparing Apple services for action %s.', $action ) );
+
+            return false;
+        }
+
+        if( empty( $token_id )
+         || !($payload_arr = $this->_decode_id_token( $token_id ))
          || !is_array( $payload_arr )
          || empty( $payload_arr['payload'] ) || !is_array( $payload_arr['payload'] ) )
         {
@@ -243,7 +327,7 @@ class Apple extends PHS_Library
         return $return_arr;
     }
 
-    private function _get_jwt_token( $code )
+    private function _get_jwt_token()
     {
         $datetime = new \DateTime();
         $time = $datetime->getTimestamp();

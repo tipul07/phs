@@ -61,7 +61,6 @@ class PHS_Action_Google_login extends PHS_Action
         $account_arr = false;
         $register_required = false;
         $retry_action = false;
-        $service_linked = false;
 
         $display_error_msg = '';
         $display_message_msg = '';
@@ -156,53 +155,29 @@ class PHS_Action_Google_login extends PHS_Action
                                      $error_msg.$this->_pt( 'Please try again.' );
             } else
             {
-                if( !$service_linked )
-                {
-                    if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
-                    {
-                        $service_linked = true;
-                    } else
-                    {
-                        PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                    }
-                }
+                PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
             }
-        }
-
-        if( !empty( $account_arr )
-         && !$accounts_model->is_active( $account_arr ) )
-        {
-            if( !$service_linked )
-            {
-                if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
-                {
-                    $service_linked = true;
-                } else
-                {
-                    PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                }
-            }
-
-            $retry_action = true;
-            $account_arr = false;
-            $display_error_msg = $this->_pt( 'Account linked with this email address is not active.' ).
-                                 ' '.
-                                 $this->_pt( 'Please try logging in using a different email address.' );
         }
 
         if( !empty( $account_arr ) )
         {
-            if( !$service_linked )
+            if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
             {
-                if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
-                {
-                    $service_linked = true;
-                } else
-                {
-                    PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                }
+                PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
             }
 
+            if( !$accounts_model->is_active( $account_arr ) )
+            {
+                $retry_action = true;
+                $account_arr = false;
+                $display_error_msg = $this->_pt( 'Account linked with this email address is not active.' ).
+                                     ' '.
+                                     $this->_pt( 'Please try logging in using a different email address.' );
+            }
+        }
+
+        if( !empty( $account_arr ) )
+        {
             if( !($plugin_settings = $accounts_plugin->get_plugin_settings()) )
                 $plugin_settings = [];
 

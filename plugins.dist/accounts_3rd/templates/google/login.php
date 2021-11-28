@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Roles;
     /** @var \phs\plugins\accounts_3rd\libraries\Google $google_lib */
     if( !($plugin_obj = $this->parent_plugin())
      || !($google_lib = $this->view_var( 'google_lib' )) )
-        return $this->_pt( 'Couldn\'t get parent plugin object.' );
+        return $this->_pt( 'Error loading required resources.' );
 
     if( !($account_arr = $this->view_var( 'account_arr' )) )
         $account_arr = false;

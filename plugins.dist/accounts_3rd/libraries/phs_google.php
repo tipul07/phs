@@ -12,6 +12,8 @@ class Google extends PHS_Library
 {
     const REWRITE_RULE_LOGIN = 'google/oauth/login', REWRITE_RULE_REGISTER = 'google/oauth/register';
 
+    const ACTION_LOGIN = 'login', ACTION_REGISTER = 'register';
+
     const AUTH_PLATFORM_ANDROID = 'android', AUTH_PLATFORM_IOS = 'ios';
 
     const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
@@ -156,7 +158,7 @@ class Google extends PHS_Library
         if( !($google_obj = $this->_get_google_instance( $params )) )
             return false;
 
-        if( !in_array( $action, [ 'login', 'register' ], true ) )
+        if( !in_array( $action, [ self::ACTION_LOGIN, self::ACTION_REGISTER ], true ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide an action for Google 3rd party WEB services.' ) );
             return false;
@@ -172,13 +174,13 @@ class Google extends PHS_Library
         }
 
         $return_url = '';
-        if( $action === 'login' )
+        if( $action === self::ACTION_LOGIN )
         {
             if( !empty( $settings_arr['google_web_login_return_url'] ) )
                 $return_url = PHS::get_base_url( true ).trim( $settings_arr['google_web_login_return_url'], '/' );
             else
                 $return_url = PHS::get_base_url( true ).self::REWRITE_RULE_LOGIN;
-        } elseif( $action === 'register' )
+        } elseif( $action === self::ACTION_REGISTER )
         {
             if( !empty( $settings_arr['google_web_register_return_url'] ) )
                 $return_url = PHS::get_base_url( true ).trim( $settings_arr['google_web_register_return_url'], '/' );
@@ -248,7 +250,7 @@ class Google extends PHS_Library
      */
     public function get_web_instance_for_login( $params = false )
     {
-        return $this->_get_web_instance( 'login', $params );
+        return $this->_get_web_instance( self::ACTION_LOGIN, $params );
     }
 
     /**
@@ -258,7 +260,7 @@ class Google extends PHS_Library
      */
     public function get_web_instance_for_register( $params = false )
     {
-        return $this->_get_web_instance( 'register', $params );
+        return $this->_get_web_instance( self::ACTION_REGISTER, $params );
     }
 
     /**

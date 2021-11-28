@@ -61,7 +61,6 @@ class PHS_Action_apple_login extends PHS_Action
         $account_arr = false;
         $register_required = false;
         $retry_action = false;
-        $service_linked = false;
 
         $display_error_msg = '';
         $display_message_msg = '';
@@ -81,15 +80,13 @@ class PHS_Action_apple_login extends PHS_Action
         {
             $retry_action = true;
             $display_error_msg = $this->_pt( 'Invalid Apple token. Please try again.' );
-        } elseif( !($account_info = $apple_lib->get_account_details_by_code( $apple_code, 'login' ))
+        } elseif( !($account_info = $apple_lib->get_account_details_by_code( $apple_code, $apple_lib::ACTION_LOGIN ))
                || !is_array( $account_info ) )
         {
             $retry_action = true;
             $account_info = false;
             $display_error_msg = $this->_pt( 'Error obtaining Apple account details. Please try again.' );
         }
-
-        var_dump( $account_info );
 
         if( !empty( $account_info ) )
         {
@@ -130,10 +127,6 @@ class PHS_Action_apple_login extends PHS_Action
             $fields_arr['status'] = $accounts_model::STATUS_ACTIVE;
             $fields_arr['lastip'] = request_ip();
 
-            if( !empty( $account_info['locale'] )
-             && self::valid_language( $account_info['locale'] ) )
-                $fields_arr['language'] = $account_info['locale'];
-
             $insert_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] );
             $insert_arr['fields'] = $fields_arr;
             if( !empty( $account_info['fname'] ) || !empty( $account_info['lname'] ) )
@@ -158,53 +151,29 @@ class PHS_Action_apple_login extends PHS_Action
                                      $error_msg.$this->_pt( 'Please try again.' );
             } else
             {
-                if( !$service_linked )
-                {
-                    if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
-                    {
-                        $service_linked = true;
-                    } else
-                    {
-                        PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                    }
-                }
+                PHS_Logger::logf( '[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
             }
-        }
-
-        if( !empty( $account_arr )
-         && !$accounts_model->is_active( $account_arr ) )
-        {
-            if( !$service_linked )
-            {
-                if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
-                {
-                    $service_linked = true;
-                } else
-                {
-                    PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                }
-            }
-
-            $retry_action = true;
-            $account_arr = false;
-            $display_error_msg = $this->_pt( 'Account linked with this email address is not active.' ).
-                                 ' '.
-                                 $this->_pt( 'Please try logging in using a different email address.' );
         }
 
         if( !empty( $account_arr ) )
         {
-            if( !$service_linked )
+            if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
             {
-                if( ($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
-                {
-                    $service_linked = true;
-                } else
-                {
-                    PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
-                }
+                PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
             }
 
+            if( !$accounts_model->is_active( $account_arr ) )
+            {
+                $retry_action = true;
+                $account_arr = false;
+                $display_error_msg = $this->_pt( 'Account linked with this email address is not active.' ).
+                                     ' '.
+                                     $this->_pt( 'Please try logging in using a different email address.' );
+            }
+        }
+
+        if( !empty( $account_arr ) )
+        {
             if( !($plugin_settings = $accounts_plugin->get_plugin_settings()) )
                 $plugin_settings = [];
 
