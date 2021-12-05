@@ -16,12 +16,12 @@ class PHS_Action_Register extends PHS_Action
     /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_REGISTER );
+        return [ self::ACT_ROLE_REGISTER ];
     }
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     /**
@@ -82,7 +82,7 @@ class PHS_Action_Register extends PHS_Action
         $registered = PHS_Params::_g( 'registered', PHS_Params::T_INT );
 
         if( empty( $foobar )
-        and PHS::user_logged_in() )
+         && PHS::user_logged_in() )
         {
             PHS_Notifications::add_success_notice( $this->_pt( 'Already logged in...' ) );
 
@@ -94,7 +94,7 @@ class PHS_Action_Register extends PHS_Action
         }
 
         if( !($accounts_settings = $accounts_plugin->get_plugin_settings()) )
-            $accounts_settings = array();
+            $accounts_settings = [];
 
         if( empty( $accounts_settings['min_password_length'] ) )
         {
@@ -108,17 +108,17 @@ class PHS_Action_Register extends PHS_Action
         {
             PHS_Notifications::add_success_notice( $this->_pt( 'User account registered with success...' ) );
 
-            $data = array(
+            $data = [
                 'nick' => $nick,
                 'email' => $email,
                 'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
-            );
+            ];
 
             return $this->quick_render_template( 'register_thankyou', $data );
         }
 
         $template = 'register';
-        $template_data = array(
+        $template_data = [
             'nick' => $nick,
             'email' => $email,
             'pass1' => $pass1,
@@ -131,21 +131,21 @@ class PHS_Action_Register extends PHS_Action
             'min_password_length' => $accounts_settings['min_password_length'],
             'password_regexp' => $accounts_settings['password_regexp'],
             'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
-        );
+        ];
 
         $hook_args = PHS_Hooks::default_page_location_hook_args();
         $hook_args['page_template'] = $template;
         $hook_args['page_template_args'] = $template_data;
 
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_PAGE_REGISTER, $hook_args ))
-        and is_array( $new_hook_args ) )
+         && is_array( $new_hook_args ) )
         {
-            if( !empty( $new_hook_args['action_result'] ) and is_array( $new_hook_args['action_result'] ) )
+            if( !empty( $new_hook_args['action_result'] ) && is_array( $new_hook_args['action_result'] ) )
                 return self::validate_array( $new_hook_args['action_result'], PHS_Action::default_action_result() );
 
             if( !empty( $new_hook_args['new_page_template'] ) )
                 $template = $new_hook_args['new_page_template'];
-            if( isset( $new_hook_args['new_page_template_args'] ) and $new_hook_args['new_page_template_args'] !== false )
+            if( isset( $new_hook_args['new_page_template_args'] ) && $new_hook_args['new_page_template_args'] !== false )
                 $template_data = $new_hook_args['new_page_template_args'];
         }
 
@@ -160,7 +160,7 @@ class PHS_Action_Register extends PHS_Action
             */
 
             if( ($hook_result = PHS_Hooks::trigger_captcha_check( $template_data['vcode'] )) !== null
-                and empty( $hook_result['check_valid'] ) )
+             && empty( $hook_result['check_valid'] ) )
             {
                 if( PHS_Error::arr_has_error( $hook_result['hook_errors'] ) )
                     PHS_Notifications::add_error_notice( self::arr_get_error_message( $hook_result['hook_errors'] ) );
@@ -173,14 +173,14 @@ class PHS_Action_Register extends PHS_Action
 
             else
             {
-                $insert_arr = array();
+                $insert_arr = [];
                 $insert_arr['nick'] = $template_data['nick'];
                 $insert_arr['pass'] = $template_data['pass1'];
                 $insert_arr['email'] = $template_data['email'];
                 $insert_arr['level'] = $accounts_model::LVL_MEMBER;
                 $insert_arr['lastip'] = request_ip();
 
-                if( !($account_arr = $accounts_model->insert( array( 'fields' => $insert_arr ) )) )
+                if( !($account_arr = $accounts_model->insert( [ 'fields' => $insert_arr ] )) )
                 {
                     if( $accounts_model->has_error() )
                         PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
@@ -191,14 +191,14 @@ class PHS_Action_Register extends PHS_Action
             }
 
             if( !empty( $account_arr )
-            and !PHS_Notifications::have_notifications_errors() )
+             && !PHS_Notifications::have_notifications_errors() )
             {
                 $action_result = self::default_action_result();
 
                 if( !$accounts_model->is_active( $account_arr ) )
-                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'register' ), array( 'registered' => 1, 'nick' => $nick, 'email' => $email ) );
+                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'register' ], [ 'registered' => 1, 'nick' => $nick, 'email' => $email ] );
                 else
-                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'registered' => 1, 'nick' => $nick ) );
+                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'login' ], [ 'registered' => 1, 'nick' => $nick ] );
 
                 return $action_result;
             }

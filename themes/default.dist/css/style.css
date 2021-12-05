@@ -312,7 +312,7 @@ table tbody + tbody { border-top: 2px solid #727C89; }
 /* table tbody tr td, table tbody tr th { -webkit-transition: background-color 0.25s 0 linear; -moz-transition: background-color 0.25s 0 linear; -ms-transition: background-color 0.25s 0  linear; -o-transition: background-color 0.25s 0 linear; transition: background-color 0.25s 0 linear; } */
 table tbody tr:hover td, table tbody tr:hover th { background-color: #D0D0D0; }
 table tbody tr:hover td,
-table tbody tr:hover+tr td  { 
+table tbody tr:hover+tr td  {
 	border-color: #666;
 	color: #000; 
 	}

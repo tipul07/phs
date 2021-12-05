@@ -8,6 +8,6 @@ class PHS_Controller_Index extends \phs\libraries\PHS_Controller_Index
 {
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX, PHS_Scope::SCOPE_API );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX, PHS_Scope::SCOPE_API ];
     }
 }

@@ -9,6 +9,8 @@ use \phs\libraries\PHS_Params;
 
 abstract class PHS_Api_action extends PHS_Action
 {
+    const ERR_API_INIT = 40000, ERR_AUTHENTICATION = 40001;
+
     /** @var bool|\phs\PHS_Api_base $api_obj */
     protected $api_obj = false;
 
@@ -132,13 +134,19 @@ abstract class PHS_Api_action extends PHS_Action
      * @param int $error_no
      * @param string $error_msg
      * @param false|array $action_result_defaults
+     * @param false|array $extra_arr
      *
      * @return array|false
      */
-    public function send_api_error( $http_error, $error_no, $error_msg, $action_result_defaults = false )
+    public function send_api_error( $http_error, $error_no, $error_msg, $action_result_defaults = false, $extra_arr = false )
     {
         if( !PHS_Api::valid_http_code( $http_error ) )
             $http_error = PHS_Api::H_CODE_INTERNAL_SERVER_ERROR;
+
+        if( empty( $extra_arr ) || !is_array( $extra_arr ) )
+            $extra_arr = [];
+
+        $extra_arr['only_response_data_node'] = (!empty( $extra_arr['only_response_data_node'] ));
 
         if( empty( $error_no ) )
             $error_no = self::ERR_FRAMEWORK;
@@ -148,6 +156,7 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_error;
+        $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
         $response_params['http_code_is_error'] = true;
         $response_params['error']['code'] = $error_no;
         $response_params['error']['message'] = $error_msg;
@@ -159,17 +168,24 @@ abstract class PHS_Api_action extends PHS_Action
      * @param array|null $payload_arr
      * @param int $http_code
      * @param false|array $action_result_defaults
+     * @param false|array $extra_arr
      *
      * @return array|false
      */
-    public function send_api_success( $payload_arr, $http_code = PHS_Api::H_CODE_OK, $action_result_defaults = false )
+    public function send_api_success( $payload_arr, $http_code = PHS_Api::H_CODE_OK, $action_result_defaults = false, $extra_arr = false )
     {
         if( !PHS_Api::valid_http_code( $http_code ) )
             $http_code = PHS_Api::H_CODE_OK;
 
+        if( empty( $extra_arr ) || !is_array( $extra_arr ) )
+            $extra_arr = [];
+
+        $extra_arr['only_response_data_node'] = (!empty( $extra_arr['only_response_data_node'] ));
+
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_code;
+        $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
         $response_params['response_data'] = $payload_arr;
 
         return $this->send_api_response( $response_params, $action_result_defaults );

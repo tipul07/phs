@@ -299,7 +299,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( empty( $account_data )
          || !($account_arr = $accounts_model->data_to_array( $account_data ))
-         || ! $accounts_model->is_active( $account_arr ) )
+         || !$accounts_model->is_active( $account_arr ) )
         {
             $this->set_error( self::ERR_LOGIN, $this->_pt( 'Unknown or inactive account.' ) );
             return false;

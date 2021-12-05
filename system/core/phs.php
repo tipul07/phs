@@ -67,7 +67,7 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return [ 'accounts', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice', 'emails', 'hubspot', 'mailchimp', 'messages',
+        return [ 'accounts', 'accounts_3rd', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice', 'emails', 'hubspot', 'mailchimp', 'messages',
                  'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
     }
 

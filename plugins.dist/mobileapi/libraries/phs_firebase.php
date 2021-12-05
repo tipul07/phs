@@ -17,8 +17,8 @@ class PHS_Firebase extends PHS_Library
     /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $_mobileapi_plugin */
     private $_mobileapi_plugin = false;
 
-    private $_api_settings = array();
-    private $_api_params = array();
+    private $_api_settings = [];
+    private $_api_params = [];
 
     public function __construct( $error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false )
     {
@@ -33,7 +33,7 @@ class PHS_Firebase extends PHS_Library
         $this->reset_error();
 
         if( empty( $this->_mobileapi_plugin )
-        and !($this->_mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
+         && !($this->_mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading MobileAPI plugin.' ) );
             return false;
@@ -54,7 +54,7 @@ class PHS_Firebase extends PHS_Library
         }
 
         if( empty( $settings_arr['fcm_base_url'] )
-         or empty( $settings_arr['fcm_auth_key'] ) )
+         || empty( $settings_arr['fcm_auth_key'] ) )
         {
             $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Invalid Firebase plugin settings.' ) );
             return false;
@@ -69,21 +69,21 @@ class PHS_Firebase extends PHS_Library
 
     public function get_default_api_settings()
     {
-        return array(
+        return [
             'fcm_base_url' => 'https://fcm.googleapis.com',
             'fcm_auth_key' => '',
             'fcm_api_timeout' => 30,
-        );
+        ];
     }
 
     public function get_default_api_params()
     {
-        return array(
+        return [
             'rest_url' => '',
             // GET, POST, DELETE, etc...
             'http_method' => 'GET',
             'payload' => false,
-        );
+        ];
     }
 
     public function reset_api_settings()
@@ -98,7 +98,7 @@ class PHS_Firebase extends PHS_Library
 
     public function api_settings( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null )
             return $this->_api_settings;
 
         if( $val === null )
@@ -106,7 +106,7 @@ class PHS_Firebase extends PHS_Library
             if( !is_array( $key ) )
             {
                 if( !is_scalar( $key )
-                 or !isset( $this->_api_settings[$key] ) )
+                 || !isset( $this->_api_settings[$key] ) )
                     return null;
 
                 return $this->_api_settings[$key];
@@ -115,7 +115,7 @@ class PHS_Firebase extends PHS_Library
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !isset( $this->_api_settings[$kkey] ) )
+                 || !isset( $this->_api_settings[$kkey] ) )
                     continue;
 
                 $this->_api_settings[$kkey] = $kval;
@@ -125,7 +125,7 @@ class PHS_Firebase extends PHS_Library
         }
 
         if( !is_scalar( $key )
-         or !isset( $this->_api_settings[$key] ) )
+         || !isset( $this->_api_settings[$key] ) )
             return null;
 
         $this->_api_settings[$key] = $val;
@@ -140,7 +140,7 @@ class PHS_Firebase extends PHS_Library
 
     private function _api_params( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null )
             return $this->_api_params;
 
         if( $val === null )
@@ -148,7 +148,7 @@ class PHS_Firebase extends PHS_Library
             if( !is_array( $key ) )
             {
                 if( !is_scalar( $key )
-                 or !isset( $this->_api_params[$key] ) )
+                 || !isset( $this->_api_params[$key] ) )
                     return null;
 
                 return $this->_api_params[$key];
@@ -157,7 +157,7 @@ class PHS_Firebase extends PHS_Library
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !isset( $this->_api_params[$kkey] ) )
+                 || !isset( $this->_api_params[$kkey] ) )
                     continue;
 
                 $this->_api_params[$kkey] = $kval;
@@ -167,7 +167,7 @@ class PHS_Firebase extends PHS_Library
         }
 
         if( !is_scalar( $key )
-         or !isset( $this->_api_params[$key] ) )
+         || !isset( $this->_api_params[$key] ) )
             return null;
 
         $this->_api_params[$key] = $val;
@@ -177,7 +177,7 @@ class PHS_Firebase extends PHS_Library
 
     public function can_connect()
     {
-        if( empty( $this->_api_settings['fcm_base_url'] ) or empty( $this->_api_settings['fcm_auth_key'] ) )
+        if( empty( $this->_api_settings['fcm_base_url'] ) || empty( $this->_api_settings['fcm_auth_key'] ) )
             return false;
 
         return true;
@@ -194,11 +194,11 @@ class PHS_Firebase extends PHS_Library
     {
         $this->reset_error();
 
-        if( empty( $payload_arr ) or !is_array( $payload_arr )
-         or (
-            (empty( $payload_arr['data'] ) or !is_array( $payload_arr['data'] ))
-            and
-            (empty( $payload_arr['notification'] ) or !is_array( $payload_arr['notification'] ))
+        if( empty( $payload_arr ) || !is_array( $payload_arr )
+         || (
+            (empty( $payload_arr['data'] ) || !is_array( $payload_arr['data'] ))
+            &&
+            (empty( $payload_arr['notification'] ) || !is_array( $payload_arr['notification'] ))
         ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide data and/or notification in payload.' ) );
@@ -215,7 +215,7 @@ class PHS_Firebase extends PHS_Library
         } else
         {
             // Array of tokens
-            $token = self::extract_strings_from_array( $token, array( 'trim_parts' => true, 'dump_empty_parts' => true ) );
+            $token = self::extract_strings_from_array( $token, [ 'trim_parts' => true, 'dump_empty_parts' => true ] );
             if( count( $token ) > self::MAX_TOKENS_IN_NOTIFICATION )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'You can provide up to %s tokens for a notification.', self::MAX_TOKENS_IN_NOTIFICATION ) );
@@ -229,8 +229,8 @@ class PHS_Firebase extends PHS_Library
             return false;
         }
 
-        if( empty( $envelope_arr ) or !is_array( $envelope_arr ) )
-            $envelope_arr = array();
+        if( empty( $envelope_arr ) || !is_array( $envelope_arr ) )
+            $envelope_arr = [];
 
         $this->_api_params( 'rest_url', 'fcm/send/' );
         $this->_api_params( 'http_method', 'POST' );
@@ -247,7 +247,7 @@ class PHS_Firebase extends PHS_Library
             $full_payload_arr['notification'] = $payload_arr['notification'];
 
         if( !($api_response = $this->_do_call( $full_payload_arr ))
-         or empty( $api_response['json_response_arr'] ) )
+         || empty( $api_response['json_response_arr'] ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending notification using Firebase.' ) );
@@ -259,8 +259,8 @@ class PHS_Firebase extends PHS_Library
     }
 
     /**
-     * @param bool|array $payload
-     * @param bool|array $params
+     * @param false|array $payload
+     * @param false|array $params
      *
      * @return array|bool
      */
@@ -281,7 +281,7 @@ class PHS_Firebase extends PHS_Library
 
         $payload_str = '';
         if( !empty( $payload )
-        and !($payload_str = @json_encode( $payload )) )
+         && !($payload_str = @json_encode( $payload )) )
         {
             ob_start();
             var_dump( $payload );
@@ -293,25 +293,25 @@ class PHS_Firebase extends PHS_Library
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['log_payload'] ) )
             $params['log_payload'] = true;
-        if( empty( $params['ok_http_codes'] ) or !is_array( $params['ok_http_codes'] ) )
-            $params['ok_http_codes'] = array( 200 );
+        if( empty( $params['ok_http_codes'] ) || !is_array( $params['ok_http_codes'] ) )
+            $params['ok_http_codes'] = [ 200 ];
 
         $base_url = trim( trim( $this->_api_settings['fcm_base_url'] ), './' );
         $rest_url = trim( trim( $this->_api_params['rest_url'] ), './' );
 
         $api_url = $base_url.'/'.$rest_url;
 
-        $api_params = array();
+        $api_params = [];
         $api_params['http_method'] = $this->_api_params['http_method'];
-        $api_params['header_keys_arr'] = array(
+        $api_params['header_keys_arr'] = [
             'Content-Type' => 'application/json',
             'Authorization' => 'key='.$this->_api_settings['fcm_auth_key'],
-        );
+        ];
 
         if( !empty( $payload_str ) )
         {
@@ -320,7 +320,7 @@ class PHS_Firebase extends PHS_Library
         }
 
         if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
-         or empty( $response['http_code'] ) )
+         || empty( $response['http_code'] ) )
         {
             PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $mobileapi_plugin::LOG_FIREBASE );
 
@@ -347,7 +347,7 @@ class PHS_Firebase extends PHS_Library
         }
 
         if( empty( $response['response'] ) )
-            $response_arr = array();
+            $response_arr = [];
         else
             $response_arr = @json_decode( $response['response'], true );
 
