@@ -61,7 +61,7 @@ class PHS_Model_Accounts_details extends PHS_Model
             $params['fields']['company'] = substr( $params['fields']['company'], 0, 255 );
 
         if( !isset( $params['fields']['limit_emails'] ) )
-            $params['fields']['limit_emails'] = 1;
+            $params['fields']['limit_emails'] = 0;
         else
             $params['fields']['limit_emails'] = (!empty( $params['fields']['limit_emails'] )?1:0);
 

@@ -81,6 +81,10 @@
 
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
     RewriteRule ^remote/(v([0-9]+)/|)(.*)$ _remote.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
+    RewriteRule ^google/oauth/login$ index.php?_route=accounts_3rd/index/google&action=login [QSA,NC,L]
+    RewriteRule ^google/oauth/register$ index.php?_route=accounts_3rd/index/google&action=register [QSA,NC,L]
+    RewriteRule ^apple/oauth/login$ index.php?_route=accounts_3rd/index/apple_login [QSA,NC,L]
+    RewriteRule ^apple/oauth/register$ index.php?_route=accounts_3rd/index/apple_register [QSA,NC,L]
     {{HTACCESS_PHS_REWRITE_RULES}}
 
 #+--------------------------------------------------------

@@ -7,21 +7,22 @@
     /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
     /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
     if( !($apikeys_model = $this->view_var( 'apikeys_model' ))
-     or !($users_autocomplete_action = $this->view_var( 'users_autocomplete_action' )) )
+     || !($users_autocomplete_action = $this->view_var( 'users_autocomplete_action' )) )
         return $this->_pt( 'Couldn\'t initialize view.' );
 
     if( !($api_methods_arr = $this->view_var( 'api_methods_arr' )) )
-        $api_methods_arr = array();
+        $api_methods_arr = [];
     if( !($allowed_methods = $this->view_var( 'allowed_methods' )) )
-        $allowed_methods = array();
+        $allowed_methods = [];
     if( !($denied_methods = $this->view_var( 'denied_methods' )) )
-        $denied_methods = array();
+        $denied_methods = [];
 
     if( !($back_page = $this->view_var( 'back_page' )) )
         $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'api_keys_list' ) );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <form id="edit_apikey_form" name="edit_apikey_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'api_key_edit' ), array( 'aid' => $this->view_var( 'aid' ) ) )?>" method="post">
+    <form id="edit_apikey_form" name="edit_apikey_form" method="post"
+          action="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'api_key_edit' ], [ 'aid' => $this->view_var( 'aid' ) ] )?>">
         <input type="hidden" name="foobar" value="1" />
         <?php
             if( !empty( $back_page ) )

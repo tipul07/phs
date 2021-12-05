@@ -20,38 +20,38 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        return array(
+        return [
             // default template
-            'template' => array(
+            'template' => [
                 'display_name' => 'Notice template',
                 'display_hint' => 'What template should be used when displaying fact that site uses cookies',
                 'type' => PHS_Params::T_ASIS,
                 'input_type' => self::INPUT_TYPE_TEMPLATE,
                 'default' => $this->template_resource_from_file( 'cookie_notice' ),
-            ),
-            'rejection_url' => array(
+            ],
+            'rejection_url' => [
                 'display_name' => 'Rejection URL',
                 'display_hint' => 'In case end-user doesn\'t accept cookies policy, system will redirect to this URL (leave empty to hide the link in template)',
                 'type' => PHS_Params::T_URL,
                 'default' => 'https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications',
-            ),
-            'read_more_url' => array(
+            ],
+            'read_more_url' => [
                 'display_name' => 'Read mode URL',
                 'display_hint' => 'End-user will be presented option to read more about cookies policy. System will redirect to this URL. (leave empty to hide the link in template)',
                 'type' => PHS_Params::T_URL,
                 'default' => 'https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications',
-            ),
-        );
+            ],
+        ];
     }
 
     public function agreed_cookies()
     {
-        return (PHS_Session::get_cookie( self::COOKIE_NAME )?true:false);
+        return (bool)PHS_Session::get_cookie( self::COOKIE_NAME );
     }
 
     public function accept_cookie_agreement()
     {
-        return PHS_Session::set_cookie( self::COOKIE_NAME, 1, array( 'expire_secs' => self::COOKIE_EXPIRE_SECS ) );
+        return PHS_Session::set_cookie( self::COOKIE_NAME, 1, [ 'expire_secs' => self::COOKIE_EXPIRE_SECS ] );
     }
 
     public function get_cookie_notice_hook_args( $hook_args )
@@ -67,7 +67,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         }
 
         if( !($settings_arr = $this->get_db_settings())
-         or empty( $settings_arr['template'] ) )
+         || empty( $settings_arr['template'] ) )
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
             return false;
@@ -84,17 +84,17 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
 
         $hook_args['template'] = $notifications_template;
 
-        $view_params = array();
+        $view_params = [];
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = array(
+        $view_params['template_data'] = [
             'rejection_url' => (!empty( $settings_arr['rejection_url'] )?$settings_arr['rejection_url']:''),
             'read_more_url' => (!empty( $settings_arr['read_more_url'] )?$settings_arr['read_more_url']:''),
             'cookie_name' => self::COOKIE_NAME,
             'plugin_obj' => $this,
-        );
+        ];
 
         if( !($view_obj = PHS_View::init_view( $notifications_template, $view_params )) )
         {

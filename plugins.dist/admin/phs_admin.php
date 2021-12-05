@@ -11,6 +11,9 @@ use \phs\libraries\PHS_Params;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
+
+    const H_ADMIN_LEFT_MENU_ADMIN_AFTER_USERS = 'phs_admin_left_menu_admin_after_users';
+
     /**
      * @inheritdoc
      */

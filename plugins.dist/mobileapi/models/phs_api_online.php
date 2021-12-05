@@ -17,18 +17,18 @@ class PHS_Model_Api_online extends PHS_Model
 
     const SOURCE_NATIVE = 'native';
 
-    private static $_sources_arr = array(
-        self::SOURCE_NATIVE => array(
+    private static $_sources_arr = [
+        self::SOURCE_NATIVE => [
             'title' => 'Native (PHS)',
-        )
-    );
+        ]
+    ];
 
     const DEV_TYPE_ANDROID = 1, DEV_TYPE_IOS = 2, DEV_TYPE_UNDEFINED = 3;
-    protected static $DEVICE_TYPES_ARR = array(
-        self::DEV_TYPE_ANDROID => array( 'title' => 'Android' ),
-        self::DEV_TYPE_IOS => array( 'title' => 'iOS' ),
-        self::DEV_TYPE_UNDEFINED => array( 'title' => 'Undefined' ),
-    );
+    protected static $DEVICE_TYPES_ARR = [
+        self::DEV_TYPE_ANDROID => [ 'title' => 'Android' ],
+        self::DEV_TYPE_IOS => [ 'title' => 'iOS' ],
+        self::DEV_TYPE_UNDEFINED => [ 'title' => 'Undefined' ],
+    ];
 
     /**
      * @return string Returns version of model
@@ -43,7 +43,7 @@ class PHS_Model_Api_online extends PHS_Model
      */
     public function get_table_names()
     {
-        return array( 'mobileapi_online', 'mobileapi_devices' );
+        return [ 'mobileapi_online', 'mobileapi_devices' ];
     }
 
     /**
@@ -56,8 +56,8 @@ class PHS_Model_Api_online extends PHS_Model
 
     public function valid_source( $source )
     {
-        if( empty( self::$_sources_arr ) or !is_array( self::$_sources_arr )
-         or empty( self::$_sources_arr[$source] ) )
+        if( empty( self::$_sources_arr ) || !is_array( self::$_sources_arr )
+         || empty( self::$_sources_arr[$source] ) )
             return false;
 
         return self::$_sources_arr[$source];
@@ -65,9 +65,9 @@ class PHS_Model_Api_online extends PHS_Model
 
     public function default_source_definition()
     {
-        return array(
+        return [
             'title' => '',
-        );
+        ];
     }
 
     /**
@@ -94,17 +94,17 @@ class PHS_Model_Api_online extends PHS_Model
 
     public function get_sources( $lang = false, $force = false )
     {
-        static $sources_arr = array();
+        static $sources_arr = [];
 
         if( empty( $force )
-        and $lang === false
-        and !empty( $sources_arr ) )
+         && $lang === false
+         && !empty( $sources_arr ) )
             return $sources_arr;
 
         // Let these here so language parser would catch the texts...
         $this->_pt( 'Native (PHS)' );
 
-        $result_arr = $this->translate_array_keys( self::$_sources_arr, array( 'title' ), $lang );
+        $result_arr = $this->translate_array_keys( self::$_sources_arr, [ 'title' ], $lang );
 
         if( $lang === false )
             $sources_arr = $result_arr;
@@ -117,11 +117,11 @@ class PHS_Model_Api_online extends PHS_Model
         static $sources_key_val_arr = false;
 
         if( empty( $force )
-        and $lang === false
-        and $sources_key_val_arr !== false )
+         && $lang === false
+         && $sources_key_val_arr !== false )
             return $sources_key_val_arr;
 
-        $key_val_arr = array();
+        $key_val_arr = [];
         if( ($sources_arr = $this->get_sources( $lang, $force )) )
         {
             foreach( $sources_arr as $key => $val )
@@ -141,10 +141,10 @@ class PHS_Model_Api_online extends PHS_Model
 
     final public function get_device_types( $lang = false )
     {
-        static $device_types = array();
+        static $device_types = [];
 
         if( $lang === false
-        and !empty( $device_types ) )
+         && !empty( $device_types ) )
             return $device_types;
 
         // Let these here so language parser would catch the texts...
@@ -152,7 +152,7 @@ class PHS_Model_Api_online extends PHS_Model
         $this->_pt( 'iOS' );
         $this->_pt( 'Undefined' );
 
-        $result_arr = $this->translate_array_keys( self::$DEVICE_TYPES_ARR, array( 'title' ), $lang );
+        $result_arr = $this->translate_array_keys( self::$DEVICE_TYPES_ARR, [ 'title' ], $lang );
 
         if( $lang === false )
             $device_types = $result_arr;
@@ -165,10 +165,10 @@ class PHS_Model_Api_online extends PHS_Model
         static $device_types_key_val_arr = false;
 
         if( $lang === false
-        and $device_types_key_val_arr !== false )
+         && $device_types_key_val_arr !== false )
             return $device_types_key_val_arr;
 
-        $key_val_arr = array();
+        $key_val_arr = [];
         if( ($device_types = $this->get_device_types( $lang )) )
         {
             foreach( $device_types as $key => $val )
@@ -191,7 +191,7 @@ class PHS_Model_Api_online extends PHS_Model
         $type = (int)$type;
         $all_device_types = $this->get_device_types( $lang );
         if( empty( $type )
-         or empty( $all_device_types[$type] ) )
+         || empty( $all_device_types[$type] ) )
             return false;
 
         return $all_device_types[$type];
@@ -202,7 +202,7 @@ class PHS_Model_Api_online extends PHS_Model
         $this->reset_error();
 
         if( empty( $record_data )
-         or !($record_arr = $this->data_to_array( $record_data, array( 'table_name' => 'mobileapi_online' ) )) )
+         || !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'mobileapi_online' ] )) )
         {
             $this->set_error( self::ERR_DELETE, $this->_pt( 'Session not found in database.' ) );
             return false;
@@ -213,123 +213,123 @@ class PHS_Model_Api_online extends PHS_Model
 
     public function generate_api_key()
     {
-        return md5( uniqid( rand(), true ) );
+        return md5( uniqid( mt_rand(), true ) );
     }
 
     public function generate_api_secret()
     {
-        return md5( uniqid( rand(), true ) );
+        return md5( uniqid( mt_rand(), true ) );
     }
 
     public static function get_api_data_session_fields()
     {
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
         if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
-            return array();
+            return [];
 
-        return array(
-            'uid' => array(
+        return [
+            'uid' => [
                 'key' => 'account_id',
                 'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'api_key' => array(
+            ],
+            'api_key' => [
                 'key' => 'api_key',
                 'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'api_secret' => array(
+            ],
+            'api_secret' => [
                 'key' => 'api_secret',
                 'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'last_update' => array(
+            ],
+            'last_update' => [
                 'key' => 'last_update',
                 'type' => PHS_Params::T_DATE,
-                'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'type_extra' => [ 'format' => self::DATETIME_DB ],
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'cdate' => array(
+            ],
+            'cdate' => [
                 'key' => 'cdate',
                 'type' => PHS_Params::T_DATE,
-                'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'type_extra' => [ 'format' => self::DATETIME_DB ],
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            self::DEVICE_KEY => array(
+            ],
+            self::DEVICE_KEY => [
                 'key' => 'device_data',
                 'type' => PHS_Params::T_ASIS,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-        );
+            ],
+        ];
     }
 
     public static function get_api_data_device_fields()
     {
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
         if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' )) )
-            return array();
+            return [];
 
-        return array(
-            'owner_id' => array(
+        return [
+            'owner_id' => [
                 'key' => 'owner_id',
                 'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'uid' => array(
+            ],
+            'uid' => [
                 'key' => 'account_id',
                 'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'device_type' => array(
+            ],
+            'device_type' => [
                 'key' => 'device_type',
                 'type' => PHS_Params::T_INT,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'device_name' => array(
+            ],
+            'device_name' => [
                 'key' => 'device_name',
                 'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'device_version' => array(
+            ],
+            'device_version' => [
                 'key' => 'device_version',
                 'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'device_token' => array(
+            ],
+            'device_token' => [
                 'key' => 'device_token',
                 'type' => PHS_Params::T_ASIS,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'source' => array(
+            ],
+            'source' => [
                 'key' => 'source',
                 'type' => PHS_Params::T_NOHTML,
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'lat' => array(
+            ],
+            'lat' => [
                 'key' => 'lat',
                 'type' => PHS_Params::T_FLOAT,
-                'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
+                'type_extra' => [ 'digits' => self::LAT_LONG_DIGITS ],
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'long' => array(
+            ],
+            'long' => [
                 'key' => 'long',
                 'type' => PHS_Params::T_FLOAT,
-                'type_extra' => array( 'digits' => self::LAT_LONG_DIGITS ),
+                'type_extra' => [ 'digits' => self::LAT_LONG_DIGITS ],
                 'key_type' => $mobileapi_plugin::API_KEY_BOTH,
-            ),
-            'last_update' => array(
+            ],
+            'last_update' => [
                 'key' => 'last_update',
                 'type' => PHS_Params::T_DATE,
-                'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'type_extra' => [ 'format' => self::DATETIME_DB ],
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-            'cdate' => array(
+            ],
+            'cdate' => [
                 'key' => 'cdate',
                 'type' => PHS_Params::T_DATE,
-                'type_extra' => array( 'format' => self::DATETIME_DB ),
+                'type_extra' => [ 'format' => self::DATETIME_DB ],
                 'key_type' => $mobileapi_plugin::API_KEY_OUTPUT,
-            ),
-        );
+            ],
+        ];
     }
 
     public function export_data_from_session_data( $session_data )
@@ -344,13 +344,13 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         if( empty( $session_data )
-         or !($session_arr = $this->populate_session_with_device_data( $session_data )) )
+         || !($session_arr = $this->populate_session_with_device_data( $session_data )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Session not found in database.' ) );
             return false;
         }
 
-        if( !empty( $session_arr[self::DEVICE_KEY] ) and is_array( $session_arr[self::DEVICE_KEY] ) )
+        if( !empty( $session_arr[self::DEVICE_KEY] ) && is_array( $session_arr[self::DEVICE_KEY] ) )
             $session_arr[self::DEVICE_KEY] = $this->export_data_from_device_data( $session_arr[self::DEVICE_KEY] );
 
         return $mobileapi_plugin::export_api_data_with_definition_as_array( $session_arr, self::get_api_data_session_fields() );
@@ -368,7 +368,7 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         if( empty( $device_data )
-         or !($device_arr = $this->data_to_array( $device_data, array( 'table_name' => 'mobileapi_devices' ) )) )
+         || !($device_arr = $this->data_to_array( $device_data, array( 'table_name' => 'mobileapi_devices' ) )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Device not found in database.' ) );
             return false;
@@ -382,7 +382,7 @@ class PHS_Model_Api_online extends PHS_Model
         $this->reset_error();
 
         if( !($session_arr = $this->populate_session_with_device_data( $session_data ))
-         or empty( $session_arr[self::DEVICE_KEY] ) )
+         || empty( $session_arr[self::DEVICE_KEY] ) )
             return false;
 
         return $session_arr[self::DEVICE_KEY];
@@ -393,7 +393,7 @@ class PHS_Model_Api_online extends PHS_Model
         $this->reset_error();
 
         if( empty( $session_data )
-         or !($session_arr = $this->data_to_array( $session_data, array( 'table_name' => 'mobileapi_online' ) )) )
+         || !($session_arr = $this->data_to_array( $session_data, [ 'table_name' => 'mobileapi_online' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Session not found in database.' ) );
             return false;
@@ -411,8 +411,8 @@ class PHS_Model_Api_online extends PHS_Model
             return $session_arr;
 
         // get device from database and make sure device is linked to same account as current session
-        if( !($device_arr = $this->get_details( $session_arr['device_id'], array( 'table_name' => 'mobileapi_devices' ) ))
-         or (int)$device_arr['uid'] !== (int)$session_arr['uid'] )
+        if( !($device_arr = $this->get_details( $session_arr['device_id'], [ 'table_name' => 'mobileapi_devices' ] ))
+         || (int)$device_arr['uid'] !== (int)$session_arr['uid'] )
         {
             // couldn't find device in database... don't update session, just wait for next call (might be a database communication error)
             // Device will be fixed anyway at next login...
@@ -425,22 +425,28 @@ class PHS_Model_Api_online extends PHS_Model
         return $session_arr;
     }
 
+    /**
+     * @param string $api_key
+     * @param false|array $params
+     *
+     * @return false|array
+     */
     public function get_session_by_apikey( $api_key, $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( !isset( $params['include_device_data'] ) )
             $params['include_device_data'] = true;
         else
-            $params['include_device_data'] = (!empty( $params['include_device_data'] )?true:false);
+            $params['include_device_data'] = (!empty( $params['include_device_data'] ));
 
-        $check_arr = array();
+        $check_arr = [];
         $check_arr['api_key'] = $api_key;
 
-        if( !($session_arr = $this->get_details_fields( $check_arr, array( 'table_name' => 'mobileapi_online' ) )) )
+        if( !($session_arr = $this->get_details_fields( $check_arr, [ 'table_name' => 'mobileapi_online' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Session not found in database.' ) );
             return false;
@@ -467,39 +473,45 @@ class PHS_Model_Api_online extends PHS_Model
         $this->reset_error();
 
         if( empty( $session_data )
-         or !($session_arr = $this->data_to_array( $session_data, array( 'table_name' => 'mobileapi_online' ) ))
-         or (string)$session_arr['api_secret'] !== (string)$api_secret )
+         || !($session_arr = $this->data_to_array( $session_data, [ 'table_name' => 'mobileapi_online' ] ))
+         || (string)$session_arr['api_secret'] !== (string)$api_secret )
             return false;
 
         return $session_arr;
     }
 
+    /**
+     * @param array $device_data
+     * @param int $account_id
+     *
+     * @return array|false
+     */
     public function generate_session( $device_data, $account_id = 0 )
     {
         $this->reset_error();
 
-        $account_id = intval( $account_id );
-        if( empty( $device_data ) or !is_array( $device_data ) )
+        $account_id = (int)$account_id;
+        if( empty( $device_data ) || !is_array( $device_data ) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide session details.' ) );
             return false;
         }
 
-        if( !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
-         or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        if( !($session_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] ))
+         || !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Couldn\'t initialize session parameters.' ) );
             return false;
         }
 
         if( empty( $device_data['device_token'] )
-         or !$this->valid_device_type( $device_data['device_type'] ) )
+         || !$this->valid_device_type( $device_data['device_type'] ) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Please provide device details.' ) );
             return false;
         }
 
-        $sess_fields = array();
+        $sess_fields = [];
         $sess_fields['uid'] = $account_id;
 
         $insert_arr = $session_flow;
@@ -516,7 +528,7 @@ class PHS_Model_Api_online extends PHS_Model
 
         // clean old sessions from same user/device pair...
         if( !empty( $session_arr[self::DEVICE_KEY] )
-        and !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
+         && !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
         {
             // AND uid = \''.$account_id.'\'
             // low level query so we don't trigger anything when we delete old sessions
@@ -528,12 +540,20 @@ class PHS_Model_Api_online extends PHS_Model
         return $session_arr;
     }
 
+    /**
+     * @param int|array $session_data
+     * @param array $device_fields
+     * @param false|int $account_id
+     * @param false|array $params
+     *
+     * @return array|bool|int
+     */
     public function update_session( $session_data, $device_fields, $account_id = false, $params = false )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['device_data'] ) )
             $params['device_data'] = false;
@@ -542,15 +562,15 @@ class PHS_Model_Api_online extends PHS_Model
         else
             $params['regenerate_keys'] = true;
 
-        if( !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
-         or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        if( !($session_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] ))
+         || !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
         {
             $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Couldn\'t initialize session parameters.' ) );
             return false;
         }
 
         if( empty( $session_data )
-         or !($session_arr = $this->data_to_array( $session_data, $session_flow )) )
+         || !($session_arr = $this->data_to_array( $session_data, $session_flow )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Session details not found in database.' ) );
@@ -562,7 +582,7 @@ class PHS_Model_Api_online extends PHS_Model
             $params['device_data'] = $session_arr['device_id'];
 
         if( empty( $params['device_data'] )
-         or !($device_arr = $this->data_to_array( $params['device_data'], $devices_flow )) )
+         || !($device_arr = $this->data_to_array( $params['device_data'], $devices_flow )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Session details not found in database.' ) );
@@ -572,17 +592,17 @@ class PHS_Model_Api_online extends PHS_Model
 
         if( $account_id !== false )
         {
-            $account_id = intval( $account_id );
+            $account_id = (int)$account_id;
 
             if( empty( $account_id ) )
                 $account_id = 0;
         }
 
-        $sess_fields = array();
+        $sess_fields = [];
         if( $account_id !== false )
         {
-            if( empty( $device_fields ) or !is_array( $device_fields ) )
-                $device_fields = array();
+            if( empty( $device_fields ) || !is_array( $device_fields ) )
+                $device_fields = [];
 
             $sess_fields['uid'] = $account_id;
             $device_fields['uid'] = $account_id;
@@ -613,34 +633,39 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         // clean old sessions from same user/device pair...
-        // in case we want to have an user logged in only on one device
-        if( false
-        and !empty( $session_arr[self::DEVICE_KEY] )
-        and !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
-        {
-            // AND uid = \''.$account_id.'\'
-            // low level query so we don't trigger anything when we delete old sessions
-            db_query( 'DELETE FROM `'.$this->get_flow_table_name( $session_flow ).'` '.
-                      ' WHERE device_id = \''.$session_arr[self::DEVICE_KEY]['id'].'\' '.
-                      ' AND id != \''.$session_arr['id'].'\'', $this->get_db_connection( $session_flow ) );
-        }
+        // in case we want to have a user logged in only on one device
+        // if( false
+        // && !empty( $session_arr[self::DEVICE_KEY] )
+        // && !empty( $session_arr[self::DEVICE_KEY]['id'] ) )
+        // {
+        //     // AND uid = \''.$account_id.'\'
+        //     // low level query, so we don't trigger anything when we delete old sessions
+        //     db_query( 'DELETE FROM `'.$this->get_flow_table_name( $session_flow ).'` '.
+        //               ' WHERE device_id = \''.$session_arr[self::DEVICE_KEY]['id'].'\' '.
+        //               ' AND id != \''.$session_arr['id'].'\'', $this->get_db_connection( $session_flow ) );
+        // }
 
         return $session_arr;
     }
 
+    /**
+     * @param int|array $session_data
+     *
+     * @return array|false
+     */
     public function logout_session( $session_data )
     {
         $this->reset_error();
 
-        if( !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
-         or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        if( !($session_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] ))
+         || !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initialize session parameters.' ) );
             return false;
         }
 
         if( empty( $session_data )
-         or !($session_arr = $this->populate_session_with_device_data( $session_data )) )
+         || !($session_arr = $this->populate_session_with_device_data( $session_data )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Session not found in database.' ) );
@@ -649,7 +674,7 @@ class PHS_Model_Api_online extends PHS_Model
 
         if( !empty( $session_arr[self::DEVICE_KEY] ) )
         {
-            $device_fields = array();
+            $device_fields = [];
             $device_fields['uid'] = 0;
             $device_fields['session_id'] = 0;
 
@@ -668,12 +693,9 @@ class PHS_Model_Api_online extends PHS_Model
         return $session_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_insert_prepare_params_mobileapi_online( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         if( empty( $params['fields']['uid'] ) )
@@ -687,23 +709,20 @@ class PHS_Model_Api_online extends PHS_Model
         $params['fields']['cdate'] = date( self::DATETIME_DB );
         $params['fields']['last_update'] = $params['fields']['cdate'];
 
-        if( empty( $params[self::DEVICE_KEY] ) or !is_array( $params[self::DEVICE_KEY] ) )
+        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) )
             $params[self::DEVICE_KEY] = false;
 
         return $params;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_edit_prepare_params_mobileapi_online( $existing_data, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
-        if( empty( $params[self::DEVICE_KEY] ) or !is_array( $params[self::DEVICE_KEY] ) )
+        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) )
             $params[self::DEVICE_KEY] = false;
 
         return $params;
@@ -711,7 +730,7 @@ class PHS_Model_Api_online extends PHS_Model
 
     protected function insert_after_mobileapi_online( $insert_arr, $params )
     {
-        if( !empty( $params[self::DEVICE_KEY] ) and is_array( $params[self::DEVICE_KEY] ) )
+        if( !empty( $params[self::DEVICE_KEY] ) && is_array( $params[self::DEVICE_KEY] ) )
         {
             // Update contact address
             if( !($new_device_arr = $this->update_session_device( $insert_arr, $params[self::DEVICE_KEY] )) )
@@ -726,7 +745,7 @@ class PHS_Model_Api_online extends PHS_Model
 
     protected function edit_after_mobileapi_online( $existing_data, $edit_arr, $params )
     {
-        if( !empty( $params[self::DEVICE_KEY] ) and is_array( $params[self::DEVICE_KEY] ) )
+        if( !empty( $params[self::DEVICE_KEY] ) && is_array( $params[self::DEVICE_KEY] ) )
         {
             // Update new updated fields...
             foreach( $edit_arr as $field => $val )
@@ -756,8 +775,8 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['only_logged_in'] ) )
             $params['only_logged_in'] = false;
@@ -770,7 +789,7 @@ class PHS_Model_Api_online extends PHS_Model
             $params['device_type'] = (int)$params['device_type'];
 
         if( !empty( $params['device_type'] )
-        and !$this->valid_device_type( $params['device_type'] ) )
+         && !$this->valid_device_type( $params['device_type'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Invalid device type.' ) );
             return false;
@@ -784,13 +803,13 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         if( empty( $account_data )
-         or !($account_arr = $accounts_model->data_to_array( $account_data )) )
+         || !($account_arr = $accounts_model->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
             return false;
         }
 
-        if( !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        if( !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initiate device update details.' ) );
             return false;
@@ -807,7 +826,7 @@ class PHS_Model_Api_online extends PHS_Model
             if( $this->has_error() )
                 return false;
 
-            $devices_arr = array();
+            $devices_arr = [];
         }
 
         return $devices_arr;
@@ -817,14 +836,14 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $device_params ) or !is_array( $device_params )
-         or !($devices_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_devices' ) )) )
+        if( empty( $device_params ) || !is_array( $device_params )
+         || !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t initiate device update details.' ) );
             return false;
         }
 
-        if( empty( $device_params['device_type'] ) or empty( $device_params['device_token'] ) )
+        if( empty( $device_params['device_type'] ) || empty( $device_params['device_token'] ) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Device type and device token not provided for current session.' ) );
             return false;
@@ -832,19 +851,19 @@ class PHS_Model_Api_online extends PHS_Model
 
         $db_device_arr = false;
         if( empty( $device_data )
-         or !($db_device_arr = $this->data_to_array( $device_data, $devices_flow )) )
+         || !($db_device_arr = $this->data_to_array( $device_data, $devices_flow )) )
             $db_device_arr = false;
 
         // If device from session doesn't match provided type and token, ignore it and search for it in db
         if( !empty( $db_device_arr )
-        and ($db_device_arr['device_type'] != $device_params['device_type']
-                or (string)$db_device_arr['device_token'] !== (string)$device_params['device_token'])
+         && ((int)$db_device_arr['device_type'] !== (int)$device_params['device_type']
+                || (string)$db_device_arr['device_token'] !== (string)$device_params['device_token'])
         )
             $db_device_arr = false;
 
         if( empty( $db_device_arr ) )
         {
-            $check_arr = array();
+            $check_arr = [];
             $check_arr['device_type'] = $device_params['device_type'];
             $check_arr['device_token'] = $device_params['device_token'];
 
@@ -900,15 +919,15 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $device_params ) or !is_array( $device_params )
-         or !($session_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) )) )
+        if( empty( $device_params ) || !is_array( $device_params )
+         || !($session_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] )) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t initiate data to update avatar profile location details.' ) );
             return false;
         }
 
         if( empty( $sesison_data )
-         or !($session_arr = $this->data_to_array( $sesison_data, $session_flow )) )
+         || !($session_arr = $this->data_to_array( $sesison_data, $session_flow )) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t find session details in database.' ) );
             return false;
@@ -934,9 +953,9 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         if( empty( $session_arr['device_id'] )
-         or $session_arr['device_id'] != $new_device_arr['id'] )
+         || (int)$session_arr['device_id'] !== (int)$new_device_arr['id'] )
         {
-            $edit_arr = array();
+            $edit_arr = [];
             $edit_arr['device_id'] = $new_device_arr['id'];
 
             $edit_params = $session_flow;
@@ -958,30 +977,30 @@ class PHS_Model_Api_online extends PHS_Model
 
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
         if( !($mobileapi_plugin = PHS::load_plugin( 'mobileapi' ))
-         or !($mapi_online_flow = $this->fetch_default_flow_params( array( 'table_name' => 'mobileapi_online' ) ))
-         or !($mo_table_name = $this->get_flow_table_name( $mapi_online_flow )) )
+         || !($mapi_online_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] ))
+         || !($mo_table_name = $this->get_flow_table_name( $mapi_online_flow )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t initialize required resources to check mobile API sessions.' ) );
             return false;
         }
 
-        $return_arr = array();
+        $return_arr = [];
         $return_arr['expired'] = 0;
         $return_arr['errors'] = 0;
         $return_arr['deleted'] = 0;
 
         if( !($plugin_settings = $mobileapi_plugin->get_plugin_settings())
-         or !is_array( $plugin_settings )
-         or empty( $plugin_settings['api_session_lifetime'] ) )
+         || !is_array( $plugin_settings )
+         || empty( $plugin_settings['api_session_lifetime'] ) )
             return $return_arr;
 
         $plugin_settings['api_session_lifetime'] = (int)$plugin_settings['api_session_lifetime'];
 
         $list_arr = $mapi_online_flow;
-        $list_arr['fields']['last_update'] = array( 'check' => '<=', 'value' => date( self::DATETIME_DB, time() + $plugin_settings['api_session_lifetime'] * 3600 ) );
+        $list_arr['fields']['last_update'] = [ 'check' => '<=', 'value' => date( self::DATETIME_DB, time() + $plugin_settings['api_session_lifetime'] * 3600 ) ];
 
         if( ($sessions_list = $this->get_list( $list_arr )) === false
-         or !is_array( $sessions_list ) )
+         || !is_array( $sessions_list ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying database for API mobile sessions.' ) );
             return false;
@@ -1014,12 +1033,9 @@ class PHS_Model_Api_online extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_insert_prepare_params_mobileapi_devices( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         if( empty( $params['fields']['device_token'] ) )
@@ -1029,7 +1045,7 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         if( empty( $params['fields']['device_type'] )
-         or !$this->valid_device_type( $params['fields']['device_type'] ) )
+         || !$this->valid_device_type( $params['fields']['device_type'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid device type.' ) );
             return false;
@@ -1038,7 +1054,7 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $params['fields']['uid'] ) )
             $params['fields']['uid'] = 0;
 
-        if( empty( $params['fields']['owner_id'] ) and !empty( $params['fields']['uid'] ) )
+        if( empty( $params['fields']['owner_id'] ) && !empty( $params['fields']['uid'] ) )
             $params['fields']['owner_id'] = $params['fields']['uid'];
 
         if( empty( $params['fields']['api_key'] ) )
@@ -1052,28 +1068,25 @@ class PHS_Model_Api_online extends PHS_Model
         return $params;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_edit_prepare_params_mobileapi_devices( $existing_data, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
-        if( isset( $params['fields']['device_token'] ) and empty( $params['fields']['device_token'] ) )
+        if( isset( $params['fields']['device_token'] ) && empty( $params['fields']['device_token'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a device token.' ) );
             return false;
         }
 
         if( isset( $params['fields']['device_type'] )
-        and !$this->valid_device_type( $params['fields']['device_type'] ) )
+        && !$this->valid_device_type( $params['fields']['device_type'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide a valid device type.' ) );
             return false;
         }
 
-        if( empty( $existing_data['owner_id'] ) and !empty( $params['fields']['uid'] ) )
+        if( empty( $existing_data['owner_id'] ) && !empty( $params['fields']['uid'] ) )
             $params['fields']['owner_id'] = $params['fields']['uid'];
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
@@ -1086,7 +1099,7 @@ class PHS_Model_Api_online extends PHS_Model
      */
     protected function get_count_list_common_params( $params = false )
     {
-        if( !empty( $params['flags'] ) and is_array( $params['flags'] ) )
+        if( !empty( $params['flags'] ) && is_array( $params['flags'] ) )
         {
             if( empty( $params['db_fields'] ) )
                 $params['db_fields'] = '';
@@ -1099,7 +1112,7 @@ class PHS_Model_Api_online extends PHS_Model
                     case 'include_account_details':
 
                         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-                         or !($accounts_table = $accounts_model->get_flow_table_name()) )
+                         || !($accounts_table = $accounts_model->get_flow_table_name()) )
                             continue 2;
 
                         $params['db_fields'] .= ', `'.$accounts_table.'`.nick AS account_nick, '.
@@ -1130,11 +1143,15 @@ class PHS_Model_Api_online extends PHS_Model
     public function get_area_center( $lat1, $long1, $lat2, $long2 )
     {
         // spare some cycles if points are same
-        if( $lat1 == $lat2 and $long1 == $long2 )
-            return array(
+        $lat1 = (float)$lat1;
+        $lat2 = (float)$lat2;
+        $long1 = (float)$long1;
+        $long2 = (float)$long2;
+        if( $lat1 === $lat2 && $long1 === $long2 )
+            return [
                 'lat' => $lat1,
                 'long' => $long1,
-            );
+            ];
 
         $center_y_dist = max( $lat1, $lat2 ) - min( $lat1, $lat2 );
         $center_x_dist = max( $long1, $long2 ) - min( $long1, $long2 );
@@ -1142,16 +1159,20 @@ class PHS_Model_Api_online extends PHS_Model
         $center_lat = min( $lat1, $lat2 ) + $center_y_dist / 2;
         $center_long = min( $long1, $long2 ) + $center_x_dist / 2;
 
-        return array(
+        return [
             'lat' => $center_lat,
             'long' => $center_long,
-        );
+        ];
     }
 
     public function distance_between_points( $lat1, $long1, $lat2, $long2 )
     {
         // spare some cycles if points are same
-        if( $lat1 == $lat2 and $long1 == $long2 )
+        $lat1 = (float)$lat1;
+        $lat2 = (float)$lat2;
+        $long1 = (float)$long1;
+        $long2 = (float)$long2;
+        if( $lat1 === $lat2 && $long1 === $long2 )
             return 0;
 
         $earth_radius = 6371;
@@ -1170,10 +1191,19 @@ class PHS_Model_Api_online extends PHS_Model
         return $angle * $earth_radius;
     }
 
+    /**
+     * @param float $lat
+     * @param float $long
+     * @param false|array $params
+     *
+     * @return array
+     */
     public function get_distance_query( $lat, $long, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        $lat = (float)$lat;
+        $long = (float)$long;
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['distance_field_name'] ) )
             $params['distance_field_name'] = 'distance';
@@ -1185,7 +1215,7 @@ class PHS_Model_Api_online extends PHS_Model
         if( !isset( $params['result_in_km'] ) )
             $params['result_in_km'] = true;
         else
-            $params['result_in_km'] = (!empty( $params['result_in_km'] )?true:false);
+            $params['result_in_km'] = (!empty( $params['result_in_km'] ));
 
         if( empty( $params['range'] ) )
             $params['range'] = 0;
@@ -1200,7 +1230,7 @@ class PHS_Model_Api_online extends PHS_Model
             $one_deg_lat = 69;
         }
 
-        $query_arr = array();
+        $query_arr = [];
         $query_arr['range_lat1'] = 0;
         $query_arr['range_long1'] = 0;
         $query_arr['range_lat2'] = 0;
@@ -1255,130 +1285,130 @@ class PHS_Model_Api_online extends PHS_Model
     final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
-        if( empty( $params ) or !is_array( $params )
-         or empty( $params['table_name'] ) )
+        if( empty( $params ) || !is_array( $params )
+         || empty( $params['table_name'] ) )
             return false;
 
-        $return_arr = array();
+        $return_arr = [];
         switch( $params['table_name'] )
         {
             case 'mobileapi_online':
-                $return_arr = array(
-                    'id' => array(
+                $return_arr = [
+                    'id' => [
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'uid' => array(
+                    ],
+                    'uid' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
-                    ),
-                    'device_id' => array(
+                    ],
+                    'device_id' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
-                    ),
-                    'api_key' => array(
+                    ],
+                    'api_key' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
                         'index' => true,
-                    ),
-                    'api_secret' => array(
+                    ],
+                    'api_secret' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
-                    ),
-                    'last_update' => array(
+                    ],
+                    'last_update' => [
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
-                    ),
-                    'cdate' => array(
+                    ],
+                    'cdate' => [
                         'type' => self::FTYPE_DATETIME,
-                    ),
-                );
+                    ],
+                ];
             break;
 
             case 'mobileapi_devices':
-                $return_arr = array(
+                $return_arr = [
 
-                    self::EXTRA_INDEXES_KEY => array(
-                        'pair_key' => array(
+                    self::EXTRA_INDEXES_KEY => [
+                        'pair_key' => [
                             'unique' => true,
-                            'fields' => array( 'device_type', 'device_token' ),
-                        ),
-                    ),
+                            'fields' => [ 'device_type', 'device_token' ],
+                        ],
+                    ],
 
-                    'id' => array(
+                    'id' => [
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'owner_id' => array(
+                    ],
+                    'owner_id' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
                         'comment' => 'Tells last user connected with this device',
-                    ),
-                    'uid' => array(
+                    ],
+                    'uid' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
                         'comment' => 'User currently logged in with this device',
-                    ),
-                    'session_id' => array(
+                    ],
+                    'session_id' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
-                    ),
-                    'source' => array(
+                    ],
+                    'source' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
-                    ),
-                    'device_type' => array(
+                    ],
+                    'device_type' => [
                         'type' => self::FTYPE_TINYINT,
                         'length' => 2,
                         'index' => true,
                         'editable' => false,
-                    ),
-                    'device_name' => array(
+                    ],
+                    'device_name' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
-                    ),
-                    'device_version' => array(
+                    ],
+                    'device_version' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
-                    ),
-                    'device_token' => array(
+                    ],
+                    'device_token' => [
                         'type' => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'nullable' => true,
                         'default' => null,
                         'index' => true,
                         'editable' => false,
-                    ),
-                    'lat' => array(
+                    ],
+                    'lat' => [
                         'type' => self::FTYPE_DECIMAL,
                         'length' => (self::LAT_LONG_DIGITS+3).','.self::LAT_LONG_DIGITS,
                         'default' => 0,
-                    ),
-                    'long' => array(
+                    ],
+                    'long' => [
                         'type' => self::FTYPE_DECIMAL,
                         'length' => (self::LAT_LONG_DIGITS+3).','.self::LAT_LONG_DIGITS,
                         'default' => 0,
-                    ),
-                    'last_update' => array(
+                    ],
+                    'last_update' => [
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
-                    ),
-                    'cdate' => array(
+                    ],
+                    'cdate' => [
                         'type' => self::FTYPE_DATETIME,
-                    ),
-                );
+                    ],
+                ];
             break;
        }
 
