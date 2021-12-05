@@ -20,12 +20,12 @@
     PHS_Logger::logf( ' --- Started agent...', PHS_Logger::TYPE_AGENT );
 
     if( !($agent_obj = new PHS_Agent())
-     or !($run_result = $agent_obj->check_agent_jobs()) )
+     || !($run_result = $agent_obj->check_agent_jobs()) )
     {
         PHS_Logger::logf( 'Error checking agent jobs!', PHS_Logger::TYPE_AGENT );
 
         if( $agent_obj
-        and $agent_obj->has_error() )
+         && $agent_obj->has_error() )
             PHS_Logger::logf( 'Agent error: ['.$agent_obj->get_error_message().']', PHS_Logger::TYPE_AGENT );
     } elseif( ($debug_data = PHS::platform_debug_data()) )
     {
