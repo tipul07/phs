@@ -20,11 +20,11 @@
     PHS_Logger::logf( ' --- Started agent bg job...', PHS_Logger::TYPE_AGENT );
 
     $input = '';
-    if( !empty( $_SERVER['argv'] ) and is_array( $_SERVER['argv'] ) and !empty( $_SERVER['argv'][1] ) )
+    if( !empty( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) && !empty( $_SERVER['argv'][1] ) )
         $input = $_SERVER['argv'][1];
 
     if( !($parsed_input = PHS_Agent::bg_validate_input( $input ))
-     or empty( $parsed_input['job_data'] ) )
+     || empty( $parsed_input['job_data'] ) )
     {
         PHS_Logger::logf( 'INVALID job input', PHS_Logger::TYPE_AGENT );
         exit;
@@ -32,9 +32,9 @@
 
     $job_arr = $parsed_input['job_data'];
 
-    $run_job_extra = array();
+    $run_job_extra = [];
     $run_job_extra['agent_jobs_model'] = (!empty( $parsed_input['agent_jobs_model'] )?$parsed_input['agent_jobs_model']:false);
-    $run_job_extra['force_run'] = (!empty( $parsed_input['force_run'] )?true:false);
+    $run_job_extra['force_run'] = (!empty( $parsed_input['force_run'] ));
 
     if( !($run_result = PHS_Agent::bg_run_job( $job_arr, $run_job_extra )) )
     {
