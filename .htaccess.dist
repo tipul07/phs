@@ -1,3 +1,7 @@
+#+-----------------------------------------------------------
+#| Disable directory listing
+Options -Indexes
+
 <IfModule mod_php5.c>
 
     # adjust php values and flags (if required)
@@ -81,10 +85,13 @@
 
     RewriteRule ^api/(v([0-9]+)/|)(.*)$ _api.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
     RewriteRule ^remote/(v([0-9]+)/|)(.*)$ _remote.php?_rw=1&_v=$2&_ar=$3 [QSA,NC,L]
+
+    # Google and Apple 3rd party login
     RewriteRule ^google/oauth/login$ index.php?_route=accounts_3rd/index/google&action=login [QSA,NC,L]
     RewriteRule ^google/oauth/register$ index.php?_route=accounts_3rd/index/google&action=register [QSA,NC,L]
     RewriteRule ^apple/oauth/login$ index.php?_route=accounts_3rd/index/apple_login [QSA,NC,L]
     RewriteRule ^apple/oauth/register$ index.php?_route=accounts_3rd/index/apple_register [QSA,NC,L]
+
     {{HTACCESS_PHS_REWRITE_RULES}}
 
 #+--------------------------------------------------------
@@ -101,21 +108,9 @@
 
 </IfModule>
 
-############################################
-## By default allow all access
-
-<IfVersion < 2.4>
-    order allow,deny
-    allow from all
-</IfVersion>
-<IfVersion >= 2.4>
-    Require all granted
-</IfVersion>
-
-###########################################
-## Deny access to sensitive scripts
-
-<Files "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|_update.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
+#+--------------------------------------------------------
+#| Deny access to sensitive scripts
+<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|_update.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
     <IfVersion < 2.4>
         order allow,deny
         deny from all
@@ -124,3 +119,13 @@
         Require all denied
     </IfVersion>
 </Files>
+
+#+--------------------------------------------------------
+#| By default allow all access
+<IfVersion < 2.4>
+    order allow,deny
+    allow from all
+</IfVersion>
+<IfVersion >= 2.4>
+    Require all granted
+</IfVersion>

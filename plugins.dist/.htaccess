@@ -1,13 +1,14 @@
 # PHP files will not be called directly...
 
-<FilesMatch ".*\.php$">
-    Require all denied
-</FilesMatch>
+Options -Indexes
 
-<FilesMatch ".*\.js\.php$">
+<FilesMatch ".+\.js\.php$">
     Require all granted
 </FilesMatch>
 
-<FilesMatch ".*phs_[a-zA-Z0-9_]+\.json$">
-    Require all denied
-</FilesMatch>
+# Allow resources in templates directory
+<If "%{REQUEST_URI} =~ m#.+/templates/.+\.(gif|jpeg|jpg|png|svg|css|js)#">
+    Require all granted
+</If>
+
+Require all denied

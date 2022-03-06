@@ -117,13 +117,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 'default' => true,
             ],
             'session_expire_minutes_remember' => [
-                'display_name' => $this->_pt( 'Password lifetime (long) mins' ),
+                'display_name' => $this->_pt( 'Session lifetime (long) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user ticked "Remember Me" checkbox' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 2880, // 2 days
             ],
             'session_expire_minutes_normal' => [
-                'display_name' => $this->_pt( 'Password lifetime (short) mins' ),
+                'display_name' => $this->_pt( 'Session lifetime (short) mins' ),
                 'display_hint' => $this->_pt( 'After how many minutes should session expire if user DIDN\'T tick "Remember Me" checkbox' ),
                 'type' => PHS_Params::T_INT,
                 'default' => 60, // 1 hour
@@ -767,7 +767,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         // Password expiration (if required)...
         if( !($hook_args['password_expired_data'] = $accounts_model->is_password_expired( $user_db_details )) )
-            $hook_args['password_expired_data'] = PHS_Hooks::default_user_db_details_hook_args();
+            $hook_args['password_expired_data'] = PHS_Hooks::default_password_expiration_data();
         // END Password expiration (if required)...
 
         $check_result = $hook_args;

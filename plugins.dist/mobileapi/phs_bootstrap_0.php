@@ -129,6 +129,23 @@ if( ($mobile_plugin = PHS::load_plugin( 'mobileapi' ))
         ]
     );
 
+    // GET /users/logout_others Logout other sessions from a 3rd party mobile app
+    PHS_Api::register_api_route( [
+            [ 'exact_match' => 'users', ],
+            [ 'exact_match' => 'logout_others', ],
+        ],
+        [
+            'p' => 'mobileapi',
+            'a' => 'logout_others',
+        ],
+        [
+            'authentication_callback' => [ $mobile_plugin, 'do_api_authentication' ],
+            'method' => 'get',
+            'name' => '3rd party logout other sessions',
+            'description' => 'Logout other sessions functionality for 3rd party applications',
+        ]
+    );
+
     // GET /users/change_password Request new password from a 3rd party mobile app
     PHS_Api::register_api_route( [
             [ 'exact_match' => 'users', ],
