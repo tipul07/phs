@@ -816,20 +816,11 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if( empty( $account_data )
-         || !($account_arr = $this->data_to_array( $account_data ))
-         || empty( $account_arr['pass_clear'] ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
+         || !($clean_pass = $this->clean_password( $account_data )) )
             return false;
-        }
 
-        if( false === ($clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error obtaining obfuscated password.' ) );
-            return false;
-        }
-
-        return substr( $clean_pass, 0, 1 ).str_repeat( '*', strlen( $clean_pass ) - 2 ).substr( $clean_pass, -1 );
+        // Don't put exact number of chars from password unless password is bigger than 16 chars
+        return substr( $clean_pass, 0, 1 ).str_repeat( '*', max( strlen( $clean_pass ) - 2, 14 ) ).substr( $clean_pass, -1 );
     }
 
     /**
@@ -904,8 +895,8 @@ class PHS_Model_Accounts extends PHS_Model
         if( $expiration_time < $now_time )
             $expired_for_seconds = $now_time - $expiration_time;
 
-        $return_arr['is_expired'] = ($expired_for_seconds > 0?true:false);
-        $return_arr['show_only_warning'] = (($block_after_seconds == -1 || $expired_for_seconds < $block_after_seconds)?true:false);
+        $return_arr['is_expired'] = ($expired_for_seconds > 0);
+        $return_arr['show_only_warning'] = ($block_after_seconds === -1 || $expired_for_seconds < $block_after_seconds);
         $return_arr['pass_expires_seconds'] = $expiration_time;
         $return_arr['last_pass_change_seconds'] = $last_pass_change_time;
         $return_arr['expiration_days'] = $expire_days;
@@ -1114,7 +1105,6 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $clean_lang = false;
         if( empty( $account_arr['language'] )
          || !($clean_lang = self::valid_language( $account_arr['language'] )) )
             return false;
@@ -1216,8 +1206,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['expire_date'] = date( self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60 );
         $edit_arr['location'] = $params['location'];
 
-        $edit_params = [];
-        $edit_params['table_name'] = 'online';
+        $edit_params = $this->fetch_default_flow_params( [ 'table_name' => 'online' ] );
         $edit_params['fields'] = $edit_arr;
 
         if( !($online_arr = $this->edit( $online_arr, $edit_params )) )
@@ -1239,12 +1228,12 @@ class PHS_Model_Accounts extends PHS_Model
     public function session_logout_subaccount( $online_data )
     {
         if( empty( $online_data )
-         || !($online_arr = $this->data_to_array( $online_data, [ 'table_name' => 'online' ] ))
+         || !($online_flow = $this->fetch_default_flow_params( [ 'table_name' => 'online' ] ))
+         || !($online_arr = $this->data_to_array( $online_data, $online_flow ))
          || empty( $online_arr['auid'] ) )
             return false;
 
-        $edit_arr = [];
-        $edit_arr['table_name'] = 'online';
+        $edit_arr = $online_flow;
         $edit_arr['fields'] = [];
         $edit_arr['fields']['uid'] = $online_arr['auid'];
         $edit_arr['fields']['auid'] = 0;
@@ -1260,11 +1249,12 @@ class PHS_Model_Accounts extends PHS_Model
     public function session_logout( $online_data )
     {
         if( empty( $online_data )
-         || !($online_arr = $this->data_to_array( $online_data, [ 'table_name' => 'online' ] ))
+         || !($online_flow = $this->fetch_default_flow_params( [ 'table_name' => 'online' ] ))
+         || !($online_arr = $this->data_to_array( $online_data, $online_flow ))
          || empty( $online_arr['id'] ) )
             return false;
 
-        return $this->hard_delete( $online_arr, [ 'table_name' => 'online' ] );
+        return $this->hard_delete( $online_arr, $online_flow );
     }
 
     /**

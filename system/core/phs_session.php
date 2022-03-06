@@ -7,6 +7,8 @@ use \phs\libraries\PHS_Utils;
 
 final class PHS_Session extends PHS_Registry
 {
+    const SESS_FILE_WRITE_RETRIES = 5, SESS_FILE_READ_RETRIES = 5;
+
     const ERR_DOMAIN = 1, ERR_COOKIE = 2;
 
     const SESS_DIR_LENGTH = 2, SESS_DIR_MAX_SEGMENTS = 4;
@@ -530,8 +532,14 @@ final class PHS_Session extends PHS_Registry
     {
         if( PHS::prevent_session()
          || !($sess_file = self::get_session_id_file_name( $id ))
-         || !@file_exists( $sess_file )
-         || !($ret_val = @file_get_contents( $sess_file )) )
+         || !@file_exists( $sess_file ) )
+            return '';
+
+        $retries = self::SESS_FILE_READ_RETRIES;
+        while( (false === ($ret_val = @file_get_contents( $sess_file ))) && $retries )
+            $retries--;
+
+        if( !$ret_val )
             return '';
 
         return $ret_val;
@@ -560,7 +568,11 @@ final class PHS_Session extends PHS_Registry
                 return false;
         }
 
-        if( !($fil = @fopen( $sess_file, 'wb' )) )
+        $retries = self::SESS_FILE_WRITE_RETRIES;
+        while( !($fil = @fopen( $sess_file, 'wb' )) && $retries )
+            $retries--;
+
+        if( !$fil )
             return false;
 
         @fwrite( $fil, $data );

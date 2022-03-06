@@ -653,6 +653,71 @@ class PHS_Model_Api_online extends PHS_Model
      *
      * @return array|false
      */
+    public function logout_other_sessions( $session_data )
+    {
+        $this->reset_error();
+
+        if( !($session_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_online' ] ))
+         || !($devices_flow = $this->fetch_default_flow_params( [ 'table_name' => 'mobileapi_devices' ] )) )
+        {
+            $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Couldn\'t initialize session parameters.' ) );
+            return false;
+        }
+
+        if( empty( $session_data )
+         || !($session_arr = $this->populate_session_with_device_data( $session_data )) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_SESSION_CREATE, $this->_pt( 'Session details not found in database.' ) );
+
+            return false;
+        }
+
+        // Get all sessions from same user, but with different device...
+        if( empty( $session_arr[self::DEVICE_KEY] )
+         || empty( $session_arr[self::DEVICE_KEY]['id'] )
+         || !($sessions_table_name = $this->get_flow_table_name( $session_flow ))
+         || !($devices_table_name = $this->get_flow_table_name( $devices_flow ))
+         || !($qid = db_query( 'SELECT * FROM `'.$sessions_table_name.'` WHERE '.
+                               ' uid = \''.$session_arr['uid'].'\' '.
+                               ' AND id != \''.$session_arr['id'].'\'',
+                $session_flow['db_connection'] ))
+         || !@mysqli_num_rows( $qid ) )
+            return $session_arr;
+
+        $device_ids = [];
+        while( ($s_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( !empty( $s_arr['device_id'] )
+             && (int)$s_arr['device_id'] !== (int)$session_arr[self::DEVICE_KEY]['id'] )
+                $device_ids[(int)$s_arr['device_id']] = true;
+        }
+
+        // low level query, so we don't trigger anything when we delete old sessions
+        db_query( 'DELETE FROM `'.$sessions_table_name.'` WHERE '.
+                  ' uid = \''.$session_arr['uid'].'\' '.
+                  ' AND id != \''.$session_arr['id'].'\'',
+            $session_flow['db_connection'] );
+
+        // Update devices...
+        if( !empty( $device_ids ) )
+        {
+            db_query( 'UPDATE `'.$devices_table_name.'` '.
+                      ' SET session_id = 0, uid = 0 '.
+                      ' WHERE '.
+                      ' uid = \''.$session_arr['uid'].'\' '.
+                      ' AND id IN ('.implode( ',', @array_keys( $device_ids ) ).')',
+                $devices_flow['db_connection'] );
+        }
+
+        return $session_arr;
+    }
+
+    /**
+     * @param int|array $session_data
+     *
+     * @return array|false
+     */
     public function logout_session( $session_data )
     {
         $this->reset_error();

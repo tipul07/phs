@@ -1,7 +1,5 @@
 <?php
 
-use \phs\PHS;
-
     /** @var \phs\system\core\views\PHS_View $this */
 
     /** @var \phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */

@@ -369,7 +369,7 @@ final class PHS extends PHS_Registry
             return $hook_result;
 
         $hook_args = PHS_Hooks::default_user_db_details_hook_args();
-        $hook_args['force_check'] = (!empty( $force )?true:false);
+        $hook_args['force_check'] = (!empty( $force ));
 
         if( !($hook_result = PHS_Hooks::trigger_current_user( $hook_args )) )
             $hook_result = false;
