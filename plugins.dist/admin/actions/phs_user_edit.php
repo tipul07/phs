@@ -3,7 +3,6 @@
 namespace phs\plugins\admin\actions;
 
 use \phs\PHS;
-use \phs\PHS_Bg_jobs;
 use \phs\PHS_Scope;
 use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Params;
@@ -19,7 +18,7 @@ class PHS_Action_User_edit extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
     /**
@@ -41,31 +40,16 @@ class PHS_Action_User_edit extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
-         or !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings()) )
+         || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($roles_model = PHS::load_model( 'roles' ))
+         || !($plugins_model = PHS::load_model( 'plugins' )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
-            return self::default_action_result();
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-        if( !($roles_model = PHS::load_model( 'roles' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load roles model.' ) );
-            return self::default_action_result();
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if( !($plugins_model = PHS::load_model( 'plugins' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load plugins model.' ) );
             return self::default_action_result();
         }
 
@@ -79,19 +63,17 @@ class PHS_Action_User_edit extends PHS_Action
         $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
 
         if( empty( $uid )
-         or !($account_arr = $accounts_model->get_details( $uid ))
-         or $accounts_model->is_deleted( $account_arr ) )
+         || !($account_arr = $accounts_model->get_details( $uid ))
+         || $accounts_model->is_deleted( $account_arr ) )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'Invalid account...' ) );
 
             $action_result = self::default_action_result();
 
-            $args = array(
-                'unknown_account' => 1
-            );
+            $args = [ 'unknown_account' => 1 ];
 
             if( empty( $back_page ) )
-                $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'users_list' ) );
+                $back_page = PHS::url( ['p' => 'admin', 'a' => 'users_list']);
             else
                 $back_page = from_safe_url( $back_page );
 
@@ -103,12 +85,12 @@ class PHS_Action_User_edit extends PHS_Action
         }
 
         if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
-            $roles_by_slug = array();
+            $roles_by_slug = [];
         if( !($account_roles = $roles_model->get_user_roles_slugs( $account_arr )) )
-            $account_roles = array();
+            $account_roles = [];
 
-        if( !($account_details_arr = $accounts_model->get_account_details( $account_arr, array( 'populate_with_empty_data' => true ) )) )
-            $account_details_arr = array();
+        if( !($account_details_arr = $accounts_model->get_account_details( $account_arr, ['populate_with_empty_data' => true])) )
+            $account_details_arr = [];
 
         if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
             PHS_Notifications::add_success_notice( $this->_pt( 'Account details saved in database.' ) );
@@ -119,7 +101,7 @@ class PHS_Action_User_edit extends PHS_Action
         $pass2 = PHS_Params::_p( 'pass2', PHS_Params::T_ASIS );
         $email = PHS_Params::_p( 'email', PHS_Params::T_EMAIL );
         $level = PHS_Params::_p( 'level', PHS_Params::T_INT );
-        $account_roles_slugs = PHS_Params::_p( 'account_roles_slugs', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML ) );
+        $account_roles_slugs = PHS_Params::_p( 'account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
         $title = PHS_Params::_p( 'title', PHS_Params::T_NOHTML );
         $fname = PHS_Params::_p( 'fname', PHS_Params::T_NOHTML );
         $lname = PHS_Params::_p( 'lname', PHS_Params::T_NOHTML );
@@ -143,27 +125,27 @@ class PHS_Action_User_edit extends PHS_Action
 
         if( !empty( $do_submit ) )
         {
-            if( (!empty( $pass ) or !empty( $pass2 ))
-            and $pass != $pass2 )
+            if( (!empty( $pass ) || !empty( $pass2 ))
+             && $pass !== $pass2 )
                 PHS_Notifications::add_error_notice( $this->_pt( 'Password fields don\'t match.' ) );
 
             else
             {
-                $edit_arr = array();
+                $edit_arr = [];
                 $edit_arr['nick'] = $nick;
                 if( !empty( $pass ) )
                     $edit_arr['pass'] = $pass;
                 $edit_arr['email'] = $email;
                 $edit_arr['level'] = $level;
 
-                $edit_details_arr = array();
+                $edit_details_arr = [];
                 $edit_details_arr['title'] = $title;
                 $edit_details_arr['fname'] = $fname;
                 $edit_details_arr['lname'] = $lname;
                 $edit_details_arr['phone'] = $phone;
                 $edit_details_arr['company'] = $company;
 
-                $edit_params_arr = array();
+                $edit_params_arr = [];
                 $edit_params_arr['fields'] = $edit_arr;
                 $edit_params_arr['{users_details}'] = $edit_details_arr;
                 $edit_params_arr['{account_roles}'] = $account_roles_slugs;
@@ -175,20 +157,19 @@ class PHS_Action_User_edit extends PHS_Action
 
                     $action_result = self::default_action_result();
 
-                    $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'user_edit' ), array( 'uid' => $account_arr['id'], 'changes_saved' => 1 ) );
+                    $action_result['redirect_to_url'] = PHS::url( ['p' => 'admin', 'a' => 'user_edit'], ['uid' => $account_arr['id'], 'changes_saved' => 1]);
 
                     return $action_result;
-                } else
-                {
-                    if( $accounts_model->has_error() )
-                        PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
-                    else
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
                 }
+
+                if( $accounts_model->has_error() )
+                    PHS_Notifications::add_error_notice( $accounts_model->get_error_message() );
+                else
+                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving details to database. Please try again.' ) );
             }
         }
 
-        $data = array(
+        $data = [
             'uid' => $account_arr['id'],
             'back_page' => $back_page,
 
@@ -213,7 +194,7 @@ class PHS_Action_User_edit extends PHS_Action
 
             'roles_model' => $roles_model,
             'plugins_model' => $plugins_model,
-        );
+        ];
 
         return $this->quick_render_template( 'user_edit', $data );
     }

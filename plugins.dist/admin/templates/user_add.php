@@ -7,140 +7,152 @@
     /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
     if( !($roles_model = $this->view_var( 'roles_model' ))
-     or !($plugins_model = $this->view_var( 'plugins_model' )) )
+     || !($plugins_model = $this->view_var( 'plugins_model' )) )
         return $this->_pt( 'Couldn\'t load roles model.' );
 
     if( !($accounts_plugin_settings = $this->view_var( 'accounts_plugin_settings' )) )
-        $accounts_plugin_settings = array();
+        $accounts_plugin_settings = [];
 
     if( !($user_levels = $this->view_var( 'user_levels' )) )
-        $user_levels = array();
+        $user_levels = [];
 
     if( !($roles_by_slug = $this->view_var( 'roles_by_slug' )) )
-        $roles_by_slug = array();
+        $roles_by_slug = [];
 
     $current_user = PHS::user_logged_in();
 ?>
-<form id="add_user_form" name="add_user_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'user_add' ) )?>" method="post">
-<div style="min-width:100%;max-width:1000px;margin: 0 auto;">
-    <input type="hidden" name="foobar" value="1" />
+<form id="add_user_form" name="add_user_form" action="<?php echo PHS::url( ['p' => 'admin', 'a' => 'user_add'])?>" method="post">
+<input type="hidden" name="foobar" value="1" />
 
-    <div class="form_container" style="width: 650px;">
+<div class="form_container" style="width: 650px;">
 
-        <section class="heading-bordered">
-            <h3><?php echo $this->_pt( 'Add User Account' )?></h3>
-        </section>
+    <section class="heading-bordered">
+        <h3><?php echo $this->_pt( 'Add User Account' )?></h3>
+    </section>
 
-        <fieldset class="form-group">
-            <label for="nick"><?php echo $this->_pt( 'Username' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="nick" name="nick" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'nick' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="nick"><?php echo $this->_pt( 'Username' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="nick" name="nick" class="form-control" required="required"
+               value="<?php echo form_str( $this->view_var( 'nick' ) )?>" autocomplete="off" /><br/>
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
-            <div class="lineform_line">
-            <input type="password" id="pass" name="pass" class="form-control" required="required" value="<?php echo form_str( $this->view_var( 'pass' ) )?>" style="width: 260px;" autocomplete="off" /><br/>
-            <small><?php
+    <fieldset class="form-group">
+        <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
+        <div class="lineform_line">
+        <input type="password" id="pass" name="pass" class="form-control"
+            <?php echo (empty( $accounts_plugin_settings['generate_pass_if_not_present'] )?'required="required"':'')?>
+               value="<?php echo form_str( $this->view_var( 'pass' ) )?>" autocomplete="off" /><br/>
+        <small><?php
 
-                echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
+            echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
 
-                $pass_regexp = $this->view_var( 'password_regexp' );
-                if( !empty( $pass_regexp ) )
+            $pass_regexp = $this->view_var( 'password_regexp' );
+            if( !empty( $pass_regexp ) )
+            {
+                echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
+
+                if( ($regexp_parts = explode( '/', $pass_regexp ))
+                    and !empty( $regexp_parts[1] ) )
                 {
-                    echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
+                    if( empty($regexp_parts[2]) )
+                        $regexp_parts[2] = '';
 
-                    if( ($regexp_parts = explode( '/', $pass_regexp ))
-                        and !empty( $regexp_parts[1] ) )
-                    {
-                        if( empty($regexp_parts[2]) )
-                            $regexp_parts[2] = '';
+                    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
+                } else
+                    echo $this->_pt( 'Password should pass regular expresion: %s.', $pass_regexp );
+            }
 
-                        ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
-                    } else
-                        echo $this->_pt( 'Password should pass regular expresion: %s.', $pass_regexp );
-                }
+            echo '<br/>'.$this->_pt( 'If password field is left empty, system will generate a password and will send it by email to the provided email.' );
 
-            ?></small>
-            </div>
-        </fieldset>
+        ?></small>
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="email"><?php echo $this->_pt( 'Email' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="email" name="email" class="form-control" <?php echo (!empty( $accounts_plugin_settings['email_mandatory'] )?'required="required"':'')?> value="<?php echo form_str( $this->view_var( 'email' ) )?>" style="width: 260px;" autocomplete="off" />
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="email"><?php echo $this->_pt( 'Email' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="email" name="email" class="form-control"
+            <?php echo (!empty( $accounts_plugin_settings['email_mandatory'] )?'required="required"':'')?>
+               value="<?php echo form_str( $this->view_var( 'email' ) )?>" autocomplete="off" />
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="level"><?php echo $this->_pt( 'Level' )?></label>
-            <div class="lineform_line">
-            <select name="level" id="level" class="chosen-select-nosearch" style="width:260px;">
-                <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
-                <?php
-                foreach( $user_levels as $key => $level_details )
-                {
-                    if( $key >= $current_user['level'] )
-                        break;
+    <fieldset class="form-group">
+        <label for="level"><?php echo $this->_pt( 'Level' )?></label>
+        <div class="lineform_line">
+        <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
+            <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
+            <?php
+            $current_level = (int)$this->view_var( 'level' );
+            foreach( $user_levels as $key => $level_details )
+            {
+                if( $key >= $current_user['level'] )
+                    break;
 
-                    ?><option value="<?php echo $key?>" <?php echo ($this->view_var( 'level' )==$key?'selected="selected"':'')?>><?php echo $level_details['title']?></option><?php
-                }
-                ?>
-            </select>
-            </div>
-        </fieldset>
+                ?><option value="<?php echo $key?>" <?php echo ($current_level===$key?'selected="selected"':'')?>><?php echo $level_details['title']?></option><?php
+            }
+            ?>
+        </select>
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="level"><?php echo $this->_pt( 'Roles' )?></label>
-            <div class="lineform_line">
-            <div id="account_current_roles"></div>
-            <a href="javascript:void(0)" onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
-            <br/><small><?php echo $this->_pt( 'If no roles are provided, roles will be set depending on selected level.' )?></small>
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="level"><?php echo $this->_pt( 'Roles' )?></label>
+        <div class="lineform_line">
+        <div id="account_current_roles"></div>
+        <a href="javascript:void(0)" onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
+        <br/><small><?php echo $this->_pt( 'If no roles are provided, roles will be set depending on selected level.' )?></small>
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="title"><?php echo $this->_pt( 'Title' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" style="width: 60px;" autocomplete="off" /><br/>
-            <small><?php echo $this::_t( 'eg. Mr., Ms., Mrs., etc' )?></small>
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="title"><?php echo $this->_pt( 'Title' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>"
+               style="width: 60px;" autocomplete="off" /><br/>
+        <small><?php echo $this::_t( 'eg. Mr., Ms., Mrs., etc' )?></small>
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="fname" name="fname" class="form-control" value="<?php echo form_str( $this->view_var( 'fname' ) )?>" style="width: 260px;" autocomplete="off" />
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="fname" name="fname" class="form-control"
+               value="<?php echo form_str( $this->view_var( 'fname' ) )?>" autocomplete="off" />
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="lname" name="lname" class="form-control" value="<?php echo form_str( $this->view_var( 'lname' ) )?>" style="width: 260px;" autocomplete="off" />
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="lname" name="lname" class="form-control"
+               value="<?php echo form_str( $this->view_var( 'lname' ) )?>" autocomplete="off" />
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="phone" name="phone" class="form-control" value="<?php echo form_str( $this->view_var( 'phone' ) )?>" style="width: 260px;" autocomplete="off" />
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="phone" name="phone" class="form-control"
+               value="<?php echo form_str( $this->view_var( 'phone' ) )?>" autocomplete="off" />
+        </div>
+    </fieldset>
 
-        <fieldset class="form-group">
-            <label for="company"><?php echo $this->_pt( 'Company' )?></label>
-            <div class="lineform_line">
-            <input type="text" id="company" name="company" class="form-control" value="<?php echo form_str( $this->view_var( 'company' ) )?>" style="width: 260px;" autocomplete="off" />
-            </div>
-        </fieldset>
+    <fieldset class="form-group">
+        <label for="company"><?php echo $this->_pt( 'Company' )?></label>
+        <div class="lineform_line">
+        <input type="text" id="company" name="company" class="form-control"
+               value="<?php echo form_str( $this->view_var( 'company' ) )?>" autocomplete="off" />
+        </div>
+    </fieldset>
 
-        <fieldset>
-            <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pt( 'Create Account' )?>" />
-        </fieldset>
+    <fieldset>
+        <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
+               value="<?php echo $this->_pt( 'Create Account' )?>" />
+    </fieldset>
 
-    </div>
 </div>
 <div class="clearfix"></div>
 
@@ -148,7 +160,7 @@
 
     <div>
     <?php
-    if( !empty( $roles_by_slug ) and is_array( $roles_by_slug ) )
+    if( !empty( $roles_by_slug ) && is_array( $roles_by_slug ) )
     {
         $old_plugin = false;
         $plugin_name = $this->_pt( 'Manually added' );
@@ -196,19 +208,19 @@
     ?>
     </div>
     <div class="clearfix"></div>
-    <div>
-    <div style="float:right;"><input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small" value="<?php echo $this->_pt( 'Close' )?>" onclick="close_roles_dialogue()" /></div>
+
+    <div style="float:right;padding:10px 0;">
+        <input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small"
+               value="<?php echo $this->_pt( 'Close' )?>" onclick="close_roles_dialogue()" />
     </div>
 </div>
 </form>
 
 <script type="text/javascript">
-function close_roles_dialogue()
-{
+function close_roles_dialogue() {
     PHS_JSEN.closeAjaxDialog( 'user_roles_' );
 }
-function open_roles_dialogue()
-{
+function open_roles_dialogue() {
     var container_obj = $("#account_roles_container");
     if( !container_obj )
         return;
@@ -220,14 +232,13 @@ function open_roles_dialogue()
         width: 800,
         height: 600,
         title: "<?php echo $this->_pte( 'Account Roles' )?>",
-        resizable: false,
+        resizable: true,
         source_obj: container_obj,
         source_not_cloned: true,
         onbeforeclose: closing_roles_dialogue
     });
 }
-function closing_roles_dialogue()
-{
+function closing_roles_dialogue() {
     var container_obj = $("#account_roles_container");
     if( !container_obj )
         return;
@@ -236,8 +247,7 @@ function closing_roles_dialogue()
 
     update_selected_roles();
 }
-function update_selected_roles()
-{
+function update_selected_roles() {
     var roles_container_obj = $("#account_current_roles");
     if( !roles_container_obj )
         return;
@@ -256,8 +266,7 @@ function update_selected_roles()
                 plugin_slug = "";
 
             if( plugin_name && plugin_name.length
-             && old_slug !== plugin_slug )
-            {
+             && old_slug !== plugin_slug ) {
                 var prefix = " - ";
                 if( old_slug !== false )
                     prefix = "<br/> - ";
