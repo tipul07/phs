@@ -110,7 +110,7 @@ Options -Indexes
 
 #+--------------------------------------------------------
 #| Deny access to sensitive scripts
-<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|_update.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
+<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
     <IfVersion < 2.4>
         order allow,deny
         deny from all

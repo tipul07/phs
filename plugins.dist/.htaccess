@@ -7,7 +7,10 @@ Options -Indexes
 </FilesMatch>
 
 # Allow resources in templates directory
-<If "%{REQUEST_URI} =~ m#.+/templates/.+\.(gif|jpeg|jpg|png|svg|css|js)#">
+#<If "%{REQUEST_URI} =~ m#.+/templates/.+\.(gif|jpeg|jpg|png|svg|css|js)#">
+#    Require all granted
+#</If>
+<If "%{REQUEST_URI} =~ m#.+/plugins/[^/]+/templates/.+\.[^php]+$#">
     Require all granted
 </If>
 
