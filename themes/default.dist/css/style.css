@@ -929,6 +929,7 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 	.list_container {}
 	
 	/*--- 4.1.1 - List Filter - START ----------------------------*/
+		[id^="paginator_filters"].container-fluid { padding: 0 }
 		.list_filters_container .form_container {
 			padding: 1em;
 			background-color: #F0F0F0;
@@ -938,15 +939,12 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 			.list_filters_container #paginator_list_form_inputs {
 				}
 				.list_filters_container fieldset {
-					float: left;
-					width: 24.6%;
-					margin-right: 0.5%;
 					}
 				.list_filters_container fieldset:nth-child(4n) {
 					margin-right: 0;
 					}
-				fieldset.paginator_filter {}
-				fieldset.paginator_filter a:hover { text-decoration: none; }
+				.paginator_filter {}
+				.paginator_filter a:hover { text-decoration: none; }
 					.paginator_filter label {
 						word-break: break-all;
 						}
