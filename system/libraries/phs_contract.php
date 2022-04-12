@@ -262,14 +262,23 @@ abstract class PHS_Contract extends PHS_Instantiable
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract']) )
         {
-            if( null === ($new_outside_data = $lvl_contract->pre_processing_from_outside_source( $outside_data, $params['pre_processing_params'], $processing_params ))
-             && $lvl_contract->has_error() )
+            if( null === ($new_outside_data = $lvl_contract->pre_processing_from_outside_source( $outside_data, $params['pre_processing_params'], $processing_params )) )
             {
-                $this->copy_error( $lvl_contract );
-                return null;
+                // in case validation fails and we have an error set, copy the error and propagate it...
+                if( $lvl_contract->has_error() )
+                {
+                    $this->copy_error( $lvl_contract );
+                    return null;
+                }
+
+                // If we don't have an error, just ignore the node
+                return false;
             }
 
             $outside_data = $new_outside_data;
+
+            if( empty( $outside_data ) || !is_array( $outside_data ) )
+                $outside_data = [];
         }
 
         $return_arr = [];
@@ -686,14 +695,23 @@ abstract class PHS_Contract extends PHS_Instantiable
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract']) )
         {
-            if( null === ($new_inside_data = $lvl_contract->pre_processing_from_inside_source( $inside_data, $params['pre_processing_params'], $processing_params ))
-             && $lvl_contract->has_error() )
+            if( null === ($new_inside_data = $lvl_contract->pre_processing_from_inside_source( $inside_data, $params['pre_processing_params'], $processing_params )) )
             {
-                $this->copy_error( $lvl_contract );
-                return null;
+                // in case validation fails and we have an error set, copy the error and propagate it...
+                if( $lvl_contract->has_error() )
+                {
+                    $this->copy_error( $lvl_contract );
+                    return null;
+                }
+
+                // If we don't have an error, just ignore the node
+                return false;
             }
 
             $inside_data = $new_inside_data;
+
+            if( empty( $inside_data ) || !is_array( $inside_data ) )
+                $inside_data = [];
         }
 
         $return_arr = [];
