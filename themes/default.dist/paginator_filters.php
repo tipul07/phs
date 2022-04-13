@@ -56,7 +56,8 @@
 
         <div class="form_container">
 
-            <div id="<?php echo $filters_form_name?>_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;">
+            <div id="<?php echo $filters_form_name?>_inputs" style="display:<?php echo ($show_filters?'block':'none')?>;" class="container-fluid">
+            <div class="row">
             <?php
             $filters_display_arr = [];
             foreach( $filters_arr as $filter_details )
@@ -88,7 +89,7 @@
                 $field_value_display = $field_value;
 
                 ?>
-                <fieldset class="paginator_filter">
+                <fieldset class="paginator_filter col-xs-12 col-md-6 col-lg-3">
                     <label for="<?php echo $field_id?>"><?php
 
                         echo $filter_details['display_name'];
@@ -206,20 +207,19 @@
                     $filters_display_arr[] = '<em>'.$filter_details['display_name'].'</em>: '.$field_value_display;
             }
             ?>
-
-            <div class="clearfix"></div>
+            </div>
             <div class="row">
-            <div class="col-6">
+            <div class="col-xs-12 col-sm-6">
                 <input type="submit" id="submit" name="submit" class="btn btn-primary submit-protection ignore_hidden_required"
                        value="<?php echo $this->_pte( 'Filter' )?>" />
-                <input type="button" onclick="toggle_filters_inputs_and_text( '<?php echo $filters_form_name?>' )" class="btn btn-primary" style="margin-right:5px;"
+                <input type="button" onclick="toggle_filters_inputs_and_text( '<?php echo $filters_form_name?>' )" class="btn btn-light"
                        value="<?php echo $this->_pte( 'Hide Filters' )?>" />
             </div>
             <?php
             if( !empty( $paginator_full_path_id ) )
             {
                 ?>
-                <div class="col-6 text-right">
+                <div class="col-xs-12 col-sm-6 text-right">
                     <label for="<?php echo $paginator_full_path_id?>">
                         <input type="checkbox" value="1" rel="skin_checkbox"
                                name="<?php echo $paginator_full_path_id?>" id="<?php echo $paginator_full_path_id?>"

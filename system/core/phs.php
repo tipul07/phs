@@ -171,9 +171,11 @@ final class PHS extends PHS_Registry
      */
     public static function detect_secure_request()
     {
-        if( !empty( $_SERVER )
-         && isset( $_SERVER['HTTPS'] )
-         && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1' || $_SERVER['HTTPS'] === 1) )
+        if( (!empty( $_SERVER )
+             && isset( $_SERVER['HTTPS'] )
+             && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1' || $_SERVER['HTTPS'] === 1))
+         // If we run in cli mode assume we are on https calls in order to force https URL generation
+         || PHP_SAPI === 'cli' )
             return true;
 
         return false;

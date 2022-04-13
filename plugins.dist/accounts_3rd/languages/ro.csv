@@ -1,0 +1,67 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Couldn't register user. Please try again.,Eroare la înregistrarea contului. Incercati din nou.
+Invalid Apple token.,Token Apple invalid.
+Please provide device info.,Furnizaţi detaliile dispozitivului.
+Error obtaining Apple account details.,Eroare la obținerea detaliilor contului Apple.
+Registration failed.,Înregistrarea a eşuat.
+Invalid Google token.,Token Google invalid.
+Invalid authentication platform.,Platformă de autentificare invalidă.
+Error obtaining Google account details.,Eroare la obținerea informaţiilor contului Google.
+Error decoding Apple account details. Please try again.,Eroare la decodarea detaliilor contului Apple. Încercaţi din nou.
+Invalid Apple token. Please try again.,Token Apple invalid. Încercaţi din nou.
+Error obtaining Apple account details. Please try again.,Eroare la obţinerea detaliilor contului Apple. Încercaţi din nou.
+This email address is not registered on this platform.,Adresa de email nu este înregistrată pe această platformă.
+Error registering account.,Eroare la înregistrarea contului.
+Please try again.,Încercaţi din nou.
+Account linked with this email address is not active.,Contul legat de această adresă de email este inactiv.
+Please try logging in using a different email address.,Vă rugăm să vă logaţi cu altă adresă de email.
+Error logging in.,Eroare la logarea în cont.
+Error decoding Google account details. Please try again.,Eroare la decodarea datelor contului Google. Încercaţi din nou.
+Invalid Google token. Please try again.,Token-ul Google este invalid. Încercaţi din nou.
+Error obtaining Google account details. Please try again.,Eroare la obţinerea datelor contului Google. Încercaţi din nou.
+Couldn't load accounts 3rd party plugin instance.,Nu am putut încărca resursele necesare.
+Please provide an action for Apple 3rd party service.,Vă rugăm să oferiți o acţiune pentru serviciul Apple.
+Error obtaining Apple 3rd party service settings.,Eroare la obţinerea setărilor serviciilor Apple.
+Error obtaining a return URL for Apple 3rd party service.,Eroare la obţinerea URL-ului de retur pentru serviciul Apple.
+Error verifying token with Apple. Please try again.,Eroare la citirea detaliilor producatorului. Incercati din nou.
+Please provide an Apple verification code.,Vă rugăm să oferiți un cod de verificare Apple.
+Error preparing Apple services for action %s.,Eroare la pregătirea serviciilor Apple pentru acţiunea %s.
+Error sending request to Apple services for action %s.,Eroare la trimiterea cererii la serverele Apple pentru acţiunea %s.
+Couldn't decode Apple token ID.,Nu am putut decoda ID-ul tokenului Apple.
+Error sending request to Apple services.,Eroare la încărcarea resurselor necesare.
+Error encoding data for Apple 3rd party service.,Eroare la trimiterea SMSului pentru comandă.
+Please provide full URL for Apple 3rd party service.,Citire detalii producator...
+Error retrieving Apple service API request details.,Eroare la citirea detaliilor producatorului. Incercati din nou.
+Apple service API responded with HTTP code: %s.,Cantitate returnată pentru comanda #%s.
+Error obtaining phpseclib library directory paths.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining Google 3rd party library directory paths.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining an instance of Google 3rd party client.,Eroare la citirea detaliilor producatorului. Incercati din nou.
+Please provide an action for Google 3rd party WEB services.,Vă rugăm să oferiți un email.
+Error obtaining Google 3rd party WEB services settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining Google 3rd party MOBILE services settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Please provide a Google verification code.,Vă rugăm să oferiți un email.
+Error obtaining Google 3rd party WEB services instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining Google account details for WEB services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining Google 3rd party MOBILE services instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining account details for Google 3rd party MOBILE services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error obtaining Google account details for MOBILE services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Invalid service ID provided.,ID serviciu invalid.
+Please provide an account id for this service.,Vă rugăm să oferiți un email valid.
+Please provide a valid service for this account.,Vă rugăm să oferiți un email valid.
+Please provide service account details. This should be a JSON string.,Vă rugăm să oferiți un email valid.
+Please provide valid service account details. This should be a JSON string.,Vă rugăm să oferiți un email valid.
+Ask Register at Login,Cere înregistrare la login
+Google 3rd Party Settings,Setări Google
+Authentication Key,Cheie de autentificare
+Error loading Google 3rd party library.,Eroare la incărcarea librăriei Google.
+Error loading Apple 3rd party library.,Eroare la încărcarea librăriei Apple.
+Register a new account,Înregistrează cont nou
+Register with Facebook,Înregistrează cu Facebook
+Authentication failed.,Autentificarea a eşuat.
+Error updating session.,Eroare la updatarea sesiunii.
+Client ID,ID Client
+Team ID,ID Echipă
+Key ID,ID Cheie
