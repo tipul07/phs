@@ -5,18 +5,18 @@ MySQLi,MySQLi
 No city defined for this continent.,Nici un oraș definit pentru continentul acesta.
 Are you sure you want to generate new Crypto Internal Keys Array?,Sunteţi sigur că doriţi generarea unui nou array de chei de criptare internă?
 Invalid action.,Acțiune invalidă.
-Couldn't load captcha plugin.,Nu am putut încărca meniul de editare produs.
+Couldn't load captcha plugin.,Nu am putut încărca pluginul captcha.
 Unknown account.,Cont necunoscut.
 Couldn't load agent jobs model.,Nu am putut încărca modelul de agent jobs.
 N/A,N/A
 No,Nu
 Couldn't load plugins model.,Nu am putut încărca meniul de editare produs.
-Error rendering template [%s].,Eroare la incărcarea template-ului. Încercaţi din nou.
+Error rendering template [%s].,Nu am putut randa template-ul [%s].
 Models,Modele
-Couldn't change current language. Please try again.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
-You don't have rights to use contact us form.,Nu aveti drepturi de a vedea lista de companii.
-Failed sending email. Please try again.,Eroare la citirea detaliilor produsului. Încercaţi din nou.
-Error loading autocomplete contract.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Couldn't change current language. Please try again.,Eroare la schimbarea limbii curente. Încercați din nou.
+You don't have rights to use contact us form.,Nu aveţi drepturi de a folosi formularul de contact.
+Failed sending email. Please try again.,Eroare la trimiterea emailului. Încercaţi din nou.
+Error loading autocomplete contract.,Eroare la incărcarea contractului de auto-completare.
 Agent job details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
 Job not found in database.,Compania nu a fost gasita in baza de date.
 Handler already defined in database.,Detaliile companiei salvate in baza de date.
@@ -27,33 +27,33 @@ Error preparing query to obtain plugins records.,Eroare la pregătirea datelor c
 Couldn't save plugin details to database.,Detaliile companiei nu s-au găsit în baza de date.
 Error deleting registry database entry for instance %s.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
 Role not found in database.,Rolul nu a fost găsit în baza de date.
-Couldn't obtain route.,Nu am putut încărca meniul de editare produs.
-Couldn't parse route.,Nu am putut încărca meniul de editare produs.
-Couldn't obtain route details.,Nu am putut încărca meniul de editare produs.
-Error serving request.,Eroare la încărcarea resurselor necesare.
+Couldn't obtain route.,Nu am putut obţine ruta.
+Couldn't parse route.,Nu am putut analiza ruta.
+Couldn't obtain route details.,Nu am putut obţine detaliile de rută.
+Error serving request.,Eroare la servirea cererii.
 Couldn't load plugin %s.,Nu am putut încărca pluginul %s.
 Couldn't save agent job details in database. Please try again.,Eroare la salvarea detaliilor producătorului în baza de date. Încercaţi din nou.
-Error preparing environment.,Eroare la pregătirea datelor companiei ca răspuns.
+Error preparing environment.,Eroare la pregătirea mediului.
 Please provide credentials,"Vă rugăm, oferiţi credenţiale"
 Error preparing API environment.,Eroare la pregătirea datelor companiei ca răspuns.
-Api key not found in database.,Compania nu a fost gasita in baza de date.
-Invalid content type.,Companie necunoscuta...
+Api key not found in database.,Cheia API nu a fost găsită în baza de date.
+Invalid content type.,Tip conţinut invalid.
 Couldn't load background jobs model.,Nu am putut încărca meniul de editare produs.
-Couldn't save database details. Please try again.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining plugin details for plugin %s.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Couldn't save database details. Please try again.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Error obtaining plugin details for plugin %s.,Eroare la obţinerea detaliilor de plugin pentru %s.
 Invalid scope parameters.,Parametrii de scope invalizi.
-Error rendering page template.,Eroare la incărcarea template-ului. Încercaţi din nou.
-Invalid template file.,Companie necunoscuta...
+Error rendering page template.,Eroare la randarea paginii template-ului.
+Invalid template file.,Fişier de template invalid.
 Invalid theme.,Temă invalidă.
-Error validating sub-view template.,Eroare la incărcarea template-ului. Încercaţi din nou.
-Error rendering sub-view template.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Error validating sub-view template.,Eroare la validarea template-ului de sub-view.
+Error rendering sub-view template.,Eroare la randarea template-ului de sub-view.
 Invalid scope.,Scope invalid.
 Action not allowed to run in current scope.,Acțiunea nu este permisă în scope-ul curent.
 Error while parsing data from outside source.,Eroare la prelucrarea datelor din sursa externă.
-You don't have rights to access this section.,Nu aveti destule drepturi pentru accesarea acestei secţiuni.
-Couldn't load action [%s].,Nu am putut încărca meniul de editare produs.
-Couldn't load foobar action.,Nu am putut încărca meniul de editare produs.
-Error creating dump credentials file.,Eroare la citirea detaliilor produsului. Încercaţi din nou.
+You don't have rights to access this section.,Nu aveți destule drepturi pentru accesarea acestei secțiuni.
+Couldn't load action [%s].,Nu am putut încărca acţiunea [%s].
+Couldn't load foobar action.,Nu am putut încărca acţiunea foobar.
+Error creating dump credentials file.,Eroare la crearea fişierului de credenţiale pentru export.
 Unknown parameters.,Parametrii necunoscuţi.
 Unknown source.,Sursă necunoscută.
 Unknown destination.,Destinaţie necunoscută.
@@ -135,7 +135,7 @@ Site on Debug Mode,Site pe Mod Debug
 Plugin %s %s with success.,Plugin %s %s cu succes.
 INACTIVATED,INACTIVAT
 NOT INSTALLED,NU E INSTALAT
-NOT ACTIVE,NU E ACTIV
+NOT ACTIVE,INACTIV
 Status %s,Status %s
 Route,Rută
 Status should be %s,Statusul ar trebui să fie %s
@@ -146,12 +146,12 @@ Account not found in database.,Contul nu a fost găsit în baza de date.
 Inactive,Inactiv
 Suspended,Suspendat
 Deleted,Şters
-Unknow error.,Autor necunoscut
-Error running REMOTE request.,Eroare la încărcarea resurselor necesare.
+Unknow error.,Eroare necunoscută.
+Error running REMOTE request.,Eroare la rularea cererii REMOTE.
 Error loading required resources.,Eroare la încărcarea resurselor necesare.
 Error obfuscating plugin settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
 Error obtaining background job command arguments.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
-Error loading remote domains model.,Eroare la încărcarea resurselor necesare.
+Error loading remote domains model.,Eroare la încărcarea modelului de domenii remote.
 Error obtaining remote API instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
 Couldn't initialize remote API object.,Nu am putut încărca meniul de editare produs.
 Request not allowed.,Cerere nepermisă.
@@ -180,3 +180,58 @@ hour,oră
 weeks,săptămâni
 week,săptămână
 Behat integration,Integrare Behat
+Unknown error.,Eroare necunoscută.
+Error running API request.,Eroare la rularea cererii API.
+Step 4,Pasul 4
+ERROR,EROARE
+Error inactivating plugin,Eroare la inactivarea plugin-ului
+Found %s plugin directories...,Am găsit %s directoare de plugin-uri...
+Please provide a valid email address.,Vă rugăm să furnizați o adresă de email validă.
+Unknown destination,Destinaţie necunoscută
+Core plugin,Plugin de bază
+Is installed,Instalat
+Is active,Activ
+Tables,Tabele
+Available suites: %s.,Suite disponibile: %s.
+AVAILABLE for Behat tests,DISPONIBIL pentru teste Behat
+INSTALLED for Behat tests,INSTALAT pentru teste Behat
+PHPUnit integration,Integrare PHPUnit
+Tests,Teste
+AVAILABLE,DISPONIBIL
+Plugin %s is %s%s.,Plugin-ul %s este %s%s.
+%s is not a valid email address for site contact email.,Adresa de email %s nu este o adresă de email validă pentru emailul de contact al siteului.
+Setting up crypto configuration...,Configuraţia pentru criptare...
+Crypt Key not provided.,Cheia de criptare nu este furnizată.
+Crypting Key,Cheie de Criptare
+"hexa, 32 chars string","hexa, 32 caractere"
+Generate keys,Generare chei
+Error instantiating plugin.,Eroare la instanţierea pluginului.
+Update URL vailable for %s.,Actualizare variabilă URL pentru %s.
+Update token invalid.,Token de update invalid.
+Please provide a valid status.,Furnizaţi un status valid.
+Authentication failed.,Autentificarea a eşuat.
+INSTALLED,Instalat
+Vendor,Vendor
+Version,Versiune
+days,zile
+Not authorized.,Neautorizat.
+Error not provided.,Eroare nu este furnizată.
+Please provide language you want to switch to.,Precizaţi limba în care doriţi să schimbaţi interfaţa.
+Invalid language provided.,Limba precizată este invalidă.
+Site Contact,Contact Site
+Bad parameters.,Parametri greşiţi.
+Route is invalid.,Ruta este invalidă.
+Error executing route.,Eroare la executarea rutei.
+Error executing route [%s].,Eroare la executarea rutei [%s].
+Invalid HTTP method.,Metodă HTTP invalidă.
+HTTP method %s not allowed.,Metoda HTTP %s nepermisă.
+Invalid HTTP protocol.,Protocol HTTP invalid.
+Please provide a command.,Vă rugăm să oferiți o comandă.
+Distribution plugin,Plugin de distribuţie
+Agent jobs,Joburi de agent
+Runs once %ss,Rulează odată la %s
+Unknown or not active action.,Acţiune necunoscută sau inactivă.
+Controller doesn't appear to be a PHS instance.,Controller-ul nu pare a fi un controller de PHS.
+Unknown or not active controller.,Controller necunoscut sau inactiv.
+Private key is empty.,Cheia privată este goală.
+Internal keys array is invalid!,Arraz-ul de chei interne este invalid!

@@ -211,8 +211,8 @@ class PHS_Api extends PHS_Api_base
             return false;
 
         $knti = 0;
-        $append_to_get = [];
-        $append_to_post = [];
+        $append_to_get = (!empty( $api_route['get_params'] ) && is_array( $api_route['get_params'] ))?$api_route['get_params']:[];
+        $append_to_post = (!empty( $api_route['post_params'] ) && is_array( $api_route['post_params'] ))?$api_route['post_params']:[];
         while( $knti < $api_route_tokens_count )
         {
             $api_element = $api_route['api_route'][$knti];
@@ -251,7 +251,7 @@ class PHS_Api extends PHS_Api_base
             }
 
             if( !empty( $api_element['append_to_get'] )
-             || !empty( $api_element['move_in_post'] ) )
+             || !empty( $api_element['append_to_post'] ) )
             {
                 if( empty( $api_element['var_name'] ) )
                     return false;
