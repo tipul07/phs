@@ -16,7 +16,7 @@ class PHS_Action_System_logs extends PHS_Action
 
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     public function execute()
@@ -34,14 +34,21 @@ class PHS_Action_System_logs extends PHS_Action
             return $action_result;
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_VIEW_LOGS ) )
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        if( !($admin_plugin = PHS::load_plugin( 'admin' )) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
+            return self::default_action_result();
+        }
+
+        if( !$admin_plugin->can_admin_view_logs( $current_user ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to view system logs.' ) );
             return self::default_action_result();
         }
 
         if( !($logging_files_arr = PHS_Logger::get_logging_files()) )
-            $logging_files_arr = array();
+            $logging_files_arr = [];
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         $log_file = PHS_Params::_pg( 'log_file', PHS_Params::T_NOHTML );
@@ -49,11 +56,11 @@ class PHS_Action_System_logs extends PHS_Action
         $search_term = PHS_Params::_pg( 'search_term', PHS_Params::T_NOHTML );
         $command = PHS_Params::_pg( 'command', PHS_Params::T_NOHTML );
 
-        if( empty( $log_lines ) or $log_lines < 0 )
+        if( empty( $log_lines ) || $log_lines < 0 )
             $log_lines = 20;
 
         if( !empty( $command )
-        and !in_array( $command, array( 'display_file', 'download_file' ) ) )
+         && !in_array( $command, [ 'display_file', 'download_file' ], true ) )
             $command = 'display_file';
 
         if( !empty( $command ) ) // PHS_Scope::current_scope() == PHS_Scope::SCOPE_AJAX )
@@ -64,8 +71,8 @@ class PHS_Action_System_logs extends PHS_Action
             {
                 case 'download_file':
                     if( empty( $log_file )
-                     or empty( $logging_files_arr[$log_file] )
-                     or !@file_exists( $logging_files_arr[$log_file] ) )
+                     || empty( $logging_files_arr[$log_file] )
+                     || !@file_exists( $logging_files_arr[$log_file] ) )
                     {
                         PHS_Notifications::add_error_notice( $this->_pt( 'Invalid log file for download.' ) );
                         return $action_result;
@@ -91,7 +98,7 @@ class PHS_Action_System_logs extends PHS_Action
                 default:
                 case 'display_file':
                     if( empty( $log_file )
-                     or empty( $logging_files_arr[$log_file] ) )
+                     || empty( $logging_files_arr[$log_file] ) )
                     {
                         PHS_Notifications::add_error_notice( $this->_pt( 'Cannot read provided log file data.' ) );
                         return $action_result;
@@ -101,21 +108,21 @@ class PHS_Action_System_logs extends PHS_Action
                     if( !($tail_buffer = PHS_Logger::tail_log( $log_file, $log_lines )) )
                         $tail_buffer = '';
 
-                    if( strstr( $tail_buffer, $header_buffer ) === false )
+                    if( strpos( $tail_buffer, $header_buffer ) === false )
                         $log_file_buffer = $header_buffer.$tail_buffer;
                     else
                         $log_file_buffer = $tail_buffer;
 
-                    $data = array(
+                    $data = [
                         'HOOK_LOG_ACTIONS' => self::HOOK_LOG_ACTIONS,
                         'log_lines' => $log_lines,
                         'log_file' => $log_file,
                         'log_full_file' => $logging_files_arr[$log_file],
                         'log_file_buffer' => $log_file_buffer,
-                    );
+                    ];
 
                     if( ($render_result = $this->quick_render_template( 'system_logs_display', $data ))
-                    and !empty( $render_result['buffer'] ) )
+                     && !empty( $render_result['buffer'] ) )
                         $action_result['buffer'] = $render_result['buffer'];
                 break;
             }
@@ -123,11 +130,11 @@ class PHS_Action_System_logs extends PHS_Action
             return $action_result;
         }
 
-        $data = array(
+        $data = [
             'log_file' => $log_file,
             'log_lines' => $log_lines,
             'logging_files_arr' => $logging_files_arr,
-        );
+        ];
 
         return $this->quick_render_template( 'system_logs', $data );
     }

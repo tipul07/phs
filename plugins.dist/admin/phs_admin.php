@@ -11,8 +11,24 @@ use \phs\libraries\PHS_Params;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
-
     const H_ADMIN_LEFT_MENU_ADMIN_AFTER_USERS = 'phs_admin_left_menu_admin_after_users';
+
+    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model  */
+    private $_accounts_model = false;
+
+    private function _load_dependencies()
+    {
+        $this->reset_error();
+
+        if( empty( $this->_accounts_model )
+         && !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        {
+            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * @inheritdoc
@@ -204,6 +220,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'name' => 'Login sub-account',
                         'description' => 'Allow user to login as other user',
                     ],
+                    PHS_Roles::ROLEU_EXPORT_ACCOUNTS => [
+                        'name' => 'Accounts Export',
+                        'description' => 'Allow user to export user accounts',
+                    ],
+                    PHS_Roles::ROLEU_IMPORT_ACCOUNTS => [
+                        'name' => 'Accounts Import',
+                        'description' => 'Allow user to import user accounts',
+                    ],
                 ],
             ],
         ];
@@ -215,6 +239,244 @@ class PHS_Plugin_Admin extends PHS_Plugin
             self::validate_array( $return_arr[PHS_Roles::ROLE_MEMBER]['role_units'], $return_arr[PHS_Roles::ROLE_GUEST]['role_units'] ) );
 
         return $return_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_manage_roles( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_ROLES ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_list_roles( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_ROLES ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_manage_plugins( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_list_plugins( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_manage_accounts( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_list_accounts( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_login_subaccounts( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_export_accounts( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_EXPORT_ACCOUNTS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_import_accounts( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_IMPORT_ACCOUNTS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_manage_agent_jobs( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_list_agent_jobs( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_AGENT_JOBS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_manage_api_keys( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_API_KEYS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_list_api_keys( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_API_KEYS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_view_logs( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_VIEW_LOGS ) )
+            return false;
+
+        return $user_arr;
     }
 
     /**

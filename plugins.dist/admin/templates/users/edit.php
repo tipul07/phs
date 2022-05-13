@@ -13,6 +13,9 @@
     if( !($accounts_plugin_settings = $this->view_var( 'accounts_plugin_settings' )) )
         $accounts_plugin_settings = [];
 
+    if( !($back_page = $this->view_var( 'back_page' )) )
+        $back_page = '';
+
     if( !($user_levels = $this->view_var( 'user_levels' )) )
         $user_levels = [];
 
@@ -24,10 +27,24 @@
     $current_user = PHS::user_logged_in();
 ?>
 <form id="edit_user_form" name="edit_user_form" method="post"
-      action="<?php echo PHS::url( ['p' => 'admin', 'a' => 'user_edit'], ['uid' => $this->view_var( 'uid' )])?>">
+      action="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'edit', 'ad' => 'users' ],
+                                   [ 'uid' => $this->view_var( 'uid' ) ] )?>">
 <input type="hidden" name="foobar" value="1" />
+<?php
+if( !empty( $back_page ) )
+{
+    ?><input type="hidden" name="back_page" value="<?php echo form_str( safe_url( $back_page ) )?>" /><?php
+}
+?>
 
-<div class="form_container responsive" style="width: 650px;">
+<div class="form_container responsive">
+
+    <?php
+    if( !empty( $back_page ) )
+    {
+        ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
+    }
+    ?>
 
     <section class="heading-bordered">
         <h3><?php echo $this->_pt( 'Edit User Account' )?></h3>
@@ -37,14 +54,14 @@
         <label for="nick"><?php echo $this->_pt( 'Username' )?></label>
         <div class="lineform_line">
         <input type="text" id="nick" name="nick" class="form-control" required="required"
-               value="<?php echo form_str( $this->view_var( 'nick' ) )?>"  autocomplete="off" /><br/>
+               value="<?php echo form_str( $this->view_var( 'nick' ) )?>"  autocomplete="nick" /><br/>
         </div>
     </fieldset>
 
     <fieldset class="form-group">
         <label for="email"><?php echo $this->_pt( 'Email' )?></label>
         <div class="lineform_line">
-        <input type="text" id="email" name="email" class="form-control" autocomplete="off"
+        <input type="text" id="email" name="email" class="form-control" autocomplete="email"
             <?php echo (!empty( $accounts_plugin_settings['email_mandatory'] )?'required="required"':'')?>
                value="<?php echo form_str( $this->view_var( 'email' ) )?>" />
         </div>
@@ -72,16 +89,18 @@
     <fieldset class="form-group">
         <label for="level"><?php echo $this->_pt( 'Roles' )?></label>
         <div class="lineform_line">
-        <div id="account_current_roles"></div>
-        <a href="javascript:void(0)" onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
+            <div id="account_current_roles"></div>
+            <a href="javascript:void(0)"
+               onclick="open_roles_dialogue()"><?php echo $this->_pt( 'Change roles' )?></a>
         </div>
     </fieldset>
 
     <fieldset class="form-group">
         <label for="title"><?php echo $this->_pt( 'Title' )?></label>
         <div class="lineform_line">
-        <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>"
-               style="width: 60px;" autocomplete="off" /><br/>
+        <input type="text" id="title" name="title" class="form-control"
+               value="<?php echo form_str( $this->view_var( 'title' ) )?>"
+               style="width: 60px;" autocomplete="title" /><br/>
         <small><?php echo $this::_t( 'eg. Mr., Ms., Mrs., etc' )?></small>
         </div>
     </fieldset>
@@ -90,7 +109,7 @@
         <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
         <div class="lineform_line">
         <input type="text" id="fname" name="fname" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'fname' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'fname' ) )?>" autocomplete="fname" />
         </div>
     </fieldset>
 
@@ -98,7 +117,7 @@
         <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
         <div class="lineform_line">
         <input type="text" id="lname" name="lname" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'lname' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'lname' ) )?>" autocomplete="lname" />
         </div>
     </fieldset>
 
@@ -106,7 +125,7 @@
         <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
         <div class="lineform_line">
         <input type="text" id="phone" name="phone" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'phone' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'phone' ) )?>" autocomplete="phone" />
         </div>
     </fieldset>
 
@@ -114,7 +133,7 @@
         <label for="company"><?php echo $this->_pt( 'Company' )?></label>
         <div class="lineform_line">
         <input type="text" id="company" name="company" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'company' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'company' ) )?>" autocomplete="company" />
         </div>
     </fieldset>
 
@@ -126,7 +145,7 @@
         <label for="pass"><?php echo $this->_pt( 'Password' )?></label>
         <div class="lineform_line">
         <input type="password" id="pass" name="pass" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'pass' ) )?>" autocomplete="off" /><br/>
+               value="<?php echo form_str( $this->view_var( 'pass' ) )?>" autocomplete="pass" /><br/>
         <small><?php
 
             echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
@@ -137,12 +156,14 @@
                 echo '<br/>'.$this->_pt( 'Password should pass regular expresion: ' );
 
                 if( ($regexp_parts = explode( '/', $pass_regexp ))
-                    and !empty( $regexp_parts[1] ) )
+                 && !empty( $regexp_parts[1] ) )
                 {
                     if( empty($regexp_parts[2]) )
                         $regexp_parts[2] = '';
 
-                    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
+                    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>"
+                         title="<?php echo $this->_pte( 'Click for details' )?>"
+                         target="_blank"><?php echo $pass_regexp?></a><?php
                 } else
                     echo $this->_pt( 'Password should pass regular expresion: %s.', $pass_regexp );
             }
@@ -155,7 +176,7 @@
         <label for="pass2"><?php echo $this->_pt( 'Password' )?></label>
         <div class="lineform_line">
         <input type="password" id="pass2" name="pass2" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'pass2' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'pass2' ) )?>" autocomplete="pass2" />
         (<small><?php echo $this->_pt( 'confirm' )?></small>)
         </div>
     </fieldset>
@@ -166,7 +187,6 @@
     </fieldset>
 
 </div>
-<div class="clearfix"></div>
 
 <div style="display: none;" id="account_roles_container">
 
@@ -220,9 +240,9 @@
     }
     ?>
     </div>
-    <div class="clearfix"></div>
-    <div>
-    <div style="float:right;"><input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small" value="<?php echo $this->_pt( 'Close' )?>" onclick="close_roles_dialogue()" /></div>
+    <div class="float-right p-2">
+        <input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small"
+               value="<?php echo $this->_pt( 'Close' )?>" onclick="close_roles_dialogue()" />
     </div>
 </div>
 </form>

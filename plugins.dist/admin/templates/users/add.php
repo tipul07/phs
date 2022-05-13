@@ -21,10 +21,11 @@
 
     $current_user = PHS::user_logged_in();
 ?>
-<form id="add_user_form" name="add_user_form" action="<?php echo PHS::url( ['p' => 'admin', 'a' => 'user_add'])?>" method="post">
+<form id="add_user_form" name="add_user_form" method="post"
+      action="<?php echo PHS::url( ['p' => 'admin', 'a' => 'add', 'ad' => 'users' ] )?>">
 <input type="hidden" name="foobar" value="1" />
 
-<div class="form_container" style="width: 650px;">
+<div class="form_container">
 
     <section class="heading-bordered">
         <h3><?php echo $this->_pt( 'Add User Account' )?></h3>
@@ -34,7 +35,7 @@
         <label for="nick"><?php echo $this->_pt( 'Username' )?></label>
         <div class="lineform_line">
         <input type="text" id="nick" name="nick" class="form-control" required="required"
-               value="<?php echo form_str( $this->view_var( 'nick' ) )?>" autocomplete="off" /><br/>
+               value="<?php echo form_str( $this->view_var( 'nick' ) )?>" autocomplete="nick" /><br/>
         </div>
     </fieldset>
 
@@ -43,7 +44,7 @@
         <div class="lineform_line">
         <input type="password" id="pass" name="pass" class="form-control"
             <?php echo (empty( $accounts_plugin_settings['generate_pass_if_not_present'] )?'required="required"':'')?>
-               value="<?php echo form_str( $this->view_var( 'pass' ) )?>" autocomplete="off" /><br/>
+               value="<?php echo form_str( $this->view_var( 'pass' ) )?>" autocomplete="pass" /><br/>
         <small><?php
 
             echo $this->_pt( 'Password should be at least %s characters.', $this->view_var( 'min_password_length' ) );
@@ -59,7 +60,8 @@
                     if( empty($regexp_parts[2]) )
                         $regexp_parts[2] = '';
 
-                    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>" title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
+                    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode( $regexp_parts[1] )?>&options=<?php echo $regexp_parts[2]?>"
+                         title="Click for details" target="_blank"><?php echo $pass_regexp?></a><?php
                 } else
                     echo $this->_pt( 'Password should pass regular expresion: %s.', $pass_regexp );
             }
@@ -75,7 +77,7 @@
         <div class="lineform_line">
         <input type="text" id="email" name="email" class="form-control"
             <?php echo (!empty( $accounts_plugin_settings['email_mandatory'] )?'required="required"':'')?>
-               value="<?php echo form_str( $this->view_var( 'email' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'email' ) )?>" autocomplete="email" />
         </div>
     </fieldset>
 
@@ -111,7 +113,7 @@
         <label for="title"><?php echo $this->_pt( 'Title' )?></label>
         <div class="lineform_line">
         <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>"
-               style="width: 60px;" autocomplete="off" /><br/>
+               style="width: 60px;" autocomplete="title" /><br/>
         <small><?php echo $this::_t( 'eg. Mr., Ms., Mrs., etc' )?></small>
         </div>
     </fieldset>
@@ -120,7 +122,7 @@
         <label for="fname"><?php echo $this->_pt( 'First Name' )?></label>
         <div class="lineform_line">
         <input type="text" id="fname" name="fname" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'fname' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'fname' ) )?>" autocomplete="fname" />
         </div>
     </fieldset>
 
@@ -128,7 +130,7 @@
         <label for="lname"><?php echo $this->_pt( 'Last Name' )?></label>
         <div class="lineform_line">
         <input type="text" id="lname" name="lname" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'lname' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'lname' ) )?>" autocomplete="lname" />
         </div>
     </fieldset>
 
@@ -136,7 +138,7 @@
         <label for="phone"><?php echo $this->_pt( 'Phone Number' )?></label>
         <div class="lineform_line">
         <input type="text" id="phone" name="phone" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'phone' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'phone' ) )?>" autocomplete="phone" />
         </div>
     </fieldset>
 
@@ -144,7 +146,7 @@
         <label for="company"><?php echo $this->_pt( 'Company' )?></label>
         <div class="lineform_line">
         <input type="text" id="company" name="company" class="form-control"
-               value="<?php echo form_str( $this->view_var( 'company' ) )?>" autocomplete="off" />
+               value="<?php echo form_str( $this->view_var( 'company' ) )?>" autocomplete="company" />
         </div>
     </fieldset>
 
@@ -154,7 +156,6 @@
     </fieldset>
 
 </div>
-<div class="clearfix"></div>
 
 <div style="display: none;" id="account_roles_container">
 
@@ -207,9 +208,7 @@
     }
     ?>
     </div>
-    <div class="clearfix"></div>
-
-    <div style="float:right;padding:10px 0;">
+    <div class="float-right p-2">
         <input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small"
                value="<?php echo $this->_pt( 'Close' )?>" onclick="close_roles_dialogue()" />
     </div>

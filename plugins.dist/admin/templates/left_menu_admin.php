@@ -11,39 +11,55 @@ use \phs\libraries\PHS_Hooks;
 
     $cuser_arr = PHS::current_user();
 
-    $can_list_plugins = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_PLUGINS );
-    $can_manage_plugins = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_PLUGINS );
-    $can_list_agent_jobs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_AGENT_JOBS );
-    $can_manage_agent_jobs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS );
-    $can_list_api_keys = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_API_KEYS );
-    $can_manage_api_keys = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_API_KEYS );
-    $can_list_roles = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ROLES );
-    $can_manage_roles = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ROLES );
-    $can_list_accounts = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS );
-    $can_manage_accounts = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS );
-    $can_view_logs = PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_VIEW_LOGS );
+    $can_list_plugins = $admin_plugin->can_admin_list_plugins( $cuser_arr );
+    $can_manage_plugins = $admin_plugin->can_admin_manage_plugins( $cuser_arr );
+    $can_list_agent_jobs = $admin_plugin->can_admin_list_agent_jobs( $cuser_arr );
+    $can_manage_agent_jobs = $admin_plugin->can_admin_manage_agent_jobs( $cuser_arr );
+    $can_list_api_keys = $admin_plugin->can_admin_list_api_keys( $cuser_arr );
+    $can_manage_api_keys = $admin_plugin->can_admin_manage_api_keys( $cuser_arr );
+    $can_list_roles = $admin_plugin->can_admin_list_roles( $cuser_arr );
+    $can_manage_roles = $admin_plugin->can_admin_manage_roles( $cuser_arr );
+    $can_list_accounts = $admin_plugin->can_admin_list_accounts( $cuser_arr );
+    $can_manage_accounts = $admin_plugin->can_admin_manage_accounts( $cuser_arr );
+    $can_view_logs = $admin_plugin->can_admin_view_logs( $cuser_arr );
+    $can_import_accounts = $admin_plugin->can_admin_import_accounts( $cuser_arr );
 
     if( !$can_list_plugins && !$can_manage_plugins
      && !$can_list_api_keys && !$can_manage_api_keys
      && !$can_list_agent_jobs && !$can_manage_agent_jobs
      && !$can_list_roles && !$can_manage_roles
-     && !$can_list_accounts && !$can_manage_accounts )
+     && !$can_list_accounts && !$can_manage_accounts
+     && !$can_import_accounts )
         return '';
 
-if( $can_list_accounts || $can_manage_accounts )
+if( $can_list_accounts || $can_manage_accounts || $can_import_accounts )
 {
     ?>
-    <li><?php echo $this::_t( 'Users Management' ) ?>
+    <li><?php echo $this::_t( 'Accounts Management' ) ?>
         <ul>
             <?php
-            if( $can_manage_roles )
+            if( $can_manage_accounts )
             {
                 ?>
-                <li><a href="<?php echo PHS::url( [ 'a' => 'user_add', 'p' => 'admin' ] ) ?>"><?php echo $this::_t( 'Add User' ) ?></a></li>
+                <li><a href="<?php echo PHS::url( [ 'a' => 'add', 'ad' => 'users', 'p' => 'admin' ] ) ?>"
+                    ><?php echo $this::_t( 'Add Account' ) ?></a></li>
+                <?php
+            }
+            if( $can_list_accounts )
+            {
+                ?>
+                <li><a href="<?php echo PHS::url( [ 'a' => 'list', 'ad' => 'users', 'p' => 'admin' ] ) ?>"
+                    ><?php echo $this::_t( 'Manage Accounts' ) ?></a></li>
+                <?php
+            }
+            if( $can_import_accounts )
+            {
+                ?>
+                <li><a href="<?php echo PHS::url( [ 'a' => 'import', 'ad' => 'users', 'p' => 'admin' ] ) ?>"
+                    ><?php echo $this::_t( 'Import Accounts' ) ?></a></li>
                 <?php
             }
             ?>
-            <li><a href="<?php echo PHS::url( [ 'a' => 'users_list', 'p' => 'admin' ] ) ?>"><?php echo $this::_t( 'Manage Users' ) ?></a></li>
         </ul>
     </li>
     <?php
