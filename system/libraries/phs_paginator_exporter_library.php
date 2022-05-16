@@ -67,7 +67,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 }
 
                 $full_file_path = $export_file_dir.'/'.$export_registry['export_file_name'];
-                if( !($fd = @fopen( $full_file_path, 'w' )) )
+                if( !($fd = @fopen( $full_file_path, 'wb' )) )
                 {
                     $this->set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t create export file.' ) );
                     $this->record_error( false, $this->get_error_message() );
@@ -159,7 +159,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                     return false;
                 }
 
-                @fputs( $export_registry['export_fd'], $record_data['record_buffer'] );
+                @fwrite( $export_registry['export_fd'], $record_data['record_buffer'] );
             break;
 
             case self::EXPORT_TO_OUTPUT:

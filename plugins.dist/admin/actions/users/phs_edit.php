@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\users;
 
 use \phs\PHS;
 use \phs\PHS_Scope;
@@ -9,7 +9,7 @@ use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Roles;
 
-class PHS_Action_User_edit extends PHS_Action
+class PHS_Action_Edit extends PHS_Action
 {
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -18,7 +18,7 @@ class PHS_Action_User_edit extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
+        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
     }
 
     /**
@@ -40,20 +40,22 @@ class PHS_Action_User_edit extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( !($accounts_plugin = PHS::load_plugin( 'accounts' ))
+         || !($admin_plugin = PHS::load_plugin( 'admin' ))
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          || !($roles_model = PHS::load_model( 'roles' ))
          || !($plugins_model = PHS::load_model( 'plugins' )) )
         {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts plugin.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
             return self::default_action_result();
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_ACCOUNTS ) )
+        if( !$admin_plugin->can_admin_manage_accounts( $current_user ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to manage accounts.' ) );
             return self::default_action_result();
@@ -73,7 +75,7 @@ class PHS_Action_User_edit extends PHS_Action
             $args = [ 'unknown_account' => 1 ];
 
             if( empty( $back_page ) )
-                $back_page = PHS::url( ['p' => 'admin', 'a' => 'users_list']);
+                $back_page = PHS::url( [ 'p' => 'admin', 'a' => 'list', 'ad' => 'users' ] );
             else
                 $back_page = from_safe_url( $back_page );
 
@@ -157,7 +159,8 @@ class PHS_Action_User_edit extends PHS_Action
 
                     $action_result = self::default_action_result();
 
-                    $action_result['redirect_to_url'] = PHS::url( ['p' => 'admin', 'a' => 'user_edit'], ['uid' => $account_arr['id'], 'changes_saved' => 1]);
+                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'edit', 'ad' => 'users' ],
+                                                                  [ 'uid' => $account_arr['id'], 'changes_saved' => 1 ] );
 
                     return $action_result;
                 }
@@ -196,6 +199,6 @@ class PHS_Action_User_edit extends PHS_Action
             'plugins_model' => $plugins_model,
         ];
 
-        return $this->quick_render_template( 'user_edit', $data );
+        return $this->quick_render_template( 'users/edit', $data );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+    /** @noinspection ForgottenDebugOutputInspection */
     /** @var \phs\system\core\views\PHS_View $this */
 
     use \phs\PHS;

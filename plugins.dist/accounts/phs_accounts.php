@@ -7,6 +7,7 @@ use \phs\PHS_Api;
 use \phs\PHS_Scope;
 use \phs\PHS_Session;
 use \phs\PHS_Crypt;
+use phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Params;
 use \phs\libraries\PHS_Plugin;
 use \phs\libraries\PHS_Hooks;
@@ -15,6 +16,12 @@ use \phs\libraries\PHS_Roles;
 class PHS_Plugin_Accounts extends PHS_Plugin
 {
     const ERR_LOGOUT = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002;
+
+    const LOG_IMPORT = 'phs_accounts_import.log';
+
+    const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
+
+    const ACCOUNTS_IMPORT_DIR = 'phs_accounts';
 
     const PARAM_CONFIRMATION = '_a';
 
@@ -25,6 +32,29 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     const IDLERS_GC_SECONDS = 900; // 15 min
 
     private static $_session_key = 'PHS_sess';
+
+    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
+    private $_accounts_model = false;
+
+    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts_details $_accounts_details_model */
+    private $_accounts_details_model = false;
+
+    private function _load_dependencies()
+    {
+        $this->reset_error();
+
+        if( (empty( $this->_accounts_model )
+             && !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )))
+         || (empty( $this->_accounts_details_model )
+             && !($this->_accounts_details_model = PHS::load_model( 'accounts_details', 'accounts' )))
+        )
+        {
+            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * @inheritdoc
@@ -165,7 +195,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        // If current request doesn't have a session ID which means it's a logged in user, there's no use in cleaning old sessions...
+        // If current request doesn't have a session ID which means it's a logged-in user, there's no use in cleaning old sessions...
         if( !($online_db_data = $this->_get_current_session_data( [ 'accounts_model' => $accounts_model ] ))
          || seconds_passed( $online_db_data['idle'] ) < self::IDLERS_GC_SECONDS )
         {
@@ -804,5 +834,687 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
 
         return $resulting_roles;
+    }
+
+    /**
+     * @param string $json_file
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    public function import_accounts_from_json_file( $json_file, $params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $json_file )
+         || !@file_exists( $json_file )
+         || !@is_file( $json_file )
+         || !@is_readable( $json_file ) )
+        {
+            $this->set_error( self::ERR_RESOURCES, $this->_pt( 'Import file is not readable.' ) );
+            return false;
+        }
+
+        if( !($file_buf = @file_get_contents( $json_file ))
+         || !($file_arr = @json_decode( $file_buf, true ))
+         || empty( $file_arr['accounts'] ) || !is_array( $file_arr['accounts'] ) )
+        {
+            $this->set_error( self::ERR_RESOURCES, $this->_pt( 'Couldn\'t extract data from import file.' ) );
+            return false;
+        }
+
+        return $this->import_accounts_from_json_array( $file_arr, $params );
+    }
+
+    /**
+     * @param array $json_arr
+     * @param false|array $params
+     *
+     * @return false|array
+     */
+    public function import_accounts_from_json_array( $json_arr, $params = false )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        $accounts_model = $this->_accounts_model;
+
+        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+        if( !($a_flow = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
+         || !($roles_model = PHS::load_model( 'roles' )) )
+        {
+            $this->set_error( self::ERR_RESOURCES, $this->_pt( 'Error loading required resources.' ) );
+            return false;
+        }
+
+        if( empty( $json_arr ) || !is_array( $json_arr )
+         || empty( $json_arr['accounts'] ) || !is_array( $json_arr['accounts'] ) )
+        {
+            $this->set_error( self::ERR_RESOURCES, $this->_pt( 'Accounts import data is invalid.' ) );
+            return false;
+        }
+
+        if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
+            $roles_by_slug = [];
+
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
+
+        if( !empty( $params['import_level'] )
+         && !$accounts_model->valid_level( $params['import_level'] ) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Import level provided is invalid.' ) );
+            return false;
+        }
+
+        $params['insert_not_found'] = !empty( $params['insert_not_found'] );
+        $params['override_level'] = !empty( $params['override_level'] );
+        $params['update_roles'] = !empty( $params['update_roles'] );
+        $params['reset_roles'] = !empty( $params['reset_roles'] );
+        $params['update_details'] = !empty( $params['update_details'] );
+        if( !empty( $params['import_level'] ) )
+            $params['import_level'] = (int)$params['import_level'];
+        if( !isset( $params['log_channel'] )
+         || ($params['log_channel'] !== false && !PHS_Logger::defined_channel( $params['log_channel'] )) )
+            $params['log_channel'] = self::LOG_IMPORT;
+
+        $log_channel = $params['log_channel'];
+
+        $return_arr = [
+            'total_accounts' => 0,
+            'processed_accounts' => 0,
+            'not_found' => 0,
+            'inserts' => 0,
+            'edits' => 0,
+            'errors' => 0,
+        ];
+
+        $export_array_structure = $this->default_export_array_for_account_data();
+        $extra_params = [
+            'roles_by_slug' => $roles_by_slug,
+        ];
+        $fields_extractor_params = [
+            'override_level' => $params['override_level'],
+            'update_roles' => $params['update_roles'],
+            'reset_roles' => $params['reset_roles'],
+            'update_details' => $params['update_details'],
+        ];
+
+        if( $log_channel )
+            PHS_Logger::logf( '[START] Importing '.count( $json_arr['accounts'] ).' accounts...', $log_channel );
+
+        foreach( $json_arr['accounts'] as $knti => $json_account_arr )
+        {
+            if( empty( $json_account_arr ) || !is_array( $json_account_arr ) )
+                continue;
+
+            $return_arr['total_accounts']++;
+
+            if( empty( $json_account_arr['email'] ) )
+            {
+                if( $log_channel )
+                    PHS_Logger::logf( '[ERROR] No email set for position '.$knti.'.', $log_channel );
+
+                $return_arr['errors']++;
+                continue;
+            }
+
+            if( !empty( $params['import_level'] )
+             && !empty( $json_account_arr['level'] )
+             && (int)$json_account_arr['level'] !== (int)$params['import_level'] )
+            {
+                if( $log_channel )
+                    PHS_Logger::logf( '[WARNING] Account with email '.$json_account_arr['email'].' ignored. Level not for import.', $log_channel );
+
+                continue;
+            }
+
+            $update_roles = $params['update_roles'];
+            $reset_roles = $params['reset_roles'];
+            $override_level = $params['override_level'];
+            $update_details = $params['update_details'];
+
+            $account_arr = self::validate_array_recursive( $json_account_arr, $export_array_structure );
+
+            $account_deleted = false;
+            if( ($db_account_arr = $accounts_model->get_details_fields( [ 'email' => $account_arr['email'] ] )) )
+            {
+                if( $accounts_model->is_deleted( $db_account_arr ) )
+                {
+                    $account_deleted = true;
+                    $update_roles = true;
+                    $reset_roles = true;
+                    $override_level = true;
+                    $update_details = true;
+                }
+            }
+
+            $fields_extractor_params['update_roles'] = $update_roles;
+            $fields_extractor_params['reset_roles'] = $reset_roles;
+            $fields_extractor_params['override_level'] = $override_level;
+            $fields_extractor_params['update_details'] = $update_details;
+
+            if( $log_channel )
+            {
+                PHS_Logger::logf( 'Processing email '.$json_account_arr['email'].', DB account '.
+                                  (!empty( $db_account_arr )?'#'.$db_account_arr['id']:'N/A').
+                                  ', Update roles: '.(!empty( $update_roles )?'YES':'No').
+                                  ', Reset roles: '.(!empty( $reset_roles )?'YES':'No').
+                                  ', Update level: '.(!empty( $override_level )?'YES':'No').
+                                  ', Update details: '.(!empty( $update_details )?'YES':'No')
+                    , $log_channel );
+            }
+
+            $extra_params['json_account_arr'] = $json_account_arr;
+
+            if( !($action_fields = $this->_extract_account_fields_for_db( $account_arr, $db_account_arr, $fields_extractor_params, $extra_params )) )
+            {
+                if( $log_channel )
+                    PHS_Logger::logf( '[ERROR] Error extracting fields for DB, position '.$knti.', email '.$account_arr['email'].'.', $log_channel );
+
+                $return_arr['errors']++;
+                continue;
+            }
+
+            if( empty( $db_account_arr ) )
+            {
+                $return_arr['not_found']++;
+                if( empty( $params['insert_not_found'] ) )
+                    continue;
+
+                if( !($new_db_account_arr = $accounts_model->insert( $action_fields )) )
+                {
+                    if( $log_channel )
+                    {
+                        if( $accounts_model->has_error() )
+                            $error_msg = $accounts_model->get_simple_error_message();
+                        else
+                            $error_msg = 'Unknown error.';
+
+                        PHS_Logger::logf( '[ERROR] Error creating new account at '.
+                                          ', position '.$knti.', email '.$account_arr['email'].': '.$error_msg, $log_channel );
+                    }
+
+                    $return_arr['errors']++;
+                    continue;
+                }
+
+                if( $log_channel )
+                    PHS_Logger::logf( 'NEW account created #'.$new_db_account_arr['id'].'.', $log_channel );
+
+                $return_arr['inserts']++;
+            } else
+            {
+                if( $account_deleted )
+                {
+                    if( empty( $action_fields['fields'] ) )
+                        $action_fields['fields'] = [];
+
+                    $action_fields['fields']['status'] = $accounts_model::STATUS_ACTIVE;
+                }
+
+                if( !($new_db_account_arr = $accounts_model->edit( $db_account_arr, $action_fields )) )
+                {
+                    if( $log_channel )
+                    {
+                        if( $accounts_model->has_error() )
+                            $error_msg = $accounts_model->get_simple_error_message();
+                        else
+                            $error_msg = 'Unknown error.';
+
+                        PHS_Logger::logf( '[ERROR] Error updating account #'.$db_account_arr['id'].
+                                          ', position '.$knti.', email '.$account_arr['email'].': '.$error_msg, $log_channel );
+                    }
+
+                    $return_arr['errors']++;
+                    continue;
+                }
+
+                if( $log_channel )
+                    PHS_Logger::logf( 'UPDATED account #'.$new_db_account_arr['id'].'.', $log_channel );
+
+                $return_arr['edits']++;
+            }
+
+            $return_arr['processed_accounts']++;
+        }
+
+        if( $log_channel )
+            PHS_Logger::logf( '[END] Import finished!', $log_channel );
+
+        return $return_arr;
+    }
+
+    protected function _extract_account_fields_for_db( $account_arr, $db_account_arr, $import_params, $params )
+    {
+        if( empty( $account_arr ) || !is_array( $account_arr ) )
+            return false;
+
+        $json_account_arr = $params['json_account_arr'];
+        $roles_by_slug = $params['roles_by_slug'];
+
+        $action_fields = [];
+        if( empty( $db_account_arr ) )
+        {
+            // we have to create a new account...
+            $account_fields = [ 'nick' => true, 'email' => true, 'email_verified' => true, 'language' => true, 'level' => true, ];
+        } else
+        {
+            $account_fields = [ 'email_verified' => true, 'language' => true, 'level' => true, ];
+
+            if( empty( $import_params['override_level'] ) )
+                unset( $account_fields['level'] );
+        }
+
+        $account_fields_keys = array_keys( $account_fields );
+        foreach( $account_fields_keys as $field )
+        {
+            if( !isset( $account_arr[$field] ) )
+                continue;
+
+            $action_fields['fields'][$field] = $account_arr[$field];
+        }
+
+        if( !empty( $account_arr['user_details'] ) && is_array( $account_arr['user_details'] )
+         && (empty( $db_account_arr ) || !empty( $import_params['update_details'] )) )
+        {
+            if( isset( $account_arr['user_details']['id'] ) )
+                unset( $account_arr['user_details']['id'] );
+            if( isset( $account_arr['user_details']['uid'] ) )
+                unset( $account_arr['user_details']['uid'] );
+
+            $action_fields['{users_details}'] = $account_arr['user_details'];
+        }
+
+        if( !empty( $account_arr['roles'] ) && is_array( $account_arr['roles'] )
+         && (empty( $db_account_arr )
+             || !empty( $import_params['update_roles'] ) || !empty( $import_params['reset_roles'] )) )
+        {
+            // Validate roles with platform roles...
+            if( !empty( $db_account_arr )
+             && empty( $import_params['reset_roles'] ) )
+                $existing_roles = PHS_Roles::get_user_roles_slugs( $db_account_arr );
+            else
+                $existing_roles = [];
+
+            foreach( $account_arr['roles'] as $role_slug )
+            {
+                if( empty( $roles_by_slug[$role_slug] ) )
+                    continue;
+
+                if( !in_array( $role_slug, $existing_roles, true ) )
+                    $existing_roles[] = $role_slug;
+            }
+
+            $action_fields['{account_roles}'] = $existing_roles;
+        }
+
+        $action_fields['{append_default_roles}'] = false;
+
+        $hook_args = PHS_Hooks::default_import_accounts_hook_args();
+        $hook_args['action_fields'] = $action_fields;
+        $hook_args['import_params'] = $import_params;
+        $hook_args['import_data'] = $json_account_arr;
+        $hook_args['account_data'] = $db_account_arr;
+
+        if( ($import_fields_arr = PHS::trigger_hooks( PHS_Hooks::H_USERS_IMPORT_DB_FIELDS_VALIDATE, $hook_args ))
+         && !empty( $import_fields_arr['action_fields'] ) )
+            $action_fields = $import_fields_arr['action_fields'];
+
+        return $action_fields;
+    }
+
+    private function _validate_import_fields_using_hook( $account_data, $import_params )
+    {
+        $hook_args = PHS_Hooks::default_account_structure_hook_args();
+        $hook_args['account_data'] = $account_data;
+
+        if( !($hook_result = PHS_Hooks::trigger_account_structure( $hook_args ))
+            || empty( $hook_result['account_structure'] )
+            || !is_array( $hook_result['account_structure'] ) )
+            return false;
+
+        return $hook_result['account_structure'];
+    }
+
+    public static function valid_export_to( $export_to )
+    {
+        return (!empty( $export_to )
+                && in_array( $export_to, [ self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER ], true ));
+    }
+
+    /**
+     * @param int[] $account_ids
+     * @param false|array $export_params
+     *
+     * @return bool
+     */
+    public function export_account_ids( $account_ids = [], $export_params = false )
+    {
+        if( empty( $export_params ) || !is_array( $export_params ) )
+            $export_params = [];
+
+        if( empty( $export_params['export_file_dir'] ) )
+            $export_params['export_file_dir'] = '';
+
+        if( empty( $export_params['export_to'] )
+         || !self::valid_export_to( $export_params['export_to'] ) )
+            $export_params['export_to'] = self::EXPORT_TO_BROWSER;
+
+        if( empty( $export_params['export_file_name'] ) )
+        {
+            $export_params['export_file_name'] = 'accounts_export_'.date( 'YmdHi' ).'.json';
+        }
+
+        if( !($accounts_json = $this->export_account_ids_to_json( $account_ids )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Nothing to export.' ) );
+            return false;
+        }
+
+        switch( $export_params['export_to'] )
+        {
+            case self::EXPORT_TO_FILE:
+                if( empty( $export_params['export_file_dir'] )
+                 || !($export_file_dir = rtrim( $export_params['export_file_dir'], '/\\' ))
+                 || !@is_dir( $export_file_dir )
+                 || !@is_writable( $export_file_dir ) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS,
+                                      $this->_pt( 'No directory provided to save export data to or no rights to write in that directory.' ) );
+                    return false;
+                }
+
+                $full_file_path = $export_file_dir.'/'.$export_params['export_file_name'];
+                if( !($fd = @fopen( $full_file_path, 'wb' )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Couldn\'t create export file.' ) );
+                    return false;
+                }
+
+                @fwrite( $fd, $accounts_json );
+                @fflush( $fd );
+                @fclose( $fd );
+            break;
+
+            case self::EXPORT_TO_BROWSER:
+                if( @headers_sent() )
+                {
+                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Headers already sent. Cannot send export file to browser.' ) );
+                    return false;
+                }
+
+                @header( 'Content-Transfer-Encoding: binary' );
+                @header( 'Content-Disposition: attachment; filename="' . $export_params['export_file_name'] . '"' );
+                @header( 'Expires: 0' );
+                @header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
+                @header( 'Pragma: public' );
+                @header( 'Content-Type: application/json;charset=UTF-8' );
+
+                echo $accounts_json;
+                exit;
+            break;
+
+            case self::EXPORT_TO_OUTPUT:
+                echo $accounts_json;
+                exit;
+            break;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int[] $account_ids
+     *
+     * @return string
+     */
+    public function export_account_ids_to_json( $account_ids = [] )
+    {
+        if( !($accounts_arr = $this->export_account_ids_to_array( $account_ids ))
+         || !($accounts_json = @json_encode( $accounts_arr )) )
+            return '';
+
+        return $accounts_json;
+    }
+
+    /**
+     * @param int[] $account_ids
+     *
+     * @return array
+     */
+    public function export_account_ids_to_array( $account_ids = [] )
+    {
+        if( !($qid = $this->_get_accounts_qid( $account_ids )) )
+            return [];
+
+        $return_arr = $this->default_export_accounts_wrapper();
+        while( ($db_account_arr = @mysqli_fetch_assoc( $qid )) )
+        {
+            if( !($account_arr = $this->populate_export_data_from_account_array( $db_account_arr )) )
+                continue;
+
+            if( !($roles_arr = PHS_Roles::get_user_roles_slugs( $db_account_arr )) )
+                $roles_arr = [];
+
+            $account_arr['roles'] = $roles_arr;
+
+            $return_arr['accounts'][] = $account_arr;
+        }
+
+        return $return_arr;
+    }
+
+    public function default_export_accounts_wrapper()
+    {
+        return [
+            'version' => 1,
+            'accounts' => [],
+        ];
+    }
+
+    public function default_export_array_for_account_data()
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        // "hardcoded" data...
+        if( !($user_details = $this->_accounts_details_model->get_empty_data()) )
+            $user_details = [ 'title' => '', 'fname' => '', 'lname' => '',
+                              'phone' => '', 'company' => '', 'limit_emails' => 0,
+                ];
+
+        if( isset( $user_details['id'] ) )
+            unset( $user_details['id'] );
+        if( isset( $user_details['uid'] ) )
+            unset( $user_details['uid'] );
+
+        return [
+            'nick' => '',
+            'email' => '',
+            'email_verified' => 0,
+            'language' => '',
+            'status' => 0,
+            'status_date' => null,
+            'level' => 0,
+            'lastlog' => null,
+            'lastip' => '',
+            'user_details' => $user_details,
+            'roles' => [],
+        ];
+    }
+
+    public function populate_export_data_from_account_array( $account_arr )
+    {
+        if( empty( $account_arr ) || !is_array( $account_arr ) )
+            return false;
+
+        $export_structure = $this->default_export_array_for_account_data();
+        $source_keys = [ 'nick', 'email', 'email_verified', 'language', 'status', 'status_date',
+                       'level', 'lastlog', 'lastip' ];
+        foreach( $source_keys as $key )
+        {
+            if( isset( $account_arr[$key] ) && isset( $export_structure[$key] ) )
+                $export_structure[$key] = $account_arr[$key];
+        }
+        foreach( [ 'email_verified', 'status', 'level', ] as $key )
+        {
+            if( isset( $export_structure[$key] ) )
+                $export_structure[$key] = (int)$export_structure[$key];
+        }
+
+        if( !($empty_fields = $this->_accounts_details_model->get_empty_data()) )
+        {
+            // "hardcoded" fields
+            $details_fields = [ 'title', 'fname', 'lname', 'phone', 'company', 'limit_emails', ];
+        } else
+        {
+            if( isset( $empty_fields['id'] ) )
+                unset( $empty_fields['id'] );
+            if( isset( $empty_fields['uid'] ) )
+                unset( $empty_fields['uid'] );
+
+            $details_fields = array_keys( $empty_fields );
+        }
+
+        foreach( $details_fields as $field_name )
+        {
+            $join_field_name = 'users_details_'.$field_name;
+            // check if we have get_list() result
+            if( isset( $account_arr[$join_field_name] )
+             && isset( $export_structure['user_details'][$field_name] ) )
+                $export_structure['user_details'][$field_name] = $account_arr[$join_field_name];
+
+            // check if we have account details result
+            elseif( !empty( $account_arr['{users_details}'] ) && is_array( $account_arr['{users_details}'] )
+             && array_key_exists( $field_name, $account_arr['{users_details}'] )
+             && array_key_exists( $field_name, $export_structure['user_details'] ) )
+                $export_structure['user_details'][$field_name] = $account_arr['{users_details}'][$field_name];
+        }
+
+        if( isset( $export_structure['user_details']['limit_emails'] ) )
+            $export_structure['user_details']['limit_emails'] = (int)$export_structure['user_details']['limit_emails'];
+
+        return $export_structure;
+    }
+
+    /**
+     * @param $account_ids
+     *
+     * @return false|\mysqli_result
+     */
+    private function _get_accounts_qid( $account_ids = [] )
+    {
+        if( !$this->_load_dependencies() )
+            return false;
+
+        $accounts_model = $this->_accounts_model;
+
+        if( empty( $account_ids ) || !is_array( $account_ids ) )
+            $account_ids = [];
+
+        $new_accounts_ids = [];
+        foreach( $account_ids as $account_id )
+        {
+            $account_id = (int)$account_id;
+            if( empty( $account_id ) )
+                continue;
+
+            $new_accounts_ids[] = $account_id;
+        }
+
+        if( !($uflow_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying accounts for export.' ) );
+            return false;
+        }
+
+        $list_arr = $uflow_arr;
+        $list_arr['get_query_id'] = true;
+        if( !empty( $new_accounts_ids ) )
+            $list_arr['fields']['id'] = [ 'check' => 'IN', 'value' => '('.implode( ',', $new_accounts_ids ).')' ];
+        $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED ];
+        $list_arr['flags'] = [ 'include_account_details' ];
+
+        if( !($qid = $accounts_model->get_list( $list_arr )) )
+        {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying accounts for export.' ) );
+            return false;
+        }
+
+        return $qid;
+    }
+
+    protected function custom_activate( $plugin_arr )
+    {
+        $this->reset_error();
+
+        if( !$this->_create_required_directories() )
+            return false;
+
+        // Make sure we don't have static errors...
+        self::st_reset_error();
+
+        return true;
+    }
+
+    protected function custom_update( $old_version, $new_version )
+    {
+        $this->reset_error();
+
+        if( !$this->_create_required_directories() )
+            return false;
+
+        // Make sure we don't have static errors...
+        self::st_reset_error();
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    private function _create_required_directories()
+    {
+        $this->reset_error();
+
+        if( !($accounts_import_dir = $this->get_accounts_import_dir( false )) )
+        {
+            $this->set_error( self::ERR_RESOURCES,
+                              $this->_pt( 'Error obtaining products import export directory path.' ) );
+            return false;
+        }
+
+        if( !@file_exists( $accounts_import_dir )
+         && !@mkdir( $accounts_import_dir, 0775 )
+         && !@is_dir( $accounts_import_dir ) )
+        {
+            $this->set_error( self::ERR_RESOURCES,
+                              $this->_pt( 'Error creating temporary accounts import directory: [%s].',
+                                          $accounts_import_dir ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    public function get_accounts_import_dir( $slash_ended = true )
+    {
+        $dir = PHS_UPLOADS_DIR;
+
+        if( substr( $dir, -1 ) !== '/' )
+            $dir .= '/';
+
+        return $dir.self::ACCOUNTS_IMPORT_DIR.(!empty( $slash_ended )?'/':'');
+    }
+
+    public function get_accounts_import_www( $slash_ended = true )
+    {
+        $dir = PHS_UPLOADS_WWW;
+
+        if( substr( $dir, -1 ) !== '/' )
+            $dir .= '/';
+
+        return $dir.self::ACCOUNTS_IMPORT_DIR.(!empty( $slash_ended )?'/':'');
     }
 }
