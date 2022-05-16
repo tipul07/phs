@@ -13,15 +13,18 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 {
     const FORMAT_NICK_EMAIL_ID = 1, FORMAT_NICK_NAME_ID = 2;
 
+    /** @var bool|\phs\plugins\admin\PHS_Plugin_Admin $_admin_plugin  */
+    private $_admin_plugin = false;
+
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model  */
     private $_accounts_model = false;
 
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts_details $_account_details_model  */
     private $_account_details_model = false;
 
-    private $autocomplete_params = array(
+    private $autocomplete_params = [
         'account_data' => false,
-        'account_details_data' => array(),
+        'account_details_data' => [],
 
         'id_id' => 'ac_account_id',
         'text_id' => 'ac_account_text',
@@ -40,23 +43,21 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         'text_format' => self::FORMAT_NICK_EMAIL_ID,
 
         'search_term' => '',
-    );
+    ];
 
     private function _load_dependencies()
     {
         $this->reset_error();
 
-        if( empty( $this->_accounts_model )
-        and !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        if( (empty( $this->_admin_plugin )
+             && !($this->_admin_plugin = PHS::load_plugin( 'admin' )))
+         || (empty( $this->_accounts_model )
+             && !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )))
+         || (empty( $this->_account_details_model )
+             && !($this->_account_details_model = PHS::load_model( 'accounts_details', 'accounts' )))
+        )
         {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading accounts model.' ) );
-            return false;
-        }
-
-        if( empty( $this->_account_details_model )
-        and !($this->_account_details_model = PHS::load_model( 'accounts_details', 'accounts' )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading account details model.' ) );
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading required resources.' ) );
             return false;
         }
 
@@ -68,7 +69,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_AJAX );
+        return [ PHS_Scope::SCOPE_AJAX ];
     }
 
     /**
@@ -87,18 +88,18 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             return $action_result;
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_ACCOUNTS ) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to list accounts.' ) );
-            return self::default_action_result();
-        }
-
         if( !$this->_load_dependencies() )
         {
             if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading dependencies.' ) );
+                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading required resources.' ) );
 
             PHS_Notifications::add_error_notice( $this->get_error_message() );
+            return self::default_action_result();
+        }
+
+        if( !$this->_admin_plugin->can_admin_list_accounts( $current_user ) )
+        {
+            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to list accounts.' ) );
             return self::default_action_result();
         }
 
@@ -112,31 +113,31 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         $accounts_model = $this->_accounts_model;
 
         if( empty( $term )
-         or !($user_details_table = $this->_account_details_model->get_flow_table_name()) )
+         || !($user_details_table = $this->_account_details_model->get_flow_table_name()) )
         {
-            $guessed_accounts = array();
+            $guessed_accounts = [];
         } else
         {
-            $list_arr = array();
+            $list_arr = [];
             $list_arr['fields']['{linkage_func}'] = 'AND';
-            $list_arr['fields']['status'] = array( 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED );
-            $list_arr['fields']['{linkage}'] = array(
-                'fields' => array(
+            $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED ];
+            $list_arr['fields']['{linkage}'] = [
+                'fields' => [
                     '{linkage_func}' => 'OR',
-                    'nick' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
-                    'email' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
-                    '`'.$user_details_table.'`.fname' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
-                    '`'.$user_details_table.'`.lname' => array( 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ),
-                ),
-            );
-            $list_arr['flags'] = array( 'include_account_details' );
+                    'nick' => [ 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ],
+                    'email' => [ 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ],
+                    '`'.$user_details_table.'`.fname' => [ 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ],
+                    '`'.$user_details_table.'`.lname' => [ 'check' => 'LIKE', 'value' => '%'.prepare_data( $term ).'%' ],
+                ],
+            ];
+            $list_arr['flags'] = [ 'include_account_details' ];
             $list_arr['enregs_no'] = 30;
 
             if( !($guessed_accounts = $accounts_model->get_list( $list_arr )) )
-                $guessed_accounts = array();
+                $guessed_accounts = [];
         }
 
-        $ajax_result = array();
+        $ajax_result = [];
         foreach( $guessed_accounts as $account_id => $account_arr )
         {
             // Simulate account details so we spare queries in database...
@@ -147,12 +148,12 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             $account_details_arr['phone'] = $account_arr['users_details_phone'];
             $account_details_arr['company'] = $account_arr['users_details_company'];
 
-            $this->autocomplete_params( array(
+            $this->autocomplete_params( [
                 'account_data' => $account_arr,
                 'account_details_data' => $account_details_arr,
-            ) );
+            ] );
 
-            $ajax_result[] = array(
+            $ajax_result[] = [
                 'id' => $account_id,
                 'value' => $this->format_data( false, false ),
                 'label' => $this->format_data(),
@@ -161,7 +162,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
                 'title' => (empty( $account_arr['users_details_title'] )?'':$account_arr['users_details_title']),
                 'fname' => (empty( $account_arr['users_details_fname'] )?'':$account_arr['users_details_fname']),
                 'lname' => (empty( $account_arr['users_details_lname'] )?'':$account_arr['users_details_lname']),
-            );
+            ];
         }
 
         $action_result = self::default_action_result();
@@ -181,7 +182,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             if( !is_array( $key ) )
             {
                 if( is_scalar( $key )
-                and array_key_exists( $key, $this->autocomplete_params ) )
+                 && array_key_exists( $key, $this->autocomplete_params ) )
                     return $this->autocomplete_params[$key];
 
                 return null;
@@ -190,7 +191,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !array_key_exists( $kkey, $this->autocomplete_params ) )
+                 || !array_key_exists( $kkey, $this->autocomplete_params ) )
                     continue;
 
                 $this->autocomplete_params[$kkey] = $kval;
@@ -200,7 +201,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         }
 
         if( !is_scalar( $key )
-         or !array_key_exists( $key, $this->autocomplete_params ) )
+         || !array_key_exists( $key, $this->autocomplete_params ) )
             return null;
 
         $this->autocomplete_params[$key] = $val;
@@ -208,6 +209,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return true;
     }
 
+    /**
+     * @param false|int|array $account_data
+     *
+     * @return array|false
+     */
     public function account_data( $account_data = false )
     {
         if( $account_data === false )
@@ -215,38 +221,38 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             if( !($account_arr = $this->autocomplete_params( 'account_data' )) )
                 return false;
 
-            return array(
+            return [
                 'account_data' => $account_arr,
                 'account_details_data' => $this->autocomplete_params( 'account_details_data' ),
-            );
+            ];
         }
 
         if( ($existing_arr = $this->autocomplete_params( 'account_data' ))
-        and is_array( $existing_arr )
-        and (
-                (is_numeric( $account_data ) and $existing_arr['id'] == $account_data)
-                or
-                (is_array( $account_data ) and !empty( $account_data['id'] ) and $existing_arr['id'] == $account_data['id'])
+         && is_array( $existing_arr )
+         && (
+                (is_numeric( $account_data ) && (int)$existing_arr['id'] === (int)$account_data)
+                ||
+                (is_array( $account_data ) && !empty( $account_data['id'] ) && (int)$existing_arr['id'] === (int)$account_data['id'])
             ) )
         {
-            return array(
+            return [
                 'account_data' => $account_data,
                 'account_details_data' => $this->autocomplete_params( 'account_details_data' ),
-            );
+            ];
         }
 
         if( !$this->_load_dependencies()
-         or empty( $account_data )
-         or !($account_arr = $this->_accounts_model->data_to_array( $account_data )) )
+         || empty( $account_data )
+         || !($account_arr = $this->_accounts_model->data_to_array( $account_data )) )
             return false;
 
         if( !($account_details = $this->_accounts_model->get_account_details( $account_arr )) )
-            $account_details = array();
+            $account_details = [];
 
-        $return_arr = array(
+        $return_arr = [
             'account_data' => $account_arr,
             'account_details_data' => $account_details,
-        );
+        ];
 
         $this->autocomplete_params( $return_arr );
 
@@ -256,8 +262,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
     public function format_data( $account_data = false, $as_html = true, $format = false )
     {
         if( !$this->_load_dependencies()
-         or !($account_details = $this->account_data( $account_data ))
-         or !is_array( $account_details ) )
+         || !($account_details = $this->account_data( $account_data ))
+         || !is_array( $account_details ) )
             return '';
 
         $account_arr = $account_details['account_data'];
@@ -275,7 +281,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             default:
             case self::FORMAT_NICK_EMAIL_ID:
                 if( $as_html )
-                    $return_str = '#'.$account_arr['id'].' '.$this->_highlight_data( $account_arr['nick'], $search_term ).'<br/>'.$this->_highlight_data( $account_arr['email'], $search_term );
+                    $return_str = '#'.$account_arr['id'].' '.$this->_highlight_data( $account_arr['nick'], $search_term ).
+                                  '<br/>'.$this->_highlight_data( $account_arr['email'], $search_term );
                 else
                     $return_str = '#'.$account_arr['id'].' '.$account_arr['nick'].' '.$account_arr['email'];
             break;
@@ -287,17 +294,18 @@ class PHS_Action_Users_autocomplete extends PHS_Action
                 if( !empty( $account_details['fname'] ) )
                 {
                     $fname = trim( $account_details['fname'] );
-                    $full_name .= ($full_name!=''?' ':'').($as_html?$this->_highlight_data( $fname, $search_term ):$fname);
+                    $full_name .= ($full_name!==''?' ':'').($as_html?$this->_highlight_data( $fname, $search_term ):$fname);
                 }
 
                 if( !empty( $account_details['lname'] ) )
                 {
                     $lname = trim( $account_details['lname'] );
-                    $full_name .= ($full_name != '' ? ' ' : '').($as_html?$this->_highlight_data( $lname, $search_term ):$lname);
+                    $full_name .= ($full_name !== '' ? ' ' : '').($as_html?$this->_highlight_data( $lname, $search_term ):$lname);
                 }
 
                 if( $as_html )
-                    $return_str = '#'.$account_arr['id'].' '.$this->_highlight_data( $account_arr['nick'], $search_term ).'<br/>'.$full_name;
+                    $return_str = '#'.$account_arr['id'].' '.$this->_highlight_data( $account_arr['nick'], $search_term ).
+                                  '<br/>'.$full_name;
                 else
                     $return_str = '#'.$account_arr['id'].' '.$account_arr['nick'].' '.$full_name;
             break;
@@ -306,6 +314,12 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return $return_str;
     }
 
+    /**
+     * @param string $str
+     * @param string $term
+     *
+     * @return string
+     */
     private function _highlight_data( $str, $term )
     {
         if( empty( $term ) )
@@ -321,11 +335,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 
     public function js_generic_functionality( $data )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         if( ($params_arr = $this->autocomplete_params())
-        and is_array( $params_arr ) )
+         && is_array( $params_arr ) )
         {
             foreach( $params_arr as $key => $val )
                 $data[$key] = $val;
@@ -339,11 +353,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 
     public function js_autocomplete_functionality( $data )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         if( ($params_arr = $this->autocomplete_params())
-        and is_array( $params_arr ) )
+         && is_array( $params_arr ) )
         {
             foreach( $params_arr as $key => $val )
                 $data[$key] = $val;
@@ -357,11 +371,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 
     public function autocomplete_inputs( $data )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         if( ($params_arr = $this->autocomplete_params())
-        and is_array( $params_arr ) )
+         && is_array( $params_arr ) )
         {
             foreach( $params_arr as $key => $val )
                 $data[$key] = $val;

@@ -1,4 +1,5 @@
 <?php
+    /** @noinspection ForgottenDebugOutputInspection */
 
     define( 'PHS_INSTALLING_FLOW', true );
     define( 'PHS_PREVENT_SESSION', true );

@@ -2,11 +2,14 @@
 
 use \phs\PHS;
 use \phs\libraries\PHS_Hooks;
+use \phs\libraries\PHS_Logger;
 
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
 if( ($accounts_plugin = PHS::load_plugin( 'accounts' ))
  && $accounts_plugin->plugin_active() )
 {
+    PHS_Logger::define_channel( $accounts_plugin::LOG_IMPORT );
+
     if( !PHS::prevent_session() )
         $accounts_plugin->resolve_idler_sessions();
 

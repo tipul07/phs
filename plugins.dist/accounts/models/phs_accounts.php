@@ -352,7 +352,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function needs_confirmation_email( $user_data )
     {
-        // If password was provided by user or he did already login no need to send him password confirmation
+        // If password was provided by user, or he did already login no need to send him password confirmation
         if( empty( $user_data )
          || !($user_arr = $this->data_to_array( $user_data ))
          || empty( $user_arr['pass_generated'] )
@@ -1897,6 +1897,11 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{account_roles}'] ) || !is_array( $params['{account_roles}'] ) )
             $params['{account_roles}'] = false;
 
+        if( !isset( $params['{append_default_roles}'] ) )
+            $params['{append_default_roles}'] = true;
+        else
+            $params['{append_default_roles}'] = (!empty( $params['{append_default_roles}'] ));
+
         if( empty( $params['{send_confirmation_email}'] ) )
             $params['{send_confirmation_email}'] = false;
 
@@ -1954,25 +1959,35 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( $this->acc_is_admin( $insert_arr ) )
-            $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN ];
-        elseif( $this->acc_is_operator( $insert_arr ) )
-            $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR ];
-        else
-            $roles_arr = [ PHS_Roles::ROLE_MEMBER ];
+        $roles_arr = [];
+        if( !empty( $params['{append_default_roles}'] ) )
+        {
+            if( $this->acc_is_admin( $insert_arr ) )
+                $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN ];
+            elseif( $this->acc_is_operator( $insert_arr ) )
+                $roles_arr = [ PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR ];
+            else
+                $roles_arr = [ PHS_Roles::ROLE_MEMBER ];
 
-        $hook_args = PHS_Hooks::default_user_registration_roles_hook_args();
-        $hook_args['roles_arr'] = $roles_arr;
-        $hook_args['account_data'] = $insert_arr;
+            $hook_args = PHS_Hooks::default_user_registration_roles_hook_args();
+            $hook_args['roles_arr'] = $roles_arr;
+            $hook_args['account_data'] = $insert_arr;
 
-        if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, $hook_args ))
-         && is_array( $extra_roles_arr ) && !empty( $extra_roles_arr['roles_arr'] ) )
-            $roles_arr = self::array_merge_unique_values( $extra_roles_arr['roles_arr'], $roles_arr );
+            if( ($extra_roles_arr = PHS::trigger_hooks( PHS_Hooks::H_USER_REGISTRATION_ROLES, $hook_args ))
+             && is_array( $extra_roles_arr ) && !empty( $extra_roles_arr['roles_arr'] ) )
+                $roles_arr = self::array_merge_unique_values( $extra_roles_arr['roles_arr'], $roles_arr );
+        }
 
         if( !empty( $params['{account_roles}'] ) && is_array( $params['{account_roles}'] ) )
-            $roles_arr = self::array_merge_unique_values( $params['{account_roles}'], $roles_arr );
+        {
+            if( !empty( $roles_arr ) )
+                $roles_arr = self::array_merge_unique_values( $params['{account_roles}'], $roles_arr );
+            else
+                $roles_arr = $params['{account_roles}'];
+        }
 
-        PHS_Roles::link_roles_to_user( $insert_arr, $roles_arr );
+        if( !empty( $roles_arr ) )
+            PHS_Roles::link_roles_to_user( $insert_arr, $roles_arr );
 
         $registration_email_params = [];
         $registration_email_params['accounts_plugin_settings'] = $params['{accounts_settings}'];
@@ -2111,16 +2126,6 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    /**
-     * Called first in edit flow.
-     * Parses flow parameters if anything special should be done.
-     * This should do checks on raw parameters received by edit method.
-     *
-     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
-     * @param array|false $params Parameters in the flow
-     *
-     * @return array|bool Flow parameters array
-     */
     protected function get_edit_prepare_params_users( $existing_data, $params )
     {
         if( !empty( $params['fields']['status'] ) )
@@ -2303,17 +2308,6 @@ class PHS_Model_Accounts extends PHS_Model
         return $params;
     }
 
-    /**
-     * Called right after a successful edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
-     * in database.
-     *
-     * @param array $existing_data Data which already exists in database (id or full array with all database fields)
-     * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
-     * @param array $params Flow parameters
-     *
-     * @return array|bool Returns data array added in database (with changes, if required) or false if record should be deleted from database.
-     * Deleted record will be hard-deleted
-     */
     protected function edit_after_users( $existing_data, $edit_arr, $params )
     {
         if( !empty( $params['{users_details}'] ) && is_array( $params['{users_details}'] ) )
@@ -2466,12 +2460,26 @@ class PHS_Model_Accounts extends PHS_Model
                             continue 2;
                         }
 
-                        $params['db_fields'] .= ', `'.$user_details_table.'`.title AS users_details_title, '.
-                                                ' `'.$user_details_table.'`.fname AS users_details_fname, '.
-                                                ' `'.$user_details_table.'`.lname AS users_details_lname, '.
-                                                ' `'.$user_details_table.'`.phone AS users_details_phone, '.
-                                                ' `'.$user_details_table.'`.company AS users_details_company, '.
-                                                ' `'.$user_details_table.'`.limit_emails AS users_details_limit_emails';
+                        // user_details is a dynamic table, so we want to obtain all fields from other plugins also
+                        if( !($empty_fields = $account_details_model->get_empty_data()) )
+                        {
+                            // "hardcoded" fields in case we have an error obtaining all fields
+                            $details_fields = [ 'title', 'fname', 'lname', 'phone', 'company', 'limit_emails', ];
+                        } else
+                        {
+                            if( isset( $empty_fields['id'] ) )
+                                unset( $empty_fields['id'] );
+                            if( isset( $empty_fields['uid'] ) )
+                                unset( $empty_fields['uid'] );
+
+                            $details_fields = array_keys( $empty_fields );
+                        }
+
+                        foreach( $details_fields as $field_name )
+                        {
+                            $params['db_fields'] .= ', `'.$user_details_table.'`.`'.$field_name.'` AS users_details_'.$field_name;
+                        }
+
                         $params['join_sql'] .= ' LEFT JOIN `'.$user_details_table.'` ON `'.$user_details_table.'`.id = `'.$model_table.'`.details_id ';
                     break;
                 }

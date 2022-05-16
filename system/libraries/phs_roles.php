@@ -16,6 +16,7 @@ class PHS_Roles extends PHS_Registry
           ROLEU_MANAGE_PLUGINS = 'phs_manage_plugins', ROLEU_LIST_PLUGINS = 'phs_list_plugins',
           ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
           ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
+          ROLEU_EXPORT_ACCOUNTS = 'phs_accounts_export', ROLEU_IMPORT_ACCOUNTS = 'phs_accounts_import',
           ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
           ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
           ROLEU_VIEW_LOGS = 'phs_view_logs';
@@ -28,7 +29,7 @@ class PHS_Roles extends PHS_Registry
         self::st_reset_error();
 
         if( empty( self::$_role_model )
-        and !(self::$_role_model = PHS::load_model( 'roles' )) )
+         && !(self::$_role_model = PHS::load_model( 'roles' )) )
         {
             self::st_set_error( self::ERR_DEPENDENCIES, self::_t( 'Couldn\'t load roles model.' ) );
             return false;
@@ -318,7 +319,7 @@ class PHS_Roles extends PHS_Registry
         if( !self::load_dependencies() )
             return false;
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide valid parameters for this role unit.' ) );
             return false;
@@ -332,10 +333,10 @@ class PHS_Roles extends PHS_Registry
 
         $role_model = self::$_role_model;
 
-        $constrain_arr = array();
+        $constrain_arr = [];
         $constrain_arr['slug'] = $params['slug'];
 
-        $check_params = array();
+        $check_params = [];
         $check_params['table_name'] = 'roles_units';
         $check_params['result_type'] = 'single';
         $check_params['details'] = '*';
@@ -343,19 +344,19 @@ class PHS_Roles extends PHS_Registry
         if( ($role_unit_arr = $role_model->get_details_fields( $constrain_arr, $check_params )) )
         {
             // TODO: check $role_arr['plugin'] if it is same as $params['plugin'] (don't allow other plugins to overwrite role units)
-            $edit_fields_arr = array();
+            $edit_fields_arr = [];
             $check_fields = $role_model::get_register_edit_role_unit_fields();
 
             foreach( $check_fields as $key => $def_val )
             {
                 if( array_key_exists( $key, $role_unit_arr )
-                and array_key_exists( $key, $params )
-                and (string)$role_unit_arr[$key] !== (string)$params[$key] )
+                 && array_key_exists( $key, $params )
+                 && (string)$role_unit_arr[$key] !== (string)$params[$key] )
                     $edit_fields_arr[$key] = $params[$key];
             }
 
             if( empty( $role_unit_arr['plugin'] )
-            and !empty( $params['plugin'] ) )
+             && !empty( $params['plugin'] ) )
                 $edit_fields_arr['plugin'] = $params['plugin'];
 
             if( $role_model->is_deleted( $role_unit_arr ) )
@@ -363,7 +364,7 @@ class PHS_Roles extends PHS_Registry
 
             if( !empty( $edit_fields_arr ) )
             {
-                $edit_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) );
+                $edit_arr = $role_model->fetch_default_flow_params( [ 'table_name' => 'roles_units' ] );
                 $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
@@ -377,7 +378,7 @@ class PHS_Roles extends PHS_Registry
 
             $params['status'] = $role_model::STATUS_ACTIVE;
 
-            $insert_arr = $role_model->fetch_default_flow_params( array( 'table_name' => 'roles_units' ) );
+            $insert_arr = $role_model->fetch_default_flow_params( [ 'table_name' => 'roles_units' ] );
             $insert_arr['fields'] = $params;
 
             if( !($role_unit_arr = $role_model->insert( $insert_arr )) )

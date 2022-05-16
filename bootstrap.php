@@ -335,6 +335,7 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
     if( !$plugins_model->check_install_plugins_db() )
     {
         echo PHS::_t( 'ERROR checking plugins model install:' )."\n";
+        /** @noinspection ForgottenDebugOutputInspection */
         var_dump( $plugins_model->get_error() );
         exit;
     }

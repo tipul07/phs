@@ -308,7 +308,7 @@ Checking integrity for ALL plugins...,Controllo dell'integrità per tutti i plug
 Didn't find a valid value in plugins list to check integrity.,Non è stato trovato un valore valido nell'elenco plugin per il controllo dell'integrità.
 Message deleted with success.,Messaggio cancellato con successo.
 Error sending request to server. Please retry.,Errore di invio di richiesta al server. Si prega di riprovare.
-Slug should be unique. Once role is defined you cannot change this slug.,Slug deve essere univoco. Una volta che il ruolo viene definito non è possibile modificare questo slug.
+Slug should be unique. Once role is defined, you cannot change this slug.,Slug deve essere univoco. Una volta che il ruolo viene definito non è possibile modificare questo slug.
 Description,Descrizione
 Role Units,Unità di ruolo
 Add role,Aggiungere il ruolo

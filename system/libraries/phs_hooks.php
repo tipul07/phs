@@ -103,6 +103,8 @@ class PHS_Hooks extends PHS_Registry
          H_USERS_FORGOT_PASSWORD_ACTION_START = 'phs_users_forgot_password_action_start',
         // triggered right when execute() function of register action is called
          H_USERS_REGISTER_ACTION_START = 'phs_users_register_action_start',
+        // When importing accounts, ask validation for import data (DB format)
+         H_USERS_IMPORT_DB_FIELDS_VALIDATE = 'phs_users_db_fields_validate',
 
          // Layout hooks
          H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
@@ -550,6 +552,22 @@ class PHS_Hooks extends PHS_Registry
             'account_data' => false,
             // Account structure (from database or empty strcuture for guests)
             'account_structure' => false,
+        ] );
+    }
+
+    // Used to validate or alter db fields when importing user accounts
+    public static function default_import_accounts_hook_args()
+    {
+        return self::hook_args_definition( [
+            // Array to be send to $accounts_model->insert( $action_fields )
+            // or $accounts_model->edit( $account_arr, $action_fields )
+            'action_fields' => false,
+            // Import parameters
+            'import_params' => false,
+            // Original account provided by import source
+            'import_data' => false,
+            // Account record (if exists for provided email)
+            'account_data' => false,
         ] );
     }
 
