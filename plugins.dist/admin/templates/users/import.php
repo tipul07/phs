@@ -55,33 +55,33 @@
         <div class="col-sm-10">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="insert_not_found" name="insert_not_found"
-                <?php echo ($this->view_var( 'insert_not_found' )?'checked="checked"':'')?>>
+                <?php echo ($this->view_var( 'insert_not_found' )?'checked="checked"':'')?> value="1">
                 <label class="form-check-label"
                        for="insert_not_found"><?php echo $this->_pt( 'Create non-existing accounts (if email is not found in database, create a new account)' )?></label>
             </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="override_level" name="override_level"
-                <?php echo ($this->view_var( 'override_level' )?'checked="checked"':'')?>>
+                <?php echo ($this->view_var( 'override_level' )?'checked="checked"':'')?> value="1">
                 <label class="form-override_level-label"
                        for="override_level"><?php echo $this->_pt( 'Override account level from database with the level found in import file' )?></label>
             </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="update_roles" name="update_roles"
-                <?php echo ($this->view_var( 'update_roles' )?'checked="checked"':'')?>>
+                <?php echo ($this->view_var( 'update_roles' )?'checked="checked"':'')?> value="1">
                 <label class="form-check-label"
                        for="update_roles"><?php echo $this->_pt( 'Update roles (if account is found). Append roles found in import file.' )?></label>
             </div>
             <div class="pl-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="reset_roles" name="reset_roles"
-                    <?php echo ($this->view_var( 'reset_roles' )?'checked="checked"':'')?>>
+                    <?php echo ($this->view_var( 'reset_roles' )?'checked="checked"':'')?> value="1">
                     <label class="form-check-label"
                            for="reset_roles"><?php echo $this->_pt( 'Remove existing roles and use the ones found in import file' )?></label>
                 </div>
             </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="update_details" name="update_details"
-                <?php echo ($this->view_var( 'update_details' )?'checked="checked"':'')?>>
+                <?php echo ($this->view_var( 'update_details' )?'checked="checked"':'')?> value="1">
                 <label class="form-check-label"
                        for="update_details"><?php echo $this->_pt( 'Update user account details with data from import file' )?></label>
             </div>
@@ -89,7 +89,7 @@
     </div>
 
     <div class="form-group row">
-        <label for="prod_picture" class="col-sm-2 col-form-label"><?php echo $this->_pt( 'Import only level' )?></label>
+        <label for="import_level" class="col-sm-2 col-form-label"><?php echo $this->_pt( 'Import only level' )?></label>
         <div class="col-sm-10">
         <select name="import_level" id="import_level" class="chosen-select-nosearch" style="min-width:260px;">
             <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
@@ -106,10 +106,11 @@
         </div>
     </div>
 
-    <fieldset>
+    <div class="form-group row">
         <input type="submit" id="do_submit" name="do_submit"
                class="btn btn-primary submit-protection ignore_hidden_required"
                value="<?php echo $this->_pt( 'Import Accounts' )?>" />
-    </fieldset>
+    </div>
 
 </div>
+</form>

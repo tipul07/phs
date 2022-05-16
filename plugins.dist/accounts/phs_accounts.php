@@ -887,7 +887,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-
         if( empty( $json_arr ) || !is_array( $json_arr )
          || empty( $json_arr['accounts'] ) || !is_array( $json_arr['accounts'] ) )
         {

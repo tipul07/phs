@@ -70,10 +70,10 @@ class PHS_Action_Import extends PHS_Action
             $insert_not_found = 0;
         if( !($override_level = PHS_Params::_pg( 'override_level', PHS_Params::T_INT )) )
             $override_level = 0;
-        if( !($update_roles = PHS_Params::_pg( 'update_roles', PHS_Params::T_INT )) )
-            $update_roles = 0;
         if( !($reset_roles = PHS_Params::_pg( 'reset_roles', PHS_Params::T_INT )) )
             $reset_roles = 0;
+        if( !($update_roles = PHS_Params::_pg( 'update_roles', PHS_Params::T_INT )) )
+            $update_roles = 0;
         if( !($update_details = PHS_Params::_pg( 'update_details', PHS_Params::T_INT )) )
             $update_details = 0;
         if( !($import_level = PHS_Params::_pg( 'import_level', PHS_Params::T_INT )) )
@@ -82,7 +82,10 @@ class PHS_Action_Import extends PHS_Action
 
         $do_submit = PHS_Params::_p( 'do_submit' );
 
-        if( PHS_Params::_g( 'import_finished', PHS_Params::T_INT ) )
+        if( !($import_finished = PHS_Params::_pg( 'import_finished', PHS_Params::T_INT )) )
+            $import_finished = 0;
+
+        if( $import_finished )
         {
             if( !($total_accounts = PHS_Params::_pg( 'total_accounts', PHS_Params::T_INT )) )
                 $total_accounts = 0;
@@ -168,8 +171,8 @@ class PHS_Action_Import extends PHS_Action
                         $url_args['errors'] = (!empty( $import_results['errors'] )?$import_results['errors']:0);
                         $url_args['insert_not_found'] = ($insert_not_found?1:0);
                         $url_args['override_level'] = ($override_level?1:0);
-                        $url_args['reset_roles'] = ($reset_roles?1:0);
                         $url_args['update_roles'] = ($update_roles?1:0);
+                        $url_args['reset_roles'] = ($reset_roles?1:0);
                         $url_args['update_details'] = ($update_details?1:0);
                         $url_args['import_level'] = $import_level;
 
@@ -181,7 +184,7 @@ class PHS_Action_Import extends PHS_Action
             }
         }
 
-        if( empty( $foobar ) )
+        if( empty( $foobar ) && empty( $import_finished ) )
         {
             $insert_not_found = true;
             $override_level = false;
