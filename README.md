@@ -8,7 +8,7 @@
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/tipul07/phs?color=green)](https://github.com/tipul07/phs/commits/master)
 [![GitHub HitCount](http://hits.dwyl.io/tipul07/phs.svg)](http://hits.dwyl.io/tipul07/phs)
 
-Latest version 1.1.6.0
+Latest version 1.1.6.1
 
 Minimum PHP version required 5.6+ (required in 3rd party register/login)
 
@@ -64,7 +64,7 @@ Please, read our documentation (work in progress): [Here](https://github.com/tip
     - Email like messaging system
     - Custom message types can be programmatically added
 
-11. Other built-in feature
+11. Other built-in features
     - Custom Captcha
     - Cookie acceptance notification
     - Simple BB editor
