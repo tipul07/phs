@@ -64,7 +64,7 @@ Please, read our documentation (work in progress): [Here](https://github.com/tip
     - Email like messaging system
     - Custom message types can be programmatically added
 
-11. Other built-in feature
+11. Other built-in features
     - Custom Captcha
     - Cookie acceptance notification
     - Simple BB editor
