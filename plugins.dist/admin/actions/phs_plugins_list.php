@@ -14,20 +14,19 @@ use \phs\libraries\PHS_Roles;
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
 class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 {
+    /** @var \phs\plugins\admin\PHS_Plugin_Admin $_admin_plugin */
+    private $_admin_plugin;
+
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
     private $_accounts_model;
 
     public function load_depencies()
     {
-        if( !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        if( !($this->_admin_plugin = PHS::load_plugin( 'admin' ))
+         || !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($this->_paginator_model = PHS::load_model( 'plugins' )) )
         {
-            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load accounts model.' ) );
-            return false;
-        }
-
-        if( !($this->_paginator_model = PHS::load_model( 'plugins' )) )
-        {
-            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load plugins model.' ) );
+            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Error loading required resources.' ) );
             return false;
         }
 
@@ -66,50 +65,52 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 return false;
         }
 
+        if( !($originals_arr = $this->_paginator->get_originals())
+         || !is_array( $originals_arr ) )
+            $originals_arr = [];
+
         if( !($scope_arr = $this->_paginator->get_scope())
-         or !is_array( $scope_arr ) )
-            $scope_arr = array();
+         || !is_array( $scope_arr ) )
+            $scope_arr = [];
 
         if( PHS_Params::_g( 'unknown_plugin', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Plugin ID is invalid or plugin was not found.' ) );
 
-        $records_arr = array();
+        $records_arr = [];
 
         if( !($page = $this->_paginator->pagination_params( 'page' )) )
             $page = 0;
 
         $count_offset = 0;
-        if( !$page
-        and empty( $scope_arr ) )
+        $core_details = PHS_Plugin::core_plugin_details_fields();
+
+        $record_arr = [];
+        $record_arr['id'] = $core_details['id'];
+        $record_arr['plugin_name'] = $core_details['plugin_name'];
+        $record_arr['vendor_id'] = $core_details['vendor_id'];
+        $record_arr['vendor_name'] = $core_details['vendor_name'];
+        $record_arr['name'] = $core_details['name'];
+        $record_arr['description'] = $core_details['description'];
+        $record_arr['version'] = $core_details['db_version'].' / '.$core_details['script_version'];
+        $record_arr['status'] = $core_details['status'];
+        $record_arr['status_date'] = date( PHS_Model::DATETIME_DB, @filemtime( PHS_PATH.'bootstrap.php' ) );
+        $record_arr['cdate'] = $record_arr['status_date'];
+        $record_arr['models'] = ((!empty( $core_details['models'] ) && is_array( $core_details['models'] ))?$core_details['models']: []);
+        $record_arr['is_installed'] = true;
+        $record_arr['is_core'] = true;
+        $record_arr['is_always_active'] = $core_details['is_always_active'];
+        $record_arr['is_distribution'] = $core_details['is_distribution'];
+
+        if( $this->_check_record_for_current_scope( $record_arr, $scope_arr ) )
         {
+            if( !$page )
+                $records_arr[] = $record_arr;
             $count_offset = 1;
-            // if on first page add core as plugin on first record...
-
-            $core_details = PHS_Plugin::core_plugin_details_fields();
-
-            $record_arr = array();
-            $record_arr['id'] = $core_details['id'];
-            $record_arr['plugin_name'] = $core_details['plugin_name'];
-            $record_arr['vendor_id'] = $core_details['vendor_id'];
-            $record_arr['vendor_name'] = $core_details['vendor_name'];
-            $record_arr['name'] = $core_details['name'];
-            $record_arr['description'] = $core_details['description'];
-            $record_arr['version'] = $core_details['db_version'].' / '.$core_details['script_version'];
-            $record_arr['status'] = $core_details['status'];
-            $record_arr['status_date'] = date( PHS_Model::DATETIME_DB, @filemtime( PHS_PATH.'bootstrap.php' ) );
-            $record_arr['cdate'] = $record_arr['status_date'];
-            $record_arr['models'] = ((!empty( $core_details['models'] ) and is_array( $core_details['models'] ))?$core_details['models']:array());
-            $record_arr['is_installed'] = true;
-            $record_arr['is_core'] = true;
-            $record_arr['is_always_active'] = $core_details['is_always_active'];
-            $record_arr['is_distribution'] = $core_details['is_distribution'];
-
-            $records_arr[] = $record_arr;
         }
 
         if( !($dir_entries = $this->_paginator_model->cache_all_dir_details())
-         or !is_array( $dir_entries ) )
-            $dir_entries = array();
+         || !is_array( $dir_entries ) )
+            $dir_entries = [];
 
         $this->_paginator->set_records_count( count( $dir_entries ) + 1 );
 
@@ -122,7 +123,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
              * @var string $plugin_dir
              * @var \phs\libraries\PHS_Plugin $plugin_instance
              */
-            $knti = 1; // including core...
+            $knti = $count_offset; // including core...
             $on_this_page = $count_offset;
             $add_records = true;
             foreach( $dir_entries as $plugin_dir => $plugin_instance )
@@ -133,7 +134,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     continue;
                 }
 
-                $record_arr = array();
+                $record_arr = [];
                 $record_arr['id'] = $plugin_info_arr['id'];
                 $record_arr['plugin_name'] = $plugin_info_arr['plugin_name'];
                 $record_arr['vendor_id'] = $plugin_info_arr['vendor_id'];
@@ -144,23 +145,14 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $record_arr['status'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status']:-1);
                 $record_arr['status_date'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['status_date']:null);
                 $record_arr['cdate'] = (!empty( $plugin_info_arr['db_details'] )?$plugin_info_arr['db_details']['cdate']:null);
-                $record_arr['models'] = ((!empty( $plugin_info_arr['models'] ) and is_array( $plugin_info_arr['models'] ))?$plugin_info_arr['models']:array());
+                $record_arr['models'] = ((!empty( $plugin_info_arr['models'] ) && is_array( $plugin_info_arr['models'] ))?$plugin_info_arr['models']: []);
                 $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
                 $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
                 $record_arr['is_core'] = $plugin_info_arr['is_core'];
                 $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
                 $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
 
-                if( !empty( $scope_arr['fplugin'] )
-                and stripos( $record_arr['name'], $scope_arr['fplugin'] ) === false )
-                    continue;
-
-                if( !empty( $scope_arr['fvendor'] )
-                and stripos( $record_arr['vendor_name'], $scope_arr['fvendor'] ) === false )
-                    continue;
-
-                if( !empty( $scope_arr['fstatus'] )
-                and (int)$record_arr['status'] !== (int)$scope_arr['fstatus'] )
+                if( !$this->_check_record_for_current_scope( $record_arr, $scope_arr ) )
                     continue;
 
                 $knti++;
@@ -181,12 +173,25 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
             }
 
-            $this->_paginator->set_records_count( $knti - (empty( $scope_arr )?0:1) );
+            $this->_paginator->set_records_count( $knti );
         }
 
         $this->_paginator->set_records( $records_arr );
 
+        $this->_paginator->flow_param( 'did_query_database', true );
+        $this->_paginator->flow_param( 'records_from_model', true );
+
         return true;
+    }
+
+    private function _check_record_for_current_scope( $record_arr, $scope_arr )
+    {
+        return ((empty( $scope_arr['fstatus'] )
+                 || (int)$record_arr['status'] === (int)$scope_arr['fstatus'] )
+               && (empty( $scope_arr['fplugin'] )
+                   || stripos( $record_arr['name'], $scope_arr['fplugin'] ) !== false )
+               && (empty( $scope_arr['fvendor'] )
+                   || stripos( $record_arr['vendor_name'], $scope_arr['fvendor'] ) !== false));
     }
 
     /**
@@ -205,78 +210,104 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             return $action_result;
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_PLUGINS ) )
+        if( !$this->_admin_plugin->can_admin_list_plugins( $current_user ) )
         {
             $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to list plugins.' ) );
             return false;
         }
 
+        $can_export_settings = $this->_admin_plugin->can_admin_export_plugins_settings( $current_user );
+
         $this->_paginator_model->cache_all_db_details( true );
 
-        $flow_params = array(
+        $flow_params = [
             'term_singular' => $this->_pt( 'plugin' ),
             'term_plural' => $this->_pt( 'plugins' ),
-            'after_record_callback' => array( $this, 'after_record_callback' ),
-            'after_table_callback' => array( $this, 'after_table_callback' ),
+            'after_record_callback' => [ $this, 'after_record_callback' ],
+            'after_table_callback' => [ $this, 'after_table_callback' ],
             'listing_title' => $this->_pt( 'Plugins List' ),
-        );
+        ];
 
         if( !($plugins_statuses = $this->_paginator_model->get_statuses_as_key_val()) )
-            $plugins_statuses = array();
+            $plugins_statuses = [];
         if( !empty( $plugins_statuses ) )
-            $plugins_statuses = self::merge_array_assoc( array( 0 => $this->_pt( ' - Choose - ' ), -1 => $this->_pt( 'Not Installed' ) ), $plugins_statuses );
+            $plugins_statuses = self::merge_array_assoc( [ 0 => $this->_pt( ' - Choose - ' ), -1 => $this->_pt( 'Not Installed' ) ], $plugins_statuses );
 
-        $filters_arr = array(
-            array(
-                'display_name' => $this->_pt( 'Plugin' ),
+        if( $can_export_settings )
+        {
+            $bulk_actions[] = [
+                'display_name' => $this->_pt( 'Export settings for selected' ),
+                'action' => 'bulk_export_selected',
+                'js_callback' => 'phs_plugins_list_bulk_export_selected',
+                'checkbox_column' => 'plugin_name',
+            ];
+            $bulk_actions[] = [
+                'display_name' => $this->_pt( 'Export settings for ALL' ),
+                'action' => 'bulk_export_all',
+                'js_callback' => 'phs_plugins_list_bulk_export_all',
+                'checkbox_column' => 'plugin_name',
+            ];
+        }
+
+        $filters_arr = [
+            [
+                'display_name' => $this->_pt( 'Plugin Name' ),
                 'display_hint' => $this->_pt( 'All plugins for which name contains this value' ),
                 'var_name' => 'fplugin',
-                'record_field' => 'plugin',
+                'record_field' => 'name',
                 'type' => PHS_Params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
+            ],
+            [
                 'display_name' => $this->_pt( 'Vendor' ),
                 'display_hint' => $this->_pt( 'All plugins from specified vendor' ),
                 'var_name' => 'fvendor',
-                'record_field' => 'plugin',
+                'record_field' => 'vendor_name',
                 'type' => PHS_Params::T_NOHTML,
                 'default' => '',
-            ),
-            array(
+            ],
+            [
                 'display_name' => $this->_pt( 'Status' ),
                 'var_name' => 'fstatus',
                 'record_field' => 'status',
                 'type' => PHS_Params::T_INT,
                 'default' => 0,
                 'values_arr' => $plugins_statuses,
-            ),
-        );
+            ],
+        ];
 
-        $columns_arr = array(
-            array(
-                'column_title' => $this->_pt( 'Plugin' ),
-                'record_field' => 'name',
-                'display_callback' => array( $this, 'display_plugin_name' ),
+        $columns_arr = [
+            [
+                'column_title' => '&nbsp;',
+                'record_field' => 'plugin_name',
+                'display_callback' => function(){ return ''; },
                 'extra_style' => 'vertical-align: middle;',
                 'extra_records_style' => 'vertical-align: middle;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
+                'column_title' => $this->_pt( 'Plugin' ),
+                'record_field' => 'name',
+                'display_callback' => [ $this, 'display_plugin_name' ],
+                'extra_style' => 'vertical-align: middle;',
+                'extra_records_style' => 'vertical-align: middle;',
+                'sortable' => false,
+            ],
+            [
                 'column_title' => $this->_pt( 'Vendor' ),
                 'record_field' => 'vendor_name',
                 'extra_style' => 'vertical-align: middle;text-align:center;',
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Version' ).'<br/><small>'.$this->_pt( 'Installed / Script' ).'</small>',
                 'record_field' => 'version',
                 'extra_style' => 'vertical-align: middle;width:100px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Status' ),
                 'record_field' => 'status',
                 'display_key_value' => $plugins_statuses,
@@ -284,40 +315,49 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'extra_style' => 'vertical-align: middle;',
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Status Date' ),
                 'record_field' => 'status_date',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
+                'display_callback' => [ &$this->_paginator, 'pretty_date' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'N/A' ),
                 'extra_style' => 'vertical-align: middle;width:120px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:right;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Installed' ),
                 'default_sort' => 1,
                 'record_field' => 'cdate',
-                'display_callback' => array( &$this->_paginator, 'pretty_date' ),
+                'display_callback' => [ &$this->_paginator, 'pretty_date' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Not Installed' ),
                 'extra_style' => 'vertical-align: middle;width:120px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:right;',
                 'sortable' => false,
-            ),
-            array(
+            ],
+            [
                 'column_title' => $this->_pt( 'Actions' ),
-                'display_callback' => array( $this, 'display_actions' ),
+                'display_callback' => [ $this, 'display_actions' ],
                 'extra_style' => 'vertical-align: middle;width:100px;',
                 'extra_records_style' => 'vertical-align: middle;text-align:right;white-space: nowrap;',
                 'sortable' => false,
-            ),
-        );
+            ],
+        ];
+
+        if( $this->_admin_plugin->can_admin_export_plugins_settings( $current_user ) )
+        {
+            $columns_arr[0]['checkbox_record_index_key'] = [
+                'key' => 'plugin_name',
+                'type' => PHS_params::T_NOHTML,
+            ];
+        }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url( array( 'p' => 'admin', 'a' => 'plugins_list' ) );
+        $return_arr['base_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'plugins_list' ] );
         $return_arr['flow_parameters'] = $flow_params;
+        $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
         $return_arr['columns_arr'] = $columns_arr;
 
@@ -343,8 +383,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if( empty( $action ) or !is_array( $action )
-         or empty( $action['action'] ) )
+        if( empty( $action ) || !is_array( $action )
+         || empty( $action['action'] ) )
             return $action_result_params;
 
         $action_result_params['action'] = $action['action'];
@@ -354,6 +394,72 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             default:
                 PHS_Notifications::add_error_notice( $this->_pt( 'Unknown action.' ) );
                 return true;
+            break;
+
+            case 'bulk_export_selected':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] === 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts exported with success.' ) );
+                    elseif( $action['action_result'] === 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected accounts failed. Please try again.' ) );
+                    elseif( $action['action_result'] === 'failed_some' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 || !$this->_admin_plugin->can_admin_export_plugins_settings( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to export plugin settings.' ) );
+                    return false;
+                }
+
+                if( !($scope_arr = $this->_paginator->get_scope())
+                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 || !($scope_key = @sprintf( $ids_checkboxes_name, 'plugin_name' ))
+                 || empty( $scope_arr[$scope_key] )
+                 || !is_array( $scope_arr[$scope_key] ) )
+                    return true;
+
+                $export_params = [];
+                $export_params['export_file_name'] = 'accounts_export_'.date( 'YmdHi' ).'.json';
+
+                if( !$this->_accounts_plugin->export_account_ids( $scope_arr[$scope_key], $export_params ) )
+                {
+                    $action_result_params['action_result'] = 'failed';
+                    $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
+                }
+            break;
+
+            case 'bulk_export_all':
+                if( !empty( $action['action_result'] ) )
+                {
+                    if( $action['action_result'] === 'success' )
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts exported with success.' ) );
+                    elseif( $action['action_result'] === 'failed' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected accounts failed. Please try again.' ) );
+                    elseif( $action['action_result'] === 'failed_some' )
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.' ) );
+
+                    return true;
+                }
+
+                if( !($current_user = PHS::user_logged_in())
+                 || !$this->_admin_plugin->can_admin_export_plugins_settings( $current_user ) )
+                {
+                    $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to export plugin settings.' ) );
+                    return false;
+                }
+
+                $export_params = [];
+                $export_params['export_file_name'] = 'accounts_export_all_'.date( 'YmdHi' ).'.json';
+
+                if( !$this->_accounts_plugin->export_account_ids( [], $export_params ) )
+                {
+                    $action_result_params['action_result'] = 'failed';
+                }
             break;
 
             case 'install_plugin':
@@ -368,7 +474,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -378,8 +484,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                 or empty( $instance_details['instance_type'] )
-                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 || empty( $instance_details['instance_type'] )
+                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -412,7 +518,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -422,8 +528,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                    or empty( $instance_details['instance_type'] )
-                    or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                    || empty( $instance_details['instance_type'] )
+                    || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -456,7 +562,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -466,9 +572,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                 or empty( $instance_details['instance_type'] )
-                 or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 || empty( $instance_details['instance_type'] )
+                 || empty( $instance_details['plugin_name'] )
+                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -501,7 +607,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -511,8 +617,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                 or empty( $instance_details['instance_type'] )
-                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 || empty( $instance_details['instance_type'] )
+                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -529,8 +635,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($plugin_info_arr = $plugin_obj->get_plugin_info())
-                 or (!empty( $plugin_info_arr['is_upgradable'] )
-                        and !$plugin_obj->update( $plugin_info_arr['db_version'], $plugin_info_arr['script_version'] )
+                 || (!empty( $plugin_info_arr['is_upgradable'] )
+                        && !$plugin_obj->update( $plugin_info_arr['db_version'], $plugin_info_arr['script_version'] )
                     ) )
                 {
                     if( $plugin_obj->has_error() )
@@ -556,7 +662,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -566,9 +672,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                 or empty( $instance_details['instance_type'] )
-                 or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 || empty( $instance_details['instance_type'] )
+                 || empty( $instance_details['plugin_name'] )
+                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -614,7 +720,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 }
 
                 if( !($current_user = PHS::user_logged_in())
-                 or !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+                 || !$this->_admin_plugin->can_admin_manage_plugins( $current_user ) )
                 {
                     $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to manage plugins.' ) );
                     return false;
@@ -624,9 +730,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     $action['action_params'] = trim( $action['action_params'] );
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
-                 or empty( $instance_details['instance_type'] )
-                 or empty( $instance_details['plugin_name'] )
-                 or $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
+                 || empty( $instance_details['instance_type'] )
+                 || empty( $instance_details['plugin_name'] )
+                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN )
                 {
                     // reset error set by valid_instance_id()
                     self::st_reset_error();
@@ -660,8 +766,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     public function display_plugin_name( $params )
     {
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] ) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] ) )
             return false;
 
         return '<div style="float:left;width:64px;max-width:64px;height:64px;max-height:64px;text-align: center;overflow: hidden;"><i class="fa fa-2x fa-puzzle-piece" style="line-height:64px;margin: 0 auto;"></i></div>'.
@@ -679,9 +785,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         if( empty( $params )
-         or !is_array( $params )
-         or empty( $params['record'] ) or !is_array( $params['record'] )
-         or empty( $params['record']['id'] ) )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || empty( $params['record']['id'] ) )
             return false;
 
         ob_start();
@@ -692,8 +798,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <?php
         }
         if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
-        and empty( $params['record']['is_always_active'] )
-        and $this->_paginator_model->is_inactive( $params['record'] ) )
+         && empty( $params['record']['is_always_active'] )
+         && $this->_paginator_model->is_inactive( $params['record'] ) )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"><i class="fa fa-sign-out action-icons" title="<?php echo $this->_pt( 'Uninstall plugin' )?>"></i></a>
@@ -712,7 +818,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
             <?php
             if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
-            and empty( $params['record']['is_always_active'] ) )
+             && empty( $params['record']['is_always_active'] ) )
             {
                 ?>
                 <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' ) ?>"></i></a>
@@ -721,9 +827,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
-        and empty( $params['record']['is_always_active'] )
-        and empty( $params['record']['is_installed'] )
-        and empty( $params['record']['is_core'] ) )
+         && empty( $params['record']['is_always_active'] )
+         && empty( $params['record']['is_installed'] )
+         && empty( $params['record']['is_core'] ) )
         {
             ?>
             <a href="javascript:void(0)" onclick="phs_plugins_list_delete( '<?php echo $params['record']['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete plugin' )?>"></i></a>
@@ -755,11 +861,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to install this plugin?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'install_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -769,11 +875,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                          "<?php echo self::_e( 'NOTE: Plugin settings will be deleted. Some plugins will also delete information stored in database!', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'uninstall_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -782,11 +888,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to activate this plugin?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'activate_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -795,11 +901,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to inactivate this plugin?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'inactivate_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -808,11 +914,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e( 'Are you sure you want to upgrade this plugin?', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'upgrade_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
         }
@@ -822,13 +928,49 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                          "<?php echo self::_e( 'NOTE: You cannot undo this action!', '"' )?>" ) )
             {
                 <?php
-                $url_params = array();
-                $url_params['action'] = array(
+                $url_params = [];
+                $url_params['action'] = [
                     'action' => 'delete_plugin',
                     'action_params' => '" + id + "',
-                )
+                ]
                 ?>document.location = "<?php echo $this->_paginator->get_full_url( $url_params )?>";
             }
+        }
+
+        function phs_plugins_list_get_checked_ids_count()
+        {
+            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'plugin_name' );
+            if( !checkboxes_list || !checkboxes_list.length )
+                return 0;
+
+            return checkboxes_list.length;
+        }
+
+        function phs_plugins_list_bulk_export_selected()
+        {
+            var total_checked = phs_plugins_list_get_checked_ids_count();
+
+            if( !total_checked )
+            {
+                alert( "<?php echo self::_e( 'Please select plugins you want to export settings for first.', '"' )?>" );
+                return false;
+            }
+
+            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to export %s plugin settings?', '"' ), '" + total_checked + "' )?>" ) )
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
+        }
+        function phs_plugins_list_bulk_export_all()
+        {
+            if( !confirm( "<?php echo self::_e( $this->_pt( 'Are you sure you want to export ALL plugin settings?' ), '"' )?>" ) )
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+            if( form_obj )
+                form_obj.submit();
         }
         </script>
         <?php

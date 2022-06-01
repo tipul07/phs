@@ -491,8 +491,8 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( $this->is_connected( $domain_arr ) )
             return $domain_arr;
 
-        $crypt_key = self::generate_crypt_key();
-        $crypt_internal_keys = self::generate_crypt_internal_keys();
+        $crypt_key = PHS_Crypt::generate_crypt_key();
+        $crypt_internal_keys = PHS_Crypt::generate_crypt_internal_keys();
 
         if( !($settings_arr = $this->decode_connection_settings( $domain_arr )) )
             $settings_arr = $this->get_default_connection_settings_arr();
@@ -1361,138 +1361,6 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $return_arr['account_data'] = $account_arr;
 
         return $return_arr;
-    }
-
-    /**
-     * Generate crypt key used in crypting functionality
-     * @param int $len
-     *
-     * @return string
-     */
-    public static function generate_crypt_key( $len = 128 )
-    {
-        return self::_generate_random_string( $len );
-    }
-
-    /**
-     * Generate crypt key used in crypting functionality
-     * @param int $len
-     *
-     * @return array
-     */
-    public static function generate_crypt_internal_keys()
-    {
-        $return_arr = [];
-        for( $i = 0; $i < 34; $i++ )
-        {
-            $return_arr[] = md5( microtime().self::_generate_random_string( 128 ) );
-        }
-
-        return $return_arr;
-    }
-
-    /**
-     * @param int $len
-     * @param bool|array $params
-     *
-     * @return string
-     */
-    private static function _generate_random_string( $len = 128, $params = false )
-    {
-        if( empty( $params ) || !is_array( $params ) )
-            $params = [];
-
-        if( empty( $params['percents'] ) || !is_array( $params['percents'] ) )
-            $params['percents'] = ['spacial_chars' => 10, 'digits_chars' => 20, 'normal_chars' => 70,];
-
-        if( !isset( $params['percents']['spacial_chars'] ) )
-            $params['percents']['spacial_chars'] = 15;
-        if( !isset( $params['percents']['digits_chars'] ) )
-            $params['percents']['digits_chars'] = 15;
-        if( !isset( $params['percents']['normal_chars'] ) )
-            $params['percents']['normal_chars'] = 70;
-
-        $spacial_chars_perc = (int)$params['percents']['spacial_chars'];
-        $digits_chars_perc = (int)$params['percents']['digits_chars'];
-        $normal_chars_perc = (int)$params['percents']['normal_chars'];
-
-        if( $spacial_chars_perc + $digits_chars_perc + $normal_chars_perc > 100 )
-        {
-            $spacial_chars_perc = 15;
-            $digits_chars_perc = 15;
-            $normal_chars_perc = 70;
-        }
-
-        $special_chars_dict = '!@#%^&*()_-+=}{:;?/.,<>\\|';
-        $digits_dict = '1234567890';
-        $letters_dict = 'abcdbefghijklmnopqrstuvwxyz';
-        $special_chars_dict_len = strlen( $special_chars_dict );
-        $digits_dict_len = strlen( $digits_dict );
-        $letters_dict_len = strlen( $letters_dict );
-
-        $uppercase_chars = 0;
-        $special_chars = 0;
-        $digit_chars = 0;
-
-        $ret = '';
-        for( $ret_len = 0; $ret_len < $len; $ret_len++ )
-        {
-            $uppercase_char = false;
-            // 10% spacial char, 20% digit, 70% letter
-            $dict_index = mt_rand( 0, 100 );
-            if( $dict_index <= $spacial_chars_perc )
-            {
-                $current_dict = $special_chars_dict;
-                $dict_len = $special_chars_dict_len;
-                $special_chars++;
-            } elseif( $dict_index <= $spacial_chars_perc + $digits_chars_perc )
-            {
-                $current_dict = $digits_dict;
-                $dict_len = $digits_dict_len;
-                $digit_chars++;
-            } else
-            {
-                $current_dict = $letters_dict;
-                $dict_len = $letters_dict_len;
-                if( mt_rand( 0, 100 ) > 50 )
-                {
-                    $uppercase_char = true;
-                    $uppercase_chars++;
-                }
-            }
-
-            $ch = substr( $current_dict, mt_rand( 0, $dict_len - 1 ), 1 );
-            if( $uppercase_char )
-                $ch = strtoupper( $ch );
-
-            $ret .= $ch;
-        }
-
-        // Add a special char if none was added already
-        if( !$special_chars )
-        {
-            $ch = substr( $special_chars_dict, mt_rand( 0, $special_chars_dict_len - 1 ), 1 );
-            // 50% in front or in back of the result
-            if( mt_rand( 0, 100 ) > 50 )
-                $ret .= $ch;
-            else
-                $ret = $ch.$ret;
-        }
-
-        // Add a digit char if none was added already
-        while( $digit_chars < 2 )
-        {
-            $ch = substr( $digits_dict, mt_rand( 0, $digits_dict_len - 1 ), 1 );
-            // 50% in front or in back of the result
-            if( mt_rand( 0, 100 ) > 50 )
-                $ret .= $ch;
-            else
-                $ret = $ch.$ret;
-
-            $digit_chars++;
-        }
-
-        return $ret;
     }
 
     /**

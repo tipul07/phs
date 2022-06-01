@@ -180,6 +180,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'name' => 'List plugins',
                         'description' => 'Allow user to list plugins',
                     ],
+                    PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS => [
+                        'name' => 'Export plugin settings',
+                        'description' => 'Allow user to export plugins settings',
+                    ],
+                    PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS => [
+                        'name' => 'Import plugin settings',
+                        'description' => 'Allow user to import plugins settings',
+                    ],
 
                     // Agent...
                     PHS_Roles::ROLEU_MANAGE_AGENT_JOBS => [
@@ -304,6 +312,40 @@ class PHS_Plugin_Admin extends PHS_Plugin
          || !($accounts_model = $this->_accounts_model)
          || !($user_arr = $accounts_model->data_to_array( $user_data ))
          || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_LIST_PLUGINS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_import_plugins_settings( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS ) )
+            return false;
+
+        return $user_arr;
+    }
+
+    /**
+     * @param int|array $user_data
+     *
+     * @return array|bool
+     */
+    public function can_admin_export_plugins_settings( $user_data )
+    {
+        if( empty( $user_data )
+         || !$this->_load_dependencies()
+         || !($accounts_model = $this->_accounts_model)
+         || !($user_arr = $accounts_model->data_to_array( $user_data ))
+         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS ) )
             return false;
 
         return $user_arr;

@@ -31,13 +31,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if( $this->_plugins_instance )
-            return true;
-
-        if( !($this->_plugins_instance = PHS::load_model( 'plugins' )) )
+        if( !$this->_plugins_instance && !($this->_plugins_instance = PHS::load_model( 'plugins' )) )
         {
-            $this->_plugins_instance = false;
-            $this->set_error( self::ERR_PLUGINS_MODEL, self::_t( 'Couldn\'t load plugins model.' ) );
+            $this->set_error( self::ERR_PLUGINS_MODEL, self::_t( 'Error loading required resources.' ) );
             return false;
         }
 
@@ -183,15 +179,15 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         if( !empty( $this->_settings_structure ) )
             return $this->_settings_structure;
 
-        $this->_settings_structure = array();
+        $this->_settings_structure = [];
 
         // Validate settings structure
         if( !($settings_structure_arr = $this->get_settings_structure())
-         or !is_array( $settings_structure_arr ) )
-            return array();
+         || !is_array( $settings_structure_arr ) )
+            return [];
 
         if( !($this->_settings_structure = $this->_validate_settings_structure_field( $settings_structure_arr )) )
-            $this->_settings_structure = array();
+            $this->_settings_structure = [];
 
         return $this->_settings_structure;
     }
@@ -202,7 +198,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     protected function _validate_settings_structure_field( $structure_arr )
     {
-        if( empty( $structure_arr ) or !is_array( $structure_arr ) )
+        if( empty( $structure_arr ) || !is_array( $structure_arr ) )
             return false;
 
         $default_settings_field = $this->default_settings_field();
@@ -230,8 +226,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public static function settings_field_is_group( $settings_field )
     {
-        return (!empty( $settings_field ) and is_array( $settings_field )
-            and !empty( $settings_field['group_fields'] ) and is_array( $settings_field['group_fields'] ));
+        return (!empty( $settings_field ) && is_array( $settings_field )
+             && !empty( $settings_field['group_fields'] ) && is_array( $settings_field['group_fields'] ));
     }
 
     /**
@@ -252,7 +248,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     private function _get_default_settings_for_structure( $structure_arr )
     {
-        $default_arr = array();
+        $default_arr = [];
         foreach( $structure_arr as $field_name => $field_arr )
         {
             if( self::settings_field_is_group( $field_arr ) )
@@ -280,12 +276,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public function get_db_details( $force = false )
     {
         if( empty( $force )
-        and !empty( $this->_db_details ) )
+         && !empty( $this->_db_details ) )
             return $this->_db_details;
 
         if( !$this->_load_plugins_instance()
-         or !($db_details = $this->_plugins_instance->get_plugins_db_details( $this->instance_id(), $force ))
-         or !is_array( $db_details ) )
+         || !($db_details = $this->_plugins_instance->get_plugins_db_details( $this->instance_id(), $force ))
+         || !is_array( $db_details ) )
             return false;
 
         $this->_db_details = $db_details;
@@ -301,12 +297,16 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public function get_db_settings( $force = false )
     {
         if( empty( $force )
-        and !empty( $this->_db_settings ) )
+         && !empty( $this->_db_settings ) )
             return $this->_db_settings;
 
         if( !$this->_load_plugins_instance()
-         or !($db_settings = $this->_plugins_instance->get_plugins_db_settings( $this->instance_id(), $this->get_default_settings(), $this->get_all_settings_keys_to_obfuscate(), $force ))
-         or !is_array( $db_settings ) )
+         || !($db_settings = $this->_plugins_instance->get_plugins_db_settings(
+             $this->instance_id(),
+             $this->get_default_settings(),
+             $this->get_all_settings_keys_to_obfuscate(),
+             $force ))
+         || !is_array( $db_settings ) )
             return false;
 
         $this->_db_settings = $db_settings;
@@ -317,8 +317,11 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public function save_db_settings( $settings_arr )
     {
         if( !$this->_load_plugins_instance()
-         or !($db_settings = $this->_plugins_instance->save_plugins_db_settings( $settings_arr, $this->get_all_settings_keys_to_obfuscate(), $this->instance_id() ))
-         or !is_array( $db_settings ) )
+         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings(
+             $settings_arr,
+             $this->get_all_settings_keys_to_obfuscate(),
+             $this->instance_id() ))
+         || !is_array( $db_settings ) )
             return false;
 
         $this->_db_settings = $db_settings;
@@ -333,11 +336,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
         if( !$this->_load_plugins_instance()
-         or !($db_details = $this->get_db_details())
-         or !$this->_plugins_instance->active_status( $db_details['status'] ) )
+         || !($db_details = $this->get_db_details())
+         || !$this->_plugins_instance->active_status( $db_details['status'] ) )
             return false;
 
         return $db_details;
     }
-
 }
