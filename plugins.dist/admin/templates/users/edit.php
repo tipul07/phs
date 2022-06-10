@@ -185,7 +185,7 @@ if( !empty( $back_page ) )
     <div class="form-group row">
         <input type="submit" id="do_submit" name="do_submit"
                class="btn btn-primary submit-protection ignore_hidden_required"
-               value="<?php echo $this->_pt( 'Create Account' )?>" />
+               value="<?php echo $this->_pt( 'Save Changes' )?>" />
     </div>
 
 </div>
