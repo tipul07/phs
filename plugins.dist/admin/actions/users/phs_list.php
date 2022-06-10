@@ -91,6 +91,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $list_arr['flags'] = [ 'include_account_details' ];
 
         $flow_params = [
+            'listing_title' => $this->_pt( 'List Users' ),
             'term_singular' => $this->_pt( 'user' ),
             'term_plural' => $this->_pt( 'users' ),
             'initial_list_arr' => $list_arr,

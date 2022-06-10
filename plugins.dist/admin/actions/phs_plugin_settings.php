@@ -38,14 +38,16 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return $action_result;
         }
 
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        if( !($admin_plugin = PHS::load_plugin( 'accounts', 'accounts' ))
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load accounts model.' ) );
+            PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
             return self::default_action_result();
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_MANAGE_PLUGINS ) )
+        if( !$admin_plugin->can_admin_list_plugins( $current_user ) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to list plugins.' ) );
             return self::default_action_result();
@@ -232,7 +234,11 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             if( PHS_Plugin::settings_field_is_group( $field_details ) )
             {
-                if( null !== ($group_settings = $this->_extract_custom_save_settings_fields_from_submit( $field_details['group_fields'], $init_callback_params, $new_settings_arr, $db_settings )) )
+                if( null !== ($group_settings = $this->_extract_custom_save_settings_fields_from_submit(
+                    $field_details['group_fields'],
+                    $init_callback_params,
+                    $new_settings_arr,
+                    $db_settings )) )
                     $new_settings_arr = self::merge_array_assoc( $new_settings_arr, $group_settings );
 
                 continue;

@@ -14,6 +14,8 @@ class PHS_Roles extends PHS_Registry
     const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
           ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
           ROLEU_MANAGE_PLUGINS = 'phs_manage_plugins', ROLEU_LIST_PLUGINS = 'phs_list_plugins',
+          ROLEU_EXPORT_PLUGINS_SETTINGS = 'phs_export_plugins_settings',
+          ROLEU_IMPORT_PLUGINS_SETTINGS = 'phs_import_plugins_settings',
           ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
           ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
           ROLEU_EXPORT_ACCOUNTS = 'phs_accounts_export', ROLEU_IMPORT_ACCOUNTS = 'phs_accounts_import',

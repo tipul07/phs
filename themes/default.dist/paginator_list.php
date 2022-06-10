@@ -63,7 +63,7 @@
     $api_listing_arr = [];
 
     //
-    // Begin output caching so we don't send HTML to scopes which don't need it
+    // Begin output caching, so we don't send HTML to scopes which don't need it
     //
     if( $is_api_scope )
     {
@@ -83,7 +83,8 @@
     //
 ?>
 <div class="list_container">
-    <form method="post" id="<?php echo $listing_form_name?>" name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>">
+    <form method="post" id="<?php echo $listing_form_name?>"
+          name="<?php echo $listing_form_name?>" action="<?php echo form_str( $full_filters_url )?>">
     <input type="hidden" name="foobar" value="1" />
     <input type="submit" id="foobar_submit" name="foobar_submit" value="Just Submit" style="display:none;" />
 
@@ -94,9 +95,9 @@
 	 && (!empty( $flow_params_arr['display_top_bulk_actions'] )
 			|| !empty( $flow_params_arr['display_bottom_bulk_actions'] )) )
 	{
-		$json_actions = array();
-        $bulk_top_actions_arr = array();
-        $bulk_bottom_actions_arr = array();
+		$json_actions = [];
+        $bulk_top_actions_arr = [];
+        $bulk_bottom_actions_arr = [];
 		foreach( $bulk_actions as $action )
 		{
             if( empty( $action ) || !is_array( $action ) )
@@ -165,7 +166,7 @@
         } else
         {
             ?><div style="margin-bottom:5px;float:left;">
-            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="min-width:150px;">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                 foreach( $bulk_top_actions_arr as $action_arr )
@@ -277,8 +278,8 @@
 			if( !empty( $column_arr['sortable'] ) )
 			{
 				$column_sort_url = add_url_params( $sort_url, [
-														$flow_params_arr['form_prefix'].'sort' => ($current_sort?'0':'1'),
-														$flow_params_arr['form_prefix'].'sort_by' => $field_name
+                    $flow_params_arr['form_prefix'].'sort' => ($current_sort?'0':'1'),
+                    $flow_params_arr['form_prefix'].'sort_by' => $field_name
                 ] );
 
 				?><a href="<?php echo $column_sort_url?>"><?php
@@ -363,7 +364,7 @@
 		{
 			?><tr><?php
 
-            $api_record = array();
+            $api_record = [];
 
 			foreach( $columns_arr as $column_arr )
 			{
@@ -577,7 +578,7 @@
 	 && !empty( $bulk_actions ) )
 	{
 		$select_name = $bulk_select_name.'bottom';
-		$select_with_action = (!empty( $flow_params_arr['bulk_action_area'] ) && $flow_params_arr['bulk_action_area']==='bottom');
+		$select_with_action = (!empty( $flow_params_arr['bulk_action_area'] ) && $flow_params_arr['bulk_action_area'] === 'bottom');
 
 		if( empty( $bulk_bottom_actions_arr ) )
         {
@@ -585,7 +586,7 @@
         } else
         {
             ?><div style="margin-bottom:5px;float:left;">
-            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="width:150px;">
+            <select name="<?php echo $select_name?>" id="<?php echo $select_name?>" class="chosen-select-nosearch" style="min-width:150px;">
                 <option value=""><?php echo $this::_t( ' - Bulk Actions - ' )?></option>
                 <?php
                     foreach( $bulk_bottom_actions_arr as $action_arr )
@@ -600,14 +601,15 @@
                     }
                 ?>
             </select>
-            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required" onclick="this.blur();return submit_bulk_action( 'bottom' );" value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
+            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required"
+                   onclick="this.blur();return submit_bulk_action( 'bottom' );"
+                   value="<?php echo form_str( $this::_t( 'Apply' ) )?>" />
             </div>
             <div class="clearfix"></div>
             <?php
 	    }
 	}
 	?>
-
     </form>
 </div>
 <div class="clearfix"></div>
@@ -627,18 +629,18 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
             <script type="text/javascript">
             function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
             {
-                checkbox_all_obj = $( '#' + checkbox_name_all );
+                const checkbox_all_obj = $("#" + checkbox_name_all);
 
                 if( !checkbox_all_obj )
                     return;
 
-                var should_be_checked = checkbox_all_obj.is( ':checked' );
+                const should_be_checked = checkbox_all_obj.is(":checked");
 
-                checkbox_all_obj.closest( 'form' ).find( 'input:checkbox' ).each( function()
+                checkbox_all_obj.closest( "form" ).find( "input:checkbox" ).each( function()
                 {
-                    var my_name = $( this ).attr( 'name' );
+                    var my_name = $( this ).attr( "name" );
 
-                    if( my_name == checkbox_name + '[]' )
+                    if( my_name === checkbox_name + "[]" )
                     {
                         $( this ).prop( 'checked', should_be_checked );
                     }
@@ -647,18 +649,18 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
 
             function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
             {
-                checkbox_all_obj = $( '#' + checkbox_id_all );
-                checkbox_obj = $( '#' + checkbox_id );
+                const checkbox_all_obj = $("#" + checkbox_id_all);
+                const checkbox_obj = $("#" + checkbox_id);
 
                 if( !checkbox_all_obj || !checkbox_obj )
                     return;
 
-                var should_be_unchecked = !checkbox_obj.is( ':checked' );
+                const should_be_unchecked = !checkbox_obj.is(":checked");
 
                 if( !should_be_unchecked )
                     return;
 
-                checkbox_all_obj.prop( 'checked', false );
+                checkbox_all_obj.prop( "checked", false );
             }
 
             function phs_paginator_default_bulk_action( action )
@@ -670,29 +672,31 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
                     return false;
                 }
 
-                var action_display_name = '[Not defined]';
+                let action_display_name = "[Not defined]";
                 if( typeof phs_paginator_bulk_actions !== "undefined"
                  && typeof phs_paginator_bulk_actions[action] !== "undefined"
                  && typeof phs_paginator_bulk_actions[action]["display_name"] !== "undefined" )
                     action_display_name = phs_paginator_bulk_actions[action]['display_name'];
 
-                var selected_records = -1;
-                var checkboxes_list = [];
+                let selected_records = -1;
+                let checkboxes_list = [];
                 if( typeof phs_paginator_bulk_actions !== "undefined"
                  && typeof phs_paginator_bulk_actions[action] !== "undefined"
                  && typeof phs_paginator_bulk_actions[action]["checkbox_column"] !== "undefined"
-                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]['checkbox_column'] )) )
+                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]["checkbox_column"] )) )
                     selected_records = checkboxes_list.length;
 
-                var confirm_text = "";
+                let confirm_text = "";
                 if( selected_records === -1 )
-                    confirm_text = "<?php echo sprintf( $this_object::_e( 'Are you sure you want to run action %s?', '"' ), '" + action_display_name + "' )?>";
+                    confirm_text = "<?php echo sprintf( $this_object::_e( 'Are you sure you want to run action %s?', '"' ),
+                                                        '" + action_display_name + "' )?>";
 
                 else
                 {
                     if( selected_records <= 0 )
                     {
-                        alert( "<?php echo sprintf( $this_object::_e( 'Please select records for which you want to run action %s first.', '"' ), '" + action_display_name + "' )?>" );
+                        alert( "<?php echo sprintf( $this_object::_e( 'Please select records for which you want to run action %s first.', '"' ),
+                                                    '" + action_display_name + "' )?>" );
                         return false;
                     }
 
@@ -705,7 +709,7 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
 
             function phs_paginator_get_checkboxes( column )
             {
-                var checkboxes_list = $( "input[type='checkbox'][name='<?php echo @sprintf( $paginator_obj->get_checkbox_name_format(), '" + column + "' )?>[]']" );
+                const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf( $paginator_obj->get_checkbox_name_format(), '" + column + "' )?>[]']");
                 if( !checkboxes_list || !checkboxes_list.length )
                     return [];
 
@@ -714,16 +718,16 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
 
             function phs_paginator_get_checkboxes_checked( column )
             {
-                var checkboxes_list = phs_paginator_get_checkboxes( column );
+                const checkboxes_list = phs_paginator_get_checkboxes(column);
                 if( !checkboxes_list || !checkboxes_list.length )
                     return [];
 
-                var list_length = checkboxes_list.length;
+                const list_length = checkboxes_list.length;
 
-                var checkboxes_checked = [];
-                for( var i = 0; i < list_length; i++ )
+                const checkboxes_checked = [];
+                for( let i = 0; i < list_length; i++ )
                 {
-                    if( $( checkboxes_list[i] ).is( ':checked' ) )
+                    if( $( checkboxes_list[i] ).is( ":checked" ) )
                         checkboxes_checked.push( checkboxes_list[i] );
                 }
 
@@ -754,7 +758,7 @@ if( !function_exists( 'phs_paginator_display_js_functionality' ) )
     }
 
 //
-// END output caching so we don't send HTML to scopes which don't need it
+// END output caching, so we don't send HTML to scopes which don't need it
 //
 if( $is_api_scope )
 {

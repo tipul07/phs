@@ -488,7 +488,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @param bool $force Force plugins recheck
      *
-     * @return array|bool False on error or array with plugin name as key and plugin instance as value
+     * @return array<string, \phs\libraries\PHS_Plugin>|bool False on error or array with plugin name as key and plugin instance as value
      */
     public function cache_all_dir_details( $force = false )
     {

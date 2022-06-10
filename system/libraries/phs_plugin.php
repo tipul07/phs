@@ -1562,6 +1562,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->_plugin_json_details;
     }
 
+    /**
+     * @return array|bool
+     */
     final public function get_plugin_info()
     {
         if( !empty( $this->_plugin_details ) )
@@ -1588,10 +1591,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
-            $plugin_details['is_active'] = ($this->_plugins_instance->is_active( $db_details )?true:false);
+            $plugin_details['is_active'] = (bool)$this->_plugins_instance->is_active( $db_details );
             $plugin_details['db_version'] = (!empty( $db_details['version'] )?$db_details['version']:'0.0.0');
             $plugin_details['is_upgradable'] = ((string)$plugin_details['db_version'] !== (string)$plugin_details['script_version']);
-            $plugin_details['is_core'] = (!empty( $db_details['is_core'] )?true:false);
+            $plugin_details['is_core'] = (!empty( $db_details['is_core'] ));
         }
 
         $plugin_details['is_always_active'] = in_array( $plugin_details['plugin_name'], PHS::get_always_active_plugins(), true );
