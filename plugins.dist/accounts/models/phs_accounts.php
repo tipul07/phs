@@ -56,7 +56,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_table_names()
     {
-        // 'users_pass_salts' is first so we are sure table is created before changing users table...
+        // 'users_pass_salts' is first, so we are sure table is created before changing users table...
         return [ 'users_pass_salts', 'users', 'online', 'users_pass_history', ];
     }
 
@@ -387,10 +387,11 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function can_manage_account( $user_data, $user_to_manage )
     {
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         if( empty( $user_data )
-         || !($user_arr = $this->data_to_array( $user_data ))
+         || !($admin_plugin = PHS::load_plugin( 'admin' ))
+         || !($user_arr = $admin_plugin->can_admin_manage_accounts( $user_data ))
          || !($user_to_manage_arr = $this->data_to_array( $user_to_manage ))
-         || !PHS_Roles::user_has_role_units( $user_arr, PHS_Roles::ROLEU_MANAGE_ROLES )
          || $user_arr['level'] < $user_to_manage_arr['level'] )
             return false;
 

@@ -221,11 +221,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         $this->_paginator_model->cache_all_db_details( true );
 
         $flow_params = [
+            'listing_title' => $this->_pt( 'Plugins List' ),
             'term_singular' => $this->_pt( 'plugin' ),
             'term_plural' => $this->_pt( 'plugins' ),
-            'after_record_callback' => [ $this, 'after_record_callback' ],
             'after_table_callback' => [ $this, 'after_table_callback' ],
-            'listing_title' => $this->_pt( 'Plugins List' ),
         ];
 
         if( !($plugins_statuses = $this->_paginator_model->get_statuses_as_key_val()) )
@@ -400,11 +399,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts exported with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required plugin settings exported with success.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected accounts failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected plugin settings failed. Please try again.' ) );
                     elseif( $action['action_result'] === 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected plugin settings. Plugin settings which failed export are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -423,10 +422,16 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                  || !is_array( $scope_arr[$scope_key] ) )
                     return true;
 
-                $export_params = [];
-                $export_params['export_file_name'] = 'accounts_export_'.date( 'YmdHi' ).'.json';
+                if( !($crypt_key = PHS_Params::_p( 'crypt_key', PHS_Params::T_NOHTML )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Crypting key not provided.' ) );
+                    return false;
+                }
 
-                if( !$this->_accounts_plugin->export_account_ids( $scope_arr[$scope_key], $export_params ) )
+                $export_params = [];
+                $export_params['export_file_name'] = 'plugin_settings_'.date( 'YmdHi' ).'.json';
+
+                if( !$this->_admin_plugin->export_plugin_settings( $crypt_key, $scope_arr[$scope_key], $export_params ) )
                 {
                     $action_result_params['action_result'] = 'failed';
                     $action_result_params['action_redirect_url_params'] = [ 'force_scope' => $scope_arr ];
@@ -437,11 +442,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 if( !empty( $action['action_result'] ) )
                 {
                     if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Required accounts exported with success.' ) );
+                        PHS_Notifications::add_success_notice( $this->_pt( 'Required plugin settings exported with success.' ) );
                     elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected accounts failed. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Exporting selected plugin settings failed. Please try again.' ) );
                     elseif( $action['action_result'] === 'failed_some' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.' ) );
+                        PHS_Notifications::add_error_notice( $this->_pt( 'Failed exporting all selected plugin settings. Plugin settings which failed export are still selected. Please try again.' ) );
 
                     return true;
                 }
@@ -453,10 +458,16 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                $export_params = [];
-                $export_params['export_file_name'] = 'accounts_export_all_'.date( 'YmdHi' ).'.json';
+                if( !($crypt_key = PHS_Params::_p( 'crypt_key', PHS_Params::T_NOHTML )) )
+                {
+                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Crypting key not provided.' ) );
+                    return false;
+                }
 
-                if( !$this->_accounts_plugin->export_account_ids( [], $export_params ) )
+                $export_params = [];
+                $export_params['export_file_name'] = 'plugin_settings_all_'.date( 'YmdHi' ).'.json';
+
+                if( !$this->_admin_plugin->export_plugin_settings( $crypt_key, [], $export_params ) )
                 {
                     $action_result_params['action_result'] = 'failed';
                 }
@@ -794,7 +805,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         if( empty( $params['record']['is_installed'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_plugins_list_install( '<?php echo $params['record']['id']?>' )"><i class="fa fa-plus-circle action-icons" title="<?php echo $this->_pt( 'Install plugin' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_install( '<?php echo $params['record']['id']?>' )"
+            ><i class="fa fa-plus-circle action-icons" title="<?php echo $this->_pt( 'Install plugin' )?>"></i></a>
             <?php
         }
         if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
@@ -802,8 +814,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
          && $this->_paginator_model->is_inactive( $params['record'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"><i class="fa fa-sign-out action-icons" title="<?php echo $this->_pt( 'Uninstall plugin' )?>"></i></a>
-            <a href="javascript:void(0)" onclick="phs_plugins_list_activate( '<?php echo $params['record']['id']?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate plugin' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_uninstall( '<?php echo $params['record']['id']?>' )"
+            ><i class="fa fa-sign-out action-icons" title="<?php echo $this->_pt( 'Uninstall plugin' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_activate( '<?php echo $params['record']['id']?>' )"
+            ><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt( 'Activate plugin' )?>"></i></a>
             <?php
         }
         if( $this->_paginator_model->is_active( $params['record'] ) )
@@ -811,17 +825,21 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             if( !empty( $params['record']['is_upgradable'] ) )
             {
                 ?>
-                <a href="javascript:void(0)" onclick="phs_plugins_list_upgrade( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-arrow-circle-o-up action-icons" title="<?php echo $this->_pt( 'Upgrade plugin' ) ?>"></i></a>
+                <a href="javascript:void(0)" onclick="phs_plugins_list_upgrade( '<?php echo $params['record']['id'] ?>' )"
+                ><i class="fa fa-arrow-circle-o-up action-icons" title="<?php echo $this->_pt( 'Upgrade plugin' ) ?>"></i></a>
                 <?php
             }
             ?>
-            <a href="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugin_settings' ), array( 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() )  )?>"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
+            <a href="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'plugin_settings' ],
+                                          [ 'pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url() ] )?>"
+            ><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt( 'Plugin Settings' )?>"></i></a>
             <?php
             if( $params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
              && empty( $params['record']['is_always_active'] ) )
             {
                 ?>
-                <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id'] ?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' ) ?>"></i></a>
+                <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id'] ?>' )"
+                ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt( 'Inactivate plugin' ) ?>"></i></a>
                 <?php
             }
         }
@@ -832,16 +850,12 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
          && empty( $params['record']['is_core'] ) )
         {
             ?>
-            <a href="javascript:void(0)" onclick="phs_plugins_list_delete( '<?php echo $params['record']['id']?>' )"><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete plugin' )?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_plugins_list_delete( '<?php echo $params['record']['id']?>' )"
+            ><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt( 'Delete plugin' )?>"></i></a>
             <?php
         }
 
         return ob_get_clean();
-    }
-
-    public function after_record_callback( $params )
-    {
-
     }
 
     public function after_table_callback( $params )
@@ -939,40 +953,135 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
         function phs_plugins_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'plugin_name' );
-            if( !checkboxes_list || !checkboxes_list.length )
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('plugin_name');
+            if( !checkboxes_list || checkboxes_list.length === 0 )
                 return 0;
 
             return checkboxes_list.length;
         }
 
+        function phs_cancel_export_plugin_settings_dialogue()
+        {
+            PHS_JSEN.closeAjaxDialog( 'phs_export_plugins_settings_' );
+        }
         function phs_plugins_list_bulk_export_selected()
         {
-            var total_checked = phs_plugins_list_get_checked_ids_count();
+            var container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj )
+                return;
 
-            if( !total_checked )
-            {
-                alert( "<?php echo self::_e( 'Please select plugins you want to export settings for first.', '"' )?>" );
-                return false;
-            }
+            container_obj.show();
 
-            if( !confirm( "<?php echo sprintf( self::_e( 'Are you sure you want to export %s plugin settings?', '"' ), '" + total_checked + "' )?>" ) )
-                return false;
+            PHS_JSEN.createAjaxDialog( {
+                suffix: 'phs_export_plugins_settings_',
+                width: 550,
+                height: 380,
+                title: "<?php echo $this->_pte( 'Export Plugins\' Settings' )?>",
+                resizable: false,
+                close_outside_click: false,
+                source_obj: container_obj,
+                source_not_cloned: true,
+                onbeforeclose: closing_phs_plugins_export_dialogue
+            });
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-            if( form_obj )
-                form_obj.submit();
+            return false;
         }
         function phs_plugins_list_bulk_export_all()
         {
-            if( !confirm( "<?php echo self::_e( $this->_pt( 'Are you sure you want to export ALL plugin settings?' ), '"' )?>" ) )
-                return false;
+            var container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj )
+                return;
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
-            if( form_obj )
-                form_obj.submit();
+            container_obj.show();
+
+            PHS_JSEN.createAjaxDialog( {
+                suffix: 'phs_export_plugins_settings_',
+                width: 550,
+                height: 380,
+                title: "<?php echo $this->_pte( 'Export ALL Plugins\' Settings' )?>",
+                resizable: false,
+                close_outside_click: false,
+                source_obj: container_obj,
+                source_not_cloned: true,
+                onbeforeclose: closing_phs_plugins_export_dialogue
+            });
+
+            return false;
+        }
+        function closing_phs_plugins_export_dialogue()
+        {
+            var container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj )
+                return;
+
+            container_obj.hide();
+        }
+
+        let crypt_key_text = "";
+        function submit_plugins_export_functionality()
+        {
+            if( crypt_key_text.length === 0 )
+            {
+                alert( "<?php echo $this->_pte( 'Please provide a crypting key.' )?>" );
+                return false;
+            }
+            if( crypt_key_text.length < 64 )
+            {
+                alert( "<?php echo $this->_pt( 'Crypting key length should be at least 64 characters length. Current length is %s characters.', '" + crypt_key_text.length + "' )?>" );
+                return false;
+            }
+
+            phs_cancel_export_plugin_settings_dialogue();
+
+            // Give DOM time to update...
+            setTimeout(function(){
+                $("#phs_export_plugin_settings_crypt_key").val( crypt_key_text );
+
+                const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name()?>");
+                if( form_obj )
+                    form_obj.submit();
+            }, 500 );
+
+            return false;
         }
         </script>
+        <div style="display: none;" id="phs_export_plugins_settings_container">
+        <div class="mb-3">
+            <label for="phs_export_plugin_settings_crypt_key" class="form-label"><?php echo $this->_pt( 'Crypt Key' )?></label>
+            <input name="crypt_key" id="phs_export_plugin_settings_crypt_key" class="form-control"
+                   type="text" value="" aria-describedby="phs_crypt_key_help"
+                   onchange="crypt_key_text = $(this).val().trim()"
+                   placeholder="<?php echo form_str( $this->_pt( 'Please provide a crypting key' ) )?>" />
+            <div id="phs_crypt_key_help" class="form-text"><?php echo $this->_pt( 'Min. 64 characters' )?></div>
+        </div>
+        <div class="p-2">
+            <?php
+            // Keep this text in one string to be exported in language file in one string
+            echo '<strong>'.$this->_pt( 'Note' ).'</strong>: ';
+            echo $this->_pt( 'This crypt key will be used to encrypt plugins settings. Once you obtain the export file, make sure you keep this crypt key safe. It will be used when importing settings on other platforms. If you loose it, you will not be able to import any settings from exported file.' );
+            ?>
+        </div>
+        <div class="p-2">
+            <?php
+            $generation_url = 'https://passwordsgenerator.net/?length=128&symbols=0&numbers=1&lowercase=1&uppercase=1&similar=1&ambiguous=0&client=1&autoselect=1';
+            // Keep this text in one string to be exported in language file in one string
+            echo $this->_pt( 'You can generate safe crypt keys here: %s',
+             '<a href="'.$generation_url.'" target="_blank">passwordsgenerator.net</a>' );
+            ?>
+        </div>
+        <div class="export_actions">
+            <button type="button" id="do_export_plugin_settings_cancel" name="do_export_plugin_settings_cancel"
+                    class="btn btn-default btn-medium" value="" onclick="phs_cancel_export_plugin_settings_dialogue()">
+                <?php echo $this->_pt( 'Cancel' )?>
+            </button>
+            <button type="button" id="do_export_plugin_settings_submit" name="do_export_plugin_settings_submit"
+                    class="btn btn-primary btn-medium ignore_hidden_required" onclick="submit_plugins_export_functionality()"
+                    value="<?php echo $this->_pt( 'Export Settings' )?>" >
+                <i class="fa fa-download"></i>
+                <?php echo $this->_pt( 'Export Settings' )?>
+            </button>
+        </div>
+        </div>
         <?php
 
         return ob_get_clean();

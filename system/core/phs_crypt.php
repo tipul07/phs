@@ -107,7 +107,7 @@ class PHS_Crypt extends PHS_Language
      * @param string $crypting_key
      * @param false|array $params
      *
-     * @return false|array
+     * @return false|string
      */
     public static function quick_encode_buffer_for_export_as_json( $buf, $crypting_key, $params = false )
     {
