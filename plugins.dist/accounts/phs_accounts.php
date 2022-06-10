@@ -1097,7 +1097,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if( empty( $db_account_arr ) )
         {
             // we have to create a new account...
-            $account_fields = [ 'nick' => true, 'email' => true, 'email_verified' => true, 'language' => true, 'level' => true, ];
+            $account_fields = [ 'nick' => true, 'email' => true, 'email_verified' => true, 'language' => true,
+                                'level' => true, 'status' => true, ];
         } else
         {
             $account_fields = [ 'email_verified' => true, 'language' => true, 'level' => true, ];
@@ -1309,6 +1310,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         return [
             'version' => 1,
+            'platform_name' => PHS_SITE_NAME.' ('.PHS_SITEBUILD_VERSION.')',
+            'platform_url' => PHS::url( [ 'force_https' => true ] ),
             'accounts' => [],
         ];
     }
@@ -1354,7 +1357,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                        'level', 'lastlog', 'lastip' ];
         foreach( $source_keys as $key )
         {
-            if( isset( $account_arr[$key] ) && isset( $export_structure[$key] ) )
+            if( array_key_exists( $key, $account_arr )
+             && array_key_exists( $key, $export_structure ) )
                 $export_structure[$key] = $account_arr[$key];
         }
         foreach( [ 'email_verified', 'status', 'level', ] as $key )
@@ -1381,8 +1385,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         {
             $join_field_name = 'users_details_'.$field_name;
             // check if we have get_list() result
-            if( isset( $account_arr[$join_field_name] )
-             && isset( $export_structure['user_details'][$field_name] ) )
+            if( array_key_exists( $join_field_name, $account_arr )
+             && array_key_exists( $field_name, $export_structure['user_details'] ) )
                 $export_structure['user_details'][$field_name] = $account_arr[$join_field_name];
 
             // check if we have account details result

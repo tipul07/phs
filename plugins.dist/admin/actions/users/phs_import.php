@@ -119,6 +119,17 @@ class PHS_Action_Import extends PHS_Action
                 $source_arr['allowed_extentions'] = [ 'json' ];
                 $source_arr['upload_file'] = $import_file;
 
+                $import_dir = $accounts_plugin->get_accounts_import_dir();
+
+                // OLD files cleanup (if any)...
+                if( ($old_files = @glob( $import_dir.'_ai'.$current_user['id'].'_*.*' )) )
+                {
+                    foreach( $old_files as $del_file )
+                    {
+                        @unlink( $del_file );
+                    }
+                }
+
                 $upload_file_name = '_ai' . $current_user['id'] . '_' . md5( microtime( true ) );
                 $tmp_file = $accounts_plugin->get_accounts_import_dir() . $upload_file_name;
 
