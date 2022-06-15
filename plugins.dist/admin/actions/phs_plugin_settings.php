@@ -40,7 +40,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($admin_plugin = PHS::load_plugin( 'accounts', 'accounts' ))
+        if( !($admin_plugin = PHS::load_plugin( 'admin' ))
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
             PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
