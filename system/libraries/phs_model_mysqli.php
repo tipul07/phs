@@ -950,6 +950,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 else
                     $max_bytes = $field_details['length'];
 
+                if( !is_string( $value ) )
+                    $value = (string)$value;
+
                 if( strlen( $value ) > $max_bytes )
                     $value = substr( $value, 0, $max_bytes );
             break;

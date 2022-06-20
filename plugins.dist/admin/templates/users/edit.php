@@ -7,8 +7,9 @@
     /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
     if( !($roles_model = $this->view_var( 'roles_model' ))
-     || !($plugins_model = $this->view_var( 'plugins_model' )) )
-        return $this->_pt( 'Couldn\'t load roles model.' );
+     || !($plugins_model = $this->view_var( 'plugins_model' ))
+     || !($account_arr = $this->view_var( 'account_data' )) )
+        return $this->_pt( 'Error loading required resources.' );
 
     if( !($accounts_plugin_settings = $this->view_var( 'accounts_plugin_settings' )) )
         $accounts_plugin_settings = [];
@@ -70,20 +71,29 @@ if( !empty( $back_page ) )
 
     <div class="form-group row">
         <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt( 'Level' )?></label>
-        <div class="col-sm-10">
-            <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
-                <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
-                <?php
-                $current_level = (int)$this->view_var( 'level' );
-                foreach( $user_levels as $key => $level_details )
-                {
-                    if( $key >= $current_user['level'] )
-                        break;
-
-                    ?><option value="<?php echo $key?>" <?php echo ($current_level===$key?'selected="selected"':'')?>><?php echo $level_details['title']?></option><?php
-                }
+        <div class="col-sm-10"><?php
+            if( (int)$account_arr['level'] === (int)$current_user['level'] )
+            {
+                echo (!empty( $user_levels[$account_arr['level']] )?$user_levels[$account_arr['level']]['title']:$this->_pt( 'N/A' ) );
+            } else
+            {
                 ?>
-            </select>
+                <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
+                    <option value="0"><?php echo $this->_pt( ' - Choose - ' )?></option>
+                    <?php
+                    $current_level = (int)$this->view_var( 'level' );
+                    foreach( $user_levels as $key => $level_details )
+                    {
+                        if( $key >= $current_user['level'] )
+                            break;
+
+                        ?><option value="<?php echo $key?>" <?php echo ($current_level===$key?'selected="selected"':'')?>><?php echo $level_details['title']?></option><?php
+                    }
+                    ?>
+                </select>
+                <?php
+            }
+            ?>
         </div>
     </div>
 

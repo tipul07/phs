@@ -120,7 +120,8 @@ module.exports = {
                         return;
                     }
 
-                    if( typeof data.response.items === "undefined" )
+                    if( typeof data.response.items === "undefined"
+                     || !data.response.items )
                         data.response.items = [];
 
                     vm.options = data.response.items;
@@ -155,7 +156,8 @@ module.exports = {
 
             if( typeof option_item === "undefined"
              || !option_item
-             || typeof option_item.listing_title === "undefined" )
+             || typeof option_item.listing_title === "undefined"
+             || !option_item.listing_title )
                 return "";
 
             return option_item.listing_title;

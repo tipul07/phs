@@ -2994,7 +2994,7 @@ final class PHS extends PHS_Registry
         return $hook_args;
     }
 
-    public static function error_handler( $errno, $errstr, $errfile, $errline, $errcontext )
+    public static function error_handler( $errno, $errstr, $errfile, $errline, $errcontext = false )
     {
         if( !error_reporting() )
             return true;

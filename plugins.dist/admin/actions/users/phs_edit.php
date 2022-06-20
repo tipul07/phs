@@ -86,6 +86,26 @@ class PHS_Action_Edit extends PHS_Action
             return $action_result;
         }
 
+        if( !$accounts_model->can_manage_account( $current_user, $account_arr ) )
+        {
+            PHS_Notifications::add_warning_notice( $this->_pt( 'Invalid account...' ) );
+
+            $action_result = self::default_action_result();
+
+            $args = [ 'cannot_edit_account' => 1 ];
+
+            if( empty( $back_page ) )
+                $back_page = PHS::url( [ 'p' => 'admin', 'a' => 'list', 'ad' => 'users' ] );
+            else
+                $back_page = from_safe_url( $back_page );
+
+            $back_page = add_url_params( $back_page, $args );
+
+            $action_result['redirect_to_url'] = $back_page;
+
+            return $action_result;
+        }
+
         if( !($roles_by_slug = $roles_model->get_all_roles_by_slug()) )
             $roles_by_slug = [];
         if( !($account_roles = $roles_model->get_user_roles_slugs( $account_arr )) )
@@ -138,7 +158,8 @@ class PHS_Action_Edit extends PHS_Action
                 if( !empty( $pass ) )
                     $edit_arr['pass'] = $pass;
                 $edit_arr['email'] = $email;
-                $edit_arr['level'] = $level;
+                if( $account_arr['level'] < $current_user['level'] )
+                    $edit_arr['level'] = $level;
 
                 $edit_details_arr = [];
                 $edit_details_arr['title'] = $title;
@@ -159,8 +180,12 @@ class PHS_Action_Edit extends PHS_Action
 
                     $action_result = self::default_action_result();
 
-                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'edit', 'ad' => 'users' ],
-                                                                  [ 'uid' => $account_arr['id'], 'changes_saved' => 1 ] );
+                    $args = [ 'uid' => $account_arr['id'], 'changes_saved' => 1 ];
+
+                    if( !empty( $back_page ) )
+                        $args['back_page'] = $back_page;
+
+                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'edit', 'ad' => 'users' ], $args );
 
                     return $action_result;
                 }
@@ -175,6 +200,7 @@ class PHS_Action_Edit extends PHS_Action
         $data = [
             'uid' => $account_arr['id'],
             'back_page' => $back_page,
+            'account_data' => $account_arr,
 
             'nick' => $nick,
             'pass' => $pass,
