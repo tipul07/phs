@@ -81,6 +81,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             PHS_Notifications::add_success_notice( $this->_pt( 'User account created.' ) );
         if( PHS_Params::_g( 'unknown_account', PHS_Params::T_INT ) )
             PHS_Notifications::add_error_notice( $this->_pt( 'Account not found in database.' ) );
+        if( PHS_Params::_g( 'cannot_edit_account', PHS_Params::T_INT ) )
+            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have enough rights to edit the account.' ) );
 
         $can_export_accounts = (bool)$this->_admin_plugin->can_admin_export_accounts( $current_user );
 
