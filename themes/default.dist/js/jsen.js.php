@@ -863,7 +863,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     len = error_arr[i].check_visible.length;
                     for( ki = 0; ki < len; ki++ ) {
                         container_name = error_arr[i].check_visible[ki];
-                        if( container_name.substr( 0, 1 ) !== '#' )
+                        if( container_name.substring( 0, 1 ) !== '#' )
                             container_name = '#' + container_name;
 
                         var vis_obj = $(container_name);

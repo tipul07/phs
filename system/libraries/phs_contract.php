@@ -32,6 +32,9 @@ abstract class PHS_Contract extends PHS_Instantiable
     /** @var array Data cache for data retrieved from models for inside sources */
     private $_data_cache = [];
 
+    /** @var array|null Data being processed now (from inside or from outside) */
+    private $_processing_data = null;
+
     /** @var bool Was defintion normalized already? */
     private $_definition_initialized = false;
 
@@ -169,12 +172,39 @@ abstract class PHS_Contract extends PHS_Instantiable
         $this->_data_was_parsed = false;
     }
 
+    /**
+     * Set an error inside _pre or _post methods and stop processing.
+     *
+     * @param $error_no
+     * @param $error_msg
+     *
+     * @return null
+     */
     public function set_processing_error( $error_no, $error_msg )
     {
         $this->set_error( $error_no, $error_msg );
         return null;
     }
 
+    /**
+     * Get source data (array) as provided from inside or from outside.
+     * self::$_source_data is not changed by _pre and _post methods, so it is the "original data"
+     * @return null|array
+     */
+    public function get_source_data()
+    {
+        return $this->_source_data;
+    }
+
+    /**
+     * Get current processing data as array with details at current level in contract.
+     * This will also be changed by _pre and _post method calls
+     * @return null|array
+     */
+    public function get_processing_data()
+    {
+        return $this->_processing_data;
+    }
 
     /**
      * @param array $outside_data Source array received from outside which should be converted into inside data
@@ -206,7 +236,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             $params['post_processing_params'] = false;
 
         $this->_data_type = self::FROM_OUTSIDE;
-        $this->_source_data = $outside_data;
+        $this->_source_data = $this->_processing_data = $outside_data;
 
         $parsing_params = [];
         $parsing_params['lvl'] = 0;
@@ -274,6 +304,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $processing_params['lvl'] = $params['lvl'];
         $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
 
+        $this->_processing_data = $outside_data;
+
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract']) )
         {
@@ -295,6 +327,8 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             if( empty( $outside_data ) || !is_array( $outside_data ) )
                 $outside_data = [];
+
+            $this->_processing_data = $outside_data;
         }
 
         $return_arr = [];
@@ -655,7 +689,7 @@ abstract class PHS_Contract extends PHS_Instantiable
             $params['max_data_recursive_lvl'] = (int)$params['max_data_recursive_lvl'];
 
         $this->_data_type = self::FROM_INSIDE;
-        $this->_source_data = $inside_data;
+        $this->_source_data = $this->_processing_data = $inside_data;
 
         if( !empty( $params['data_cache'] ) )
             $this->_set_initial_cache_data( $params['data_cache'] );
@@ -727,6 +761,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $processing_params['lvl'] = $params['lvl'];
         $processing_params['max_lvl'] = $this->max_recursive_level_for_data_parsing();
 
+        $this->_processing_data = $inside_data;
+
         /** @var \phs\libraries\PHS_Contract $lvl_contract */
         if( ($lvl_contract = $params['lvl_contract']) )
         {
@@ -748,6 +784,8 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             if( empty( $inside_data ) || !is_array( $inside_data ) )
                 $inside_data = [];
+
+            $this->_processing_data = $inside_data;
         }
 
         $return_arr = [];
