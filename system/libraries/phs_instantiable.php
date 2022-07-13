@@ -49,8 +49,8 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function valid_instance_type( $type )
     {
         if( empty( $type )
-         or !($types_arr = self::get_instance_types())
-         or empty( $types_arr[$type] ) )
+         || !($types_arr = self::get_instance_types())
+         || empty( $types_arr[$type] ) )
             return false;
 
         return $types_arr[$type];
@@ -641,7 +641,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        $instance_type_accepts_subdirs = (in_array( $instance_type, self::instance_types_that_allow_subdirs(), true )?true:false);
+        $instance_type_accepts_subdirs = in_array( $instance_type, self::instance_types_that_allow_subdirs(), true );
 
         if( !is_string( $instance_subdir ) )
             $instance_subdir = '';
@@ -689,7 +689,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        // Atm we support only one level of subdirs, but lets make it general...
+        // Atm we support only one level of subdirs, but let's make it general...
         $subdir_namespace = '';
         $subdir_path = '';
         if( !empty( $instance_subdir ) )
@@ -989,12 +989,12 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @param string $name
      *
-     * @return bool|string
+     * @return false|string
      */
     public static function safe_escape_class_name( $name )
     {
-        if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+        if( empty( $name ) || !is_string( $name )
+         || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return $name;
@@ -1008,7 +1008,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function safe_escape_class_name_with_subdirs( $name )
     {
         if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_\\]@', $name ) )
+         || preg_match( '@[^a-zA-Z0-9_\\]@', $name ) )
             return false;
 
         return $name;
@@ -1022,7 +1022,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function safe_escape_class_name_with_namespace( $name )
     {
         if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_/]@', $name ) )
+         || preg_match( '@[^a-zA-Z0-9_/]@', $name ) )
             return false;
 
         return $name;
@@ -1036,7 +1036,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function safe_escape_plugin_name( $name )
     {
         if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+         || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return strtolower( $name );
@@ -1049,8 +1049,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_theme_name( $name )
     {
-        if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+        if( empty( $name ) || !is_string( $name )
+         || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return strtolower( $name );
@@ -1069,15 +1069,17 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $class_name = array_pop( $class_namespace_path );
 
-        if( empty( $class_namespace_path[0] ) || $class_namespace_path[0] !== 'phs'
-         || empty( $class_namespace_path[1] ) || !in_array( $class_namespace_path[1], [ 'plugins', 'system' ] )
-         || empty( $class_namespace_path[2] ) )
+        if( empty( $class_namespace_path[0] )
+         || empty( $class_namespace_path[1] )
+         || empty( $class_namespace_path[2] )
+         || $class_namespace_path[0] !== 'phs'
+         || !in_array( $class_namespace_path[1], [ 'plugins', 'system' ] ) )
         {
             self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Couldn\'t create instance for classes outside phs namespace.' ) );
             return false;
         }
 
-        $plugin_name = (isset( $class_namespace_path[2] )?$class_namespace_path[2]:'');
+        $plugin_name = $class_namespace_path[2];
         $instance_type_dir = (isset( $class_namespace_path[3] )?$class_namespace_path[3]:'');
 
         $instance_subdir = '';

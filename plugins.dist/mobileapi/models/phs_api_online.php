@@ -78,8 +78,8 @@ class PHS_Model_Api_online extends PHS_Model
      */
     public function define_source( $source, $source_arr )
     {
-        if( empty( $source ) or !is_string( $source )
-         or empty( $source_arr ) or !is_array( $source_arr ) )
+        if( empty( $source ) || !is_string( $source )
+         || empty( $source_arr ) || !is_array( $source_arr ) )
             return false;
 
         $source_arr = self::validate_array( $source_arr, self::default_source_definition() );

@@ -3,8 +3,11 @@
 namespace phs\libraries;
 
 use \phs\PHS_Db;
+use MongoDB\Driver\Cursor;
+use MongoDB\Driver\Manager;
 
-//! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
+//! If only one server/db connection is used or parameter sent to settings method is one array containing
+// only one Mongo connection settings, these settings will be kept in settings array with this index
 /**
  * @deprecated
  */
@@ -19,9 +22,9 @@ class PHS_Db_mongo extends PHS_Db_class
 
     //! Last created manager object
     /** @var bool|\MongoDB\Driver\Manager[] $managers_obj */
-    private $managers_obj = null;
+    private $managers_obj;
 
-    private $last_errors_arr = array();
+    private $last_errors_arr;
 
     //! Hold last query id
     /** @var bool|\MongoDB\Driver\Cursor $query_id */
@@ -34,7 +37,7 @@ class PHS_Db_mongo extends PHS_Db_class
     {
         $this->query_id = false;
         $this->managers_obj = null;
-        $this->last_errors_arr = array();
+        $this->last_errors_arr = [];
 
         $this->last_inserted_id = false;
         $this->inserted_rows = 0;
@@ -43,6 +46,11 @@ class PHS_Db_mongo extends PHS_Db_class
         parent::__construct( $mysql_settings );
     }
 
+    /**
+     * @param false|string $connection_name
+     *
+     * @return void
+     */
     public function reset_last_db_error( $connection_name = false )
     {
         if( $connection_name === false )
@@ -55,6 +63,11 @@ class PHS_Db_mongo extends PHS_Db_class
     //
     //  Abstract methods...
     //
+    /**
+     * @param false|string $connection_name
+     *
+     * @return string
+     */
     public function get_last_db_error( $connection_name = false )
     {
         if( $connection_name === false )
@@ -68,9 +81,9 @@ class PHS_Db_mongo extends PHS_Db_class
 
     protected function default_custom_settings_structure()
     {
-        return array(
+        return [
             // FULL connection URI(s). This is prefferable as it supports multiple Mongo servers
-            // If you use this and you use collection prefixes, don't forget to also provide 'prefix' index
+            // If you use this, and you use collection prefixes, don't forget to also provide 'prefix' index
             'connection_string' => '',
 
             'prefix' => '',
@@ -81,8 +94,8 @@ class PHS_Db_mongo extends PHS_Db_class
             'port' => 27017,
             'database' => '',
 
-            'uri_options' => array(),
-        );
+            'uri_options' => [],
+        ];
     }
 
     protected function custom_settings_validation( $conn_settings )
@@ -90,8 +103,8 @@ class PHS_Db_mongo extends PHS_Db_class
         if( !$this->custom_settings_are_valid( $conn_settings ) )
             return false;
 
-        if( empty( $conn_settings['uri_options'] ) or !is_array( $conn_settings['uri_options'] ) )
-            $conn_settings['uri_options'] = array();
+        if( empty( $conn_settings['uri_options'] ) || !is_array( $conn_settings['uri_options'] ) )
+            $conn_settings['uri_options'] = [];
 
         if( !empty( $conn_settings['port'] ) )
             $conn_settings['port'] = (int)$conn_settings['port'];
@@ -104,10 +117,10 @@ class PHS_Db_mongo extends PHS_Db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         or (empty( $conn_settings['driver'] ) and $conn_settings['driver'] !== PHS_Db::DB_DRIVER_MONGO)
-         or (
-                (!isset( $conn_settings['database'] ) or !isset( $conn_settings['user'] ) or !isset( $conn_settings['password'] ))
-                and
+         || (empty( $conn_settings['driver'] ) && $conn_settings['driver'] !== PHS_Db::DB_DRIVER_MONGO)
+         || (
+                (!isset( $conn_settings['database'] ) || !isset( $conn_settings['user'] ) || !isset( $conn_settings['password'] ))
+                &&
                 empty( $conn_settings['connection_string'] )
             ) )
         {
@@ -152,7 +165,7 @@ class PHS_Db_mongo extends PHS_Db_class
     }
 
     /**
-     * @param bool|string $connection_name
+     * @param false|string $connection_name
      *
      * @return bool|\MongoDB\Driver\Manager Connection manager
      */
@@ -161,10 +174,11 @@ class PHS_Db_mongo extends PHS_Db_class
         if( $connection_name === false )
             $connection_name = $this->default_connection();
 
-        if( empty( $this->managers_obj ) or !is_array( $this->managers_obj )
-         or empty( $this->managers_obj[$connection_name] )
-         or $this->my_settings === false
-         or !@is_object( $this->managers_obj[$connection_name] ) or !($this->managers_obj[$connection_name] instanceof \MongoDB\Driver\Manager) )
+        if( empty( $this->managers_obj ) || !is_array( $this->managers_obj )
+         || empty( $this->managers_obj[$connection_name] )
+         || $this->my_settings === false
+         || !@is_object( $this->managers_obj[$connection_name] )
+         || !($this->managers_obj[$connection_name] instanceof \MongoDB\Driver\Manager) )
             return false;
 
         return $this->managers_obj[$connection_name];
@@ -176,9 +190,14 @@ class PHS_Db_mongo extends PHS_Db_class
         return true;
     }
 
+    /**
+     * @param false|string $connection_name
+     *
+     * @return bool|\MongoDB\Driver\Manager
+     */
     public function connect( $connection_name = false )
     {
-        if( !@class_exists( '\\MongoDB\\Driver\\Manager' ) )
+        if( !@class_exists( Manager::class ) )
         {
             $this->set_error( self::ERR_CONNECT, self::_t( 'Seems like MongoDB driver is not properly installed.' ) );
             return false;
@@ -193,8 +212,8 @@ class PHS_Db_mongo extends PHS_Db_class
         if( ($manager_obj = $this->is_connected( $connection_name )) )
             return $manager_obj;
 
-        if( empty( $this->managers_obj ) or !is_array( $this->managers_obj ) )
-            $this->managers_obj = array();
+        if( empty( $this->managers_obj ) || !is_array( $this->managers_obj ) )
+            $this->managers_obj = [];
 
         if( !empty( $conn_settings['connection_string'] ) )
             $host = $conn_settings['connection_string'];
@@ -203,17 +222,17 @@ class PHS_Db_mongo extends PHS_Db_class
         {
             $host = rawurlencode( $conn_settings['host'] );
             if( !empty( $conn_settings['port'] ) )
-                $host .= ':'.intval( $conn_settings['port'] );
+                $host .= ':'.(int)$conn_settings['port'];
 
             $user_pass = '';
-            if( !empty( $conn_settings['user'] ) or !empty( $conn_settings['password'] ) )
+            if( !empty( $conn_settings['user'] ) || !empty( $conn_settings['password'] ) )
             {
                 if( !empty( $conn_settings['user'] ) )
                     $user_pass = rawurlencode( $conn_settings['user'] ).':';
                 if( !empty( $conn_settings['password'] ) )
-                    $user_pass = ($user_pass==''?':':'').rawurlencode( $conn_settings['password'] );
+                    $user_pass = ($user_pass===''?':':'').rawurlencode( $conn_settings['password'] );
 
-                if( $user_pass != '' )
+                if( $user_pass !== '' )
                     $user_pass .= '@';
             }
 
@@ -225,7 +244,7 @@ class PHS_Db_mongo extends PHS_Db_class
 
         try
         {
-            $this->managers_obj[$connection_name] = new \MongoDB\Driver\Manager( $host, $conn_settings['uri_options'], $conn_settings['driver_settings'] );
+            $this->managers_obj[$connection_name] = new Manager( $host, $conn_settings['uri_options'], $conn_settings['driver_settings'] );
         } catch( \Exception $e )
         {
             if( isset( $this->managers_obj[$connection_name] ) )
@@ -235,18 +254,22 @@ class PHS_Db_mongo extends PHS_Db_class
                 $this->managers_obj = null;
 
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to Mongo host '.$host.', user '.($conn_settings['user']!=''?$conn_settings['user']:'N/A').($conn_settings['password']!=''?' (with password)':'').'.',
+                                 'Cannot connect to Mongo host '.$host.', user '.
+                                    ($conn_settings['user']!==''?$conn_settings['user']:'N/A').
+                                    ($conn_settings['password']!==''?' (with password)':'').'.',
                                  'Cannot connect to Mongo server.',
                                  $connection_name );
             return false;
         }
 
         if( empty( $this->managers_obj[$connection_name] )
-         or !is_object( $this->managers_obj[$connection_name] )
-         or !($this->managers_obj[$connection_name] instanceof \MongoDB\Driver\Manager) )
+         || !is_object( $this->managers_obj[$connection_name] )
+         || !($this->managers_obj[$connection_name] instanceof Manager) )
         {
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to Mongo host '.$host.', user '.($conn_settings['user']!=''?$conn_settings['user']:'N/A').($conn_settings['password']!=''?' (with password)':'').'.',
+                                 'Cannot connect to Mongo host '.$host.', user '.
+                                    ($conn_settings['user']!==''?$conn_settings['user']:'N/A').
+                                    ($conn_settings['password']!==''?' (with password)':'').'.',
                                  'Cannot connect to Mongo server.',
                                  $connection_name );
             return false;
@@ -258,6 +281,15 @@ class PHS_Db_mongo extends PHS_Db_class
     }
 
     // Returns an INSERT query string for table $table_name for $insert_arr data
+
+    /**
+     * @param string $table_name
+     * @param array $insert_arr
+     * @param bool|string $connection_name
+     * @param false|array $params
+     *
+     * @return array|false
+     */
     public function quick_insert( $table_name, $insert_arr, $connection_name = false, $params = false )
     {
         return $insert_arr;
@@ -300,35 +332,35 @@ class PHS_Db_mongo extends PHS_Db_class
             // Tag sets allow you to target read operations to specific members of a replica set
             'tag_sets' => null,
             // options array argument was added in driver version 1.2.0
-            'options' => array(),
+            'options' => [],
         );
     }
 
     public static function default_cursor_type_map()
     {
-        return array(
+        return [
             'root' => 'array',
             'document' => 'array',
             'array' => 'array',
-        );
+        ];
     }
 
     public static function default_query_arr()
     {
-        return array(
+        return [
             'table_name' => '',
-            'filter' => array(),
+            'filter' => [],
             'query_options' => self::default_query_options_arr(),
             'read_preference' => self::default_read_preference_arr(),
             'cursor_type_map' => self::default_cursor_type_map(),
-        );
+        ];
     }
 
     /**
      * Do the query and return query ID as cursor instance
      *
      * @param array $query_arr
-     * @param bool $connection_name
+     * @param false|string $connection_name
      *
      * @return bool|\MongoDB\Driver\Cursor
      */
@@ -336,9 +368,9 @@ class PHS_Db_mongo extends PHS_Db_class
     {
         $query_arr = self::validate_array( $query_arr, self::default_query_arr() );
 
-        if( empty( $query_arr ) or !is_array( $query_arr )
-         or empty( $query_arr['table_name'] ) or !is_string( $query_arr['table_name'] )
-         or empty( $query_arr['filter'] ) )
+        if( empty( $query_arr ) || !is_array( $query_arr )
+         || empty( $query_arr['table_name'] ) || !is_string( $query_arr['table_name'] )
+         || empty( $query_arr['filter'] ) )
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Invalid query array.',
@@ -360,7 +392,7 @@ class PHS_Db_mongo extends PHS_Db_class
         }
 
         // if connect wasn't called separately call it now
-        if( !$this->is_connected( $connection_name ) and $this->connect( $connection_name ) === false )
+        if( !$this->is_connected( $connection_name ) && $this->connect( $connection_name ) === false )
         {
             $this->set_my_error( self::ERR_CONNECT,
                                  'Cannot connect to database with connection '.$connection_name.'.',
@@ -393,15 +425,15 @@ class PHS_Db_mongo extends PHS_Db_class
 
         try
         {
-            if( empty( $query_arr['read_preference'] ) or !is_array( $query_arr['read_preference'] ) )
+            if( empty( $query_arr['read_preference'] ) || !is_array( $query_arr['read_preference'] ) )
                 $query_arr['read_preference'] = self::default_read_preference_arr();
 
             if( defined( 'MONGODB_VERSION' )
-            and version_compare( constant( 'MONGODB_VERSION' ), '1.2.0' ) >= 0 )
+            && version_compare( constant( 'MONGODB_VERSION' ), '1.2.0' ) >= 0 )
             {
                 $read_preference_obj = new \MongoDB\Driver\ReadPreference( $query_arr['read_preference']['mode'],
                                                             (!empty( $query_arr['read_preference']['tag_sets'] )?$query_arr['read_preference']['tag_sets']:null),
-                                                            (!empty( $query_arr['read_preference']['options'] )?$query_arr['read_preference']['options']:array()) );
+                                                            (!empty( $query_arr['read_preference']['options'] )?$query_arr['read_preference']['options']: []) );
             } else
             {
                 $read_preference_obj = new \MongoDB\Driver\ReadPreference( $query_arr['read_preference']['mode'],
@@ -421,11 +453,11 @@ class PHS_Db_mongo extends PHS_Db_class
         try
         {
             if( defined( 'MONGODB_VERSION' )
-            and version_compare( constant( 'MONGODB_VERSION' ), '1.2.0' ) >= 0 )
+            && version_compare( constant( 'MONGODB_VERSION' ), '1.2.0' ) >= 0 )
             {
                 $cursor_obj = $manager_obj->executeQuery( $namespace_str,
                                                           $query_obj,
-                                                          array( 'readPreference' => $read_preference_obj ) );
+                                                          [ 'readPreference' => $read_preference_obj ] );
             } else
             {
                 $cursor_obj = $manager_obj->executeQuery( $namespace_str,
@@ -481,13 +513,13 @@ class PHS_Db_mongo extends PHS_Db_class
     {
         if( empty( $qid )
             // MongoDB\Driver\Cursor
-         or gettype( $qid ) != 'object'
-         or !($qid instanceof \MongoDB\Driver\Cursor) )
+         || @gettype( $qid ) !== 'object'
+         || !($qid instanceof Cursor) )
             return false;
 
         try {
             if( !($result_arr = $qid->toArray())
-             or empty( $result_arr[0] ) )
+             || empty( $result_arr[0] ) )
                 return false;
         } catch( \Exception $e )
         {
@@ -500,13 +532,13 @@ class PHS_Db_mongo extends PHS_Db_class
     public function num_rows( $qid )
     {
         if( empty( $qid )
-         or gettype( $qid ) != 'object'
-         or !($qid instanceof \MongoDB\Driver\Cursor) )
+         || @gettype( $qid ) !== 'object'
+         || !($qid instanceof Cursor) )
             return false;
 
         try {
             if( !($result_arr = $qid->toArray())
-             or !($count_val = count( $result_arr )) )
+             || !($count_val = count( $result_arr )) )
                 return 0;
         } catch( \Exception $e )
         {
@@ -522,10 +554,10 @@ class PHS_Db_mongo extends PHS_Db_class
     public function dump_database( $dump_params = false )
     {
         if( !($dump_params = self::validate_array_recursive( $dump_params, self::default_dump_parameters() ))
-         or !($dump_params = parent::dump_database( $dump_params ))
-         or empty( $dump_params['binaries'] ) or !is_array( $dump_params['binaries'] )
-         or empty( $dump_params['binaries']['mongodump_bin'] )
-         or empty( $dump_params['connection_identifier'] ) )
+         || !($dump_params = parent::dump_database( $dump_params ))
+         || empty( $dump_params['binaries'] ) || !is_array( $dump_params['binaries'] )
+         || empty( $dump_params['binaries']['mongodump_bin'] )
+         || empty( $dump_params['connection_identifier'] ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error validating database dump parameters.' ) );
@@ -533,7 +565,7 @@ class PHS_Db_mongo extends PHS_Db_class
         }
 
         if( !($connection_settings = $this->connection_settings( $dump_params['connection_name'] ))
-         or !is_array( $connection_settings ) )
+         || !is_array( $connection_settings ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error validating database dump parameters.' ) );
@@ -543,7 +575,7 @@ class PHS_Db_mongo extends PHS_Db_class
         $connection_identifier = $dump_params['connection_identifier']['identifier'];
 
         $credentials_file = $dump_params['output_dir'].'/export_'.$connection_identifier.'.cnf';
-        if( !($fil = @fopen( $credentials_file, 'w' )) )
+        if( !($fil = @fopen( $credentials_file, 'wb' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating dump credentials file.' ) );
             return false;
@@ -565,12 +597,12 @@ class PHS_Db_mongo extends PHS_Db_class
 
         $output_file = $dump_params['output_dir'].'/'.$dump_file;
 
-        if( empty( $dump_params['dump_commands_for_shell'] ) or !is_array( $dump_params['dump_commands_for_shell'] ) )
-            $dump_params['dump_commands_for_shell'] = array();
-        if( empty( $dump_params['delete_files_after_export'] ) or !is_array( $dump_params['delete_files_after_export'] ) )
-            $dump_params['delete_files_after_export'] = array();
-        if( empty( $dump_params['generated_files'] ) or !is_array( $dump_params['generated_files'] ) )
-            $dump_params['generated_files'] = array();
+        if( empty( $dump_params['dump_commands_for_shell'] ) || !is_array( $dump_params['dump_commands_for_shell'] ) )
+            $dump_params['dump_commands_for_shell'] = [];
+        if( empty( $dump_params['delete_files_after_export'] ) || !is_array( $dump_params['delete_files_after_export'] ) )
+            $dump_params['delete_files_after_export'] = [];
+        if( empty( $dump_params['generated_files'] ) || !is_array( $dump_params['generated_files'] ) )
+            $dump_params['generated_files'] = [];
 
         $dump_params['generated_files'][] = $credentials_file;
 
@@ -603,5 +635,4 @@ class PHS_Db_mongo extends PHS_Db_class
 
         return $dump_params;
     }
-
 }

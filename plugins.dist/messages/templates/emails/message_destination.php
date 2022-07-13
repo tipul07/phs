@@ -6,8 +6,8 @@ use \phs\libraries\PHS_Hooks;
 $hook_args = $this::validate_array( $this->view_var( 'hook_args' ), PHS_Hooks::default_init_email_hook_args() );
 
 $email_vars = $hook_args['email_vars'];
-if( empty( $email_vars ) or !is_array( $email_vars ) )
-    $email_vars = array();
+if( empty( $email_vars ) || !is_array( $email_vars ) )
+    $email_vars = [];
 
 ?>
 Hi <?php echo $email_vars['destination_nick']?>,<br/>

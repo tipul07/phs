@@ -18,11 +18,12 @@
         $denied_methods = [];
 
     if( !($back_page = $this->view_var( 'back_page' )) )
-        $back_page = PHS::url( array( 'p' => 'admin', 'a' => 'api_keys_list' ) );
+        $back_page = PHS::url( [ 'p' => 'admin', 'a' => 'api_keys_list' ] );
 ?>
 <div style="min-width:100%;max-width:1000px;margin: 0 auto;">
     <form id="edit_apikey_form" name="edit_apikey_form" method="post"
-          action="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'api_key_edit' ], [ 'aid' => $this->view_var( 'aid' ) ] )?>">
+          action="<?php echo PHS::url( [ 'p' => 'admin', 'a' => 'api_key_edit' ],
+                                       [ 'aid' => $this->view_var( 'aid' ) ] )?>">
         <input type="hidden" name="foobar" value="1" />
         <?php
             if( !empty( $back_page ) )
@@ -36,7 +37,8 @@
             <?php
             if( !empty( $back_page ) )
             {
-                ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
+                ?><i class="fa fa-chevron-left"></i>
+                <a href="<?php echo form_str( from_safe_url( $back_page ) ) ?>"><?php echo $this->_pt( 'Back' )?></a><?php
             }
             ?>
 
@@ -54,7 +56,8 @@
             <fieldset class="form-group">
                 <label for="title"><?php echo $this->_pt( 'Title' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="title" name="title" class="form-control" value="<?php echo form_str( $this->view_var( 'title' ) )?>" autocomplete="off" />
+                <input type="text" id="title" name="title" class="form-control"
+                       value="<?php echo form_str( $this->view_var( 'title' ) )?>" autocomplete="off" />
                 <br/><small><?php echo $this->_pt( 'Short description for this API key' )?></small>
                 </div>
             </fieldset>
@@ -62,7 +65,8 @@
             <fieldset class="form-group">
                 <label for="api_key"><?php echo $this->_pt( 'API Key' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="api_key" name="api_key" class="form-control" value="<?php echo form_str( $this->view_var( 'api_key' ) )?>" autocomplete="off" />
+                <input type="text" id="api_key" name="api_key" class="form-control"
+                       value="<?php echo form_str( $this->view_var( 'api_key' ) )?>" autocomplete="off" />
                 <br/><small><?php echo $this->_pt( 'Leave empty to autogenerate.' )?></small>
                 </div>
             </fieldset>
@@ -70,7 +74,8 @@
             <fieldset class="form-group">
                 <label for="api_secret"><?php echo $this->_pt( 'API Secret' )?>:</label>
                 <div class="lineform_line">
-                <input type="text" id="api_secret" name="api_secret" class="form-control" value="<?php echo form_str( $this->view_var( 'api_secret' ) )?>" autocomplete="off" />
+                <input type="text" id="api_secret" name="api_secret" class="form-control"
+                       value="<?php echo form_str( $this->view_var( 'api_secret' ) )?>" autocomplete="off" />
                 <br/><small><?php echo $this->_pt( 'Leave empty to autogenerate.' )?></small>
                 </div>
             </fieldset>
@@ -83,9 +88,11 @@
                 foreach( $api_methods_arr as $api_method )
                 {
                     ?>
-                    <div style="float:left;margin-top:5px;"><input type="checkbox" id="allowed_methods_<?php echo $api_method ?>"
-                                                    name="allowed_methods[]" value="<?php echo form_str( $api_method )?>" rel="skin_checkbox"
-                                                    <?php echo (in_array( $api_method, $allowed_methods ) ? 'checked="checked"' : '')?> /></div>
+                    <div style="float:left;margin-top:5px;">
+                        <input type="checkbox" id="allowed_methods_<?php echo $api_method ?>"
+                               name="allowed_methods[]" value="<?php echo form_str( $api_method )?>" rel="skin_checkbox"
+                            <?php echo (in_array( $api_method, $allowed_methods ) ? 'checked="checked"' : '')?> />
+                    </div>
                     <label style="margin: 5px 10px 5px 0;width: auto !important;max-width: none !important;float:left;" for="allowed_methods_<?php echo $api_method ?>">
                     <?php echo $api_method?>
                     </label>
@@ -105,9 +112,11 @@
                 foreach( $api_methods_arr as $api_method )
                 {
                     ?>
-                    <div style="float:left;margin-top:5px;"><input type="checkbox" id="denied_methods_<?php echo $api_method ?>"
-                                                    name="denied_methods[]" value="<?php echo form_str( $api_method )?>" rel="skin_checkbox"
-                                                    <?php echo (in_array( $api_method, $denied_methods ) ? 'checked="checked"' : '')?> /></div>
+                    <div style="float:left;margin-top:5px;">
+                        <input type="checkbox" id="denied_methods_<?php echo $api_method ?>"
+                               name="denied_methods[]" value="<?php echo form_str( $api_method )?>" rel="skin_checkbox"
+                            <?php echo (in_array( $api_method, $denied_methods ) ? 'checked="checked"' : '')?> />
+                    </div>
                     <label style="margin: 5px 10px 5px 0;width: auto !important;max-width: none !important;float:left;" for="denied_methods_<?php echo $api_method ?>">
                     <?php echo $api_method?>
                     </label>
@@ -122,13 +131,17 @@
             <fieldset class="form-group">
                 <label for="allow_sw"><?php echo $this->_pt( 'Allow Simulating Web' )?>:</label>
                 <div class="lineform_line">
-                    <input type="checkbox" id="allow_sw" name="allow_sw" value="1" rel="skin_checkbox" <?php echo ($this->view_var( 'allow_sw' )?'checked="checked"':'')?> />
-                    <br/><small><?php echo $this->_pt( 'If ticked, API key will be allowed to access actions which are normally available in web scope (by sending %s=1 in GET).', PHS_Api::PARAM_WEB_SIMULATION )?></small>
+                    <input type="checkbox" id="allow_sw" name="allow_sw" value="1" rel="skin_checkbox"
+                        <?php echo ($this->view_var( 'allow_sw' )?'checked="checked"':'')?> />
+                    <br/>
+                    <small><?php echo $this->_pt( 'If ticked, API key will be allowed to access actions which are normally available in web scope (by sending %s=1 in GET).', PHS_Api::PARAM_WEB_SIMULATION )?></small>
                 </div>
             </fieldset>
 
             <fieldset>
-                <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte( 'Save changes' )?>" />
+                <input type="submit" id="do_submit" name="do_submit"
+                       class="btn btn-primary submit-protection ignore_hidden_required"
+                       value="<?php echo $this->_pte( 'Save changes' )?>" />
             </fieldset>
 
         </div>

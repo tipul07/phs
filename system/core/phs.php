@@ -2,6 +2,7 @@
 
 namespace phs;
 
+use phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
@@ -252,7 +253,9 @@ final class PHS extends PHS_Registry
             return self::get_data( self::PHS_PAGE_SETTINGS );
 
         $def_settings = self::get_default_page_settings();
-        $current_settings = self::get_data( self::PHS_PAGE_SETTINGS );
+        if( !($current_settings = self::get_data( self::PHS_PAGE_SETTINGS )) )
+            $current_settings = [];
+
         if( $val === null )
         {
             if( is_array( $key ) )
@@ -306,7 +309,7 @@ final class PHS extends PHS_Registry
      */
     public static function is_secured_request()
     {
-        return (self::get_data( self::REQUEST_HTTPS )?true:false);
+        return (bool)self::get_data( self::REQUEST_HTTPS );
     }
 
     /**
@@ -425,13 +428,18 @@ final class PHS extends PHS_Registry
          || !@is_dir( PHS_THEMES_DIR . $theme )
          || !@is_readable( PHS_THEMES_DIR . $theme ) )
         {
-            self::st_set_error( self::ERR_THEME, self::_t( 'Theme %s doesn\'t exist || directory is not readable.', ($theme?$theme:'N/A') ) );
+            self::st_set_error( self::ERR_THEME, self::_t( 'Theme %s doesn\'t exist or directory is not readable.', ($theme?$theme:'N/A') ) );
             return false;
         }
 
         return $theme;
     }
 
+    /**
+     * @param false|string $theme
+     *
+     * @return false|string[]
+     */
     public static function get_theme_language_paths( $theme = false )
     {
         self::st_reset_error();
@@ -496,6 +504,8 @@ final class PHS extends PHS_Registry
      */
     public static function set_cascading_themes( $themes_arr )
     {
+        self::st_reset_error();
+
         if( !is_array( $themes_arr ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Please provide a themes array.' ) );
@@ -549,16 +559,16 @@ final class PHS extends PHS_Registry
      */
     public static function resolve_theme()
     {
-        // First set default so it doesn't get auto-set in set_theme() method
-        if( !self::get_data( self::DEFAULT_THEME )
-         && defined( 'PHS_DEFAULT_THEME' ) )
+        // First set default, so it doesn't get auto-set in set_theme() method
+        if( defined( 'PHS_DEFAULT_THEME' )
+         && !self::get_data( self::DEFAULT_THEME ) )
         {
             if( !self::set_defaut_theme( PHS_DEFAULT_THEME ) )
                 return false;
         }
 
-        if( !self::get_data( self::CURRENT_THEME )
-         && defined( 'PHS_THEME' ) )
+        if( defined( 'PHS_THEME' )
+         && !self::get_data( self::CURRENT_THEME ) )
         {
             if( !self::set_theme( PHS_THEME ) )
                 return false;
@@ -740,8 +750,10 @@ final class PHS extends PHS_Registry
      * or
      * {plugin}-{action} Controller will be 'index'
      *
-     * @param string|array|bool $route If a non empty string, method will try parsing provided route, if an array will try paring array, otherwise exract route from context
-     * @param bool $use_short_names If we need short names for plugin, controller and action in returned keys (eg. p, c, a)
+     * @param string|array|bool $route If a non-empty string, method will try parsing provided route,
+     *                      if an array will try paring array, otherwise exract route from context
+     * @param bool $use_short_names If we need short names for plugin,
+     *                      controller and action in returned keys (eg. p, c, a, ad)
      * @return bool|array Returns true on success || false on error
      */
     public static function parse_route( $route = false, $use_short_names = false )
@@ -1700,7 +1712,7 @@ final class PHS extends PHS_Registry
         foreach( $args as $key => $val )
             $new_args[$key] = $val;
 
-        if( !($query_string = @http_build_query( $new_args, null, $extra['http']['arg_separator'], $extra['http']['enc_type'] )) )
+        if( !($query_string = @http_build_query( $new_args, '', $extra['http']['arg_separator'], $extra['http']['enc_type'] )) )
             $query_string = '';
 
         if( !empty( $extra['raw_args'] ) && is_array( $extra['raw_args'] ) )
@@ -2568,8 +2580,12 @@ final class PHS extends PHS_Registry
             $resulting_instance_names[] = $plugin;
         } else
         {
-            if( ($file_scripts = @glob( $instance_details['instance_path'] . 'phs_*.php' ))
-             && is_array( $file_scripts ) )
+            if( empty( $instance_details['instance_type_accepts_subdirs'] ) )
+                $file_scripts = @glob( $instance_details['instance_path'].'phs_*.php' );
+            else
+                $file_scripts = PHS_Utils::get_files_recursive( $instance_details['instance_path'], [ 'basename_regex' => '/phs_(.+).php/' ] );
+
+            if( !empty( $file_scripts ) && is_array( $file_scripts ) )
             {
                 foreach( $file_scripts as $file_script )
                 {
@@ -2580,8 +2596,14 @@ final class PHS extends PHS_Registry
                         continue;
 
                     $instance_file_name = substr( substr( $script_file_name, 4 ), 0, -4 );
+                    $instance_file_dir = trim( str_replace( [ $script_file_name, $instance_details['instance_path'] ],
+                                                            '', $file_script ),
+                                               '/\\' );
 
-                    $resulting_instance_names[] = $instance_file_name;
+                    $resulting_instance_names[] = [
+                        'file' => $instance_file_name,
+                        'dir' => $instance_file_dir,
+                    ];
                 }
             }
         }
@@ -2992,6 +3014,11 @@ final class PHS extends PHS_Registry
 
         // Return final hook arguments as result of hook calls
         return $hook_args;
+    }
+
+    public static function get_suppressed_errror_reporting_level()
+    {
+
     }
 
     public static function error_handler( $errno, $errstr, $errfile, $errline, $errcontext = false )
