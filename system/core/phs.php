@@ -3016,14 +3016,21 @@ final class PHS extends PHS_Registry
         return $hook_args;
     }
 
+    /**
+     * @return int
+     */
     public static function get_suppressed_errror_reporting_level()
     {
+        if( defined( 'PHP_VERSION' )
+         && version_compare( constant( 'PHP_VERSION' ), '8.0.0', '>=' ) )
+            return (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
 
+        return 0;
     }
 
     public static function error_handler( $errno, $errstr, $errfile, $errline, $errcontext = false )
     {
-        if( !error_reporting() )
+        if( self::get_suppressed_errror_reporting_level() === error_reporting() )
             return true;
 
         $backtrace_str = self::st_debug_call_backtrace();
@@ -3072,6 +3079,7 @@ final class PHS extends PHS_Registry
                     if( self::st_debugging_mode() )
                     {
                         if( !@class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+                        {
                             $error_arr = [
                                 'backtrace' => $backtrace_str,
                                 'error_code' => $errno,
@@ -3083,7 +3091,8 @@ final class PHS extends PHS_Registry
                                     'error_messages' => [ $errstr ],
                                 ]
                             ];
-                        else
+                        } else
+                        {
                             $error_arr = [
                                 'backtrace' => $backtrace_str,
                                 'error_code' => $errno,
@@ -3095,6 +3104,7 @@ final class PHS extends PHS_Registry
                                     'error_messages' => array_merge( \phs\libraries\PHS_Notifications::notifications_errors(), [ $errstr ] ),
                                 ]
                             ];
+                        }
                     } else
                     {
                         $error_arr = [
