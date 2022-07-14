@@ -762,11 +762,12 @@ class PHS_Model_Plugins extends PHS_Model
         if( !empty( self::$db_plugins[$instance_id] ) )
             return self::$db_plugins[$instance_id];
 
-        $check_arr = $this->fetch_default_flow_params( [ 'table_name' => 'plugins' ] );
+        $check_arr = [];
         $check_arr['instance_id'] = $instance_id;
 
         db_supress_errors( $this->get_db_connection() );
-        if( !($db_details = $this->get_details_fields( $check_arr )) )
+        if( !($flow_arr = $this->fetch_default_flow_params( [ 'table_name' => 'plugins' ] ))
+         || !($db_details = $this->get_details_fields( $check_arr, $flow_arr )) )
         {
             db_restore_errors_state( $this->get_db_connection() );
 

@@ -71,14 +71,15 @@ class PHS_Agent extends PHS_Registry
             return [];
 
         $available_controllers = [];
-        foreach( $controller_names as $controller_name )
+        foreach( $controller_names as $controller_info )
         {
             /** @var \phs\libraries\PHS_Controller $controller_obj */
-            if( !($controller_obj = PHS::load_controller( $controller_name, $plugin ))
+            if( empty( $controller_info['file'] )
+             || !($controller_obj = PHS::load_controller( $controller_info['file'], $plugin ))
              || !$controller_obj->scope_is_allowed( PHS_Scope::SCOPE_AGENT ) )
                 continue;
 
-            $available_controllers[$controller_name] = $controller_obj;
+            $available_controllers[$controller_info['file']] = $controller_obj;
         }
 
         return $available_controllers;
@@ -96,12 +97,15 @@ class PHS_Agent extends PHS_Registry
             return [];
 
         $available_actions = [];
-        foreach( $action_names as $action_name )
+        foreach( $action_names as $action_info )
         {
             /** @var \phs\libraries\PHS_Action $action_obj */
-            if( !($action_obj = PHS::load_action( $action_name, $plugin ))
+            if( empty( $action_info['file'] )
+             || !($action_obj = PHS::load_action( $action_info['file'], $plugin, (!empty( $action_info['dir'] )?$action_info['dir']:'') ))
              || !$action_obj->scope_is_allowed( PHS_Scope::SCOPE_AGENT ) )
                 continue;
+
+            $action_name = (!empty( $action_info['dir'] )?$action_info['dir'].'/':'').$action_info['file'];
 
             $available_actions[$action_name] = $action_obj;
         }
@@ -281,12 +285,15 @@ class PHS_Agent extends PHS_Registry
             $route_parts['controller'] = false;
         if( !isset( $route_parts['action'] ) )
             $route_parts['action'] = false;
+        if( !isset( $route_parts['action_dir'] ) )
+            $route_parts['action_dir'] = false;
 
         if( !($cleaned_route = PHS::route_from_parts(
                                             [
                                             'p' => $route_parts['plugin'],
                                             'c' => $route_parts['controller'],
                                             'a' => $route_parts['action'],
+                                            'ad' => $route_parts['action_dir'],
                                             ]
              )) )
         {

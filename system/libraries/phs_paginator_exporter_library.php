@@ -17,7 +17,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      * Transforms record array sent from PHS_Paginator to a string which will be outputed using record_to_output method
      *
      * @param array $record_data Record data sent from PHS_Paginator to be transformed in string
-     * @param array|bool $record_data Parameters (if any)
+     * @param array|false $params Parameters (if any)
      *
      * @return mixed
      */

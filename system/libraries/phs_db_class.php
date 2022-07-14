@@ -22,6 +22,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     protected $my_settings;
 
     //! Default connection index from $my_settings array
+    /** @var false|string $my_def_connection */
     protected $my_def_connection;
 
     //! Last connection index used from $my_settings array (the one which is opened now)
@@ -39,7 +40,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     // Used to surpress database errors on specific queries
     protected $error_state = false;
 
-    function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = false )
     {
         parent::__construct();
 
@@ -56,7 +57,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         $this->settings( $mysql_settings );
     }
 
-    abstract public function get_last_db_error( $conn_settings );
+    abstract public function get_last_db_error( $connection_name );
 
     abstract protected function default_custom_settings_structure();
     abstract protected function custom_settings_validation( $conn_settings );
@@ -72,7 +73,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         return array(
             // defaults to MySQLi driver...
             'driver' => PHS_Db::DB_DRIVER_MYSQLI,
-            'driver_settings' => array(),
+            'driver_settings' => [],
             'default' => false,
         );
     }
@@ -80,15 +81,15 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     public function default_settings_structure()
     {
         if( !($custom_structure = $this->default_custom_settings_structure()) )
-            $custom_structure = array();
+            $custom_structure = [];
         if( !($common_structure = $this->default_common_settings_structure()) )
-            $common_structure = array();
+            $common_structure = [];
 
         return self::validate_array( $custom_structure, $common_structure );
     }
 
     /**
-     * @param string $connection_name
+     * @param string|false $connection_name
      * @param bool|array $conn_settings
      *
      * @return bool
@@ -100,7 +101,9 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
 
         if( $conn_settings === false )
         {
-            if( $this->my_settings !== false and isset( $this->my_settings[$connection_name] ) and is_array( $this->my_settings[$connection_name] ) )
+            if( $this->my_settings !== false
+             && isset( $this->my_settings[$connection_name] )
+             && is_array( $this->my_settings[$connection_name] ) )
                 return $this->my_settings[$connection_name];
 
             return false;
@@ -109,10 +112,10 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         $this->reset_error();
 
         if( !($settings_struct = $this->default_settings_structure()) )
-            $settings_struct = array();
+            $settings_struct = [];
 
         if( !($validated_conn_settings = self::validate_array( $conn_settings, $settings_struct ))
-         or !($validated_conn_settings = $this->custom_settings_validation( $validated_conn_settings )) )
+         || !($validated_conn_settings = $this->custom_settings_validation( $validated_conn_settings )) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Database connection settings validation failed.' ) );
@@ -121,10 +124,10 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         }
 
         if( $this->my_settings === false )
-            $this->my_settings = array();
+            $this->my_settings = [];
 
-        if( empty( $validated_conn_settings['driver_settings'] )  or !is_array( $validated_conn_settings['driver_settings'] ) )
-            $validated_conn_settings['driver_settings'] = array();
+        if( empty( $validated_conn_settings['driver_settings'] )  || !is_array( $validated_conn_settings['driver_settings'] ) )
+            $validated_conn_settings['driver_settings'] = [];
 
         $this->my_settings[$connection_name] = $validated_conn_settings;
 
@@ -188,7 +191,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         if( $connection_name === null )
             return $this->my_def_connection;
 
-        if( empty( $this->my_settings ) or empty( $this->my_settings[$connection_name] ) )
+        if( empty( $this->my_settings ) || empty( $this->my_settings[$connection_name] ) )
             return false;
 
         $this->my_def_connection = $connection_name;
@@ -225,7 +228,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
 
     public static function default_dump_parameters()
     {
-        return array(
+        return [
             // input parameters
             'connection_name' => false,
             'output_dir' => '',
@@ -233,23 +236,23 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
             'zip_dump' => true,
 
             // Binary files used in dump (for all known drivers)
-            'binaries' => array(
+            'binaries' => [
                 'zip_bin' => 'zip',
                 'mysqldump_bin' => 'mysqldump',
                 'mongodump_bin' => 'mongodump',
-            ),
+            ],
 
             // output parameters
-            'connection_identifier' => array(),
-            'dump_commands_for_shell' => array(),
-            'delete_files_after_export' => array(),
+            'connection_identifier' => [],
+            'dump_commands_for_shell' => [],
+            'delete_files_after_export' => [],
             // Files to be deleted in case we get an error in dump process
-            'generated_files' => array(),
-            'resulting_files' => array(
-                'dump_files' => array(),
-                'log_files' => array(),
-            ),
-        );
+            'generated_files' => [],
+            'resulting_files' => [
+                'dump_files' => [],
+                'log_files' => [],
+            ],
+        ];
     }
 
     //! This method does only common part on checking and validating $dump_params
@@ -259,7 +262,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     public function dump_database( $dump_params = false )
     {
         if( !($dump_params = self::validate_array_recursive( $dump_params, self::default_dump_parameters() )) )
-            $dump_params = array();
+            $dump_params = [];
 
         if( empty( $dump_params['output_dir'] ) )
         {
@@ -270,14 +273,14 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         $dump_params['output_dir'] = rtrim( $dump_params['output_dir'], '/\\' );
 
         if( !@is_dir( $dump_params['output_dir'] )
-         or !@is_writable( $dump_params['output_dir'] ) )
+         || !@is_writable( $dump_params['output_dir'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Output directory does not exist or is not writable.' ) );
             return false;
         }
 
         if( !($connection_identifier = PHS_Db::get_connection_identifier( $dump_params['connection_name'] ))
-         or empty( $connection_identifier['identifier'] ) )
+         || empty( $connection_identifier['identifier'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t get connection identifier for database connection.' ) );
             return false;
@@ -294,7 +297,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         if( ($dirname = @dirname( $dump_params['log_file'] )) )
         {
             if( !@is_dir( $dirname )
-             or !@is_writable( $dirname ) )
+             || !@is_writable( $dirname ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Directory of log file does not exist or is not writable.' ) );
                 return false;
@@ -334,13 +337,21 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         $this->error_state = false;
     }
 
+    /**
+     * @param int $error_code
+     * @param string $debug_err
+     * @param string $short_err
+     * @param string|false $connection_name
+     *
+     * @return void
+     */
     protected function set_my_error( $error_code, $debug_err, $short_err, $connection_name = false )
     {
         if( $connection_name === false )
             $connection_name = $this->default_connection();
 
-        $error_params = array();
-        $error_params['prevent_throwing_errors'] = (!empty( $this->error_state )?true:false);
+        $error_params = [];
+        $error_params['prevent_throwing_errors'] = !empty( $this->error_state );
 
         $this->set_error( $error_code, $debug_err, '', $error_params );
 

@@ -36,11 +36,12 @@ class PHS_Action_Index extends PHS_Action
             }
         }
 
-        $params = self::validate_array( $plugin_settings, $params );
+        if( !($params = self::validate_array( $plugin_settings, $params )) )
+            $params = [];
 
-        if( empty( $params['default_width'] ) or $params['default_width'] < 100 )
+        if( empty( $params['default_width'] ) || $params['default_width'] < 100 )
             $params['default_width'] = $plugin_settings['default_width'];
-        if( empty( $params['default_height'] ) or $params['default_height'] < 30 )
+        if( empty( $params['default_height'] ) || $params['default_height'] < 30 )
             $params['default_height'] = $plugin_settings['default_height'];
 
         if( !@function_exists( 'imagecreatetruecolor' ) )

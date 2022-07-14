@@ -4,7 +4,8 @@
         "phpunit/phpunit": "^9"
     },
     "require": {
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-mysqli": "*"
     },
     "autoload-dev": {
         "psr-4": {

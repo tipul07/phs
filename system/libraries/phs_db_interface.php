@@ -5,7 +5,7 @@ namespace phs\libraries;
 interface PHS_Db_interface
 {
     // Getter and setter for connection settings
-    public function connection_settings( $connection_name, $mysql_settings = false );
+    public function connection_settings( $connection_name, $conn_settings = false );
 
     public function test_connection( $connection_name = false );
 
@@ -38,10 +38,10 @@ interface PHS_Db_interface
     public function num_rows( $qid );
 
     // Returns an INSERT query string for table $table_name for $insert_arr data
-    public function quick_insert( $table_name, $insert_arr, $connection = false, $params = false );
+    public function quick_insert( $table_name, $insert_arr, $connection_name = false, $params = false );
 
     // Returns an EDIT query string for table $table_name for $edit_arr data with $where_arr conditions
-    public function quick_edit( $table_name, $edit_arr, $connection = false, $params = false );
+    public function quick_edit( $table_name, $edit_arr, $connection_name = false, $params = false );
 
     // Suppress any errors database driver might throw
     public function suppress_errors();
@@ -55,5 +55,4 @@ interface PHS_Db_interface
      * @return array|bool Returns populated $dump_params array or false on error
      */
     public function dump_database( $dump_params = false );
-
 }

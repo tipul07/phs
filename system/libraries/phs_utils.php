@@ -493,7 +493,7 @@ class PHS_Utils extends PHS_Language
                 continue;
             }
 
-            if( !@mkdir( $segments_path ) )
+            if( !@mkdir( $segments_path ) && !@is_dir( $segments_path ) )
             {
                 self::st_set_error( self::ERR_DIRECTORY, self::_t( 'Cannot create directory [%s]', $segments_path ) );
                 return false;
@@ -522,6 +522,9 @@ class PHS_Utils extends PHS_Language
 
         if( !@file_exists( $directory ) || !@is_dir( $directory ) )
             return [];
+
+        if( empty( $params['basename_regex'] ) )
+            $params['basename_regex'] = '';
 
         if( empty( $params['accept_symlinks'] ) )
             $params['accept_symlinks'] = false;
@@ -555,6 +558,13 @@ class PHS_Utils extends PHS_Language
                 if( @is_file( $filename )
                  || (@is_link( $filename ) && !empty( $params['accept_symlinks'] )) )
                 {
+                    if( !empty( $params['basename_regex'] ) )
+                    {
+                        if( ($base_name = @basename( $filename ))
+                         && !@preg_match( $params['basename_regex'], $base_name ) )
+                            continue;
+                    }
+
                     $file_ext = '';
                     if( ($file_arr = explode( '.', $filename ))
                      && count( $file_arr ) > 1 )

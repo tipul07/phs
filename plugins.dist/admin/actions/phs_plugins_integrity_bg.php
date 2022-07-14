@@ -12,21 +12,21 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
 {
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_BACKGROUND );
+        return [ PHS_Scope::SCOPE_BACKGROUND ];
     }
 
     public function execute()
     {
         $action_result = self::default_action_result();
 
-        $action_result['ajax_result'] = array(
+        $action_result['ajax_result'] = [
             'has_error' => false,
             'plugin_info' => false,
             'instance_details' => false,
-        );
+        ];
 
         if( !($params = PHS_Bg_jobs::get_current_job_parameters())
-         or empty( $params['p'] ) )
+         || empty( $params['p'] ) )
         {
             $action_result['buffer'] = $this->_pt( 'Plugin name not provided for validity check' );
             $action_result['ajax_result']['has_error'] = true;
@@ -42,10 +42,17 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
             $params['a'] = '';
         if( empty( $params['co'] ) )
             $params['co'] = '';
+        if( empty( $params['dir'] ) )
+            $params['dir'] = '';
+        else
+        {
+            // When passing directory to PHS::load_* methods, directories should have as separator _
+            $params['dir'] = str_replace( '/', '_', $params['dir'] );
+        }
 
         $action_result['ajax_result']['params'] = $params;
 
-        if( empty( $params['c'] ) and empty( $params['m'] ) and empty( $params['a'] ) and empty( $params['co'] ) )
+        if( empty( $params['c'] ) && empty( $params['m'] ) && empty( $params['a'] ) && empty( $params['co'] ) )
         {
             if( !($plugin_obj = PHS::load_plugin( $params['p'] )) )
             {
@@ -73,7 +80,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 $action_result['ajax_result']['instance_details'] = $instance_details;
         } elseif( !empty( $params['a'] ) )
         {
-            if( !($action_obj = PHS::load_action( $params['a'], $params['p'] )) )
+            if( !($action_obj = PHS::load_action( $params['a'], $params['p'], $params['dir'] )) )
             {
                 if( self::st_has_error() )
                     $error_msg = self::st_get_error_message();
@@ -86,7 +93,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 $action_result['ajax_result']['instance_details'] = $instance_details;
         } elseif( !empty( $params['co'] ) )
         {
-            if( !($contract_obj = PHS::load_contract( $params['co'], $params['p'] )) )
+            if( !($contract_obj = PHS::load_contract( $params['co'], $params['p'], $params['dir'] )) )
             {
                 if( self::st_has_error() )
                     $error_msg = self::st_get_error_message();

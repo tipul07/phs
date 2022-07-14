@@ -65,3 +65,9 @@ Error updating session.,Eroare la updatarea sesiunii.
 Client ID,ID Client
 Team ID,ID Echipă
 Key ID,ID Cheie
+No session.,Nu este sesiune.
+Email address doesn't have an account associated on this platform.,Adresa de email nu are un cont asociat pe această platformă.
+Login with Apple,Logare cu Apple
+Register with Apple,Înregistrare cu Apple
+Login with Google,Logare cu Google
+Register with Google,Înregistrare cu Google
