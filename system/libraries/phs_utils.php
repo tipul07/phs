@@ -1311,9 +1311,12 @@ class PHS_Utils extends PHS_Language
             if( false === strpos( $url, '?' ) )
                 $url .= '?';
 
+            $ends_in_qmark = ('?' === substr( $url, -1 ));
+            $first_and = true;
             foreach( $params['extra_get_params'] as $key => $val )
             {
-                $url .= '&'.$key.'='.rawurlencode( $val );
+                $url .= ((!$first_and || !$ends_in_qmark)?'&':'').$key.'='.rawurlencode( $val );
+                $first_and = false;
             }
         }
 
