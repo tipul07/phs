@@ -1134,18 +1134,20 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     private function _fields_changed( $field1_arr, $field2_arr )
     {
         if( !($field1_arr = $this->_validate_field( $field1_arr ))
-         or !($field2_arr = $this->_validate_field( $field2_arr )) )
+         || !($field2_arr = $this->_validate_field( $field2_arr )) )
             return true;
 
         if( (int)$field1_arr['type'] !== (int)$field2_arr['type']
+         || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary']
+         || (bool)$field1_arr['auto_increment'] !== (bool)$field2_arr['auto_increment']
+         || (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
+         || (bool)$field1_arr['unsigned'] !== (bool)$field2_arr['unsigned']
+         || (bool)$field1_arr['nullable'] !== (bool)$field2_arr['nullable']
+         || $field1_arr['default'] !== $field2_arr['default']
+         || trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
          // for lengths with comma
-         or str_replace( ' ', '', $field1_arr['length'] ) !== str_replace( ' ', '', $field2_arr['length'] )
-         or $field1_arr['primary'] !== $field2_arr['primary']
-         or $field1_arr['auto_increment'] !== $field2_arr['auto_increment']
-         or $field1_arr['index'] !== $field2_arr['index']
-         or $field1_arr['default'] !== $field2_arr['default']
-         or $field1_arr['nullable'] !== $field2_arr['nullable']
-         or trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
+         || str_replace( ' ', '', trim( $field1_arr['length'] ) )
+            !== str_replace( ' ', '', trim( $field2_arr['length'] ) )
         )
             return true;
 
