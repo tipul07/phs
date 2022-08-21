@@ -304,6 +304,34 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return true;
     }
 
+    protected function get_previous_field_from_table_definition( $field, $definition )
+    {
+        if( empty( $field )
+         || empty( $definition ) || !is_array( $definition )
+         || !isset( $definition[$field] ) )
+            return null;
+
+        $prev_field = '';
+        $prev_field_arr = null;
+        foreach( $definition as $key => $val )
+        {
+            if( $key === self::T_DETAILS_KEY
+             || $key === self::EXTRA_INDEXES_KEY )
+                continue;
+
+            if( $key === $field )
+                break;
+
+            $prev_field = $key;
+            $prev_field_arr = $val;
+        }
+
+        return [
+            'field' => $prev_field,
+            'definition' => $prev_field_arr,
+        ];
+    }
+
     /**
      * @param array $flow_params
      *
@@ -345,7 +373,30 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $table_definition = $this->_definition[$table_name];
         $db_table_definition = $this->get_table_columns_as_definition( $flow_params );
 
-        // extracting old names so we get quick field definition from old names...
+        // check field position changes... We actually check fields position relative to previous field
+        $field_position_changes = [];
+        if( !empty( $db_table_definition ) )
+        {
+            $prev_script_field = '';
+            foreach( $table_definition as $field_name => $field_definition )
+            {
+                if( $field_name === self::T_DETAILS_KEY
+                 || $field_name === self::EXTRA_INDEXES_KEY )
+                    continue;
+
+                if( !($db_prev = $this->get_previous_field_from_table_definition( $field_name, $db_table_definition ))
+                 || empty( $db_prev['field'] )
+                 || $db_prev['field'] === $prev_script_field ) {
+                    $prev_script_field = $field_name;
+                    continue;
+                }
+
+                $prev_script_field = $field_name;
+                $field_position_changes[$field_name] = true;
+            }
+        }
+
+        // extracting old names, so we get quick field definition from old names...
         $old_field_names_arr = [];
         $found_old_field_names_arr = [];
         foreach( $table_definition as $field_name => $field_definition )
@@ -438,7 +489,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             if( empty( $db_table_definition[$field_name] ) )
             {
-                // Field doesn't exist in in db structure...
+                // Field doesn't exist in db structure...
                 // Check if we must rename it...
                 if( !empty( $old_field_names_arr[$field_name] ) )
                 {
@@ -486,7 +537,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $alter_params['alter_indexes'] = false;
 
             // Call alter table anyway as position might change...
-            if( !$this->alter_table_change_column( $field_name, $field_definition, false, $flow_params, $alter_params ) )
+            if( !empty( $field_position_changes[$field_name] )
+             && !$this->alter_table_change_column( $field_name, $field_definition, false, $flow_params, $alter_params ) )
             {
                 if( !$this->has_error() )
                 {
@@ -1339,6 +1391,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         ];
     }
 
+    /**
+     * @param array $field1_arr
+     * @param array $field2_arr
+     *
+     * @return bool
+     */
     private function _fields_changed( $field1_arr, $field2_arr )
     {
         if( !($field1_arr = $this->_validate_field( $field1_arr ))
@@ -1346,14 +1404,16 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return true;
 
         if( (int)$field1_arr['type'] !== (int)$field2_arr['type']
-         // for lengths with comma
-         || str_replace( ' ', '', $field1_arr['length'] ) !== str_replace( ' ', '', $field2_arr['length'] )
-         || $field1_arr['primary'] !== $field2_arr['primary']
-         || $field1_arr['auto_increment'] !== $field2_arr['auto_increment']
-         || $field1_arr['index'] !== $field2_arr['index']
+         || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary']
+         || (bool)$field1_arr['auto_increment'] !== (bool)$field2_arr['auto_increment']
+         || (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
+         || (bool)$field1_arr['unsigned'] !== (bool)$field2_arr['unsigned']
+         || (bool)$field1_arr['nullable'] !== (bool)$field2_arr['nullable']
          || $field1_arr['default'] !== $field2_arr['default']
-         || $field1_arr['nullable'] !== $field2_arr['nullable']
          || trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
+         // for lengths with comma
+         || str_replace( ' ', '', trim( $field1_arr['length'] ) )
+            !== str_replace( ' ', '', trim( $field2_arr['length'] ) )
         )
             return true;
 
