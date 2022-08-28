@@ -28,39 +28,44 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if( !($params = PHS_Bg_jobs::get_current_job_parameters())
-         or !is_array( $params )
-         or empty( $params['uid'] )
-         or !($accounts_plugin = PHS::load_plugin( 'accounts' ))
-         or !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         or !($account_arr = $accounts_model->get_details( $params['uid'] )) )
+         || !is_array( $params )
+         || empty( $params['uid'] )
+         || !($accounts_plugin = PHS::load_plugin( 'accounts' ))
+         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($account_arr = $accounts_model->get_details( $params['uid'] )) )
         {
             $this->set_error( self::ERR_UNKNOWN_ACCOUNT, $this->_pt( 'Cannot send registration confirmation to this account.' ) );
             return false;
         }
 
-        if( false and !$accounts_model->needs_confirmation_email( $account_arr ) )
-        {
-            $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before or already active.' ) );
-            return false;
-        }
+        // if( false and !$accounts_model->needs_confirmation_email( $account_arr ) )
+        // {
+        //     $this->set_error( self::ERR_SEND_EMAIL, $this->_pt( 'This account doesn\'t need a confirmation email anymore. Logged in before or already active.' ) );
+        //     return false;
+        // }
 
-        $hook_args = array();
+        if( !$accounts_plugin->is_password_decryption_enabled() )
+            $clean_pass = $accounts_model->clean_password( $account_arr );
+        else
+            $clean_pass = $accounts_model::OBFUSCATED_PASSWORD;
+
+        $hook_args = [];
         $hook_args['template'] = $accounts_plugin->email_template_resource_from_file( 'confirmation' );
         $hook_args['to'] = $account_arr['email'];
         $hook_args['to_name'] = $account_arr['nick'];
         $hook_args['subject'] = $this->_pt( 'Account Confirmation' );
-        $hook_args['email_vars'] = array(
+        $hook_args['email_vars'] = [
             'nick' => $account_arr['nick'],
-            'clean_pass' => $accounts_model->clean_password( $account_arr ),
-            'contact_us_link' => PHS::url( array( 'a' => 'contact_us' ) ),
-            'login_link' => PHS::url( array( 'p' => 'accounts', 'a' => 'login' ), array( 'nick' => $account_arr['nick'] ) ),
-        );
+            'clean_pass' => $clean_pass,
+            'contact_us_link' => PHS::url( ['a' => 'contact_us']),
+            'login_link' => PHS::url( ['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
+        ];
 
         if( ($hook_results = PHS_Hooks::trigger_email( $hook_args )) === null )
             return self::default_action_result();
 
-        if( empty( $hook_results ) or !is_array( $hook_results )
-         or empty( $hook_results['send_result'] ) )
+        if( empty( $hook_results ) || !is_array( $hook_results )
+         || empty( $hook_results['send_result'] ) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error( self::ERR_SEND_EMAIL );

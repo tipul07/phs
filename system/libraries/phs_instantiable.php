@@ -64,10 +64,10 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function get_instance_type_dirs_that_allow_subdirs()
     {
         if( !($allow_arr = self::instance_types_that_allow_subdirs())
-         or !($types_arr = self::get_instance_types()) )
-            return array();
+         || !($types_arr = self::get_instance_types()) )
+            return [];
 
-        $dirs_that_allow_subdirs = array();
+        $dirs_that_allow_subdirs = [];
         foreach( $allow_arr as $type_id )
         {
             if( empty( $types_arr[$type_id] ) )
@@ -131,7 +131,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     {
         parent::__construct();
 
-        if( empty( $instance_details ) or !is_array( $instance_details ) )
+        if( empty( $instance_details ) || !is_array( $instance_details ) )
             $instance_details = self::empty_instance_details();
 
         $this->_set_instance_details( $instance_details );
@@ -168,8 +168,8 @@ abstract class PHS_Instantiable extends PHS_Registry
             return $this->_parent_plugin;
 
         if( !($plugin_name = $this->instance_plugin_name())
-         or $plugin_name === self::CORE_PLUGIN
-         or !($plugin_obj = PHS::load_plugin( $plugin_name )) )
+         || $plugin_name === self::CORE_PLUGIN
+         || !($plugin_obj = PHS::load_plugin( $plugin_name )) )
         {
             if( self::st_has_error() )
                 $this->copy_static_error();
@@ -186,10 +186,10 @@ abstract class PHS_Instantiable extends PHS_Registry
     public function get_plugin_settings()
     {
         if( !($plugin_obj = $this->get_plugin_instance()) )
-            return array();
+            return [];
 
         if( ($plugins_settings = $plugin_obj->get_db_settings()) === false
-         or empty( $plugins_settings ) or !is_array( $plugins_settings ) )
+         || empty( $plugins_settings ) || !is_array( $plugins_settings ) )
             $plugins_settings = $plugin_obj->get_default_settings();
 
         return $plugins_settings;
@@ -201,11 +201,11 @@ abstract class PHS_Instantiable extends PHS_Registry
     public function get_plugin_registry()
     {
         if( !($plugin_obj = $this->get_plugin_instance()) )
-            return array();
+            return [];
 
         if( !($plugin_registry = $plugin_obj->get_db_registry())
-         or !is_array( $plugin_registry ) )
-            $plugin_registry = array();
+         || !is_array( $plugin_registry ) )
+            $plugin_registry = [];
 
         return $plugin_registry;
     }
@@ -215,8 +215,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_id()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['instance_id'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['instance_id'] ) )
             return '';
 
         return $this->instance_details['instance_id'];
@@ -227,8 +227,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_is_core()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['plugin_name'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['plugin_name'] ) )
             return false;
 
         return ($this->instance_details['plugin_name']===self::CORE_PLUGIN);
@@ -239,8 +239,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_name()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['instance_name'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['instance_name'] ) )
             return false;
 
         return $this->instance_details['instance_name'];
@@ -251,8 +251,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_name()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['plugin_name'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['plugin_name'] ) )
             return false;
 
         return $this->instance_details['plugin_name'];
@@ -263,8 +263,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_www()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['plugin_www'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['plugin_www'] ) )
             return false;
 
         return $this->instance_details['plugin_www'];
@@ -275,8 +275,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_path()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['plugin_path'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['plugin_path'] ) )
             return false;
 
         return $this->instance_details['plugin_path'];
@@ -287,8 +287,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_subdir()
     {
-        if( empty( $this->instance_details ) or !is_array( $this->instance_details )
-         or empty( $this->instance_details['instance_subdir'] ) )
+        if( empty( $this->instance_details ) || !is_array( $this->instance_details )
+         || empty( $this->instance_details['instance_subdir'] ) )
             return '';
 
         return $this->instance_details['instance_subdir'];
@@ -300,7 +300,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_templates_www()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) )
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/';
@@ -312,7 +312,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_templates_path()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) )
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/';
@@ -324,7 +324,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_www()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) )
             return false;
 
         return $prefix.self::TESTS_DIR.'/';
@@ -336,7 +336,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_path()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) )
             return false;
 
         return $prefix.self::TESTS_DIR.'/';
@@ -372,7 +372,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         $features_dir = 'features';
         $contexts_dir = 'contexts';
 
-        return array(
+        return [
             'behat_path' => $behat_path,
             'behat_www' => $behat_www,
             'features_dir' => $features_dir,
@@ -381,7 +381,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             'contexts_path' => $behat_path.$contexts_dir.'/',
             'config_file' => 'behat.yml',
             'config_file_path' => $behat_path.'behat.yml',
-        );
+        ];
     }
 
     /**
@@ -412,7 +412,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_languages_www()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) )
             return false;
 
         return $prefix.self::LANGUAGES_DIR.'/';
@@ -424,7 +424,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_languages_path()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) )
             return false;
 
         return $prefix.self::LANGUAGES_DIR.'/';
@@ -436,7 +436,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_email_templates_www()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) )
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
@@ -448,7 +448,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_email_templates_path()
     {
         if( $this->instance_is_core()
-         or !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) )
             return false;
 
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
@@ -460,30 +460,30 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_themes_email_templates_pairs()
     {
         if( $this->instance_is_core()
-         or !($plugin_name = $this->instance_plugin_name())
-         or !($prefix_path = $this->instance_plugin_path())
-         or !($prefix_www = $this->instance_plugin_www()) )
+         || !($plugin_name = $this->instance_plugin_name())
+         || !($prefix_path = $this->instance_plugin_path())
+         || !($prefix_www = $this->instance_plugin_www()) )
             return false;
 
         $current_lang = PHS::get_current_language();
 
-        $pairs_arr = array();
+        $pairs_arr = [];
         if( ($theme = PHS::get_theme()) )
         {
             $check_dir = PHS_THEMES_DIR . $theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS .'/'. $current_lang;
             if( !empty( $current_lang )
-            and @file_exists( $check_dir )
-            and @is_dir( $check_dir ) )
+             && @file_exists( $check_dir )
+             && @is_dir( $check_dir ) )
                 $pairs_arr[$check_dir.'/'] = PHS_THEMES_WWW.$theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
 
             $check_dir = PHS_THEMES_DIR . $theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS;
             if( @file_exists( $check_dir )
-            and @is_dir( $check_dir ) )
+             && @is_dir( $check_dir ) )
                 $pairs_arr[$check_dir.'/'] = PHS_THEMES_WWW.$theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
         }
 
         if( ($themes_arr = PHS::get_cascading_themes())
-        and is_array( $themes_arr ) )
+        && is_array( $themes_arr ) )
         {
             foreach( $themes_arr as $c_theme )
             {
@@ -492,35 +492,35 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $check_dir = PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS .'/'. $current_lang;
                 if( !empty( $current_lang )
-                and @file_exists( $check_dir )
-                and @is_dir( $check_dir )
-                and empty( $pairs_arr[$check_dir . '/'] ) )
+                 && empty( $pairs_arr[$check_dir . '/'] )
+                 && @file_exists( $check_dir )
+                 && @is_dir( $check_dir ) )
                     $pairs_arr[$check_dir . '/'] = PHS_THEMES_WWW . $c_theme . '/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/' . $plugin_name . PHS_EMAILS_DIRS . $current_lang . '/';
 
                 $check_dir = PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS;
                 if( !empty( $current_lang )
-                and @file_exists( $check_dir )
-                and @is_dir( $check_dir )
-                and empty( $pairs_arr[$check_dir . '/'] ) )
+                 && empty( $pairs_arr[$check_dir . '/'] )
+                 && @file_exists( $check_dir )
+                 && @is_dir( $check_dir ) )
                     $pairs_arr[$check_dir . '/'] = PHS_THEMES_WWW . $c_theme . '/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/' . $plugin_name . PHS_EMAILS_DIRS . '/';
             }
         }
 
         if( ($default_theme = PHS::get_default_theme())
-        and $default_theme !== $theme )
+         && $default_theme !== $theme )
         {
             if( !empty( $current_lang ) )
             {
                 $check_dir = PHS_THEMES_DIR.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang;
                 if( @file_exists( $check_dir )
-                and @is_dir( $check_dir ) )
+                 && @is_dir( $check_dir ) )
                     $pairs_arr[$check_dir.'/'] =
                         PHS_THEMES_WWW.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
             }
 
             $check_dir = PHS_THEMES_DIR.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS;
             if( @file_exists( $check_dir )
-            and @is_dir( $check_dir ) )
+             && @is_dir( $check_dir ) )
                 $pairs_arr[$check_dir.'/'] =
                     PHS_THEMES_WWW.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
         }
@@ -575,22 +575,22 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function valid_instance_id( $instance_id )
     {
         if( empty( $instance_id )
-         or @strpos( $instance_id, ':' ) === false
-         or !($instance_parts = explode( ':', $instance_id, 3 ))
-         or !is_array( $instance_parts )
-         or empty( $instance_parts[0] ) or empty( $instance_parts[1] ) or empty( $instance_parts[2] )
-         or !self::valid_instance_type( $instance_parts[0] )
-         or ($instance_parts[1] !== self::CORE_PLUGIN and $instance_parts[1] !== self::safe_escape_plugin_name( $instance_parts[1] )) )
+         || @strpos( $instance_id, ':' ) === false
+         || !($instance_parts = explode( ':', $instance_id, 3 ))
+         || !is_array( $instance_parts )
+         || empty( $instance_parts[0] ) || empty( $instance_parts[1] ) || empty( $instance_parts[2] )
+         || !self::valid_instance_type( $instance_parts[0] )
+         || ($instance_parts[1] !== self::CORE_PLUGIN && $instance_parts[1] !== self::safe_escape_plugin_name( $instance_parts[1] )) )
         {
             self::st_set_error( self::ERR_INSTANCE_ID, self::_t( 'Invalid instance ID.' ) );
             return false;
         }
 
-        return array(
+        return [
             'instance_type' => $instance_parts[0],
             'plugin_name' => $instance_parts[1],
             'instance_name' => $instance_parts[2],
-        );
+        ];
     }
 
     private function _set_instance_details( $details_arr )
@@ -605,7 +605,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     public static function empty_instance_details()
     {
-        return array(
+        return [
             'plugin_name' => '',
             'plugin_www' => '',
             'plugin_path' => '',
@@ -620,8 +620,8 @@ abstract class PHS_Instantiable extends PHS_Registry
             'instance_full_name' => '',
             'instance_file_name' => '',
             'instance_id' => '',
-            'plugin_paths' => array(),
-        );
+            'plugin_paths' => [],
+        ];
     }
 
     /**
@@ -965,8 +965,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_action_name( $name )
     {
-        if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+        if( empty( $name ) || !is_string( $name )
+         || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return strtolower( $name );
@@ -979,8 +979,8 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_library_name( $name )
     {
-        if( empty( $name ) or !is_string( $name )
-         or preg_match( '@[^a-zA-Z0-9_]@', $name ) )
+        if( empty( $name ) || !is_string( $name )
+         || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 
         return $name;
@@ -1007,7 +1007,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_class_name_with_subdirs( $name )
     {
-        if( empty( $name ) or !is_string( $name )
+        if( empty( $name ) || !is_string( $name )
          || preg_match( '@[^a-zA-Z0-9_\\]@', $name ) )
             return false;
 
@@ -1021,7 +1021,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_class_name_with_namespace( $name )
     {
-        if( empty( $name ) or !is_string( $name )
+        if( empty( $name ) || !is_string( $name )
          || preg_match( '@[^a-zA-Z0-9_/]@', $name ) )
             return false;
 
@@ -1035,7 +1035,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public static function safe_escape_plugin_name( $name )
     {
-        if( empty( $name ) or !is_string( $name )
+        if( empty( $name ) || !is_string( $name )
          || preg_match( '@[^a-zA-Z0-9_]@', $name ) )
             return false;
 

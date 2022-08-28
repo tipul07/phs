@@ -545,11 +545,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
         }
 
-        $plugin_details = [];
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['status'] = PHS_Model_Plugins::STATUS_ACTIVE;
-
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $this->_plugins_instance->act_activate( $this_instance_id ))
          || empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -676,11 +672,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
         }
 
-        $plugin_details = [];
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['status'] = PHS_Model_Plugins::STATUS_INACTIVE;
-
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $this->_plugins_instance->act_inactivate( $this_instance_id ))
          || empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -1067,16 +1059,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         else
             $plugin_name = $this->instance_plugin_name();
 
-        $plugin_details = [];
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['plugin'] = $this->instance_plugin_name();
-        $plugin_details['plugin_name'] = $plugin_name;
-        $plugin_details['type'] = $this->instance_type();
-        $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
-        $plugin_details['settings'] = PHS_Line_params::to_string( $this->get_default_settings() );
-        $plugin_details['version'] = $this->get_plugin_version();
-
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $this->_plugins_instance->install_record( $this_instance_id,
+                $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
+                $this->get_default_settings(), $this->get_plugin_version() ))
          || empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )
@@ -1468,12 +1453,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         else
             $plugin_name = $this->instance_plugin_name();
 
-        $plugin_details = [];
-        $plugin_details['plugin_name'] = $plugin_name;
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['version'] = $this->get_plugin_version();
-
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $this->_plugins_instance->update_record(
+            $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_plugin_version() ))
          || empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )

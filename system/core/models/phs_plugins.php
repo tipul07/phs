@@ -231,15 +231,22 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
-     * @param array $settings_arr
+     * @param array|string $settings_arr array or PHS_Line_params string
      * @param array $obfuscating_keys
      * @param null|string $instance_id
+     * @param array $default_settings
+     * @param array $update_params
      *
      * @return bool|mixed
      */
-    public function save_plugins_db_settings( $settings_arr, $obfuscating_keys, $instance_id = null )
+    public function save_plugins_db_settings( $instance_id, $settings_arr, $obfuscating_keys, $default_settings = [], $update_params = [] )
     {
         $this->reset_error();
+
+        if( empty( $update_params ) || !is_array( $update_params ) )
+            $update_params = [];
+
+        $update_params['skip_merging_old_settings'] = (!empty( $update_params['skip_merging_old_settings'] ));
 
         if( $instance_id !== null
          && !self::valid_instance_id( $instance_id ))
@@ -258,11 +265,48 @@ class PHS_Model_Plugins extends PHS_Model
         if( empty( $obfuscating_keys ) || !is_array( $obfuscating_keys ) )
             $obfuscating_keys = [];
 
+        if( !($existing_arr = $this->get_plugins_db_details( $instance_id )) )
+        {
+            $this->set_error( self::ERR_SETTINGS, self::_t( 'Plugin is not yet installed.' ) );
+            return false;
+        }
+
+        if( !($old_settings = $this->get_plugins_db_settings( $instance_id, $default_settings, $obfuscating_keys, true )) )
+            $old_settings = $default_settings;
+
+        if( is_string( $settings_arr ) )
+            $settings_arr = PHS_Line_params::parse_string( $settings_arr );
+
+        // Nothing to save...
+        if( empty( $settings_arr ) || !is_array( $settings_arr ) )
+            return $old_settings;
+
+        if( empty( $update_params['skip_merging_old_settings'] )
+         && !empty( $old_settings ) )
+            $settings_arr = self::merge_array_assoc( $old_settings, $settings_arr );
+
+        if( !empty( $obfuscating_keys ) && is_array( $obfuscating_keys ) )
+        {
+            foreach( $obfuscating_keys as $ob_key )
+            {
+                if( array_key_exists( $ob_key, $settings_arr )
+                 && is_scalar( $settings_arr[$ob_key] ) )
+                {
+                    if( false === ($encrypted_data = PHS_Crypt::quick_encode( $settings_arr[$ob_key] )) )
+                    {
+                        $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error obfuscating plugin settings.' ) );
+                        return false;
+                    }
+
+                    $settings_arr[$ob_key] = $encrypted_data;
+                }
+            }
+        }
+
         $plugin_details = [];
-        $plugin_details['instance_id'] = $instance_id;
         $plugin_details['settings'] = $settings_arr;
 
-        if( !($db_details = $this->update_db_details( $plugin_details, $obfuscating_keys ))
+        if( !($db_details = $this->_update_db_details( $instance_id, $plugin_details, $obfuscating_keys ))
          || empty( $db_details['new_data'] ) )
         {
             if( !$this->has_error() )
@@ -277,7 +321,23 @@ class PHS_Model_Plugins extends PHS_Model
         if( isset( self::$db_plugins[$instance_id] ) )
             unset( self::$db_plugins[$instance_id] );
 
-        return $this->get_plugins_db_settings( $instance_id, false, $obfuscating_keys, true );
+        $new_settings_arr = $this->get_plugins_db_settings( $instance_id, false, $obfuscating_keys, true );
+
+        // Trigger plugin settings saved...
+        $hook_args = PHS_Hooks::default_plugin_settings_saved_hook_args();
+        $hook_args['instance_type'] = $existing_arr['type'];
+        $hook_args['plugin'] = $existing_arr['plugin'];
+        $hook_args['instance_id'] = $instance_id;
+        $hook_args['old_instance_record'] = $existing_arr;
+        $hook_args['new_instance_record'] = $db_details['new_data'];
+        $hook_args['old_settings_arr'] = $old_settings;
+        $hook_args['new_settings_arr'] = $new_settings_arr;
+        $hook_args['obfucate_keys_arr'] = $obfuscating_keys;
+
+        // We just announce the change...
+        PHS::trigger_hooks( PHS_Hooks::H_PLUGIN_SETTINGS_SAVED, $hook_args );
+
+        return $new_settings_arr;
     }
 
     /**
@@ -785,46 +845,94 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
+     * @param string $instance_id
+     *
+     * @return array|bool
+     */
+    public function act_activate( $instance_id )
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['status'] = self::STATUS_ACTIVE;
+
+        return $this->_update_db_details( $instance_id, $plugin_details );
+    }
+
+    /**
+     * @param string $instance_id
+     *
+     * @return array|bool
+     */
+    public function act_inactivate( $instance_id )
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['status'] = self::STATUS_INACTIVE;
+
+        return $this->_update_db_details( $instance_id, $plugin_details );
+    }
+
+    public function install_record( $instance_id, $plugin, $plugin_name, $type, $is_core, $def_settings, $version )
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['plugin'] = $plugin;
+        $plugin_details['plugin_name'] = $plugin_name;
+        $plugin_details['type'] = $type;
+        $plugin_details['is_core'] = ($is_core ? 1 : 0);
+        $plugin_details['settings'] = PHS_Line_params::to_string( $def_settings );
+        $plugin_details['version'] = $version;
+        $plugin_details['status'] = self::STATUS_INSTALLED;
+
+        return $this->_update_db_details( $instance_id, $plugin_details );
+    }
+
+    public function update_record( $instance_id, $plugin_name, $is_core, $version )
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['plugin_name'] = $plugin_name;
+        $plugin_details['is_core'] = ($is_core ? 1 : 0);
+        $plugin_details['version'] = $version;
+
+        return $this->_update_db_details( $instance_id, $plugin_details );
+    }
+
+    /**
      * @param array $fields_arr
      * @param bool|array $obfuscating_keys
      * @param bool|array $update_params
      *
      * @return array|bool
      */
-    public function update_db_details( $fields_arr, $obfuscating_keys = false, $update_params = false )
+    protected function _update_db_details( $instance_id, $fields_arr, $obfuscating_keys = false, $update_params = false )
     {
         if( empty( $fields_arr ) || !is_array( $fields_arr )
-         || empty( $fields_arr['instance_id'] )
-         || !($instance_details = self::valid_instance_id( $fields_arr['instance_id'] ))
+         || empty( $instance_id )
+         || !($instance_details = self::valid_instance_id( $instance_id ))
          || !($params = $this->fetch_default_flow_params( [ 'table_name' => 'plugins' ] )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Unknown instance database details.' ) );
             return false;
         }
 
-        if( empty( $update_params ) || !is_array( $update_params ) )
-            $update_params = [];
-
-        if( empty( $update_params['skip_merging_old_settings'] ) )
-            $update_params['skip_merging_old_settings'] = false;
-        else
-            $update_params['skip_merging_old_settings'] = true;
-
-        $check_arr = [];
-        $check_arr['instance_id'] = $fields_arr['instance_id'];
-
-        $params['fields'] = $fields_arr;
-
-        if( !($existing_arr = $this->get_details_fields( $check_arr, $params )) )
+        if( !($existing_arr = $this->get_plugins_db_details( $instance_id )) )
         {
             $existing_arr = false;
             $params['action'] = 'insert';
+            $fields_arr['instance_id'] = $instance_id;
         } else
         {
             $params['action'] = 'edit';
         }
 
-        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
+        $params['fields'] = $fields_arr;
+
+        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          || empty( $validate_fields['data_arr'] ) )
@@ -838,30 +946,8 @@ class PHS_Model_Plugins extends PHS_Model
         // Try updating settings...
         if( !empty( $new_fields_arr['settings'] ) )
         {
-            if( empty( $update_params['skip_merging_old_settings'] )
-             && !empty( $existing_arr ) && !empty( $existing_arr['settings'] ) )
-                $new_fields_arr['settings'] = self::merge_array_assoc( PHS_Line_params::parse_string( $existing_arr['settings'] ), PHS_Line_params::parse_string( $new_fields_arr['settings'] ) );
-
-            if( !empty( $obfuscating_keys ) && is_array( $obfuscating_keys ) )
-            {
-                foreach( $obfuscating_keys as $ob_key )
-                {
-                    if( is_array( $new_fields_arr['settings'] )
-                     && array_key_exists( $ob_key, $new_fields_arr['settings'] )
-                     && is_scalar( $new_fields_arr['settings'][$ob_key] ) )
-                    {
-                        if( false === ($encrypted_data = PHS_Crypt::quick_encode( $new_fields_arr['settings'][$ob_key] )) )
-                        {
-                            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error obfuscating plugin settings.' ) );
-                            return false;
-                        }
-
-                        $new_fields_arr['settings'][$ob_key] = $encrypted_data;
-                    }
-                }
-            }
-
-            $new_fields_arr['settings'] = PHS_Line_params::to_string( $new_fields_arr['settings'] );
+            if( is_array( $new_fields_arr['settings'] ) )
+                $new_fields_arr['settings'] = PHS_Line_params::to_string( $new_fields_arr['settings'] );
 
             PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
@@ -883,14 +969,14 @@ class PHS_Model_Plugins extends PHS_Model
             if( !$this->has_error() )
                 $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin details to database.' ) );
 
-            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on instance ['.$instance_id.'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on instance ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
-        self::$db_plugins[$fields_arr['instance_id']] = $plugin_arr;
+        self::$db_plugins[$instance_id] = $plugin_arr;
 
         $return_arr = [];
         $return_arr['old_data'] = $existing_arr;
@@ -1080,9 +1166,6 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_insert_prepare_params_plugins( $params )
     {
         if( empty( $params ) || !is_array( $params ) )
@@ -1130,9 +1213,6 @@ class PHS_Model_Plugins extends PHS_Model
         return $params;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function get_edit_prepare_params_plugins( $existing_arr, $params )
     {
         if( empty( $existing_arr ) || !is_array( $existing_arr )
