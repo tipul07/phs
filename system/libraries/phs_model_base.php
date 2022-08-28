@@ -1209,16 +1209,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
          && !$this->install_tables() )
             return false;
 
-        $plugin_details = [];
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['plugin'] = $this->instance_plugin_name();
-        $plugin_details['type'] = $this->instance_type();
-        $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
-        $plugin_details['settings'] = PHS_Line_params::to_string( $this->get_default_settings() );
-        $plugin_details['status'] = PHS_Model_Plugins::STATUS_INSTALLED;
-        $plugin_details['version'] = $this->get_model_version();
+        $plugin_name = $this->instance_plugin_name();
 
-        if( !($db_details = $plugins_model->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $plugins_model->install_record( $this_instance_id,
+                $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
+                $this->get_default_settings(), $this->get_model_version() ))
          || empty( $db_details['new_data'] ) )
         {
             if( $plugins_model->has_error() )
@@ -1678,14 +1673,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        $plugin_details = [];
-        $plugin_details['instance_id'] = $this_instance_id;
-        $plugin_details['plugin'] = $this->instance_plugin_name();
-        $plugin_details['type'] = $this->instance_type();
-        $plugin_details['is_core'] = ($this->instance_is_core() ? 1 : 0);
-        $plugin_details['version'] = $this->get_model_version();
-
-        if( !($db_details = $this->_plugins_instance->update_db_details( $plugin_details, $this->get_all_settings_keys_to_obfuscate() ))
+        if( !($db_details = $this->_plugins_instance->update_record(
+            $this_instance_id, $this->instance_plugin_name(), $this->instance_is_core(), $this->get_model_version() ))
          || empty( $db_details['new_data'] ) )
         {
             if( $this->_plugins_instance->has_error() )

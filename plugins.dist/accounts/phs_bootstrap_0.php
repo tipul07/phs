@@ -26,4 +26,12 @@ if( ($accounts_plugin = PHS::load_plugin( 'accounts' ))
         PHS_Hooks::default_account_structure_hook_args(),
         [ 'chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
     );
+
+    // Check if new plugin settings say that we should turn password encryption/decryption off
+    PHS::register_hook(
+        PHS_Hooks::H_PLUGIN_SETTINGS_SAVED,
+        [ $accounts_plugin, 'trigger_plugin_settings_saved_hook' ],
+        PHS_Hooks::default_plugin_settings_saved_hook_args(),
+        [ 'chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
+    );
 }
