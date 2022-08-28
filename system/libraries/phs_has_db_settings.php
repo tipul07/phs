@@ -318,9 +318,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         if( !$this->_load_plugins_instance()
          || !($db_settings = $this->_plugins_instance->save_plugins_db_settings(
+             $this->instance_id(),
              $settings_arr,
              $this->get_all_settings_keys_to_obfuscate(),
-             $this->instance_id() ))
+             $this->get_default_settings() ))
          || !is_array( $db_settings ) )
             return false;
 

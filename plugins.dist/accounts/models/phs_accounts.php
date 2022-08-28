@@ -18,6 +18,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     const PASSWORDS_ALGO = 'sha256';
 
+    const OBFUSCATED_PASSWORD = '************';
+
     const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
 
     const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
@@ -48,7 +50,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.2.3';
+        return '1.3.0';
     }
 
     /**
@@ -820,7 +822,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( empty( $account_data )
          || !($clean_pass = $this->clean_password( $account_data )) )
-            return false;
+            return self::OBFUSCATED_PASSWORD;
 
         // Don't put exact number of chars from password unless password is bigger than 16 chars
         return substr( $clean_pass, 0, 1 ).str_repeat( '*', max( strlen( $clean_pass ) - 2, 14 ) ).substr( $clean_pass, -1 );
@@ -836,12 +838,14 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if( empty( $account_data )
-         || !($account_arr = $this->data_to_array( $account_data ))
-         || empty( $account_arr['pass_clear'] ) )
+         || !($account_arr = $this->data_to_array( $account_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Unknown account.' ) );
             return false;
         }
+
+        if( empty( $account_arr['pass_clear'] ) )
+            return '';
 
         if( !($clean_pass = PHS_Crypt::quick_decode( $account_arr['pass_clear'] )) )
         {
@@ -1736,8 +1740,17 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function get_insert_prepare_params_users( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( empty( $params ) || !is_array( $params )
+         || !($accounts_plugin = $this->get_plugin_instance()) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error loading required resources.' ) );
+            else
+                $this->change_error_code( self::ERR_INSERT );
+
             return false;
+        }
 
         if( !($accounts_settings = $this->get_plugin_settings())
          || !is_array( $accounts_settings ) )
@@ -1876,14 +1889,22 @@ class PHS_Model_Accounts extends PHS_Model
         if( empty( $params['{pass_salt}'] ) )
             $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length']+3:self::DEFAULT_MIN_PASSWORD_LENGTH) );
 
-        if( false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
+        $encoded_clear = null;
+        if( $accounts_plugin->is_password_decryption_enabled()
+         && false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Error encrypting account password. Please retry.' ) );
             return false;
         }
 
+        if( !($encoded_pass = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] )) )
+        {
+            $this->set_error( self::ERR_INSERT, $this->_pt( 'Error obtaining account password. Please retry.' ) );
+            return false;
+        }
+
         $params['fields']['pass_clear'] = $encoded_clear;
-        $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
+        $params['fields']['pass'] = $encoded_pass;
         $params['fields']['last_pass_change'] = $now_date;
 
         $params['fields']['status_date'] = $now_date;
@@ -2131,6 +2152,18 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function get_edit_prepare_params_users( $existing_data, $params )
     {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( empty( $params ) || !is_array( $params )
+         || !($accounts_plugin = $this->get_plugin_instance()) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_EDIT, $this->_pt( 'Error loading required resources.' ) );
+            else
+                $this->change_error_code( self::ERR_EDIT );
+
+            return false;
+        }
+
         if( !empty( $params['fields']['status'] ) )
             $params['fields']['status'] = (int)$params['fields']['status'];
 
@@ -2196,16 +2229,25 @@ class PHS_Model_Accounts extends PHS_Model
                 $old_pass_salt_arr = false;
             }
 
-            if( false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
+            $encoded_clear = null;
+            if( $accounts_plugin->is_password_decryption_enabled()
+             && false === ($encoded_clear = PHS_Crypt::quick_encode( $params['fields']['pass'] )) )
             {
                 $this->set_error( self::ERR_INSERT, $this->_pt( 'Error encrypting account password. Please retry.' ) );
                 return false;
             }
 
+            if( !($pass_salt = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) ))
+             || !($encoded_pass = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] )) )
+            {
+                $this->set_error( self::ERR_INSERT, $this->_pt( 'Error obtaining account password. Please retry.' ) );
+                return false;
+            }
+
             $params['{old_pass_salt}'] = $old_pass_salt_arr;
-            $params['{pass_salt}'] = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) );
+            $params['{pass_salt}'] = $pass_salt;
             $params['fields']['pass_clear'] = $encoded_clear;
-            $params['fields']['pass'] = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] );
+            $params['fields']['pass'] = $encoded_pass;
             $params['fields']['last_pass_change'] = date( self::DATETIME_DB );
 
             $params['{password_was_changed}'] = true;
@@ -2218,7 +2260,8 @@ class PHS_Model_Accounts extends PHS_Model
                 unset( $params['{pass_salt}'] );
             if( isset( $params['{old_pass_salt}'] ) )
                 unset( $params['{old_pass_salt}'] );
-            if( isset( $params['fields']['pass_clear'] ) )
+            // pass_clear can also be null
+            if( array_key_exists( 'pass_clear', $params['fields'] ) )
                 unset( $params['fields']['pass_clear'] );
             if( isset( $params['fields']['pass'] ) )
                 unset( $params['fields']['pass'] );
@@ -2240,9 +2283,9 @@ class PHS_Model_Accounts extends PHS_Model
 
                 if( !empty( $accounts_settings['email_unique'] ) )
                 {
-                    $check_arr          = [];
+                    $check_arr = [];
                     $check_arr['email'] = $params['fields']['email'];
-                    $check_arr['id']    = [ 'check' => '!=', 'value' => $existing_data['id'] ];
+                    $check_arr['id'] = [ 'check' => '!=', 'value' => $existing_data['id'] ];
 
                     if( $this->get_details_fields( $check_arr ) )
                     {
@@ -2266,9 +2309,9 @@ class PHS_Model_Accounts extends PHS_Model
             if( empty( $params['fields']['status'] )
              || $params['fields']['status'] !== self::STATUS_DELETED )
             {
-                $check_arr         = [];
+                $check_arr = [];
                 $check_arr['nick'] = $params['fields']['nick'];
-                $check_arr['id']   = [ 'check' => '!=', 'value' => $existing_data['id'] ];
+                $check_arr['id'] = [ 'check' => '!=', 'value' => $existing_data['id'] ];
 
                 if( $this->get_details_fields( $check_arr ) )
                 {
@@ -2619,7 +2662,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        // we work with low level queries so we don't trigger functionalities from model...
+        // we work with low level queries, so we don't trigger functionalities from model...
         if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
          || !($user_table_name = $this->get_flow_table_name( $flow_params ))
          || !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
@@ -2678,7 +2721,7 @@ class PHS_Model_Accounts extends PHS_Model
         $this->throw_errors( false );
         PHS::st_throw_errors( false );
 
-        // we work with low level queries so we don't trigger functionalities from model...
+        // we work with low level queries, so we don't trigger functionalities from model...
         if( !($salt_flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users_pass_salts' ] ))
          || !($salt_table_name = $this->get_flow_table_name( $salt_flow_params )) )
         {
@@ -2688,7 +2731,7 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        // we work with low level queries so we don't trigger functionalities from model...
+        // we work with low level queries, so we don't trigger functionalities from model...
         if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'users' ] ))
          || !($user_table_name = $this->get_flow_table_name( $flow_params ))
          || !($qid = db_query( 'SELECT * FROM `'.$user_table_name.'`', $flow_params['db_connection'] )) )
@@ -2785,7 +2828,7 @@ class PHS_Model_Accounts extends PHS_Model
                     ],
                     'pass_clear' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => 150,
+                        'length' => 255,
                         'nullable' => true,
                     ],
                     'email' => [
@@ -2883,7 +2926,7 @@ class PHS_Model_Accounts extends PHS_Model
                     ],
                     'pass_clear' => [
                         'type' => self::FTYPE_VARCHAR,
-                        'length' => 150,
+                        'length' => 255,
                         'nullable' => true,
                     ],
                     'cdate' => [
