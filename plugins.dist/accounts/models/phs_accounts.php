@@ -2238,7 +2238,7 @@ class PHS_Model_Accounts extends PHS_Model
             }
 
             if( !($pass_salt = self::generate_password( (!empty( $accounts_settings['pass_salt_length'] )?$accounts_settings['pass_salt_length'] + 3 : 8) ))
-             || !($encoded_pass = self::encode_pass( $params['fields']['pass'], $params['{pass_salt}'] )) )
+             || !($encoded_pass = self::encode_pass( $params['fields']['pass'], $pass_salt )) )
             {
                 $this->set_error( self::ERR_INSERT, $this->_pt( 'Error obtaining account password. Please retry.' ) );
                 return false;
