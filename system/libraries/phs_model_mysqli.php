@@ -2608,7 +2608,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                      && !empty( $field_val['value'] ) )
                 {
                     // If linkage function is not provided for same field, we assume we should check if field is one of
-                    // provided values so we should use OR in linkage
+                    // provided values, so we should use OR in linkage
                     if( $field_val['linkage_func'] === false )
                         $field_val['linkage_func'] = 'OR';
                     else

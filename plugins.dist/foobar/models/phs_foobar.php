@@ -35,28 +35,28 @@ class PHS_Model_Foobar extends PHS_Model
 
     public function get_settings_structure()
     {
-        return array(
-            'minutes_to_stall' => array(
+        return [
+            'minutes_to_stall' => [
                 'display_name' => 'Minutes to stall',
                 'display_hint' => 'After how many minutes should we consider a job as stalling',
                 'type' => PHS_Params::T_INT,
                 'default' => 15,
-            ),
-            'another_foobar_var' => array(
+            ],
+            'another_foobar_var' => [
                 'display_name' => 'Just a foobar value',
                 'display_hint' => 'Bla bla...',
                 'type' => PHS_Params::T_INT,
                 'default' => 2,
                 'editable' => false,
-            ),
-            'check_update' => array(
+            ],
+            'check_update' => [
                 'display_name' => 'Just a foobar value',
                 'display_hint' => 'Bla bla...',
                 'type' => PHS_Params::T_INT,
                 'default' => 2,
                 'editable' => false,
-            ),
-        );
+            ],
+        ];
     }
 
     /**

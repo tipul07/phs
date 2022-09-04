@@ -17,10 +17,33 @@
     use \phs\PHS_Agent;
     use \phs\libraries\PHS_Logger;
 
-    PHS_Logger::logf( ' --- Started agent...', PHS_Logger::TYPE_AGENT );
+    if( !($agent_obj = new PHS_Agent()) )
+    {
+        PHS_Logger::logf( '[ERROR] Error instantiating PHS_Agent class!', PHS_Logger::TYPE_AGENT );
+        exit;
+    }
 
-    if( !($agent_obj = new PHS_Agent())
-     || !($run_result = $agent_obj->check_agent_jobs()) )
+    PHS_Logger::logf( "\n".' --- Started agent...', PHS_Logger::TYPE_AGENT );
+
+    PHS_Logger::logf( ' - Checking stalling jobs...', PHS_Logger::TYPE_AGENT );
+
+    if( !($run_result = $agent_obj->check_stalling_agent_jobs()) )
+    {
+        PHS_Logger::logf( 'Error checking stalling agent jobs!', PHS_Logger::TYPE_AGENT );
+
+        if( $agent_obj
+         && $agent_obj->has_error() )
+            PHS_Logger::logf( 'Agent error: ['.$agent_obj->get_error_message().']', PHS_Logger::TYPE_AGENT );
+    } elseif( ($debug_data = PHS::platform_debug_data()) )
+    {
+        PHS_Logger::logf( 'Stalling agent jobs checked with success: '.$run_result['jobs_running'].' jobs running, '.
+                          $run_result['jobs_not_dead'].' not dead jobs, '.$run_result['jobs_stopped'].' jobs stopped, '.
+                          $run_result['jobs_stopped_error'].' jobs FAILED to stop.', PHS_Logger::TYPE_AGENT );
+    }
+
+    PHS_Logger::logf( ' - Launching agent jobs...', PHS_Logger::TYPE_AGENT );
+
+    if( !($run_result = $agent_obj->check_agent_jobs()) )
     {
         PHS_Logger::logf( 'Error checking agent jobs!', PHS_Logger::TYPE_AGENT );
 
@@ -30,10 +53,14 @@
     } elseif( ($debug_data = PHS::platform_debug_data()) )
     {
         PHS_Logger::logf( 'Agent run with success: '.$run_result['jobs_count'].' total jobs, '.
-                          $run_result['jobs_success'].' success jobs, '.$run_result['jobs_errors'].' error jobs, '.
-                          $debug_data['db_queries_count'].' queries,'.
+                          $run_result['jobs_success'].' success jobs, '.$run_result['jobs_errors'].' error jobs.', PHS_Logger::TYPE_AGENT );
+    }
+
+    if( ($debug_data = PHS::platform_debug_data()) )
+    {
+        PHS_Logger::logf( 'DEBUG data: '.$debug_data['db_queries_count'].' queries,'.
                           ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s,'.
                           ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s', PHS_Logger::TYPE_AGENT );
     }
 
-    PHS_Logger::logf( ' --- Agent finish', PHS_Logger::TYPE_AGENT );
+    PHS_Logger::logf( "\n".' --- Agent finish', PHS_Logger::TYPE_AGENT );

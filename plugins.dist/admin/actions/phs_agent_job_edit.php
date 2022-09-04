@@ -99,6 +99,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
         $params = PHS_Params::_p( 'params', PHS_Params::T_ASIS );
         $timed_seconds = PHS_Params::_p( 'timed_seconds', PHS_Params::T_INT );
         $run_async = PHS_Params::_p( 'run_async', PHS_Params::T_BOOL );
+        $stalling_minutes = PHS_Params::_p( 'stalling_minutes', PHS_Params::T_INT );
 
         $do_submit = PHS_Params::_p( 'do_submit' );
 
@@ -116,6 +117,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             $params = (!empty( $agent_job_arr['params'] )?$agent_job_arr['params']:'');
             $timed_seconds = $agent_job_arr['timed_seconds'];
             $run_async = !empty( $agent_job_arr['run_async'] );
+            $stalling_minutes = (!empty( $agent_job_arr['stalling_minutes'] )?(int)$agent_job_arr['stalling_minutes']:0);
         }
 
         if( !empty( $do_submit ) )
@@ -168,6 +170,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                 $job_extra_arr['title'] = $title;
                 $job_extra_arr['plugin'] = $plugin;
                 $job_extra_arr['run_async'] = (!empty( $run_async )?1:0);
+                $job_extra_arr['stalling_minutes'] = $stalling_minutes;
 
                 if( ($new_agent_job = PHS_Agent::add_job( $handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr )) )
                 {
@@ -205,6 +208,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             'params' => $params,
             'timed_seconds' => $timed_seconds,
             'run_async' => (!empty( $run_async )?'checked="checked"':''),
+            'stalling_minutes' => $stalling_minutes,
 
             'agent_routes' => $agent_routes,
         ];

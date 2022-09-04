@@ -1166,6 +1166,18 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $instance_class = $instance_details['instance_full_class'];
 
+        try {
+            // Check if class is abstract...
+            if( ($is_abstract = new \ReflectionClass( $instance_class ))
+             && $is_abstract->isAbstract() )
+            {
+                self::st_set_error( self::ERR_INSTANCE_CLASS, self::_t( 'Error instantiating abstract class %s.', $instance_details['instance_full_class'] ) );
+                return false;
+            }
+        } catch( \Exception $e )
+        {
+        }
+
         /** @var PHS_Instantiable $instance_obj */
         if( !($instance_obj = new $instance_class( $instance_details )) )
         {

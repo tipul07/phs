@@ -718,6 +718,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'params' => null,
             'run_async' => 1,
             'timed_seconds' => 0,
+            // 0 means to take generic stalling value from model settings
+            'stalling_minutes' => 0,
         ];
     }
 
@@ -792,10 +794,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             if( empty( $agent_job_arr['params'] ) || !is_array( $agent_job_arr['params'] ) )
                 $agent_job_arr['params'] = false;
 
-            if( empty( $agent_job_arr['run_async'] ) )
-                $agent_job_arr['run_async'] = 0;
-            else
-                $agent_job_arr['run_async'] = 1;
+            $agent_job_arr['run_async'] = (empty( $agent_job_arr['run_async'] )?0:1);
+            $agent_job_arr['stalling_minutes'] = (empty( $agent_job_arr['stalling_minutes'] )?0:(int)$agent_job_arr['stalling_minutes']);
 
             if( empty( $agent_job_arr['route'] )
              || !is_array( $agent_job_arr['route'] ) )
@@ -812,8 +812,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $job_extra_arr['run_async'] = $agent_job_arr['run_async'];
             $job_extra_arr['status'] = ($this->plugin_active()?$agent_jobs_model::STATUS_ACTIVE:$agent_jobs_model::STATUS_SUSPENDED);
             $job_extra_arr['plugin'] = $this->instance_plugin_name();
+            $job_extra_arr['stalling_minutes'] = $agent_job_arr['stalling_minutes'];
 
-            if( !($role_unit = PHS_Agent::add_job( $handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr )) )
+            if( !($db_job_arr = PHS_Agent::add_job( $handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr )) )
             {
                 $this->uninstall_agent_jobs();
 
@@ -1259,7 +1260,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     /**
      * Performs any necessary custom actions when installing plugin
-     * Overwrite this method to do particular install actions.
+     * Overwrite this method to do particular installation actions.
      * If this function returns false whole install will stop and error set in this method will be used.
      *
      * @return bool true on success, false on failure
@@ -1271,7 +1272,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     /**
      * Performs any necessary custom actions right after installing plugin with success
-     * Overwrite this method to do particular install finishing actions.
+     * Overwrite this method to do particular installation finishing actions.
      * If this function returns false whole install will stop and error set in this method will be used.
      *
      * @return bool true on success, false on failure
@@ -1282,9 +1283,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * Performs any necessary custom actions when un-installing plugin
-     * Overwrite this method to do particular un-install actions.
-     * If this function returns false whole un-install will stop and error set in this method will be used.
+     * Performs any necessary custom actions when uninstalling plugin
+     * Overwrite this method to do particular uninstallation actions.
+     * If this function returns false whole uninstall will stop and error set in this method will be used.
      *
      * @return bool true on success, false on failure
      */
@@ -1296,7 +1297,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * Performs any necessary custom actions when activating plugin
      * Overwrite this method to do particular activation actions.
-     * This method is called after plugin and all models in the plugin are activated so you have full access to all models.
+     * This method is called after plugin and all models in the plugin are activated, so you have full access to all models.
      *
      * @return bool true on success, false on failure
      */
@@ -1308,7 +1309,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * Performs any necessary custom actions when inactivating plugin
      * Overwrite this method to do particular inactivation actions.
-     * This method is called after plugin and all models in the plugin are still activate so you have full access to all models.
+     * This method is called after plugin and all models in the plugin are still activate, so you have full access to all models.
      *
      * @return bool true on success, false on failure
      */
