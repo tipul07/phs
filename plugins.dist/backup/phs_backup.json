@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Backup Plugin",
     "description": "Manages backing up framework database and files.",
-    "version": "1.0.11",
+    "version": "1.1.0",
     "models": [ "rules", "results" ],
     "agent_jobs": {
         "backup_index_bg_run_backups_ag": {
@@ -13,7 +13,9 @@
                 "controller": "index_bg",
                 "action": "run_backups_ag"
             },
-            "timed_seconds": 3600
+            "timed_seconds": 3600,
+            "stalling_minutes": 480,
+            "stalling_minutes_comment": "MINUTES!!! Depending on size of database and files to be archived, backups can take lots of time..."
         }
     }
 }

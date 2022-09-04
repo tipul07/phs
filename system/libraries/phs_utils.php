@@ -199,8 +199,6 @@ class PHS_Utils extends PHS_Language
 
         if( ($status_file_str = @file_get_contents( '/proc/'.$pid.'/status' )) )
         {
-            echo '['.$status_file_str.']';
-
             if( preg_match( '@State:\s*(.*)@i', $status_file_str, $matches_arr )
              && is_array( $matches_arr ) && !empty( $matches_arr[1] ) )
                 $return_arr['state'] = $matches_arr[1];

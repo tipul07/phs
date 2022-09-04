@@ -16,20 +16,19 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $_accounts_model */
     private $_accounts_model;
 
+    /** @var \phs\plugins\admin\PHS_Plugin_Admin $_admin_plugin */
+    private $_admin_plugin;
+
     /** @var array $_cuser_details_arr */
     private $_cuser_details_arr = [];
 
     public function load_depencies()
     {
-        if( !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
+        if( !($this->_admin_plugin = PHS::load_plugin( 'admin' ))
+         || !($this->_accounts_model = PHS::load_model( 'accounts', 'accounts' ))
+         || !($this->_paginator_model = PHS::load_model( 'agent_jobs' )) )
         {
-            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load accounts model.' ) );
-            return false;
-        }
-
-        if( !($this->_paginator_model = PHS::load_model( 'agent_jobs' )) )
-        {
-            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Couldn\'t load agent jobs model.' ) );
+            $this->set_error( self::ERR_DEPENCIES, $this->_pt( 'Error loading required resources.' ) );
             return false;
         }
 
@@ -55,10 +54,10 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         if( empty( $this->_paginator_model ) )
         {
             if( !$this->load_depencies() )
-                return false;
+                return true;
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_AGENT_JOBS ) )
+        if( !$this->_admin_plugin->can_admin_list_agent_jobs( $current_user ) )
         {
             $action_result = self::default_action_result();
 
@@ -83,7 +82,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if( !PHS_Roles::user_has_role_units( $current_user, PHS_Roles::ROLEU_LIST_AGENT_JOBS ) )
+        if( !$this->_admin_plugin->can_admin_list_agent_jobs( $current_user ) )
         {
             $this->set_error( self::ERR_ACTION, $this->_pt( 'You don\'t have rights to list agent jobs.' ) );
             return false;
@@ -219,15 +218,17 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 'invalid_value' => $this->_pt( 'Invalid' ),
                 'extra_classes' => 'date_th',
                 'extra_records_classes' => 'date',
+                'extra_records_style' => 'vertical-align: middle;text-align:center;',
             ],
             [
                 'column_title' => $this->_pt( 'Last action' ),
                 'record_field' => 'last_action',
-                'display_callback' => [ &$this->_paginator, 'pretty_date' ],
+                'display_callback' => [ $this, 'display_last_action' ],
                 'date_format' => 'd-m-Y H:i',
                 'invalid_value' => $this->_pt( 'Invalid' ),
                 'extra_classes' => 'date_th',
                 'extra_records_classes' => 'date',
+                'extra_records_style' => 'vertical-align: middle;text-align:center;',
             ],
             [
                 'column_title' => $this->_pt( 'Created' ),
@@ -748,6 +749,48 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
                 case $paginator_obj::CELL_RENDER_HTML:
                     $cell_str .= '<br/><span title="'.self::_e( $runs_every_x_str ).'">'.$params['record']['timed_seconds'].'s</span>';
+                break;
+            }
+        }
+
+        return $cell_str;
+    }
+
+    public function display_last_action( $params )
+    {
+        if( empty( $params )
+         || !is_array( $params )
+         || empty( $params['record'] ) || !is_array( $params['record'] )
+         || !($agent_job = $this->_paginator_model->data_to_array( $params['record'] )) )
+            return false;
+
+        $paginator_obj = $this->_paginator;
+
+        $pretty_params = [];
+        $pretty_params['date_format'] = (!empty( $params['column']['date_format'] )?$params['column']['date_format']:false);
+        $pretty_params['request_render_type'] = (!empty( $params['request_render_type'] )?$params['request_render_type']:false);
+
+        if( empty( $params['record']['last_action'] ) )
+            $params['record']['last_action'] = null;
+
+        $stalling_minutes = $this->_paginator_model->get_job_stalling_minutes( $agent_job );
+        $stalling_seconds = $stalling_minutes * 60;
+        $stalling_minutes_str = PHS_Utils::parse_period( $stalling_seconds );
+
+        $cell_str = '-';
+        if( !empty( $params['request_render_type'] ) )
+        {
+            switch( $params['request_render_type'] )
+            {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    $cell_str = (!empty( $agent_job['last_action'] )?date( 'Y-m-d H:i:s', parse_db_date( $agent_job['last_action'] ) ):$this->_pt( 'N/A' )).
+                                ' - '.$stalling_minutes;
+                break;
+
+                case $paginator_obj::CELL_RENDER_HTML:
+                    $cell_str = (!empty( $agent_job['last_action'] )?$this->_paginator->pretty_date_independent( $agent_job['last_action'], $pretty_params ):$this->_pt( 'N/A' )).
+                                '<br/><span title="'.self::_e( $this->_pt( 'Stalling %s', $stalling_minutes_str ) ).'">'.PHS_Utils::parse_period( $stalling_seconds, [ 'show_period' => PHS_Utils::PERIOD_MINUTES ] ).'</span>';
                 break;
             }
         }

@@ -228,6 +228,13 @@ class PHS_Agent extends PHS_Registry
         // launching script will die...
         self::st_reset_error();
 
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
         if( empty( $extra ) || !is_array( $extra ) )
             $extra = [];
 
@@ -246,6 +253,8 @@ class PHS_Agent extends PHS_Registry
             $extra['plugin'] = '';
         else
             $extra['plugin'] = trim( $extra['plugin'] );
+
+        $extra['stalling_minutes'] = (!empty( $extra['stalling_minutes'] )?(int)$extra['stalling_minutes']:0);
 
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
@@ -303,13 +312,6 @@ class PHS_Agent extends PHS_Registry
             return false;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
-        {
-            self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
-            return false;
-        }
-
         if( empty( $extra['status'] )
          || !$agent_jobs_model->valid_status( $extra['status'] ) )
             $extra['status'] = $agent_jobs_model::STATUS_INACTIVE;
@@ -325,6 +327,7 @@ class PHS_Agent extends PHS_Registry
             $edit_arr['timed_seconds'] = $once_every_seconds;
             $edit_arr['run_async'] = ($extra['run_async']?1:0);
             $edit_arr['plugin'] = $extra['plugin'];
+            $edit_arr['stalling_minutes'] = $extra['stalling_minutes'];
 
             if( !($job_arr = $agent_jobs_model->edit( $existing_job, [ 'fields' => $edit_arr ] )) )
             {
@@ -347,6 +350,7 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['run_async'] = ($extra['run_async']?1:0);
             $insert_arr['status'] = $extra['status'];
             $insert_arr['plugin'] = $extra['plugin'];
+            $insert_arr['stalling_minutes'] = $extra['stalling_minutes'];
 
             if( !($job_arr = $agent_jobs_model->insert( [ 'fields' => $insert_arr ] ))
              || empty( $job_arr['id'] ) )
@@ -584,6 +588,57 @@ class PHS_Agent extends PHS_Registry
         }
 
         return true;
+    }
+
+    /**
+     * Any agent jobs that are not following stalling policy will be stopped
+     * @return array|false
+     */
+    public function check_stalling_agent_jobs()
+    {
+        $this->reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Couldn\'t load agent jobs model.' ) );
+            return false;
+        }
+
+        $return_arr = [];
+        $return_arr['jobs_running'] = 0;
+        $return_arr['jobs_not_dead'] = 0;
+        $return_arr['jobs_stopped'] = 0;
+        $return_arr['jobs_stopped_error'] = 0;
+
+        $list_arr = $agent_jobs_model->fetch_default_flow_params();
+        $list_arr['fields']['is_running'] = [ 'check' => 'IS', 'raw_value' => 'NOT NULL' ];
+        $list_arr['fields']['pid'] = [ 'check' => '!=', 'value' => '0' ];
+        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
+
+        if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false
+         || !is_array( $jobs_list ) )
+            return $return_arr;
+
+        $return_arr['jobs_running'] = count( $jobs_list );
+
+        foreach( $jobs_list as $job_arr )
+        {
+            if( !$agent_jobs_model->is_job_dead_as_per_stalling_policy( $job_arr ) )
+            {
+                $return_arr['jobs_not_dead']++;
+                continue;
+            }
+
+            if( !$agent_jobs_model->stop_job( $job_arr ) )
+            {
+                $return_arr['jobs_stopped_error']++;
+            } else {
+                $return_arr['jobs_stopped']++;
+            }
+        }
+
+        return $return_arr;
     }
 
     public function check_agent_jobs()

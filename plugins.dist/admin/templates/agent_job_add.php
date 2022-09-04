@@ -29,7 +29,8 @@
 
     }
 ?>
-<form id="add_agent_job_form" name="add_agent_job_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'agent_job_add' ) )?>" method="post">
+<form id="add_agent_job_form" name="add_agent_job_form" method="post"
+      action="<?php echo PHS::url( ['p' => 'admin', 'a' => 'agent_job_add'] )?>">
 <input type="hidden" name="foobar" value="1" />
 
 <div class="form_container responsive" style="width: 100%;">
@@ -90,8 +91,9 @@
      || empty( $selected_controller ) )
         $selected_controller = '';
     ?>
-    <div id="controller_container" class="form-group row"
+    <div id="controller_container"
          style="display:<?php echo (!empty( $we_have_controller )?'block':'none')?>;">
+    <div class="form-group row">
         <label for="controller" class="col-sm-2 col-form-label"><?php echo $this->_pt( 'Controller' )?></label>
         <div class="col-sm-10">
         <select name="controller" id="controller" class="chosen-select"
@@ -116,6 +118,7 @@
         </select>
         </div>
     </div>
+    </div>
 
     <?php
     $we_have_action = false;
@@ -131,8 +134,9 @@
      || empty( $selected_action ) )
         $selected_action = '';
     ?>
-    <div id="action_container" class="form-group row"
+    <div id="action_container"
          style="display:<?php echo (!empty( $we_have_action )?'block':'none')?>;">
+    <div class="form-group row">
         <label for="action" class="col-sm-2 col-form-label"><?php echo $this->_pt( 'Action' )?></label>
         <div class="col-sm-10">
         <select name="action" id="action" class="chosen-select"
@@ -155,6 +159,7 @@
         ?>
         </select>
         </div>
+    </div>
     </div>
 
     <div class="form-group row">
@@ -204,6 +209,20 @@
         <div class="col-sm-10">
         <input type="checkbox" value="1" name="run_async" id="run_async" rel="skin_checkbox"
             <?php echo $this->view_var( 'run_async' )?> />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label for="stalling_minutes" class="col-sm-2 col-form-label">
+            <?php echo $this->_pt( 'Stalling minutes' )?>
+            <i class="fa fa-question-circle"
+               title="<?php echo $this->_pte( 'After how many minutes should this job be considered as stalling.' )?>"></i>
+        </label>
+        <div class="col-sm-10">
+        <input type="text" id="stalling_minutes" name="stalling_minutes" class="form-control" required="required"
+               value="<?php echo form_str( $this->view_var( 'stalling_minutes' ) )?>"
+               style="width: 150px;" autocomplete="stalling_minutes" />
+            <small><?php echo $this->_pt( 'minutes' )?></small>
         </div>
     </div>
 

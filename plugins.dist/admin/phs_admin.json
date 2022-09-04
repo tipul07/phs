@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Administration Plugin",
     "description": "Handles all administration actions.",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "agent_jobs": {
         "admin_index_bg_clean_sessions_ag": {
             "title": "Session Garbage Collector",
@@ -12,7 +12,9 @@
                 "controller": "index_bg",
                 "action": "clean_sessions_ag"
             },
-            "timed_seconds": 21600
+            "timed_seconds": 21600,
+            "stalling_minutes": 720,
+            "stalling_minutes_comment": "MINUTES!!! Depending on traffic, there might be lots of session files which can take lots of time..."
         }
     }
 }

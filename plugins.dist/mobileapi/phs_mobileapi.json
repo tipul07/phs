@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Basic Mobile API",
     "description": "Handles basic functionality related to 3rd party (mobile apps) API calls.",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "models": [ "api_online" ],
     "agent_jobs": {
         "mobileapi_index_bg_check_api_sessions_ag": {
@@ -14,7 +14,9 @@
                 "action": "check_api_sessions_ag"
             },
             "timed_seconds": 1800,
-            "timed_seconds_comment": "Usually agent runs each hour, but if this interval will be lower run this job each 30 mins"
+            "timed_seconds_comment": "Usually agent runs each hour, but if this interval will be lower run this job each 30 mins",
+            "stalling_minutes": 120,
+            "stalling_minutes_comment": "MINUTES!!! In some cases, if there are lots of sessions to clear, this might take some while..."
         }
     }
 }
