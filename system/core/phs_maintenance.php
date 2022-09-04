@@ -8,9 +8,21 @@ use \phs\libraries\PHS_Registry;
 // We don't translate messages in this class as they are pure maintenance texts...
 final class PHS_Maintenance extends PHS_Registry
 {
+    static private $last_output = null;
+
     public static function output( $msg )
     {
+        // In logs, we have timestamps
         PHS_Logger::logf( $msg, PHS_Logger::TYPE_MAINTENANCE );
+
+        if( empty( self::$last_output ) )
+        {
+            self::$last_output = time();
+            $msg = date( '(Y-m-d H:i:s)', self::$last_output ).' '.$msg;
+        } else
+        {
+            $msg = '('.str_pad( '+'.(time()-self::$last_output).'s', 19, ' ', STR_PAD_LEFT ).') '.$msg;
+        }
 
         if( ($callback = self::output_callback()) )
             $callback( $msg );
