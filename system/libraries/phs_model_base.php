@@ -11,14 +11,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 {
     const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
           ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,
-          ERR_UNINSTALL_TABLE = 40011;
+          ERR_UNINSTALL_TABLE = 40011, ERR_READ_DB_STRUCTURE = 40012;
 
     const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
           HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
-
-    const SIGNAL_INSERT = 'phs_model_insert', SIGNAL_EDIT = 'phs_model_edit', SIGNAL_HARD_DELETE = 'phs_model_hard_delete',
-          SIGNAL_INSTALL = 'phs_model_install', SIGNAL_UNINSTALL = 'phs_model_uninstall',
-          SIGNAL_UPDATE = 'phs_model_update', SIGNAL_FORCE_INSTALL = 'phs_model_force_install';
 
     const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
           DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
@@ -186,7 +182,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool|array Returns table structure as array or false if we couldn't obtain table structure from database
      */
-    abstract protected function _get_table_columns_as_definition_for_model( $flow_params = false, $force = false );
+    abstract protected function _get_table_definition_for_model_from_database( $flow_params = false, $force = false );
 
     /**
      * This method hard-deletes a record from database.
@@ -242,11 +238,59 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * @return int Should return INSTANCE_TYPE_* constant
+     * @return string Should return INSTANCE_TYPE_* constant
      */
     final public function instance_type()
     {
         return self::INSTANCE_TYPE_MODEL;
+    }
+
+    /**
+     * @param string $driver
+     *
+     * @return array
+     */
+    protected static function get_cached_db_tables_structure_for_driver( $driver )
+    {
+        return (!empty( self::$tables_arr[$driver] )?self::$tables_arr[$driver]:[]);
+    }
+
+    /**
+     * @param string $table_name
+     * @param string $driver
+     *
+     * @return array
+     */
+    protected static function get_cached_db_table_structure( $table_name, $driver )
+    {
+        return (!empty( self::$tables_arr[$driver][$table_name] )?self::$tables_arr[$driver][$table_name]:[]);
+    }
+
+    /**
+     * @param $structure
+     * @param $table_name
+     * @param $driver
+     *
+     * @return void
+     */
+    protected static function add_cached_db_table_structure( $structure, $table_name, $driver )
+    {
+        if( empty( self::$tables_arr[$driver] ) || !is_array( self::$tables_arr[$driver] ) )
+            self::$tables_arr[$driver] = [];
+        if( empty( self::$tables_arr[$driver][$table_name] ) || !is_array( self::$tables_arr[$driver][$table_name] ) )
+            self::$tables_arr[$driver][$table_name] = [];
+
+        self::$tables_arr[$driver][$table_name] = $structure;
+    }
+
+    /**
+     * @param $structure
+     *
+     * @return bool
+     */
+    protected static function cached_db_table_structure_has_fields( $structure )
+    {
+        return (empty( $structure ) || !is_array( $structure ) || empty( $structure[self::T_DETAILS_KEY] ) || count( $structure ) > 1);
     }
 
     /**
@@ -422,7 +466,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * @param bool|array $flow_params Flow parameters
      * @param bool $force
      *
-     * @return bool|mixed
+     * @return false|array
      */
     public function get_table_details( $flow_params = false, $force = false )
     {
@@ -436,20 +480,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if( !empty( $force )
-         || empty( self::$tables_arr )
-         || empty( self::$tables_arr[$my_driver] ) || !is_array( self::$tables_arr[$my_driver] ) )
-        {
-            if( !$this->_check_table_exists_for_model( $flow_params, $force ) )
-                return false;
-        }
+        $this->_check_table_exists_for_model( $flow_params, $force );
 
-        if( empty( self::$tables_arr )
-         || empty( self::$tables_arr[$my_driver] ) || !is_array( self::$tables_arr[$my_driver] )
-         || empty( self::$tables_arr[$my_driver][$flow_table_name] ) )
+        if( !($table_details = self::get_cached_db_table_structure( $flow_table_name, $my_driver )) )
             return false;
 
-        return self::$tables_arr[$my_driver][$flow_table_name];
+        return $table_details;
     }
 
     /**
@@ -462,9 +498,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     public function check_table_exists( $flow_params = false, $force = false )
     {
-        $this->reset_error();
-
-        return (!$this->get_table_details( $flow_params, $force )?false:true);
+        return (bool) $this->get_table_details( $flow_params, $force );
     }
 
     /**
@@ -481,7 +515,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($flow_database_name = $this->get_db_database( $flow_params ))
          || !($my_driver = $this->get_model_driver()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
@@ -495,18 +528,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        // sane check...
-        if( empty( self::$tables_arr[$my_driver][$flow_table_name] ) || !is_array( self::$tables_arr[$my_driver][$flow_table_name] ) )
-            self::$tables_arr[$my_driver][$flow_table_name] = [];
+        if( ($table_structure = self::get_cached_db_table_structure( $flow_table_name, $my_driver ))
+         && self::cached_db_table_structure_has_fields( $table_structure ) )
+            return $table_structure;
 
-        if( empty( $force )
-         && !empty( self::$tables_arr[$my_driver][$flow_table_name] ) && is_array( self::$tables_arr[$my_driver][$flow_table_name] )
-         && count( self::$tables_arr[$my_driver][$flow_table_name] ) > 1 )
-            return self::$tables_arr[$my_driver][$flow_table_name];
+        $this->_get_table_definition_for_model_from_database( $flow_params, $force );
 
-        $this->_get_table_columns_as_definition_for_model( $flow_params, $force );
-
-        return self::$tables_arr[$my_driver][$flow_table_name];
+        return self::get_cached_db_table_structure( $flow_table_name, $my_driver );
     }
 
     /**
@@ -538,6 +566,42 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         if( !array_key_exists( $field, $table_definition ) )
+            return false;
+
+        return $table_definition[$field];
+    }
+
+    /**
+     * Check if a specified column exists in table definition array and if it exists return structure definition as array
+     *
+     * @param string $field Field to be checked/retrieved
+     * @param bool|array $flow_params Flow parameters
+     * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
+     *
+     * @return bool|array Returns column structure as array or false if we couldn't obtain column structure from flow table
+     */
+    public function check_column_index_exists( $field, $flow_params = false, $force = false )
+    {
+        $this->reset_error();
+
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+            return false;
+        }
+
+        if( !($table_definition = $this->get_table_columns_as_definition( $flow_params, $force ))
+         || !is_array( $table_definition ) )
+        {
+            if( !$this->has_error() )
+                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t get definition for table %s.', $flow_table_name ) );
+            return false;
+        }
+
+        if( empty( $table_definition[$field] )
+         || !is_array( $table_definition[$field] )
+         || empty( $table_definition[$field]['index'] ) )
             return false;
 
         return $table_definition[$field];
@@ -1171,6 +1235,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
+        PHS_Maintenance::lock_db_structure_read();
+
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if( $this_instance_id === $plugins_model_id )
         {
@@ -1186,6 +1252,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return false;
             }
 
@@ -1200,14 +1268,18 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
                 PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return false;
             }
         }
 
         // This will only create non-existing tables...
         if( $this_instance_id !== $plugins_model_id
-         && !$this->install_tables() )
+         && !$this->install_tables() ) {
+            PHS_Maintenance::unlock_db_structure_read();
             return false;
+        }
 
         $plugin_name = $this->instance_plugin_name();
 
@@ -1222,6 +1294,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 $this->set_error( self::ERR_INSTALL, self::_t( 'Error saving plugin details to database.' ) );
 
             PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             return false;
         }
@@ -1241,6 +1315,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 {
                     PHS_Logger::logf( '!!! Update failed ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
+                    PHS_Maintenance::unlock_db_structure_read();
+
                     return false;
                 }
 
@@ -1249,6 +1325,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         PHS_Logger::logf( 'DONE installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return $plugin_arr;
     }
@@ -1333,6 +1411,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
+        PHS_Maintenance::lock_db_structure_read();
+
         foreach( $this->_definition as $table_name => $table_definition )
         {
             if( !empty( $params_arr['created_tables'] )
@@ -1356,6 +1436,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
                 PHS_Logger::logf( 'FAILED Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return false;
             }
         }
@@ -1364,6 +1446,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $this->reset_error();
 
         PHS_Logger::logf( 'DONE Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return true;
     }
@@ -1384,6 +1468,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return [];
 
         PHS_Logger::logf( 'Installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Maintenance::lock_db_structure_read();
 
         $created_tables = [];
         foreach( $this->_definition as $table_name => $table_definition )
@@ -1410,6 +1496,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
                 PHS_Logger::logf( 'FAILED installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return false;
             }
         }
@@ -1418,6 +1506,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $this->reset_error();
 
         PHS_Logger::logf( 'DONE installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return $created_tables;
     }
@@ -1526,7 +1616,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Logger::logf( 'DONE uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-        return $db_details;
+        return true;
     }
 
     /**
@@ -1621,10 +1711,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                                  'Updating model from ['.$old_version.'] to ['.$new_version.']...'.
                                  ($this->dynamic_table_structure()?' (Dynamic structure)':'') );
 
+        PHS_Maintenance::lock_db_structure_read();
         if( !$this->custom_update( $old_version, $new_version ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom update functionality failed.' ) );
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom update functionality: '.$this->get_error_message() );
 
@@ -1636,14 +1729,18 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
 
+            PHS_Maintenance::unlock_db_structure_read();
+
             PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error instantiating plugins model.' );
 
             return false;
         }
 
         // This will only create non-existing tables...
-        if( ($created_tables = $this->update_missing_tables()) === false )
+        if( ($created_tables = $this->update_missing_tables()) === false ) {
+            PHS_Maintenance::unlock_db_structure_read();
             return false;
+        }
 
         $custom_after_missing_tables_updates_params = [ 'created_tables' => $created_tables, ];
 
@@ -1651,6 +1748,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after missing tables update functionality failed.' ) );
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom after missing tables update functionality: '.$this->get_error_message() );
 
@@ -1660,18 +1759,24 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $update_tables_params = [ 'created_tables' => $created_tables, ];
 
         // Update table structure
-        if( !$this->update_tables( $update_tables_params ) )
+        if( !$this->update_tables( $update_tables_params ) ) {
+            PHS_Maintenance::unlock_db_structure_read();
             return false;
+        }
 
         if( !$this->custom_after_update( $old_version, $new_version ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom after update functionality failed.' ) );
 
+            PHS_Maintenance::unlock_db_structure_read();
+
             PHS_Maintenance::output( '['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in model custom after update functionality: '.$this->get_error_message() );
 
             return false;
         }
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         if( !($db_details = $this->_plugins_instance->update_record(
             $this_instance_id, $this->instance_plugin_name(), $this->instance_is_core(), $this->get_model_version() ))

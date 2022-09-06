@@ -10,6 +10,31 @@ final class PHS_Maintenance extends PHS_Registry
 {
     static private $last_output = null;
 
+    static private $low_level_db_structure_cache = 0;
+
+    public static function lock_db_structure_read()
+    {
+        return ++self::$low_level_db_structure_cache;
+    }
+
+    public static function unlock_db_structure_read()
+    {
+        if( self::$low_level_db_structure_cache === 0 )
+            return 0;
+
+        return --self::$low_level_db_structure_cache;
+    }
+
+    public static function release_db_structure_lock()
+    {
+        self::$low_level_db_structure_cache = 0;
+    }
+
+    public static function db_structure_is_locked()
+    {
+        return self::$low_level_db_structure_cache > 0;
+    }
+
     public static function output( $msg )
     {
         // In logs, we have timestamps

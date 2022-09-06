@@ -4,6 +4,7 @@ namespace phs\libraries;
 
 use \phs\PHS;
 use \phs\PHS_Db;
+use phs\PHS_Maintenance;
 
 abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 {
@@ -193,31 +194,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        db_supress_errors( $this->get_db_connection( $flow_params ) );
-        if( (empty( self::$tables_arr[$my_driver] ) || !empty( $force ))
-         && ($qid = db_query( 'SHOW TABLES', $this->get_db_connection( $flow_params ) )) )
-        {
-            self::$tables_arr[$my_driver] = [];
-            while( ($table_name = @mysqli_fetch_assoc( $qid )) )
-            {
-                if( !is_array( $table_name ) )
-                    continue;
+        if( !empty( $force )
+         && PHS_Maintenance::db_structure_is_locked() )
+            $force = false;
 
-                $table_arr = array_values( $table_name );
-                self::$tables_arr[$my_driver][$table_arr[0]] = [];
+        $this->_extract_db_structure( $flow_params, $force );
 
-                self::$tables_arr[$my_driver][$table_arr[0]][self::T_DETAILS_KEY] = $this->_parse_mysql_table_details( $table_arr[0] );
-            }
-        }
-
-        db_restore_errors_state( $this->get_db_connection( $flow_params ) );
-
-        if( !empty( self::$tables_arr[$my_driver] )
-         && is_array( self::$tables_arr[$my_driver] )
-         && array_key_exists( $flow_table_name, self::$tables_arr[$my_driver] ) )
-            return true;
-
-        return false;
+        return (bool)self::get_cached_db_table_structure( $flow_table_name, $my_driver );
     }
 
     /**
@@ -279,7 +262,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $keys_str .= ($keys_str!==''?',':'').$field_definition['keys_str'];
         }
 
-        $sql .= $all_fields_str.(!empty( $keys_str )?', '."\n":'').$keys_str.(!empty( $keys_str )?"\n":'').
+        $sql .= $all_fields_str.
+                (!empty( $keys_str )?', '."\n".$keys_str."\n":'').
                 ') ENGINE='.$table_details['engine'].
                 ' DEFAULT CHARSET='.$table_details['charset'].
                 (!empty( $table_details['collate'] )?' COLLATE '.$table_details['collate']:'').
@@ -373,62 +357,62 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $table_definition = $this->_definition[$table_name];
         $db_table_definition = $this->get_table_columns_as_definition( $flow_params );
 
-        // check field position changes... We actually check fields position relative to previous field
         $field_position_changes = [];
-        if( !empty( $db_table_definition ) )
-        {
-            $prev_script_field = '';
-            foreach( $table_definition as $field_name => $field_definition )
-            {
-                if( $field_name === self::T_DETAILS_KEY
-                 || $field_name === self::EXTRA_INDEXES_KEY )
-                    continue;
 
-                if( !($db_prev = $this->get_previous_field_from_table_definition( $field_name, $db_table_definition ))
-                 || empty( $db_prev['field'] )
-                 || $db_prev['field'] === $prev_script_field ) {
-                    $prev_script_field = $field_name;
-                    continue;
-                }
-
-                $prev_script_field = $field_name;
-                $field_position_changes[$field_name] = true;
-            }
-        }
-
-        // extracting old names, so we get quick field definition from old names...
         $old_field_names_arr = [];
         $found_old_field_names_arr = [];
+
+        // No need to check for changes if table is new...
+        $prev_script_field = '';
         foreach( $table_definition as $field_name => $field_definition )
         {
             if( $field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY
-             || !is_array( $field_definition )
-             || empty( $field_definition['old_names'] ) || !is_array( $field_definition['old_names'] ) )
+             || $field_name === self::EXTRA_INDEXES_KEY )
                 continue;
 
-            foreach( $field_definition['old_names'] as $old_field_name )
+            if( !empty( $db_table_definition ) )
             {
-                if( !empty( $found_old_field_names_arr[$old_field_name] ) )
-                {
-                    PHS_Logger::logf( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
-
-                    $this->set_error( self::ERR_UPDATE_TABLE,
-                                      self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
-                    return false;
+                //region Position change
+                // check field position changes... We actually check fields position relative to previous field
+                if( ($db_prev = $this->get_previous_field_from_table_definition( $field_name, $db_table_definition ))
+                 && !empty( $db_prev['field'] )
+                 && $db_prev['field'] !== $prev_script_field ) {
+                    // Field position changed...
+                    $field_position_changes[$field_name] = true;
                 }
+                $prev_script_field = $field_name;
+                //endregion Position change
 
-                // Check if in current table structure we have this old name...
-                if( empty( $db_table_definition[$old_field_name] ) )
-                    continue;
+                //region Field naming change
+                // Check field naming change...
+                if( !empty( $field_definition['old_names'] )
+                 && is_array( $field_definition['old_names'] ) ) {
+                    foreach( $field_definition['old_names'] as $old_field_name )
+                    {
+                        if( !empty( $found_old_field_names_arr[$old_field_name] ) )
+                        {
+                            PHS_Logger::logf( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
-                $found_old_field_names_arr[$old_field_name] = true;
-                $old_field_names_arr[$field_name] = $old_field_name;
+                            $this->set_error( self::ERR_UPDATE_TABLE,
+                                self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
+                            return false;
+                        }
+
+                        // Check if in current table structure we have this old name...
+                        if( empty( $db_table_definition[$old_field_name] ) )
+                            continue;
+
+                        $found_old_field_names_arr[$old_field_name] = true;
+                        $old_field_names_arr[$field_name] = $old_field_name;
+                    }
+                }
+                //endregion Field naming change
             }
         }
 
         $db_connection = $this->get_db_connection( $flow_params );
 
+        //region Table details
         if( empty( $table_definition[self::T_DETAILS_KEY] ) )
             $table_details = $this->_default_table_details_arr();
         else
@@ -472,6 +456,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 return false;
             }
         }
+        //endregion Table details
 
         $after_field = '`first`';
         $fields_found_in_old_structure = [];
@@ -487,6 +472,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             $after_field = $field_name;
 
+            //region Field doesn't exists
             if( empty( $db_table_definition[$field_name] ) )
             {
                 // Field doesn't exist in db structure...
@@ -530,14 +516,16 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
                 continue;
             }
+            //endregion Field doesn't exists
 
             $fields_found_in_old_structure[$field_name] = true;
 
             $alter_params = $field_extra_params;
             $alter_params['alter_indexes'] = false;
 
-            // Call alter table anyway as position might change...
-            if( !empty( $field_position_changes[$field_name] )
+            // In case we change only position or field changes (NOT THE INDEX)
+            if( (!empty( $field_position_changes[$field_name] )
+                 || $this->_field_definition_changed( $field_definition, $db_table_definition[$field_name] ))
              && !$this->alter_table_change_column( $field_name, $field_definition, false, $flow_params, $alter_params ) )
             {
                 if( !$this->has_error() )
@@ -545,6 +533,29 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                     PHS_Logger::logf( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                }
+
+                return false;
+            }
+
+            // Check if index settings changed...
+            if( ($field_definition['index'] xor $db_table_definition[$field_name]['index'])
+             && (
+                    // Column had index on it before
+                    (!empty( $db_table_definition[$field_name]['index'] )
+                     && !$this->alter_table_drop_column_index( $field_name, $flow_params ))
+                    ||
+                    // Column has index on it now
+                    (!empty( $field_definition['index'] )
+                     && !$this->alter_table_add_column_index( $field_name, $field_definition, $flow_params ))
+                )
+            )
+            {
+                if( !$this->has_error() )
+                {
+                    PHS_Logger::logf( 'Error updating index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+
+                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                 }
 
                 return false;
@@ -586,7 +597,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                    && !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
             {
                 // delete existing extra indexes
-                if( !$this->delete_table_extra_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
+                if( !$this->drop_table_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
                     return false;
             } else
             {
@@ -607,7 +618,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                         continue;
                     }
 
-                    $this->delete_table_extra_index( $index_name, $flow_params );
+                    $this->drop_table_index( $index_name, $flow_params );
                 }
 
                 // add new extra indexes after we did the diff with existing ones...
@@ -665,66 +676,144 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_columns_as_definition_for_model( $flow_params = false, $force = false )
+    protected function _get_table_definition_for_model_from_database( $flow_params = false, $force = false )
     {
         $this->reset_error();
 
         if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($flow_database_name = $this->get_db_database( $flow_params ))
          || !($my_driver = $this->get_model_driver()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
 
-        if( ($qid = db_query( 'SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
-        {
-            while( ($field_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-            {
-                if( !is_array( $field_arr )
-                 || empty( $field_arr['Field'] ) )
-                    continue;
-
-                self::$tables_arr[$my_driver][$flow_table_name][$field_arr['Field']] = $this->_parse_mysql_field_result( $field_arr );
-            }
+        if( !$this->_get_table_columns_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force )
+         || !$this->_get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force ) ) {
+            return false;
         }
 
-        // Get extra indexes...
-        if( ($qid = db_query( 'SELECT * FROM information_schema.statistics '.
+        return self::get_cached_db_table_structure( $flow_table_name, $my_driver );
+    }
+
+    private function _get_table_columns_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force = false )
+    {
+        if( !($qid = db_query( 'SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
+        {
+            $this->set_error( self::ERR_READ_DB_STRUCTURE,
+                self::_t( 'Error reading structure of table %s.', $flow_table_name ) );
+            return false;
+        }
+
+        $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
+        while( ($field_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        {
+            if( !is_array( $field_arr )
+             || empty( $field_arr['Field'] ) )
+                continue;
+
+            $structure_arr[$field_arr['Field']] = $this->_parse_mysql_field_result( $field_arr );
+        }
+
+        self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
+
+        return true;
+    }
+
+    private function _get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force = false )
+    {
+        if( ($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
+        {
+            $this->set_error( self::ERR_READ_DB_STRUCTURE,
+                self::_t( 'Error reading indexes of table %s.', $flow_table_name ) );
+            return false;
+        }
+
+        $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
+        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        {
+            if( !is_array( $index_arr )
+             || empty( $index_arr['Key_name'] )
+             || empty( $index_arr['Column_name'] ) )
+                continue;
+
+            if( strtoupper( $index_arr['Key_name'] ) === 'PRIMARY' )
+            {
+                // make sure we have primary column set
+                if( !empty( $structure_arr[$index_arr['Column_name']] ) )
+                    $structure_arr[$index_arr['Column_name']]['primary'] = true;
+
+                continue;
+            }
+
+            if( !empty( $structure_arr[$index_arr['Key_name']] ) )
+            {
+                // We have this field defined in the table... Make sure it has index set
+                $structure_arr[$index_arr['Key_name']]['index'] = true;
+                continue;
+            }
+
+            // this field is not defined in the table, so it is an extra index...
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] = [];
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] = [];
+
+            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'][] = $index_arr['Column_name'];
+
+            if( empty( $index_arr['Non_unique'] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = true;
+            else
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = false;
+        }
+
+        self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
+
+        /**
+        if( !($qid = db_query( 'SELECT * FROM information_schema.statistics '.
                               ' WHERE '.
                               ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
                               ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
         {
-            while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-            {
-                if( !is_array( $index_arr )
-                 || empty( $index_arr['INDEX_NAME'] )
-                 || empty( $index_arr['COLUMN_NAME'] ) )
-                    continue;
-
-                if( empty( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY] )
-                 || !is_array( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY] ) )
-                    self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY] = [];
-
-                if( empty( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
-                 || !is_array( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
-                    self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
-
-                if( empty( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
-                 || !is_array( self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
-                    self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
-
-                self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
-
-                if( empty( $index_arr['NON_UNIQUE'] ) )
-                    self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
-                else
-                    self::$tables_arr[$my_driver][$flow_table_name][self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
-            }
         }
 
-        return self::$tables_arr[$my_driver][$flow_table_name];
+        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        {
+            if( !is_array( $index_arr )
+             || empty( $index_arr['INDEX_NAME'] )
+             || empty( $index_arr['COLUMN_NAME'] ) )
+                continue;
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
+
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
+
+            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
+
+            if( empty( $index_arr['NON_UNIQUE'] ) )
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
+            else
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
+        }
+        /**/
+
+        return true;
     }
 
     /**
@@ -1188,39 +1277,63 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     //
     // region Database structure methods
     //
-    private function _parse_mysql_table_details( $table_name, $flow_params = false )
+    /**
+     * @param false|array $flow_params
+     * @param bool $force
+     *
+     * @return bool
+     */
+    private function _extract_db_structure( $flow_params = false, $force = false )
     {
         $this->reset_error();
 
-        if( empty( $table_name ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Please provide table name.' ) );
-            return false;
-        }
-
-        if( !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($my_driver = $this->get_model_driver()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
             return false;
         }
 
-        $table_details = $this->_default_table_details_arr();
-        if( ($qid = db_query( 'SHOW TABLE STATUS WHERE Name = \''.$table_name.'\'', $this->get_db_connection( $flow_params ) ))
-         && ($result_arr = @mysqli_fetch_assoc( $qid )) )
+        if( !empty( $force )
+         && PHS_Maintenance::db_structure_is_locked() )
+            $force = false;
+
+        if( empty( $force )
+         && self::get_cached_db_tables_structure_for_driver( $my_driver ) )
+            return true;
+
+        $db_connection = $this->get_db_connection( $flow_params );
+        db_supress_errors( $db_connection );
+
+        $default_table_details = $this->_default_table_details_arr();
+        if( ($qid = db_query( 'SHOW TABLE STATUS', $db_connection ))
+         && @mysqli_num_rows( $qid ) )
         {
-            if( !empty( $result_arr['Engine'] ) )
-                $table_details['engine'] = $result_arr['Engine'];
-            if( !empty( $result_arr['Comment'] ) )
-                $table_details['comment'] = $result_arr['Comment'];
-            if( !empty( $result_arr['Collation'] ) )
+            while( ($result_arr = @mysqli_fetch_assoc( $qid )) )
             {
-                $table_details['collate'] = $result_arr['Collation'];
-                if( ($collate_parts = explode( '_', $table_details['collate'] )) )
-                    $table_details['charset'] = $collate_parts[0];
+                if( empty( $result_arr['Name'] ) )
+                    continue;
+
+                $table_details = $default_table_details;
+                if( !empty( $result_arr['Engine'] ) )
+                    $table_details['engine'] = $result_arr['Engine'];
+                if( !empty( $result_arr['Comment'] ) )
+                    $table_details['comment'] = $result_arr['Comment'];
+                if( !empty( $result_arr['Collation'] ) )
+                {
+                    $table_details['collate'] = $result_arr['Collation'];
+                    if( ($collate_parts = explode( '_', $table_details['collate'] )) )
+                        $table_details['charset'] = $collate_parts[0];
+                }
+
+                $structure_arr = self::get_cached_db_table_structure( $result_arr['Name'], $my_driver );
+                $structure_arr[self::T_DETAILS_KEY] = $table_details;
+
+                self::add_cached_db_table_structure( $structure_arr, $result_arr['Name'], $my_driver );
             }
         }
 
-        return $table_details;
+        return true;
     }
 
     private static function _default_mysql_table_field_fields()
@@ -1335,7 +1448,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $model_field_arr['primary'] = (!empty( $field_arr['Key'] ) && strtolower( $field_arr['Key'] ) === 'pri');
         $model_field_arr['auto_increment'] = (!empty( $field_arr['Extra'] ) && strtolower( $field_arr['Extra'] ) === 'auto_increment');
         $model_field_arr['index'] = (!empty( $field_arr['Key'] ) && strtolower( $field_arr['Key'] ) === 'mul');
-        $model_field_arr['default'] = $field_arr['Default'];
+        $model_field_arr['default'] = $this->_get_parsed_default( $field_arr['Default'], $model_field_arr['type'] );
         $model_field_arr['comment'] = (!empty( $field_arr['Comment'] )?$field_arr['Comment']:'');
 
         return $model_field_arr;
@@ -1397,27 +1510,70 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    private function _fields_changed( $field1_arr, $field2_arr )
+    private function _field_definition_changed( $field1_arr, $field2_arr )
     {
-        if( !($field1_arr = $this->_validate_field( $field1_arr ))
-         || !($field2_arr = $this->_validate_field( $field2_arr )) )
+        $default_fields_arr = self::_default_field_arr();
+        if( !($field1_arr = self::validate_array( $field1_arr, $default_fields_arr ))
+         || !($field2_arr = self::validate_array( $field2_arr, $default_fields_arr )) )
             return true;
 
-        if( (int)$field1_arr['type'] !== (int)$field2_arr['type']
-         || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary']
-         || (bool)$field1_arr['auto_increment'] !== (bool)$field2_arr['auto_increment']
-         || (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
-         || (bool)$field1_arr['unsigned'] !== (bool)$field2_arr['unsigned']
-         || (bool)$field1_arr['nullable'] !== (bool)$field2_arr['nullable']
-         || $field1_arr['default'] !== $field2_arr['default']
-         || trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
-         // for lengths with comma
-         || str_replace( ' ', '', trim( $field1_arr['length'] ) )
-            !== str_replace( ' ', '', trim( $field2_arr['length'] ) )
-        )
+        return (
+            (int) $field1_arr['type'] !== (int) $field2_arr['type']
+            || (bool) $field1_arr['nullable'] !== (bool) $field2_arr['nullable']
+            || (bool) $field1_arr['unsigned'] !== (bool) $field2_arr['unsigned']
+            || (bool) $field1_arr['auto_increment'] !== (bool) $field2_arr['auto_increment']
+            || $this->_get_parsed_default( $field1_arr['default'], $field1_arr['type'] )
+               !== $this->_get_parsed_default($field2_arr['default'], $field2_arr['type'] )
+            || trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
+            // for lengths with comma
+            || (!empty( $field1_arr['length'] ) && !empty( $field2_arr['length'] )
+                && str_replace(' ', '', trim( $field1_arr['length'] ) )
+                   !== str_replace(' ', '', trim( $field2_arr['length'] ) )
+               ) );
+    }
+
+    /**
+     * @param array $field1_arr
+     * @param array $field2_arr
+     *
+     * @return bool
+     */
+    private function _field_indexes_changed( $field1_arr, $field2_arr )
+    {
+        $default_fields_arr = self::_default_field_arr();
+        if( !($field1_arr = self::validate_array( $field1_arr, $default_fields_arr ))
+         || !($field2_arr = self::validate_array( $field2_arr, $default_fields_arr )) )
             return true;
 
-        return false;
+        return (
+            (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
+            || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary']
+        );
+    }
+
+    private function _get_parsed_default( $default_val, $type )
+    {
+        if( $default_val === null )
+            return null;
+
+        switch( $type )
+        {
+            case self::FTYPE_TINYINT:
+            case self::FTYPE_SMALLINT:
+            case self::FTYPE_MEDIUMINT:
+            case self::FTYPE_INT:
+            case self::FTYPE_BIGINT:
+            case self::FTYPE_TIMESTAMP:
+                return (int)$default_val;
+
+            case self::FTYPE_DECIMAL:
+            case self::FTYPE_FLOAT:
+            case self::FTYPE_DOUBLE:
+                return (float)$default_val;
+
+            default:
+                return (string)$default_val;
+        }
     }
 
     private function _table_details_changed( $details1_arr, $details2_arr )
@@ -1584,8 +1740,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( $field_name === self::T_DETAILS_KEY
          || $field_name === self::EXTRA_INDEXES_KEY
          || empty( $field_details ) || !is_array( $field_details )
+         || !($field_details = $this->_validate_field( $field_details ))
          || !($type_details = $this->valid_field_type( $field_details['type'] ))
-         || !($field_details = $this->_validate_field( $field_details )) )
+         )
             return false;
 
         $field_str = '';
@@ -1777,7 +1934,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( !isset( $params['alter_indexes'] ) )
             $params['alter_indexes'] = true;
         else
-            $params['alter_indexes'] = (!empty( $params['alter_indexes'] )?true:false);
+            $params['alter_indexes'] = !empty($params['alter_indexes'] );
 
         if( empty( $params['after_column'] ) )
             $params['after_column'] = '';
@@ -1863,9 +2020,90 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $flow_params ).'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
+        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $flow_params ).'` DROP COLUMN IF EXISTS `'.$field_name.'`', $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
+            return false;
+        }
+
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    final public function alter_table_drop_column_index( $field_name, $flow_params = false )
+    {
+        $this->reset_error();
+
+        if( empty( $field_name )
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+        {
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
+            return false;
+        }
+
+        if( !$this->check_column_index_exists( $field_name, $flow_params ) )
+            return true;
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        if( !db_query( 'DROP INDEX `'.$field_name.'` ON `'.$this->get_flow_table_name( $flow_params ).'`', $db_connection ) )
+        {
+            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop index on [%s].', $field_name ) );
+            return false;
+        }
+
+        // Force reloading table columns to be sure changes are not cached
+        $this->get_table_columns_as_definition( $flow_params, true );
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    final public function alter_table_add_column_index( $field_name, $field_details, $flow_params = false )
+    {
+        $this->reset_error();
+
+        $field_details = self::validate_array( $field_details, self::_default_field_arr() );
+
+        if( empty( $field_name )
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || empty( $field_details ) || !is_array( $field_details )
+         || !($field_details = $this->_validate_field( $field_details ))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
+         || empty( $mysql_field_arr['keys_str'] ) )
+        {
+            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection( $flow_params );
+
+        if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+        {
+            PHS_Logger::logf( 'Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+
+            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add index for column [%s].', $field_name ) );
             return false;
         }
 
@@ -2021,7 +2259,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function delete_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
+    protected function drop_table_indexes_from_array( $indexes_array, $flow_params = false )
     {
         $this->reset_error();
 
@@ -2030,10 +2268,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         foreach( $indexes_array as $index_name => $index_arr )
         {
-            if( empty( $index_arr ) || !is_array( $index_arr ) )
-                continue;
+            // if( empty( $index_arr ) || !is_array( $index_arr ) )
+            //     continue;
 
-            if( !$this->delete_table_extra_index( $index_name, $flow_params ) )
+            if( !$this->drop_table_index( $index_name, $flow_params ) )
                 return false;
         }
 
@@ -2046,7 +2284,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    public function delete_table_extra_index( $index_name, $flow_params = false )
+    public function drop_table_index( $index_name, $flow_params = false )
     {
         $this->reset_error();
 
@@ -2054,12 +2292,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || empty( $index_name )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($database_name = $this->get_db_database( $flow_params )) )
+         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Error deleting extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::logf( 'Error dropping index for model ['.(!empty( $model_id )?$model_id:'N/A').']. Bad parameters sent to method.', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error deleting extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
             return false;
         }
 
@@ -2067,9 +2304,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
         {
-            PHS_Logger::logf( 'Error deleting extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::logf( 'Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
+            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
         }
 

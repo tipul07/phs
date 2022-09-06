@@ -414,15 +414,16 @@ class PHS_Registry extends PHS_Language
      * @param array $arr Array to be validated
      * @param array $default_arr Array keys and default values which should be present in array to be validated
      *
-     * @return array|bool If default array is not an array returns false else validated array is returned
+     * @return array If default array is not an array or is empty, returns original array,
+     * else validated array is returned
      */
     public static function validate_array( $arr, $default_arr )
     {
-        if( empty( $default_arr ) || !is_array( $default_arr ) )
-            return false;
-
         if( empty( $arr ) || !is_array( $arr ) )
             $arr = [];
+
+        if( empty( $default_arr ) || !is_array( $default_arr ) )
+            return $arr;
 
         foreach( $default_arr as $key => $val )
         {
@@ -442,7 +443,7 @@ class PHS_Registry extends PHS_Language
     public static function validate_array_recursive( $arr, $default_arr )
     {
         if( empty( $default_arr ) || !is_array( $default_arr ) )
-            return false;
+            return $arr;
 
         if( empty( $arr ) || !is_array( $arr ) )
             return $default_arr;
@@ -469,12 +470,12 @@ class PHS_Registry extends PHS_Language
      * @param array $arr
      * @param array $default_arr
      *
-     * @return array|bool
+     * @return array
      */
     public static function validate_array_to_new_array( $arr, $default_arr )
     {
         if( empty( $default_arr ) || !is_array( $default_arr ) )
-            return false;
+            return [];
 
         if( empty( $arr ) || !is_array( $arr ) )
             $arr = [];
@@ -495,12 +496,12 @@ class PHS_Registry extends PHS_Language
      * @param array $arr
      * @param array $default_arr
      *
-     * @return array|bool
+     * @return array
      */
     public static function validate_array_to_new_array_recursive( $arr, $default_arr )
     {
         if( empty( $default_arr ) || !is_array( $default_arr ) )
-            return false;
+            return [];
 
         if( empty( $arr ) || !is_array( $arr ) )
             $arr = [];

@@ -4,6 +4,7 @@ namespace phs\system\core\models;
 
 use \phs\PHS;
 use \phs\PHS_Crypt;
+use phs\PHS_Maintenance;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Line_params;
 use \phs\libraries\PHS_Instantiable;
@@ -1268,9 +1269,13 @@ class PHS_Model_Plugins extends PHS_Model
         if( $check_result !== null )
             return $check_result;
 
+        PHS_Maintenance::lock_db_structure_read();
+
         if( $this->check_table_exists( [ 'table_name' => 'plugins' ] )
          && $this->check_table_exists( [ 'table_name' => 'plugins_registry' ] ) )
         {
+            PHS_Maintenance::unlock_db_structure_read();
+
             $check_result = true;
             return true;
         }
@@ -1281,6 +1286,8 @@ class PHS_Model_Plugins extends PHS_Model
             $check_result = true;
         else
             $check_result = false;
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return $check_result;
     }

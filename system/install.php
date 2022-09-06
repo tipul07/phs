@@ -5,6 +5,7 @@
         exit;
 
     use \phs\PHS;
+    use phs\PHS_Maintenance;
 
     /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
     if( !($plugins_model = PHS::load_model( 'plugins' )) )
@@ -15,10 +16,14 @@
         return PHS::st_get_error();
     }
 
+    PHS_Maintenance::lock_db_structure_read();
+
     if( !$plugins_model->check_installation() )
     {
         if( $plugins_model->has_error() )
             return $plugins_model->get_error();
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return PHS::arr_set_error( -1, PHS::_t( 'Error while checking plugins model installation.' ) );
     }
@@ -36,6 +41,8 @@
                 if( !PHS::st_has_error() )
                     PHS::st_set_error( -1, PHS::_t( 'Error instantiating core model [%s].', $core_model ) );
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return PHS::st_get_error();
             }
         }
@@ -48,6 +55,8 @@
             PHS::st_set_error( -1, PHS::_t( 'Error obtaining plugins list.' ) );
         else
             PHS::st_copy_error( $plugins_model );
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         return PHS::st_get_error();
     }
@@ -87,8 +96,12 @@
      */
     foreach( $installing_plugins_arr as $plugin_name => $plugin_obj )
     {
-        if( !$plugin_obj->check_installation() )
+        if( !$plugin_obj->check_installation() ) {
+            PHS_Maintenance::unlock_db_structure_read();
             return $plugin_obj->get_error();
+        }
     }
+
+    PHS_Maintenance::unlock_db_structure_read();
 
     return true;
