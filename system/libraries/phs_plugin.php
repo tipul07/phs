@@ -422,7 +422,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function plugin_active()
     {
-        return ($this->db_record_active()?true:false);
+        return (bool) $this->db_record_active();
     }
 
     public function check_installation()
@@ -436,12 +436,19 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return $this->install();
         }
 
-        if( version_compare( $db_details['version'], $this->get_plugin_version(), '!=' ) )
-            return $this->update( $db_details['version'], $this->get_plugin_version() );
+        PHS_Maintenance::lock_db_structure_read();
+
+        if( version_compare( $db_details['version'], $this->get_plugin_version(), '!=' ) ) {
+            $result = $this->update($db_details['version'], $this->get_plugin_version());
+
+            PHS_Maintenance::unlock_db_structure_read();
+
+            return $result;
+        }
 
         // Check if plugin has dynamic structure models
-        elseif( ($models_arr = $this->get_models())
-             && is_array( $models_arr ) )
+        if( ($models_arr = $this->get_models())
+         && is_array( $models_arr ) )
         {
             foreach( $models_arr as $model_name )
             {
@@ -452,14 +459,23 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     else
                         $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
 
+                    PHS_Maintenance::unlock_db_structure_read();
+
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error loading plugin model ['.$model_name.']: '.$this->get_error_message() );
 
                     return false;
                 }
 
-                if( $model_obj->dynamic_table_structure() )
-                    return $this->update( $db_details['version'], $this->get_plugin_version() );
+                if( $model_obj->dynamic_table_structure() ) {
+                    $result = $this->update($db_details['version'], $this->get_plugin_version());
+
+                    PHS_Maintenance::unlock_db_structure_read();
+
+                    return $result;
+                }
             }
+
+            PHS_Maintenance::unlock_db_structure_read();
         }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] All ok' );
@@ -1374,10 +1390,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
          || !$this->install_agent_jobs() )
             return false;
 
+        PHS_Maintenance::lock_db_structure_read();
+
         if( !$this->custom_update( $old_version, $new_version ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom update functionality failed.' ) );
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error in plugin custom update functionality: '.$this->get_error_message() );
 
@@ -1386,6 +1406,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if( !$this->_load_plugins_instance() )
         {
+            PHS_Maintenance::unlock_db_structure_read();
+
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error instantiating plugins model.' );
 
             $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
@@ -1403,6 +1425,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                         $this->copy_static_error( self::ERR_UPDATE );
                     else
                         $this->set_error( self::ERR_UPDATE, self::_t( 'Error loading model %s.', $model_name ) );
+
+                    PHS_Maintenance::unlock_db_structure_read();
 
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error loading plugin model ['.$model_name.']: '.$this->get_error_message() );
 
@@ -1431,6 +1455,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     else
                         $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model [%s] from plugin [%s]', $model_obj->instance_name(), $this->instance_name() ) );
 
+                    PHS_Maintenance::unlock_db_structure_read();
+
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error updating plugin model ['.$model_name.']: '.$this->get_error_message() );
 
                     return false;
@@ -1442,6 +1468,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom after update functionality failed.' ) );
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error in plugin custom update functionality: '.$this->get_error_message() );
 
@@ -1463,10 +1491,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             else
                 $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving plugin details to database.' ) );
 
+            PHS_Maintenance::unlock_db_structure_read();
+
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error saving plugin details to database: '.$this->get_error_message() );
 
             return false;
         }
+
+        PHS_Maintenance::unlock_db_structure_read();
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] DONE Updating plugin!' );
 

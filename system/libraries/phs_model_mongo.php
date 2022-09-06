@@ -535,7 +535,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
                   and !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
             {
                 // delete existing extra indexes
-                if( !$this->delete_table_extra_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
+                if( !$this->drop_table_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) )
                     return false;
             } else
             {
@@ -556,7 +556,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
                         continue;
                     }
 
-                    $this->delete_table_extra_index( $index_name, $flow_params );
+                    $this->drop_table_index( $index_name, $flow_params );
                 }
 
                 // add new extra indexes after we did the diff with existing ones...
@@ -609,7 +609,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_columns_as_definition_for_model( $flow_params = false, $force = false )
+    protected function _get_table_definition_for_model_from_database( $flow_params = false, $force = false )
     {
         $this->reset_error();
 
@@ -1131,7 +1131,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         );
     }
 
-    private function _fields_changed( $field1_arr, $field2_arr )
+    private function _field_definition_changed( $field1_arr, $field2_arr )
     {
         if( !($field1_arr = $this->_validate_field( $field1_arr ))
          || !($field2_arr = $this->_validate_field( $field2_arr )) )
@@ -1691,7 +1691,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function delete_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
+    protected function drop_table_indexes_from_array( $indexes_array, $flow_params = false )
     {
         $this->reset_error();
 
@@ -1703,14 +1703,14 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             if( empty( $index_arr ) or !is_array( $index_arr ) )
                 continue;
 
-            if( !$this->delete_table_extra_index( $index_name, $flow_params ) )
+            if( !$this->drop_table_index( $index_name, $flow_params ) )
                 return false;
         }
 
         return true;
     }
 
-    public function delete_table_extra_index( $index_name, $flow_params = false )
+    public function drop_table_index( $index_name, $flow_params = false )
     {
         $this->reset_error();
 

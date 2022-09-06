@@ -22,7 +22,7 @@ class PHS_Action_Index extends PHS_Action
         PHS::page_settings( 'page_title', $this->_pt( 'Welcome' ) );
 
         $template = 'index';
-        $template_data = array();
+        $template_data = [];
 
         $hook_args = PHS_Hooks::default_page_location_hook_args();
         $hook_args['page_template'] = $template;
@@ -39,7 +39,6 @@ class PHS_Action_Index extends PHS_Action
             if( isset( $new_hook_args['new_page_template_args'] ) && $new_hook_args['new_page_template_args'] !== false )
                 $template_data = $new_hook_args['new_page_template_args'];
         }
-
 
         return $this->quick_render_template( $template, $template_data );
     }

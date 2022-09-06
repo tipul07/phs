@@ -400,6 +400,11 @@ class Bbcode extends PHS_Library
         return $result_val;
     }
 
+    /**
+     * @param false|array $attr
+     *
+     * @return array|false
+     */
     public function bb_editor_attributes( $attr = false )
     {
         if( $attr === false )
@@ -413,7 +418,7 @@ class Bbcode extends PHS_Library
 
         return $this->_editor_attributes;
     }
-    
+
     public function bb_editor_replace_vars( $str )
     {
         // replace attributes...
@@ -478,6 +483,12 @@ class Bbcode extends PHS_Library
         return false;
     }
 
+    /**
+     * @param string $func_name
+     * @param false|array $func_definition
+     *
+     * @return bool
+     */
     public function define_callback_function( $func_name, $func_definition = false )
     {
         $this->reset_error();
@@ -495,12 +506,12 @@ class Bbcode extends PHS_Library
         }
 
         $default_function_params = $this->default_function_definition_params();
-        if( empty( $func_definition ) or !is_array( $func_definition ) )
+        if( empty( $func_definition ) || !is_array( $func_definition ) )
             $func_definition = $default_function_params;
         else
             $func_definition = self::validate_array( $func_definition, $default_function_params );
 
-        if( empty( $func_definition['callable'] ) or !@is_callable( $func_definition['callable'] ) )
+        if( empty( $func_definition['callable'] ) || !@is_callable( $func_definition['callable'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a callable for function %s.', $func_name ) );
             return false;
@@ -646,7 +657,7 @@ class Bbcode extends PHS_Library
     {
         $shortcode = strtolower( trim( $shortcode ) );
         if( empty( $shortcode )
-         or empty( $shortcode_arr ) or !is_array( $shortcode_arr ) )
+         || empty( $shortcode_arr ) || !is_array( $shortcode_arr ) )
             return false;
 
         $shortcode_arr = self::validate_array( $shortcode_arr, self::default_shortcode_definition_fields() );
@@ -662,12 +673,17 @@ class Bbcode extends PHS_Library
         return $shortcode_arr;
     }
 
+    /**
+     * @param false|array $tagnames
+     *
+     * @return string
+     */
     public function get_shortcode_regex( $tagnames = false )
     {
-        if( empty( $tagnames ) or !is_array( $tagnames ) )
+        if( empty( $tagnames ) || !is_array( $tagnames ) )
             $tagnames = $this->get_bb_shortcodes();
 
-        $tagregexp = join( '|', array_map( 'preg_quote', $tagnames ) );
+        $tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 
         return '/\[(|\/)('.$tagregexp.')(|\s+[^\[\]]*)(|\/)\]/miU';
     }
@@ -675,12 +691,12 @@ class Bbcode extends PHS_Library
     public function parse_attributes( $text )
     {
         if( empty( $text ) )
-            return array();
+            return [];
 
         $pattern = '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|(\S+)(?:\s|$)/';
-        $atts = array();
+        $atts = [];
         $text = preg_replace( "/[\x{00a0}\x{200b}]+/u", " ", $text );
-        
+
         if( preg_match_all( $pattern, $text, $match, PREG_SET_ORDER ) )
         {
             foreach( $match as $m )
@@ -691,7 +707,7 @@ class Bbcode extends PHS_Library
                     $atts[strtolower($m[3])] = stripcslashes($m[4]);
                 elseif( !empty( $m[5] ) )
                     $atts[strtolower($m[5])] = stripcslashes($m[6]);
-                elseif( isset( $m[7] ) and $m[7] != '' )
+                elseif( isset( $m[7] ) && $m[7] !== '' )
                     $atts[] = stripcslashes( $m[7] );
                 elseif( isset( $m[8] ) )
                     $atts[] = stripcslashes( $m[8] );
@@ -703,12 +719,12 @@ class Bbcode extends PHS_Library
 
     private function default_parser_node_definition()
     {
-        return array(
+        return [
             'text' => '',
             'path' => '',
             'shortcode' => false, // false or array with shortcode details
-            'content' => array(),
-        );
+            'content' => [],
+        ];
     }
 
     private function parser_extract_node( $str, $matches_arr, $params = false )
@@ -1132,7 +1148,7 @@ class Bbcode extends PHS_Library
             'style' => '',
         );
     }
-    
+
     public function bb_editor( $text, $params = false )
     {
         if( empty( $params ) or !is_array( $params ) )
@@ -1140,7 +1156,7 @@ class Bbcode extends PHS_Library
 
         if( empty( $params['bb_editor_attributes'] ) or !is_array( $params['bb_editor_attributes'] ) )
             $params['bb_editor_attributes'] = array();
-        
+
         if( empty( $text ) )
             $text = '';
 
