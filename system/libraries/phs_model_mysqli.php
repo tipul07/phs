@@ -194,10 +194,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        if( !empty( $force )
-         && PHS_Maintenance::db_structure_is_locked() )
-            $force = false;
-
         $this->_extract_db_structure( $flow_params, $force );
 
         return (bool)self::get_cached_db_table_structure( $flow_table_name, $my_driver );
@@ -281,7 +277,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
 
         // Re-cache table structure...
-        $this->get_table_columns_as_definition( $flow_params, true );
+        // Do not recache table as we are done with it...
+        // $this->get_table_columns_as_definition( $flow_params, true );
 
         PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -634,7 +631,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
+        // Do not recache the table as we are done with it
+        // $this->get_table_columns_as_definition( $flow_params, true );
 
         PHS_Logger::logf( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -1820,6 +1818,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($field_details = $this->_validate_field( $field_details ))
          || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($my_driver = $this->get_model_driver())
          || empty( $mysql_field_arr['field_str'] ) )
         {
             PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
@@ -1865,6 +1864,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
+        // We change cache on the fly...
+        self::cached_db_set_column_definition( $field_name, $field_details, $flow_table_name, $my_driver );
+
         if( !empty( $mysql_field_arr['keys_str'] ) )
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
@@ -1875,9 +1877,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 return false;
             }
         }
-
-        // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
 
         return true;
     }
@@ -1902,6 +1901,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || $field_name === self::EXTRA_INDEXES_KEY
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($my_driver = $this->get_model_driver())
          || empty( $field_details ) || !is_array( $field_details )
          || !($field_details = $this->_validate_field( $field_details ))
          || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
@@ -1964,6 +1964,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
+        if( $field_name !== $db_old_field_name ) {
+            // We change cache on the fly...
+            self::cached_db_remove_column( $db_old_field_name, $flow_table_name, $my_driver );
+            self::cached_db_set_column_definition( $field_name, $field_details, $flow_table_name, $my_driver );
+        }
+
         if( !empty( $params['alter_indexes'] )
          && !empty( $old_field_name )
          && !empty( $old_field_details ) && is_array( $old_field_details )
@@ -1990,9 +1996,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
         }
 
-        // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
-
         return true;
     }
 
@@ -2009,7 +2012,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( empty( $field_name )
          || $field_name === self::T_DETAILS_KEY
          || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($my_driver = $this->get_model_driver()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
             return false;
@@ -2020,14 +2025,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$this->get_flow_table_name( $flow_params ).'` DROP COLUMN IF EXISTS `'.$field_name.'`', $db_connection ) )
+        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN IF EXISTS `'.$field_name.'`', $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
             return false;
         }
 
-        // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
+        // We change cache on the fly...
+        self::cached_db_remove_column( $field_name, $flow_table_name, $my_driver );
 
         return true;
     }
@@ -2045,7 +2050,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( empty( $field_name )
          || $field_name === self::T_DETAILS_KEY
          || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params )) )
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($my_driver = $this->get_model_driver()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
             return false;
@@ -2056,14 +2063,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'DROP INDEX `'.$field_name.'` ON `'.$this->get_flow_table_name( $flow_params ).'`', $db_connection ) )
+        if( !db_query( 'DROP INDEX `'.$field_name.'` ON `'.$flow_table_name.'`', $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop index on [%s].', $field_name ) );
             return false;
         }
 
-        // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
+        // We change cache on the fly...
+        self::cached_db_drop_column_index( $field_name, $flow_table_name, $my_driver );
 
         return true;
     }
@@ -2086,6 +2093,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || $field_name === self::EXTRA_INDEXES_KEY
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($my_driver = $this->get_model_driver())
          || empty( $field_details ) || !is_array( $field_details )
          || !($field_details = $this->_validate_field( $field_details ))
          || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
@@ -2107,8 +2115,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        // Force reloading table columns to be sure changes are not cached
-        $this->get_table_columns_as_definition( $flow_params, true );
+        // We change cache on the fly...
+        self::cached_db_add_column_index( $field_name, $flow_table_name, $my_driver );
 
         return true;
     }

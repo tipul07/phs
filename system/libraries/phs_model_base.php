@@ -284,13 +284,86 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * @param $structure
+     * @param array $structure
      *
      * @return bool
      */
     protected static function cached_db_table_structure_has_fields( $structure )
     {
         return (empty( $structure ) || !is_array( $structure ) || empty( $structure[self::T_DETAILS_KEY] ) || count( $structure ) > 1);
+    }
+
+    /**
+     * @param string $column
+     * @param string $table_name
+     * @param string $driver
+     *
+     * @return bool
+     */
+    protected static function cached_db_add_column_index( $column, $table_name, $driver )
+    {
+        if( empty( self::$tables_arr[$driver][$table_name][$column] )
+         || !is_array( self::$tables_arr[$driver][$table_name][$column] ) )
+            return false;
+
+        self::$tables_arr[$driver][$table_name][$column]['index'] = true;
+
+        return true;
+    }
+
+    /**
+     * @param string $column
+     * @param string $table_name
+     * @param string $driver
+     *
+     * @return bool
+     */
+    protected static function cached_db_drop_column_index( $column, $table_name, $driver )
+    {
+        if( empty( self::$tables_arr[$driver][$table_name][$column] )
+         || !is_array( self::$tables_arr[$driver][$table_name][$column] ) )
+            return false;
+
+        self::$tables_arr[$driver][$table_name][$column]['index'] = false;
+
+        return true;
+    }
+
+    /**
+     * @param string $column
+     * @param array $definition
+     * @param string $table_name
+     * @param string $driver
+     *
+     * @return bool
+     */
+    protected static function cached_db_set_column_definition( $column, $definition, $table_name, $driver )
+    {
+        if( empty( self::$tables_arr[$driver][$table_name] )
+         || !is_array( self::$tables_arr[$driver][$table_name] ) )
+            return false;
+
+        self::$tables_arr[$driver][$table_name][$column] = $definition;
+
+        return true;
+    }
+
+    /**
+     * @param string $column
+     * @param string $table_name
+     * @param string $driver
+     *
+     * @return bool
+     */
+    protected static function cached_db_remove_column( $column, $table_name, $driver )
+    {
+        if( empty( self::$tables_arr[$driver][$table_name][$column] )
+         || !is_array( self::$tables_arr[$driver][$table_name][$column] ) )
+            return true;
+
+        unset( self::$tables_arr[$driver][$table_name][$column] );
+
+        return true;
     }
 
     /**
