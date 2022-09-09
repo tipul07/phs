@@ -20,13 +20,13 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     // String values will be used when generating instance_id
     private static $INSTANCE_TYPES_ARR = [
-        self::INSTANCE_TYPE_PLUGIN => [ 'title' => 'Plugin', 'dir_name' => '' ],
-        self::INSTANCE_TYPE_MODEL => [ 'title' => 'Model', 'dir_name' => 'models' ],
-        self::INSTANCE_TYPE_CONTROLLER => [ 'title' => 'Controller', 'dir_name' => 'controllers' ],
-        self::INSTANCE_TYPE_ACTION => [ 'title' => 'Action', 'dir_name' => 'actions' ],
-        self::INSTANCE_TYPE_VIEW => [ 'title' => 'View', 'dir_name' => 'views' ],
-        self::INSTANCE_TYPE_SCOPE => [ 'title' => 'Scope', 'dir_name' => 'scopes' ],
-        self::INSTANCE_TYPE_CONTRACT => [ 'title' => 'Contract', 'dir_name' => 'contracts' ],
+        self::INSTANCE_TYPE_PLUGIN => [ 'title' => 'Plugin', 'dir_name' => '', 'phs_loader_method' => 'load_plugin' ],
+        self::INSTANCE_TYPE_MODEL => [ 'title' => 'Model', 'dir_name' => 'models', 'phs_loader_method' => 'load_model' ],
+        self::INSTANCE_TYPE_CONTROLLER => [ 'title' => 'Controller', 'dir_name' => 'controllers', 'phs_loader_method' => 'load_contoller' ],
+        self::INSTANCE_TYPE_ACTION => [ 'title' => 'Action', 'dir_name' => 'actions', 'phs_loader_method' => 'load_action' ],
+        self::INSTANCE_TYPE_VIEW => [ 'title' => 'View', 'dir_name' => 'views', 'phs_loader_method' => 'load_view' ],
+        self::INSTANCE_TYPE_SCOPE => [ 'title' => 'Scope', 'dir_name' => 'scopes', 'phs_loader_method' => 'load_scope' ],
+        self::INSTANCE_TYPE_CONTRACT => [ 'title' => 'Contract', 'dir_name' => 'contracts', 'phs_loader_method' => 'load_contract' ],
     ];
 
     protected static $instances = [];
@@ -699,6 +699,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         $return_arr = self::empty_instance_details();
+        $return_arr['loader_method'] = (!empty( $instance_type_details['phs_loader_method'] )?$instance_type_details['phs_loader_method']:false);
         $return_arr['plugin_name'] = $plugin_name;
         $return_arr['instance_type'] = $instance_type;
         $return_arr['instance_type_accepts_subdirs'] = $instance_type_accepts_subdirs;

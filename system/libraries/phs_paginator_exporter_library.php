@@ -7,7 +7,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
     // Registry used when exporting data
-    private $_export_registry = array();
+    private $_export_registry = [];
 
     // Paginator object which started export
     /** @var bool|\phs\libraries\PHS_Paginator $_paginator_obj */
@@ -23,11 +23,14 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      */
     abstract public function record_to_buffer( $record_data, $params = false );
 
-    function __construct( $init_params = false )
+    /**
+     * @param false|array $init_params
+     */
+    public function __construct( $init_params = false )
     {
         parent::__construct();
 
-        if( !empty( $init_params ) and is_array( $init_params ) )
+        if( !empty( $init_params ) && is_array( $init_params ) )
             $this->export_registry( self::validate_array( $init_params, $this->default_export_registry() ) );
         else
             $this->export_registry( $this->default_export_registry() );
@@ -44,7 +47,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
             $export_registry = $this->default_export_registry();
 
         if( empty( $export_registry['export_to'] )
-         or !self::valid_export_to( $export_registry['export_to'] ) )
+         || !self::valid_export_to( $export_registry['export_to'] ) )
             $export_registry['export_to'] = self::EXPORT_TO_BROWSER;
 
         if( empty( $export_registry['export_file_name'] ) )
@@ -57,9 +60,9 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         {
             case self::EXPORT_TO_FILE:
                 if( empty( $export_registry['export_file_dir'] )
-                 or !($export_file_dir = rtrim( $export_registry['export_file_dir'], '/\\' ))
-                 or !@is_dir( $export_file_dir )
-                 or !@is_writable( $export_file_dir ) )
+                 || !($export_file_dir = rtrim( $export_registry['export_file_dir'], '/\\' ))
+                 || !@is_dir( $export_file_dir )
+                 || !@is_writable( $export_file_dir ) )
                 {
                     $this->set_error( self::ERR_PARAMETERS, self::_t( 'No directory provided to save export data to or no rights to write in that directory.' ) );
                     $this->record_error( false, $this->get_error_message() );
@@ -74,10 +77,16 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                     return false;
                 }
 
-                $this->export_registry( array(
+                // Byte Order Mark
+                if( !empty( $export_registry['force_bom_bytes'] ) )
+                {
+                    @fwrite( $fd, chr(0xEF) . chr(0xBB) . chr(0xBF) );
+                }
+
+                $this->export_registry( [
                     'export_full_file_path' => $full_file_path,
                     'export_fd' => $fd,
-                ) );
+                ]);
             break;
 
             case self::EXPORT_TO_BROWSER:
@@ -99,11 +108,17 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
 
                 if( !empty( $export_registry['export_mime_type'] ) )
                     @header( 'Content-Type: '.$export_registry['export_mime_type'].(!empty( $export_registry['export_encoding'] )?';charset='.$export_registry['export_encoding']:'') );
+
+                // Byte Order Mark
+                if( !empty( $export_registry['force_bom_bytes'] ) )
+                {
+                    echo chr(0xEF) . chr(0xBB) . chr(0xBF);
+                }
             break;
         }
 
-        if( false and $export_registry['export_encoding']
-        and @function_exists( 'mb_internal_encoding' ) )
+        if( false && $export_registry['export_encoding']
+         && @function_exists( 'mb_internal_encoding' ) )
         {
             if( ($export_original_encoding = @mb_internal_encoding()) )
             {
@@ -128,8 +143,8 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      */
     public function record_to_output( $record_data )
     {
-        if( empty( $record_data ) or !is_array( $record_data )
-         or !isset( $record_data['record_buffer'] ) )
+        if( empty( $record_data ) || !is_array( $record_data )
+         || !isset( $record_data['record_buffer'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Bad record data to export.' ) );
             $this->record_error( $record_data, $this->get_error_message() );
@@ -137,7 +152,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         }
 
         if( !($paginator_obj = $this->paginator_obj())
-         or !($export_registry = $this->export_registry()) )
+         || !($export_registry = $this->export_registry()) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Exporter setup failure.' ) );
             $this->record_error( $record_data, $this->get_error_message() );
@@ -145,14 +160,14 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         }
 
         if( empty( $export_registry['export_to'] )
-         or !self::valid_export_to( $export_registry['export_to'] ) )
+         || !self::valid_export_to( $export_registry['export_to'] ) )
             return true;
 
         switch( $export_registry['export_to'] )
         {
             case self::EXPORT_TO_FILE:
                 if( empty( $export_registry['export_fd'] )
-                 or !@is_resource( $export_registry['export_fd'] ) )
+                 || !@is_resource( $export_registry['export_fd'] ) )
                 {
                     $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid file descriptor for export.' ) );
                     $this->record_error( $record_data, $this->get_error_message() );
@@ -179,12 +194,12 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     public function finish_output()
     {
         if( !($export_registry = $this->export_registry())
-         or empty( $export_registry['export_to'] )
-         or !self::valid_export_to( $export_registry['export_to'] ) )
+         || empty( $export_registry['export_to'] )
+         || !self::valid_export_to( $export_registry['export_to'] ) )
             return true;
 
-        if( false and $export_registry['export_original_encoding']
-        and @function_exists( 'mb_internal_encoding' ) )
+        if( false && $export_registry['export_original_encoding']
+        && @function_exists( 'mb_internal_encoding' ) )
         {
             @mb_internal_encoding( $export_registry['export_original_encoding'] );
         }
@@ -193,7 +208,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         {
             case self::EXPORT_TO_FILE:
                 if( empty( $export_registry['export_fd'] )
-                 or !@is_resource( $export_registry['export_fd'] ) )
+                 || !@is_resource( $export_registry['export_fd'] ) )
                     return true;
 
                 @fclose( $export_registry['export_fd'] );
@@ -212,7 +227,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     }
 
     /**
-     * By default class won't do anything on error. Override this method to log in a file or whatever is required on an error.
+     * By default, class won't do anything on error. Override this method to log in a file or whatever is required on an error.
      *
      * @param bool|array $record_data Record which triggered the error
      * @param string $error_buf Error message
@@ -242,13 +257,15 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         return true;
     }
 
+    /**
+     * @param int $export_to
+     *
+     * @return bool
+     */
     public static function valid_export_to( $export_to )
     {
-        if( empty( $export_to )
-         or !in_array( $export_to, array( self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER ) ) )
-            return false;
-
-        return true;
+        return !empty($export_to)
+               && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);
     }
 
     /**
@@ -258,9 +275,10 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      */
     public function default_export_registry()
     {
-        return array(
+        return [
             // To what encoding should we export (if false it will not do any encodings)
             'export_encoding' => false,
+            'force_bom_bytes' => false, // Use Byte Order Mark at the beginning of the file
             // Where to export the data
             'export_to' => self::EXPORT_TO_BROWSER,
             'export_file_dir' => '',
@@ -278,7 +296,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
             'finish_output_params' => false,
             'record_to_output_params' => false,
             'record_to_buffer_params' => false,
-        );
+        ];
     }
 
     public function reset_export_registry()
@@ -289,17 +307,17 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     /**
      * Set or retrieve values from export settings array
      *
-     * @param null|string $key Null to return full array or a string which is the key to set a value or array key of value to be returned
+     * @param null|string|array $key Null to return full array, a string which is the key to set a value or array key of value to be returned
      * @param null|mixed $val Null or a value to be set for specified key
      *
      * @return array|bool|null Set or retrieve values from export settings array
      */
     public function export_registry( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null )
             return $this->_export_registry;
 
-        if( $key !== null and $val === null )
+        if( $key !== null && $val === null )
         {
             if( is_array( $key ) )
             {
@@ -310,13 +328,13 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 return $this->_export_registry;
             }
 
-            if( is_string( $key ) and isset( $this->_export_registry[$key] ) )
+            if( is_string( $key ) && isset( $this->_export_registry[$key] ) )
                 return $this->_export_registry[$key];
 
             return null;
         }
 
-        if( is_string( $key ) and isset( $this->_export_registry[$key] ) )
+        if( is_string( $key ) && isset( $this->_export_registry[$key] ) )
         {
             $this->_export_registry[$key] = $val;
             return true;
