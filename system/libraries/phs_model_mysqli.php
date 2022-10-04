@@ -517,6 +517,19 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             $fields_found_in_old_structure[$field_name] = true;
 
+            // Check if index settings changed...
+            if( ($field_definition['index'] xor $db_table_definition[$field_name]['index'])
+             // Column had index on it before
+             && !empty( $db_table_definition[$field_name]['index'] )
+             && !$this->alter_table_drop_column_index( $field_name, $flow_params ) )
+            {
+                PHS_Logger::logf( 'Error removing index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                if( !$this->has_error() )
+                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error removing index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+
+                return false;
+            }
+
             $alter_params = $field_extra_params;
             $alter_params['alter_indexes'] = false;
 
@@ -537,23 +550,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             // Check if index settings changed...
             if( ($field_definition['index'] xor $db_table_definition[$field_name]['index'])
-             && (
-                    // Column had index on it before
-                    (!empty( $db_table_definition[$field_name]['index'] )
-                     && !$this->alter_table_drop_column_index( $field_name, $flow_params ))
-                    ||
-                    // Column has index on it now
-                    (!empty( $field_definition['index'] )
-                     && !$this->alter_table_add_column_index( $field_name, $field_definition, $flow_params ))
-                )
-            )
+             // Column has index on it now
+             && !empty( $field_definition['index'] )
+             && !$this->alter_table_add_column_index( $field_name, $field_definition, $flow_params ) )
             {
+                PHS_Logger::logf( 'Error adding index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
                 if( !$this->has_error() )
-                {
-                    PHS_Logger::logf( 'Error updating index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
-
-                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
-                }
+                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
 
                 return false;
             }
@@ -2025,7 +2028,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN IF EXISTS `'.$field_name.'`', $db_connection ) )
+        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
             return false;
