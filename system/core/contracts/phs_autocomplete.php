@@ -56,7 +56,7 @@ class PHS_Contract_Autocomplete extends PHS_Contract
             'total_items' => [
                 'title' => 'Total number of items',
                 'description' => 'Total number of items that matched search criteria',
-                'recurring_key_type' => PHS_Params::T_INT,
+                'type' => PHS_Params::T_INT,
             ],
         ];
     }
