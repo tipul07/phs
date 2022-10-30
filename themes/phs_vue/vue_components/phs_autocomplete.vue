@@ -1,6 +1,6 @@
 <template>
 <v-select label="listing_title" :placeholder="placeholder" :disabled="disabled"
-          v-model="localval"
+          v-model="localval" :filterable="false"
           :options="options" @search="onsearch">
     <template v-slot:no-options="{ search, searching, loading }">
         <div v-if="searching || loading" v-html="searchNoResultsText" style="opacity: 0.7;"></div>
