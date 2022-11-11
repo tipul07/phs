@@ -591,7 +591,7 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow['raw_response_headers'] = [];
         }
 
-        $lower_to_raw_arr = false;
+        $lower_to_raw_arr = [];
         foreach( $headers_arr as $key => $val )
         {
             $lower_key = strtolower( trim( $key ) );
