@@ -2705,6 +2705,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         else
             $params['return_query_string'] = (!empty( $params['return_query_string'] ));
 
+        $params['offset'] = (empty( $params['offset'] )?0:(int)$params['offset']);
+
         if( !isset( $params['limit'] )
          || $params['result_type'] === 'single' )
             $params['limit'] = 1;
@@ -2731,7 +2733,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
                (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
                (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-               (isset( $params['limit'] )?' LIMIT 0, '.$params['limit']:'');
+               (isset( $params['limit'] )?' LIMIT '.$params['offset'].', '.$params['limit']:'');
 
         $qid = false;
         $item_count = 0;
