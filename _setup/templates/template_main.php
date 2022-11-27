@@ -25,11 +25,11 @@ use \phs\libraries\PHS_Hooks;
     <div id="content">
         <?php
         if( ($notifications_arr = $this->get_context( 'notifications' ))
-        and is_array( $notifications_arr ) )
+         && is_array( $notifications_arr ) )
         {
             foreach( array( 'error', 'success', 'notice' ) as $notification_type )
             {
-                if( !empty( $notifications_arr[$notification_type] ) and is_array( $notifications_arr[$notification_type] ) )
+                if( !empty( $notifications_arr[$notification_type] ) && is_array( $notifications_arr[$notification_type] ) )
                 {
                     ?><div class="notification_container notification_<?php echo $notification_type?>"><ul><?php
                     foreach( $notifications_arr[$notification_type] as $error_msg )

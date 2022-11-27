@@ -19,11 +19,6 @@ final class PHS extends PHS_Registry
           ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012,
           ERR_LOAD_CONTRACT = 2013;
 
-    // How much will an update token be available in seconds
-    const UPDATE_TOKEN_LIFETIME = 86400;
-    // Update token parameter names
-    const PARAM_UPDATE_TOKEN_HASH = '_phs_uth', PARAM_UPDATE_TOKEN_PUBKEY = '_phs_upk';
-
     const ACTION_DIR_ACTION_SEPARATOR = '__';
 
     const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
@@ -1368,62 +1363,6 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::update_script();
     }
 
-    public static function generate_framework_update_token()
-    {
-        $pub_key = time() + self::UPDATE_TOKEN_LIFETIME;
-        $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
-        if( @function_exists( 'hash' )
-         && ($hash_algos = @hash_algos())
-         && in_array( 'sha256', $hash_algos, true ) )
-            $hashed_str = hash( 'sha256', $clean_str );
-        else
-            $hashed_str = md5( $clean_str );
-
-        return [
-            'pub_key' => $pub_key,
-            'hash' => $hashed_str,
-        ];
-    }
-
-    public static function validate_framework_update_params( $pub_key, $hash )
-    {
-        $pub_key = (int)$pub_key;
-        if( empty( $pub_key ) || empty( $hash )
-         || !is_string( $hash )
-         || $pub_key < time() )
-            return false;
-
-        $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
-        if( @function_exists( 'hash' )
-         && ($hash_algos = @hash_algos())
-         && @in_array( 'sha256', $hash_algos, true ) )
-        {
-            // hash_equals available in PHP >= 5.6.0
-            $generated_hash = hash( 'sha256', $clean_str );
-            if( @function_exists( 'hash_equals' ) )
-                return (@hash_equals( $generated_hash, $hash ) ? true : false);
-
-            return ($generated_hash === $hash);
-        }
-
-        return (md5( $clean_str ) === $hash);
-    }
-
-    public static function get_framework_update_url_with_token()
-    {
-        $token = self::generate_framework_update_token();
-
-        $args = [
-            self::PARAM_UPDATE_TOKEN_HASH => $token['hash'],
-            self::PARAM_UPDATE_TOKEN_PUBKEY => $token['pub_key'],
-        ];
-
-        if( !($query_string = @http_build_query( $args )) )
-            $query_string = '';
-
-        return self::get_update_script_url( true ).'?'.$query_string;
-    }
-
     public static function current_url()
     {
         if( !($plugin = self::get_data( self::ROUTE_PLUGIN )) )
@@ -2214,7 +2153,7 @@ final class PHS extends PHS_Registry
         if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_MODEL, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
@@ -2254,7 +2193,7 @@ final class PHS extends PHS_Registry
             $plugin = false;
 
         // Views are not singletons
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
         {
             if( $plugin === false )
             {
@@ -2269,7 +2208,7 @@ final class PHS extends PHS_Registry
             self::st_reset_error();
 
             // We tried loading plugin view, try again with a core view...
-            if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
+            if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
             {
                 if( !self::st_has_error() )
                     self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin) ) );
@@ -2300,7 +2239,7 @@ final class PHS extends PHS_Registry
         if( $plugin === PHS_Instantiable::CORE_PLUGIN )
             $plugin = false;
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_CONTROLLER, self::_t( 'Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
@@ -2353,7 +2292,7 @@ final class PHS extends PHS_Registry
             $action_dir = str_replace( '_', '/', $action_dir );
 
         /** @var \phs\libraries\PHS_Action */
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION, true, $action_dir )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION, true, $action_dir )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_ACTION,
@@ -2409,7 +2348,7 @@ final class PHS extends PHS_Registry
             $contract_dir = str_replace( '_', '/', $contract_dir );
 
         /** @var \phs\libraries\PHS_Action */
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_CONTRACT,
@@ -2442,7 +2381,7 @@ final class PHS extends PHS_Registry
             $plugin = false;
 
         /** @var \phs\PHS_Scope */
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_SCOPE, self::_t( 'Couldn\'t obtain instance for scope %s from plugin %s .', $scope, (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
@@ -2475,7 +2414,7 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Plugin_'.ucfirst( strtolower( $plugin_safe_name ) );
 
-        if( !($instance_obj = PHS_Instantiable::get_instance( $class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_LOAD_PLUGIN, self::_t( 'Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name ) );
@@ -2723,8 +2662,23 @@ final class PHS extends PHS_Registry
         // Plugin might not have even directory created meaning no script files
         if( !@is_dir( $instance_details['instance_path'] )
          || !@is_readable( $instance_details['instance_path'] )
-         || !@file_exists( $instance_details['instance_path'].$instance_details['instance_json_file'] )
-         || !($json_str = @file_get_contents( $instance_details['instance_path'].$instance_details['instance_json_file'] ))
+         || !($json_arr = self::read_plugin_json_details( $instance_details['instance_path'].$instance_details['instance_json_file'] )) )
+            return [];
+
+        return $json_arr;
+    }
+
+    /**
+     * @param string $json_file_full_path
+     *
+     * @return array
+     */
+    public static function read_plugin_json_details( $json_file_full_path )
+    {
+        // Plugin might not have even directory created meaning no script files
+        if( !@file_exists( $json_file_full_path )
+         || !@is_readable( $json_file_full_path )
+         || !($json_str = @file_get_contents( $json_file_full_path ))
          || !($json_arr = @json_decode( $json_str, true )) )
             return [];
 

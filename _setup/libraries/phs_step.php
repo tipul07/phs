@@ -18,7 +18,7 @@ abstract class PHS_Step extends PHS_Registry
 
     abstract protected function render_step_interface( $data = false );
 
-    function __construct( $setup_inst = false )
+    public function __construct( $setup_inst = false )
     {
         parent::__construct();
 
@@ -28,7 +28,7 @@ abstract class PHS_Step extends PHS_Registry
     private function _save_common_config_line_details_before( $fil, $line_arr )
     {
         if( empty( $fil )
-         or empty( $line_arr ) or !is_array( $line_arr ) )
+         || empty( $line_arr ) || !is_array( $line_arr ) )
             return false;
 
         $did_write_something = false;
@@ -36,17 +36,17 @@ abstract class PHS_Step extends PHS_Registry
         if( isset( $line_arr['line_comment'] ) )
         {
             $did_write_something = true;
-            @fputs( $fil, '// '.str_replace( "\n", '', $line_arr['line_comment'] ).' '."\n" );
+            @fwrite( $fil, '// '.str_replace( "\n", '', $line_arr['line_comment'] ).' '."\n" );
         }
 
         if( isset( $line_arr['block_comment'] ) )
         {
             $did_write_something = true;
-            @fputs( $fil, "\n\n".
-                        '//'."\n".
-                        '// '.trim( str_replace( "\n", "\n// ", $line_arr['block_comment'] ) )."\n".
-                        '//'."\n".
-                        "\n" );
+            @fwrite( $fil, "\n\n".
+                           '//'."\n".
+                           '// '.trim( str_replace( "\n", "\n// ", $line_arr['block_comment'] ) )."\n".
+                           '//'."\n".
+                           "\n" );
         }
 
         return $did_write_something;
@@ -55,14 +55,14 @@ abstract class PHS_Step extends PHS_Registry
     private function _save_common_config_line_details_after( $fil, $line_arr )
     {
         if( empty( $fil )
-         or empty( $line_arr ) or !is_array( $line_arr ) )
+         || empty( $line_arr ) || !is_array( $line_arr ) )
             return false;
 
         $did_write_something = false;
         if( isset( $line_arr['quick_comment'] ) )
         {
             $did_write_something = true;
-            @fputs( $fil, ' // '.str_replace( "\n", '', $line_arr['quick_comment'] ) );
+            @fwrite( $fil, ' // '.str_replace( "\n", '', $line_arr['quick_comment'] ) );
         }
 
         return $did_write_something;
@@ -72,7 +72,7 @@ abstract class PHS_Step extends PHS_Registry
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
         {
             $this->set_error( self::ERR_PARAMETERS, 'Invalid parameters sent to save config file method.' );
             return false;
@@ -84,38 +84,38 @@ abstract class PHS_Step extends PHS_Registry
             return false;
         }
 
-        if( !($fil = @fopen( PHS_SETUP_CONFIG_DIR.$config_file, 'w' )) )
+        if( !($fil = @fopen( PHS_SETUP_CONFIG_DIR.$config_file, 'wb')) )
         {
             $this->set_error( self::ERR_PARAMETERS, 'Couldn\'t create config file with write rights ('.PHS_SETUP_CONFIG_DIR.$config_file.'). Please make sure PHP has rights to write in that file.' );
             return false;
         }
 
-        @fputs( $fil, '<?php'."\n\n" );
+        @fwrite( $fil, '<?php'."\n\n" );
 
         if( ($step_details = $this->step_details()) )
         {
-            @fputs( $fil, '//'."\n".
-                          '// '.$step_details['title']."\n".
-                          '// '.str_replace( "\n", ' ', $step_details['description'] )."\n".
-                          '//'."\n\n" );
+            @fwrite( $fil, '//'."\n".
+                           '// '.$step_details['title']."\n".
+                           '// '.str_replace( "\n", ' ', $step_details['description'] )."\n".
+                           '//'."\n\n" );
         }
 
         foreach( $params as $definition_block )
         {
-            if( empty( $definition_block ) or !is_array( $definition_block ) )
+            if( empty( $definition_block ) || !is_array( $definition_block ) )
                 continue;
 
             foreach( $definition_block as $block_type => $block_arr )
             {
                 if( empty( $block_arr )
-                 or !in_array( $block_type, array( 'defines', 'raw' ) ) )
+                 || !in_array( $block_type, ['defines', 'raw']) )
                     continue;
 
                 switch( $block_type )
                 {
                     case 'raw':
                         if( !is_array( $block_arr ) )
-                            $block_arr = array( 'value' => $block_arr );
+                            $block_arr = ['value' => $block_arr];
 
                         $did_write_something = false;
 
@@ -125,29 +125,29 @@ abstract class PHS_Step extends PHS_Registry
                         if( isset( $block_arr['value'] ) )
                         {
                             $did_write_something = true;
-                            @fputs( $fil, $block_arr['value'] );
+                            @fwrite( $fil, $block_arr['value'] );
                         }
 
                         if( $this->_save_common_config_line_details_after( $fil, $block_arr ) )
                             $did_write_something = true;
 
                         if( $did_write_something )
-                            @fputs( $fil, "\n" );
+                            @fwrite( $fil, "\n" );
                     break;
 
                     case 'defines':
-                        if( empty( $block_arr ) or !is_array( $block_arr ) )
+                        if( empty( $block_arr ) || !is_array( $block_arr ) )
                             continue 2;
 
                         foreach( $block_arr as $define_key => $definition_info )
                         {
                             if( !is_array( $definition_info ) )
-                                $definition_info = array( 'value' => $definition_info );
+                                $definition_info = ['value' => $definition_info];
 
                             if( !isset( $definition_info['value'] )
-                            and !isset( $definition_info['raw'] )
-                            and !isset( $definition_info['line_comment'] )
-                            and !isset( $definition_info['block_comment'] ) )
+                             && !isset( $definition_info['raw'] )
+                             && !isset( $definition_info['line_comment'] )
+                             && !isset( $definition_info['block_comment'] ) )
                                 continue;
 
                             $did_write_something = false;
@@ -155,7 +155,7 @@ abstract class PHS_Step extends PHS_Registry
                             if( $this->_save_common_config_line_details_before( $fil, $definition_info ) )
                                 $did_write_something = true;
 
-                            if( isset( $definition_info['value'] ) or isset( $definition_info['raw'] ) )
+                            if( isset( $definition_info['value'] ) || isset( $definition_info['raw'] ) )
                             {
                                 $did_write_something = true;
                                 if( isset( $definition_info['value'] ) )
@@ -170,14 +170,14 @@ abstract class PHS_Step extends PHS_Registry
                                 $did_write_something = true;
 
                             if( $did_write_something )
-                                @fputs( $fil, "\n" );
+                                @fwrite( $fil, "\n" );
                         }
                     break;
                 }
             }
         }
 
-        @fputs( $fil, "\n\n" );
+        @fwrite( $fil, "\n\n" );
 
         @fclose( $fil );
         @fflush( $fil );
@@ -205,10 +205,15 @@ abstract class PHS_Step extends PHS_Registry
         return $this->setup_obj;
     }
 
+    /**
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     public function render( $data = false )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         if( !($step_interface_buf = $this->render_step_interface( $data )) )
             $step_interface_buf = '';

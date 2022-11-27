@@ -1,7 +1,9 @@
 <?php
 
     define( 'PHS_CLI_BIN_DIR', __DIR__.'/../' );
+    define( 'PHS_PATH_FROM_CLI_DIR', @realpath( PHS_CLI_BIN_DIR.'/../' ) );
     define( 'PHS_CLI_APPS_DIR', PHS_CLI_BIN_DIR.'apps/' );
+    define( 'PHS_CLI_APPS_LIBRARIES_DIR', PHS_CLI_APPS_DIR.'libraries/' );
 
     define( 'PHS_PREVENT_SESSION', true );
     define( 'PHS_SCRIPT_SCOPE', 'cli' );

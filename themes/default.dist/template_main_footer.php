@@ -12,15 +12,15 @@
         <?php
         if( PHS_Roles::user_has_role_units( $cuser_arr, PHS_Roles::ROLEU_CONTACT_US ) )
         {
-            ?><a href="<?php echo PHS::url( array( 'a' => 'contact_us' ) )?>" ><?php echo $this::_t( 'Contact Us' )?></a> |<?php
+            ?><a href="<?php echo PHS::url( ['a' => 'contact_us'])?>" ><?php echo $this::_t( 'Contact Us' )?></a> |<?php
         }
         ?>
-        <a href="<?php echo PHS::url( array( 'a' => 'tandc' ) )?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a>
+        <a href="<?php echo PHS::url( ['a' => 'tandc'])?>" ><?php echo $this::_t( 'Terms and Conditions' )?></a>
     </div>
     <?php
     $debug_str = '';
     if( PHS::st_debugging_mode()
-    and ($debug_data = PHS::platform_debug_data()) )
+     && ($debug_data = PHS::platform_debug_data()) )
     {
         $debug_str = ' </br><span class="debug_str"> '.$debug_data['db_queries_count'].' queries, '.
                      ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.

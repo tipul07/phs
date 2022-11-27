@@ -9,10 +9,10 @@ class PHS_Step_finish extends PHS_Step
 {
     public function step_details()
     {
-        return array(
+        return [
             'title' => 'Framework Setup Completed',
             'description' => 'Congratulations you finished setting up framework...',
-        );
+        ];
     }
 
     public function get_config_file()
@@ -30,10 +30,15 @@ class PHS_Step_finish extends PHS_Step
         return true;
     }
 
+    /**
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     protected function render_step_interface( $data = false )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         return PHS_Setup_layout::get_instance()->render( 'step_finish', $data );
     }

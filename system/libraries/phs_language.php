@@ -52,7 +52,7 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * @return bool Returns true if multi language is enabled or false otherwise
+     * @return bool Returns true if multi-language is enabled or false otherwise
      */
     public static function get_multi_language_enabled()
     {
@@ -60,7 +60,7 @@ class PHS_Language extends PHS_Error
     }
 
     /**
-     * @param bool $enabled Whether multi language should be enabled or not
+     * @param bool $enabled Whether multi-language should be enabled or not
      * @return bool Returns multi language enabled value currently set
      */
     public static function set_multi_language( $enabled )
@@ -312,7 +312,7 @@ class PHS_Language extends PHS_Error
 
         $plugin_obj->include_plugin_language_files();
 
-        if( !($result = @forward_static_call_array( array( '\phs\libraries\PHS_Language', '_t' ), func_get_args() )) )
+        if( !($result = @forward_static_call_array( [ '\phs\libraries\PHS_Language', '_t' ], @func_get_args() )) )
             $result = '';
 
         return $result;
@@ -341,7 +341,7 @@ class PHS_Language extends PHS_Error
         if( $numargs > 1 )
             @array_shift( $arg_list );
         else
-            $arg_list = array();
+            $arg_list = [];
 
         return self::language_container()->_t( $index, $arg_list );
     }
@@ -391,7 +391,7 @@ class PHS_Language extends PHS_Error
             @array_shift( $arg_list );
             @array_shift( $arg_list );
         } else
-            $arg_list = array();
+            $arg_list = [];
 
         return self::language_container()->_tl( $index, $lang, $arg_list );
     }

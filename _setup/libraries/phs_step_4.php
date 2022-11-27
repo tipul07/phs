@@ -8,10 +8,10 @@ class PHS_Step_4 extends PHS_Step
 {
     public function step_details()
     {
-        return array(
+        return [
             'title' => $this->_pt( 'Site Security' ),
             'description' => $this->_pt( 'Setting up crypto configuration...' ),
-        );
+        ];
     }
 
     public function get_config_file()
@@ -25,7 +25,7 @@ class PHS_Step_4 extends PHS_Step
             return false;
 
         if( !defined( 'PHS_DEFAULT_CRYPT_KEY' )
-         or !constant( 'PHS_DEFAULT_CRYPT_KEY' ) )
+         || !constant( 'PHS_DEFAULT_CRYPT_KEY' ) )
         {
             $this->add_error_msg( $this->_pt( 'Crypt Key not provided.' ) );
             return false;
@@ -34,7 +34,7 @@ class PHS_Step_4 extends PHS_Step
         global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
         if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR )
-         or !$this->_validate_crypto_internal_keys_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+         || !$this->_validate_crypto_internal_keys_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
         {
             if( $this->has_error() )
                 $this->add_error_msg( $this->get_error_message() );
@@ -65,24 +65,29 @@ class PHS_Step_4 extends PHS_Step
         return true;
     }
 
+    /**
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     protected function render_step_interface( $data = false )
     {
         $this->reset_error();
 
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         $do_generate_keys = PHS_Params::_p( 'do_generate_keys', PHS_Params::T_INT );
         $phs_crypt_key = PHS_Params::_p( 'phs_crypt_key', PHS_Params::T_ASIS );
-        $phs_crypt_internal_keys_arr = PHS_Params::_p( 'phs_crypt_internal_keys_arr', PHS_Params::T_ARRAY, array( 'type' => PHS_Params::T_NOHTML ) );
+        $phs_crypt_internal_keys_arr = PHS_Params::_p( 'phs_crypt_internal_keys_arr', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
 
         $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
 
         if( empty( $phs_crypt_internal_keys_arr )
-         or !is_array( $phs_crypt_internal_keys_arr )
-         or count( $phs_crypt_internal_keys_arr ) != 34 )
-            $phs_crypt_internal_keys_arr = array();
+         || !is_array( $phs_crypt_internal_keys_arr )
+         || count( $phs_crypt_internal_keys_arr ) != 34 )
+            $phs_crypt_internal_keys_arr = [];
 
         if( !empty( $do_generate_keys ) )
             $phs_crypt_internal_keys_arr = $this->_generate_crypto_internal_keys_array();
@@ -90,7 +95,7 @@ class PHS_Step_4 extends PHS_Step
         if( !empty( $do_submit ) )
         {
             if( empty( $phs_crypt_internal_keys_arr )
-             or !is_array( $phs_crypt_internal_keys_arr ) )
+             || !is_array( $phs_crypt_internal_keys_arr ) )
                 $this->add_error_msg( $this->_pt( 'Please provide crypto internal keys array.' ) );
 
             elseif( !($cleaned_keys = $this->_validate_crypto_internal_keys_array( $phs_crypt_internal_keys_arr )) )
@@ -107,12 +112,12 @@ class PHS_Step_4 extends PHS_Step
 
             if( !$this->has_error_msgs() )
             {
-                $defines_arr = array(
-                    'PHS_DEFAULT_CRYPT_KEY' => array(
+                $defines_arr = [
+                    'PHS_DEFAULT_CRYPT_KEY' => [
                         'value' => $phs_crypt_key,
                         'line_comment' => 'Default crypting keys...',
-                    ),
-                );
+                    ],
+                ];
 
                 $crypt_internal_keys_raw_str =
                     "\n".
@@ -128,15 +133,15 @@ class PHS_Step_4 extends PHS_Step
                 $crypt_internal_keys_raw_str .=
                     ');'."\n\n";
 
-                $config_params = array(
-                    array(
+                $config_params = [
+                    [
                         'defines' => $defines_arr,
-                    ),
-                    array(
+                    ],
+                    [
                         'line_comment' => 'Crypting internal keys. If you change this everything crypted will be lost!!!',
                         'raw' => $crypt_internal_keys_raw_str,
-                    ),
-                );
+                    ],
+                ];
 
                 if( $this->save_step_config_file( $config_params ) )
                 {
@@ -165,8 +170,8 @@ class PHS_Step_4 extends PHS_Step
                 $this->add_notice_msg( 'Existing config file loaded...' );
 
                 if( empty( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR )
-                 or !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
-                    $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = array();
+                 || !is_array( $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR ) )
+                    $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR = [];
 
                 $phs_crypt_key = PHS_DEFAULT_CRYPT_KEY;
                 $phs_crypt_internal_keys_arr = $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
@@ -185,7 +190,7 @@ class PHS_Step_4 extends PHS_Step
 
     private function _generate_crypto_internal_keys_array()
     {
-        $internal_keys_arr = array();
+        $internal_keys_arr = [];
         for( $i = 0; $i < 34; $i++ )
         {
             $internal_keys_arr[] = md5( rand( 0, PHP_INT_MAX ).microtime().rand( 0, PHP_INT_MAX ) );
@@ -198,30 +203,30 @@ class PHS_Step_4 extends PHS_Step
     {
         $this->reset_error();
 
-        if( empty( $arr ) or !is_array( $arr ) )
+        if( empty( $arr ) || !is_array( $arr ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Crypto internal keys parameter is not an array.' ) );
             return false;
         }
 
-        if( count( $arr ) != 34 )
+        if( count( $arr ) !== 34 )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Crypto internal keys array should have exactly 34 elements.' ) );
             return false;
         }
 
-        $new_crypto_arr = array();
+        $new_crypto_arr = [];
         $knti = -1;
         foreach( $arr as $key_i => $key_str )
         {
             $knti++;
 
-            if( !empty( $key_str ) and is_string( $key_str ) )
+            if( !empty( $key_str ) && is_string( $key_str ) )
                 $key_str = trim( $key_str );
 
             if( empty( $key_str )
-             or !is_string( $key_str )
-             or !@preg_match( '/[0-9a-f]{32}/i', $key_str ) )
+             || !is_string( $key_str )
+             || !@preg_match( '/[0-9a-f]{32}/i', $key_str ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Index %s of Crypto internal keys array should be a string with hexa values, 32 chars length.', $knti ) );
                 return false;

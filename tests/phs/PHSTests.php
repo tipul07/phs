@@ -505,7 +505,7 @@ class PHSTests extends PHS_Cli
 
         if( false === ($plugins_dirs_arr = $this->get_plugins_as_dirs()) )
         {
-            $this->_echo( self::_t( 'Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message() ) );
+            $this->_echo_error( self::_t( 'Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message() ) );
             return false;
         }
 
