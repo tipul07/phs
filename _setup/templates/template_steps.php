@@ -19,7 +19,7 @@
             continue;
 
         if( !($step_details = $step_obj->step_details()) )
-            $step_details = array();
+            $step_details = [];
 
         if( !($step_passed = $step_obj->step_config_passed()) )
             $step_passed = false;
@@ -61,7 +61,7 @@
 
     /** @var \phs\setup\libraries\PHS_Step $step_obj */
     if( ($step_obj = $this->get_context( 'step_instance' ))
-    and ($step_details = $step_obj->step_details()) )
+     && ($step_details = $step_obj->step_details()) )
     {
         ?>
         <h3><?php echo $step_details['title']?></h3>

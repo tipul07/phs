@@ -4,7 +4,7 @@
     $this->set_context( 'page_title', 'Step 2' );
 
     if( !($db_drivers_arr = $this->get_context( 'db_drivers_arr' )) )
-        $db_drivers_arr = array();
+        $db_drivers_arr = [];
 ?>
 <form id="phs_setup_step2" name="phs_setup_step2" method="post">
 <input type="hidden" name="foobar" value="1" />

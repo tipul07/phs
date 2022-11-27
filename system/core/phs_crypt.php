@@ -141,7 +141,12 @@ class PHS_Crypt extends PHS_Language
         $params['crypting_key'] = $crypting_key;
         $params['internal_keys'] = self::generate_crypt_internal_keys();
 
-        if( !($enc_buf = self::quick_encode( $buf, $params )) )
+        if( !is_string( $buf ) )
+            $buf = '';
+
+        $enc_buf = '';
+        if( $buf !== ''
+         && !($enc_buf = self::quick_encode( $buf, $params )) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::_t( 'Error encrypting buffer.' ) );
             return false;
@@ -159,7 +164,7 @@ class PHS_Crypt extends PHS_Language
      * @param string $crypting_key
      * @param false|array $params
      *
-     * @return false|array
+     * @return false|string
      */
     public static function quick_decode_from_export_json_string( $json_str, $crypting_key, $params = false )
     {

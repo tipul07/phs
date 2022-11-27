@@ -8,11 +8,11 @@ class PHS_Step_1 extends PHS_Step
 {
     public function step_details()
     {
-        return array(
+        return [
             'title' => 'Detect paths and domain',
             'description' => 'Try to detect paths in the system where framework runs and domain. If paths detection fails setup the path manually. '.
                              'Domain is detecting depending on web request done to run setup script.',
-        );
+        ];
     }
 
     public function get_config_file()
@@ -46,10 +46,15 @@ class PHS_Step_1 extends PHS_Step
         return true;
     }
 
+    /**
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     protected function render_step_interface( $data = false )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         $phs_path = PHS_Params::_p( 'phs_path', PHS_Params::T_NOHTML );
@@ -92,7 +97,7 @@ class PHS_Step_1 extends PHS_Step
 
             if( !$this->has_error_msgs() )
             {
-                $defines_arr = array(
+                $defines_arr = [
                     'PHS_PATH' => $phs_path,
                     'PHS_DEFAULT_DOMAIN' => $phs_domain,
                     'PHS_DEFAULT_SSL_DOMAIN' => $phs_ssl_domain,
@@ -101,41 +106,41 @@ class PHS_Step_1 extends PHS_Step
                     'PHS_DEFAULT_SSL_PORT' => $phs_ssl_port,
                     'PHS_DEFAULT_DOMAIN_PATH' => $phs_domain_path,
 
-                    array( 'block_comment' => 'Session definition' ),
-                    'PHS_DEFAULT_SESSION_DIR' => array(
+                    ['block_comment' => 'Session definition'],
+                    'PHS_DEFAULT_SESSION_DIR' => [
                         'raw' => 'PHS_PATH.\'sess/\'',
-                    ),
-                    'PHS_DEFAULT_SESSION_NAME' => array(
+                    ],
+                    'PHS_DEFAULT_SESSION_NAME' => [
                         'value' => $phs_session_name,
                         'quick_comment' => 'Rename this if you use more sites on same domain...',
-                    ),
-                    'PHS_DEFAULT_SESSION_COOKIE_LIFETIME' => array(
+                    ],
+                    'PHS_DEFAULT_SESSION_COOKIE_LIFETIME' => [
                         'raw' => 432000,
                         'quick_comment' => '5 days by default',
-                    ),
+                    ],
                     'PHS_DEFAULT_SESSION_COOKIE_PATH' => '/',
                     'PHS_DEFAULT_SESSION_SAMESITE' => 'Lax',
-                    'PHS_DEFAULT_SESSION_AUTOSTART' => array(
+                    'PHS_DEFAULT_SESSION_AUTOSTART' => [
                         'raw' => 'false',
-                    ),
+                    ],
 
-                    array( 'block_comment' => 'Misc dirs...' ),
-                    'PHS_FRAMEWORK_LOGS_DIR' => array(
+                    ['block_comment' => 'Misc dirs...'],
+                    'PHS_FRAMEWORK_LOGS_DIR' => [
                         'raw' => 'PHS_PATH.\'system/logs/\'',
-                    ),
-                    'PHS_FRAMEWORK_UPLOADS_DIR' => array(
+                    ],
+                    'PHS_FRAMEWORK_UPLOADS_DIR' => [
                         'raw' => 'PHS_PATH.\'_uploads/\'',
-                    ),
-                    'PHS_FRAMEWORK_ASSETS_DIR' => array(
+                    ],
+                    'PHS_FRAMEWORK_ASSETS_DIR' => [
                         'raw' => 'PHS_PATH.\'assets/\'',
-                    ),
-                );
+                    ],
+                ];
 
-                $config_params = array(
-                    array(
+                $config_params = [
+                    [
                         'defines' => $defines_arr,
-                    ),
-                );
+                    ],
+                ];
 
                 if( $this->save_step_config_file( $config_params ) )
                 {

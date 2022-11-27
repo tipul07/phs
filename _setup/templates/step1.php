@@ -44,7 +44,7 @@
     <div class="lineform_line">
         <input type="text" id="phs_session_name" name="phs_session_name" class="form-control" value="<?php echo form_str( $this->get_context( 'phs_session_name' ) )?>" placeholder="PHS_SESS" style="width: 350px;" /><br/>
         <small>In case this framework will serve more sites on same domain, each site should have its own session name (if you don't want them to share sessions).
-               Use only alpha numeric and _ characters.</small>
+               Use only alphanumeric and _ characters.</small>
     </div>
 </fieldset>
 

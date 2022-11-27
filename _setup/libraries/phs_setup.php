@@ -4,7 +4,7 @@ namespace phs\setup\libraries;
 
 use \phs\libraries\PHS_Params;
 
-if( !defined( 'PHS_SETUP_FLOW' ) or !constant( 'PHS_SETUP_FLOW' ) )
+if( !defined( 'PHS_SETUP_FLOW' ) || !constant( 'PHS_SETUP_FLOW' ) )
     exit;
 
 class PHS_Setup
@@ -23,15 +23,15 @@ class PHS_Setup
 
     private static $setup_instance_obj = false;
 
-    private static $STEPS_ARR = array();
+    private static $STEPS_ARR = [];
 
-    function __construct()
+    public function __construct()
     {
     }
 
     public function check_prerequisites()
     {
-        $error_arr = array();
+        $error_arr = [];
 
         if( !defined( 'PHS_SETUP_PATH' )
          or !defined( 'PHS_SETUP_CONFIG_DIR' ) or !constant( 'PHS_SETUP_CONFIG_DIR' ) )
@@ -69,7 +69,7 @@ class PHS_Setup
 
         if( !empty( $error_arr ) )
         {
-            $data = array();
+            $data = [];
             $data['error_message_arr'] = $error_arr;
             $data['error_title'] = 'Setup Errors...';
 
@@ -80,9 +80,9 @@ class PHS_Setup
 
     public static function default_setup_config()
     {
-        return array(
+        return [
             ''
-        );
+        ];
     }
 
     public function goto_next_step()
@@ -102,7 +102,7 @@ class PHS_Setup
 
     public function goto_step( $step )
     {
-        $step = intval( $step );
+        $step = (int) $step;
         if( $step < 0 )
             $step = 0;
         elseif( $step > $this->max_steps() )
@@ -152,15 +152,15 @@ class PHS_Setup
             $step_obj = $this->load_step_instance( $step_i );
 
             if( empty( $this->c_step )
-            and (!$step_obj->step_config_passed() or !$step_obj->load_current_configuration()) )
+             && (empty( $step_obj ) || !$step_obj->step_config_passed() || !$step_obj->load_current_configuration()) )
             {
                 $this->all_steps_passed = false;
                 $this->c_step = $step_i;
             }
 
-            $step_arr = array(
+            $step_arr = [
                 'instance' => $step_obj,
-            );
+            ];
 
             self::$STEPS_ARR[$step_i] = $step_arr;
 

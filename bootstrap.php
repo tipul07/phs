@@ -88,6 +88,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_ldap.php' );
 use \phs\PHS;
 use \phs\PHS_Db;
 use \phs\PHS_Scope;
+use \phs\PHS_Maintenance;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
@@ -127,7 +128,7 @@ if( !defined( 'PHS_LOGS_DIR' ) )
 if( !defined( 'PHS_SITEBUILD_VERSION' ) )
     define( 'PHS_SITEBUILD_VERSION', PHS_VERSION );
 
-// Tell system if it should use multi language...
+// Tell system if it should use multi-language...
 // We will enable it for the moment (it can be changed in main or particular config file)
 PHS::set_multi_language( true );
 
@@ -228,11 +229,7 @@ include_once( PHS_SYSTEM_DIR.'crypt_init.php' );
 // If we are in WEB update script check if we have update token
 if( defined( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && defined( 'PHS_INSTALLING_FLOW' )
  && constant( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && constant( 'PHS_INSTALLING_FLOW' )
- && (
-     !($pub_key = PHS_Params::_gp( PHS::PARAM_UPDATE_TOKEN_PUBKEY, PHS_Params::T_NOHTML ))
-     || !($hash = PHS_Params::_gp( PHS::PARAM_UPDATE_TOKEN_HASH, PHS_Params::T_NOHTML ))
-     || !PHS::validate_framework_update_params( $pub_key, $hash )
-    ) )
+ && !PHS_Maintenance::validate_framework_update_action() )
 {
     echo PHS::_t( 'Update token invalid.' );
     exit;

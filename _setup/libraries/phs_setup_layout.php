@@ -7,26 +7,26 @@ class PHS_Setup_layout extends PHS_Setup_view
     /** @var bool|\phs\setup\libraries\PHS_Setup_layout $layout_instance_obj */
     private static $layout_instance_obj = false;
 
-    private $common_data = array();
+    private $common_data = [];
 
-    private $errors_arr = array();
-    private $success_arr = array();
-    private $notices_arr = array();
+    private $errors_arr = [];
+    private $success_arr = [];
+    private $notices_arr = [];
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
 
         if( @class_exists( '\\phs\\setup\\libraries\\PHS_Setup', false ) )
         {
-            $this->common_data = array(
+            $this->common_data = [
                 'phs_setup_obj' => PHS_Setup::get_instance(),
-            );
+            ];
         } else
         {
-            $this->common_data = array(
+            $this->common_data = [
                 'phs_setup_obj' => false,
-            );
+            ];
         }
     }
 
@@ -47,7 +47,7 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     public function reset_error_msgs()
     {
-        $this->errors_arr = array();
+        $this->errors_arr = [];
     }
 
     public function add_error_msg( $msg )
@@ -57,7 +57,7 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     public function reset_success_msgs()
     {
-        $this->success_arr = array();
+        $this->success_arr = [];
     }
 
     public function add_success_msg( $msg )
@@ -67,7 +67,7 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     public function reset_notice_msgs()
     {
-        $this->notices_arr = array();
+        $this->notices_arr = [];
     }
 
     public function add_notice_msg( $msg )
@@ -75,17 +75,24 @@ class PHS_Setup_layout extends PHS_Setup_view
         $this->notices_arr[] = $msg;
     }
 
+    /**
+     * @param string $template
+     * @param false|array $data
+     * @param bool $include_main_template
+     *
+     * @return false|string
+     */
     public function render( $template, $data = false, $include_main_template = false )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         $this->set_context( $this->common_data );
 
         // make errors available in template too
-        if( !empty( $this->errors_arr ) or !empty( $this->success_arr ) or !empty( $this->notices_arr ) )
+        if( !empty( $this->errors_arr ) || !empty( $this->success_arr ) || !empty( $this->notices_arr ) )
         {
-            $data['notifications'] = array();
+            $data['notifications'] = [];
             if( !empty( $this->errors_arr ) )
                 $data['notifications']['error'] = $this->errors_arr;
             if( !empty( $this->success_arr ) )

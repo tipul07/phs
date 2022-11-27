@@ -15,10 +15,16 @@ class PHS_Setup_view extends PHS_Registry
     /** @var bool|string  */
     private $template_file = false;
 
+    /**
+     * @param string $template
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     public function render_view( $template, $data = false )
     {
         if( $data !== false
-        and is_array( $data ) )
+         && is_array( $data ) )
             $this->set_context( $data );
 
         // Quick fallback...

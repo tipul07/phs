@@ -28,7 +28,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
     {
         $this->reset_error();
 
-        $library_params = array();
+        $library_params = [];
         $library_params['full_class_name'] = '\\phs\\plugins\\sendgrid\\libraries\\PHS_Sendgrid';
         $library_params['as_singleton'] = false;
 
@@ -168,14 +168,14 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
     public static function default_file_attachment()
     {
-        return array(
+        return [
             'file' => '',
             'file_name' => '',
             'content_type' => 'application/octet-stream',
             'transfer_encoding' => 'base64',
             'content_disposition' => 'attachment', // attachment or inline
             'file_base64_buffer' => '',
-        );
+        ];
     }
 
     public function init_email_hook_args( $hook_args )
@@ -265,7 +265,9 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                 $this->copy_error( $email_template_obj );
 
             if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', (!empty( $email_template_obj )?$email_template_obj->get_template():'(???)') ) );
+                $this->set_error( self::ERR_TEMPLATE,
+                    $this->_pt( 'Rendering template %s resulted in empty buffer.',
+                        (!empty( $email_template_obj )?$email_template_obj->get_template():'(???)') ) );
 
             PHS_Logger::logf( 'Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
 
@@ -394,9 +396,9 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
             $hook_args['reply_name'] = $hook_args['from_name'];
 
         // Convert HTML version to text and text to HTML if necessary
-        if( empty( $hook_args['email_html_body'] ) and !empty( $hook_args['email_text_body'] ) )
+        if( empty( $hook_args['email_html_body'] ) && !empty( $hook_args['email_text_body'] ) )
             $hook_args['email_html_body'] = str_replace( '  ', ' &nbsp;', nl2br( $hook_args['email_text_body'] ) );
-        elseif( !empty( $hook_args['email_html_body'] ) and empty( $hook_args['email_text_body'] ) )
+        elseif( !empty( $hook_args['email_html_body'] ) && empty( $hook_args['email_text_body'] ) )
             $hook_args['email_text_body'] = strip_tags( preg_replace( "/[\r\n]+/", "\n",
                                                                       str_ireplace( [ '<p>', '</p>', '<br>', '<br/>', '<br />' ],
                                                                                     "\n",

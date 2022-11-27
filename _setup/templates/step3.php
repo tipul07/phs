@@ -4,7 +4,7 @@
     $this->set_context( 'page_title', $this->_pt( 'Step 3' ) );
 
     if( !($timezones_arr = $this->get_context( 'timezones_arr' )) )
-        $timezones_arr = array();
+        $timezones_arr = [];
 
     $now_gmdate = gmdate( 'Y-m-d H:i:s' );
     $now_date = date( 'Y-m-d H:i:s' );
@@ -26,7 +26,7 @@
         <?php
         foreach( $timezones_arr as $continent => $cities_arr )
         {
-            ?><option value="<?php echo $continent?>" <?php echo ($continent==$selected_continent?'selected="selected"':'')?>><?php echo $continent?></option><?php
+            ?><option value="<?php echo $continent?>" <?php echo ($continent===$selected_continent?'selected="selected"':'')?>><?php echo $continent?></option><?php
         }
         ?>
         </select>
@@ -34,7 +34,7 @@
 
         if( !empty( $selected_continent ) )
         {
-            if( empty( $timezones_arr[$selected_continent] )  or !is_array( $timezones_arr[$selected_continent] ) )
+            if( empty( $timezones_arr[$selected_continent] ) || !is_array( $timezones_arr[$selected_continent] ) )
                 echo $this->_pt( 'No city defined for this continent.' );
 
             else
@@ -45,7 +45,7 @@
                 <?php
                 foreach( $timezones_arr[$selected_continent] as $city )
                 {
-                    ?><option value="<?php echo $city?>" <?php echo ($city==$selected_city?'selected="selected"':'')?>><?php echo $city?></option><?php
+                    ?><option value="<?php echo $city?>" <?php echo ($city===$selected_city?'selected="selected"':'')?>><?php echo $city?></option><?php
                 }
                 ?>
                 </select>

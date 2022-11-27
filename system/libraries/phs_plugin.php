@@ -483,6 +483,36 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
+    final public function plugin_is_installed()
+    {
+        $this->reset_error();
+
+        if( !($this_instance_id = $this->instance_id()) )
+        {
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Couldn\'t obtain current plugin id.' ) );
+            return false;
+        }
+
+        if( !$this->_load_plugins_instance() )
+        {
+            PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error instantiating plugins model.' );
+
+            $this->set_error( self::ERR_CHANGES, self::_t( 'Error instantiating plugins model.' ) );
+            return false;
+        }
+
+        $check_arr = [];
+        $check_arr['instance_id'] = $this_instance_id;
+
+        $check_params = [];
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+
+        return (($plugin_arr = $this->_plugins_instance->get_details_fields( $check_arr, $check_params ))
+                && (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN
+                && $this->_plugins_instance->is_installed( $plugin_arr ));
+    }
+
     final public function activate_plugin()
     {
         $this->reset_error();

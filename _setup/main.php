@@ -44,8 +44,8 @@
     define( 'PHS_LANGUAGES_DIR', PHS_SETUP_PHS_PATH.'languages/' );
 
     if( !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php' )
-     or !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' )
-     or !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' ) )
+     || !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language.php' )
+     || !@file_exists( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php' ) )
     {
         // TODO: Give option to manually create a file...
         ?>

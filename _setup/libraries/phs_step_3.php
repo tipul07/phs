@@ -11,10 +11,10 @@ class PHS_Step_3 extends PHS_Step
 
     public function step_details()
     {
-        return array(
+        return [
             'title' => 'Site Setup',
             'description' => 'Settings related to site...',
-        );
+        ];
     }
 
     public function get_config_file()
@@ -48,10 +48,15 @@ class PHS_Step_3 extends PHS_Step
         return true;
     }
 
+    /**
+     * @param false|array $data
+     *
+     * @return false|string
+     */
     protected function render_step_interface( $data = false )
     {
-        if( empty( $data ) or !is_array( $data ) )
-            $data = array();
+        if( empty( $data ) || !is_array( $data ) )
+            $data = [];
 
         $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
         if( !($phs_timezone_continent = PHS_Params::_p( 'phs_timezone_continent', PHS_Params::T_NOHTML )) )
@@ -67,45 +72,45 @@ class PHS_Step_3 extends PHS_Step
         $do_submit = PHS_Params::_p( 'do_submit', PHS_Params::T_NOHTML );
 
         if( !($all_timezones_arr = @timezone_identifiers_list()) )
-            $all_timezones_arr = array();
+            $all_timezones_arr = [];
 
         $phs_site_timezone = '';
-        if( !empty( $phs_timezone_continent ) and !empty( $phs_timezone_city ) )
+        if( !empty( $phs_timezone_continent ) && !empty( $phs_timezone_city ) )
             $phs_site_timezone = $phs_timezone_continent.'/'.$phs_timezone_city;
 
-        $timezones_arr = array();
+        $timezones_arr = [];
         foreach( $all_timezones_arr as $timezone_str )
         {
             if( !($timezone_parts = explode( '/', $timezone_str, 2 ))
-             or empty( $timezone_parts[0] ) or empty( $timezone_parts[1] ) )
+             || empty( $timezone_parts[0] ) || empty( $timezone_parts[1] ) )
                 continue;
 
             if( empty( $timezones_arr[$timezone_parts[0]] ) )
-                $timezones_arr[$timezone_parts[0]] = array();
+                $timezones_arr[$timezone_parts[0]] = [];
 
             $timezones_arr[$timezone_parts[0]][] = $timezone_parts[1];
         }
 
         if( !empty( $all_timezones_arr )
-        and !empty( $phs_site_timezone ) and in_array( $phs_site_timezone, $all_timezones_arr ) )
+         && !empty( $phs_site_timezone ) && in_array( $phs_site_timezone, $all_timezones_arr, true ) )
             @date_default_timezone_set( $phs_site_timezone );
 
         if( !empty( $do_submit ) )
         {
             if( !empty( $all_timezones_arr )
-            and (empty( $phs_site_timezone ) or !in_array( $phs_site_timezone, $all_timezones_arr )) )
+             && (empty( $phs_site_timezone ) || !in_array( $phs_site_timezone, $all_timezones_arr, true )) )
                 $this->add_error_msg( 'Please provide a valid Site Timezone.' );
 
             if( empty( $phs_site_name ) )
                 $this->add_error_msg( 'Please provide Site Name.' );
 
             if( empty( $phs_php_cli_path )
-             or !@file_exists( $phs_php_cli_path )
-             or !@is_executable( $phs_php_cli_path ) )
+             || !@file_exists( $phs_php_cli_path )
+             || !@is_executable( $phs_php_cli_path ) )
                 $this->add_error_msg( 'Please provide PHP CLI Binary Path.' );
 
             if( empty( $phs_contact_email )
-             or !($contact_emails_arr = self::extract_strings_from_comma_separated( $phs_contact_email, array( 'trim_parts' => true, 'dump_empty_parts' => true ) )) )
+             || !($contact_emails_arr = self::extract_strings_from_comma_separated( $phs_contact_email, ['trim_parts' => true, 'dump_empty_parts' => true])) )
                 $this->add_error_msg( 'Please provide site contact email(s).' );
 
             else
@@ -122,64 +127,64 @@ class PHS_Step_3 extends PHS_Step
 
             if( !$this->has_error_msgs() )
             {
-                $defines_arr = array(
-                    'PHS_KNOWN_VERSION' => array(
+                $defines_arr = [
+                    'PHS_KNOWN_VERSION' => [
                         'value' => phs_version(),
                         'line_comment' => 'PHS version at the time of installation. bootstrap.php will announce that main.php has to be updated',
-                    ),
-                    'PHS_SITEBUILD_VERSION' => array(
+                    ],
+                    'PHS_SITEBUILD_VERSION' => [
                         'value' => trim( $phs_sitebuild_version ),
                         'line_comment' => 'Site build version',
-                    ),
+                    ],
 
-                    'PHS_DEFAULT_SITE_NAME' => array(
+                    'PHS_DEFAULT_SITE_NAME' => [
                         'value' => $phs_site_name,
                         'line_comment' => 'How site should be known by name',
-                    ),
+                    ],
 
-                    'PHS_CONTACT_EMAIL' => array(
+                    'PHS_CONTACT_EMAIL' => [
                         'value' => $phs_contact_email,
                         'line_comment' => 'Comma separated emails',
-                    ),
+                    ],
 
-                    'PHS_DEFAULT_SITE_TIMEZONE' => array(
+                    'PHS_DEFAULT_SITE_TIMEZONE' => [
                         'value' => $phs_site_timezone,
-                    ),
+                    ],
 
-                    'PHS_DEBUG_MODE' => array(
+                    'PHS_DEBUG_MODE' => [
                         'line_comment' => 'Debugging mode?',
                         'raw' => ($phs_debug_mode?'true':'false'),
-                    ),
+                    ],
 
-                    'PHS_DEBUG_THROW_ERRORS' => array(
+                    'PHS_DEBUG_THROW_ERRORS' => [
                         'raw' => 'false',
-                    ),
+                    ],
 
-                    'PHP_EXEC' => array(
+                    'PHP_EXEC' => [
                         'line_comment' => 'PHP CLI binary executable full path',
                         'value' => $phs_php_cli_path,
-                    ),
-                );
+                    ],
+                ];
 
-                $config_params = array(
-                    array(
+                $config_params = [
+                    [
                         'defines' => $defines_arr,
-                    ),
-                    array(
+                    ],
+                    [
                         'line_comment' => 'Timezone used in the site',
                         'raw' => "\n".
                                  '@date_default_timezone_set( \''.$phs_site_timezone.'\' );'."\n".
                                  "\n".
                                  'if( @function_exists( \'mb_internal_encoding\' ) )'."\n".
                                  '    @mb_internal_encoding( \'UTF-8\' );'."\n",
-                    ),
+                    ],
 
                     // array(
                     //     'raw' => "\n".
                     //              'include_once( PHS_PATH.\'bootstrap.php\' );'."\n".
                     //              "\n",
                     // ),
-                );
+                ];
 
                 if( $this->save_step_config_file( $config_params ) )
                 {
@@ -213,7 +218,7 @@ class PHS_Step_3 extends PHS_Step
                 $phs_php_cli_path = (defined( 'PHP_EXEC' )?constant( 'PHP_EXEC' ):'');
 
                 if( !empty( $phs_site_timezone )
-                and ($timezone_parts = explode( '/', $phs_site_timezone, 2 )) )
+                 && ($timezone_parts = explode( '/', $phs_site_timezone, 2 )) )
                 {
                     $phs_timezone_continent = (!empty( $timezone_parts[0] )?$timezone_parts[0]:'');
                     $phs_timezone_city = (!empty( $timezone_parts[1] )?$timezone_parts[1]:'');

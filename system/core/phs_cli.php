@@ -983,8 +983,8 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * Sets colors for
      * @param string $str
-     * @param string $color
-     * @param bool|string $background
+     * @param false|string $color
+     * @param false|string $background
      *
      * @return string
      */
@@ -1059,11 +1059,12 @@ abstract class PHS_Cli extends PHS_Registry
     public static function get_instance( $app_class_name = false )
     {
         // Late Static Bindings (static::) added in 5.3
-        // ::class added in 5.5 => we will add PHP 5.5 dependency if we use static::class
+        // ::class added in 5.5 => we will add PHP 5.5 dependency if we use static::class,
         // so we use get_called_class() added in PHP 5.3
+        // Update: PHP min version now is 5.6+
         if( $app_class_name === false )
         {
-            if( !($app_class_name = @get_called_class()) )
+            if( !($app_class_name = static::class) )
             {
                 self::st_copy_error( self::_t( 'Cannot obtain called class name.' ) );
                 return false;
