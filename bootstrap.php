@@ -93,7 +93,6 @@ use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Notifications;
 use \phs\libraries\PHS_Language;
-use \phs\libraries\PHS_Params;
 
 // These are special cases as there might be 3 definitions of same constant
 // and framework will take first framework constant, then default constant if domain constant is not defined
@@ -159,7 +158,7 @@ if( PHS::st_debugging_mode() )
     ini_set( 'display_errors', true );
     ini_set( 'display_startup_errors', true );
 
-    $old_error_handler = @set_error_handler( [ '\phs\PHS', 'error_handler' ] );
+    $old_error_handler = @set_error_handler( [ PHS::class, 'error_handler' ] );
 } else
 {
     // Make sure we don't display errors if we'r not in debugging mode
@@ -167,6 +166,11 @@ if( PHS::st_debugging_mode() )
     ini_set( 'display_errors', false );
     ini_set( 'display_startup_errors', false );
 }
+
+//
+// Register class autoloader
+//
+@spl_autoload_register( [ PHS::class, 'spl_autoload_register' ], true, true );
 
 //
 // Default database settings

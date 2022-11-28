@@ -27,10 +27,14 @@ class PHS_Plugin_Emails extends PHS_Plugin
     /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
     private $smtp_library = false;
 
-    public function __construct( $instance_details )
+    /**
+     * @param false|array $instance_details
+     *
+     * @return void
+     */
+    protected function _do_construct( $instance_details = false )
     {
-        parent::__construct( $instance_details );
-
+        parent::_do_construct( $instance_details );
         $this->load_depencies();
     }
 

@@ -1018,9 +1018,14 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
-    public function __construct( $instance_details = false )
+    /**
+     * @param false|array $instance_details
+     *
+     * @return void
+     */
+    protected function _do_construct( $instance_details = false )
     {
-        parent::__construct( $instance_details );
+        parent::_do_construct( $instance_details );
 
         $this->_validate_tables_definition();
     }

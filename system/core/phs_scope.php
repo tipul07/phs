@@ -246,7 +246,7 @@ abstract class PHS_Scope extends PHS_Instantiable
      */
     public static function current_scope_is_set()
     {
-        return (self::get_data( self::SCOPE_FLOW_KEY )?true:false);
+        return (bool) self::get_data(self::SCOPE_FLOW_KEY);
     }
 
     /**

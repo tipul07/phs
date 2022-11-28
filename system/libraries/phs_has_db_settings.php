@@ -202,7 +202,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return false;
 
         $default_settings_field = $this->default_settings_field();
-        $settings_structure = array();
+        $settings_structure = [];
         foreach( $structure_arr as $key => $settings_field )
         {
             $settings_field = self::validate_array_recursive( $settings_field, $default_settings_field );

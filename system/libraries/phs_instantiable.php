@@ -124,18 +124,27 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
-     * PHS_Instantiable constructor.
+     * @param false|array $instance_details
      *
-     * @param bool|array $instance_details
+     * @return void
      */
-    public function __construct( $instance_details = false )
+    protected function _do_construct( $instance_details = false )
     {
-        parent::__construct();
-
         if( empty( $instance_details ) || !is_array( $instance_details ) )
             $instance_details = self::empty_instance_details();
 
         $this->_set_instance_details( $instance_details );
+    }
+
+    /**
+     * PHS_Instantiable constructor.
+     *
+     * @param bool|array $instance_details
+     */
+    private function __construct( $instance_details = false )
+    {
+        parent::__construct();
+        $this->_do_construct( $instance_details );
     }
 
     /**
@@ -1146,11 +1155,12 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
-     * @param string|null $full_class_name
+     * @param string|null $full_class_name Required for autoloader...
+     * @param bool $as_singleton
      *
-     * @return false|\phs\libraries\PHS_Plugin|\phs\libraries\PHS_Model|\phs\libraries\PHS_Controller|\phs\libraries\PHS_Action|\phs\system\core\views\PHS_View|\phs\PHS_Scope|\phs\libraries\PHS_Contract
+     * @return null|static::class|\phs\libraries\PHS_Plugin|\phs\libraries\PHS_Model|\phs\libraries\PHS_Controller|\phs\libraries\PHS_Action|\phs\system\core\views\PHS_View|\phs\PHS_Scope|\phs\libraries\PHS_Contract
      */
-    final public static function get_instance( $full_class_name = null )
+    final public static function get_instance( $as_singleton = true, $full_class_name = null )
     {
         self::st_reset_error();
 
@@ -1165,13 +1175,15 @@ abstract class PHS_Instantiable extends PHS_Registry
          || !@method_exists( PHS::class, $instance_details['loader_method'] ) )
         {
             self::st_set_error( self::ERR_CLASS_NAME, self::_t( 'Cannot extract required information to instantiate class.' ) );
-            return false;
+            return null;
         }
 
         $loader_method = $instance_details['loader_method'];
 
         if( $details['instance_type'] === self::INSTANCE_TYPE_PLUGIN ) {
             $obj = PHS::$loader_method( $details['plugin_name'] );
+        } elseif( $details['instance_type'] === self::INSTANCE_TYPE_VIEW ) {
+            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $as_singleton );
         } elseif( !empty( $instance_details['instance_type_accepts_subdirs'] ) ) {
             $obj = PHS::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $details['instance_subdir'] );
         } else {
@@ -1182,7 +1194,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         {
             if( !self::st_has_error() )
                 self::st_set_error( self::ERR_INSTANCE, self::_t( 'Cannot instantiate provided class.' ) );
-            return false;
+            return null;
         }
 
         return $obj;

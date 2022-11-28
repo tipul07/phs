@@ -35,11 +35,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return self::INSTANCE_TYPE_PLUGIN;
     }
 
-    public function __construct( $instance_details )
-    {
-        parent::__construct( $instance_details );
-    }
-
     /**
      * Plugin details will be obtained from JSON file starting with version 1.1.0.0
      * This method should be used in special cases (eg. plugin with dynamic models)
