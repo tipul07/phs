@@ -2027,9 +2027,11 @@ final class PHS extends PHS_Registry
     public static function spl_autoload_register( $class_name )
     {
         if( !($class_name_arr = explode( '\\', $class_name ))
-         && !empty( $class_name_arr[0] )
-         && $class_name_arr[0] === 'phs'
-         && !PHS_Instantiable::get_instance( true, $class_name ) )
+         || empty( $class_name_arr[0] )
+         || $class_name_arr[0] !== 'phs' )
+            return;
+
+        if( !PHS_Instantiable::get_instance( true, $class_name ) )
         {
             $error_msg = 'Error loading class ['.$class_name.']';
             if( self::st_has_error() )
