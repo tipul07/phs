@@ -25,10 +25,6 @@ class PHS_Setup
 
     private static $STEPS_ARR = [];
 
-    public function __construct()
-    {
-    }
-
     public function check_prerequisites()
     {
         $error_arr = [];

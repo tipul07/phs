@@ -12,23 +12,23 @@ class Bbcode extends PHS_Library
 
     const BB_CODE_REGISTRY_KEY = 'bb_code_registry';
 
-    private static $BB_CODES = array();
+    private static $BB_CODES = [];
 
-    private static $CUSTOM_BB_CODES = array();
+    private static $CUSTOM_BB_CODES = [];
 
-    private static $BB_CALLBACKS_ARR = array();
+    private static $BB_CALLBACKS_ARR = [];
 
-    private static $EDITOR_THEMES = array(
-        'default' => array(
+    private static $EDITOR_THEMES = [
+        'default' => [
             'b', 'i', 'u', self::THEME_CONTROL_SEP,
             'p', self::THEME_CONTROL_SEP,
             'olist', 'ulist', self::THEME_CONTROL_SEP,
             'table', 'img', 'link', self::THEME_CONTROL_SEP,
             'do_preview',
-        )
-    );
+        ]
+    ];
 
-    private $_editor_attributes = array();
+    private $_editor_attributes = [];
 
     private $_theme = 'default';
 
@@ -38,108 +38,108 @@ class Bbcode extends PHS_Library
 
         if( empty( self::$BB_CODES ) )
         {
-            self::$BB_CODES = array(
-                'b' => array(
+            self::$BB_CODES = [
+                'b' => [
                     'title' => 'Bold',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<b>{TAG_VALUE}</b>',
                     'public' => true,
                     'template' => '[b]{CONTENT}[/b]',
                     'editor_button' => '<i class="fa fa-bold" aria-hidden="true"></i>',
-                ),
-                'i' => array(
+                ],
+                'i' => [
                     'title' => 'Italic',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<i>{TAG_VALUE}</i>',
                     'public' => true,
                     'template' => '[i]{CONTENT}[/i]',
                     'editor_button' => '<i class="fa fa-italic" aria-hidden="true"></i>',
-                ),
-                'u' => array(
+                ],
+                'u' => [
                     'title' => 'Underline',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<u>{TAG_VALUE}</u>',
                     'public' => true,
                     'template' => '[u]{CONTENT}[/u]',
                     'editor_button' => '<i class="fa fa-underline" aria-hidden="true"></i>',
-                ),
-                'p' => array(
+                ],
+                'p' => [
                     'title' => 'Paragraph',
-                    'attributes' => array( 'align' => '', ),
+                    'attributes' => ['align' => '',],
                     'html' => '<p{TAG_ATTRIBUTES}>{TAG_VALUE}</p>',
                     'public' => true,
                     'template' => '[p]{CONTENT}[/p]',
                     'editor_button' => '<i class="fa fa-paragraph" aria-hidden="true"></i>',
-                ),
-                'h1' => array(
+                ],
+                'h1' => [
                     'title' => 'Heading 1',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<h1{TAG_ATTRIBUTES}>{TAG_VALUE}</h1>',
                     'public' => true,
                     'template' => '[h1]{CONTENT}[/h1]',
                     'editor_button' => '<i class="fa fa-header" aria-hidden="true"></i>',
-                ),
-                'h2' => array(
+                ],
+                'h2' => [
                     'title' => 'Heading 2',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<h2{TAG_ATTRIBUTES}>{TAG_VALUE}</h2>',
                     'public' => true,
                     'template' => '[h2]{CONTENT}[/h2]',
                     'editor_button' => '<i class="fa fa-header" aria-hidden="true"></i>',
-                ),
-                'h3' => array(
+                ],
+                'h3' => [
                     'title' => 'Heading 3',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<h3{TAG_ATTRIBUTES}>{TAG_VALUE}</h3>',
                     'public' => true,
                     'template' => '[h3]{CONTENT}[/h3]',
                     'editor_button' => '<i class="fa fa-header" aria-hidden="true"></i>',
-                ),
-                'h4' => array(
+                ],
+                'h4' => [
                     'title' => 'Heading 4',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<h4{TAG_ATTRIBUTES}>{TAG_VALUE}</h4>',
                     'public' => true,
                     'template' => '[h4]{CONTENT}[/h4]',
                     'editor_button' => '<i class="fa fa-header" aria-hidden="true"></i>',
-                ),
-                'h5' => array(
+                ],
+                'h5' => [
                     'title' => 'Heading 5',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<h5{TAG_ATTRIBUTES}>{TAG_VALUE}</h5>',
                     'public' => true,
                     'template' => '[h5]{CONTENT}[/h5]',
                     'editor_button' => '<i class="fa fa-header" aria-hidden="true"></i>',
-                ),
-                'br' => array(
+                ],
+                'br' => [
                     'title' => 'New line',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<br />',
                     'public' => true,
                     'template' => '[br/]',
                     'editor_button' => '<i class="fa fa-exchange" aria-hidden="true"></i>',
-                ),
-                'link' => array(
+                ],
+                'link' => [
                     'title' => 'Link',
-                    'attributes' => array( 'href' => '', 'name' => '', 'title' => '', 'target' => '' ),
-                    'mandatory_attributes' => array( 'href' ),
+                    'attributes' => ['href' => '', 'name' => '', 'title' => '', 'target' => ''],
+                    'mandatory_attributes' => ['href'],
                     'html' => '<a{TAG_ATTRIBUTES}>{TAG_VALUE}</a>',
                     'public' => true,
                     'template' => '[link href="" title=""]{CONTENT}[/link]',
                     'editor_button' => '<i class="fa fa-link" aria-hidden="true"></i>',
-                ),
-                'img' => array(
+                ],
+                'img' => [
                     'title' => 'Image',
-                    'attributes' => array( 'src' => '', 'title' => '', 'width' => '', 'height' => '', ),
-                    'mandatory_attributes' => array( 'src' ),
+                    'attributes' => ['src' => '', 'title' => '', 'width' => '', 'height' => '',],
+                    'mandatory_attributes' => ['src'],
                     'html' => '<img{TAG_ATTRIBUTES} />',
                     'public' => true,
                     'template' => '[img src="" title="" width="" height=""]{CONTENT}[/img]',
                     'editor_button' => '<i class="fa fa-picture-o" aria-hidden="true"></i>',
-                ),
-                'olist' => array(
+                ],
+                'olist' => [
                     'title' => 'Ordered list',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<ol>{TAG_VALUE}</ol>',
                     'public' => true,
                     'template' => '[olist]'."\n".
@@ -147,10 +147,10 @@ class Bbcode extends PHS_Library
                         '[li]Item 2[/li]'."\n".
                         '[/olist]',
                     'editor_button' => '<i class="fa fa-list-ol" aria-hidden="true"></i>',
-                ),
-                'ulist' => array(
+                ],
+                'ulist' => [
                     'title' => 'Unordered list',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<ul>{TAG_VALUE}</ul>',
                     'public' => true,
                     'template' => '[ulist]'."\n".
@@ -158,17 +158,17 @@ class Bbcode extends PHS_Library
                         '[li]Item 2[/li]'."\n".
                         '[/ulist]',
                     'editor_button' => '<i class="fa fa-list-ul" aria-hidden="true"></i>',
-                ),
-                'li' => array(
+                ],
+                'li' => [
                     'title' => 'List item',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<li>{TAG_VALUE}</li>',
                     'public' => false,
                     'template' => '[li]Item[/li]',
-                ),
-                'table' => array(
+                ],
+                'table' => [
                     'title' => 'Table',
-                    'attributes' => array( 'width' => '', 'border' => 0, 'cellspacing' => 0, 'cellpadding' => 0 ),
+                    'attributes' => ['width' => '', 'border' => 0, 'cellspacing' => 0, 'cellpadding' => 0],
                     'html' => '<table{TAG_ATTRIBUTES}>{TAG_VALUE}</table>',
                     'public' => true,
                     'template' => '[table]'."\n".
@@ -179,76 +179,76 @@ class Bbcode extends PHS_Library
                         '[/tbody]'."\n".
                         '[/table]',
                     'editor_button' => '<i class="fa fa-table" aria-hidden="true"></i>',
-                ),
-                'thead' => array(
+                ],
+                'thead' => [
                     'title' => 'Table header',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<thead{TAG_ATTRIBUTES}>{TAG_VALUE}</thead>',
                     'public' => false,
                     'template' => '[thead][/thead]',
-                ),
-                'tbody' => array(
+                ],
+                'tbody' => [
                     'title' => 'Table body',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<tbody{TAG_ATTRIBUTES}>{TAG_VALUE}</tbody>',
                     'public' => false,
                     'template' => '[tbody][/tbody]',
-                ),
-                'tr' => array(
+                ],
+                'tr' => [
                     'title' => 'Table row',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'html' => '<tr{TAG_ATTRIBUTES}>{TAG_VALUE}</tr>',
                     'public' => false,
                     'template' => '[tr][/tr]',
-                ),
-                'th' => array(
+                ],
+                'th' => [
                     'title' => 'Header cell',
-                    'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', ),
+                    'attributes' => ['width' => '', 'padding' => 0, 'align' => '',],
                     'html' => '<th{TAG_ATTRIBUTES}>{TAG_VALUE}</th>',
                     'public' => false,
                     'template' => '[th align="center"]Item[/th]',
-                ),
-                'td' => array(
+                ],
+                'td' => [
                     'title' => 'Table cell',
-                    'attributes' => array( 'width' => '', 'padding' => 0, 'align' => '', 'bgcolor' => '', 'color' => '' ),
+                    'attributes' => ['width' => '', 'padding' => 0, 'align' => '', 'bgcolor' => '', 'color' => ''],
                     'html' => '<td{TAG_ATTRIBUTES}>{TAG_VALUE}</td>',
                     'public' => false,
                     'template' => '[td align="center"]Item[/td]',
-                ),
-                'registry' => array(
+                ],
+                'registry' => [
                     'title' => 'Registry value',
-                    'attributes' => array( 'key' => '', 'default' => '', 'prefix' => '', 'suffix' => '', 'empty' => false ),
-                    'callback' => array( $this, 'bb_registry_render' ),
+                    'attributes' => ['key' => '', 'default' => '', 'prefix' => '', 'suffix' => '', 'empty' => false],
+                    'callback' => [$this, 'bb_registry_render'],
                     'public' => true,
                     'template' => '[registry key="" /]',
                     'editor_button' => '<i class="fa fa-bookmark" aria-hidden="true"></i>',
-                ),
-                'callback' => array(
+                ],
+                'callback' => [
                     'title' => 'Callback function',
-                    'attributes' => array( 'func' => '', 'lang' => '' ),
-                    'callback' => array( $this, 'bb_callback_render' ),
+                    'attributes' => ['func' => '', 'lang' => ''],
+                    'callback' => [$this, 'bb_callback_render'],
                     'public' => true,
                     'template' => '[callback func=""][/callback]',
                     'editor_button' => '<i class="fa fa-code" aria-hidden="true"></i>',
-                ),
-                'do_preview' => array(
+                ],
+                'do_preview' => [
                     'title' => 'Preview document',
-                    'attributes' => array(),
+                    'attributes' => [],
                     'public' => true,
                     'functionality_tag' => true,
                     'editor_button' => '<i class="fa fa-eye" aria-hidden="true"></i>',
                     'js_click_function' => 'phs_bb_editor.do_preview( \'{ATTRS.ID}\' )',
-                ),
-            );
+                ],
+            ];
         }
     }
 
     public function bb_registry_render( $params_arr )
     {
         // Not a valid node... let bb parser decide what to do here...
-        if( empty( $params_arr ) or !is_array( $params_arr )
-            or empty( $params_arr['node_arr'] )
-            or !($node_arr = $params_arr['node_arr']) or !is_array( $node_arr ) )
+        if( empty( $params_arr ) || !is_array( $params_arr )
+         || empty( $params_arr['node_arr'] )
+         || !($node_arr = $params_arr['node_arr']) || !is_array( $node_arr ) )
             return '';
 
         $registry_key = false;
@@ -256,8 +256,8 @@ class Bbcode extends PHS_Library
         $prefix_value = '';
         $suffix_value = '';
         $empty_value = false;
-        if( !empty( $node_arr['shortcode'] ) and is_array( $node_arr['shortcode'] )
-            and !empty( $node_arr['shortcode']['validated_attributes'] ) and is_array( $node_arr['shortcode']['validated_attributes'] ) )
+        if( !empty( $node_arr['shortcode'] ) && is_array( $node_arr['shortcode'] )
+         && !empty( $node_arr['shortcode']['validated_attributes'] ) && is_array( $node_arr['shortcode']['validated_attributes'] ) )
         {
             if( !empty( $node_arr['shortcode']['validated_attributes']['key'] ) )
                 $registry_key = $node_arr['shortcode']['validated_attributes']['key'];
@@ -272,7 +272,7 @@ class Bbcode extends PHS_Library
                 $suffix_value = $node_arr['shortcode']['validated_attributes']['suffix'];
 
             if( isset( $node_arr['shortcode']['validated_attributes']['empty'] )
-                and is_string( $node_arr['shortcode']['validated_attributes']['empty'] ) )
+             && is_string( $node_arr['shortcode']['validated_attributes']['empty'] ) )
                 $empty_value = $node_arr['shortcode']['validated_attributes']['empty'];
         }
 
@@ -280,7 +280,7 @@ class Bbcode extends PHS_Library
             return '[Invalid registry key]';
 
         if( ($registry_val = self::get_bb_code_registry( $registry_key )) === null
-            or !is_string( $registry_val ) )
+            || !is_string( $registry_val ) )
         {
             if( $default_value === false )
                 return '[Registry Key "' . $registry_key . '" not defined or is not string.]';
@@ -289,7 +289,7 @@ class Bbcode extends PHS_Library
         }
 
         if( $registry_val === ''
-            and $empty_value !== false )
+         && $empty_value !== false )
             return $empty_value;
 
         return $prefix_value.$registry_val.$suffix_value;
@@ -298,28 +298,28 @@ class Bbcode extends PHS_Library
     public function bb_callback_render( $params_arr )
     {
         // Not a valid node... let bb parser decide what to do here...
-        if( empty( $params_arr ) or !is_array( $params_arr )
-         or empty( $params_arr['node_arr'] )
-         or !($node_arr = $params_arr['node_arr']) or !is_array( $node_arr ) )
+        if( empty( $params_arr ) || !is_array( $params_arr )
+         || empty( $params_arr['node_arr'] )
+         || !($node_arr = $params_arr['node_arr']) || !is_array( $node_arr ) )
             return '';
 
         $rendered_buf = '';
-        if( !empty( $node_arr['shortcode'] ) and is_array( $node_arr['shortcode'] )
-        and !empty( $node_arr['shortcode']['validated_attributes'] ) and is_array( $node_arr['shortcode']['validated_attributes'] )
-        and !empty( $node_arr['shortcode']['validated_attributes']['func'] ) )
+        if( !empty( $node_arr['shortcode'] ) && is_array( $node_arr['shortcode'] )
+         && !empty( $node_arr['shortcode']['validated_attributes'] ) && is_array( $node_arr['shortcode']['validated_attributes'] )
+         && !empty( $node_arr['shortcode']['validated_attributes']['func'] ) )
         {
             // make sure we have a language defined as attribute...
             if( empty( $node_arr['shortcode']['validated_attributes']['lang'] )
-             or !self::valid_language( $node_arr['shortcode']['validated_attributes']['lang'] ) )
+             || !self::valid_language( $node_arr['shortcode']['validated_attributes']['lang'] ) )
                 $node_arr['shortcode']['validated_attributes']['lang'] = self::get_default_language();
 
             if( !($func_name = $this->function_name_check( $node_arr['shortcode']['validated_attributes']['func'] ))
-             or !($func_definition = $this->get_callback_function( $func_name ))
-             or empty( $func_definition['callable'] ) )
+             || !($func_definition = $this->get_callback_function( $func_name ))
+             || empty( $func_definition['callable'] ) )
                 return '[UNKNOWN FUNCTION '.$func_name.']';
 
             if( empty( $func_definition['default_parameters'] ) )
-                $func_definition['default_parameters'] = array();
+                $func_definition['default_parameters'] = [];
 
             // Callable will set the error in bbeditor library...
             $this->reset_error();
@@ -339,8 +339,8 @@ class Bbcode extends PHS_Library
     public static function set_bb_code_registry( $key, $val = null )
     {
         if( !($bb_registry_arr = self::get_data( self::BB_CODE_REGISTRY_KEY ))
-         or !is_array( $bb_registry_arr ) )
-            $bb_registry_arr = array();
+         || !is_array( $bb_registry_arr ) )
+            $bb_registry_arr = [];
 
         if( $val === null )
         {
@@ -365,11 +365,16 @@ class Bbcode extends PHS_Library
         return self::set_data( self::BB_CODE_REGISTRY_KEY, $bb_registry_arr );
     }
 
+    /**
+     * @param false|array|string $key
+     *
+     * @return null|array|mixed
+     */
     public static function get_bb_code_registry( $key = false )
     {
         if( !($bb_registry_arr = self::get_data( self::BB_CODE_REGISTRY_KEY ))
-         or !is_array( $bb_registry_arr ) )
-            $bb_registry_arr = array();
+         || !is_array( $bb_registry_arr ) )
+            $bb_registry_arr = [];
 
         if( $key === false )
             return $bb_registry_arr;
@@ -386,11 +391,11 @@ class Bbcode extends PHS_Library
         foreach( $key_arr as $key_part )
         {
             if( empty( $key_part )
-             or !is_string( $key_part ) )
+             || !is_string( $key_part ) )
                 continue;
 
             if( !is_array( $pool_arr )
-             or !array_key_exists( $key_part, $pool_arr ) )
+             || !array_key_exists( $key_part, $pool_arr ) )
                 return null;
 
             $result_val = $pool_arr[$key_part];
@@ -423,7 +428,7 @@ class Bbcode extends PHS_Library
     {
         // replace attributes...
         if( ($attrs = $this->bb_editor_attributes())
-        and is_array( $attrs ) )
+        && is_array( $attrs ) )
         {
             foreach( $attrs as $key => $val )
             {
@@ -446,10 +451,10 @@ class Bbcode extends PHS_Library
     public function get_bb_shortcodes_definition()
     {
         if( !($shortcodes_definition = $this->get_shortcodes_definition()) )
-            return array();
+            return [];
 
         // We don't cache results as custom shortcodes might be added
-        $return_arr = array();
+        $return_arr = [];
         foreach( $shortcodes_definition as $shortcode => $shortcode_arr )
         {
             if( !empty( $shortcode_arr['functionality_tag'] ) )
@@ -463,10 +468,10 @@ class Bbcode extends PHS_Library
 
     public function default_function_definition_params()
     {
-        return array(
+        return [
             'callable' => false,
-            'default_parameters' => array(),
-        );
+            'default_parameters' => [],
+        ];
     }
 
     public function function_name_check( $func_name )
@@ -528,6 +533,11 @@ class Bbcode extends PHS_Library
         return array_keys( self::$EDITOR_THEMES );
     }
 
+    /**
+     * @param false|string $theme
+     *
+     * @return false|string|array
+     */
     public function editor_theme( $theme = false )
     {
         if( $theme === false )
@@ -556,7 +566,7 @@ class Bbcode extends PHS_Library
 
         $theme_name = strtolower( trim( $theme_name ) );
         if( empty( $theme_name )
-         or empty( $theme_arr ) or !is_array( $theme_arr ) )
+         || empty( $theme_arr ) || !is_array( $theme_arr ) )
         {
             self::st_set_error( self::ERR_PARAMETERS, self::st_pt( 'Invalid theme name or theme definition.' ) );
             return false;
@@ -570,8 +580,8 @@ class Bbcode extends PHS_Library
     public function get_shortcodes()
     {
         if( !($bb_codes_arr = $this->get_shortcodes_definition())
-         or !is_array( $bb_codes_arr ) )
-            return array();
+         || !is_array( $bb_codes_arr ) )
+            return [];
 
         return array_keys( $bb_codes_arr );
     }
@@ -589,8 +599,8 @@ class Bbcode extends PHS_Library
     public function get_bb_shortcodes()
     {
         if( !($bb_codes_arr = $this->get_bb_shortcodes_definition())
-         or !is_array( $bb_codes_arr ) )
-            return array();
+         || !is_array( $bb_codes_arr ) )
+            return [];
 
         return array_keys( $bb_codes_arr );
     }
@@ -607,12 +617,12 @@ class Bbcode extends PHS_Library
 
     public function validate_shortcode_attributes( $shortcode, $attr_arr, $params = false )
     {
-        if( empty( $attr_arr ) or !is_array( $attr_arr )
-         or !($shortcode_arr = $this->valid_shortcode( $shortcode ))
-         or empty( $shortcode_arr['attributes'] ) or !is_array( $shortcode_arr['attributes'] ) )
-            return array();
+        if( empty( $attr_arr ) || !is_array( $attr_arr )
+         || !($shortcode_arr = $this->valid_shortcode( $shortcode ))
+         || empty( $shortcode_arr['attributes'] ) || !is_array( $shortcode_arr['attributes'] ) )
+            return [];
 
-        $attributes_arr = array();
+        $attributes_arr = [];
         foreach( $shortcode_arr['attributes'] as $attr_key => $attr_def_val )
         {
             if( array_key_exists( $attr_key, $attr_arr ) )
@@ -624,10 +634,10 @@ class Bbcode extends PHS_Library
 
     public static function default_shortcode_definition_fields()
     {
-        return array(
+        return [
             'title' => '',
-            'attributes' => array(),
-            'mandatory_attributes' => array(),
+            'attributes' => [],
+            'mandatory_attributes' => [],
             'html' => '', // HTML template to transform BB code to
             'template' => '', // default text to be inserted
             'editor_button' => '', // Custom content of button to be presented in editor for this shortcode
@@ -645,12 +655,12 @@ class Bbcode extends PHS_Library
 
             'editor_button_callback' => false, // function which should "render" button in editor interface
             'editor_button_callback_params' => false, // custom parameters for editor_button_callback function - array (if required)
-        );
+        ];
     }
 
     public static function reset_custom_shortcodes()
     {
-        self::$CUSTOM_BB_CODES = array();
+        self::$CUSTOM_BB_CODES = [];
     }
 
     public static function add_shortcode( $shortcode, $shortcode_arr )
@@ -666,7 +676,7 @@ class Bbcode extends PHS_Library
             $shortcode_arr['title'] = 'Custom #'.count( self::$CUSTOM_BB_CODES );
 
         if( !is_array( $shortcode_arr['attributes'] ) )
-            $shortcode_arr['attributes'] = array();
+            $shortcode_arr['attributes'] = [];
 
         self::$CUSTOM_BB_CODES[$shortcode] = $shortcode_arr;
 
@@ -727,17 +737,24 @@ class Bbcode extends PHS_Library
         ];
     }
 
+    /**
+     * @param string $str
+     * @param array $matches_arr
+     * @param false|array $params
+     *
+     * @return array|false|mixed
+     */
     private function parser_extract_node( $str, $matches_arr, $params = false )
     {
         if( empty( $str )
-         or empty( $matches_arr ) or !is_array( $matches_arr ) )
+         || empty( $matches_arr ) || !is_array( $matches_arr ) )
             return false;
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( empty( $params['shortcodes_stack'] ) or !is_array( $params['shortcodes_stack'] ) )
-            $params['shortcodes_stack'] = array();
+        if( empty( $params['shortcodes_stack'] ) || !is_array( $params['shortcodes_stack'] ) )
+            $params['shortcodes_stack'] = [];
 
         $stack_index = count( $params['shortcodes_stack'] );
 
@@ -751,8 +768,8 @@ class Bbcode extends PHS_Library
 
         $return_arr = $params;
         $return_arr['matches_index']++;
-        $return_arr['errors'] = array();
-        $return_arr['nodes'] = array();
+        $return_arr['errors'] = [];
+        $return_arr['nodes'] = [];
         $return_arr['closing_tag'] = false;
 
         $match_arr = $matches_arr[$params['matches_index']];
@@ -778,7 +795,7 @@ class Bbcode extends PHS_Library
             return $return_arr;
         }
 
-        $shortcode_arr = array();
+        $shortcode_arr = [];
         $shortcode_arr['shortcode'] = strtolower( $match_arr[2][0] );
         if( !empty( $match_arr[3][0] ) )
         {
@@ -786,14 +803,14 @@ class Bbcode extends PHS_Library
             $shortcode_arr['validated_attributes'] = $this->validate_shortcode_attributes( $shortcode_arr['shortcode'], $shortcode_arr['shortcode_attributes'] );
         } else
         {
-            $shortcode_arr['shortcode_attributes'] = array();
-            $shortcode_arr['validated_attributes'] = array();
+            $shortcode_arr['shortcode_attributes'] = [];
+            $shortcode_arr['validated_attributes'] = [];
         }
 
         $full_shortcode = $match_arr[0][0];
         $shortcode_offset = $match_arr[0][1];
-        $closing_shortcode = ($match_arr[1][0] == '/');
-        $self_closing_shortcode = ($match_arr[4][0] == '/');
+        $closing_shortcode = ($match_arr[1][0] === '/');
+        $self_closing_shortcode = ($match_arr[4][0] === '/');
 
         if( !empty( $self_closing_shortcode ) )
         {
@@ -822,7 +839,7 @@ class Bbcode extends PHS_Library
                 $return_arr['str_old_offset'] = $recurring_result['str_old_offset'];
                 $return_arr['matches_index'] = $recurring_result['matches_index'];
 
-                if( !empty( $recurring_result['closing_tag'] ) and $recurring_result['closing_tag'] == $shortcode_arr['shortcode'] )
+                if( !empty( $recurring_result['closing_tag'] ) && $recurring_result['closing_tag'] === $shortcode_arr['shortcode'] )
                     break;
 
                 $recurring_params['shortcodes_stack'] = $recurring_result['shortcodes_stack'];
@@ -833,7 +850,7 @@ class Bbcode extends PHS_Library
                     $return_arr['errors'] = array_merge( $return_arr['errors'], $recurring_result['errors'] );
 
                 if( empty( $matches_arr[$recurring_result['matches_index']] )
-                 or empty( $recurring_result['shortcodes_stack'] ) )
+                 || empty( $recurring_result['shortcodes_stack'] ) )
                     break;
             }
 
@@ -841,7 +858,7 @@ class Bbcode extends PHS_Library
         } else
         {
             if( !$stack_index
-             or $return_arr['shortcodes_stack'][$stack_index-1] != $shortcode_arr['shortcode'] )
+             || $return_arr['shortcodes_stack'][$stack_index-1] !== $shortcode_arr['shortcode'] )
             {
                 // invalid closing tag...
                 $return_arr['errors'][] = $this->_pt( 'Invalid closing tag [%s] at offset %s.', $shortcode_arr['shortcode'], $shortcode_offset );
@@ -859,10 +876,16 @@ class Bbcode extends PHS_Library
         return $return_arr;
     }
 
+    /**
+     * @param string $str
+     * @param false|array $params
+     *
+     * @return array
+     */
     public function bb_to_array( $str, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['allow_html_code'] ) )
             $params['allow_html_code'] = false;
@@ -871,20 +894,20 @@ class Bbcode extends PHS_Library
         if( empty( $params['allow_html_code'] ) )
             $str = strip_tags( $str );
 
-        $result_arr = array();
-        $errors_arr = array();
+        $result_arr = [];
+        $errors_arr = [];
         $str_len = strlen( $str );
         if( preg_match_all( $pattern, $str, $matches_arr, PREG_SET_ORDER|PREG_OFFSET_CAPTURE )
-        and !empty( $matches_arr ) and is_array( $matches_arr )
-        and ($matches_count = count( $matches_arr )) )
+        && !empty( $matches_arr ) && is_array( $matches_arr )
+        && ($matches_count = count( $matches_arr )) )
         {
-            $parse_params = array();
+            $parse_params = [];
             $parse_params['matches_index'] = 0;
             $old_offset = 0;
             while( $parse_params['matches_index'] < $matches_count )
             {
                 if( !($parse_params = $this->parser_extract_node( $str, $matches_arr, $parse_params ))
-                 or !is_array( $parse_params ) )
+                 || !is_array( $parse_params ) )
                     break;
 
                 $old_offset = $parse_params['str_old_offset'];
@@ -904,16 +927,22 @@ class Bbcode extends PHS_Library
             }
         }
 
-        return array(
+        return [
             'errors' => $errors_arr,
             'result' => $result_arr,
-        );
+        ];
     }
 
+    /**
+     * @param string|array $str
+     * @param false|array $params
+     *
+     * @return string
+     */
     public function remove_bb_code( $str, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['allow_html_code'] ) )
             $params['allow_html_code'] = false;
@@ -922,21 +951,21 @@ class Bbcode extends PHS_Library
             $params['recurring_level'] = 0;
 
         if( empty( $params['recurring_level'] )
-        and is_string( $str ) )
+        && is_string( $str ) )
         {
-            if( !strstr( $str, '[' )
-             or !($array_result = $this->bb_to_array( $str, array( 'allow_html_code' => (!empty( $params['allow_html_code'] )) ) ))
-             or !is_array( $array_result['result'] ) )
+            if(strpos($str, '[') === false
+               || !($array_result = $this->bb_to_array( $str, ['allow_html_code' => (!empty($params['allow_html_code'] ))]))
+               || !is_array( $array_result['result'] ) )
                 return $str;
 
             $parts_arr = $array_result['result'];
         }
 
         if( !empty( $params['recurring_level'] )
-        and is_array( $str ) )
+        && is_array( $str ) )
             $parts_arr = $str;
 
-        if( empty( $parts_arr ) or !is_array( $parts_arr ) )
+        if( empty( $parts_arr ) || !is_array( $parts_arr ) )
         {
             if( is_string( $str ) )
                 return $str;
@@ -953,7 +982,7 @@ class Bbcode extends PHS_Library
             if( !empty( $node_arr['text'] ) )
                 $node_str .= $node_arr['text'];
 
-            if( !empty( $node_arr['content'] ) and is_array( $node_arr['content'] ) )
+            if( !empty( $node_arr['content'] ) && is_array( $node_arr['content'] ) )
             {
                 $recurring_params = $params;
                 $recurring_params['recurring_level']++;
@@ -967,10 +996,16 @@ class Bbcode extends PHS_Library
         return $clean_result;
     }
 
+    /**
+     * @param string|array $str
+     * @param false|array $params
+     *
+     * @return string
+     */
     public function bb_to_html( $str, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
         if( empty( $params['allow_html_code'] ) )
             $params['allow_html_code'] = false;
@@ -980,21 +1015,21 @@ class Bbcode extends PHS_Library
             $params['recurring_level'] = 0;
 
         if( empty( $params['recurring_level'] )
-        and is_string( $str ) )
+        && is_string( $str ) )
         {
-            if( !strstr( $str, '[' )
-             or !($array_result = $this->bb_to_array( $str, array( 'allow_html_code' => (!empty( $params['allow_html_code'] )) ) ))
-             or !is_array( $array_result['result'] ) )
+            if(strpos($str, '[') === false
+            || !($array_result = $this->bb_to_array( $str, ['allow_html_code' => (!empty($params['allow_html_code'] ))]))
+            || !is_array( $array_result['result'] ) )
                 return $str;
 
             $parts_arr = $array_result['result'];
         }
 
         if( !empty( $params['recurring_level'] )
-        and is_array( $str ) )
+        && is_array( $str ) )
             $parts_arr = $str;
 
-        if( empty( $parts_arr ) or !is_array( $parts_arr ) )
+        if( empty( $parts_arr ) || !is_array( $parts_arr ) )
         {
             if( is_string( $str ) )
                 return $str;
@@ -1006,7 +1041,7 @@ class Bbcode extends PHS_Library
         $html_result = '';
         foreach( $parts_arr as $node_arr )
         {
-            if( empty( $node_arr ) or !is_array( $node_arr ) )
+            if( empty( $node_arr ) || !is_array( $node_arr ) )
                 continue;
 
             $node_str = '';
@@ -1020,7 +1055,7 @@ class Bbcode extends PHS_Library
             if( !empty( $node_arr['text'] ) )
                 $node_str .= $node_arr['text'];
 
-            if( !empty( $node_arr['content'] ) and is_array( $node_arr['content'] ) )
+            if( !empty( $node_arr['content'] ) && is_array( $node_arr['content'] ) )
             {
                 $recurring_params = $params;
                 $recurring_params['recurring_level']++;
@@ -1029,7 +1064,7 @@ class Bbcode extends PHS_Library
             }
 
             if( !empty( $node_arr['shortcode'] )
-            and ($new_node_str = $this->render_parsed_shortcode_to_html( $node_str, $node_arr )) )
+             && ($new_node_str = $this->render_parsed_shortcode_to_html( $node_str, $node_arr )) )
                 $node_str = $new_node_str;
 
             $html_result .= $node_str;
@@ -1038,13 +1073,19 @@ class Bbcode extends PHS_Library
         return $html_result;
     }
 
+    /**
+     * @param string $content_text
+     * @param array $node_arr
+     *
+     * @return string
+     */
     public function render_parsed_shortcode_to_html( $content_text, $node_arr )
     {
-        if( empty( $node_arr ) or !is_array( $node_arr )
-         or empty( $node_arr['shortcode'] ) or !($shortcode_arr = $node_arr['shortcode'])
-         or empty( $shortcode_arr ) or !is_array( $shortcode_arr )
-         or empty( $shortcode_arr['shortcode'] )
-         or !($definition_arr = $this->valid_bb_shortcode( $shortcode_arr['shortcode'] )) )
+        if( empty( $node_arr ) || !is_array( $node_arr )
+         || empty( $node_arr['shortcode'] ) || !($shortcode_arr = $node_arr['shortcode'])
+         || empty( $shortcode_arr ) || !is_array( $shortcode_arr )
+         || empty( $shortcode_arr['shortcode'] )
+         || !($definition_arr = $this->valid_bb_shortcode( $shortcode_arr['shortcode'] )) )
             return '';
 
         if( !empty( $definition_arr['callback'] ) )
@@ -1053,16 +1094,16 @@ class Bbcode extends PHS_Library
                 return 'ERROR! [Shortcode:'.$shortcode_arr['shortcode'].' invalid callback.]';
 
             if( empty( $definition_arr['callback_params'] ) )
-                $definition_arr['callback_params'] = array();
+                $definition_arr['callback_params'] = [];
 
-            if( empty( $shortcode_arr['validated_attributes'] ) or !is_array( $shortcode_arr['validated_attributes'] ) )
-                $shortcode_arr['validated_attributes'] = array();
+            if( empty( $shortcode_arr['validated_attributes'] ) || !is_array( $shortcode_arr['validated_attributes'] ) )
+                $shortcode_arr['validated_attributes'] = [];
 
             $definition_arr['callback_params']['node_arr'] = $node_arr;
             $definition_arr['callback_params']['content_text'] = $content_text;
 
             if( ($html_code = @call_user_func( $definition_arr['callback'], $definition_arr['callback_params'] )) === null
-             or !is_string( $html_code ) )
+             || !is_string( $html_code ) )
                 $html_code = '';
 
             return $html_code;
@@ -1072,15 +1113,15 @@ class Bbcode extends PHS_Library
             return '';
 
         // render attibutes...
-        $mandatory_fields = array();
-        if( !empty( $definition_arr['mandatory_attributes'] ) and is_array( $definition_arr['mandatory_attributes'] ) )
+        $mandatory_fields = [];
+        if( !empty( $definition_arr['mandatory_attributes'] ) && is_array( $definition_arr['mandatory_attributes'] ) )
         {
             foreach( $definition_arr['mandatory_attributes'] as $field )
                 $mandatory_fields[$field] = true;
         }
 
         $attributes_str = '';
-        if( !empty( $shortcode_arr['validated_attributes'] ) and is_array( $shortcode_arr['validated_attributes'] ) )
+        if( !empty( $shortcode_arr['validated_attributes'] ) && is_array( $shortcode_arr['validated_attributes'] ) )
         {
             foreach( $shortcode_arr['validated_attributes'] as $attr_key => $attr_val )
             {
@@ -1091,7 +1132,7 @@ class Bbcode extends PHS_Library
             }
         }
 
-        if( !empty( $mandatory_fields ) and is_array( $mandatory_fields ) )
+        if( !empty( $mandatory_fields ) && is_array( $mandatory_fields ) )
         {
             foreach( $mandatory_fields as $attr_field => $junk )
             {
@@ -1102,16 +1143,16 @@ class Bbcode extends PHS_Library
             }
         }
 
-        return str_replace( array( '{TAG_ATTRIBUTES}', '{TAG_VALUE}' ), array( $attributes_str, $content_text ), $definition_arr['html'] );
+        return str_replace( ['{TAG_ATTRIBUTES}', '{TAG_VALUE}'], [$attributes_str, $content_text], $definition_arr['html'] );
     }
 
     public function init_parsed_shortcode_for_html( $node_arr )
     {
         // For nodes that are not shortcodes, just say anything is ok...
-        if( empty( $node_arr ) or !is_array( $node_arr )
-         or empty( $node_arr['shortcode'] ) or !($shortcode_arr = $node_arr['shortcode'])
-         or empty( $shortcode_arr ) or !is_array( $shortcode_arr )
-         or empty( $shortcode_arr['shortcode'] ) )
+        if( empty( $node_arr ) || !is_array( $node_arr )
+         || empty( $node_arr['shortcode'] ) || !($shortcode_arr = $node_arr['shortcode'])
+         || empty( $shortcode_arr ) || !is_array( $shortcode_arr )
+         || empty( $shortcode_arr['shortcode'] ) )
             return true;
 
         // Shortcode is not valid... ignore it...
@@ -1127,10 +1168,10 @@ class Bbcode extends PHS_Library
             return false;
 
         if( empty( $definition_arr['init_callback_params'] ) )
-            $definition_arr['init_callback_params'] = array();
+            $definition_arr['init_callback_params'] = [];
 
-        if( empty( $shortcode_arr['validated_attributes'] ) or !is_array( $shortcode_arr['validated_attributes'] ) )
-            $shortcode_arr['validated_attributes'] = array();
+        if( empty( $shortcode_arr['validated_attributes'] ) || !is_array( $shortcode_arr['validated_attributes'] ) )
+            $shortcode_arr['validated_attributes'] = [];
 
         $definition_arr['init_callback_params']['node_arr'] = $node_arr;
 
@@ -1139,23 +1180,29 @@ class Bbcode extends PHS_Library
 
     public function default_bb_editor_input_attributes()
     {
-        return array(
+        return [
             'unique_input_id' => '',
             'id' => 'bb_editor',
             'name' => 'bb_editor',
             'class' => '',
             'placeholder' => '',
             'style' => '',
-        );
+        ];
     }
 
+    /**
+     * @param string $text
+     * @param false|array $params
+     *
+     * @return bool|string
+     */
     public function bb_editor( $text, $params = false )
     {
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( empty( $params['bb_editor_attributes'] ) or !is_array( $params['bb_editor_attributes'] ) )
-            $params['bb_editor_attributes'] = array();
+        if( empty( $params['bb_editor_attributes'] ) || !is_array( $params['bb_editor_attributes'] ) )
+            $params['bb_editor_attributes'] = [];
 
         if( empty( $text ) )
             $text = '';
@@ -1175,11 +1222,11 @@ class Bbcode extends PHS_Library
 
         $this->bb_editor_attributes( $bb_editor_attributes );
 
-        $data = array(
+        $data = [
             'bb_editor_attributes' => $bb_editor_attributes,
             'bb_text' => $text,
             'bb_code_obj' => $this,
-        );
+        ];
 
         return $plugin_obj->quick_render_template_for_buffer( 'bb_editor', $data );
     }

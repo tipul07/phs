@@ -46,9 +46,14 @@ class PHS_Model_Plugins extends PHS_Model
         self::STATUS_INACTIVE => [ 'title' => 'Inactive' ],
     ];
 
-    public function __construct( $instance_details )
+    /**
+     * @param false|array $instance_details
+     *
+     * @return void
+     */
+    protected function _do_construct( $instance_details = false )
     {
-        parent::__construct( $instance_details );
+        parent::_do_construct( $instance_details );
 
         $this->_reset_db_plugin_cache();
         $this->_reset_plugin_settings_cache();

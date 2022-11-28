@@ -17,10 +17,14 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
     /** @var \phs\plugins\sendgrid\libraries\PHS_Sendgrid $sendgrid_library */
     private $sendgrid_library = false;
 
-    public function __construct( $instance_details )
+    /**
+     * @param array|false $instance_details
+     *
+     * @return void
+     */
+    protected function _do_construct( $instance_details = false )
     {
-        parent::__construct( $instance_details );
-
+        parent::_do_construct( $instance_details );
         $this->load_depencies();
     }
 

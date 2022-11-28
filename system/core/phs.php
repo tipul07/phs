@@ -2024,6 +2024,60 @@ final class PHS extends PHS_Registry
         return PHS_CORE_LIBRARIES_DIR.$library.'.php';
     }
 
+    public static function spl_autoload_register( $class_name )
+    {
+        if( !($class_name_arr = explode( '\\', $class_name ))
+         && !empty( $class_name_arr[0] )
+         && $class_name_arr[0] === 'phs'
+         && !PHS_Instantiable::get_instance( true, $class_name ) )
+        {
+            $error_msg = 'Error loading class ['.$class_name.']';
+            if( self::st_has_error() )
+                $error_msg = 'ERROR: '.self::st_get_simple_error_message();
+
+            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+        }
+    }
+
+    /**
+     * @param string $class_name
+     * @param bool $as_singleton
+     *
+     * @return null|PHS_Instantiable
+     */
+    public static function get_class_instance( $class_name, $as_singleton = true )
+    {
+        if( !($details = PHS_Instantiable::extract_details_from_full_namespace_name( $class_name ))
+         || empty( $details['class_name'] ) || empty( $details['plugin_name'] ) || empty( $details['instance_type'] )
+         || !($instance_details = PHS_Instantiable::get_instance_details( $details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir'] ))
+         || empty( $instance_details['loader_method'] )
+         || !@method_exists( self::class, $instance_details['loader_method'] ) )
+            return null;
+
+        $loader_method = $instance_details['loader_method'];
+
+        if( $details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_PLUGIN ) {
+            $obj = self::$loader_method( $details['plugin_name'] );
+        } elseif( $details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_VIEW ) {
+            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $as_singleton );
+        } elseif( in_array( $details['instance_type'], PHS_Instantiable::instance_types_that_allow_subdirs(), true ) )  {
+            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $details['instance_subdir'] );
+        } else  {
+            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'] );
+        }
+
+        if( !$obj || self::st_has_error() ) {
+            $error_msg = 'Error loading class ['.$class_name.']';
+            if( self::st_has_error() )
+                $error_msg = 'ERROR: '.self::st_get_simple_error_message();
+
+            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+            return null;
+        }
+
+        return $obj;
+    }
+
     /**
      * Try loading a core library
      *
