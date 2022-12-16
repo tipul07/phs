@@ -152,15 +152,18 @@ class PHS_Encdec extends PHS_Language
      */
     public function encrypt( $str )
     {
-        if( $this->has_error() )
-            return $str;
+        if( !is_scalar( $str )
+         || $this->has_error() )
+            return '';
+
+        if( !is_string( $str ) )
+            $str = (string)$str;
 
         if( $this->use_base64_encode !== false
-         && is_string( $str ) && $str !== '' )
+         && $str !== '' )
             $str = @base64_encode( $str );
 
-        if( !is_string( $str )
-         || !($len = strlen( $str )) )
+        if( !($len = strlen( $str )) )
             return '';
 
         // create 'header' of encryption string
