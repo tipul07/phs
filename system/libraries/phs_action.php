@@ -183,21 +183,20 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * @return string
      */
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_ACTION;
     }
 
     /**
-     * @param int $scope Scope to be checked
+     * @param  int  $scope Scope to be checked
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed( $scope )
+    final public function scope_is_allowed( int $scope )
     {
         $this->reset_error();
 
-        $scope = (int)$scope;
         if( !PHS_Scope::valid_scope( $scope ) )
         {
             $this->set_error( self::ERR_SCOPE, self::_t( 'Invalid scope.' ) );
@@ -216,7 +215,7 @@ abstract class PHS_Action extends PHS_Instantiable
      * Returns a default array as result of an action execution
      * @return array
      */
-    final public static function default_action_result()
+    final public static function default_action_result(): array
     {
         return [
             // Action "content"

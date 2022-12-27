@@ -13,7 +13,7 @@ use \phs\system\core\views\PHS_View;
 
 class PHS_Scope_Web extends PHS_Scope
 {
-    public function get_scope_type()
+    public function get_scope_type(): int
     {
         return self::SCOPE_WEB;
     }

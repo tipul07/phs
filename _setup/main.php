@@ -65,6 +65,7 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_roles.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_instantiable.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_plugin.php' );
@@ -81,6 +82,8 @@
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_admin.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_background.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_action.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_api_action.php' );
+    include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_remote_action.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_contract.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_contract_list.php' );
     include_once( PHS_SETUP_PHS_LIBRARIES_DIR.'phs_encdec.php' );
@@ -108,6 +111,7 @@
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_ajax.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_api_base.php' );
     include_once( PHS_SETUP_PHS_CORE_DIR.'phs_api.php' );
+    include_once( PHS_SETUP_PHS_CORE_DIR.'phs_api_remote.php' );
 
     include_once( PHS_SETUP_PHS_SYSTEM_DIR.'functions.php' );
 

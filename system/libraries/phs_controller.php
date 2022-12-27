@@ -18,7 +18,7 @@ abstract class PHS_Controller extends PHS_Instantiable
     /**
      * @return string
      */
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_CONTROLLER;
     }
@@ -39,7 +39,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      */
     public function allowed_scopes()
     {
-        return array();
+        return [];
     }
 
     final public function is_admin_controller( $is_admin = null )
@@ -53,11 +53,11 @@ abstract class PHS_Controller extends PHS_Instantiable
     }
 
     /**
-     * @param int $scope Scope to be checked
+     * @param  int  $scope Scope to be checked
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed( $scope )
+    final public function scope_is_allowed( int $scope ): bool
     {
         $this->reset_error();
 
@@ -68,8 +68,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if( ($allowed_scopes = $this->allowed_scopes())
-        and is_array( $allowed_scopes )
-        and !in_array( $scope, $allowed_scopes, true ) )
+         && !in_array( $scope, $allowed_scopes, true ) )
             return false;
 
         return true;
@@ -95,18 +94,18 @@ abstract class PHS_Controller extends PHS_Instantiable
     }
 
     /**
-     * @param string $action Action to be loaded and executed
+     * @param  string  $action Action to be loaded and executed
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
-     * @param string $action_dir Directory (relative from actions dir) where action class is found
+     * @param  string  $action_dir Directory (relative from actions dir) where action class is found
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    final public function run_action( $action, $plugin = null, $action_dir = '' )
+    final public function run_action( string $action, $plugin = null, string $action_dir = '' )
     {
         PHS::running_controller( $this );
 
         if( !$this->instance_is_core()
-        and (!($plugin_instance = $this->get_plugin_instance())
+        && (!($plugin_instance = $this->get_plugin_instance())
                 or !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active controller.' ) );
@@ -114,7 +113,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if( ($current_scope = PHS_Scope::current_scope())
-        and !$this->scope_is_allowed( $current_scope ) )
+        && !$this->scope_is_allowed( $current_scope ) )
         {
             if( !($emulated_scope = PHS_Scope::emulated_scope())
              or !$this->scope_is_allowed( $emulated_scope ) )
@@ -142,7 +141,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         self::st_reset_error();
 
         if( $this->should_request_have_logged_in_user()
-        and !PHS::user_logged_in() )
+        && !PHS::user_logged_in() )
         {
             PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
 
@@ -199,8 +198,8 @@ abstract class PHS_Controller extends PHS_Instantiable
         // If page template is still "front-end" and controller told us it is an admin controller change page template
         // with default admin template
         if( $this->is_admin_controller()
-        and is_array( $action_result )
-        and !empty( $action_result['page_template'] ) and $action_result['page_template'] === 'template_main' )
+        && is_array( $action_result )
+        && !empty( $action_result['page_template'] ) && $action_result['page_template'] === 'template_main' )
             $action_result['page_template'] = 'template_admin';
 
         return $action_result;
@@ -216,7 +215,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         PHS::running_controller( $this );
 
         if( !$this->instance_is_core()
-        and (!($plugin_instance = $this->get_plugin_instance())
+        && (!($plugin_instance = $this->get_plugin_instance())
                 or !$plugin_instance->plugin_active()) )
         {
             $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active controller.' ) );

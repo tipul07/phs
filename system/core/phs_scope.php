@@ -8,16 +8,17 @@ use phs\libraries\PHS_Notifications;
 
 abstract class PHS_Scope extends PHS_Instantiable
 {
-    const ERR_ACTION = 20000;
+    public const ERR_ACTION = 20000;
 
-    const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow', SCOPE_EMULATION_FLOW_KEY = 'scope_emulation_flow';
+    public const DEFAULT_SCOPE_KEY = 'default_scope', SCOPE_FLOW_KEY = 'scope_flow', SCOPE_EMULATION_FLOW_KEY = 'scope_emulation_flow';
 
-    const SCOPE_VAR_PREFIX = '__scp_pre_';
+    public const SCOPE_VAR_PREFIX = '__scp_pre_';
 
-    const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4, SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
+    public const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4,
+        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
 
     /** @var array $SCOPES_ARR */
-    private static $SCOPES_ARR = [
+    private static array $SCOPES_ARR = [
         self::SCOPE_WEB => [
             'title' => 'Web',
             'plugin' => false,
@@ -86,7 +87,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return int
      */
-    abstract public function get_scope_type();
+    abstract public function get_scope_type(): int;
 
     /**
      * @param false|array $action_result
@@ -99,7 +100,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return string
      */
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_SCOPE;
     }
@@ -107,35 +108,35 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return array
      */
-    public static function get_scopes()
+    public static function get_scopes(): array
     {
         return self::$SCOPES_ARR;
     }
 
     /**
-     * @param int $scope
+     * @param  int  $scope
      *
-     * @return bool|array
+     * @return array
      */
-    public static function valid_scope( $scope )
+    public static function valid_scope( int $scope ): array
     {
-        $scope = (int)$scope;
-        if( !($scopes_arr = self::get_scopes()) || empty( $scopes_arr[$scope] ) )
-            return false;
+        if( !($scopes_arr = self::get_scopes())
+         || empty( $scopes_arr[$scope] ) )
+            return [];
 
         return $scopes_arr[$scope];
     }
 
     /**
-     * @param string $const_scope
+     * @param  string  $const_scope
      *
-     * @return bool|int
+     * @return int
      */
-    public static function valid_constant_scope( $const_scope )
+    public static function valid_constant_scope( string $const_scope ): int
     {
         $const_scope = strtolower( trim( $const_scope ) );
         if( !($scopes_arr = self::get_scopes()) )
-            return false;
+            return 0;
 
         foreach( $scopes_arr as $scope_id => $scope_details )
         {
@@ -144,13 +145,13 @@ abstract class PHS_Scope extends PHS_Instantiable
                 return $scope_id;
         }
 
-        return false;
+        return 0;
     }
 
     /**
      * @return array
      */
-    public static function default_scope_params()
+    public static function default_scope_params(): array
     {
         return [
             'title' => '',
@@ -162,15 +163,15 @@ abstract class PHS_Scope extends PHS_Instantiable
     }
 
     /**
-     * @param array $scope_params
+     * @param  array  $scope_params
      *
      * @return array|bool
      */
-    public static function register_scope( $scope_params )
+    public static function register_scope( array $scope_params )
     {
         self::st_reset_error();
 
-        if( empty( $scope_params ) || !is_array( $scope_params )
+        if( empty( $scope_params )
          || !($scope_params = self::validate_array( $scope_params, self::default_scope_params() ))
          || empty( $scope_params['title'] )
          || empty( $scope_params['class_name'] ) )
@@ -190,11 +191,11 @@ abstract class PHS_Scope extends PHS_Instantiable
     }
 
     /**
-     * @param int|null $scope
+     * @param  null|int  $scope
      *
-     * @return bool|int
+     * @return int
      */
-    public static function default_scope( $scope = null )
+    public static function default_scope( int $scope = null ): int
     {
         if( $scope === null )
         {
@@ -208,9 +209,8 @@ abstract class PHS_Scope extends PHS_Instantiable
             return $default_scope;
         }
 
-        $scope = (int)$scope;
         if( !self::valid_scope( $scope ) )
-            return false;
+            return 0;
 
         self::set_data( self::DEFAULT_SCOPE_KEY, $scope );
 
@@ -218,11 +218,11 @@ abstract class PHS_Scope extends PHS_Instantiable
     }
 
     /**
-     * @param int|null $scope
+     * @param  null|int  $scope
      *
-     * @return bool|int
+     * @return int
      */
-    public static function current_scope( $scope = null )
+    public static function current_scope( int $scope = null ): int
     {
         if( $scope === null )
         {
@@ -232,9 +232,8 @@ abstract class PHS_Scope extends PHS_Instantiable
             return $current_scope;
         }
 
-        $scope = (int)$scope;
         if( !self::valid_scope( $scope ) )
-            return false;
+            return 0;
 
         self::set_data( self::SCOPE_FLOW_KEY, $scope );
 
@@ -244,17 +243,17 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return bool
      */
-    public static function current_scope_is_set()
+    public static function current_scope_is_set(): bool
     {
         return (bool) self::get_data(self::SCOPE_FLOW_KEY);
     }
 
     /**
-     * @param int|null $scope
+     * @param  null|int  $scope
      *
-     * @return bool|int
+     * @return false|int
      */
-    public static function emulated_scope( $scope = null )
+    public static function emulated_scope( int $scope = null )
     {
         if( $scope === null )
         {
@@ -264,11 +263,9 @@ abstract class PHS_Scope extends PHS_Instantiable
             return $emulated_scope;
         }
 
-        if( $scope !== false )
-        {
-            $scope = (int)$scope;
-            if( !self::valid_scope( $scope ) )
-                return false;
+        if( $scope !== 0
+         && !self::valid_scope( $scope ) ) {
+            return false;
         }
 
         self::set_data( self::SCOPE_EMULATION_FLOW_KEY, $scope );
@@ -277,11 +274,11 @@ abstract class PHS_Scope extends PHS_Instantiable
     }
 
     /**
-     * @param int|null $scope
+     * @param  null|int  $scope
      *
      * @return bool|PHS_Scope
      */
-    public static function spawn_scope_instance( $scope = null )
+    public static function spawn_scope_instance( int $scope = null )
     {
         if( $scope === null )
             $scope = self::current_scope();
@@ -338,7 +335,7 @@ abstract class PHS_Scope extends PHS_Instantiable
                     $action_result['buffer'] = self::_t( 'Couldn\'t obtain action result.' );
                 }
 
-                // In case we have an error in action set an error notice in notifications class
+                // In case we have an error in action set an error notice in notifications class,
                 // so it can be used in response as scope class considers
                 if( $action_obj->has_error() )
                     PHS_Notifications::add_error_notice( $action_obj->get_simple_error_message() );
