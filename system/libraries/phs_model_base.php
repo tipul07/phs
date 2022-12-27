@@ -240,7 +240,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * @return string Should return INSTANCE_TYPE_* constant
      */
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_MODEL;
     }

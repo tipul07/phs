@@ -8,7 +8,7 @@ use \phs\PHS_Scope;
 //! Class which handles all logging in platform
 class PHS_Logger extends PHS_Registry
 {
-    const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
+    public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
           TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
           TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
           // these constants are used only to tell log_channels() method it should log redefined sets of channels
@@ -17,15 +17,15 @@ class PHS_Logger extends PHS_Registry
     /** @var bool $_logging */
     private static $_logging = true;
     /** @var array $_custom_channels */
-    private static $_custom_channels = [];
+    private static array $_custom_channels = [];
     /** @var array $_channels */
-    private static $_channels = [];
+    private static array $_channels = [];
     /** @var bool|string */
     private static $_logs_dir = false;
     /** @var bool|string */
     private static $_request_identifier = false;
 
-    private static function _regenerate_request_identifier()
+    private static function _regenerate_request_identifier(): void
     {
         self::$_request_identifier = (string)microtime( true );
     }
@@ -39,7 +39,7 @@ class PHS_Logger extends PHS_Registry
         ];
     }
 
-    public static function valid_type( $type )
+    public static function valid_type( $type ): bool
     {
         if( empty( $type )
          || !($types_arr = self::get_types()) || !in_array( (string)$type, $types_arr, true ) )
@@ -48,7 +48,7 @@ class PHS_Logger extends PHS_Registry
         return true;
     }
 
-    public static function defined_channel( $channel )
+    public static function defined_channel( $channel ): bool
     {
         if( empty( self::$_channels ) || !is_array( self::$_channels )
          || empty( self::$_channels[$channel] ) )

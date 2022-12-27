@@ -5,10 +5,10 @@ abstract class PHS_Contract extends PHS_Instantiable
 {
     // hardcoded maximum recursive calls when parsing data
     /** @see PHS_Contract::max_recursive_level_for_data_parsing() */
-    const MAX_RECURSIVE_PARSING = 15;
+    public const MAX_RECURSIVE_PARSING = 15;
 
-    const FROM_OUTSIDE = 1, FROM_INSIDE = 2, FROM_BOTH = 3;
-    protected static $KEYS_ARR = [
+    public const FROM_OUTSIDE = 1, FROM_INSIDE = 2, FROM_BOTH = 3;
+    protected static array $KEYS_ARR = [
         self::FROM_OUTSIDE => [ 'title' => 'From Outside' ],
         self::FROM_INSIDE => [ 'title' => 'From Inside' ],
         self::FROM_BOTH => [ 'title' => 'From Both' ],
@@ -39,7 +39,7 @@ abstract class PHS_Contract extends PHS_Instantiable
     private $_definition_initialized = false;
 
     /** @var int Maximum number of recursive calls when parsing contract data */
-    private $_recursive_lvl = self::MAX_RECURSIVE_PARSING;
+    private int $_recursive_lvl = self::MAX_RECURSIVE_PARSING;
 
     /**
      * Returns an array with data nodes definition
@@ -149,12 +149,12 @@ abstract class PHS_Contract extends PHS_Instantiable
     /**
      * @return string
      */
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_CONTRACT;
     }
 
-    public function max_recursive_level_for_data_parsing( $lvl = false )
+    public function max_recursive_level_for_data_parsing( $lvl = false ): int
     {
         if( $lvl === false )
             return $this->_recursive_lvl;
@@ -163,7 +163,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $this->_recursive_lvl;
     }
 
-    private function _reset_data()
+    private function _reset_data(): void
     {
         $this->_source_data = [];
         $this->_resulting_data = [];
