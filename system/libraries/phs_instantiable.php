@@ -140,7 +140,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return void
      */
-    protected function _do_construct( $instance_details = false ): void
+    protected function _do_construct( $instance_details = false )
     {
         if( empty( $instance_details ) || !is_array( $instance_details ) )
             $instance_details = self::empty_instance_details();
