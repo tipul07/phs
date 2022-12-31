@@ -7,12 +7,12 @@ use \phs\libraries\PHS_Registry;
 
 abstract class PHS_Cli extends PHS_Registry
 {
-    const APP_NAME = 'PHSCLIAPP',
+    public const APP_NAME = 'PHSCLIAPP',
           APP_VERSION = '1.0.0',
           APP_DESCRIPTION = 'This is a PHS CLI application.';
 
     // Verbose levels... 0 means quiet, Higher level, more details
-    const VERBOSE_L0 = 0, VERBOSE_L1 = 1, VERBOSE_L2 = 2, VERBOSE_L3 = 3;
+    public const VERBOSE_L0 = 0, VERBOSE_L1 = 1, VERBOSE_L2 = 2, VERBOSE_L3 = 3;
 
     /** @var int How much verbosity do we need */
     protected $_verbose_level = self::VERBOSE_L1;
@@ -317,8 +317,8 @@ abstract class PHS_Cli extends PHS_Registry
         if( 254 < ($exit_code = (int)$this->get_error_code()) )
             $exit_code = 254;
 
-        if( self::VERBOSE_L0 === $this->get_app_verbosity()
-         || $this->_app_result['buffer'] === '' )
+        if( $this->_app_result['buffer'] === ''
+         || self::VERBOSE_L0 === $this->get_app_verbosity() )
             exit( $exit_code );
 
         $this->_flush_output();
@@ -477,7 +477,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_output_colors;
     }
 
-    public static function get_app_result_definition()
+    public static function get_app_result_definition(): array
     {
         return [
             // Buffer that will be displayed as result
@@ -487,7 +487,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_app_command_node_definition()
+    public static function get_app_command_node_definition(): array
     {
         return [
             // Description used when building --help option
@@ -497,7 +497,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_app_selected_command_definition()
+    public static function get_app_selected_command_definition(): array
     {
         return self::validate_array( [
              // Keep command name in selected command array
@@ -506,7 +506,7 @@ abstract class PHS_Cli extends PHS_Registry
              'arguments' => [], ], self::get_app_command_node_definition() );
     }
 
-    public static function get_app_option_node_definition()
+    public static function get_app_option_node_definition(): array
     {
         return [
             // short parameter passed in cli line (eg. -u)
@@ -526,7 +526,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_command_line_option_node_definition()
+    public static function get_command_line_option_node_definition(): array
     {
         return [
             // Tells if parameter passed to application was short version or not (eg. -u=5 or --user=5)
@@ -541,7 +541,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    protected function _default_app_commands()
+    protected function _default_app_commands(): array
     {
         return [
             'help' => [
@@ -551,7 +551,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    protected function _default_app_options()
+    protected function _default_app_options(): array
     {
         return [
             'verbosity' => [
@@ -590,15 +590,15 @@ abstract class PHS_Cli extends PHS_Registry
     }
 
     /**
-     * @param array $app_options
+     * @param  array  $app_options
      *
-     * @return array|bool
+     * @return array|false
      */
-    private function _validate_app_options( $app_options )
+    private function _validate_app_options( array $app_options )
     {
         $this->reset_error();
 
-        if( empty( $app_options ) || !is_array( $app_options ) )
+        if( empty( $app_options ) )
             $app_options = [];
 
         $app_options = self::validate_array( $app_options, $this->_default_app_options() );
@@ -626,13 +626,13 @@ abstract class PHS_Cli extends PHS_Registry
 
             $option_arr = self::validate_array( $option_arr, $node_definition );
 
-            // All CLI parameters are case insensitive (convert all to lowercase)
+            // All CLI parameters are case-insensitive (convert all to lowercase)
             $return_arr[strtolower($option_name)] = $option_arr;
         }
 
         $this->_options_definition = $return_arr;
 
-        // Make indexes after we sort by priority so they get overwritten (eventually) depending priority
+        // Make indexes after we sort by priority, so they get overwritten (eventually) depending on priority
         $this->_options_as_keys = [];
         foreach( $return_arr as $option_name => $option_arr )
         {
@@ -687,7 +687,7 @@ abstract class PHS_Cli extends PHS_Registry
 
             $command_arr = self::validate_array( $command_arr, $node_definition );
 
-            // All CLI parameters are case insensitive (convert all to lowercase)
+            // All CLI parameters are case-insensitive (convert all to lowercase)
             $return_arr[strtolower($command_name)] = $command_arr;
         }
 
@@ -828,10 +828,12 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * Get or set conitnous flush status: flush output when calling _echo commands rather than buffering output.
      * When changing continous flush status, method returns old settings.
-     * @param bool|null $flush
+     *
+     * @param  null|bool $flush
+     *
      * @return bool
      */
-    protected function _continous_flush( $flush = null )
+    protected function _continous_flush( bool $flush = null ): bool
     {
         if( $flush === null )
             return $this->_continous_flush;
@@ -854,22 +856,19 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * Extract first argument available in an array of arguments and return an array
      * with arg key first available string untill first space and rest key with rest of arguments
-     * @param array $args_arr
+     *
+     * @param  array  $args_arr
+     *
      * @return bool|array
      */
-    protected static function _get_one_argument( $args_arr )
+    protected static function _get_one_argument( array $args_arr )
     {
         if( empty( $args_arr )
-         || !is_array( $args_arr )
          || null === ($first_arg = @array_shift( $args_arr ))
          || !is_string( $first_arg ) )
             return false;
 
-        if( '' === ($first_arg = trim( $first_arg )) )
-        {
-            if( empty( $args_arr ) )
-                return false;
-
+        if( '' === ($first_arg = trim( $first_arg )) ){
             return static::_get_one_argument( $args_arr );
         }
 
@@ -883,21 +882,21 @@ abstract class PHS_Cli extends PHS_Registry
      * Useful when wanting to get command line arguments (array of arguments) one by one in consecutive method calls.
      * eg. $this->_get_argument_chained( [ 'arg1', 'arg2', 'arg3' ] ); $this->_get_argument_chained(); $this->_get_argument_chained()
      * If methods are called consecutively each call will return arg1, arg2 and arg3 respectively
-     * @param bool|array $args_arr
      *
-     * @return bool|string
+     * @param  null|array  $args_arr
+     *
+     * @return string
      */
-    protected function _get_argument_chained( $args_arr = false )
+    protected function _get_argument_chained( array $args_arr = null ): string
     {
-        /** @var array|bool $arguments */
-        static $arguments = false;
+        static $arguments = [];
 
-        if( false !== $args_arr )
+        if( null !== $args_arr )
             $arguments = $args_arr;
 
         if( empty( $arguments )
          || !($args_result = $this::_get_one_argument( $arguments )) )
-            return false;
+            return '';
 
         $arguments = $args_result['rest'];
 
@@ -905,27 +904,24 @@ abstract class PHS_Cli extends PHS_Registry
     }
 
     /**
-     * @param string $msg
-     * @param bool|array $params
+     * @param  string  $msg
+     * @param array $params
      *
      * @return bool
      */
-    public function _echo_error( $msg, $params = false )
+    public function _echo_error( string $msg, array $params = [] ): bool
     {
         return $this->_echo( $this->cli_color( self::_t( 'ERROR' ), 'red' ).': '.$msg, $params );
     }
 
     /**
-     * @param string $msg
-     * @param bool|array $params
+     * @param  string  $msg
+     * @param array $params
      *
      * @return bool
      */
-    public function _echo( $msg, $params = false )
+    public function _echo( string $msg, array $params = [] ): bool
     {
-        if( !is_string( $msg ) )
-            return false;
-
         if( empty( $params ) || !is_array( $params ) )
             $params = [];
 
@@ -940,15 +936,8 @@ abstract class PHS_Cli extends PHS_Registry
          || $now_verbosity < $params['verbose_lvl'] )
             return true;
 
-        if( empty( $params['force_echo'] ) )
-            $params['force_echo'] = false;
-        else
-            $params['force_echo'] = (!empty( $params['force_echo'] )?true:false);
-
-        if( empty( $params['flush_output'] ) )
-            $params['flush_output'] = false;
-        else
-            $params['flush_output'] = (!empty( $params['flush_output'] )?true:false);
+        $params['force_echo'] = (!empty( $params['force_echo'] ));
+        $params['flush_output'] = (!empty( $params['flush_output'] ));
 
         $msg .= "\n";
 
@@ -966,13 +955,14 @@ abstract class PHS_Cli extends PHS_Registry
 
     /**
      * Sets colors for
-     * @param string $str
-     * @param string $color
-     * @param bool|string $background
+     *
+     * @param  string $str
+     * @param  string  $color
+     * @param string $background
      *
      * @return string
      */
-    public function cli_color( $str, $color, $background = false )
+    public function cli_color( string $str, string $color, string $background = '' ): string
     {
         if( !$this->get_app_output_colors() )
             return $str;
@@ -982,13 +972,14 @@ abstract class PHS_Cli extends PHS_Registry
 
     /**
      * Sets colors for
-     * @param string $str
-     * @param false|string $color
-     * @param false|string $background
+     *
+     * @param  string $str
+     * @param  string  $color
+     * @param  string  $background
      *
      * @return string
      */
-    public static function st_cli_color( $str, $color, $background = false )
+    public static function st_cli_color( string $str, string $color, string $background = '' ): string
     {
         $colors_arr = self::get_cli_colors_definition();
 
@@ -996,20 +987,13 @@ abstract class PHS_Cli extends PHS_Registry
          && empty( $colors_arr['background'][$background] ) )
             return $str;
 
-        if( empty( $colors_arr['color'][$color] ) )
-            $color = false;
-        else
-            $color = $colors_arr['color'][$color];
-
-        if( empty( $colors_arr['background'][$background] ) )
-            $background = false;
-        else
-            $background = $colors_arr['background'][$background];
+        $color = $colors_arr['color'][$color] ?? '';
+        $background = $colors_arr['background'][$background] ?? '';
 
         $colored_str = '';
-        if( $color !== false )
+        if( $color !== '' )
             $colored_str .= "\033[".$color.'m';
-        if( $background !== false )
+        if( $background !== '' )
             $colored_str .= "\033[".$background.'m';
 
         $colored_str .= $str."\033[0m";
@@ -1017,7 +1001,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $colored_str;
     }
 
-    public static function get_cli_colors_definition()
+    public static function get_cli_colors_definition(): array
     {
         return [
             'color' => [

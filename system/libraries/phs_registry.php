@@ -411,13 +411,13 @@ class PHS_Registry extends PHS_Language
     }
 
     /**
-     * @param array $arr Array to be validated
-     * @param array $default_arr Array keys and default values which should be present in array to be validated
+     * @param null|array $arr Array to be validated
+     * @param null|array $default_arr Array keys and default values which should be present in array to be validated
      *
      * @return array If default array is not an array or is empty, returns original array,
      * else validated array is returned
      */
-    public static function validate_array( $arr, $default_arr )
+    public static function validate_array( $arr, $default_arr ): array
     {
         if( empty( $arr ) || !is_array( $arr ) )
             $arr = [];
@@ -438,15 +438,15 @@ class PHS_Registry extends PHS_Language
      * @param array $arr
      * @param array $default_arr
      *
-     * @return array|bool
+     * @return array
      */
-    public static function validate_array_recursive( $arr, $default_arr )
+    public static function validate_array_recursive( $arr, $default_arr ): array
     {
+        if( empty( $arr ) || !is_array( $arr ) )
+            $arr = [];
+
         if( empty( $default_arr ) || !is_array( $default_arr ) )
             return $arr;
-
-        if( empty( $arr ) || !is_array( $arr ) )
-            return $default_arr;
 
         foreach( $default_arr as $key => $val )
         {
@@ -472,7 +472,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function validate_array_to_new_array( $arr, $default_arr )
+    public static function validate_array_to_new_array( $arr, $default_arr ): array
     {
         if( empty( $default_arr ) || !is_array( $default_arr ) )
             return [];
@@ -498,7 +498,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function validate_array_to_new_array_recursive( $arr, $default_arr )
+    public static function validate_array_to_new_array_recursive( $arr, $default_arr ): array
     {
         if( empty( $default_arr ) || !is_array( $default_arr ) )
             return [];
@@ -535,7 +535,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function array_merge_unique_values( $arr1, $arr2 )
+    public static function array_merge_unique_values( $arr1, $arr2 ): array
     {
         if( empty( $arr1 ) || !is_array( $arr1 ) )
             $arr1 = [];
@@ -570,7 +570,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool True is arrays hold same values (ignoring position in array)
      */
-    public static function arrays_have_same_values( $arr1, $arr2 )
+    public static function arrays_have_same_values( $arr1, $arr2 ): bool
     {
         if( !is_array( $arr1 ) || !is_array( $arr2 ) )
             return false;
@@ -609,7 +609,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool True is array has only integers as indexes, false if indexes are something else than integers
      */
-    public static function array_has_numeric_indexes( $arr, $params = false )
+    public static function array_has_numeric_indexes( $arr, $params = false ): bool
     {
         if( empty( $arr ) || !is_array( $arr ) )
             return false;
@@ -645,7 +645,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return string[]
      */
-    public static function extract_strings_from_comma_separated( $str, $params = false )
+    public static function extract_strings_from_comma_separated( $str, $params = false ): array
     {
         if( !is_string( $str ) )
             return [];
@@ -692,7 +692,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array Array of casted integers
      */
-    public static function extract_integers_from_comma_separated( $str, $params = false )
+    public static function extract_integers_from_comma_separated( $str, $params = false ): array
     {
         if( !is_string( $str ) )
             return [];
@@ -726,7 +726,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function extract_integers_from_array( $arr )
+    public static function extract_integers_from_array( $arr ): array
     {
         if( empty( $arr ) || !is_array( $arr ) )
             return [];
@@ -753,7 +753,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function extract_strings_from_array( $arr, $params = false )
+    public static function extract_strings_from_array( $arr, $params = false ): array
     {
         if( empty( $arr ) || !is_array( $arr ) )
             return [];
@@ -798,12 +798,12 @@ class PHS_Registry extends PHS_Language
      * Extract all key-values pairs from an array for which key is prefixed with a provided string
      *
      * @param array $arr Array with keys-values pairs
-     * @param string $prefix String which is to be checked as prefix in keys
+     * @param  string  $prefix String which is to be checked as prefix in keys
      * @param bool|array $params Optional parameters to the function
      *
      * @return array Resulting key-values pairs which are prefixed with provided string
      */
-    public static function extract_keys_with_prefix( $arr, $prefix, $params = false )
+    public static function extract_keys_with_prefix( $arr, string $prefix, $params = false ): array
     {
         if( empty( $arr ) || !is_array( $arr ) )
             return [];
