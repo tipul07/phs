@@ -12,7 +12,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Framework hooks definition
     //
-    const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
+    public const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
 
          // Language hooks
          H_LANGUAGE_DEFINITION = 'phs_language_definition',
@@ -151,7 +151,7 @@ class PHS_Hooks extends PHS_Registry
     /**
      * @return array
      */
-    public static function default_common_hook_args()
+    public static function default_common_hook_args(): array
     {
         return [
             'hook_errors' => self::default_error_array(),
@@ -159,12 +159,13 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
+     *
      * @return array
      */
-    public static function get_hook_args_error( $hook_args )
+    public static function get_hook_args_error( array $hook_args ): array
     {
-        if( empty( $hook_args ) || !is_array( $hook_args )
+        if( empty( $hook_args )
          || empty( $hook_args['hook_errors'] ) || !is_array( $hook_args['hook_errors'] ) )
             return self::default_error_array();
 
@@ -172,19 +173,21 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
+     *
      * @return bool
      */
-    public static function hook_args_has_error( $hook_args )
+    public static function hook_args_has_error( array $hook_args ): bool
     {
         return self::arr_has_error( self::get_hook_args_error( $hook_args ) );
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
+     *
      * @return array
      */
-    public static function hook_args_reset_error( $hook_args )
+    public static function hook_args_reset_error( array $hook_args ): array
     {
         $hook_args = self::validate_array( $hook_args, self::default_common_hook_args() );
 
@@ -195,13 +198,16 @@ class PHS_Hooks extends PHS_Registry
 
     /**
      * Set an error on provided hook arguments
-     * @param array $hook_args
-     * @param int $error_no
-     * @param string $error_msg
-     * @param string $error_debug_msg
+     *
+     * @param  array  $hook_args
+     * @param  int  $error_no
+     * @param  string  $error_msg
+     * @param  string  $error_debug_msg
+     *
      * @return array
      */
-    public static function hook_args_set_error( $hook_args, $error_no, $error_msg, $error_debug_msg = '' )
+    public static function hook_args_set_error( array $hook_args, int $error_no,
+        string $error_msg, string $error_debug_msg = '' ): array
     {
         $hook_args = self::hook_args_reset_error( $hook_args );
 
@@ -211,23 +217,23 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
      *
      * @return array
      */
-    public static function hook_args_definition( $hook_args )
+    public static function hook_args_definition( array $hook_args ): array
     {
         return self::validate_array_recursive( $hook_args, self::default_common_hook_args() );
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
      *
      * @return array
      */
-    public static function reset_common_hook_args( $hook_args )
+    public static function reset_common_hook_args( array $hook_args ): array
     {
-        if( empty( $hook_args ) || !is_array( $hook_args ) )
+        if( empty( $hook_args ) )
             return self::validate_array( $hook_args, self::default_common_hook_args() );
 
         $hook_args['hook_errors'] = self::default_error_array();
@@ -241,7 +247,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region URL and routing hooks
     //
-    public static function default_url_rewrite_hook_args()
+    public static function default_url_rewrite_hook_args(): array
     {
         return self::hook_args_definition( [
 
@@ -261,7 +267,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_phs_route_hook_args()
+    public static function default_phs_route_hook_args(): array
     {
         return self::hook_args_definition( [
 
@@ -274,7 +280,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_api_hook_args()
+    public static function default_api_hook_args(): array
     {
         return self::hook_args_definition( [
             // Instantiated API instance. If no plugin picks up PHS_Hooks::H_API_REQUEST_INIT hook call \phs\PHS_Api class instance will be used
@@ -307,7 +313,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Paginator hooks
     //
-    public static function default_paginator_action_parameters_hook_args()
+    public static function default_paginator_action_parameters_hook_args(): array
     {
         return self::hook_args_definition( [
             'paginator_action_obj' => false,
@@ -321,7 +327,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Language hooks
     //
-    public static function default_language_definition_hook_args()
+    public static function default_language_definition_hook_args(): array
     {
         return self::hook_args_definition( [
             'default_language' => false,
@@ -335,7 +341,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Action execution hooks
     //
-    public static function default_page_location_hook_args()
+    public static function default_page_location_hook_args(): array
     {
         return self::hook_args_definition( [
             'action_result' => false,
@@ -346,7 +352,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_action_execute_hook_args()
+    public static function default_action_execute_hook_args(): array
     {
         return self::hook_args_definition( [
             // Tells if execution of action should be stopped and action_result returned by the hook to be used as action result
@@ -356,7 +362,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_single_types_actions_hook_args()
+    public static function default_single_types_actions_hook_args(): array
     {
         return self::hook_args_definition( [
             'actions_arr' => [],
@@ -372,7 +378,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Plugin hooks
     //
-    public static function default_plugin_settings_hook_args()
+    public static function default_plugin_settings_hook_args(): array
     {
         return self::hook_args_definition( [
             // Instance id for which we have these settings values
@@ -384,7 +390,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_plugin_settings_saved_hook_args()
+    public static function default_plugin_settings_saved_hook_args(): array
     {
         return self::hook_args_definition( [
             // Instance type for which we have these settings values
@@ -413,14 +419,14 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Internal messages hooks
     //
-    public static function default_message_types_hook_args()
+    public static function default_message_types_hook_args(): array
     {
         return self::hook_args_definition( [
             'types_arr' => [],
         ]);
     }
 
-    public static function default_message_hook_args()
+    public static function default_message_hook_args(): array
     {
         return self::hook_args_definition( [
             'message_data' => false,
@@ -435,7 +441,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_messages_summary_hook_args()
+    public static function default_messages_summary_hook_args(): array
     {
         return self::hook_args_definition( [
             'messages_new' => 0,
@@ -457,7 +463,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Database model hooks
     //
-    public static function default_model_validate_data_fields_hook_args()
+    public static function default_model_validate_data_fields_hook_args(): array
     {
         return self::hook_args_definition( [
             'flow_params' => false,
@@ -465,7 +471,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_model_empty_data_hook_args()
+    public static function default_model_empty_data_hook_args(): array
     {
         return self::hook_args_definition( [
             'data_arr' => [],
@@ -473,7 +479,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_model_insert_data_hook_args()
+    public static function default_model_insert_data_hook_args(): array
     {
         return self::hook_args_definition( [
             'fields_arr' => [],
@@ -482,7 +488,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_model_edit_data_hook_args()
+    public static function default_model_edit_data_hook_args(): array
     {
         return self::hook_args_definition( [
             'fields_arr' => [],
@@ -492,7 +498,7 @@ class PHS_Hooks extends PHS_Registry
         ]);
     }
 
-    public static function default_model_hard_delete_data_hook_args()
+    public static function default_model_hard_delete_data_hook_args(): array
     {
         return self::hook_args_definition( [
             'table_name' => false,
@@ -507,7 +513,7 @@ class PHS_Hooks extends PHS_Registry
     //region User account hooks
     //
     // Default hook parameters sent for hooks related to guest roles
-    public static function default_guest_roles_hook_args()
+    public static function default_guest_roles_hook_args(): array
     {
         return self::hook_args_definition( [
             'guest_roles' => [],
@@ -515,7 +521,7 @@ class PHS_Hooks extends PHS_Registry
     }
 
     // Default hook parameters sent for hooks related to user account
-    public static function default_user_account_hook_args()
+    public static function default_user_account_hook_args(): array
     {
         return self::hook_args_definition( [
             'account_data' => false,
@@ -524,7 +530,7 @@ class PHS_Hooks extends PHS_Registry
     }
 
     // Default hook parameters sent for hooks related to user account (including insert/edit parameters)
-    public static function default_user_account_fields_hook_args()
+    public static function default_user_account_fields_hook_args(): array
     {
         return self::hook_args_definition( [
             'account_data' => false,
@@ -534,7 +540,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function default_user_registration_roles_hook_args()
+    public static function default_user_registration_roles_hook_args(): array
     {
         return self::hook_args_definition( [
            'roles_arr' => [],
@@ -542,7 +548,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function default_password_expiration_data()
+    public static function default_password_expiration_data(): array
     {
         return [
             'is_expired' => false,
@@ -555,7 +561,7 @@ class PHS_Hooks extends PHS_Registry
         ];
     }
 
-    public static function default_user_db_details_hook_args()
+    public static function default_user_db_details_hook_args(): array
     {
         return self::hook_args_definition( [
             'force_check' => false,
@@ -569,7 +575,7 @@ class PHS_Hooks extends PHS_Registry
     }
 
     // Used to get account structure (including roles) Account data can be empty or an empty structure (a guest empty structure)
-    public static function default_account_structure_hook_args()
+    public static function default_account_structure_hook_args(): array
     {
         return self::hook_args_definition( [
             // Account id or array to be transformed into account structure (input)
@@ -580,10 +586,10 @@ class PHS_Hooks extends PHS_Registry
     }
 
     // Used to validate or alter db fields when importing user accounts
-    public static function default_import_accounts_hook_args()
+    public static function default_import_accounts_hook_args(): array
     {
         return self::hook_args_definition( [
-            // Array to be send to $accounts_model->insert( $action_fields )
+            // Array to be sent to $accounts_model->insert( $action_fields )
             // or $accounts_model->edit( $account_arr, $action_fields )
             'action_fields' => false,
             // Import parameters
@@ -596,7 +602,7 @@ class PHS_Hooks extends PHS_Registry
     }
 
     // Used to make extra actions on an account (including roles) Account data can be empty or an empty structure (a guest empty structure)
-    public static function default_account_action_hook_args()
+    public static function default_account_action_hook_args(): array
     {
         return self::hook_args_definition( [
             // Tells if current hook call is in a background script
@@ -619,7 +625,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Page buffer hooks
     //
-    public static function default_buffer_hook_args()
+    public static function default_buffer_hook_args(): array
     {
         return self::hook_args_definition( [
            // in case we are triggering this in a view which matters for requested buffer
@@ -630,7 +636,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function reset_buffer_hook_args( $hook_args )
+    public static function reset_buffer_hook_args( $hook_args ): array
     {
         $hook_args = self::validate_array( $hook_args, self::default_buffer_hook_args() );
         $hook_args['buffer'] = '';
@@ -644,7 +650,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Notifications hooks
     //
-    public static function default_notifications_hook_args()
+    public static function default_notifications_hook_args(): array
     {
         return self::hook_args_definition( [
            'warnings' => [],
@@ -667,7 +673,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Emailing hooks
     //
-    public static function default_init_email_hook_args()
+    public static function default_init_email_hook_args(): array
     {
         return self::hook_args_definition( [
             'template' => [
@@ -708,7 +714,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function reset_email_hook_args( $hook_args )
+    public static function reset_email_hook_args( $hook_args ): array
     {
         if( empty( $hook_args ) || !is_array( $hook_args ) )
             return self::default_init_email_hook_args();
@@ -725,7 +731,7 @@ class PHS_Hooks extends PHS_Registry
     //
     //region Captcha hooks
     //
-    public static function default_captcha_display_hook_args()
+    public static function default_captcha_display_hook_args(): array
     {
         return self::hook_args_definition( [
             'template' => [
@@ -742,7 +748,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function default_captcha_check_hook_args()
+    public static function default_captcha_check_hook_args(): array
     {
         return self::hook_args_definition( [
             'check_code' => '',
@@ -750,7 +756,7 @@ class PHS_Hooks extends PHS_Registry
        ] );
     }
 
-    public static function default_captcha_regeneration_hook_args()
+    public static function default_captcha_regeneration_hook_args(): array
     {
         return self::hook_args_definition( [] );
     }
@@ -761,11 +767,11 @@ class PHS_Hooks extends PHS_Registry
     /**
      * Trigger an email action
      *
-     * @param array $hook_args
+     * @param  null|array  $hook_args
      *
      * @return bool|null|array
      */
-    public static function trigger_email( $hook_args )
+    public static function trigger_email( ?array $hook_args )
     {
         self::st_reset_error();
 
@@ -787,11 +793,11 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param bool|array $hook_args
+     * @param  null|array  $hook_args
      *
      * @return array|bool
      */
-    public static function trigger_guest_roles( $hook_args = false )
+    public static function trigger_guest_roles( ?array $hook_args = null )
     {
         $hook_args = self::validate_array( $hook_args, self::default_guest_roles_hook_args() );
 
@@ -803,11 +809,11 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param bool|array $hook_args
+     * @param  null|array  $hook_args
      *
      * @return array|bool
      */
-    public static function trigger_current_user( $hook_args = false )
+    public static function trigger_current_user( ?array $hook_args = null )
     {
         $hook_args = self::validate_array( $hook_args, self::default_user_db_details_hook_args() );
 
@@ -815,30 +821,28 @@ class PHS_Hooks extends PHS_Registry
         if( ($hook_args = PHS::trigger_hooks( self::H_USER_DB_DETAILS, $hook_args )) === null )
             return false;
 
-        if( is_array( $hook_args ) )
+        if( is_array( $hook_args )
+         && !empty( $hook_args['session_expired_secs'] ) )
         {
-            if( !empty( $hook_args['session_expired_secs'] ) )
+            if( !@headers_sent()
+             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_WEB )
             {
-                if( !@headers_sent()
-                 && PHS_Scope::current_scope() === PHS_Scope::SCOPE_WEB )
-                {
-                    header( 'Location: '.PHS::url( ['p' => 'accounts', 'a' => 'login'], [ 'expired_secs' => $hook_args['session_expired_secs'] ] ) );
-                    exit;
-                }
-
-                return false;
+                @header( 'Location: '.PHS::url( ['p' => 'accounts', 'a' => 'login'], [ 'expired_secs' => $hook_args['session_expired_secs'] ] ) );
+                exit;
             }
+
+            return false;
         }
 
         return $hook_args;
     }
 
     /**
-     * @param bool|array $hook_args
+     * @param null|array $hook_args
      *
      * @return array|bool
      */
-    public static function trigger_account_action( $hook_args = false )
+    public static function trigger_account_action( ?array $hook_args = null )
     {
         $hook_args = self::validate_array( $hook_args, self::default_account_action_hook_args() );
 
@@ -864,11 +868,11 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param array $hook_args
+     * @param  array  $hook_args
      *
      * @return string
      */
-    public static function trigger_captcha_display( $hook_args )
+    public static function trigger_captcha_display( array $hook_args ): string
     {
         $hook_args = self::validate_array( $hook_args, self::default_captcha_display_hook_args() );
 
@@ -887,11 +891,11 @@ class PHS_Hooks extends PHS_Registry
     }
 
     /**
-     * @param string $code
+     * @param  string  $code
      *
      * @return array|null
      */
-    public static function trigger_captcha_check( $code )
+    public static function trigger_captcha_check( string $code ): ?array
     {
         $hook_args = self::validate_array( ['check_code' => $code], self::default_captcha_check_hook_args() );
 
@@ -901,7 +905,7 @@ class PHS_Hooks extends PHS_Registry
     /**
      * @return array|null
      */
-    public static function trigger_captcha_regeneration()
+    public static function trigger_captcha_regeneration(): ?array
     {
         $hook_args = self::validate_array( [], self::default_captcha_regeneration_hook_args() );
 

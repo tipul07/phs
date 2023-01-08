@@ -8,7 +8,7 @@ use \phs\libraries\PHS_Hooks;
 
 abstract class PHS_Controller extends PHS_Instantiable
 {
-    const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
+    public const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
     private $_action = false;
     //! Tells if running controller should choose admin template if Scope should display a layout

@@ -10,10 +10,9 @@ use \phs\libraries\PHS_Notifications;
 
 class PHS_Action_Change_language_ajax extends PHS_Action
 {
-    /** @inheritdoc */
     public function action_roles()
     {
-        return array( self::ACT_ROLE_CHANGE_LANGUAGE, );
+        return [self::ACT_ROLE_CHANGE_LANGUAGE,];
     }
 
     /**
@@ -21,7 +20,7 @@ class PHS_Action_Change_language_ajax extends PHS_Action
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_AJAX );
+        return [PHS_Scope::SCOPE_AJAX];
     }
 
     public function execute()
@@ -47,18 +46,18 @@ class PHS_Action_Change_language_ajax extends PHS_Action
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( ($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-        and ($current_user = PHS::user_logged_in())
-        and (!($account_language = $accounts_model->get_account_language( $current_user ))
-                or $account_language !== $clean_lang
+         && ($current_user = PHS::user_logged_in())
+         && (!($account_language = $accounts_model->get_account_language( $current_user ))
+                || $account_language !== $clean_lang
             ) )
         {
             // If we have an error when saving language in profile, don't throw an error as we have a cookie set with the language
             $accounts_model->set_account_language( $current_user, $clean_lang );
         }
 
-        $action_result['ajax_result'] = array(
+        $action_result['ajax_result'] = [
             'language_changed' => true,
-        );
+        ];
 
         return $action_result;
     }

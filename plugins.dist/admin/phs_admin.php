@@ -902,20 +902,20 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function trigger_web_template_rendering( $hook_args = false )
     {
-        $hook_args = self::validate_array( $hook_args, PHS_Hooks::default_page_location_hook_args() );
+        if( !($hook_args = self::validate_array( $hook_args, PHS_Hooks::default_page_location_hook_args() ))
+         || empty( $hook_args['page_template'] ) ) {
+            return $hook_args;
+        }
 
-        if( !empty( $hook_args ) && !empty( $hook_args['page_template'] ) )
+        if( $hook_args['page_template'] === 'template_admin'
+         && ($current_theme = PHS::get_theme()) !== 'default'
+         && ($settings_arr = $this->get_plugin_settings()) )
         {
-            if( $hook_args['page_template'] === 'template_admin'
-             && ($current_theme = PHS::get_theme()) !== 'default'
-             && ($settings_arr = $this->get_plugin_settings()) )
-            {
-                PHS::set_theme( 'default' );
+            PHS::set_theme( 'default' );
 
-                if( !empty( $settings_arr['current_theme_as_default_in_admin'] )
-                 && !empty( $current_theme ) )
-                    PHS::set_defaut_theme( $current_theme );
-            }
+            if( !empty( $settings_arr['current_theme_as_default_in_admin'] )
+             && !empty( $current_theme ) )
+                PHS::set_defaut_theme( $current_theme );
         }
 
         return $hook_args;

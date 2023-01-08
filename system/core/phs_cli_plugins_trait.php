@@ -46,7 +46,7 @@ trait PHS_Cli_plugins_trait
         ];
     }
 
-    protected function _gather_plugin_info( $plugin_name )
+    protected function _gather_plugin_info( $plugin_name ): array
     {
         $plugin_info = self::_get_default_plugin_info_definition();
 

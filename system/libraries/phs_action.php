@@ -8,14 +8,15 @@ use \phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
-    const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
+    public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
 
-    const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
+    public const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
-    const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
-          ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password', ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired',
-          ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password', ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
-          ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
+    public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
+        ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
+        ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
+        ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
+        ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
     private static $_action_roles = [];
     private static $_custom_action_roles = [];
     private static $_builtin_action_roles = [
@@ -62,7 +63,7 @@ abstract class PHS_Action extends PHS_Instantiable
         return [ self::ACT_ROLE_PAGE ];
     }
 
-    final public static function default_action_role_definition_array()
+    final public static function default_action_role_definition_array(): array
     {
         return [
             'title' => '',
@@ -73,7 +74,7 @@ abstract class PHS_Action extends PHS_Instantiable
      * Return an array of defined action roles (custom and builtin)
      * @return array
      */
-    final public static function get_action_roles()
+    final public static function get_action_roles(): array
     {
         if( !empty( self::$_action_roles ) )
             return self::$_action_roles;
@@ -85,11 +86,12 @@ abstract class PHS_Action extends PHS_Instantiable
 
     /**
      * Check if $role_key is a defined action role. Return action role definiton if role is defined.
-     * @param string $role_key
+     *
+     * @param  string $role_key
      *
      * @return array|bool
      */
-    final public static function valid_action_role( $role_key )
+    final public static function valid_action_role( string $role_key )
     {
         if( !($roles_arr = self::get_action_roles())
          || empty( $roles_arr[$role_key] ) )
@@ -100,27 +102,23 @@ abstract class PHS_Action extends PHS_Instantiable
 
     /**
      * Define an action role
-     * @param string $role_key
-     * @param array $role_arr Role definition array
+     *
+     * @param  string $role_key
+     * @param  array  $role_arr Role definition array
      *
      * @return array|bool
      */
-    final public function define_action_role( $role_key, $role_arr )
+    final public function define_action_role( string $role_key, array $role_arr )
     {
         $this->reset_error();
 
         if( ($defined_role = self::valid_action_role( $role_key )) )
             return $defined_role;
 
-        if( !is_string( $role_key ) )
+        if( empty( $role_key ) )
         {
-            if( !is_scalar( $role_key ) )
-            {
-                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role key should be a string.' ) );
-                return false;
-            }
-
-            $role_key = (string)$role_key;
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role key should be a string.' ) );
+            return false;
         }
 
         $role_arr = self::merge_array_assoc( $role_arr, self::default_action_role_definition_array() );

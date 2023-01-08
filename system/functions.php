@@ -78,6 +78,8 @@ function phs_init_before_bootstrap(): bool
         define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
     if( !defined( 'PHS_CORE_CONTRACT_DIR' ) )
         define( 'PHS_CORE_CONTRACT_DIR', PHS_CORE_DIR.'contracts/' );
+    if( !defined( 'PHS_CORE_EVENT_DIR' ) )
+        define( 'PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/' );
     if( !defined( 'PHS_CORE_PLUGIN_DIR' ) )
         define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
     if( !defined( 'PHS_CORE_SCOPE_DIR' ) )

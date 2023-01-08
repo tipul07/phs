@@ -558,13 +558,8 @@ final class PHS_Session extends PHS_Registry
         && ($sess_dir = self::get_session_id_dir( $id ))
         && !@is_dir( $sess_dir ) )
         {
-            if( ($sess_root = self::get_data( self::SESS_DATA )) )
-                $sess_root = rtrim( $sess_root, '/\\' );
-            else
-                $sess_root = '';
-
-            // maybe we should create directory...
-            if( !(PHS_Utils::mkdir_tree( $sess_dir, [ 'root' => $sess_root, 'dir_mode' => 0775 ] )) )
+             // maybe we should create directory...
+            if( !PHS_Utils::mkdir_tree( $sess_dir, [ 'dir_mode' => 0775 ] ) )
                 return false;
         }
 
