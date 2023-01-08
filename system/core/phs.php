@@ -722,7 +722,7 @@ final class PHS extends PHS_Registry
 
         return false;
     }
-    
+
     public static function are_we_in_a_background_thread(): bool
     {
         return (($cscope = PHS_Scope::current_scope()) === PHS_Scope::SCOPE_BACKGROUND
@@ -2898,7 +2898,7 @@ final class PHS extends PHS_Registry
      *
      * @return bool                     True if hook was added with success || false otherwise
      */
-    public static function register_hook( string $hook_name, callable $hook_callback = null, array $hook_extra_args = null, array $extra = null ): bool
+    public static function register_hook( string $hook_name, $hook_callback = null, array $hook_extra_args = null, array $extra = null ): bool
     {
         self::st_reset_error();
 
@@ -2908,7 +2908,7 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        if( $hook_callback !== null && !is_callable( $hook_callback ) )
+        if( empty( $hook_callback ) && !is_callable( $hook_callback ) )
         {
             self::st_set_error( self::ERR_HOOK_REGISTRATION, self::_t( 'Couldn\'t add callback for hook %s.', $hook_name ) );
             return false;

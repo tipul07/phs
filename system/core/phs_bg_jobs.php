@@ -49,7 +49,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $stalling_minutes;
     }
 
-    public static function refresh_current_job( $extra = false )
+    public static function refresh_current_job( array $extra = null )
     {
         self::st_reset_error();
 
@@ -142,42 +142,6 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        if( empty( $extra ) || !is_array( $extra ) )
-            $extra = [];
-
-        // Tells if we need to pass the result of action to caller script
-        // In case we need result of action, job should be called in synchronous and task should run right away, not timed (async_task=false)
-        if( empty( $extra['return_buffer'] ) )
-            $extra['return_buffer'] = false;
-        else
-            $extra['return_buffer'] = true;
-
-        if( !empty( $extra['return_buffer'] ) )
-        {
-            $extra['async_task'] = false;
-            $extra['timed_action'] = false;
-        }
-
-        if( empty( $extra['return_command'] ) )
-            $extra['return_command'] = false;
-        if( !isset( $extra['async_task'] ) )
-            $extra['async_task'] = true;
-        else
-            $extra['async_task'] = (!empty( $extra['async_task'] ));
-
-        if( empty( $extra['timed_action'] ) )
-            $extra['timed_action'] = false;
-        else
-            $extra['timed_action'] = validate_db_date( $extra['timed_action'] );
-
-        if( empty( $extra['same_thread_if_bg'] ) )
-            $extra['same_thread_if_bg'] = false;
-        else
-            $extra['same_thread_if_bg'] = (!empty( $extra['same_thread_if_bg'] ));
-
-        if( !is_array( $params ) )
-            $params = array();
-
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if( !($bg_jobs_model = PHS::load_model( 'bg_jobs' )) )
         {
@@ -186,6 +150,31 @@ class PHS_Bg_jobs extends PHS_Registry
 
             return false;
         }
+
+        if( empty( $extra ) || !is_array( $extra ) )
+            $extra = [];
+
+        // Tells if we need to pass the result of action to caller script
+        // In case we need result of action, job should be called in synchronous and task should run right away, not timed (async_task=false)
+        $extra['return_buffer'] = !empty( $extra['return_buffer'] );
+
+        if( !empty( $extra['return_buffer'] ) )
+        {
+            $extra['async_task'] = false;
+            $extra['timed_action'] = false;
+        }
+
+        $extra['return_command'] = !empty( $extra['return_command'] );
+        $extra['async_task'] = (!isset( $extra['async_task'] ) || !empty( $extra['async_task'] ));
+        $extra['same_thread_if_bg'] = !empty( $extra['same_thread_if_bg'] );
+
+        if( empty( $extra['timed_action'] ) )
+            $extra['timed_action'] = false;
+        else
+            $extra['timed_action'] = validate_db_date( $extra['timed_action'] );
+
+        if( !is_array( $params ) )
+            $params = [];
 
         $current_user = PHS::user_logged_in();
 
@@ -208,7 +197,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        $cmd_extra = array();
+        $cmd_extra = [];
         $cmd_extra['async_task'] = $extra['async_task'];
         $cmd_extra['bg_jobs_model'] = $bg_jobs_model;
         $cmd_extra['return_buffer'] = $extra['return_buffer'];
