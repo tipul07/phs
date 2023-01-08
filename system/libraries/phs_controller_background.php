@@ -12,6 +12,6 @@ abstract class PHS_Controller_Background extends \phs\libraries\PHS_Controller
      */
     public function allowed_scopes()
     {
-        return array( PHS_Scope::SCOPE_BACKGROUND, PHS_Scope::SCOPE_AGENT );
+        return [PHS_Scope::SCOPE_BACKGROUND, PHS_Scope::SCOPE_AGENT];
     }
 }

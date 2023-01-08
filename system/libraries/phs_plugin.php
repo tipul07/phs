@@ -30,7 +30,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     // Languages might be defined by other plugins at bootstrap and current language might change
     private $_custom_lang_files_included = [];
 
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_PLUGIN;
     }
@@ -40,7 +40,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * This method should be used in special cases (eg. plugin with dynamic models)
      * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
      */
-    public function get_plugin_details()
+    public function get_plugin_details(): array
     {
         return [];
     }
@@ -48,7 +48,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return array An array of strings which are the models used by this plugin
      */
-    public function get_models()
+    public function get_models(): array
     {
         if( !($json_arr = $this->get_plugin_json_info())
          || empty( $json_arr['models'] ) )
@@ -304,12 +304,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @param string $library
+     * @param  string  $library
      * @param bool|array $params
      *
      * @return bool|mixed|PHS_Library
      */
-    public function load_library( $library, $params = false )
+    public function load_library( string $library, $params = false )
     {
         $this->reset_error();
 
@@ -405,7 +405,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $template_arr;
     }
 
-    public function template_resource_from_file( $file )
+    public function template_resource_from_file( $file ): array
     {
         return [
             'file' => $file,
@@ -415,7 +415,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public function plugin_active()
+    public function plugin_active(): bool
     {
         return (bool) $this->db_record_active();
     }
@@ -1140,8 +1140,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing plugin models...' );
 
-        if( ($models_arr = $this->get_models())
-         && is_array( $models_arr ) )
+        if( ($models_arr = $this->get_models()) )
         {
             foreach( $models_arr as $model_name )
             {
@@ -1244,8 +1243,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Uninstalling plugin models...' );
 
-        if( ($models_arr = $this->get_models())
-         && is_array( $models_arr ) )
+        if( ($models_arr = $this->get_models()) )
         {
             foreach( $models_arr as $model_name )
             {
@@ -1439,8 +1437,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if( ($models_arr = $this->get_models())
-         && is_array( $models_arr ) )
+        if( ($models_arr = $this->get_models()) )
         {
             foreach( $models_arr as $model_name )
             {

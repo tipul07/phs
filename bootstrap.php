@@ -33,6 +33,7 @@ include_once( PHS_CORE_DIR.'phs_maintenance.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_library.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_roles.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_instantiable.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_settings.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_has_db_registry.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_plugin.php' );
@@ -53,6 +54,7 @@ include_once( PHS_LIBRARIES_DIR.'phs_api_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_remote_action.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_contract.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_contract_list.php' );
+include_once( PHS_LIBRARIES_DIR.'phs_event.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_encdec.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_interface.php' );
 include_once( PHS_LIBRARIES_DIR.'phs_db_class.php' );
@@ -345,7 +347,7 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
 
 $bootstrap_scripts = [];
 $bootstrap_scripts_numbers = [ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 ];
-// Make sure we have right order for keys in array
+// Make sure we have the right order for keys in array
 foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
     $bootstrap_scripts[$bootstrap_scripts_number_i] = [];
 

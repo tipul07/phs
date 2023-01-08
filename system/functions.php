@@ -8,12 +8,12 @@ if( !defined( 'DATETIME_T_FORMAT' ) )
 use \phs\PHS_Db;
 use \phs\libraries\PHS_Model;
 
-function phs_version()
+function phs_version(): string
 {
-    return '1.1.8.0';
+    return '1.1.8.1';
 }
 
-function phs_init_before_bootstrap()
+function phs_init_before_bootstrap(): bool
 {
     static $did_definitions = null;
 
@@ -78,6 +78,8 @@ function phs_init_before_bootstrap()
         define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
     if( !defined( 'PHS_CORE_CONTRACT_DIR' ) )
         define( 'PHS_CORE_CONTRACT_DIR', PHS_CORE_DIR.'contracts/' );
+    if( !defined( 'PHS_CORE_EVENT_DIR' ) )
+        define( 'PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/' );
     if( !defined( 'PHS_CORE_PLUGIN_DIR' ) )
         define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
     if( !defined( 'PHS_CORE_SCOPE_DIR' ) )
@@ -102,23 +104,25 @@ function phs_init_before_bootstrap()
 /**
  * @return string
  */
-function generate_guid()
+function generate_guid(): string
 {
-    return sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
-                    mt_rand(0, 65535), mt_rand(0, 65535),
-                    mt_rand(0, 65535),
-                    mt_rand(16384, 20479),
-                    mt_rand(32768, 49151),
-                    mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)
-    );
+    try {
+        return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', random_int(0, 65535), random_int(0, 65535),
+            random_int(0, 65535), random_int(16384, 20479), random_int(32768, 49151), random_int(0, 65535), random_int(0, 65535),
+            random_int(0, 65535));
+    } catch( \Exception $e ) {
+        return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535),
+            mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535),
+            mt_rand(0, 65535));
+    }
 }
 
 /**
- * @param string $ip
+ * @param  string  $ip
  *
  * @return bool|string
  */
-function validate_ip( $ip )
+function validate_ip( string $ip )
 {
     if( @function_exists( 'filter_var' ) && defined( 'FILTER_VALIDATE_IP' ) )
     {

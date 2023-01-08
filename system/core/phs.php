@@ -2,7 +2,7 @@
 
 namespace phs;
 
-use phs\libraries\PHS_Utils;
+use \phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Logger;
 use \phs\libraries\PHS_Registry;
 use \phs\libraries\PHS_Instantiable;
@@ -10,18 +10,19 @@ use \phs\libraries\PHS_Action;
 use \phs\libraries\PHS_Controller;
 use \phs\libraries\PHS_Hooks;
 use \phs\libraries\PHS_Library;
+use \phs\libraries\PHS_Notifications;
+use \phs\libraries\PHS_Undefined_instantiable;
 
 final class PHS extends PHS_Registry
 {
-    const ERR_HOOK_REGISTRATION = 2000,
+    public const ERR_HOOK_REGISTRATION = 2000,
           ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
           ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
-          ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012,
-          ERR_LOAD_CONTRACT = 2013;
+          ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012, ERR_LOAD_CONTRACT = 2013, ERR_LOAD_EVENT = 2014;
 
-    const ACTION_DIR_ACTION_SEPARATOR = '__';
+    public const ACTION_DIR_ACTION_SEPARATOR = '__';
 
-    const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
+    public const REQUEST_HOST_CONFIG = 'request_host_config', REQUEST_HOST = 'request_host', REQUEST_PORT = 'request_port', REQUEST_HTTPS = 'request_https',
 
           ROUTE_PLUGIN = 'route_plugin', ROUTE_CONTROLLER = 'route_controller', ROUTE_ACTION = 'route_action', ROUTE_ACTION_DIR = 'route_action_dir',
 
@@ -32,25 +33,25 @@ final class PHS extends PHS_Registry
           // Generic current page settings (saved as array)
           PHS_PAGE_SETTINGS = 'phs_page_settings';
 
-    const ROUTE_PARAM = '_route',
+    public const ROUTE_PARAM = '_route',
           ROUTE_DEFAULT_CONTROLLER = 'index',
           ROUTE_DEFAULT_ACTION = 'index';
 
-    const RUNNING_ACTION = 'r_action', RUNNING_CONTROLLER = 'r_controller';
+    public const RUNNING_ACTION = 'r_action', RUNNING_CONTROLLER = 'r_controller';
 
-    private static $inited = false;
-    private static $instance = false;
-    private static $hooks = [];
+    private static bool $inited = false;
+    private static ?PHS $instance = null;
+    private static array $hooks = [];
 
-    private static $_core_libraries_instances = [];
+    private static array $_core_libraries_instances = [];
 
-    private static $_INTERPRET_SCRIPT = 'index';
-    private static $_BACKGROUND_SCRIPT = '_bg';
-    private static $_AGENT_SCRIPT = '_agent_bg';
-    private static $_AJAX_SCRIPT = '_ajax';
-    private static $_API_SCRIPT = '_api';
-    private static $_REMOTE_SCRIPT = '_remote';
-    private static $_UPDATE_SCRIPT = '_update';
+    private static string $_INTERPRET_SCRIPT = 'index';
+    private static string $_BACKGROUND_SCRIPT = '_bg';
+    private static string $_AGENT_SCRIPT = '_agent_bg';
+    private static string $_AJAX_SCRIPT = '_ajax';
+    private static string $_API_SCRIPT = '_api';
+    private static string $_REMOTE_SCRIPT = '_remote';
+    private static string $_UPDATE_SCRIPT = '_update';
 
     public function __construct()
     {
@@ -59,7 +60,7 @@ final class PHS extends PHS_Registry
         self::init();
     }
 
-    public static function get_distribution_plugins()
+    public static function get_distribution_plugins(): array
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
@@ -67,23 +68,24 @@ final class PHS extends PHS_Registry
                  'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
     }
 
-    public static function get_always_active_plugins()
+    public static function get_always_active_plugins(): array
     {
         // These plugins cannot be inactivated as they provide basic functionality for the platform
         return [ 'accounts', 'admin', 'captcha', 'notifications' ];
     }
 
-    public static function get_core_models()
+    public static function get_core_models(): array
     {
         // !!! Don't change order of models here unless you know what you're doing !!!
-        // Models should be placed in this array after their dependencies (eg. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
+        // Models should be placed in this array after their dependencies
+        // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
         return [ 'agent_jobs', 'bg_jobs', 'roles', 'api_keys' ];
     }
 
     /**
      * Check what server receives in request
      */
-    public static function init()
+    public static function init(): void
     {
         if( self::$inited )
             return;
@@ -165,7 +167,7 @@ final class PHS extends PHS_Registry
     /**
      * @return bool Tells if current request is done on a secure connection (HTTPS || HTTP)
      */
-    public static function detect_secure_request()
+    public static function detect_secure_request(): bool
     {
         if( (!empty( $_SERVER )
              && isset( $_SERVER['HTTPS'] )
@@ -182,7 +184,7 @@ final class PHS extends PHS_Registry
      *
      * @return array Returns array with request full hostname and port (based on this system will check for custom configuration files)
      */
-    public static function get_request_host_config()
+    public static function get_request_host_config(): array
     {
         if( empty( $_SERVER ) )
             $_SERVER = [];
@@ -207,7 +209,7 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    private static function reset_registry()
+    private static function reset_registry(): void
     {
         self::set_data( self::REQUEST_HOST_CONFIG, false );
         self::set_data( self::REQUEST_HOST, '' );
@@ -223,7 +225,7 @@ final class PHS extends PHS_Registry
         self::set_data( self::PHS_PAGE_SETTINGS, false );
     }
 
-    public static function get_default_page_settings()
+    public static function get_default_page_settings(): array
     {
         return [
             'page_title' => '',
@@ -302,7 +304,7 @@ final class PHS extends PHS_Registry
     /**
      * @return bool
      */
-    public static function is_secured_request()
+    public static function is_secured_request(): bool
     {
         return (bool)self::get_data( self::REQUEST_HTTPS );
     }
@@ -310,7 +312,7 @@ final class PHS extends PHS_Registry
     /**
      * @return bool
      */
-    public static function prevent_session()
+    public static function prevent_session(): bool
     {
         return (defined( 'PHS_PREVENT_SESSION' ) && constant( 'PHS_PREVENT_SESSION' ));
     }
@@ -552,7 +554,7 @@ final class PHS extends PHS_Registry
     /**
      * @return bool
      */
-    public static function resolve_theme()
+    public static function resolve_theme(): bool
     {
         // First set default, so it doesn't get auto-set in set_theme() method
         if( defined( 'PHS_DEFAULT_THEME' )
@@ -572,6 +574,9 @@ final class PHS extends PHS_Registry
         return true;
     }
 
+    /**
+     * @return false|string
+     */
     public static function get_theme()
     {
         $theme = self::get_data( self::CURRENT_THEME );
@@ -657,11 +662,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param bool $force_https
+     * @param  bool  $force_https
      *
      * @return bool|string
      */
-    public static function get_base_url( $force_https = false )
+    public static function get_base_url( bool $force_https = false )
     {
         if( !empty( $force_https )
          || self::is_secured_request() )
@@ -688,11 +693,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param bool $force_https
+     * @param  bool  $force_https
      *
      * @return bool|string
      */
-    public static function get_base_domain_and_path( $force_https = false )
+    public static function get_base_domain_and_path( bool $force_https = false )
     {
         if( !empty( $force_https )
          || self::is_secured_request() )
@@ -718,7 +723,13 @@ final class PHS extends PHS_Registry
         return false;
     }
 
-    public static function get_instance()
+    public static function are_we_in_a_background_thread(): bool
+    {
+        return (($cscope = PHS_Scope::current_scope()) === PHS_Scope::SCOPE_BACKGROUND
+                || $cscope === PHS_Scope::SCOPE_AGENT);
+    }
+
+    public static function get_instance(): ?PHS
     {
         if( !empty( self::$instance ) )
             return self::$instance;
@@ -738,7 +749,6 @@ final class PHS extends PHS_Registry
 
     /**
      * Parse request route. Route is something like:
-     *
      * {plugin}/{controller}/{action} If controller is part of a plugin
      * or
      * {controller}/{action} If controller is a core controller
@@ -749,9 +759,10 @@ final class PHS extends PHS_Registry
      *                      if an array will try paring array, otherwise exract route from context
      * @param bool $use_short_names If we need short names for plugin,
      *                      controller and action in returned keys (eg. p, c, a, ad)
+     *
      * @return bool|array Returns true on success || false on error
      */
-    public static function parse_route( $route = false, $use_short_names = false )
+    public static function parse_route( $route = false, bool $use_short_names = false )
     {
         self::st_reset_error();
 
@@ -1212,12 +1223,12 @@ final class PHS extends PHS_Registry
         return self::$_UPDATE_SCRIPT.'.php';
     }
 
-    public static function get_background_path()
+    public static function get_background_path(): string
     {
         return PHS_PATH.self::background_script();
     }
 
-    public static function get_agent_path()
+    public static function get_agent_path(): string
     {
         return PHS_PATH.self::agent_script();
     }
@@ -2010,85 +2021,48 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $library
+     * @param  string  $library
      *
-     * @return false|string
+     * @return string
      */
-    public static function get_core_library_full_path( $library )
+    public static function get_core_library_full_path( string $library ): string
     {
         $library = PHS_Instantiable::safe_escape_library_name( $library );
         if( empty( $library )
          || !@file_exists( PHS_CORE_LIBRARIES_DIR.$library.'.php' ) )
-            return false;
+            return '';
 
         return PHS_CORE_LIBRARIES_DIR.$library.'.php';
     }
 
-    public static function spl_autoload_register( $class_name )
+    public static function spl_autoload_register( $class_name ): void
     {
-        if( !($class_name_arr = explode( '\\', $class_name ))
-         || empty( $class_name_arr[0] )
-         || $class_name_arr[0] !== 'phs' )
+        self::st_reset_error();
+
+        if( @class_exists( $class_name, false )
+         || !($class_details = PHS_Instantiable::extract_details_from_full_namespace_name( $class_name ))
+         || empty( $class_details['instance_type'] )
+         || $class_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED )
             return;
 
         if( !PHS_Instantiable::get_instance( true, $class_name ) )
         {
-            $error_msg = 'Error loading class ['.$class_name.']';
-            if( self::st_has_error() )
-                $error_msg = 'ERROR: '.self::st_get_simple_error_message();
+            // class/file cannot be loaded, so we create an undefined instatiable...
 
-            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+            $newclass = new class extends PHS_Undefined_instantiable {};
+            class_alias( get_class( $newclass ), $class_name );
         }
-    }
-
-    /**
-     * @param string $class_name
-     * @param bool $as_singleton
-     *
-     * @return null|PHS_Instantiable
-     */
-    public static function get_class_instance( $class_name, $as_singleton = true )
-    {
-        if( !($details = PHS_Instantiable::extract_details_from_full_namespace_name( $class_name ))
-         || empty( $details['class_name'] ) || empty( $details['plugin_name'] ) || empty( $details['instance_type'] )
-         || !($instance_details = PHS_Instantiable::get_instance_details( $details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir'] ))
-         || empty( $instance_details['loader_method'] )
-         || !@method_exists( self::class, $instance_details['loader_method'] ) )
-            return null;
-
-        $loader_method = $instance_details['loader_method'];
-
-        if( $details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_PLUGIN ) {
-            $obj = self::$loader_method( $details['plugin_name'] );
-        } elseif( $details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_VIEW ) {
-            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $as_singleton );
-        } elseif( in_array( $details['instance_type'], PHS_Instantiable::instance_types_that_allow_subdirs(), true ) )  {
-            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'], $details['instance_subdir'] );
-        } else  {
-            $obj = self::$loader_method( $instance_details['instance_name'], $details['plugin_name'] );
-        }
-
-        if( !$obj || self::st_has_error() ) {
-            $error_msg = 'Error loading class ['.$class_name.']';
-            if( self::st_has_error() )
-                $error_msg = 'ERROR: '.self::st_get_simple_error_message();
-
-            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
-            return null;
-        }
-
-        return $obj;
     }
 
     /**
      * Try loading a core library
      *
-     * @param string $library Core library file to be loaded
+     * @param  string  $library Core library file to be loaded
      * @param bool|array $params Loading parameters
      *
      * @return false|libraries\PHS_Library
      */
-    public static function load_core_library( $library, $params = false )
+    public static function load_core_library( string $library, $params = false )
     {
         self::st_reset_error();
 
@@ -2160,12 +2134,12 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $core_library Short library name (eg. ftp, paginator_exporter_csv, etc)
+     * @param  string  $core_library Short library name (eg. ftp, paginator_exporter_csv, etc)
      * @param bool|array $params Parameters passed to self::load_core_library() method
      *
      * @return false|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
      */
-    public static function get_core_library_instance( $core_library, $params = false )
+    public static function get_core_library_instance( string $core_library, $params = false )
     {
         if( empty( $core_library )
          || !($library_name = PHS_Instantiable::safe_escape_library_name( $core_library )) )
@@ -2191,12 +2165,12 @@ final class PHS extends PHS_Registry
     /**
      * Returns an instance of a model. If model is part of a plugin $plugin will contain name of that plugin.
      *
-     * @param string $model Model to be loaded (part of class name after PHS_Model_)
+     * @param  string  $model Model to be loaded (part of class name after PHS_Model_)
      * @param string|bool $plugin Plugin where model is located (false means a core model)
      *
      * @return false|\phs\libraries\PHS_Model_Mysqli Returns false on error or an instance of loaded model
      */
-    public static function load_model( $model, $plugin = false )
+    public static function load_model( string $model, $plugin = false )
     {
         if( !($model_name = PHS_Instantiable::safe_escape_class_name( $model )) )
         {
@@ -2224,11 +2198,11 @@ final class PHS extends PHS_Registry
      *
      * @param string|bool $view View to be loaded (part of class name after PHS_View_)
      * @param string|bool $plugin Plugin where view is located (false means a core view)
-     * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
+     * @param  bool  $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
      * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
      */
-    public static function load_view( $view = false, $plugin = false, $as_singleton = true )
+    public static function load_view( $view = false, $plugin = false, bool $as_singleton = true )
     {
         self::st_reset_error();
 
@@ -2249,12 +2223,15 @@ final class PHS extends PHS_Registry
             $plugin = false;
 
         // Views are not singletons
-        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton )) )
         {
             if( $plugin === false )
             {
-                if( !self::st_has_error() )
-                    self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin) ) );
+                if( !self::st_has_error() ) {
+                    self::st_set_error(self::ERR_LOAD_VIEW,
+                        self::_t('Couldn\'t obtain instance for model %s from plugin %s .', $view,
+                            PHS_Instantiable::CORE_PLUGIN));
+                }
 
                 return false;
             }
@@ -2264,10 +2241,13 @@ final class PHS extends PHS_Registry
             self::st_reset_error();
 
             // We tried loading plugin view, try again with a core view...
-            if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, (bool)$as_singleton )) )
+            if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, false, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton )) )
             {
-                if( !self::st_has_error() )
-                    self::st_set_error( self::ERR_LOAD_VIEW, self::_t( 'Couldn\'t obtain instance for model %s from plugin %s .', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin) ) );
+                if( !self::st_has_error() ) {
+                    self::st_set_error(self::ERR_LOAD_VIEW,
+                        self::_t('Couldn\'t obtain instance for model %s from plugin %s .', $view,
+                            PHS_Instantiable::CORE_PLUGIN));
+                }
 
                 return false;
             }
@@ -2277,12 +2257,12 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $controller
+     * @param  string  $controller
      * @param string|bool $plugin
      *
      * @return false|\phs\libraries\PHS_Controller Returns false on error or an instance of loaded controller
      */
-    public static function load_controller( $controller, $plugin = false )
+    public static function load_controller( string $controller, $plugin = false )
     {
         if( !($controller_name = PHS_Instantiable::safe_escape_class_name( $controller )) )
         {
@@ -2306,13 +2286,13 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $action
+     * @param  string  $action
      * @param string|bool $plugin
-     * @param string $action_dir
+     * @param  string  $action_dir
      *
      * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
      */
-    public static function load_action( $action, $plugin = false, $action_dir = '' )
+    public static function load_action( string $action, $plugin = false, string $action_dir = '' )
     {
         if( !is_string( $action_dir ) )
             $action_dir = '';
@@ -2362,13 +2342,13 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $contract
+     * @param  string  $contract
      * @param string|bool $plugin
-     * @param string $contract_dir
+     * @param  string  $contract_dir
      *
      * @return bool|\phs\libraries\PHS_Contract Returns false on error || an instance of loaded contract
      */
-    public static function load_contract( $contract, $plugin = false, $contract_dir = '' )
+    public static function load_contract( string $contract, $plugin = false, string $contract_dir = '' )
     {
         if( !is_string( $contract_dir ) )
             $contract_dir = '';
@@ -2410,6 +2390,63 @@ final class PHS extends PHS_Registry
                 self::st_set_error( self::ERR_LOAD_CONTRACT,
                                     self::_t( 'Couldn\'t obtain instance for contract %s from plugin %s .',
                                               ($contract_dir!==''?$contract_dir.'/':'').$contract,
+                                              (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param  string  $event
+     * @param string|bool $plugin
+     * @param  string  $event_dir
+     *
+     * @return bool|\phs\libraries\PHS_Contract Returns false on error || an instance of loaded contract
+     */
+    public static function load_event( string $event, $plugin = false, string $event_dir = '' )
+    {
+        if( !is_string( $event_dir ) )
+            $event_dir = '';
+        else
+            $event_dir = trim( trim( $event_dir ), '/\\' );
+
+        if( !($event_name = PHS_Instantiable::safe_escape_class_name( $event )) )
+        {
+            self::st_set_error( self::ERR_LOAD_EVENT,
+                                self::_t( 'Couldn\'t load event %s from plugin %s.',
+                                          ($event_dir!==''?$event_dir.'/':'').$event,
+                                          (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        if( '' !== $event_dir
+         && !($event_dir = PHS_Instantiable::safe_escape_instance_subdir( $event_dir )) )
+        {
+            self::st_set_error( self::ERR_LOAD_EVENT,
+                                self::_t( 'Couldn\'t load event %s from plugin %s.',
+                                          ($event_dir!==''?$event_dir.'/':'').$event,
+                                          (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
+            return false;
+        }
+
+        $class_name = 'PHS_Event_'.ucfirst( strtolower( $event_name ) );
+
+        if( $plugin === PHS_Instantiable::CORE_PLUGIN )
+            $plugin = false;
+
+        // From this point on, $event_dir is a system path...
+        if( $event_dir !== '' )
+            $event_dir = str_replace( '_', '/', $event_dir );
+
+        /** @var \phs\libraries\PHS_Event */
+        if( !($instance_obj = PHS_Instantiable::get_instance_for_loads( $class_name, $plugin,
+            PHS_Instantiable::INSTANCE_TYPE_EVENT, true, $event_dir )) )
+        {
+            if( !self::st_has_error() )
+                self::st_set_error( self::ERR_LOAD_EVENT,
+                                    self::_t( 'Couldn\'t obtain instance for event %s from plugin %s .',
+                                              ($event_dir!==''?$event_dir.'/':'').$event,
                                               (empty( $plugin )?PHS_Instantiable::CORE_PLUGIN:$plugin) ) );
             return false;
         }
@@ -2633,12 +2670,13 @@ final class PHS extends PHS_Registry
      *
      * @param string|bool $plugin Plugin name
      * @param string|bool $instance_name Model, controller, action, view || scope name
-     * @param string $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
-     * @param string $instance_subdir If instance allows subdirs, provide which subdir is that
+     * @param  string  $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
+     * @param  string  $instance_subdir If instance allows subdirs, provide which subdir is that
      *
      * @return array|bool
      */
-    private static function _get_instance_json_details( $plugin = false, $instance_name = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN, $instance_subdir = '' )
+    private static function _get_instance_json_details( $plugin = false, $instance_name = false,
+        string $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN, string $instance_subdir = '' )
     {
         self::st_reset_error();
 
@@ -2750,11 +2788,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $plugin_name
+     * @param  string  $plugin_name
      *
      * @return array|bool
      */
-    public static function get_plugin_json_info( $plugin_name )
+    public static function get_plugin_json_info( string $plugin_name )
     {
         return self::_get_instance_json_details( $plugin_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN );
     }
@@ -2826,22 +2864,21 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * Validates a hook name and returns valid value || false if hook name is not valid.
+     * Validates a hook name and returns valid value or false if hook name is not valid.
      *
-     * @param string $hook_name
+     * @param  string  $hook_name
      *
-     * @return bool|string Valid hook name || false if hook_name is not valid.
+     * @return string Valid hook name or false if hook_name is not valid.
      */
-    public static function prepare_hook_name( $hook_name )
+    public static function prepare_hook_name( string $hook_name ): string
     {
-        if( !is_string( $hook_name )
-         || !($hook_name = strtolower( trim( $hook_name ) )) )
-            return false;
+        if( !($hook_name = strtolower( trim( $hook_name ) )) )
+            return '';
 
         return $hook_name;
     }
 
-    public static function get_registered_hooks()
+    public static function get_registered_hooks(): array
     {
         return self::$hooks;
     }
@@ -2851,17 +2888,17 @@ final class PHS extends PHS_Registry
      * priority. Along with standard hook parameters (check each hook definition to see which are these) you can add
      * extra parameters which you pass at hook definition
      *
-     * @param string $hook_name             Hook name
-     * @param callback $hook_callback       Method/Function to be called
-     * @param null|array $hook_extra_args   Extra arguments to be passed when hook is fired
-     * @param array|bool $extra             Extra details related to current hook:
+     * @param  string  $hook_name             Hook name
+     * @param  null|callback  $hook_callback       Method/Function to be called
+     * @param  null|array  $hook_extra_args   Extra arguments to be passed when hook is fired
+     * @param null|array $extra             Extra details related to current hook:
      *      chained_hook    If true result of hook call will overwrite parameters of next hook callback (can be used as filters)
      *      priority        Order in which hooks are fired is given by $priority parameter
      *      stop_chain      If true will stop hooks execution (used if chained_hook is true)
      *
      * @return bool                     True if hook was added with success || false otherwise
      */
-    public static function register_hook( $hook_name, $hook_callback = null, $hook_extra_args = null, $extra = false )
+    public static function register_hook( string $hook_name, $hook_callback = null, array $hook_extra_args = null, array $extra = null ): bool
     {
         self::st_reset_error();
 
@@ -2871,7 +2908,7 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        if( $hook_callback !== null && !is_callable( $hook_callback ) )
+        if( empty( $hook_callback ) && !is_callable( $hook_callback ) )
         {
             self::st_set_error( self::ERR_HOOK_REGISTRATION, self::_t( 'Couldn\'t add callback for hook %s.', $hook_name ) );
             return false;
@@ -2894,9 +2931,9 @@ final class PHS extends PHS_Registry
         $hookdata = [];
         $hookdata['callback'] = $hook_callback;
         $hookdata['args'] = $hook_extra_args;
-        $hookdata['chained'] = (!empty( $extra['chained_hook'] )?true:false);
-        $hookdata['stop_chain'] = (!empty( $extra['stop_chain'] )?true:false);
-        $hookdata['overwrite_result'] = (!empty( $extra['overwrite_result'] )?true:false);
+        $hookdata['chained'] = !empty($extra['chained_hook'] );
+        $hookdata['stop_chain'] = !empty($extra['stop_chain'] );
+        $hookdata['overwrite_result'] = !empty($extra['overwrite_result'] );
 
         self::$hooks[$hook_name][$extra['priority']][] = $hookdata;
 
@@ -2910,11 +2947,11 @@ final class PHS extends PHS_Registry
      *
      * @return bool
      */
-    public static function unregister_hooks( $hook_name = false )
+    public static function unregister_hooks( $hook_name = false ): bool
     {
         if( $hook_name === false )
         {
-            self::$hooks[$hook_name] = [];
+            self::$hooks = [];
             return true;
         }
 
@@ -2928,11 +2965,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $hook_name
+     * @param  string  $hook_name
      *
      * @return bool
      */
-    public static function hook_has_callbacks( $hook_name )
+    public static function hook_has_callbacks( string $hook_name ): bool
     {
         if( !($hook_name = self::prepare_hook_name( $hook_name ))
          || empty( self::$hooks[$hook_name] ) )
@@ -2942,13 +2979,13 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $hook_name Hook name
+     * @param  string  $hook_name Hook name
      * @param array $hook_args Hook arguments
      * @param array|bool $params Any specific parameters required on this trigger only
      *
      * @return array|null
      */
-    public static function trigger_hooks( $hook_name, array $hook_args = [], $params = false )
+    public static function trigger_hooks( string $hook_name, array $hook_args = [], $params = false ): ?array
     {
         if( !($hook_name = self::prepare_hook_name( $hook_name ))
          || empty( self::$hooks[$hook_name] ) || !is_array( self::$hooks[$hook_name] ) )
@@ -2988,7 +3025,7 @@ final class PHS extends PHS_Registry
                     continue;
 
                 // If required for this trigger to stop on first error...
-                //!!! Although there is an error we return a hook argument array and it is up to you to check
+                //!!! Although there is an error we return a hook argument array, and it is up to you to check
                 //!!! if any errors in resulting hook arguments
                 if( !empty( $params['stop_on_first_error'] )
                  && PHS_Hooks::hook_args_has_error( $result ) )
@@ -3029,7 +3066,7 @@ final class PHS extends PHS_Registry
     /**
      * @return int
      */
-    public static function get_suppressed_errror_reporting_level()
+    public static function get_suppressed_errror_reporting_level(): int
     {
         if( defined( 'PHP_VERSION' )
          && version_compare( constant( 'PHP_VERSION' ), '8.0.0', '>=' ) )
@@ -3068,7 +3105,7 @@ final class PHS extends PHS_Registry
             break;
         }
 
-        if( !@class_exists( '\\phs\\PHS_Scope', false ) )
+        if( !@class_exists( PHS_Scope::class, false ) )
         {
             echo $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n";
             echo $backtrace_str."\n";
@@ -3088,7 +3125,7 @@ final class PHS extends PHS_Registry
 
                     if( self::st_debugging_mode() )
                     {
-                        if( !@class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+                        if( !@class_exists( PHS_Notifications::class, false ) )
                         {
                             $error_arr = [
                                 'backtrace' => $backtrace_str,
@@ -3109,9 +3146,9 @@ final class PHS extends PHS_Registry
                                 'error_file' => $errfile,
                                 'error_line' => $errline,
                                 'response_status' => [
-                                    'success_messages' => \phs\libraries\PHS_Notifications::notifications_success(),
-                                    'warning_messages' => \phs\libraries\PHS_Notifications::notifications_warnings(),
-                                    'error_messages' => array_merge( \phs\libraries\PHS_Notifications::notifications_errors(), [ $errstr ] ),
+                                    'success_messages' => PHS_Notifications::notifications_success(),
+                                    'warning_messages' => PHS_Notifications::notifications_warnings(),
+                                    'error_messages' => array_merge( PHS_Notifications::notifications_errors(), [ $errstr ] ),
                                 ]
                             ];
                         }
@@ -3148,7 +3185,7 @@ final class PHS extends PHS_Registry
             }
         }
 
-        if( @class_exists( '\\phs\\PHS_Logger', false ) )
+        if( @class_exists( PHS_Logger::class, false ) )
             PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str, PHS_Logger::TYPE_DEBUG );
 
         if( $errno === E_ERROR || $errno === E_USER_ERROR )

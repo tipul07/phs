@@ -253,6 +253,6 @@ class PHS_Model_Bg_jobs extends PHS_Model
             break;
        }
 
-        return $return_arr;
+       return $return_arr;
     }
 }

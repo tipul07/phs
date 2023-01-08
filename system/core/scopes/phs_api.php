@@ -12,7 +12,7 @@ use \phs\libraries\PHS_Hooks;
 
 class PHS_Scope_Api extends PHS_Scope
 {
-    public function get_scope_type()
+    public function get_scope_type(): int
     {
         return self::SCOPE_API;
     }

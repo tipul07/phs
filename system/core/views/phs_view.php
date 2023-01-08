@@ -15,7 +15,7 @@ class PHS_View extends PHS_Instantiable
 
     const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
-    protected $_template = '';
+    protected string $_template = '';
     protected $_theme = '';
     // Array of directories where we check if template exists
     protected $_template_dirs = [];
@@ -23,7 +23,7 @@ class PHS_View extends PHS_Instantiable
     protected $_extra_template_dirs = [];
 
     // Resulting template file
-    protected $_template_file = '';
+    protected string $_template_file = '';
 
     /** @var PHS_Controller|bool */
     protected $_controller = false;
@@ -34,12 +34,12 @@ class PHS_View extends PHS_Instantiable
     /** @var PHS_View|bool */
     protected $_parent_view = false;
 
-    final public function instance_type()
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_VIEW;
     }
 
-    protected function reset_view()
+    protected function reset_view(): void
     {
         $this->_template = '';
         $this->_theme = '';
@@ -52,7 +52,10 @@ class PHS_View extends PHS_Instantiable
         $this->reset_view();
     }
 
-    public static function default_template_resource_arr()
+    /**
+     * @return array{'file': string, 'extra_paths': array, 'resource_validated': bool}
+     */
+    public static function default_template_resource_arr(): array
     {
         return [
             'file' => '',
@@ -336,7 +339,7 @@ class PHS_View extends PHS_Instantiable
         return $this->_template_dirs;
     }
 
-    public function get_template_file()
+    public function get_template_file(): string
     {
         return $this->_template_file;
     }
@@ -647,11 +650,12 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * Return resource details for found file based on themes, action, controller, parent plugin and current plugin
-     * @param string $file
+     *
+     * @param  string $file
      *
      * @return array|false
      */
-    public function get_resource_details( $file )
+    public function get_resource_details( string $file )
     {
         $this->reset_error();
 
@@ -674,11 +678,12 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * Return resource details for found file based on themes, action, controller, parent plugin and current plugin
-     * @param string $template
+     *
+     * @param  string $template
      *
      * @return array|bool
      */
-    public function get_template_file_details( $template )
+    public function get_template_file_details( string $template )
     {
         $this->reset_error();
 
@@ -765,15 +770,18 @@ class PHS_View extends PHS_Instantiable
         return str_replace( '..', '', trim( $template, '/' ) );
     }
 
-    public static function safe_escape_resource( $resource )
+    /**
+     * @param  string  $resource
+     *
+     * @return string
+     */
+    public static function safe_escape_resource( string $resource ): string
     {
-        if( empty( $resource ) || !is_string( $resource )
+        if( empty( $resource )
          || preg_match( '@[^a-zA-Z0-9_\-\./]@', $resource ) )
-            return false;
+            return '';
 
-        $resource = str_replace( '..', '', trim( $resource, '/' ) );
-
-        return $resource;
+        return str_replace( '..', '', trim( $resource, '/' ) );
     }
 
     /**

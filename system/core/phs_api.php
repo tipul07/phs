@@ -640,7 +640,7 @@ class PHS_Api extends PHS_Api_base
     protected function _after_route_run()
     {
         if( $this->is_web_simulation() )
-            PHS_Scope::emulated_scope( false );
+            PHS_Scope::emulated_scope( 0 );
 
         return true;
     }
