@@ -189,6 +189,18 @@ $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
 $mysql_settings['charset'] = PHS_DB_CHARSET;
 $mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
+// Check if we are in cli mode, or we are in update script...
+if( (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
+     || (defined( 'PHS_INSTALLING_FLOW' ) && constant( 'PHS_INSTALLING_FLOW' ))
+    )
+ && defined( 'PHS_MAINTENANCE_DB_USERNAME' )
+ && ($maintenance_db_user = constant( 'PHS_MAINTENANCE_DB_USERNAME' ))
+ // make sure we don't have the placeholder from main.dist.php
+ && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}' ) {
+    $mysql_settings['user'] = $maintenance_db_user;
+    $mysql_settings['password'] = constant( 'PHS_MAINTENANCE_DB_PASSWORD' ) ?? '';
+}
+
 $mysql_settings['driver_settings'] = [];
 if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )
     $mysql_settings['driver_settings'] = constant( 'PHS_DB_DRIVER_SETTINGS' );
