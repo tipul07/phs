@@ -42,6 +42,11 @@ define( 'PHS_DB_CHARSET', {{PHS_DB_CHARSET}} ); // Default: 'UTF8'
 define( 'PHS_DB_USE_PCONNECT', {{PHS_DB_PCONNECT}} ); // Default: true
 define( 'PHS_DB_DRIVER_SETTINGS', {{PHS_DB_DRIVER_SETTINGS}} ); // Default: @json_encode( [ 'sql_mode' => '-ONLY_FULL_GROUP_BY' ] )
 
+// If you want to have different user when updating database structure, provide definitions bellow.
+// Leave empty if you want to use same user (for application and for maintenance)
+define( 'PHS_MAINTENANCE_DB_USERNAME', '{{PHS_MAINTENANCE_DB_USERNAME}}' );
+define( 'PHS_MAINTENANCE_DB_PASSWORD', '{{PHS_MAINTENANCE_DB_PASSWORD}}' );
+
 // Controlling database library behaviour (if different than default one)
 // if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
 //     define( 'PHS_DB_SILENT_ERRORS', false );

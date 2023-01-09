@@ -206,9 +206,13 @@ class PHS_Db_mysqli extends PHS_Db_class
         if( !empty( $conn_settings['use_pconnect'] ) )
             $host = 'p:'.$conn_settings['host'];
 
-        $this->connection_id[$connection_name] =
-            @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'],
-                             $conn_settings['database'], $conn_settings['port'] );
+        try {
+            $this->connection_id[$connection_name] =
+                @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'],
+                    $conn_settings['database'], $conn_settings['port'] );
+        } catch( \Exception $e ) {
+            $this->connection_id[$connection_name] = null;
+        }
 
         if( empty( $this->connection_id[$connection_name] )
          || !is_object( $this->connection_id[$connection_name] ) || !($this->connection_id[$connection_name] instanceof \mysqli) )
@@ -226,20 +230,24 @@ class PHS_Db_mysqli extends PHS_Db_class
 
         if( !empty( $conn_settings['charset'] ) )
         {
-            @mysqli_query( $this->connection_id[$connection_name],
-                           'SET NAMES \''.@mysqli_real_escape_string( $this->connection_id[$connection_name],
-                                                                      $conn_settings['charset'] ).'\'' );
-            @mysqli_query( $this->connection_id[$connection_name],
-                           'SET CHARACTER SET \''.@mysqli_real_escape_string( $this->connection_id[$connection_name],
-                                                                              $conn_settings['charset'] ).'\'' );
-            @mysqli_set_charset( $this->connection_id[$connection_name], $conn_settings['charset'] );
+            try {
+                @mysqli_query($this->connection_id[$connection_name],
+                    'SET NAMES \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
+                        $conn_settings['charset']).'\'');
+                @mysqli_query($this->connection_id[$connection_name],
+                    'SET CHARACTER SET \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
+                        $conn_settings['charset']).'\'');
+                @mysqli_set_charset($this->connection_id[$connection_name], $conn_settings['charset']);
+            } catch( \Exception $e ) {}
         }
 
         if( !empty( $conn_settings['timezone'] ) )
         {
-            @mysqli_query( $this->connection_id[$connection_name],
-                           'SET time_zone = \''.@mysqli_real_escape_string( $this->connection_id[$connection_name],
-                                                                            $conn_settings['timezone'] ).'\'' );
+            try {
+                @mysqli_query($this->connection_id[$connection_name],
+                    'SET time_zone = \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
+                        $conn_settings['timezone']).'\'');
+            } catch( \Exception $e ) {}
         }
 
         if( !empty( $conn_settings['driver_settings'] ) && is_array( $conn_settings['driver_settings'] ) )
@@ -300,9 +308,11 @@ class PHS_Db_mysqli extends PHS_Db_class
 
                 if( !empty( $new_sql_mode_arr ) )
                 {
-                    @mysqli_query( $this->connection_id[$connection_name],
-                                   'SET @@session.sql_mode = \''.@mysqli_real_escape_string( $this->connection_id[$connection_name],
-                                                                                             implode( ',', $new_sql_mode_arr ) ).'\'' );
+                    try {
+                        @mysqli_query($this->connection_id[$connection_name],
+                            'SET @@session.sql_mode = \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
+                                implode(',', $new_sql_mode_arr)).'\'');
+                    } catch( \Exception $e ) {}
                 }
             }
         }
