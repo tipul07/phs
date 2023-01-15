@@ -14,17 +14,17 @@ class PHS_Model_Agent_jobs extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
-    const ERR_DB_JOB = 10000;
+    public const ERR_DB_JOB = 10000;
 
-    const STALLING_PID = 1, STALLING_TIME = 2, STALLING_BOTH = 3;
-    protected static $STALLING_ARR = [
+    public const STALLING_PID = 1, STALLING_TIME = 2, STALLING_BOTH = 3;
+    protected static array $STALLING_ARR = [
         self::STALLING_PID => ['title' => 'Check process is alive'],
         self::STALLING_TIME => ['title' => 'Check only time passed'],
         self::STALLING_BOTH => ['title' => 'Use both policies'],
     ];
 
-    const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_SUSPENDED = 3;
-    protected static $STATUSES_ARR = [
+    public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_SUSPENDED = 3;
+    protected static array $STATUSES_ARR = [
         self::STATUS_ACTIVE => ['title' => 'Active'],
         self::STATUS_INACTIVE => ['title' => 'Inactive'],
         self::STATUS_SUSPENDED => ['title' => 'Suspended'],
@@ -59,21 +59,24 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return array
      */
-    public function get_stalling_policies( $lang = false )
+    public function get_stalling_policies( $lang = false ): array
     {
         static $policies_arr = [];
 
-        if( empty( self::$STALLING_ARR ) )
+        if( empty( self::$STALLING_ARR ) ) {
             return [];
+        }
 
         if( $lang === false
-         && !empty( $policies_arr ) )
+         && !empty( $policies_arr ) ) {
             return $policies_arr;
+        }
 
         $result_arr = $this->translate_array_keys( self::$STALLING_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $policies_arr = $result_arr;
+        }
 
         return $result_arr;
     }
@@ -83,52 +86,57 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return array
      */
-    public function get_stalling_policies_as_key_val( $lang = false )
+    public function get_stalling_policies_as_key_val( $lang = false ): ?array
     {
-        static $policies_key_val_arr = false;
+        static $policies_key_val_arr = null;
 
         if( $lang === false
-         && $policies_key_val_arr !== false )
+         && $policies_key_val_arr !== null ) {
             return $policies_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($policies = $this->get_stalling_policies( $lang )) )
         {
             foreach( $policies as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $policies_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
 
     /**
-     * @param int $policy
+     * @param  int  $policy
      * @param bool|string $lang
      *
-     * @return bool|array
+     * @return null|array
      */
-    public function valid_stalling_policy( $policy, $lang = false )
+    public function valid_stalling_policy( int $policy, $lang = false ): ?array
     {
         $all_policies = $this->get_stalling_policies( $lang );
         if( empty( $policy )
-         || !isset( $all_policies[$policy] ) )
-            return false;
+         || !isset( $all_policies[$policy] ) ) {
+            return null;
+        }
 
         return $all_policies[$policy];
     }
 
     public function get_settings_structure()
     {
-        if( !($policies_arr = $this->get_stalling_policies_as_key_val()) )
+        if( !($policies_arr = $this->get_stalling_policies_as_key_val()) ) {
             $policies_arr = [];
+        }
 
         return [
             'minutes_to_stall' => [
@@ -201,7 +209,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->edit( $job_arr, [ 'fields' => [ 'status' => self::STATUS_SUSPENDED ] ] );
     }
 
-    public function act_delete( $job_data )
+    public function act_delete( $job_data ): bool
     {
         $this->reset_error();
 
@@ -256,13 +264,15 @@ class PHS_Model_Agent_jobs extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['force_job'] ) )
+        if( empty( $params['force_job'] ) ) {
             $params['force_job'] = false;
-        else
+        } else {
             $params['force_job'] = true;
+        }
 
         if( empty( $job_data )
          || !($job_arr = $this->data_to_array( $job_data )) )
@@ -272,22 +282,25 @@ class PHS_Model_Agent_jobs extends PHS_Model
         }
 
         if( empty( $job_arr['params'] )
-         || !($job_params_arr = @json_decode( $job_arr['params'], true )) )
+         || !($job_params_arr = @json_decode( $job_arr['params'], true )) ) {
             $job_params_arr = [];
+        }
 
         if( !empty( $params['force_job'] ) )
             $job_params_arr['force_job'] = true;
 
-        if( !($pid = @getmypid()) )
+        if( !($pid = @getmypid()) ) {
             $pid = -1;
+        }
 
         $edit_arr = [];
         $edit_arr['is_running'] = date( self::DATETIME_DB );
         $edit_arr['pid'] = $pid;
-        if( !empty( $job_params_arr ) )
-            $edit_arr['params'] = @json_encode( $job_params_arr );
+        if( !empty( $job_params_arr ) ) {
+            $edit_arr['params'] = @json_encode($job_params_arr);
+        }
 
-        PHS_Logger::logf( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']' );
+        PHS_Logger::notice( 'Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']', PHS_Logger::TYPE_AGENT );
 
         return $this->edit( $job_arr, [ 'fields' => $edit_arr ] );
     }
@@ -356,15 +369,17 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr = [];
         if( empty( $job_arr['pid'] ) )
         {
-            if( !($pid = @getmypid()) )
+            if( !($pid = @getmypid()) ) {
                 $pid = -1;
+            }
 
             $edit_arr['pid'] = $pid;
         }
 
         if( empty( $job_arr['is_running'] )
-         || empty_db_date( $job_arr['is_running'] ) )
+         || empty_db_date( $job_arr['is_running'] ) ) {
             $edit_arr['is_running'] = $cdate;
+        }
 
         $edit_arr['last_action'] = $cdate;
 

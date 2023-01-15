@@ -405,7 +405,7 @@ class PHS_Model_Plugins extends PHS_Model
                         try {
                             if( false === (self::$plugin_settings[$instance_id][$ob_key] = PHS_Crypt::quick_decode( self::$plugin_settings[$instance_id][$ob_key] )) )
                             {
-                                PHS_Logger::logf( '[CONFIG ERROR] Error decoding old config value for ['.$instance_id.']['.$ob_key.']', PHS_Logger::TYPE_DEBUG );
+                                PHS_Logger::error( '[CONFIG ERROR] Error decoding old config value for ['.$instance_id.']['.$ob_key.']', PHS_Logger::TYPE_DEBUG );
                                 self::$plugin_settings[$instance_id][$ob_key] = '';
                             }
                         } catch( \Exception $e )
@@ -931,20 +931,20 @@ class PHS_Model_Plugins extends PHS_Model
             $existing_arr = false;
             $params['action'] = 'insert';
             $fields_arr['instance_id'] = $instance_id;
-        } else
-        {
+        } else {
             $params['action'] = 'edit';
         }
 
         $params['fields'] = $fields_arr;
 
-        PHS_Logger::logf( 'Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          || empty( $validate_fields['data_arr'] ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Error validating plugin database fields.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_DB_DETAILS, self::_t('Error validating plugin database fields.'));
+            }
             return false;
         }
 
@@ -952,35 +952,39 @@ class PHS_Model_Plugins extends PHS_Model
         // Try updating settings...
         if( !empty( $new_fields_arr['settings'] ) )
         {
-            if( is_array( $new_fields_arr['settings'] ) )
-                $new_fields_arr['settings'] = PHS_Line_params::to_string( $new_fields_arr['settings'] );
+            if( is_array( $new_fields_arr['settings'] ) ) {
+                $new_fields_arr['settings'] = PHS_Line_params::to_string($new_fields_arr['settings']);
+            }
 
-            PHS_Logger::logf( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::notice( 'New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         // Prevent core plugins to be inactivated...
-        if( !empty( $new_fields_arr['is_core'] ) && !empty( $new_fields_arr['status'] ) )
+        if( !empty( $new_fields_arr['is_core'] ) && !empty( $new_fields_arr['status'] ) ) {
             $new_fields_arr['status'] = self::STATUS_ACTIVE;
+        }
 
         $details_arr = [];
         $details_arr['fields'] = $new_fields_arr;
 
-        if( empty( $existing_arr ) )
-            $plugin_arr = $this->insert( $details_arr );
-        else
-            $plugin_arr = $this->edit( $existing_arr, $details_arr );
+        if( empty( $existing_arr ) ) {
+            $plugin_arr = $this->insert($details_arr);
+        } else {
+            $plugin_arr = $this->edit($existing_arr, $details_arr);
+        }
 
         if( empty( $plugin_arr ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin details to database.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_DB_DETAILS, self::_t('Couldn\'t save plugin details to database.'));
+            }
 
-            PHS_Logger::logf( '!!! Error in plugins model action ['.$params['action'].'] on instance ['.$instance_id.'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Error in plugins model action ['.$params['action'].'] on instance ['.$instance_id.'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Plugins model action ['.$params['action'].'] on instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         self::$db_plugins[$instance_id] = $plugin_arr;
 
@@ -1023,16 +1027,18 @@ class PHS_Model_Plugins extends PHS_Model
 
         if( !db_query( 'DELETE FROM `'.$table_name.'` WHERE instance_id = \''.$instance_id.'\' LIMIT 1', $flow_params['db_connection'] ) )
         {
-            PHS_Logger::logf( 'Error deleting registry entry for instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error deleting registry entry for instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_REGISTRY, self::_t( 'Error deleting registry database entry for instance %s.', $instance_id ) );
             return false;
         }
 
-        if( isset( self::$plugin_registry[$instance_id] ) )
-            unset( self::$plugin_registry[$instance_id] );
-        if( isset( self::$db_registry[$instance_id] ) )
-            unset( self::$db_registry[$instance_id] );
+        if( isset( self::$plugin_registry[$instance_id] ) ) {
+            unset(self::$plugin_registry[$instance_id]);
+        }
+        if( isset( self::$db_registry[$instance_id] ) ) {
+            unset(self::$db_registry[$instance_id]);
+        }
 
         return true;
     }
@@ -1114,13 +1120,14 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'edit';
         }
 
-        PHS_Logger::logf( 'Plugins model registry action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Plugins model registry action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !($validate_fields = $this->validate_data_for_fields( $params ))
          || empty( $validate_fields['data_arr'] ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Error validating plugin registry database fields.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_DB_DETAILS, self::_t('Error validating plugin registry database fields.'));
+            }
             return false;
         }
 
@@ -1130,14 +1137,17 @@ class PHS_Model_Plugins extends PHS_Model
         // Try updating registry...
         if( !empty( $new_fields_arr['registry'] ) )
         {
-            if( !empty( $existing_arr ) && !empty( $existing_arr['registry'] ) )
-                $new_fields_arr['registry'] = self::merge_array_assoc( PHS_Line_params::parse_string( $existing_arr['registry'] ), PHS_Line_params::parse_string( $new_fields_arr['registry'] ) );
+            if( !empty( $existing_arr ) && !empty( $existing_arr['registry'] ) ) {
+                $new_fields_arr['registry'] =
+                    self::merge_array_assoc(PHS_Line_params::parse_string($existing_arr['registry']),
+                        PHS_Line_params::parse_string($new_fields_arr['registry']));
+            }
 
             $new_fields_arr['registry'] = PHS_Line_params::to_string( $new_fields_arr['registry'] );
 
             $new_fields_arr['last_update'] = $cdate;
 
-            PHS_Logger::logf( 'New registry ['.$new_fields_arr['registry'].']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::notice( 'New registry ['.$new_fields_arr['registry'].']', PHS_Logger::TYPE_MAINTENANCE );
         }
 
         $details_arr = $this->fetch_default_flow_params( [ 'table_name' => 'plugins_registry' ] );
@@ -1148,20 +1158,22 @@ class PHS_Model_Plugins extends PHS_Model
             $details_arr['fields']['cdate'] = $cdate;
 
             $plugin_registry_arr = $this->insert( $details_arr );
-        } else
-            $plugin_registry_arr = $this->edit( $existing_arr, $details_arr );
+        } else {
+            $plugin_registry_arr = $this->edit($existing_arr, $details_arr);
+        }
 
         if( empty( $plugin_registry_arr ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_DB_DETAILS, self::_t( 'Couldn\'t save plugin registry to database.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_DB_DETAILS, self::_t('Couldn\'t save plugin registry to database.'));
+            }
 
-            PHS_Logger::logf( '!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE Plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Plugins registry model action ['.$params['action'].'] on plugin ['.$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE );
 
         self::$db_registry[$fields_arr['instance_id']] = $plugin_registry_arr;
 

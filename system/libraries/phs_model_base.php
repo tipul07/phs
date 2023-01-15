@@ -1311,7 +1311,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        PHS_Logger::logf( 'Installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::lock_db_structure_read();
 
@@ -1325,10 +1325,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         {
             if( !$this->_load_plugins_instance() )
             {
-                PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Error instantiating plugins model.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_INSTALL, self::_t('Error instantiating plugins model.'));
+                }
 
                 PHS_Maintenance::unlock_db_structure_read();
 
@@ -1339,12 +1340,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
             if( !$plugins_model->check_install_plugins_db() )
             {
-                if( $plugins_model->has_error() )
-                    $this->copy_error( $plugins_model );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing plugins model.' ) );
+                if( $plugins_model->has_error() ) {
+                    $this->copy_error($plugins_model);
+                } else {
+                    $this->set_error(self::ERR_INSTALL, self::_t('Error installing plugins model.'));
+                }
 
-                PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
                 PHS_Maintenance::unlock_db_structure_read();
 
@@ -1366,12 +1368,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 $this->get_default_settings(), $this->get_model_version() ))
          || empty( $db_details['new_data'] ) )
         {
-            if( $plugins_model->has_error() )
-                $this->copy_error( $plugins_model );
-            else
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Error saving plugin details to database.' ) );
+            if( $plugins_model->has_error() ) {
+                $this->copy_error($plugins_model);
+            } else {
+                $this->set_error(self::ERR_INSTALL, self::_t('Error saving plugin details to database.'));
+            }
 
-            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1386,23 +1389,23 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             // Performs any necessary actions when updating model from old version to new version
             if( version_compare( $old_plugin_arr['version'], $plugin_arr['version'], '<' ) )
             {
-                PHS_Logger::logf( 'Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::notice( 'Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
                 // Installed version is bigger than what we already had in database... update...
                 if( !$this->update( $old_plugin_arr['version'], $plugin_arr['version'] ) )
                 {
-                    PHS_Logger::logf( '!!! Update failed ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( '!!! Update failed ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE );
 
                     PHS_Maintenance::unlock_db_structure_read();
 
                     return false;
                 }
 
-                PHS_Logger::logf( 'Update with success ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::notice( 'Update with success ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
             }
         }
 
-        PHS_Logger::logf( 'DONE installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE installing model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::unlock_db_structure_read();
 
@@ -1418,34 +1421,38 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     {
         $this->reset_error();
 
-        if( !($model_id = $this->instance_id()) )
+        if( !($model_id = $this->instance_id()) ) {
             return false;
+        }
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition ) )
+        if( empty( $this->_definition ) || !is_array( $this->_definition ) ) {
             return true;
+        }
 
-        PHS_Logger::logf( 'Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         foreach( $this->_definition as $table_name => $table_definition )
         {
             if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => $table_name ] ))
              || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
             {
-                PHS_Logger::logf( 'Couldn\'t get flow parameters for table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t get flow parameters for table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
                 continue;
             }
 
             if( !$this->install_table( $flow_params ) )
             {
-                if( !$this->has_error() )
-                    PHS_Logger::logf( 'Couldn\'t generate table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                if( !$this->has_error() ) {
+                    PHS_Logger::error('Couldn\'t generate table ['.$full_table_name.'], model ['.$model_id.']',
+                        PHS_Logger::TYPE_MAINTENANCE);
+                }
             }
         }
 
         // Reset any errors related to generating tables...
         $this->reset_error();
 
-        PHS_Logger::logf( 'DONE Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1481,26 +1488,29 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         if( empty( $this->_definition ) || !is_array( $this->_definition ) )
             return true;
 
-        if( empty( $params_arr ) || !is_array( $params_arr ) )
+        if( empty( $params_arr ) || !is_array( $params_arr ) ) {
             $params_arr = [];
+        }
 
-        if( empty( $params_arr['created_tables'] ) || !is_array( $params_arr['created_tables'] ) )
+        if( empty( $params_arr['created_tables'] ) || !is_array( $params_arr['created_tables'] ) ) {
             $params_arr['created_tables'] = [];
+        }
 
-        PHS_Logger::logf( 'Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::lock_db_structure_read();
 
         foreach( $this->_definition as $table_name => $table_definition )
         {
             if( !empty( $params_arr['created_tables'] )
-             && in_array( $table_name, $params_arr['created_tables'], true ) )
+             && in_array( $table_name, $params_arr['created_tables'], true ) ) {
                 continue;
+            }
 
             if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => $table_name ] ))
              || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
             {
-                PHS_Logger::logf( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
                 continue;
             }
 
@@ -1509,10 +1519,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 if( !$this->has_error() )
                 {
                     $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t update table %s, model %s.', $full_table_name, $model_id ) );
-                    PHS_Logger::logf( 'Couldn\'t update table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Couldn\'t update table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
                 }
 
-                PHS_Logger::logf( 'FAILED Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'FAILED Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                 PHS_Maintenance::unlock_db_structure_read();
 
@@ -1523,7 +1533,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         // Reset any errors related to generating tables...
         $this->reset_error();
 
-        PHS_Logger::logf( 'DONE Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::unlock_db_structure_read();
 
@@ -1545,7 +1555,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         if( empty( $this->_definition ) || !is_array( $this->_definition ) )
             return [];
 
-        PHS_Logger::logf( 'Installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::lock_db_structure_read();
 
@@ -1555,12 +1565,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => $table_name ] ))
              || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
             {
-                PHS_Logger::logf( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t get flow parameters for model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
                 continue;
             }
 
-            if( $this->check_table_exists( $flow_params ) )
+            if( $this->check_table_exists( $flow_params ) ) {
                 continue;
+            }
 
             $created_tables[] = $table_name;
 
@@ -1569,10 +1580,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 if( !$this->has_error() )
                 {
                     $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t update table %s, model %s.', $full_table_name, $model_id ) );
-                    PHS_Logger::logf( 'Couldn\'t install missing table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Couldn\'t install missing table [' . $full_table_name . '], model [' . $model_id . ']', PHS_Logger::TYPE_MAINTENANCE );
                 }
 
-                PHS_Logger::logf( 'FAILED installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'FAILED installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                 PHS_Maintenance::unlock_db_structure_read();
 
@@ -1583,7 +1594,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         // Reset any errors related to generating tables...
         $this->reset_error();
 
-        PHS_Logger::logf( 'DONE installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         PHS_Maintenance::unlock_db_structure_read();
 
@@ -1639,7 +1650,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        PHS_Logger::logf( 'Uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( $this_instance_id === $plugins_model_id )
         {
@@ -1649,7 +1660,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if( !$this->_load_plugins_instance() )
         {
-            PHS_Logger::logf( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error instantiating plugins model.' ) );
             return false;
@@ -1665,34 +1676,36 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         {
             db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
 
-            PHS_Logger::logf( 'Model doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::warning( 'Model doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             return true;
         }
 
         db_restore_errors_state( $this->_plugins_instance->get_db_connection() );
 
-        PHS_Logger::logf( 'Calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         // First delete tables so in case it fails we can repeat the process...
-        if( !$this->uninstall_tables() )
+        if( !$this->uninstall_tables() ) {
             return false;
+        }
 
-        PHS_Logger::logf( 'DONE calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !$this->_plugins_instance->hard_delete( $db_details ) )
         {
-            if( $this->_plugins_instance->has_error() )
-                $this->copy_error( $this->_plugins_instance );
-            else
-                $this->set_error( self::ERR_UNINSTALL, self::_t( 'Error hard-deleting model from database.' ) );
+            if( $this->_plugins_instance->has_error() ) {
+                $this->copy_error($this->_plugins_instance);
+            } else {
+                $this->set_error(self::ERR_UNINSTALL, self::_t('Error hard-deleting model from database.'));
+            }
 
-            PHS_Logger::logf( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE uninstalling model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1711,7 +1724,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
          || !($flow_params = $this->fetch_default_flow_params()) )
             return true;
 
-        PHS_Logger::logf( 'Uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         foreach( $this->_definition as $table_name => $table_definition )
         {
@@ -1719,14 +1732,14 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
             if( !$this->uninstall_table( $flow_params ) )
             {
-                PHS_Logger::logf( '!!! Error uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( '!!! Error uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping table %s.', $table_name ) );
                 return false;
             }
         }
 
-        PHS_Logger::logf( 'DONE uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE uninstalling tables for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1745,22 +1758,24 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if( empty( $this->_definition ) || !is_array( $this->_definition )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+         || !($full_table_name = $this->get_flow_table_name( $flow_params )) ) {
             return true;
+        }
 
-        PHS_Logger::logf( 'Uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( !$this->_uninstall_table_for_model( $flow_params ) )
         {
-            PHS_Logger::logf( 'FAILED uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'FAILED uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UNINSTALL_TABLE, self::_t( 'Error dropping table %s.', $full_table_name ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_UNINSTALL_TABLE, self::_t('Error dropping table %s.', $full_table_name));
+            }
 
             return false;
         }
 
-        PHS_Logger::logf( 'DONE uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE uninstalling table ['.$full_table_name.'] for model ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1779,7 +1794,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if( !($this_instance_id = $this->instance_id()) )
         {
-            PHS_Logger::logf( '!!! Couldn\'t obtain model instance ID.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( '!!! Couldn\'t obtain model instance ID.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UPDATE, self::_t( 'Couldn\'t obtain current plugin id.' ) );
             return false;
@@ -1792,8 +1807,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         PHS_Maintenance::lock_db_structure_read();
         if( !$this->custom_update( $old_version, $new_version ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UPDATE, self::_t( 'Model custom update functionality failed.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_UPDATE, self::_t('Model custom update functionality failed.'));
+            }
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1804,8 +1820,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if( !$this->_load_plugins_instance() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UPDATE, self::_t( 'Error instantiating plugins model.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_UPDATE, self::_t('Error instantiating plugins model.'));
+            }
 
             PHS_Maintenance::unlock_db_structure_read();
 

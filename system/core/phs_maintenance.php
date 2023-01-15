@@ -46,7 +46,7 @@ final class PHS_Maintenance extends PHS_Registry
     public static function output( $msg )
     {
         // In logs, we have timestamps
-        PHS_Logger::logf( $msg, PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( $msg, PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( self::$last_output ) )
         {
@@ -57,8 +57,9 @@ final class PHS_Maintenance extends PHS_Registry
             $msg = '('.str_pad( '+'.(time()-self::$last_output).'s', 19, ' ', STR_PAD_LEFT ).') '.$msg;
         }
 
-        if( ($callback = self::output_callback()) )
-            $callback( $msg );
+        if( ($callback = self::output_callback()) ) {
+            $callback($msg);
+        }
     }
 
     /**

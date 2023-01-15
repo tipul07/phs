@@ -155,7 +155,7 @@ class PHS_Action_Google_login extends PHS_Action
                                      $error_msg.$this->_pt( 'Please try again.' );
             } else
             {
-                PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
+                PHS_Logger::notice( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
             }
         }
 
@@ -163,7 +163,7 @@ class PHS_Action_Google_login extends PHS_Action
         {
             if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
             {
-                PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
+                PHS_Logger::error( 'Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
             }
 
             if( !$accounts_model->is_active( $account_arr ) )
@@ -178,13 +178,16 @@ class PHS_Action_Google_login extends PHS_Action
 
         if( !empty( $account_arr ) )
         {
-            if( !($plugin_settings = $accounts_plugin->get_plugin_settings()) )
+            if( !($plugin_settings = $accounts_plugin->get_plugin_settings()) ) {
                 $plugin_settings = [];
+            }
 
-            if( empty( $plugin_settings['session_expire_minutes_normal'] ) )
+            if( empty( $plugin_settings['session_expire_minutes_normal'] ) ) {
                 $plugin_settings['session_expire_minutes_normal'] = 0; // till browser closes
-            if( empty( $plugin_settings['block_after_expiration'] ) )
+            }
+            if( empty( $plugin_settings['block_after_expiration'] ) ) {
                 $plugin_settings['block_after_expiration'] = 0; // hardcoded block
+            }
 
             $login_params = [];
             $login_params['expire_mins'] = $plugin_settings['session_expire_minutes_normal'];
@@ -207,8 +210,9 @@ class PHS_Action_Google_login extends PHS_Action
                 $hook_args['action_result'] = $action_result;
 
                 if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args ))
-                && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) )
+                && is_array( $new_hook_args ) && !empty( $new_hook_args['action_result'] ) ) {
                     return $new_hook_args['action_result'];
+                }
 
                 $action_result['redirect_to_url'] = PHS::url();
 
@@ -217,10 +221,11 @@ class PHS_Action_Google_login extends PHS_Action
 
             $retry_action = true;
 
-            if( $accounts_plugin->has_error() )
+            if( $accounts_plugin->has_error() ) {
                 $error_msg = $accounts_plugin->get_simple_error_message();
-            else
-                $error_msg = $this->_pt( 'Please try again.' );
+            } else {
+                $error_msg = $this->_pt('Please try again.');
+            }
 
             $display_error_msg = $this->_pt( 'Error logging in.' ).
                                  ' '.
@@ -249,8 +254,9 @@ class PHS_Action_Google_login extends PHS_Action
     public function decode_google_account_data( $google_result )
     {
         if( !($clean_str = PHS_Crypt::quick_decode( $google_result ))
-         || !($result_arr = @json_decode( $clean_str, true )) )
+         || !($result_arr = @json_decode( $clean_str, true )) ) {
             return false;
+        }
 
         return $result_arr;
     }

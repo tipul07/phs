@@ -767,33 +767,38 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     final public function user_has_any_of_defined_role_units()
     {
         if( !($role_definition = $this->get_roles_definition())
-         || !is_array( $role_definition ) )
+         || !is_array( $role_definition ) ) {
             return false;
+        }
 
         // Do slug check even if user is not logged in
         // but if we couldn't generate an empty user structure, assume no slugs are assigned
-        if( !($cuser_arr = PHS::account_structure( PHS::user_logged_in() )) )
+        if( !($cuser_arr = PHS::account_structure( PHS::user_logged_in() )) ) {
             return false;
+        }
 
         $role_units_arr = [];
         foreach( $role_definition as $role_slug => $role_arr )
         {
-            if( empty( $role_arr['role_units'] ) || !is_array( $role_arr['role_units'] ) )
+            if( empty( $role_arr['role_units'] ) || !is_array( $role_arr['role_units'] ) ) {
                 continue;
+            }
 
             foreach( $role_arr['role_units'] as $role_unit_slug => $role_unit_arr )
             {
                 // if we cannot validate the slug we assume this is not assigned to any role...
-                if( !($role_unit_slug = PHS_Roles::transform_string_to_slug( $role_unit_slug )) )
+                if( !($role_unit_slug = PHS_Roles::transform_string_to_slug( $role_unit_slug )) ) {
                     return false;
+                }
 
                 $role_units_arr[$role_unit_slug] = true;
             }
         }
 
         // if plugin defined no role units we assume user has assigned (nothing to be assigned) role unit... :p
-        if( empty( $role_units_arr ) )
+        if( empty( $role_units_arr ) ) {
             return true;
+        }
 
         return PHS_Roles::user_has_role_units( $cuser_arr, array_keys( $role_units_arr ), [ 'logical_operation' => 'or' ] );
     }
@@ -803,8 +808,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $this->reset_error();
 
         if( !($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array( $agent_jobs_definition ) )
+         || !is_array( $agent_jobs_definition ) ) {
             return true;
+        }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing agent jobs...' );
 
@@ -820,20 +826,24 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         {
             $agent_job_arr = self::validate_array( $agent_job_arr, $agent_job_structure );
 
-            if( !empty( $agent_job_arr['title'] ) )
-                $agent_job_arr['title'] = trim( $agent_job_arr['title'] );
-            else
+            if( !empty( $agent_job_arr['title'] ) ) {
+                $agent_job_arr['title'] = trim($agent_job_arr['title']);
+            } else {
                 $agent_job_arr['title'] = '';
+            }
 
-            if( !empty( $agent_job_arr['timed_seconds'] ) )
-                $agent_job_arr['timed_seconds'] = (int)$agent_job_arr['timed_seconds'];
+            if( !empty( $agent_job_arr['timed_seconds'] ) ) {
+                $agent_job_arr['timed_seconds'] = (int) $agent_job_arr['timed_seconds'];
+            }
 
             // Hardcoded job to run once an hour rather than stopping install
-            if( empty( $agent_job_arr['timed_seconds'] ) || $agent_job_arr['timed_seconds'] < 0 )
+            if( empty( $agent_job_arr['timed_seconds'] ) || $agent_job_arr['timed_seconds'] < 0 ) {
                 $agent_job_arr['timed_seconds'] = 3600;
+            }
 
-            if( empty( $agent_job_arr['params'] ) || !is_array( $agent_job_arr['params'] ) )
+            if( empty( $agent_job_arr['params'] ) || !is_array( $agent_job_arr['params'] ) ) {
                 $agent_job_arr['params'] = false;
+            }
 
             $agent_job_arr['run_async'] = (empty( $agent_job_arr['run_async'] )?0:1);
             $agent_job_arr['stalling_minutes'] = (empty( $agent_job_arr['stalling_minutes'] )?0:(int)$agent_job_arr['stalling_minutes']);
@@ -859,10 +869,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             {
                 $this->uninstall_agent_jobs();
 
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_INSTALL );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id() ) );
+                if( self::st_has_error() ) {
+                    $this->copy_static_error(self::ERR_INSTALL);
+                } else {
+                    $this->set_error(self::ERR_INSTALL,
+                        self::_t('Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id()));
+                }
 
                 PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error when registering agent job ['.$handle.']: '.$this->get_error_message() );
 
@@ -875,13 +887,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function uninstall_agent_jobs()
+    final public function uninstall_agent_jobs(): bool
     {
         $this->reset_error();
 
         if( !($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array( $agent_jobs_definition ) )
+         || !is_array( $agent_jobs_definition ) ) {
             return true;
+        }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Uninstalling agent jobs...' );
 
@@ -892,10 +905,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             {
                 $we_have_error = true;
 
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_INSTALL );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t uninstall agent job [%s] for [%s]', $handle, $this->instance_id() ) );
+                if( self::st_has_error() ) {
+                    $this->copy_static_error(self::ERR_INSTALL);
+                } else {
+                    $this->set_error(self::ERR_INSTALL,
+                        self::_t('Couldn\'t uninstall agent job [%s] for [%s]', $handle, $this->instance_id()));
+                }
 
                 PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error when uninstalling agent job ['.$handle.']: '.$this->get_error_message() );
             }
@@ -906,13 +921,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $we_have_error;
     }
 
-    final public function suspend_agent_jobs()
+    final public function suspend_agent_jobs(): bool
     {
         $this->reset_error();
 
         if( !($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array( $agent_jobs_definition ) )
+         || !is_array( $agent_jobs_definition ) ) {
             return true;
+        }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Suspending agent jobs...' );
 
@@ -928,13 +944,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function unsuspend_agent_jobs()
+    final public function unsuspend_agent_jobs(): bool
     {
         $this->reset_error();
 
         if( !($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array( $agent_jobs_definition ) )
+         || !is_array( $agent_jobs_definition ) ) {
             return true;
+        }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Re-activating agent jobs...' );
 
@@ -955,8 +972,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $this->reset_error();
 
         if( !($role_definition = $this->get_roles_definition())
-         || !is_array( $role_definition ) )
+         || !is_array( $role_definition ) ) {
             return true;
+        }
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Installing roles...' );
 
@@ -977,8 +995,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $role_slug = $new_role_slug;
 
             $role_arr = self::validate_array( $role_arr, $role_structure );
-            if( empty( $role_arr['role_units'] ) || !is_array( $role_arr['role_units'] ) )
+            if( empty( $role_arr['role_units'] ) || !is_array( $role_arr['role_units'] ) ) {
                 $role_arr['role_units'] = [];
+            }
 
             $role_units_slugs_arr = [];
             $db_role_units_arr = [];
@@ -1005,10 +1024,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if( !($role_unit = PHS_Roles::register_role_unit( $role_unit_details_arr )) )
                 {
-                    if( self::st_has_error() )
-                        $this->copy_static_error( self::ERR_INSTALL );
-                    else
-                        $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install role unit [%s]', $role_unit_slug ) );
+                    if( self::st_has_error() ) {
+                        $this->copy_static_error(self::ERR_INSTALL);
+                    } else {
+                        $this->set_error(self::ERR_INSTALL,
+                            self::_t('Couldn\'t install role unit [%s]', $role_unit_slug));
+                    }
 
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error when registering role unit ['.$role_unit_slug.']: '.$this->get_error_message() );
 
@@ -1030,10 +1051,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             if( !($role = PHS_Roles::register_role( $role_details_arr )) )
             {
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_INSTALL );
-                else
-                    $this->set_error( self::ERR_INSTALL, self::_t( 'Couldn\'t install role [%s]', $role_slug ) );
+                if( self::st_has_error() ) {
+                    $this->copy_static_error(self::ERR_INSTALL);
+                } else {
+                    $this->set_error(self::ERR_INSTALL, self::_t('Couldn\'t install role [%s]', $role_slug));
+                }
 
                 PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error when registering role ['.$role_slug.']: '.$this->get_error_message() );
 
@@ -1071,10 +1093,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if( !$this->_plugins_instance->check_install_plugins_db() )
         {
-            if( $this->_plugins_instance->has_error() )
-                $this->copy_error( $this->_plugins_instance );
-            else
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing plugins model.' ) );
+            if( $this->_plugins_instance->has_error() ) {
+                $this->copy_error($this->_plugins_instance);
+            } else {
+                $this->set_error(self::ERR_INSTALL, self::_t('Error installing plugins model.'));
+            }
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error installing plugins model: '.$this->get_error_message() );
 
@@ -1082,13 +1105,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if( !$this->install_roles()
-         || !$this->install_agent_jobs() )
+         || !$this->install_agent_jobs() ) {
             return false;
+        }
 
         if( !$this->custom_install() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Plugin custom install functionality failed.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_INSTALL, self::_t('Plugin custom install functionality failed.'));
+            }
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error in plugin custom install functionality: '.$this->get_error_message() );
 
@@ -1096,10 +1121,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if( ($plugin_info = $this->get_plugin_info())
-         && !empty( $plugin_info['name'] ) )
+         && !empty( $plugin_info['name'] ) ) {
             $plugin_name = $plugin_info['name'];
-        else
+        } else {
             $plugin_name = $this->instance_plugin_name();
+        }
 
         if( !($db_details = $this->_plugins_instance->install_record( $this_instance_id,
                 $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),

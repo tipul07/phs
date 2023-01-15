@@ -30,12 +30,14 @@ class PHS_Action_Connect_bg extends PHS_Action
 
         if( !($check_result = $domains_model->act_connect_bg( $domain_arr )) )
         {
-            if( $domains_model->has_error() )
+            if( $domains_model->has_error() ) {
                 $error_msg = $domains_model->get_simple_error_message();
-            else
-                $error_msg = 'Unknown error connecting to PHS remote domain ['.$domain_arr['title'].'] #'.$domain_arr['id'];
+            } else {
+                $error_msg =
+                    'Unknown error connecting to PHS remote domain ['.$domain_arr['title'].'] #'.$domain_arr['id'];
+            }
 
-            PHS_Logger::logf( '[ERROR] Error connecting to PHS remote domain: '.$error_msg, PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( 'Error connecting to PHS remote domain: '.$error_msg, PHS_Logger::TYPE_REMOTE );
         }
 
         return PHS_Action::default_action_result();

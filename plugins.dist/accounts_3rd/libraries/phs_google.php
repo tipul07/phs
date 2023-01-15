@@ -300,7 +300,7 @@ class Google extends PHS_Library
                 if( !empty( $token ) && is_array( $token )
                  && !empty( $token['error'] ) )
                 {
-                    PHS_Logger::logf( '[ERROR] Error fetching WEB access token: '.
+                    PHS_Logger::error( 'Error fetching WEB access token: '.
                                       $token['error'].(!empty( $token['error_description'] )?' ('.$token['error_description'].')':''), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
                 }
 
@@ -370,7 +370,7 @@ class Google extends PHS_Library
                 // if( !empty( $token ) && is_array( $token )
                 //  && !empty( $token['error'] ) )
                 // {
-                //     PHS_Logger::logf( '[ERROR] Error fetching WEB access token: '.
+                //     PHS_Logger::error( 'Error fetching WEB access token: '.
                 //                       $token['error'].(!empty( $token['error_description'] )?' ('.$token['error_description'].')':''), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
                 // }
 

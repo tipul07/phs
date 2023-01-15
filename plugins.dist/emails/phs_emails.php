@@ -365,7 +365,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Couldn\'t load template from plugin settings.' ) );
 
-            PHS_Logger::logf( 'Couldn\'t load template from plugin settings.', self::LOG_CHANNEL );
+            PHS_Logger::error( 'Couldn\'t load template from plugin settings.', self::LOG_CHANNEL );
 
             $hook_args['hook_errors'] = $this->get_error();
 
@@ -379,7 +379,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         {
             $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating main email template file.' ) );
 
-            PHS_Logger::logf( 'Failed validating main email template file.', self::LOG_CHANNEL );
+            PHS_Logger::error( 'Failed validating main email template file.', self::LOG_CHANNEL );
 
             $hook_args['hook_errors'] = $this->get_error();
 
@@ -391,27 +391,29 @@ class PHS_Plugin_Emails extends PHS_Plugin
             || !($email_template = PHS_View::validate_template_resource( $hook_args['template'], $template_params ))
             ) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_TEMPLATE );
-            else
-                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating email template file.' ) );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_TEMPLATE);
+            } else {
+                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
+            }
 
-            PHS_Logger::logf( 'Email template error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
+            PHS_Logger::error( 'Email template error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
 
             $hook_args['hook_errors'] = self::arr_set_error( self::ERR_TEMPLATE, $this->_pt( 'Failed validating email template file.' ) );
 
             return $hook_args;
         }
 
-        if( $hook_args['route'] === false )
+        if( $hook_args['route'] === false ) {
             $hook_args['route'] = self::DEFAULT_ROUTE;
+        }
 
         if( empty( $hook_args['native_mail_function'] ) )
         {
             if( empty( $hook_args['route'] )
              || !($route_settings = $this->get_smtp_route_settings( $hook_args['route'] )) )
             {
-                PHS_Logger::logf( 'Invalid SMTP route ['.$hook_args['route'].'].', self::LOG_CHANNEL );
+                PHS_Logger::error( 'Invalid SMTP route ['.$hook_args['route'].'].', self::LOG_CHANNEL );
 
                 $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Invalid SMTP route.' ) );
 
@@ -423,20 +425,26 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $hook_args['route_settings'] = $route_settings;
         }
 
-        if( empty( $hook_args['from_name'] ) )
+        if( empty( $hook_args['from_name'] ) ) {
             $hook_args['from_name'] = $settings_arr['email_vars']['site_name'];
-        if( empty( $hook_args['from_email'] ) )
+        }
+        if( empty( $hook_args['from_email'] ) ) {
             $hook_args['from_email'] = $settings_arr['email_vars']['from_email'];
-        if( empty( $hook_args['from_noreply'] ) )
+        }
+        if( empty( $hook_args['from_noreply'] ) ) {
             $hook_args['from_noreply'] = $settings_arr['email_vars']['from_noreply'];
+        }
 
-        if( empty( $hook_args['email_vars'] ) || !is_array( $hook_args['email_vars'] ) )
+        if( empty( $hook_args['email_vars'] ) || !is_array( $hook_args['email_vars'] ) ) {
             $hook_args['email_vars'] = [];
+        }
 
         $hook_args['email_vars'] = self::validate_array( $hook_args['email_vars'], $settings_arr['email_vars'] );
 
-        if( empty( $hook_args['subject'] ) )
-            $hook_args['subject'] = 'Email from '.(!empty( $hook_args['email_vars']['site_name'] )?$hook_args['email_vars']['site_name']:PHS_SITE_NAME);
+        if( empty( $hook_args['subject'] ) ) {
+            $hook_args['subject'] =
+                'Email from '.(!empty($hook_args['email_vars']['site_name']) ? $hook_args['email_vars']['site_name'] : PHS_SITE_NAME);
+        }
 
         $view_params = [];
         $view_params['action_obj'] = false;
@@ -448,22 +456,26 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'email_content' => '',
         ];
 
-        if( !empty( $hook_args['body_buffer'] ) )
+        if( !empty( $hook_args['body_buffer'] ) ) {
             $email_content_buffer = $hook_args['body_buffer'];
+        }
 
         elseif( empty( $email_template )
          || !($email_template_obj = PHS_View::init_view( $email_template, $view_params ))
          || !($email_content_buffer = $email_template_obj->render()) )
         {
-            if( self::st_has_error() )
+            if( self::st_has_error() ) {
                 $this->copy_static_error();
-            elseif( !empty( $email_template_obj ) and $email_template_obj->has_error() )
-                $this->copy_error( $email_template_obj );
+            } elseif( !empty( $email_template_obj ) && $email_template_obj->has_error() ) {
+                $this->copy_error($email_template_obj);
+            }
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', (!empty( $email_template_obj )?$email_template_obj->get_template():'(???)') ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
+                    (!empty($email_template_obj) ? $email_template_obj->get_template() : '(???)')));
+            }
 
-            PHS_Logger::logf( 'Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
+            PHS_Logger::error( 'Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
 
             $hook_args['hook_errors'] = self::arr_set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template resulted in empty buffer.' ) );
 
@@ -475,15 +487,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if( !($main_template_obj = PHS_View::init_view( $email_main_template, $view_params ))
          || !($email_html_body = $main_template_obj->render()) )
         {
-            if( self::st_has_error() )
+            if( self::st_has_error() ) {
                 $this->copy_static_error();
-            elseif( !empty( $main_template_obj ) && $main_template_obj->has_error() )
-                $this->copy_error( $main_template_obj );
+            } elseif( !empty( $main_template_obj ) && $main_template_obj->has_error() ) {
+                $this->copy_error($main_template_obj);
+            }
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering template %s resulted in empty buffer.', ($main_template_obj?$main_template_obj->get_template():'(???)') ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
+                    ($main_template_obj ? $main_template_obj->get_template() : '(???)')));
+            }
 
-            PHS_Logger::logf( 'Email main template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
+            PHS_Logger::error( 'Email main template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL );
 
             $hook_args['hook_errors'] = self::arr_set_error( self::ERR_TEMPLATE, $this->_pt( 'Rendering main template resulted in empty buffer.' ) );
 
@@ -498,16 +513,19 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $default_file_details = self::default_file_attachment();
             foreach( $hook_args['attach_files'] as $knti => $file_details )
             {
-                if( empty( $file_details ) || !is_array( $file_details ) )
+                if( empty( $file_details ) || !is_array( $file_details ) ) {
                     continue;
+                }
 
                 $file_details = self::validate_array( $file_details, $default_file_details );
 
-                if( !empty( $file_details['file_attachment_buffer'] ) )
+                if( !empty( $file_details['file_attachment_buffer'] ) ) {
                     continue;
+                }
 
-                if( !empty( $file_details['file'] ) && empty( $file_details['file_name'] ) )
-                    $file_details['file_name'] = @basename( $file_details['file'] );
+                if( !empty( $file_details['file'] ) && empty( $file_details['file_name'] ) ) {
+                    $file_details['file_name'] = @basename($file_details['file']);
+                }
 
                 if( (empty( $file_details['file_base64_buffer'] ) && empty( $file_details['file'] ))
                  || (!empty( $file_details['file_base64_buffer'] ) && empty( $file_details['file_name'] ))
@@ -521,16 +539,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 }
 
                 if( empty( $file_details['content_disposition'] )
-                 or !in_array( $file_details['content_disposition'], [ 'attachment', 'inline' ] ) )
+                 || !in_array( $file_details['content_disposition'], [ 'attachment', 'inline' ] ) ) {
                     $file_details['content_disposition'] = 'attachment';
+                }
 
                 $attach_files[] = $file_details;
             }
         }
         $hook_args['attach_files'] = $attach_files;
 
-        if( !empty( $hook_args['also_send'] ) )
-            $hook_args = $this->send_email( $hook_args );
+        if( !empty( $hook_args['also_send'] ) ) {
+            $hook_args = $this->send_email($hook_args);
+        }
 
         return $hook_args;
     }
@@ -542,7 +562,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $hook_args = PHS_Hooks::reset_email_hook_args( self::validate_array_recursive( $hook_args, PHS_Hooks::default_init_email_hook_args() ) );
 
         if( empty( $hook_args['to'] )
-         or !PHS_Params::check_type( $hook_args['to'], PHS_Params::T_EMAIL ) )
+         || !PHS_Params::check_type( $hook_args['to'], PHS_Params::T_EMAIL ) )
         {
             $this->set_error( self::ERR_SEND, $this->_pt( 'Destination is not an email.' ) );
 
@@ -551,7 +571,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if( empty( $hook_args['email_html_body'] ) and empty( $hook_args['email_text_body'] ) )
+        if( empty( $hook_args['email_html_body'] ) && empty( $hook_args['email_text_body'] ) )
         {
             $this->set_error( self::ERR_SEND, $this->_pt( 'Email body is empty.' ) );
 
@@ -560,51 +580,55 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if( empty( $hook_args['reply_email'] ) )
+        if( empty( $hook_args['reply_email'] ) ) {
             $hook_args['reply_email'] = $hook_args['from_email'];
-        if( empty( $hook_args['reply_name'] ) )
+        }
+        if( empty( $hook_args['reply_name'] ) ) {
             $hook_args['reply_name'] = $hook_args['from_name'];
+        }
 
         // Convert HTML version to text and text to HTML if necessary
-        if( empty( $hook_args['email_html_body'] ) && !empty( $hook_args['email_text_body'] ) )
-            $hook_args['email_html_body'] = str_replace( '  ', ' &nbsp;', nl2br( $hook_args['email_text_body'] ) );
-        elseif( !empty( $hook_args['email_html_body'] ) && empty( $hook_args['email_text_body'] ) )
-            $hook_args['email_text_body'] = strip_tags( preg_replace( "/[\r\n]+/",
-                                                                      "\n",
-                                                                      str_ireplace( [ '<p>', '</p>', '<br>', '<br/>', '<br />' ],
-                                                                                    "\n",
-                                                                                    $hook_args['email_html_body'] ) ) );
+        if( empty( $hook_args['email_html_body'] ) && !empty( $hook_args['email_text_body'] ) ) {
+            $hook_args['email_html_body'] = str_replace('  ', ' &nbsp;', nl2br($hook_args['email_text_body']));
+        }
+        elseif( !empty( $hook_args['email_html_body'] ) && empty( $hook_args['email_text_body'] ) ) {
+            $hook_args['email_text_body'] = strip_tags(preg_replace("/[\r\n]+/", "\n",
+                str_ireplace(['<p>', '</p>', '<br>', '<br/>', '<br />'], "\n", $hook_args['email_html_body'])));
+        }
 
         // set multipart boundary
         $hash = md5( microtime() );
         $mime_boundary = '==MULTIPART_BOUNDARY_' . $hash;
         $mime_boundary_header = chr(34) . $mime_boundary . chr(34);
 
-        $predefined_headers = array();
+        $predefined_headers = [];
         $predefined_headers['From'] = $hook_args['from_name'].' <'.$hook_args['from_email'].'>';
         $predefined_headers['X-Sender'] = '<'.$hook_args['from_email'].'>';
         $predefined_headers['Return-Path'] = '<'.$hook_args['from_email'].'>';
         $predefined_headers['Reply-To'] = $hook_args['reply_name'].' <'.$hook_args['reply_email'].'>';
         $predefined_headers['X-Mailer'] = 'PHP (PHS-MAILER-'.$this->get_plugin_version().')';
-        if( !empty( $hook_args['with_priority'] ) )
+        if( !empty( $hook_args['with_priority'] ) ) {
             $predefined_headers['X-Priority'] = '1';
+        }
         $predefined_headers['MIME-Version'] = '1.0';
         $predefined_headers['Content-Type'] = 'multipart/alternative; boundary=' . $mime_boundary_header;
         $predefined_headers['Content-Transfer-Encoding'] = '7bit';
         $predefined_headers['X-Script-Time'] = time();
 
         if( empty( $params['skip_mail_authentication'] )
-         && false !== ($mail_id = PHS_Crypt::quick_encode( self::mail_auth_key().':'.time() )) )
+         && false !== ($mail_id = PHS_Crypt::quick_encode( self::mail_auth_key().':'.time() )) ) {
             // for single emails it's ok, but when sending multiple emails it might take too much time
             $predefined_headers['X-Mail-ID'] = $mail_id;
-        else
-            $predefined_headers['X-SMail-ID'] = md5( self::mail_auth_key().':'.time() );
+        } else {
+            $predefined_headers['X-SMail-ID'] = md5(self::mail_auth_key().':'.time());
+        }
 
         $final_headers_arr = $predefined_headers;
         if( !empty( $hook_args['custom_headers'] ) && is_array( $hook_args['custom_headers'] ) )
         {
-            foreach( $hook_args['custom_headers'] as $key => $value )
+            foreach( $hook_args['custom_headers'] as $key => $value ) {
                 $final_headers_arr[$key] = $value;
+            }
         }
 
         $hook_args['full_body'] = 'This is a multi-part message in MIME format.' . "\n\n" .
@@ -622,17 +646,20 @@ class PHS_Plugin_Emails extends PHS_Plugin
         {
             foreach( $hook_args['attach_files'] as $file_details )
             {
-                if( empty( $file_details ) || !is_array( $file_details ) )
+                if( empty( $file_details ) || !is_array( $file_details ) ) {
                     continue;
+                }
 
-                if( !empty( $file_details['file_attachment_buffer'] ) )
+                if( !empty( $file_details['file_attachment_buffer'] ) ) {
                     $hook_args['full_body'] .= $file_details['file_attachment_buffer'];
+                }
 
                 else
                 {
                     $file_encoded = '';
-                    if( !empty( $file_details['file_base64_buffer'] ) )
+                    if( !empty( $file_details['file_base64_buffer'] ) ) {
                         $file_encoded = $file_details['file_base64_buffer'];
+                    }
 
                     elseif( !empty( $file_details['file'] ) )
                     {
@@ -647,10 +674,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
                             return $hook_args;
                         }
 
-                        if( $file_details['transfer_encoding'] === 'base64' )
-                            $file_encoded = @base64_encode( $file_content );
-                        else
+                        if( $file_details['transfer_encoding'] === 'base64' ) {
+                            $file_encoded = @base64_encode($file_content);
+                        } else {
                             $file_encoded = $file_content;
+                        }
 
                         // Free up some memory
                         unset( $file_content );
@@ -677,18 +705,22 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $hook_args['internal_vars']['mime_boundary'] = $mime_boundary;
 
         $hook_args['internal_vars']['to_full_value'] = '';
-        if( !empty( $hook_args['to_name'] ) )
+        if( !empty( $hook_args['to_name'] ) ) {
             $hook_args['internal_vars']['to_full_value'] .= $hook_args['to_name'].' ';
+        }
         $hook_args['internal_vars']['to_full_value'] .= '<'.$hook_args['to'].'>';
 
 
-        if( !empty( $hook_args['native_mail_function'] ) )
-            $hook_args = $this->_send_email_native( $hook_args );
-        else
-            $hook_args = $this->_send_email_smtp( $hook_args );
+        if( !empty( $hook_args['native_mail_function'] ) ) {
+            $hook_args = $this->_send_email_native($hook_args);
+        } else {
+            $hook_args = $this->_send_email_smtp($hook_args);
+        }
 
-        if( $this->has_error() )
-            PHS_Logger::logf( 'Sending email error ('.(!empty( $hook_args['native_mail_function'] ) ? 'native' : 'SMTP').') ['.$this->get_error_message().'].', self::LOG_CHANNEL );
+        if( $this->has_error() ) {
+            PHS_Logger::error('Sending email error ('.(!empty($hook_args['native_mail_function']) ? 'native' : 'SMTP').') ['.$this->get_error_message().'].',
+                self::LOG_CHANNEL);
+        }
 
         return $hook_args;
     }
@@ -719,8 +751,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
         /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
         if( !($smtp_library = $this->load_library( 'phs_smtp', $library_params )) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_LIBRARY, $this->_pt( 'Error loading SMTP library.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
+            }
 
             $hook_args['hook_errors'] = self::arr_set_error( self::ERR_SEND, $this->_pt( 'Error loading SMTP library.' ) );
 
@@ -757,8 +790,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $smtp_library->email_details( $email_settings );
 
-        if( $smtp_library->send() )
+        if( $smtp_library->send() ) {
             $hook_args['send_result'] = true;
+        }
 
         else
         {
@@ -766,11 +800,13 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
             $hook_args['hook_errors'] = self::arr_set_error( self::ERR_SEND, $this->_pt( 'Error sending email using SMTP library.' ) );
 
-            if( $smtp_library->has_error() )
-                $this->copy_error( $smtp_library, self::ERR_SEND );
+            if( $smtp_library->has_error() ) {
+                $this->copy_error($smtp_library, self::ERR_SEND);
+            }
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_SEND, $this->_pt( 'Error sending email using SMTP library.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
+            }
         }
 
         return $hook_args;
@@ -792,16 +828,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         $full_headers_str = '';
-        foreach( $hook_args['internal_vars']['full_headers'] as $key => $value )
+        foreach( $hook_args['internal_vars']['full_headers'] as $key => $value ) {
             $full_headers_str .= $key.': '.$value."\n";
+        }
         $full_headers_str .= "\n";
 
-        if( !empty( $hook_args['internal_vars']['to_full_value'] ) )
+        if( !empty( $hook_args['internal_vars']['to_full_value'] ) ) {
             $to = $hook_args['internal_vars']['to_full_value'];
-        else
+        } else {
             $to = $hook_args['to'];
+        }
 
-        $hook_args['send_result'] = (@mail( $to, $hook_args['subject'], $hook_args['full_body'], $full_headers_str )?true:false);
+        $hook_args['send_result'] = @mail( $to, $hook_args['subject'], $hook_args['full_body'], $full_headers_str );
 
         return $hook_args;
     }

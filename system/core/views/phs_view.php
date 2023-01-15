@@ -1023,55 +1023,59 @@ class PHS_View extends PHS_Instantiable
      */
     public function render( $template = false, $force_theme = false, $params = false )
     {
-        if( $template !== false )
+        if( $template !== false
+         && !$this->set_template( $template ) )
         {
-            if( !$this->set_template( $template ) )
-                return false;
+            return false;
         }
 
-        if( $force_theme !== false )
+        if( $force_theme !== false
+         && !$this->set_theme( $force_theme ) )
         {
-            if( !$this->set_theme( $force_theme ) )
-                return false;
+            return false;
         }
 
         if( !$this->_get_template_path() )
         {
-            if( self::st_debugging_mode() )
-                PHS_Logger::logf( 'Template [%s, file: %s] not found using theme [%s].',
-                    (!empty( $this->_template )?$this->_template:'N/A'),
-                    (!empty( $this->_template_file )?$this->_template_file:'N/A'),
-                    $this->get_theme(),
-                    PHS_Logger::TYPE_DEBUG );
+            if( self::st_debugging_mode() ) {
+                PHS_Logger::debug(
+                    sprintf( 'Template [%s, file: %s] not found using theme [%s].',
+                        (!empty($this->_template) ? $this->_template : 'N/A'),
+                        (!empty($this->_template_file) ? $this->_template_file : 'N/A'),
+                        $this->get_theme()
+                    ),
+                    PHS_Logger::TYPE_DEBUG);
+            }
 
             return false;
         }
 
         $resulting_buf = '';
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( !isset( $params['only_string_result'] ) )
-            $params['only_string_result'] = true;
-        else
-            $params['only_string_result'] = (!empty( $params['only_string_result'] ));
+        $params['only_string_result'] = (!isset( $params['only_string_result'] ) || !empty( $params['only_string_result'] ));
 
         // sanity check...
         if( !empty( $this->_template_file )
          && @file_exists( $this->_template_file ) )
         {
             ob_start();
-            if( !($resulting_buf = include( $this->_template_file )) )
+            if( !($resulting_buf = include( $this->_template_file )) ) {
                 $resulting_buf = '';
+            }
 
-            if( empty( $params['only_string_result'] ) )
+            if( empty( $params['only_string_result'] ) ) {
                 ob_end_clean();
+            }
 
             else
             {
-                if( !is_string( $resulting_buf ) )
+                if( !is_string( $resulting_buf ) ) {
                     $resulting_buf = '';
+                }
 
                 $resulting_buf .= ob_get_clean();
             }

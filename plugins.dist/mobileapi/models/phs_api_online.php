@@ -1074,7 +1074,7 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $sessions_list ) )
             return $return_arr;
 
-        PHS_Logger::logf( 'Deleting '.count( $sessions_list ).' API mobile sessions.', $mobileapi_plugin::LOG_CHANNEL );
+        PHS_Logger::notice( 'Deleting '.count( $sessions_list ).' API mobile sessions.', $mobileapi_plugin::LOG_CHANNEL );
 
         foreach( $sessions_list as $session_id => $session_arr )
         {
@@ -1088,7 +1088,7 @@ class PHS_Model_Api_online extends PHS_Model
                 if( $this->has_error() )
                     $error_msg = $this->get_simple_error_message();
 
-                PHS_Logger::logf( 'Error logging out session #'.$session_id.': '.$error_msg, $mobileapi_plugin::LOG_CHANNEL );
+                PHS_Logger::notice( 'Error logging out session #'.$session_id.': '.$error_msg, $mobileapi_plugin::LOG_CHANNEL );
                 continue;
             }
 

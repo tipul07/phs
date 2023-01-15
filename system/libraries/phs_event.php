@@ -266,7 +266,7 @@ abstract class PHS_Event extends PHS_Instantiable
                 else
                     $error_msg = $this->_pt( 'Error launching background listners.' );
 
-                PHS_Logger::logf( '[ERROR] Error launching background job for event '.static::class.': '.$error_msg,
+                PHS_Logger::error( 'Error launching background job for event '.static::class.': '.$error_msg,
                     PHS_Logger::TYPE_DEBUG );
                 $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
             }

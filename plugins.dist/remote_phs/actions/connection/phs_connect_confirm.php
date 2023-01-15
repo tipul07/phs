@@ -55,7 +55,7 @@ class PHS_Action_Connect_confirm extends PHS_Api_action
 
         if( !($new_domain_arr = $domains_model->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating incoming remote domain connection for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( 'Error updating incoming remote domain connection for '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             return $this->send_api_error( PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt( 'Error updating remote domain details.' ) );

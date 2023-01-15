@@ -15,24 +15,24 @@ class PHS_Po_format extends PHS_Registry
 
     private $filename = '';
 
-    private $lines_arr = [];
-    private $_li = 0;
+    private array $lines_arr = [];
+    private int $_li = 0;
 
-    private $header_lines = 0;
+    private int $header_lines = 0;
     // Header values as they are defined in PO file
-    private $header_arr = [];
+    private array $header_arr = [];
 
     // After parsing a PO file class caches results here...
-    private $parsed_language = '';
-    private $parsed_indexes = [];
-    private $indexes_count = 0;
+    private string $parsed_language = '';
+    private array $parsed_indexes = [];
+    private int $indexes_count = 0;
 
     /**
      * @param string $f
      *
      * @return bool
      */
-    public function set_filename( $f )
+    public function set_filename( $f ): bool
     {
         $this->reset_error();
 
@@ -44,10 +44,11 @@ class PHS_Po_format extends PHS_Registry
             return false;
         }
 
-        if( version_compare( PHP_VERSION, '5.5.0', '>' ) )
+        if( version_compare( PHP_VERSION, '5.5.0', '>' ) ) {
             $this->can_use_generator = true;
-        else
+        } else {
             $this->can_use_generator = false;
+        }
 
         if( !($buf = @file_get_contents( $f )) )
         {
@@ -60,12 +61,13 @@ class PHS_Po_format extends PHS_Registry
         return $this->set_buffer( $buf );
     }
 
-    public function set_buffer( $b )
+    public function set_buffer( $b ): bool
     {
         $this->reset_lines_arr();
 
-        if( !$this->get_lines( $b ) )
+        if( !$this->get_lines( $b ) ) {
             return false;
+        }
 
         return true;
     }
@@ -245,18 +247,20 @@ class PHS_Po_format extends PHS_Registry
     }
 
     /**
-     * @param string $po_file
+     * @param  string  $po_file
      * @param false|array $params
      *
      * @return array|false
      */
-    public function update_language_files( $po_file, $params = false )
+    public function update_language_files( string $po_file, $params = false )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['language'] ) )
+        if( empty( $params['language'] ) ) {
             $params['language'] = false;
+        }
 
         elseif( !self::valid_language( $params['language'] ) )
         {
@@ -265,19 +269,12 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $params['update_language_files'] = (!empty( $params['update_language_files'] ));
+        $params['backup_language_files'] = (!isset( $params['backup_language_files'] ) || !empty( $params['update_language_files'] ));
+        $params['merge_with_old_files'] = (!isset( $params['merge_with_old_files'] ) || !empty( $params['merge_with_old_files'] ));
 
-        if( !isset( $params['backup_language_files'] ) )
-            $params['backup_language_files'] = true;
-        else
-            $params['backup_language_files'] = (!empty( $params['backup_language_files'] ));
-
-        if( !isset( $params['merge_with_old_files'] ) )
-            $params['merge_with_old_files'] = true;
-        else
-            $params['merge_with_old_files'] = (!empty( $params['merge_with_old_files'] ));
-
-        if( !$this->parse_language_from_po_file( $po_file, $params ) )
+        if( !$this->parse_language_from_po_file( $po_file, $params ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['new_indexes'] = 0;
@@ -287,16 +284,19 @@ class PHS_Po_format extends PHS_Registry
 
         if( !$this->indexes_count
          || empty( $this->parsed_indexes )
-         || !is_array( $this->parsed_indexes ) )
+         || !is_array( $this->parsed_indexes ) ) {
             return $return_arr;
+        }
 
-        if( !($csv_settings = self::lang_files_csv_settings()) )
+        if( !($csv_settings = self::lang_files_csv_settings()) ) {
             $csv_settings = self::default_lang_files_csv_settings();
+        }
 
         foreach( $this->parsed_indexes as $lang_file => $indexes_arr )
         {
-            if( !is_array( $indexes_arr ) )
+            if( !is_array( $indexes_arr ) ) {
                 continue;
+            }
 
             $new_indexes = 0;
             $updated_indexes = 0;
@@ -307,28 +307,31 @@ class PHS_Po_format extends PHS_Registry
             } else
             {
                 if( !@file_exists( $lang_file )
-                 || !($existing_lines_arr = self::get_language_file_lines( $lang_file, $this->parsed_language )) )
+                 || !($existing_lines_arr = self::get_language_file_lines( $lang_file, $this->parsed_language )) ) {
                     $existing_lines_arr = [];
+                }
 
                 // Language file exists... see what we can update / add
                 $resulting_arr = $existing_lines_arr;
                 foreach( $indexes_arr as $lang_key => $lang_val )
                 {
-                    if( !isset( $resulting_arr[$lang_key] ) )
+                    if( !isset( $resulting_arr[$lang_key] ) ) {
                         $new_indexes++;
-                    elseif( $lang_val !== $resulting_arr[$lang_key] )
-                        $updated_indexes ++;
-                    else
+                    } elseif( $lang_val !== $resulting_arr[$lang_key] ) {
+                        $updated_indexes++;
+                    } else {
                         // Same thing...
                         continue;
+                    }
 
                     $resulting_arr[$lang_key] = $lang_val;
                 }
             }
 
             if( empty( $new_indexes ) && empty( $updated_indexes )
-             && !empty( $resulting_arr ) )
+             && !empty( $resulting_arr ) ) {
                 continue;
+            }
 
             $fp = false;
             if( !empty( $params['update_language_files'] ) )
@@ -340,7 +343,7 @@ class PHS_Po_format extends PHS_Registry
 
                     $return_arr['update_errors'][$lang_file] = $error_msg;
 
-                    PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::critical( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
                     continue;
                 }
 
@@ -350,14 +353,14 @@ class PHS_Po_format extends PHS_Registry
 
                     $return_arr['update_errors'][$lang_file] = $error_msg;
 
-                    PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::critical( $error_msg, PHS_Logger::TYPE_MAINTENANCE );
                     continue;
                 }
 
                 if( ($header_str = self::get_language_file_header_str())
                  && !@fwrite( $fp, $header_str ) )
                 {
-                    PHS_Logger::logf( 'Error writing header for language file ['.$lang_file.']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Error writing header for language file ['.$lang_file.']', PHS_Logger::TYPE_MAINTENANCE );
                 }
             }
 
@@ -386,7 +389,7 @@ class PHS_Po_format extends PHS_Registry
                                                           $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'] ))
                      || !@fwrite( $fp, $csv_line ) )
                     {
-                        PHS_Logger::logf( 'Error writing ['.$lang_key.'] language index at position ['.$line.']', PHS_Logger::TYPE_MAINTENANCE );
+                        PHS_Logger::error( 'Error writing ['.$lang_key.'] language index at position ['.$line.']', PHS_Logger::TYPE_MAINTENANCE );
                     }
 
                     $line++;
@@ -408,31 +411,32 @@ class PHS_Po_format extends PHS_Registry
     }
 
     /**
-     * @param string $po_file
+     * @param  string  $po_file
      * @param array|false $params
      *
      * @return array|false
      */
-    public function parse_language_from_po_file( $po_file, $params = false )
+    public function parse_language_from_po_file( string $po_file, $params = false )
     {
         $this->reset_error();
 
         if( !$this->set_filename( $po_file ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_PO_FILE, self::_t( 'Couldn\'t read PO file or it is empty.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_PO_FILE, self::_t('Couldn\'t read PO file or it is empty.'));
+            }
 
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['language'] ) )
-        {
-            if( ($guessed_language = $this->guess_language_from_header())
-            && !empty( $guessed_language['guessed_language'] ) )
-                $params['language'] = $guessed_language['guessed_language'];
+        if( empty( $params['language'] )
+         && ($guessed_language = $this->guess_language_from_header())
+         && !empty( $guessed_language['guessed_language'] ) ) {
+            $params['language'] = $guessed_language['guessed_language'];
         }
 
         if( empty( $params['language'] )
@@ -445,7 +449,9 @@ class PHS_Po_format extends PHS_Registry
         if( empty( $lang_details['dir'] )
          || !@is_dir( rtrim( $lang_details['dir'], '/' ) ) )
         {
-            $this->set_error( self::ERR_PO_FILE, self::_t( 'System language directory %s doesn\'t exist.', (!empty( $lang_details['dir'] )?$lang_details['dir']:'N/A') ) );
+            $this->set_error( self::ERR_PO_FILE,
+                self::_t( 'System language directory %s doesn\'t exist.',
+                    (!empty( $lang_details['dir'] )?$lang_details['dir']:'N/A') ) );
             return false;
         }
 
@@ -467,31 +473,36 @@ class PHS_Po_format extends PHS_Registry
             if( empty( $translation_arr['index'] )
              || empty( $translation_arr['translation'] )
              || empty( $translation_arr['files'] )
-             || !is_array( $translation_arr['files'] ) )
+             || !is_array( $translation_arr['files'] ) ) {
                 continue;
+            }
 
             foreach( $translation_arr['files'] as $lang_file_arr )
             {
                 if( empty( $lang_file_arr['file'] )
-                 || strpos( $lang_file_arr['file'], self::PLUGINS_DIST_DIRNAME ) === 0 )
+                 || strpos( $lang_file_arr['file'], self::PLUGINS_DIST_DIRNAME ) === 0 ) {
                     continue;
+                }
 
                 $plugin_name = '';
                 $theme_name = '';
                 if( strpos( $lang_file_arr['file'], $plugins_relative_path ) === 0
                  && ($path_rest = substr( $lang_file_arr['file'], $plugins_relative_path_len ))
                  && ($path_rest_arr = explode( '/', $path_rest, 2 ))
-                 && !empty( $path_rest_arr[0] ) )
+                 && !empty( $path_rest_arr[0] ) ) {
                     $plugin_name = $path_rest_arr[0];
+                }
 
                 if( strpos( $lang_file_arr['file'], $themes_relative_path ) === 0
                  && ($path_rest = substr( $lang_file_arr['file'], $themes_relative_path_len ))
                  && ($path_rest_arr = explode( '/', $path_rest, 2 ))
-                 && !empty( $path_rest_arr[0] ) )
+                 && !empty( $path_rest_arr[0] ) ) {
                     $theme_name = $path_rest_arr[0];
+                }
 
-                if( $theme_name === self::THEME_DIST_DIRNAME )
+                if( $theme_name === self::THEME_DIST_DIRNAME ) {
                     continue;
+                }
 
                 if( !empty( $theme_name )
                  && ($language_dirs = PHS::get_theme_language_paths( $theme_name ))
@@ -505,7 +516,6 @@ class PHS_Po_format extends PHS_Registry
 
                 if( !empty( $plugin_name )
                  && ($instance_dirs = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( $plugin_name ), $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN ))
-                 && !empty( $instance_dirs['plugin_paths'] ) && is_array( $instance_dirs['plugin_paths'] )
                  && !empty( $instance_dirs['plugin_paths'][PHS_Instantiable::LANGUAGES_DIR] ) )
                 {
                     // Add index to plugin
@@ -531,24 +541,27 @@ class PHS_Po_format extends PHS_Registry
 
     public function extract_po_translation()
     {
-        if( empty( $this->header_arr ) )
+        if( empty( $this->header_arr ) ) {
             $this->extract_header();
+        }
 
         return $this->extract_po_unit();
     }
 
-    public function get_po_header()
+    public function get_po_header(): array
     {
         static $lower_header_arr = false;
 
-        if( empty( $this->header_arr ) )
+        if( empty( $this->header_arr ) ) {
             $this->extract_header();
+        }
 
         if( $lower_header_arr === false )
         {
             $lower_header_arr = [];
-            foreach( $this->header_arr as $key => $val )
+            foreach( $this->header_arr as $key => $val ) {
                 $lower_header_arr[strtolower($key)] = $val;
+            }
         }
 
         return [
@@ -562,8 +575,9 @@ class PHS_Po_format extends PHS_Registry
     {
         if( !($header_data = $this->get_po_header())
          || empty( $header_data['lower_header_arr'] )
-         || empty( $header_data['lower_header_arr']['language'] ) )
+         || empty( $header_data['lower_header_arr']['language'] ) ) {
             return false;
+        }
 
         $guessed_language = '';
         // Although BCP 47 itself only allows "-" as a separator; for compatibility, Unicode language identifiers allows both "-" and "_".
@@ -571,15 +585,18 @@ class PHS_Po_format extends PHS_Registry
         if( strpos( $header_data['lower_header_arr']['language'], '_' ) !== false )
         {
             if( ($header_val = explode( '_', $header_data['lower_header_arr']['language'], 2 ))
-            && !empty( $header_val[0] ) )
-                $guessed_language = strtolower( $header_val[0] );
+            && !empty( $header_val[0] ) ) {
+                $guessed_language = strtolower($header_val[0]);
+            }
         } elseif( strpos( $header_data['lower_header_arr']['language'], '-' ) !== false )
         {
             if( ($header_val = explode( '-', $header_data['lower_header_arr']['language'], 2 ))
-            && !empty( $header_val[0] ) )
-                $guessed_language = strtolower( $header_val[0] );
-        } else
-            $guessed_language = strtolower( $header_data['lower_header_arr']['language'] );
+            && !empty( $header_val[0] ) ) {
+                $guessed_language = strtolower($header_val[0]);
+            }
+        } else {
+            $guessed_language = strtolower($header_data['lower_header_arr']['language']);
+        }
 
         $return_arr = [];
         $return_arr['guessed_language'] = $guessed_language;
@@ -593,15 +610,17 @@ class PHS_Po_format extends PHS_Registry
         // read empty lines till first translation unit
         do
         {
-            if( ($line_str = $this->get_line( $this->_li )) === false )
+            if( ($line_str = $this->get_line( $this->_li )) === false ) {
                 break;
+            }
 
             $this->_li++;
 
         } while( $line_str === '' );
 
-        if( $line_str === false )
+        if( $line_str === false ) {
             return false;
+        }
 
         $unit_arr = [];
         $unit_arr['index'] = '';
@@ -647,8 +666,9 @@ class PHS_Po_format extends PHS_Registry
                             $line = false;
                         }
 
-                        if( !empty( $file_line[1] ) )
-                            $file = trim( $file_line[1] );
+                        if( !empty( $file_line[1] ) ) {
+                            $file = trim($file_line[1]);
+                        }
                     }
                 }
             } elseif( strpos( $line_str, 'msgid ' ) === 0 )
@@ -656,8 +676,9 @@ class PHS_Po_format extends PHS_Registry
                 $msgid = trim( substr( $line_str, 6 ), '"' );
                 while( ($next_line_str = $this->get_line( $this->_li )) )
                 {
-                    if( substr( $next_line_str, 0, 1 ) !== '"' )
+                    if( substr( $next_line_str, 0, 1 ) !== '"' ) {
                         break;
+                    }
 
                     $msgid .= trim( $next_line_str, '"' );
                     $this->_li++;
@@ -669,8 +690,9 @@ class PHS_Po_format extends PHS_Registry
                 $msgstr = trim( substr( $line_str, 7 ), '"' );
                 while( ($next_line_str = $this->get_line( $this->_li )) )
                 {
-                    if( substr( $next_line_str, 0, 1 ) !== '"' )
+                    if( substr( $next_line_str, 0, 1 ) !== '"' ) {
                         break;
+                    }
 
                     $msgstr .= trim( $next_line_str, '"' );
                     $this->_li++;
@@ -686,7 +708,7 @@ class PHS_Po_format extends PHS_Registry
         return $unit_arr;
     }
 
-    private function reset_lines_arr()
+    private function reset_lines_arr(): void
     {
         $this->lines_arr = [];
         $this->_li = 0;
@@ -702,8 +724,9 @@ class PHS_Po_format extends PHS_Registry
      */
     private function get_lines( $buffer = false )
     {
-        if( $buffer === false )
+        if( $buffer === false ) {
             return $this->lines_arr;
+        }
 
         $this->reset_error();
 
@@ -724,10 +747,11 @@ class PHS_Po_format extends PHS_Registry
     }
 
     /**
-     * @param int $index Line index if we use full buffer of po file. If we use generators function will yield next line in file
+     * @param  int  $index Line index if we use full buffer of po file. If we use generators function will yield next line in file
+     *
      * @return bool|string
      */
-    private function get_line( $index )
+    private function get_line( int $index )
     {
         if( !isset( $this->lines_arr[$index] ) )
             return false;

@@ -1581,8 +1581,9 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         // If no plugin is registered to this hook, there is no use in launching a background job for it
-        if( !PHS::hook_has_callbacks( PHS_Hooks::H_USER_ACCOUNT_ACTION ) )
+        if( !PHS::hook_has_callbacks( PHS_Hooks::H_USER_ACCOUNT_ACTION ) ) {
             return $hook_args;
+        }
 
         if( !($hook_args = self::validate_array( $hook_args, PHS_Hooks::default_account_action_hook_args() ))
          || empty( $hook_args['account_data'] )
@@ -1596,12 +1597,13 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg' ], $hook_args ) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_ACCOUNT_ACTION );
-            else
-                $this->set_error( self::ERR_ACCOUNT_ACTION, $this->_pt( 'Error launching account action in background.' ) );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_ACCOUNT_ACTION);
+            } else {
+                $this->set_error(self::ERR_ACCOUNT_ACTION, $this->_pt('Error launching account action in background.'));
+            }
 
-            PHS_Logger::logf( 'Error launching account action ['.(!empty( $hook_args['action_alias'] )?$hook_args['action_alias']:'N/A').'] in background. ('.$this->get_simple_error_message().')', PHS_Logger::TYPE_ERROR );
+            PHS_Logger::error( 'Error launching account action ['.(!empty( $hook_args['action_alias'] )?$hook_args['action_alias']:'N/A').'] in background. ('.$this->get_simple_error_message().')', PHS_Logger::TYPE_ERROR );
 
             return false;
         }
@@ -1636,10 +1638,11 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !PHS_Bg_jobs::run( [ 'p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg' ], [ 'uid' => $account_arr['id'] ] ) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_EMAIL );
-            else
-                $this->set_error( self::ERR_EMAIL, $this->_pt( 'Error sending confirmation email. Please try again.' ) );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_EMAIL);
+            } else {
+                $this->set_error(self::ERR_EMAIL, $this->_pt('Error sending confirmation email. Please try again.'));
+            }
 
             return false;
         }
@@ -1655,8 +1658,9 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function send_after_registration_email( $account_data, $params = false )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         if( empty( $account_data )
          || !($account_arr = $this->data_to_array( $account_data )) )
@@ -1665,18 +1669,20 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( empty( $params['send_confirmation_email'] ) )
+        if( empty( $params['send_confirmation_email'] ) ) {
             $params['send_confirmation_email'] = false;
+        }
 
         if( empty( $params['accounts_plugin_settings'] )
-         || !is_array( $params['accounts_plugin_settings'] ) )
+         || !is_array( $params['accounts_plugin_settings'] ) ) {
             $params['accounts_plugin_settings'] = false;
+        }
 
         if( empty( $params['accounts_plugin_settings'] )
-            && (!($params['accounts_plugin_settings'] = $this->get_plugin_settings())
-                || !is_array( $params['accounts_plugin_settings'] )
-            ) )
+         && !($params['accounts_plugin_settings'] = $this->get_plugin_settings())
+        ) {
             $params['accounts_plugin_settings'] = [];
+        }
 
         $return_arr = [];
         $return_arr['has_error'] = false;
@@ -1685,8 +1691,9 @@ class PHS_Model_Accounts extends PHS_Model
         $return_arr['confirmation_email_required'] = false;
         $return_arr['confirmation_email_failed'] = false;
 
-        if( !$this->needs_after_registration_email( $account_arr, $params ) )
+        if( !$this->needs_after_registration_email( $account_arr, $params ) ) {
             return $return_arr;
+        }
 
         $registration_email_sent = false;
         if( $this->needs_activation( $account_arr, [ 'accounts_plugin_settings' => $params['accounts_plugin_settings'] ] ) )
@@ -1699,10 +1706,11 @@ class PHS_Model_Accounts extends PHS_Model
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
 
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_EMAIL );
-                else
-                    $this->set_error( self::ERR_EMAIL, $this->_pt( 'Error sending activation email. Please try again.' ) );
+                if( self::st_has_error() ) {
+                    $this->copy_static_error(self::ERR_EMAIL);
+                } else {
+                    $this->set_error(self::ERR_EMAIL, $this->_pt('Error sending activation email. Please try again.'));
+                }
 
                 return $return_arr;
             }
@@ -2435,7 +2443,7 @@ class PHS_Model_Accounts extends PHS_Model
             // save old password to history
             if( !$this->_add_account_password_to_history( $existing_data, $history_params ) )
             {
-                PHS_Logger::logf( 'Couldn\'t save user #'.$existing_data['id'].' password to history: ['.$this->get_error_message().']', PHS_Logger::TYPE_ERROR );
+                PHS_Logger::error( 'Couldn\'t save user #'.$existing_data['id'].' password to history: ['.$this->get_error_message().']', PHS_Logger::TYPE_ERROR );
 
                 $this->reset_error();
             }
@@ -2676,21 +2684,22 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($users_count = @mysqli_num_rows( $qid )) )
             return true;
 
-        PHS_Logger::logf( 'Converting passwords from md5 to sha256 for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Converting passwords from md5 to sha256 for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
         while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( empty( $users_arr['pass_clear'] )
              || !($pass_clear = PHS_Crypt::quick_decode( $users_arr['pass_clear'] )) )
             {
-                PHS_Logger::logf( 'Couldn\'t convert password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t convert password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
                 continue;
             }
 
             // Already converted...
             if( empty( $users_arr['pass_salt'] )
-             || $this->check_pass( $users_arr, $pass_clear ) )
+             || $this->check_pass( $users_arr, $pass_clear ) ) {
                 continue;
+            }
 
             $edit_arr = [];
             $edit_arr['pass'] = self::encode_pass( $pass_clear, $users_arr['pass_salt'] );
@@ -2698,12 +2707,12 @@ class PHS_Model_Accounts extends PHS_Model
             if( !($sql = db_quick_edit( $user_table_name, $edit_arr, $flow_params['db_connection'] ))
              || !db_query( $sql.' WHERE id = \''.$users_arr['id'].'\'', $flow_params['db_connection'] ) )
             {
-                PHS_Logger::logf( 'Couldn\'t save converted password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t save converted password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
                 continue;
             }
         }
 
-        PHS_Logger::logf( 'FINISHED Converting passwords.', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'FINISHED Converting passwords.', PHS_Logger::TYPE_MAINTENANCE );
 
         $this->throw_errors( $throwing_errors );
         PHS::st_throw_errors( $st_throwing_errors );
@@ -2711,7 +2720,7 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
-    private function _update_to_110_or_higher()
+    private function _update_to_110_or_higher(): bool
     {
         $this->reset_error();
 
@@ -2745,13 +2754,14 @@ class PHS_Model_Accounts extends PHS_Model
         if( !($users_count = @mysqli_num_rows( $qid )) )
             return true;
 
-        PHS_Logger::logf( 'Converting passwords salts for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Converting passwords salts for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
         while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
         {
             // Already converted...
-            if( empty( $users_arr['pass_salt'] ) )
+            if( empty( $users_arr['pass_salt'] ) ) {
                 continue;
+            }
 
             $check_arr = [];
             $check_arr['uid'] = $users_arr['id'];
@@ -2764,7 +2774,7 @@ class PHS_Model_Accounts extends PHS_Model
                 if( !($sql = db_quick_edit( $salt_table_name, $fields_arr, $salt_flow_params['db_connection'] ))
                  || !db_query( $sql.' WHERE id = \''.$existing_arr['id'].'\'', $salt_flow_params['db_connection'] ) )
                 {
-                    PHS_Logger::logf( 'Couldn\'t save converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Couldn\'t save converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
                     continue;
                 }
             } else
@@ -2774,13 +2784,13 @@ class PHS_Model_Accounts extends PHS_Model
                 if( !($sql = db_quick_insert( $salt_table_name, $fields_arr, $salt_flow_params['db_connection'] ))
                  || !($item_id = db_query_insert( $sql, $salt_flow_params['db_connection'] )) )
                 {
-                    PHS_Logger::logf( 'Couldn\'t insert converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Couldn\'t insert converted password salt for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE );
                     continue;
                 }
             }
         }
 
-        PHS_Logger::logf( 'FINISHED Converting password salts.', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'FINISHED Converting password salts.', PHS_Logger::TYPE_MAINTENANCE );
 
         $this->throw_errors( $throwing_errors );
         PHS::st_throw_errors( $st_throwing_errors );
@@ -2799,8 +2809,9 @@ class PHS_Model_Accounts extends PHS_Model
     {
         // $params should be flow parameters...
         if( empty( $params ) || !is_array( $params )
-         || empty( $params['table_name'] ) )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         switch( $params['table_name'] )

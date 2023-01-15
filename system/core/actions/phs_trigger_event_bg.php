@@ -28,7 +28,7 @@ class PHS_Action_Trigger_event_bg extends PHS_Action
             return false;
         }
 
-        PHS_Logger::logf( '[EVENT] Triggering event '.$event_class.'.' );
+        PHS_Logger::info( '[EVENT] Triggering event '.$event_class.'.', PHS_Logger::TYPE_DEBUG );
 
         $trigger_params = $params['params'] ?? [];
         $trigger_params['only_background_listeners'] = true;
@@ -58,7 +58,7 @@ class PHS_Action_Trigger_event_bg extends PHS_Action
             $trigger_params,
             $params['event_prefix'] ?? '' );
 
-        PHS_Logger::logf( '[EVENT] Finished triggering event '.$event_class.'.' );
+        PHS_Logger::info( '[EVENT] Finished triggering event '.$event_class.'.', PHS_Logger::TYPE_DEBUG );
 
         return PHS_Action::default_action_result();
     }

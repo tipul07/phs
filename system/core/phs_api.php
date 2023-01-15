@@ -458,8 +458,10 @@ class PHS_Api extends PHS_Api_base
             return false;
         }
 
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Request API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+        if( PHS::st_debugging_mode() ) {
+            PHS_Logger::debug('Request API route tokens ['.implode('/', $final_api_route_tokens).']',
+                PHS_Logger::TYPE_API);
+        }
 
         $this->api_flow_value( 'original_api_route_tokens', $final_api_route_tokens );
 
@@ -481,26 +483,31 @@ class PHS_Api extends PHS_Api_base
 
         $this->api_flow_value( 'final_api_route_tokens', $final_api_route_tokens );
 
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Final API route tokens ['.implode( '/', $final_api_route_tokens ).']', PHS_Logger::TYPE_API );
+        if( PHS::st_debugging_mode() ) {
+            PHS_Logger::debug('Final API route tokens ['.implode('/', $final_api_route_tokens).']',
+                PHS_Logger::TYPE_API);
+        }
 
         $phs_route = false;
         $api_route = false;
-        if( ($matched_route = PHS_Api::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
+        if( ($matched_route = self::get_phs_route_from_api_route( $final_api_route_tokens, $this->http_method() )) )
         {
             $phs_route = $matched_route['phs_route'];
             $api_route = $matched_route['api_route'];
         } else
         {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'No defined API route matched request.', PHS_Logger::TYPE_API );
+            if( PHS::st_debugging_mode() ) {
+                PHS_Logger::debug('No defined API route matched request.', PHS_Logger::TYPE_API);
+            }
 
             if( !($phs_route = PHS::parse_route( implode( '/', $final_api_route_tokens ), true )) )
             {
-                if( self::st_has_error() )
-                    $this->copy_static_error( self::ERR_RUN_ROUTE );
-                else
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Couldn\'t parse provided API route into a framework route.' ) );
+                if( self::st_has_error() ) {
+                    $this->copy_static_error(self::ERR_RUN_ROUTE);
+                } else {
+                    $this->set_error(self::ERR_RUN_ROUTE,
+                        self::_t('Couldn\'t parse provided API route into a framework route.'));
+                }
 
                 return false;
             }
@@ -510,10 +517,11 @@ class PHS_Api extends PHS_Api_base
 
         if( PHS::st_debugging_mode() )
         {
-            if( !($route_str = PHS::route_from_parts( $phs_route )) )
+            if( !($route_str = PHS::route_from_parts( $phs_route )) ) {
                 $route_str = 'N/A';
+            }
 
-            PHS_Logger::logf( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
+            PHS_Logger::debug( 'Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API );
         }
 
         $this->api_flow_value( 'phs_route', $phs_route );
@@ -528,8 +536,9 @@ class PHS_Api extends PHS_Api_base
         {
             if( !$this->_check_api_authentication() )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
+                }
 
                 return false;
             }
@@ -539,8 +548,9 @@ class PHS_Api extends PHS_Api_base
             {
                 if( !$this->_check_api_authentication() )
                 {
-                    if( !$this->has_error() )
-                        $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
+                    if( !$this->has_error() ) {
+                        $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
+                    }
 
                     return false;
                 }
@@ -548,10 +558,11 @@ class PHS_Api extends PHS_Api_base
             {
                 if( !@is_callable( $api_route['authentication_callback'] ) )
                 {
-                    if( !($route_str = PHS::route_from_parts( $phs_route )) )
+                    if( !($route_str = PHS::route_from_parts( $phs_route )) ) {
                         $route_str = 'N/A';
+                    }
 
-                    PHS_Logger::logf( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
+                    PHS_Logger::error( 'API authentication callback failed for route ['.(!empty( $api_route['name'] )?$api_route['name']:'N/A').'] - '.$route_str, PHS_Logger::TYPE_API );
 
                     $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Authentication failed.' ) );
                     return false;
@@ -576,14 +587,16 @@ class PHS_Api extends PHS_Api_base
             }
         } else
         {
-            if( PHS::st_debugging_mode() )
-                PHS_Logger::logf( 'Authentication not required!', PHS_Logger::TYPE_API );
+            if( PHS::st_debugging_mode() ) {
+                PHS_Logger::debug('Authentication not required!', PHS_Logger::TYPE_API);
+            }
         }
 
         if( !$this->_before_route_run() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Running action was stopped by API instance.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
+            }
 
             return false;
         }
@@ -593,18 +606,21 @@ class PHS_Api extends PHS_Api_base
 
         if( !($action_result = PHS::execute_route( $execution_params )) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_RUN_ROUTE );
-            else
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_RUN_ROUTE);
+            } else {
+                $this->set_error(self::ERR_RUN_ROUTE,
+                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
+            }
 
             return false;
         }
 
         if( !$this->_after_route_run() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Flow was stopped by API instance after action run.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
+            }
 
             return false;
         }
@@ -624,8 +640,9 @@ class PHS_Api extends PHS_Api_base
                 // In case we run in an environment where $_POST is not defined
                 global $_POST;
 
-                if( empty( $_POST ) || !is_array( $_POST ) )
+                if( empty( $_POST ) || !is_array( $_POST ) ) {
                     $_POST = [];
+                }
 
                 foreach( $json_arr as $key => $val )
                 {
@@ -639,8 +656,9 @@ class PHS_Api extends PHS_Api_base
 
     protected function _after_route_run()
     {
-        if( $this->is_web_simulation() )
-            PHS_Scope::emulated_scope( 0 );
+        if( $this->is_web_simulation() ) {
+            PHS_Scope::emulated_scope(0);
+        }
 
         return true;
     }
@@ -680,7 +698,7 @@ class PHS_Api extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -696,7 +714,7 @@ class PHS_Api extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Method not allowed (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Method not allowed (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -710,7 +728,7 @@ class PHS_Api extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Method denied (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Method denied (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -725,7 +743,7 @@ class PHS_Api extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'IP denied (#'.$apikey_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'IP denied (#'.$apikey_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -738,22 +756,24 @@ class PHS_Api extends PHS_Api_base
      */
     public function create_response_envelope( $response_arr, $errors_arr = false )
     {
-        if( !is_array( $response_arr ) )
+        if( !is_array( $response_arr ) ) {
             $response_arr = [];
+        }
 
         if( !array_key_exists( 'response_status', $response_arr )
          || is_array( $response_arr['response_status'] ) )
         {
-            if( @class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+            if( @class_exists( PHS_Notifications::class, false ) ) {
                 $status_data = [
                     'success_messages' => PHS_Notifications::notifications_success(),
                     'warning_messages' => PHS_Notifications::notifications_warnings(),
                     'error_messages' => PHS_Notifications::notifications_errors(),
                 ];
-            else
+            } else
             {
-                if( empty( $errors_arr ) || !is_array( $errors_arr ) )
+                if( empty( $errors_arr ) || !is_array( $errors_arr ) ) {
                     $errors_arr = [];
+                }
 
                 $status_data = [
                     'success_messages' => [],
@@ -762,18 +782,19 @@ class PHS_Api extends PHS_Api_base
                 ];
             }
 
-            if( empty( $response_arr['response_status'] ) )
+            if( empty( $response_arr['response_status'] ) ) {
                 $response_arr['response_status'] = [];
+            }
 
             $response_arr['response_status'] = self::validate_array( $response_arr['response_status'], $status_data );
         }
 
         // Check if we should remove response_status key from response
         if( array_key_exists( 'response_status', $response_arr )
-         && $response_arr['response_status'] === null )
-            unset( $response_arr['response_status'] );
+         && $response_arr['response_status'] === null ) {
+            unset($response_arr['response_status']);
+        }
 
         return $response_arr;
     }
 }
-

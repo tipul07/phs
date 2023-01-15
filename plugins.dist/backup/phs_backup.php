@@ -399,7 +399,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                     return $location_details;
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create full directory structure for backup rule.' ) );
-                PHS_Logger::logf( 'Couldn\'t create full directory structure for backup location ('.$location_details['location_root'].$location_details['location_path'].').', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Couldn\'t create full directory structure for backup location ('.$location_details['location_root'].$location_details['location_path'].').', PHS_Logger::TYPE_MAINTENANCE );
                 return false;
             }
 
@@ -475,7 +475,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             if( empty( $rule_arr['copy_results'] )
              || !($rule_with_settings = $rules_model->get_rule_ftp_settings( $rule_arr )) )
             {
-                PHS_Logger::logf( 'Empty copy method or couldn\'t extract copy settings for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::error( 'Empty copy method or couldn\'t extract copy settings for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
             }
 
@@ -483,7 +483,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             switch( $rule_arr['copy_results'] )
             {
                 default:
-                    PHS_Logger::logf( 'Unknown copy method for rule #'.$rule_arr['id'].' ('.$rule_arr['copy_results'].').', self::LOG_CHANNEL );
+                    PHS_Logger::error( 'Unknown copy method for rule #'.$rule_arr['id'].' ('.$rule_arr['copy_results'].').', self::LOG_CHANNEL );
                     $copy_init_error = true;
                 break;
 
@@ -497,7 +497,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                         else
                             $error_msg = 'Failed sending FTP settings to FTP instance.';
 
-                        PHS_Logger::logf( 'FTP initialization error: '.$error_msg, self::LOG_CHANNEL );
+                        PHS_Logger::error( 'FTP initialization error: '.$error_msg, self::LOG_CHANNEL );
                         $copy_init_error = true;
                     }
 
@@ -510,12 +510,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                         if( !$ftp_obj->mkdir( $rule_with_settings['{ftp_settings}']['remote_dir'], [ 'recursive' => true ] ) )
                         {
-                            if( $ftp_obj->has_error() )
+                            if( $ftp_obj->has_error() ) {
                                 $error_msg = $ftp_obj->get_error_message();
-                            else
+                            } else {
                                 $error_msg = 'Failed creating remote directory setup in backup rule.';
+                            }
 
-                            PHS_Logger::logf( 'Error creating remote directory: '.$error_msg, self::LOG_CHANNEL );
+                            PHS_Logger::error( 'Error creating remote directory: '.$error_msg, self::LOG_CHANNEL );
                             $copy_init_error = true;
                         }
 
@@ -526,7 +527,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             if( !empty( $copy_init_error ) )
             {
-                PHS_Logger::logf( 'Error initializing copy instance for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::error( 'Error initializing copy instance for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
             }
 
@@ -545,11 +546,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
             if( !($br_qid = db_query( $results_sql, $br_flow_params['db_connection'] ))
              || !($results_count = @mysqli_num_rows( $br_qid )) )
             {
-                PHS_Logger::logf( 'No results to copy for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::notice( 'No results to copy for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
             }
 
-            PHS_Logger::logf( 'Trying to copy '.$results_count.' results for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+            PHS_Logger::notice( 'Trying to copy '.$results_count.' results for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
 
             // Get next file to be copied. In case we have more processes uploading files to be sure there's one that picks a transfer.
             while( ($br_qid = db_query( $results_sql.' LIMIT 0, 1', $br_flow_params['db_connection'] ))
@@ -566,7 +567,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 {
                     $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
 
-                    PHS_Logger::logf( 'Error saving result details in database. Result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                    PHS_Logger::error( 'Error saving result details in database. Result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
                     continue;
                 }
 
@@ -578,17 +579,18 @@ class PHS_Plugin_Backup extends PHS_Plugin
                     if( is_array( $files_arr ) )
                     {
                         $return_arr['results_copied']++;
-                        PHS_Logger::logf( 'No result files to copy for for rule result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                        PHS_Logger::notice( 'No result files to copy for for rule result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
                     }
 
                     else
                     {
                         $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
 
-                        if( $results_model->has_error() )
+                        if( $results_model->has_error() ) {
                             $error_msg = $results_model->get_error_message();
-                        else
+                        } else {
                             $error_msg = 'Error obtaining backup result files.';
+                        }
 
                         $edit_arr = [
                             'fields' => [
@@ -598,13 +600,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                         $results_model->edit( $result_arr, $edit_arr );
 
-                        PHS_Logger::logf( 'Error obtaining backup result files for result #'.$result_arr['id'].': '.$error_msg, self::LOG_CHANNEL );
+                        PHS_Logger::error( 'Error obtaining backup result files for result #'.$result_arr['id'].': '.$error_msg, self::LOG_CHANNEL );
                     }
 
                     continue;
                 }
 
-                PHS_Logger::logf( 'Trying to copy '.count( $files_arr ).' result files, total size: '.$result_arr['size'].' bytes for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::notice( 'Trying to copy '.count( $files_arr ).' result files, total size: '.$result_arr['size'].' bytes for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
 
                 $copy_action_error = false;
                 switch( $rule_arr['copy_results'] )
@@ -617,10 +619,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                         {
                             $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
                             $copy_action_error = true;
-                            if( $ftp_obj->has_error() )
+                            if( $ftp_obj->has_error() ) {
                                 $error_msg = $ftp_obj->get_error_message();
-                            else
+                            } else {
                                 $error_msg = 'Failed creating remote result directory.';
+                            }
 
                             $edit_arr = [
                                 'fields' => [
@@ -630,7 +633,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                             $results_model->edit( $result_arr, $edit_arr );
 
-                            PHS_Logger::logf( 'Error creating remote result directory: '.$error_msg, self::LOG_CHANNEL );
+                            PHS_Logger::error( 'Error creating remote result directory: '.$error_msg, self::LOG_CHANNEL );
                         } else
                         {
                             foreach( $files_arr as $file_id => $file_arr )
@@ -650,13 +653,13 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                                     $results_model->edit( $result_arr, $edit_arr );
 
-                                    PHS_Logger::logf( $error_msg, self::LOG_CHANNEL );
+                                    PHS_Logger::error( $error_msg, self::LOG_CHANNEL );
                                     continue;
                                 }
 
                                 $remote_file = $remote_dir.'/'.basename( $file_arr['file'] );
 
-                                PHS_Logger::logf( 'Uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes', self::LOG_CHANNEL );
+                                PHS_Logger::notice( 'Uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes', self::LOG_CHANNEL );
 
                                 $start_put_time = time();
 
@@ -664,10 +667,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                                 {
                                     $copy_action_error = true;
 
-                                    if( $ftp_obj->has_error() )
+                                    if( $ftp_obj->has_error() ) {
                                         $error_msg = $ftp_obj->get_error_message();
-                                    else
+                                    } else {
                                         $error_msg = 'Failed uploading file.';
+                                    }
 
                                     $error_msg = 'Failed uploading result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes: '.$error_msg;
 
@@ -679,18 +683,19 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                                     $results_model->edit( $result_arr, $edit_arr );
 
-                                    PHS_Logger::logf( 'Error uploading file: '.$error_msg, self::LOG_CHANNEL );
+                                    PHS_Logger::error( 'Error uploading file: '.$error_msg, self::LOG_CHANNEL );
                                     continue;
                                 }
 
                                 $total_put_time = time() - $start_put_time;
 
-                                if( $total_put_time <= 0 )
+                                if( $total_put_time <= 0 ) {
                                     $upload_speed = $file_arr['size'];
-                                else
-                                    $upload_speed = number_format( $file_arr['size'] / $total_put_time, 4, '.', '' );
+                                } else {
+                                    $upload_speed = number_format($file_arr['size'] / $total_put_time, 4, '.', '');
+                                }
 
-                                PHS_Logger::logf( 'DONE Uploaded result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes, @'.format_filesize( $upload_speed ).'/s ('.$total_put_time.'s)', self::LOG_CHANNEL );
+                                PHS_Logger::notice( 'DONE Uploaded result file ('.$file_arr['file'].'), size: '.$file_arr['size'].' bytes, @'.format_filesize( $upload_speed ).'/s ('.$total_put_time.'s)', self::LOG_CHANNEL );
                             }
                         }
                     break;
@@ -700,11 +705,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 {
                     $return_arr['failed_copy_result_ids'][] = $result_arr['id'];
 
-                    PHS_Logger::logf( 'Error copying result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                    PHS_Logger::error( 'Error copying result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
                     continue;
                 }
 
-                PHS_Logger::logf( 'DONE Uploading result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::notice( 'DONE Uploading result files for result #'.$result_arr['id'].'.', self::LOG_CHANNEL );
 
                 $return_arr['results_copied']++;
             }
@@ -742,8 +747,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND `'.$r_table_name.'`.delete_after_days > 0', $r_flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !@mysqli_num_rows( $qid ) ) {
             return $return_arr;
+        }
 
         while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
         {
@@ -755,28 +761,29 @@ class PHS_Plugin_Backup extends PHS_Plugin
                                    ' AND `'.$br_table_name.'`.status_date <= \''.date( $results_model::DATETIME_DB, $now_time - $rule_arr['delete_after_days'] * 86400).'\'', $br_flow_params['db_connection'] ))
              || !($results_count = @mysqli_num_rows( $br_qid )) )
             {
-                PHS_Logger::logf( 'Nothing older than '.$rule_arr['delete_after_days'].' days to be deleted for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::notice( 'Nothing older than '.$rule_arr['delete_after_days'].' days to be deleted for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
             }
 
-            PHS_Logger::logf( 'Trying to delete '.$results_count.' results older than '.$rule_arr['delete_after_days'].' days for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+            PHS_Logger::notice( 'Trying to delete '.$results_count.' results older than '.$rule_arr['delete_after_days'].' days for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
 
             while( ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
             {
                 if( $results_model->act_delete( $result_arr ) )
                 {
-                    PHS_Logger::logf( 'Deleted result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                    PHS_Logger::notice( 'Deleted result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                     $return_arr['results_deleted']++;
                     continue;
                 }
 
-                if( !$results_model->has_error() )
+                if( !$results_model->has_error() ) {
                     $error_msg = $results_model->get_error_message();
-                else
+                } else {
                     $error_msg = 'Unknown error.';
+                }
 
-                PHS_Logger::logf( 'Failed deleting result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
-                PHS_Logger::logf( 'Error: '.$error_msg, self::LOG_CHANNEL );
+                PHS_Logger::error( 'Failed deleting result #'.$result_arr['id'].', size: '.$result_arr['size'].', from '.$result_arr['run_dir'].', for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
+                PHS_Logger::error( 'Error: '.$error_msg, self::LOG_CHANNEL );
 
                 $return_arr['failed_delete_result_ids'][] = $result_arr['id'];
             }
@@ -820,14 +827,16 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' AND (`'.$rd_table_name.'`.day = \''.$today_day.'\' OR `'.$rd_table_name.'`.day = 0)'.
                               ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\''.
                               ' AND (`'.$r_table_name.'`.last_run IS NULL OR DAYOFYEAR(`'.$r_table_name.'`.last_run) != '.$day_of_year.')', $r_flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !@mysqli_num_rows( $qid ) ) {
             return $return_arr;
+        }
 
         while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
         {
             $return_arr['backup_rules']++;
-            if( !($run_result = $rules_model->run_backup_rule_bg( $rule_arr )) )
+            if( !($run_result = $rules_model->run_backup_rule_bg( $rule_arr )) ) {
                 $return_arr['failed_rules_ids'][] = $rule_arr['id'];
+            }
         }
 
         return $return_arr;
@@ -861,16 +870,19 @@ class PHS_Plugin_Backup extends PHS_Plugin
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if( empty( $hook_args['account_data'] )
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) )
+         || !($account_arr = $accounts_model->data_to_array( $hook_args['account_data'] )) ) {
             return $hook_args;
+        }
 
-        if( empty( $hook_args['roles_arr'] ) )
+        if( empty( $hook_args['roles_arr'] ) ) {
             $hook_args['roles_arr'] = [];
+        }
 
-        if( $accounts_model->acc_is_admin( $account_arr ) )
+        if( $accounts_model->acc_is_admin( $account_arr ) ) {
             $hook_args['roles_arr'][] = self::ROLE_BACKUP_MANAGER;
-        elseif( $accounts_model->acc_is_operator( $account_arr ) )
+        } elseif( $accounts_model->acc_is_operator( $account_arr ) ) {
             $hook_args['roles_arr'][] = self::ROLE_BACKUP_OPERATOR;
+        }
 
         return $hook_args;
     }

@@ -21,11 +21,13 @@ class PHS_Scope_Web extends PHS_Scope
     public function process_action_result( $action_result, $static_error_arr = false )
     {
         /** @var \phs\libraries\PHS_Action $action_obj */
-        if( !($action_obj = PHS::running_action()) )
+        if( !($action_obj = PHS::running_action()) ) {
             $action_obj = false;
+        }
         /** @var \phs\libraries\PHS_Controller $controller_obj */
-        if( !($controller_obj = PHS::running_controller()) )
+        if( !($controller_obj = PHS::running_controller()) ) {
             $controller_obj = false;
+        }
 
         $action_result = self::validate_array( $action_result, PHS_Action::default_action_result() );
 
@@ -34,15 +36,19 @@ class PHS_Scope_Web extends PHS_Scope
         {
             if( $action_obj->action_role_is( [ $action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
                                                $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED
-                                             ] ) )
+                                             ] ) ) {
                 $in_special_page = true;
-            else
+            } else {
                 $in_special_page = false;
+            }
 
-            if( !$in_special_page )
-                PHS_Notifications::add_warning_notice( $this->_pt( 'Your password expired %s ago. For security reasons, please <a href="%s">change your password</a>.',
-                                                                   PHS_Utils::parse_period( $expiration_arr['expired_for_seconds'] ),
-                                                                   PHS::url( [ 'p' => 'accounts', 'a' => 'change_password' ], [ 'password_expired' => 1 ] ) ) );
+            if( !$in_special_page ) {
+                PHS_Notifications::add_warning_notice(
+                    $this->_pt('Your password expired %s ago. For security reasons, please <a href="%s">change your password</a>.',
+                        PHS_Utils::parse_period($expiration_arr['expired_for_seconds']),
+                        PHS::url(['p' => 'accounts', 'a' => 'change_password'], ['password_expired' => 1]))
+                );
+            }
 
             if( empty( $expiration_arr['show_only_warning'] )
              && !empty( $action_obj )
@@ -58,10 +64,11 @@ class PHS_Scope_Web extends PHS_Scope
         if( !empty( $action_result['request_login'] ) )
         {
             $args = [];
-            if( !empty( $action_result['redirect_to_url'] ) )
+            if( !empty( $action_result['redirect_to_url'] ) ) {
                 $args['back_page'] = $action_result['redirect_to_url'];
-            else
+            } else {
                 $args['back_page'] = PHS::current_url();
+            }
 
             $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'accounts', 'a' => 'login' ], $args );
         }
@@ -80,10 +87,12 @@ class PHS_Scope_Web extends PHS_Scope
         if( ($new_hook_args = PHS::trigger_hooks( PHS_Hooks::H_WEB_TEMPLATE_RENDERING, $hook_args ))
          && is_array( $new_hook_args ) )
         {
-            if( !empty( $new_hook_args['new_page_template'] ) )
+            if( !empty( $new_hook_args['new_page_template'] ) ) {
                 $action_result['page_template'] = $new_hook_args['new_page_template'];
-            if( isset( $new_hook_args['new_page_template_args'] ) && $new_hook_args['new_page_template_args'] !== false )
+            }
+            if( isset( $new_hook_args['new_page_template_args'] ) && $new_hook_args['new_page_template_args'] !== false ) {
                 $action_result['action_data'] = $new_hook_args['new_page_template_args'];
+            }
         }
 
         if( empty( $action_obj )
@@ -101,13 +110,15 @@ class PHS_Scope_Web extends PHS_Scope
             {
                 foreach( $action_result['custom_headers'] as $key => $val )
                 {
-                    if( empty( $key ) )
+                    if( empty( $key ) ) {
                         continue;
+                    }
 
-                    if( !is_null( $val ) )
+                    if( !is_null( $val ) ) {
                         $result_headers[$key] = $val;
-                    else
+                    } else {
                         $result_headers[$key] = '';
+                    }
                 }
             }
 
@@ -117,19 +128,22 @@ class PHS_Scope_Web extends PHS_Scope
 
             foreach( $result_headers as $key => $val )
             {
-                if( $val === '' )
-                    @header( $key );
-                else
-                    @header( $key.': '.$val );
+                if( $val === '' ) {
+                    @header($key);
+                } else {
+                    @header($key.': '.$val);
+                }
             }
         }
 
-        if( self::arr_has_error( $static_error_arr ) )
-            echo self::arr_get_error_message( $static_error_arr );
+        if( self::arr_has_error( $static_error_arr ) ) {
+            echo self::arr_get_error_message($static_error_arr);
+        }
 
         elseif( empty( $action_obj )
-             || empty( $action_result['page_template'] ) )
+             || empty( $action_result['page_template'] ) ) {
             echo $action_result['buffer'];
+        }
 
         else
         {
@@ -143,10 +157,11 @@ class PHS_Scope_Web extends PHS_Scope
 
             if( !($view_obj = PHS_View::init_view( $action_result['page_template'], $view_params )) )
             {
-                if( self::st_has_error() )
+                if( self::st_has_error() ) {
                     echo self::st_get_error_message();
-                else
-                    echo self::_t( 'Error instantiating view object.' );
+                } else {
+                    echo self::_t('Error instantiating view object.');
+                }
 
                 exit;
             }
@@ -167,13 +182,14 @@ class PHS_Scope_Web extends PHS_Scope
                         ob_start();
                         var_dump( $action_result['page_template'] );
                         $template_str = ob_get_clean();
-                    } else
+                    } else {
                         $template_str = $action_result['page_template'];
+                    }
 
                     $error_msg = 'Error rendering action result in template ['.$template_str.']';
                 }
 
-                PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+                PHS_Logger::error( $error_msg, PHS_Logger::TYPE_DEBUG );
 
                 echo self::_t( 'Error rendering page template.' );
                 exit;

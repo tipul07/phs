@@ -1250,13 +1250,15 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( empty( $obj ) || self::st_has_error() )
         {
             $error_msg = 'Error loading class ['.$full_class_name.']';
-            if( self::st_has_error() )
+            if( self::st_has_error() ) {
                 $error_msg .= ' ERROR: '.self::st_get_simple_error_message();
+            }
 
-            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+            PHS_Logger::error( $error_msg, PHS_Logger::TYPE_DEBUG );
 
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_INSTANCE, self::_t( 'Cannot instantiate provided class.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_INSTANCE, self::_t('Cannot instantiate provided class.'));
+            }
 
             return null;
         }

@@ -294,7 +294,7 @@ class PHS_Model_Results extends PHS_Model
             if( ($status_arr = $this->valid_status( $edit_arr['fields']['status'] )) )
                 $status_title = $status_arr['title'];
 
-            PHS_Logger::logf( 'Failed setting result data to '.$status_title.' ('.$edit_arr['fields']['status'].')', $backup_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Failed setting result data to '.$status_title.' ('.$edit_arr['fields']['status'].')', $backup_plugin::LOG_CHANNEL );
         }
 
         return array(
@@ -305,79 +305,78 @@ class PHS_Model_Results extends PHS_Model
 
     /**
      * @param array|int $result_data
-     * @param bool|array $params
+     * @param null|array $params
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function finish_result_shell_script_bg( $result_data, $params = false )
+    public function finish_result_shell_script_bg( $result_data, array $params = null ): ?array
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) )
+            $params = [];
 
-        if( empty( $params['force'] ) )
-            $params['force'] = false;
-        else
-            $params['force'] = (!empty( $params['force'] ));
+        $params['force'] = !empty( $params['force'] );
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
         if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup plugin.' ) );
-            return false;
+            return null;
         }
 
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
         if( !($rules_model = PHS::load_model( 'rules', 'backup' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t load backup rules model.' ) );
-            return false;
+            return null;
         }
 
         if( empty( $result_data )
-         or !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
-         or !($result_arr = $this->data_to_array( $result_data, $br_flow_params )) )
+         || !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
+         || !($result_arr = $this->data_to_array( $result_data, $br_flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup rule details not found in database.' ) );
-            return false;
+            return null;
         }
 
         if( empty( $params['force'] )
-        and !$this->is_running( $result_arr ) )
+         && !$this->is_running( $result_arr ) )
         {
-            PHS_Logger::logf( 'Cannot finish rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Rule is not running.', $backup_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Cannot finish rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Rule is not running.', $backup_plugin::LOG_CHANNEL );
 
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Backup result is not running.' ) );
-            return false;
+            return null;
         }
 
         if( !$this->update_result_files_size( $result_arr['id'] ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating backup result files sizes.' ) );
-            return false;
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error updating backup result files sizes.'));
+            }
+            return null;
         }
 
         $edit_arr = $br_flow_params;
-        $edit_arr['fields'] = array(
+        $edit_arr['fields'] = [
             'status' => self::STATUS_FINISHED,
-        );
+        ];
 
         if( !($new_result = $this->edit( $result_arr, $edit_arr )) )
         {
             $status_title = '(???)';
-            if( ($status_arr = $this->valid_status( $edit_arr['fields']['status'] )) )
+            if( ($status_arr = $this->valid_status( $edit_arr['fields']['status'] )) ) {
                 $status_title = $status_arr['title'];
+            }
 
-            PHS_Logger::logf( 'Failed setting result data to '.$status_title.' ('.$edit_arr['fields']['status'].')', $backup_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Failed setting result data to '.$status_title.' ('.$edit_arr['fields']['status'].')', $backup_plugin::LOG_CHANNEL );
         }
 
-        PHS_Logger::logf( 'FINISHED rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Output ['.$result_arr['run_dir'].']', $backup_plugin::LOG_CHANNEL );
+        PHS_Logger::notice( 'FINISHED rule (R#'.$result_arr['rule_id'].', Result#'.$result_arr['id'].'). Output ['.$result_arr['run_dir'].']', $backup_plugin::LOG_CHANNEL );
 
-        return array(
+        return [
             'result_data' => $new_result,
-        );
+        ];
     }
 
     public function update_result_size( $result_id )
@@ -551,10 +550,12 @@ class PHS_Model_Results extends PHS_Model
 
             if( !($new_result_arr = $this->edit( $result_arr, $edit_arr )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating result details from database.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_FUNCTIONALITY,
+                        $this->_pt('Error updating result details from database.'));
+                }
 
-                PHS_Logger::logf( '!!! Error updating backup result when deleting all backup result files. Backup result #'.$result_arr['id'].' size 0.', $backup_plugin::LOG_CHANNEL );
+                PHS_Logger::error( '!!! Error updating backup result when deleting all backup result files. Backup result #'.$result_arr['id'].' size 0.', $backup_plugin::LOG_CHANNEL );
 
                 return false;
             }
@@ -614,31 +615,43 @@ class PHS_Model_Results extends PHS_Model
         {
             if( !empty( $params['update_result'] ) )
             {
-                $edit_arr = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) );
-                $edit_arr['fields'] = array(
-                    'size' => array( 'raw_field' => true, 'value' => 'size + '.$result_file_arr['size'] ),
-                );
+                $edit_arr = $this->fetch_default_flow_params( ['table_name' => 'backup_results']);
+                $edit_arr['fields'] = [
+                    'size' => ['raw_field' => true, 'value' => 'size + '.$result_file_arr['size']],
+                ];
 
-                if( !($result_arr = $this->edit( $result_file_arr['result_id'], $edit_arr )) )
-                    PHS_Logger::logf( '!!! Error updating backup result when deleting backup result file. Size missing from backup result #'.$result_file_arr['result_id'].' ['.$result_file_arr['size'].']', $backup_plugin::LOG_CHANNEL );
+                if( !($result_arr = $this->edit( $result_file_arr['result_id'], $edit_arr )) ) {
+                    PHS_Logger::error('!!! Error updating backup result when deleting backup result file. '.
+                                      'Size missing from backup result #'.$result_file_arr['result_id'].' ['.$result_file_arr['size'].']',
+                        $backup_plugin::LOG_CHANNEL);
+                }
             }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error deleting result file.' ) );
             return false;
         }
 
-        if( @file_exists( $result_file_arr['file'] ) )
-            @unlink( $result_file_arr['file'] );
+        if( @file_exists( $result_file_arr['file'] ) ) {
+            @unlink($result_file_arr['file']);
+        }
 
         return $result_file_arr;
     }
 
-    public function link_result_files_to_result( $result_data, $files_arr, $params = false )
+    /**
+     * @param int|array $result_data
+     * @param  array  $files_arr
+     * @param null|array $params
+     *
+     * @return array|false
+     */
+    public function link_result_files_to_result( $result_data, array $files_arr, array $params = null )
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) ) {
+            $params = [];
+        }
 
         if( !is_array( $files_arr ) )
         {
@@ -851,8 +864,8 @@ class PHS_Model_Results extends PHS_Model
         else
             $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
 
-        if( empty( $params['{result_files}'] ) or !is_array( $params['{result_files}'] ) )
-            $params['{result_files}'] = false;
+        if( empty( $params['{result_files}'] ) || !is_array( $params['{result_files}'] ) )
+            $params['{result_files}'] = null;
 
         return $params;
     }
@@ -870,33 +883,38 @@ class PHS_Model_Results extends PHS_Model
      */
     protected function insert_after_backup_results( $insert_arr, $params )
     {
-        $insert_arr['{result_files}'] = array();
+        $insert_arr['{result_files}'] = [];
 
-        if( !empty( $params['{result_files}'] ) and is_array( $params['{result_files}'] ) )
+        if( !empty( $params['{result_files}'] ) && is_array( $params['{result_files}'] ) )
         {
             if( !($result_files_arr = $this->link_result_files_to_result( $insert_arr, $params['{result_files}'] )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error linking result files to backup result.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_INSERT, $this->_pt('Error linking result files to backup result.'));
+                }
 
                 return false;
             }
 
-            if( !empty( $result_files_arr['files'] ) and is_array( $result_files_arr['files'] ) )
+            if( !empty( $result_files_arr['files'] ) && is_array( $result_files_arr['files'] ) )
             {
                 $insert_arr['{result_files}'] = $result_files_arr['files'];
 
-                if( empty( $result_files_arr['total_size'] ) )
+                if( empty( $result_files_arr['total_size'] ) ) {
                     $result_files_arr['total_size'] = 0;
+                }
 
-                if( $result_files_arr['total_size'] != $insert_arr['size'] )
+                if( (int)$result_files_arr['total_size'] !== (int)$insert_arr['size'] )
                 {
                     if( !($flow_params = $this->fetch_default_flow_params( $params ))
-                     or !($table_name = $this->get_flow_table_name( $flow_params ))
-                     or !db_query( 'UPDATE `'.$table_name.'` SET size = \''.$result_files_arr['total_size'].'\' WHERE id = \''.$insert_arr['id'].'\'', $flow_params['db_connection'] ) )
+                     || !($table_name = $this->get_flow_table_name( $flow_params ))
+                     || !db_query( 'UPDATE `'.$table_name.'` SET size = \''.$result_files_arr['total_size'].'\' '.
+                                   'WHERE id = \''.$insert_arr['id'].'\'', $flow_params['db_connection'] ) )
                     {
-                        if( !$this->has_error() )
-                            $this->set_error( self::ERR_INSERT, $this->_pt( 'Error linking result files to backup result.' ) );
+                        if( !$this->has_error() ) {
+                            $this->set_error(self::ERR_INSERT,
+                                $this->_pt('Error linking result files to backup result.'));
+                        }
 
                         return false;
                     }
@@ -911,38 +929,39 @@ class PHS_Model_Results extends PHS_Model
 
     protected function get_edit_prepare_params_backup_results( $existing_arr, $params )
     {
-
         if( isset( $params['fields']['run_dir'] )
-        and (empty( $params['fields']['run_dir'] )
-                or !@is_dir( $params['fields']['run_dir'] )) )
+         && (empty( $params['fields']['run_dir'] )
+                || !@is_dir( $params['fields']['run_dir'] )) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide running backup rule directory.' ) );
             return false;
         }
 
         if( isset( $params['fields']['rule_id'] )
-        and empty( $params['fields']['rule_id'] ) )
+         && empty( $params['fields']['rule_id'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide backup result rule.' ) );
             return false;
         }
 
-        if( isset( $params['fields']['status'] ) and !$this->valid_status( $params['fields']['status'] ) )
+        if( isset( $params['fields']['status'] ) && !$this->valid_status( $params['fields']['status'] ) )
         {
             $this->set_error( self::ERR_EDIT, $this->_pt( 'Please provide valid status for backup rule.' ) );
             return false;
         }
 
         if( !empty( $params['fields']['status'] )
-        and (empty( $params['fields']['status_date'] ) or empty_db_date( $params['fields']['status_date'] ))
-        and $params['fields']['status'] != $existing_arr['status'] )
-            $params['fields']['status_date'] = date( self::DATETIME_DB );
+         && (int)$params['fields']['status'] !== (int)$existing_arr['status']
+         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] )) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB);
+        }
 
-        elseif( !empty( $params['fields']['status_date'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+        elseif( !empty( $params['fields']['status_date'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
-        if( empty( $params['{result_files}'] ) or !is_array( $params['{result_files}'] ) )
-            $params['{result_files}'] = false;
+        if( empty( $params['{result_files}'] ) || !is_array( $params['{result_files}'] ) )
+            $params['{result_files}'] = null;
 
         return $params;
     }
@@ -960,25 +979,27 @@ class PHS_Model_Results extends PHS_Model
      */
     protected function edit_after_backup_results( $existing_data, $edit_arr, $params )
     {
-        if( !empty( $params['{result_files}'] ) and is_array( $params['{result_files}'] ) )
+        if( !empty( $params['{result_files}'] ) && is_array( $params['{result_files}'] ) )
         {
             if( !($result_files_arr = $this->link_result_files_to_result( $existing_data, $params['{result_files}'] )) )
             {
                 // update result size based on what we have left as result files in database
                 $this->update_result_size( $existing_data['id'] );
 
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Error linking result files to backup result.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error linking result files to backup result.'));
+                }
 
                 return false;
             }
 
-            if( !empty( $result_files_arr['files'] ) and is_array( $result_files_arr['files'] ) )
+            if( !empty( $result_files_arr['files'] ) && is_array( $result_files_arr['files'] ) )
             {
                 $existing_data['{result_files}'] = $result_files_arr['files'];
 
-                if( empty( $result_files_arr['total_size'] ) )
+                if( empty( $result_files_arr['total_size'] ) ) {
                     $result_files_arr['total_size'] = 0;
+                }
 
                 if( $result_files_arr['total_size'] != $existing_data['size'] )
                 {

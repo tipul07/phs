@@ -223,13 +223,15 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         if( !empty_db_date( $extra['timed_action'] )
-         && parse_db_date( $extra['timed_action'] ) > time() )
+         && parse_db_date( $extra['timed_action'] ) > time() ) {
             return true;
+        }
 
-        PHS_Logger::logf( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
+        PHS_Logger::notice( 'Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND );
 
-        if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND );
+        if( PHS::st_debugging_mode() ) {
+            PHS_Logger::debug('Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
+        }
 
         if( !empty( $extra['same_thread_if_bg'] )
         && PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND )
@@ -244,21 +246,23 @@ class PHS_Bg_jobs extends PHS_Registry
 
             if( !($action_result = self::bg_run_job( $job_arr, $run_job_extra )) )
             {
-                PHS_Logger::logf( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
+                PHS_Logger::error( 'Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND );
 
-                if( self::st_has_error() )
-                    PHS_Logger::logf( 'Job error: ['.self::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND );
+                if( self::st_has_error() ) {
+                    PHS_Logger::error('Job error: ['.self::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND);
+                }
             } elseif( ($debug_data = PHS::platform_debug_data()) )
             {
-                PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.($original_debug_data['db_queries_count']-$debug_data['db_queries_count']).' queries, '.
+                PHS_Logger::notice( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.($original_debug_data['db_queries_count']-$debug_data['db_queries_count']).' queries, '.
                                   ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
                                   ' running: '.number_format( ($job_start_time-microtime( true )), 6, '.', '' ).'s', PHS_Logger::TYPE_BACKGROUND );
             }
 
             $action_result = PHS::validate_array( $action_result, PHS_Action::default_action_result() );
 
-            if( !empty( $job_arr['return_buffer'] ) )
+            if( !empty( $job_arr['return_buffer'] ) ) {
                 return $action_result;
+            }
 
             return true;
         }
@@ -267,7 +271,7 @@ class PHS_Bg_jobs extends PHS_Registry
         {
             if( !($action_result = @shell_exec( $cmd_parts['cmd'] )) )
             {
-                PHS_Logger::logf( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') error launching job or job returned empty buffer when we expected a response.', PHS_Logger::TYPE_BACKGROUND );
+                PHS_Logger::notice( 'Job #'.$job_arr['id'].' ('.$job_arr['route'].') error launching job or job returned empty buffer when we expected a response.', PHS_Logger::TYPE_BACKGROUND );
 
                 $edit_arr = [];
                 $edit_arr['fields'] = [];
@@ -366,7 +370,7 @@ class PHS_Bg_jobs extends PHS_Registry
          || !($parts_arr = explode( '::', $input_str, 2 ))
          || empty( $parts_arr[0] ) || empty( $parts_arr[1] ) )
         {
-            PHS_Logger::logf( 'Invalid input', PHS_Logger::TYPE_BACKGROUND );
+            PHS_Logger::error( 'Invalid input', PHS_Logger::TYPE_BACKGROUND );
             return false;
         }
 
@@ -382,7 +386,7 @@ class PHS_Bg_jobs extends PHS_Registry
          || !($job_arr = $bg_jobs_model->get_details( $job_id ))
          || $decrypted_parts[1] !== md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
         {
-            PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_BACKGROUND );
+            PHS_Logger::error( 'Input validation failed', PHS_Logger::TYPE_BACKGROUND );
             return false;
         }
 
