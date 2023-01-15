@@ -126,16 +126,17 @@ class PHS_Action_Contact_us extends PHS_Action
 
                     if( !($hook_results = PHS_Hooks::trigger_email( $hook_args ))
                      || !is_array( $hook_results )
-                     || empty( $hook_results['send_result'] ) )
-                        PHS_Logger::logf( self::_t( 'Error sending email from contact form to [%s].', $email_address, PHS_Logger::TYPE_DEBUG ) );
-                    else
+                     || empty( $hook_results['send_result'] ) ) {
+                        PHS_Logger::error(self::_t('Error sending email from contact form to [%s].', $email_address ),
+                            PHS_Logger::TYPE_DEBUG);
+                    } else {
                         $email_failed = false;
+                    }
                 }
 
-                if( $email_failed )
-                    PHS_Notifications::add_error_notice( self::_t( 'Failed sending email. Please try again.' ) );
-
-                else
+                if( $email_failed ) {
+                    PHS_Notifications::add_error_notice(self::_t('Failed sending email. Please try again.'));
+                } else
                 {
                     $action_result = self::default_action_result();
 

@@ -2087,7 +2087,7 @@ class PHS_Model_Messages extends PHS_Model
 
             if( !($mu_details_arr = $this->insert( $messages_users_arr )) )
             {
-                PHS_Logger::logf( 'Error inserting sent message #'.$message_arr['id'].' for user '.$author_arr['nick'].' (#'.$author_arr['id'].').' );
+                PHS_Logger::error( 'Error inserting sent message #'.$message_arr['id'].' for user '.$author_arr['nick'].' (#'.$author_arr['id'].').', PHS_Logger::TYPE_DEBUG );
             } else
             {
                 if( !empty( $params['email_author'] )
@@ -2156,7 +2156,7 @@ class PHS_Model_Messages extends PHS_Model
 
             if( !($mu_details_arr = $this->insert( $messages_users_arr )) )
             {
-                PHS_Logger::logf( 'Error sending message #'.$message_arr['id'].' to user '.$account_arr['nick'].' ('.$account_arr['id'].').' );
+                PHS_Logger::error( 'Error sending message #'.$message_arr['id'].' to user '.$account_arr['nick'].' ('.$account_arr['id'].').' );
 
                 $return_arr['users_not_messaged'][$account_id] = $account_arr;
             } else

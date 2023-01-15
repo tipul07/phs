@@ -156,6 +156,7 @@ PHS_Ajax::checksum_timeout( {{PHS_AJAX_CHECKSUM_TIMEOUT}} ); // Default: 86400
 PHS_Logger::logging_enabled( {{PHS_LOGGING_ENABLED}} ); // Default: true
 PHS_Logger::log_channels( {{PHS_LOG_CHANNELS}} ); // Default: PHS_Logger::TYPE_DEF_ALL
 PHS_Logger::logging_dir( {{PHS_LOGS_DIR}} ); // Default: PHS_LOGS_DIR
+PHS_Logger::log_level( {{PHS_LOG_LEVEL}} ); // Default: PHS_Logger::L_DEBUG (dev), PHS_Logger::L_NOTICE (prod)
 
 // Tell database drivers to try to restrict data sent to database based on field boundaries
 // defined in table definition (if applicable)

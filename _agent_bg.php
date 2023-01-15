@@ -17,16 +17,17 @@
     use \phs\PHS_Agent;
     use \phs\libraries\PHS_Logger;
 
-    PHS_Logger::logf( ' --- Started agent bg job...', PHS_Logger::TYPE_AGENT );
+    PHS_Logger::notice( ' --- Started agent bg job...', PHS_Logger::TYPE_AGENT );
 
     $input = '';
-    if( !empty( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) && !empty( $_SERVER['argv'][1] ) )
+    if( !empty( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) && !empty( $_SERVER['argv'][1] ) ) {
         $input = $_SERVER['argv'][1];
+    }
 
     if( !($parsed_input = PHS_Agent::bg_validate_input( $input ))
      || empty( $parsed_input['job_data'] ) )
     {
-        PHS_Logger::logf( 'INVALID job input', PHS_Logger::TYPE_AGENT );
+        PHS_Logger::error( 'INVALID job input', PHS_Logger::TYPE_AGENT );
         exit;
     }
 
@@ -38,15 +39,16 @@
 
     if( !($run_result = PHS_Agent::bg_run_job( $job_arr, $run_job_extra )) )
     {
-        PHS_Logger::logf( 'Error running agent job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_AGENT );
+        PHS_Logger::error( 'Error running agent job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_AGENT );
 
-        if( PHS_Agent::st_has_error() )
-            PHS_Logger::logf( 'Job error: ['.PHS_Agent::st_get_error_message().']', PHS_Logger::TYPE_AGENT );
+        if( PHS_Agent::st_has_error() ) {
+            PHS_Logger::error('Job error: ['.PHS_Agent::st_get_error_message().']', PHS_Logger::TYPE_AGENT);
+        }
     } elseif( ($debug_data = PHS::platform_debug_data()) )
     {
-        PHS_Logger::logf( 'Agent Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.$debug_data['db_queries_count'].' queries, '.
+        PHS_Logger::notice( 'Agent Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.$debug_data['db_queries_count'].' queries, '.
                           ' bootstrap: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
                           ' running: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s', PHS_Logger::TYPE_AGENT );
     }
 
-    PHS_Logger::logf( ' --- Agent background script finish', PHS_Logger::TYPE_AGENT );
+    PHS_Logger::notice( ' --- Agent background script finish', PHS_Logger::TYPE_AGENT );

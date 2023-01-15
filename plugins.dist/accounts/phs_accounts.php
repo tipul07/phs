@@ -858,7 +858,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         db_query( 'UPDATE `'.$accounts_model->get_flow_table_name( $flow_arr ).'` SET pass_clear = NULL', $flow_arr['db_connection'] );
 
-        PHS_Logger::logf( '!!! Password decryption disabled!', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( '!!! Password decryption disabled!', PHS_Logger::TYPE_MAINTENANCE );
 
         return $hook_args;
     }
@@ -998,20 +998,23 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             'update_details' => $params['update_details'],
         ];
 
-        if( $log_channel )
-            PHS_Logger::logf( '[START] Importing '.count( $json_arr['accounts'] ).' accounts...', $log_channel );
+        if( $log_channel ) {
+            PHS_Logger::notice('[START] Importing '.count($json_arr['accounts']).' accounts...', $log_channel);
+        }
 
         foreach( $json_arr['accounts'] as $knti => $json_account_arr )
         {
-            if( empty( $json_account_arr ) || !is_array( $json_account_arr ) )
+            if( empty( $json_account_arr ) || !is_array( $json_account_arr ) ) {
                 continue;
+            }
 
             $return_arr['total_accounts']++;
 
             if( empty( $json_account_arr['email'] ) )
             {
-                if( $log_channel )
-                    PHS_Logger::logf( '[ERROR] No email set for position '.$knti.'.', $log_channel );
+                if( $log_channel ) {
+                    PHS_Logger::error('No email set for position '.$knti.'.', $log_channel);
+                }
 
                 $return_arr['errors']++;
                 continue;
@@ -1021,8 +1024,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
              && !empty( $json_account_arr['level'] )
              && (int)$json_account_arr['level'] !== (int)$params['import_level'] )
             {
-                if( $log_channel )
-                    PHS_Logger::logf( '[WARNING] Account with email '.$json_account_arr['email'].' ignored. Level not for import.', $log_channel );
+                if( $log_channel ) {
+                    PHS_Logger::warning('Account with email '.$json_account_arr['email'].' ignored. Level not for import.',
+                        $log_channel);
+                }
 
                 continue;
             }
@@ -1035,16 +1040,14 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $account_arr = self::validate_array_recursive( $json_account_arr, $export_array_structure );
 
             $account_deleted = false;
-            if( ($db_account_arr = $accounts_model->get_details_fields( [ 'email' => $account_arr['email'] ] )) )
+            if( ($db_account_arr = $accounts_model->get_details_fields( [ 'email' => $account_arr['email'] ] ))
+             && $accounts_model->is_deleted( $db_account_arr ) )
             {
-                if( $accounts_model->is_deleted( $db_account_arr ) )
-                {
-                    $account_deleted = true;
-                    $update_roles = true;
-                    $reset_roles = true;
-                    $override_level = true;
-                    $update_details = true;
-                }
+                $account_deleted = true;
+                $update_roles = true;
+                $reset_roles = true;
+                $override_level = true;
+                $update_details = true;
             }
 
             $fields_extractor_params['update_roles'] = $update_roles;
@@ -1054,7 +1057,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             if( $log_channel )
             {
-                PHS_Logger::logf( 'Processing email '.$json_account_arr['email'].', DB account '.
+                PHS_Logger::notice( 'Processing email '.$json_account_arr['email'].', DB account '.
                                   (!empty( $db_account_arr )?'#'.$db_account_arr['id']:'N/A').
                                   ', Update roles: '.(!empty( $update_roles )?'YES':'No').
                                   ', Reset roles: '.(!empty( $reset_roles )?'YES':'No').
@@ -1067,8 +1070,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             if( !($action_fields = $this->_extract_account_fields_for_db( $account_arr, $db_account_arr, $fields_extractor_params, $extra_params )) )
             {
-                if( $log_channel )
-                    PHS_Logger::logf( '[ERROR] Error extracting fields for DB, position '.$knti.', email '.$account_arr['email'].'.', $log_channel );
+                if( $log_channel ) {
+                    PHS_Logger::error('Error extracting fields for DB, position '.$knti.', email '.$account_arr['email'].'.',
+                        $log_channel);
+                }
 
                 $return_arr['errors']++;
                 continue;
@@ -1077,36 +1082,40 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             if( empty( $db_account_arr ) )
             {
                 $return_arr['not_found']++;
-                if( empty( $params['insert_not_found'] ) )
+                if( empty( $params['insert_not_found'] ) ) {
                     continue;
+                }
 
                 if( !($new_db_account_arr = $accounts_model->insert( $action_fields )) )
                 {
                     if( $log_channel )
                     {
-                        if( $accounts_model->has_error() )
+                        if( $accounts_model->has_error() ) {
                             $error_msg = $accounts_model->get_simple_error_message();
-                        else
+                        } else {
                             $error_msg = 'Unknown error.';
+                        }
 
-                        PHS_Logger::logf( '[ERROR] Error creating new account at '.
-                                          ', position '.$knti.', email '.$account_arr['email'].': '.$error_msg, $log_channel );
+                        PHS_Logger::error( 'Error creating new account at '.
+                                           ', position '.$knti.', email '.$account_arr['email'].': '.$error_msg, $log_channel );
                     }
 
                     $return_arr['errors']++;
                     continue;
                 }
 
-                if( $log_channel )
-                    PHS_Logger::logf( 'NEW account created #'.$new_db_account_arr['id'].'.', $log_channel );
+                if( $log_channel ) {
+                    PHS_Logger::notice('NEW account created #'.$new_db_account_arr['id'].'.', $log_channel);
+                }
 
                 $return_arr['inserts']++;
             } else
             {
                 if( $account_deleted )
                 {
-                    if( empty( $action_fields['fields'] ) )
+                    if( empty( $action_fields['fields'] ) ) {
                         $action_fields['fields'] = [];
+                    }
 
                     $action_fields['fields']['status'] = $accounts_model::STATUS_ACTIVE;
                 }
@@ -1115,12 +1124,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 {
                     if( $log_channel )
                     {
-                        if( $accounts_model->has_error() )
+                        if( $accounts_model->has_error() ) {
                             $error_msg = $accounts_model->get_simple_error_message();
-                        else
+                        } else {
                             $error_msg = 'Unknown error.';
+                        }
 
-                        PHS_Logger::logf( '[ERROR] Error updating account #'.$db_account_arr['id'].
+                        PHS_Logger::error( 'Error updating account #'.$db_account_arr['id'].
                                           ', position '.$knti.', email '.$account_arr['email'].': '.$error_msg, $log_channel );
                     }
 
@@ -1128,8 +1138,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     continue;
                 }
 
-                if( $log_channel )
-                    PHS_Logger::logf( 'UPDATED account #'.$new_db_account_arr['id'].'.', $log_channel );
+                if( $log_channel ) {
+                    PHS_Logger::notice('UPDATED account #'.$new_db_account_arr['id'].'.', $log_channel);
+                }
 
                 $return_arr['edits']++;
             }
@@ -1137,16 +1148,18 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $return_arr['processed_accounts']++;
         }
 
-        if( $log_channel )
-            PHS_Logger::logf( '[END] Import finished!', $log_channel );
+        if( $log_channel ) {
+            PHS_Logger::notice('[END] Import finished!', $log_channel);
+        }
 
         return $return_arr;
     }
 
     protected function _extract_account_fields_for_db( $account_arr, $db_account_arr, $import_params, $params )
     {
-        if( empty( $account_arr ) || !is_array( $account_arr ) )
+        if( empty( $account_arr ) || !is_array( $account_arr ) ) {
             return false;
+        }
 
         $json_account_arr = $params['json_account_arr'];
         $roles_by_slug = $params['roles_by_slug'];
@@ -1161,15 +1174,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         {
             $account_fields = [ 'email_verified' => true, 'language' => true, 'level' => true, ];
 
-            if( empty( $import_params['override_level'] ) )
-                unset( $account_fields['level'] );
+            if( empty( $import_params['override_level'] ) ) {
+                unset($account_fields['level']);
+            }
         }
 
         $account_fields_keys = array_keys( $account_fields );
         foreach( $account_fields_keys as $field )
         {
-            if( !isset( $account_arr[$field] ) )
+            if( !isset( $account_arr[$field] ) ) {
                 continue;
+            }
 
             $action_fields['fields'][$field] = $account_arr[$field];
         }
@@ -1177,10 +1192,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if( !empty( $account_arr['user_details'] ) && is_array( $account_arr['user_details'] )
          && (empty( $db_account_arr ) || !empty( $import_params['update_details'] )) )
         {
-            if( isset( $account_arr['user_details']['id'] ) )
-                unset( $account_arr['user_details']['id'] );
-            if( isset( $account_arr['user_details']['uid'] ) )
-                unset( $account_arr['user_details']['uid'] );
+            if( isset( $account_arr['user_details']['id'] ) ) {
+                unset($account_arr['user_details']['id']);
+            }
+            if( isset( $account_arr['user_details']['uid'] ) ) {
+                unset($account_arr['user_details']['uid']);
+            }
 
             $action_fields['{users_details}'] = $account_arr['user_details'];
         }
@@ -1191,18 +1208,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         {
             // Validate roles with platform roles...
             if( !empty( $db_account_arr )
-             && empty( $import_params['reset_roles'] ) )
-                $existing_roles = PHS_Roles::get_user_roles_slugs( $db_account_arr );
-            else
+             && empty( $import_params['reset_roles'] ) ) {
+                $existing_roles = PHS_Roles::get_user_roles_slugs($db_account_arr);
+            } else {
                 $existing_roles = [];
+            }
 
             foreach( $account_arr['roles'] as $role_slug )
             {
-                if( empty( $roles_by_slug[$role_slug] ) )
+                if( empty( $roles_by_slug[$role_slug] ) ) {
                     continue;
+                }
 
-                if( !in_array( $role_slug, $existing_roles, true ) )
+                if( !in_array( $role_slug, $existing_roles, true ) ) {
                     $existing_roles[] = $role_slug;
+                }
             }
 
             $action_fields['{account_roles}'] = $existing_roles;
@@ -1217,8 +1237,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $hook_args['account_data'] = $db_account_arr;
 
         if( ($import_fields_arr = PHS::trigger_hooks( PHS_Hooks::H_USERS_IMPORT_DB_FIELDS_VALIDATE, $hook_args ))
-         && !empty( $import_fields_arr['action_fields'] ) )
+         && !empty( $import_fields_arr['action_fields'] ) ) {
             $action_fields = $import_fields_arr['action_fields'];
+        }
 
         return $action_fields;
     }
@@ -1230,38 +1251,41 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if( !($hook_result = PHS_Hooks::trigger_account_structure( $hook_args ))
             || empty( $hook_result['account_structure'] )
-            || !is_array( $hook_result['account_structure'] ) )
+            || !is_array( $hook_result['account_structure'] ) ) {
             return false;
+        }
 
         return $hook_result['account_structure'];
     }
 
-    public static function valid_export_to( $export_to )
+    public static function valid_export_to( $export_to ): bool
     {
         return (!empty( $export_to )
                 && in_array( $export_to, [ self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER ], true ));
     }
 
     /**
-     * @param int[] $account_ids
-     * @param false|array $export_params
+     * @param  int[]  $account_ids
+     * @param null|array $export_params
      *
      * @return bool
      */
-    public function export_account_ids( $account_ids = [], $export_params = false )
+    public function export_account_ids( array $account_ids = [], array $export_params = null ): bool
     {
-        if( empty( $export_params ) || !is_array( $export_params ) )
+        if( empty( $export_params ) || !is_array( $export_params ) ) {
             $export_params = [];
+        }
 
-        if( empty( $export_params['export_file_dir'] ) )
+        if( empty( $export_params['export_file_dir'] ) ) {
             $export_params['export_file_dir'] = '';
+        }
 
         if( empty( $export_params['export_to'] )
-         || !self::valid_export_to( $export_params['export_to'] ) )
+         || !self::valid_export_to( $export_params['export_to'] ) ) {
             $export_params['export_to'] = self::EXPORT_TO_BROWSER;
+        }
 
-        if( empty( $export_params['export_file_name'] ) )
-        {
+        if( empty( $export_params['export_file_name'] ) ) {
             $export_params['export_file_name'] = 'accounts_export_'.date( 'YmdHi' ).'.json';
         }
 
@@ -1324,25 +1348,26 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     }
 
     /**
-     * @param int[] $account_ids
+     * @param  int[]  $account_ids
      *
      * @return string
      */
-    public function export_account_ids_to_json( $account_ids = [] )
+    public function export_account_ids_to_json( array $account_ids = [] ): string
     {
         if( !($accounts_arr = $this->export_account_ids_to_array( $account_ids ))
-         || !($accounts_json = @json_encode( $accounts_arr )) )
+         || !($accounts_json = @json_encode( $accounts_arr )) ) {
             return '';
+        }
 
         return $accounts_json;
     }
 
     /**
-     * @param int[] $account_ids
+     * @param  int[]  $account_ids
      *
      * @return array
      */
-    public function export_account_ids_to_array( $account_ids = [] )
+    public function export_account_ids_to_array( array $account_ids = [] ): array
     {
         if( !($qid = $this->_get_accounts_qid( $account_ids )) )
             return [];
@@ -1350,11 +1375,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $return_arr = $this->default_export_accounts_wrapper();
         while( ($db_account_arr = @mysqli_fetch_assoc( $qid )) )
         {
-            if( !($account_arr = $this->populate_export_data_from_account_array( $db_account_arr )) )
+            if( !($account_arr = $this->populate_export_data_from_account_array( $db_account_arr )) ) {
                 continue;
+            }
 
-            if( !($roles_arr = PHS_Roles::get_user_roles_slugs( $db_account_arr )) )
+            if( !($roles_arr = PHS_Roles::get_user_roles_slugs( $db_account_arr )) ) {
                 $roles_arr = [];
+            }
 
             $account_arr['roles'] = $roles_arr;
 
@@ -1364,7 +1391,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $return_arr;
     }
 
-    public function default_export_accounts_wrapper()
+    public function default_export_accounts_wrapper(): array
     {
         return [
             'version' => 1,
@@ -1374,10 +1401,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function default_export_array_for_account_data()
+    public function default_export_array_for_account_data(): ?array
     {
-        if( !$this->_load_dependencies() )
-            return false;
+        if( !$this->_load_dependencies() ) {
+            return null;
+        }
 
         // "hardcoded" data...
         if( !($user_details = $this->_accounts_details_model->get_empty_data()) )
@@ -1385,10 +1413,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                               'phone' => '', 'company' => '', 'limit_emails' => 0,
                 ];
 
-        if( isset( $user_details['id'] ) )
-            unset( $user_details['id'] );
-        if( isset( $user_details['uid'] ) )
-            unset( $user_details['uid'] );
+        if( isset( $user_details['id'] ) ) {
+            unset($user_details['id']);
+        }
+        if( isset( $user_details['uid'] ) ) {
+            unset($user_details['uid']);
+        }
 
         return [
             'nick' => '',
@@ -1405,10 +1435,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function populate_export_data_from_account_array( $account_arr )
+    /**
+     * @param  array  $account_arr
+     *
+     * @return null|array
+     */
+    public function populate_export_data_from_account_array( array $account_arr ): ?array
     {
-        if( empty( $account_arr ) || !is_array( $account_arr ) )
-            return false;
+        if( empty( $account_arr ) ) {
+            return null;
+        }
 
         $export_structure = $this->default_export_array_for_account_data();
         $source_keys = [ 'nick', 'email', 'email_verified', 'language', 'status', 'status_date',
@@ -1416,13 +1452,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         foreach( $source_keys as $key )
         {
             if( array_key_exists( $key, $account_arr )
-             && array_key_exists( $key, $export_structure ) )
+             && array_key_exists( $key, $export_structure ) ) {
                 $export_structure[$key] = $account_arr[$key];
+            }
         }
         foreach( [ 'email_verified', 'status', 'level', ] as $key )
         {
-            if( isset( $export_structure[$key] ) )
-                $export_structure[$key] = (int)$export_structure[$key];
+            if( isset( $export_structure[$key] ) ) {
+                $export_structure[$key] = (int) $export_structure[$key];
+            }
         }
 
         if( !($empty_fields = $this->_accounts_details_model->get_empty_data()) )
@@ -1431,10 +1469,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $details_fields = [ 'title', 'fname', 'lname', 'phone', 'company', 'limit_emails', ];
         } else
         {
-            if( isset( $empty_fields['id'] ) )
-                unset( $empty_fields['id'] );
-            if( isset( $empty_fields['uid'] ) )
-                unset( $empty_fields['uid'] );
+            if( isset( $empty_fields['id'] ) ) {
+                unset($empty_fields['id']);
+            }
+            if( isset( $empty_fields['uid'] ) ) {
+                unset($empty_fields['uid']);
+            }
 
             $details_fields = array_keys( $empty_fields );
         }
@@ -1444,18 +1484,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $join_field_name = 'users_details_'.$field_name;
             // check if we have get_list() result
             if( array_key_exists( $join_field_name, $account_arr )
-             && array_key_exists( $field_name, $export_structure['user_details'] ) )
+             && array_key_exists( $field_name, $export_structure['user_details'] ) ) {
                 $export_structure['user_details'][$field_name] = $account_arr[$join_field_name];
+            }
 
             // check if we have account details result
             elseif( !empty( $account_arr['{users_details}'] ) && is_array( $account_arr['{users_details}'] )
              && array_key_exists( $field_name, $account_arr['{users_details}'] )
-             && array_key_exists( $field_name, $export_structure['user_details'] ) )
+             && array_key_exists( $field_name, $export_structure['user_details'] ) ) {
                 $export_structure['user_details'][$field_name] = $account_arr['{users_details}'][$field_name];
+            }
         }
 
-        if( isset( $export_structure['user_details']['limit_emails'] ) )
-            $export_structure['user_details']['limit_emails'] = (int)$export_structure['user_details']['limit_emails'];
+        if( isset( $export_structure['user_details']['limit_emails'] ) ) {
+            $export_structure['user_details']['limit_emails'] = (int) $export_structure['user_details']['limit_emails'];
+        }
 
         return $export_structure;
     }

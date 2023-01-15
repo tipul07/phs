@@ -1880,7 +1880,7 @@ final class PHS extends PHS_Registry
             {
                 $error_msg = self::st_get_error_message();
 
-                PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
+                PHS_Logger::critical( $error_msg, PHS_Logger::TYPE_DEF_DEBUG );
 
                 echo 'Error spawining scope.';
                 exit;
@@ -1891,28 +1891,32 @@ final class PHS extends PHS_Registry
 
         // Don't display technical stuff to end-user...
         if( !self::st_debugging_mode()
-         && self::arr_has_error( $controller_error_arr ) )
-            $controller_error_arr = self::arr_set_error( self::ERR_EXECUTE_ROUTE, self::_t( 'Error serving request.' ) );
+         && self::arr_has_error( $controller_error_arr ) ) {
+            $controller_error_arr = self::arr_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
+        }
 
         if( !empty( $action_result ) && is_array( $action_result )
-         && !empty( $action_result['custom_headers'] ) && is_array( $action_result['custom_headers'] ) )
-            $action_result['custom_headers'] = self::unify_array_insensitive( $action_result['custom_headers'], [ 'trim_keys' => true ] );
+         && !empty( $action_result['custom_headers'] ) && is_array( $action_result['custom_headers'] ) ) {
+            $action_result['custom_headers'] =
+                self::unify_array_insensitive($action_result['custom_headers'], ['trim_keys' => true]);
+        }
 
         $scope_action_result = $scope_obj->generate_response( $action_result, $controller_error_arr );
 
         $error_msg = false;
-        if( self::st_has_error() )
+        if( self::st_has_error() ) {
             $error_msg = self::st_get_error_message();
-        elseif( self::arr_has_error( $controller_error_arr ) )
+        } elseif( self::arr_has_error( $controller_error_arr ) )
         {
             $error_msg = '['.self::get_route_as_string().'] - '.
                          self::arr_get_simple_error_message( $controller_error_arr );
-        } elseif( $scope_obj->has_error() )
+        } elseif( $scope_obj->has_error() ) {
             $error_msg = $scope_obj->get_error_message();
+        }
 
         if( $error_msg !== false )
         {
-            PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_DEBUG );
+            PHS_Logger::critical( $error_msg, PHS_Logger::TYPE_DEBUG );
 
             return false;
         }
@@ -3180,16 +3184,19 @@ final class PHS extends PHS_Registry
 
                 case PHS_Scope::SCOPE_AGENT:
                 case PHS_Scope::SCOPE_BACKGROUND:
-                    PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str );
+                    PHS_Logger::error( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str );
                 break;
             }
         }
 
-        if( @class_exists( PHS_Logger::class, false ) )
-            PHS_Logger::logf( $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str, PHS_Logger::TYPE_DEBUG );
+        if( @class_exists( PHS_Logger::class, false ) ) {
+            PHS_Logger::error($error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str,
+                PHS_Logger::TYPE_DEBUG);
+        }
 
-        if( $errno === E_ERROR || $errno === E_USER_ERROR )
-            exit( 1 );
+        if( $errno === E_ERROR || $errno === E_USER_ERROR ) {
+            exit(1);
+        }
 
         return true;
     }

@@ -36,7 +36,7 @@ class PHS_Hubspot extends PHS_Library
         $this->reset_error();
 
         if( empty( $this->_hubspot_plugin )
-        and !($this->_hubspot_plugin = PHS::load_plugin( 'hubspot' )) )
+        && !($this->_hubspot_plugin = PHS::load_plugin( 'hubspot' )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error loading HubSpot plugin.' ) );
             return false;
@@ -50,8 +50,8 @@ class PHS_Hubspot extends PHS_Library
     //
     public function valid_api_settings( $settings_arr )
     {
-        if( empty( $settings_arr ) or !is_array( $settings_arr )
-         or empty( $settings_arr['base_url'] ) or empty( $settings_arr['api_key'] ) )
+        if( empty( $settings_arr ) || !is_array( $settings_arr )
+         || empty( $settings_arr['base_url'] ) || empty( $settings_arr['api_key'] ) )
             return false;
 
         return true;
@@ -89,7 +89,7 @@ class PHS_Hubspot extends PHS_Library
 
     public function api_settings( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null )
             return $this->_api_settings;
 
         if( $val === null )
@@ -97,7 +97,7 @@ class PHS_Hubspot extends PHS_Library
             if( !is_array( $key ) )
             {
                 if( !is_scalar( $key )
-                 or !isset( $this->_api_settings[$key] ) )
+                 || !isset( $this->_api_settings[$key] ) )
                     return null;
 
                 return $this->_api_settings[$key];
@@ -106,7 +106,7 @@ class PHS_Hubspot extends PHS_Library
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !isset( $this->_api_settings[$kkey] ) )
+                 || !isset( $this->_api_settings[$kkey] ) )
                     continue;
 
                 $this->_api_settings[$kkey] = $kval;
@@ -116,7 +116,7 @@ class PHS_Hubspot extends PHS_Library
         }
 
         if( !is_scalar( $key )
-         or !isset( $this->_api_settings[$key] ) )
+         || !isset( $this->_api_settings[$key] ) )
             return null;
 
         $this->_api_settings[$key] = $val;
@@ -158,16 +158,18 @@ class PHS_Hubspot extends PHS_Library
 
     private function _api_params( $key = null, $val = null )
     {
-        if( $key === null and $val === null )
+        if( $key === null && $val === null ) {
             return $this->_api_params;
+        }
 
         if( $val === null )
         {
             if( !is_array( $key ) )
             {
                 if( !is_scalar( $key )
-                 or !isset( $this->_api_params[$key] ) )
+                 || !isset( $this->_api_params[$key] ) ) {
                     return null;
+                }
 
                 return $this->_api_params[$key];
             }
@@ -175,8 +177,9 @@ class PHS_Hubspot extends PHS_Library
             foreach( $key as $kkey => $kval )
             {
                 if( !is_scalar( $kkey )
-                 or !isset( $this->_api_params[$kkey] ) )
+                 || !isset( $this->_api_params[$kkey] ) ) {
                     continue;
+                }
 
                 $this->_api_params[$kkey] = $kval;
             }
@@ -185,20 +188,18 @@ class PHS_Hubspot extends PHS_Library
         }
 
         if( !is_scalar( $key )
-         or !isset( $this->_api_params[$key] ) )
+         || !isset( $this->_api_params[$key] ) ) {
             return null;
+        }
 
         $this->_api_params[$key] = $val;
 
         return true;
     }
 
-    protected function _can_connect()
+    protected function _can_connect(): bool
     {
-        if( empty( $this->_api_settings['base_url'] ) or empty( $this->_api_settings['api_key'] ) )
-            return false;
-
-        return true;
+        return (!empty( $this->_api_settings['base_url'] ) && !empty( $this->_api_settings['api_key'] ));
     }
 
     /**
@@ -209,8 +210,9 @@ class PHS_Hubspot extends PHS_Library
      */
     private function _do_call( $payload_arr = false, $params = false )
     {
-        if( !$this->_load_dependencies() )
+        if( !$this->_load_dependencies() ) {
             return false;
+        }
 
         $this->reset_error();
 
@@ -220,36 +222,29 @@ class PHS_Hubspot extends PHS_Library
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) ) {
+            $params = [];
+        }
 
-        if( empty( $params['not_found_is_not_an_error'] ) )
-            $params['not_found_is_not_an_error'] = false;
-        else
-            $params['not_found_is_not_an_error'] = (!empty( $params['not_found_is_not_an_error'] ));
+        $params['not_found_is_not_an_error'] = !empty( $params['not_found_is_not_an_error'] );
+        $params['log_not_found_response'] = !empty( $params['log_not_found_response'] );
+        $params['log_payload'] = !empty( $params['log_payload'] );
 
-        if( empty( $params['log_not_found_response'] ) )
-            $params['log_not_found_response'] = false;
-        else
-            $params['log_not_found_response'] = (!empty( $params['log_not_found_response'] ));
+        if( empty( $params['ok_http_code'] ) || !is_array( $params['ok_http_code'] ) ) {
+            $params['ok_http_code'] = [200, 204];
+        } else {
+            $params['ok_http_code'] = self::extract_integers_from_array($params['ok_http_code']);
+        }
 
-        if( empty( $params['log_payload'] ) )
-            $params['log_payload'] = false;
-        else
-            $params['log_payload'] = (!empty( $params['log_payload'] ));
-        if( empty( $params['ok_http_code'] ) or !is_array( $params['ok_http_code'] ) )
-            $params['ok_http_code'] = array( 200, 204 );
-        else
-            $params['ok_http_code'] = self::extract_integers_from_array( $params['ok_http_code'] );
-
-        if( empty( $params['extra_get_params'] ) or !is_array( $params['extra_get_params'] ) )
-            $params['extra_get_params'] = array();
+        if( empty( $params['extra_get_params'] ) || !is_array( $params['extra_get_params'] ) ) {
+            $params['extra_get_params'] = [];
+        }
 
         $hubspot_plugin = $this->_hubspot_plugin;
 
         $payload_str = '';
         if( !empty( $payload_arr )
-        and !($payload_str = @json_encode( $payload_arr )) )
+        && !($payload_str = @json_encode( $payload_arr )) )
         {
             $payload_buf = 'undisclosed-payload';
             if( !empty( $params['log_payload'] ) )
@@ -259,7 +254,7 @@ class PHS_Hubspot extends PHS_Library
                 $payload_buf = ob_get_clean();
             }
 
-            PHS_Logger::logf( 'Couldn\'t obtain JSON from payload: ['.$payload_buf.']', $hubspot_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Couldn\'t obtain JSON from payload: ['.$payload_buf.']', $hubspot_plugin::LOG_CHANNEL );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain JSON from payload.' ) );
             return false;
@@ -287,56 +282,65 @@ class PHS_Hubspot extends PHS_Library
         }
 
         if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
-         or empty( $response['http_code'] ) )
+         || empty( $response['http_code'] ) )
         {
-            PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $hubspot_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Error sending request to ['.$api_url.']', $hubspot_plugin::LOG_CHANNEL );
 
-            if( !empty( $response['request_error_msg'] ) )
-                PHS_Logger::logf( 'cURL said: '.$response['request_error_msg'].' (#'.(!empty( $response['request_error_no'] )?$response['request_error_no']:'0').')', $hubspot_plugin::LOG_CHANNEL );
+            if( !empty( $response['request_error_msg'] ) ) {
+                PHS_Logger::error('cURL said: '.$response['request_error_msg'].' (#'.(!empty($response['request_error_no']) ? $response['request_error_no'] : '0').')',
+                    $hubspot_plugin::LOG_CHANNEL);
+            }
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending request to HubSpot server.' ) );
             return false;
         }
 
-        $response['json_response_arr'] = array();
+        $response['json_response_arr'] = [];
 
-        if( isset( $response['http_code'] ) )
-            $response['http_code'] = (int)$response['http_code'];
-        else
+        if( isset( $response['http_code'] ) ) {
+            $response['http_code'] = (int) $response['http_code'];
+        } else {
             $response['http_code'] = 0;
+        }
 
-        if( empty( $response['response'] ) )
-            $response_arr = array();
-        else
-            $response_arr = @json_decode( $response['response'], true );
+        if( empty( $response['response'] ) ) {
+            $response_arr = [];
+        } else {
+            $response_arr = @json_decode($response['response'], true);
+        }
 
         $response['json_response_arr'] = $response_arr;
 
         // Treat 404 Not found as a valid response, not as an error
         if( !empty( $params['not_found_is_not_an_error'] )
-        and $this->api_response_is_not_found( $response ) )
+         && $this->api_response_is_not_found( $response ) ) {
             return $response;
+        }
 
         if( !empty( $response_arr )
-        and !empty( $response_arr['status'] )
-        and $response_arr['status'] === 'error' )
+         && !empty( $response_arr['status'] )
+         && $response_arr['status'] === 'error' )
         {
             $short_error = '';
-            if( !empty( $response_arr['message'] ) )
-                $short_error = (!empty( $response_arr['category'] )?$response_arr['category'].': ':'').$response_arr['message'];
+            if( !empty( $response_arr['message'] ) ) {
+                $short_error =
+                    (!empty($response_arr['category']) ? $response_arr['category'].': ' : '').$response_arr['message'];
+            }
 
             $long_error = '';
-            if( !empty( $response_arr['errors'] ) and is_array( $response_arr['errors'] ) )
+            if( !empty( $response_arr['errors'] ) && is_array( $response_arr['errors'] ) )
             {
                 $knti = 1;
                 foreach( $response_arr['errors'] as $error_arr )
                 {
-                    if( empty( $error_arr ) or !is_array( $error_arr )
-                     or empty( $error_arr['message'] ) )
+                    if( empty( $error_arr ) || !is_array( $error_arr )
+                     || empty( $error_arr['message'] ) ) {
                         continue;
+                    }
 
                     $long_error .= $knti.'. '.$error_arr['message']."\n";
                     $knti++;
@@ -345,19 +349,22 @@ class PHS_Hubspot extends PHS_Library
 
             $do_log_error = true;
             if( empty( $params['log_not_found_response'] )
-            and $this->api_response_is_not_found( $response ) )
+            && $this->api_response_is_not_found( $response ) ) {
                 $do_log_error = false;
+            }
 
             if( $do_log_error )
             {
-                PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty( $short_error )?$short_error:'N/A'), $hubspot_plugin::LOG_CHANNEL );
-                if( !empty( $long_error ) )
-                    PHS_Logger::logf( 'Detailed errors: '.$long_error, $hubspot_plugin::LOG_CHANNEL );
+                PHS_Logger::error( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty( $short_error )?$short_error:'N/A'), $hubspot_plugin::LOG_CHANNEL );
+                if( !empty( $long_error ) ) {
+                    PHS_Logger::error('Detailed errors: '.$long_error, $hubspot_plugin::LOG_CHANNEL);
+                }
 
-                PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
+                PHS_Logger::error( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
 
-                if( !empty( $params['log_payload'] ) )
-                    PHS_Logger::logf( 'Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL );
+                if( !empty( $params['log_payload'] ) ) {
+                    PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+                }
             }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'HubSpot server responded with an error.%s', (!empty( $short_error )?' '.$short_error:'') ) );
@@ -372,11 +379,12 @@ class PHS_Hubspot extends PHS_Library
                 return $response;
             }
 
-            PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $hubspot_plugin::LOG_CHANNEL );
-            PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $hubspot_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $hubspot_plugin::LOG_CHANNEL );
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'HubSpot server responded with an error.' ) );
             return false;
@@ -391,8 +399,8 @@ class PHS_Hubspot extends PHS_Library
      */
     public function api_response_is_not_found( $api_response )
     {
-        if( empty( $api_response ) or !is_array( $api_response )
-         or empty( $api_response['http_code'] ) or (int)$api_response['http_code'] === 404 )
+        if( empty( $api_response ) || !is_array( $api_response )
+         || empty( $api_response['http_code'] ) || (int)$api_response['http_code'] === 404 )
             return true;
 
         return false;
@@ -405,12 +413,12 @@ class PHS_Hubspot extends PHS_Library
      */
     public function api_response_is_ok( $api_response, $http_ok_codes = false )
     {
-        if( empty( $http_ok_codes ) or !is_array( $http_ok_codes ) )
+        if( empty( $http_ok_codes ) || !is_array( $http_ok_codes ) )
             $http_ok_codes = array( 200, 204 );
 
-        if( empty( $api_response ) or !is_array( $api_response )
-         or empty( $api_response['http_code'] )
-         or !in_array( (int)$api_response['http_code'], $http_ok_codes, true ) )
+        if( empty( $api_response ) || !is_array( $api_response )
+         || empty( $api_response['http_code'] )
+         || !in_array( (int)$api_response['http_code'], $http_ok_codes, true ) )
             return false;
 
         return true;
@@ -423,14 +431,14 @@ class PHS_Hubspot extends PHS_Library
      */
     public function validate_properties_structure( $properties_arr )
     {
-        if( empty( $properties_arr ) or !is_array( $properties_arr ) )
+        if( empty( $properties_arr ) || !is_array( $properties_arr ) )
             return false;
 
         foreach( $properties_arr as $node_arr )
         {
-            if( empty( $node_arr ) or !is_array( $node_arr )
-             or !array_key_exists( 'property', $node_arr )
-             or !array_key_exists( 'value', $node_arr ) )
+            if( empty( $node_arr ) || !is_array( $node_arr )
+             || !array_key_exists( 'property', $node_arr )
+             || !array_key_exists( 'value', $node_arr ) )
                 return false;
         }
 
@@ -445,7 +453,7 @@ class PHS_Hubspot extends PHS_Library
      */
     public function transform_array_key_value_to_properties_structure( $properties_arr )
     {
-        if( empty( $properties_arr ) or !is_array( $properties_arr ) )
+        if( empty( $properties_arr ) || !is_array( $properties_arr ) )
             return array();
 
         $return_arr = array();
@@ -469,13 +477,13 @@ class PHS_Hubspot extends PHS_Library
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             $params = array();
 
-        if( empty( $params['call_parameters'] ) or !is_array( $params['call_parameters'] ) )
+        if( empty( $params['call_parameters'] ) || !is_array( $params['call_parameters'] ) )
             $params['call_parameters'] = false;
 
-        if( empty( $params['hubspot_settings'] ) or !is_array( $params['hubspot_settings'] ) )
+        if( empty( $params['hubspot_settings'] ) || !is_array( $params['hubspot_settings'] ) )
             $params['hubspot_settings'] = false;
 
         elseif( !$this->valid_api_settings( $params['hubspot_settings'] ) )
@@ -527,7 +535,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -559,7 +567,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -591,7 +599,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -613,7 +621,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($params = $this->manage_api_request_params( $params )) )
             return false;
 
-        if( empty( $list_params ) or !is_array( $list_params ) )
+        if( empty( $list_params ) || !is_array( $list_params ) )
             $list_params = array();
 
         if( !empty( $list_params['count'] ) )
@@ -640,7 +648,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -662,8 +670,8 @@ class PHS_Hubspot extends PHS_Library
         if( !($params = $this->manage_api_request_params( $params )) )
             return false;
 
-        if( empty( $properties_arr ) or !is_array( $properties_arr )
-         or !$this->validate_properties_structure( $properties_arr ) )
+        if( empty( $properties_arr ) || !is_array( $properties_arr )
+         || !$this->validate_properties_structure( $properties_arr ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contact properties.' ) );
@@ -683,7 +691,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( $payload_arr, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -715,8 +723,8 @@ class PHS_Hubspot extends PHS_Library
 
         $params['call_parameters']['not_found_is_not_an_error'] = false;
 
-        if( empty( $properties_arr ) or !is_array( $properties_arr )
-         or !$this->validate_properties_structure( $properties_arr ) )
+        if( empty( $properties_arr ) || !is_array( $properties_arr )
+         || !$this->validate_properties_structure( $properties_arr ) )
         {
             if( !$this->has_error() )
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contact properties.' ) );
@@ -830,11 +838,11 @@ class PHS_Hubspot extends PHS_Library
     {
         $this->reset_error();
 
-        if( empty( $contact_arr ) or !is_array( $contact_arr )
-         or (empty( $contact_arr['id'] )
-                and (empty( $contact_arr['email'] ) or !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
+        if( empty( $contact_arr ) || !is_array( $contact_arr )
+         || (empty( $contact_arr['id'] )
+                && (empty( $contact_arr['email'] ) || !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
             )
-         or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+         || empty( $contact_arr['properties'] ) || !is_array( $contact_arr['properties'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Bad HubSpot contact structure.' ) );
             return false;
@@ -846,7 +854,7 @@ class PHS_Hubspot extends PHS_Library
         elseif( !empty( $contact_arr['email'] ) )
             $new_contact_arr['email'] = trim( $contact_arr['email'] );
 
-        if( empty( $new_contact_arr['vid'] ) and empty( $new_contact_arr['email'] ) )
+        if( empty( $new_contact_arr['vid'] ) && empty( $new_contact_arr['email'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide contact identity for update action.' ) );
             return false;
@@ -855,9 +863,9 @@ class PHS_Hubspot extends PHS_Library
         $new_properties_arr = array();
         foreach( $contact_arr['properties'] as $node_arr )
         {
-            if( empty( $node_arr ) or !is_array( $node_arr )
-             or !array_key_exists( 'property', $node_arr )
-             or !array_key_exists( 'value', $node_arr ) )
+            if( empty( $node_arr ) || !is_array( $node_arr )
+             || !array_key_exists( 'property', $node_arr )
+             || !array_key_exists( 'value', $node_arr ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide valid contacts to be updated with right structure.' ) );
                 return false;
@@ -883,11 +891,11 @@ class PHS_Hubspot extends PHS_Library
     {
         $this->reset_error();
 
-        if( empty( $contact_arr ) or !is_array( $contact_arr )
-         or (empty( $contact_arr['vid'] )
-                and (empty( $contact_arr['email'] ) or !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
+        if( empty( $contact_arr ) || !is_array( $contact_arr )
+         || (empty( $contact_arr['vid'] )
+                && (empty( $contact_arr['email'] ) || !PHS_Params::check_type( $contact_arr['email'], PHS_Params::T_EMAIL ))
             )
-         or empty( $contact_arr['properties'] ) or !is_array( $contact_arr['properties'] ) )
+         || empty( $contact_arr['properties'] ) || !is_array( $contact_arr['properties'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'HubSpot contact structure is not well formatted.' ) );
             return false;
@@ -895,9 +903,9 @@ class PHS_Hubspot extends PHS_Library
 
         foreach( $contact_arr['properties'] as $node_arr )
         {
-            if( empty( $node_arr ) or !is_array( $node_arr )
-             or !array_key_exists( 'property', $node_arr )
-             or !array_key_exists( 'value', $node_arr ) )
+            if( empty( $node_arr ) || !is_array( $node_arr )
+             || !array_key_exists( 'property', $node_arr )
+             || !array_key_exists( 'value', $node_arr ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Contact properties structure is not well formatted.' ) );
                 return false;
@@ -931,7 +939,7 @@ class PHS_Hubspot extends PHS_Library
         $this->reset_error();
         $this->reset_api_params();
 
-        if( empty( $contacts_arr ) or !is_array( $contacts_arr ) )
+        if( empty( $contacts_arr ) || !is_array( $contacts_arr ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide contacts to be updated.' ) );
             return false;
@@ -1025,7 +1033,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];
@@ -1051,7 +1059,7 @@ class PHS_Hubspot extends PHS_Library
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             $params = array();
 
         if( !($params = $this->manage_api_request_params( $params )) )
@@ -1065,7 +1073,7 @@ class PHS_Hubspot extends PHS_Library
         if( !($response = $this->_do_call( false, $params['call_parameters'] )) )
             return false;
 
-        if( empty( $response['json_response_arr'] ) or !is_array( $response['json_response_arr'] ) )
+        if( empty( $response['json_response_arr'] ) || !is_array( $response['json_response_arr'] ) )
             return array();
 
         return $response['json_response_arr'];

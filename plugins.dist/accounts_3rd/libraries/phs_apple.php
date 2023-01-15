@@ -231,10 +231,12 @@ class Apple extends PHS_Library
                     $error_msg .= ($error_msg!==''?' ':'').$response['error_description'];
             }
 
-            PHS_Logger::logf( '[ERROR][APPLE] Error fetching access token: '.(!empty( $error_msg )?$error_msg:'N/A'), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Error fetching access token: '.(!empty( $error_msg )?$error_msg:'N/A'), $accounts_3rd_plugin::LOG_ERR_CHANNEL );
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending request to Apple services for action %s.', $action ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error sending request to Apple services for action %s.', $action));
+            }
 
             return false;
         }
@@ -245,7 +247,7 @@ class Apple extends PHS_Library
             var_dump( $response );
             $buf = ob_get_clean();
 
-            PHS_Logger::logf( '[APPLE] Response: '.$buf, $accounts_3rd_plugin::LOG_CHANNEL );
+            PHS_Logger::debug( '[APPLE] Response: '.$buf, $accounts_3rd_plugin::LOG_CHANNEL );
         }
 
         return $response;
@@ -285,14 +287,15 @@ class Apple extends PHS_Library
          || empty( $payload_arr['payload'] ) || !is_array( $payload_arr['payload'] ) )
         {
             $error_msg = '';
-            if( $this->has_error() )
+            if( $this->has_error() ) {
                 $error_msg = $this->get_simple_error_message();
+            }
 
             ob_start();
             var_dump( $payload_arr );
             $buf = ob_get_clean();
 
-            PHS_Logger::logf( '[ERROR][APPLE] Error decoding token: '.(!empty( $error_msg )?$error_msg:'N/A')."\n".
+            PHS_Logger::error( '[APPLE] Error decoding token: '.(!empty( $error_msg )?$error_msg:'N/A')."\n".
                               'Payload: '.$buf, $accounts_3rd_plugin::LOG_ERR_CHANNEL );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t decode Apple token ID.' ) );
@@ -517,13 +520,13 @@ class Apple extends PHS_Library
         if( !($api_response = PHS_Utils::quick_curl( $full_url, $curl_params ))
          || !is_array( $api_response ) )
         {
-            PHS_Logger::logf( '[ERROR][APPLE] Error initiating call to Apple service API.', $plugin_obj::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Error initiating call to Apple service API.', $plugin_obj::LOG_ERR_CHANNEL );
 
             ob_start();
             var_dump( $curl_params );
             $request_params = @ob_get_clean();
 
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::error( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Params: '.$request_params."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $plugin_obj::LOG_ERR_CHANNEL );
 
@@ -533,13 +536,13 @@ class Apple extends PHS_Library
 
         if( empty( $api_response['request_details'] ) || !is_array( $api_response['request_details'] ) )
         {
-            PHS_Logger::logf( '[ERROR][APPLE] Error retrieving Apple service API request details.', $plugin_obj::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Error retrieving Apple service API request details.', $plugin_obj::LOG_ERR_CHANNEL );
 
             ob_start();
             var_dump( $curl_params );
             $request_params = @ob_get_clean();
 
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::error( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Params: '.$request_params."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $plugin_obj::LOG_ERR_CHANNEL );
 
@@ -550,7 +553,7 @@ class Apple extends PHS_Library
         if( empty( $api_response['http_code'] )
          || !in_array( (int)$api_response['http_code'], $params['expect_http_codes'], true ) )
         {
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API responded with HTTP code: '.$api_response['http_code'], $plugin_obj::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Apple service API responded with HTTP code: '.$api_response['http_code'], $plugin_obj::LOG_ERR_CHANNEL );
 
             $request_headers = (!empty( $api_response['request_details']['request_header'] )?$api_response['request_details']['request_header']:'N/A');
             if( !empty( $api_response['request_details']['request_params'] ) )
@@ -561,7 +564,7 @@ class Apple extends PHS_Library
             } else
                 $request_params = 'N/A';
 
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::error( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Request headers: '.$request_headers."\n".
                             'Params: '.$request_params."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A')."\n".
@@ -576,7 +579,7 @@ class Apple extends PHS_Library
 
         if( !empty( $http_code ) )
         {
-            PHS_Logger::logf( '[APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::notice( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A')."\n".
                             'Apple service API responded with HTTP code: ' . $api_response['request_details']['http_code'], $plugin_obj::LOG_ERR_CHANNEL );
         }
@@ -588,7 +591,7 @@ class Apple extends PHS_Library
         && !empty( $params['expect_json'] )
         && empty( $api_response['response'] ) )
         {
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API response body is empty.', $plugin_obj::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Apple service API response body is empty.', $plugin_obj::LOG_ERR_CHANNEL );
 
             $request_headers = (!empty( $api_response['request_details']['request_header'] )?$api_response['request_details']['request_header']:'N/A');
             if( !empty( $api_response['request_details']['request_params'] ) )
@@ -599,7 +602,7 @@ class Apple extends PHS_Library
             } else
                 $request_params = 'N/A';
 
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::error( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Request headers: '.$request_headers."\n".
                             'Params: '.$request_params."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $plugin_obj::LOG_ERR_CHANNEL );
@@ -608,7 +611,7 @@ class Apple extends PHS_Library
         elseif( !empty( $params['expect_json'] )
             && !($api_response['response_json'] = @json_decode( $api_response['response'], true )) )
         {
-            PHS_Logger::logf( '[ERROR][APPLE] Couldn\'t decode API response.', $plugin_obj::LOG_ERR_CHANNEL );
+            PHS_Logger::error( '[APPLE] Couldn\'t decode API response.', $plugin_obj::LOG_ERR_CHANNEL );
 
             $request_headers = (!empty( $api_response['request_details']['request_header'] )?$api_response['request_details']['request_header']:'N/A');
             if( !empty( $api_response['request_details']['request_params'] ) )
@@ -619,7 +622,7 @@ class Apple extends PHS_Library
             } else
                 $request_params = 'N/A';
 
-            PHS_Logger::logf( '[ERROR][APPLE] Apple service API URL: '.$full_url."\n".
+            PHS_Logger::error( '[APPLE] Apple service API URL: '.$full_url."\n".
                             'Request headers: '.$request_headers."\n".
                             'Params: '.$request_params."\n".
                             'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $plugin_obj::LOG_ERR_CHANNEL );

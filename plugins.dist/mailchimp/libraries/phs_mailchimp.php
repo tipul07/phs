@@ -365,20 +365,21 @@ class Mailchimp extends PHS_Library
 
         $payload_str = '';
         if( !empty( $payload )
-        and !($payload_str = @json_encode( $payload )) )
+         && !($payload_str = @json_encode( $payload )) )
         {
             ob_start();
             var_dump( $payload );
             $buf = ob_get_clean();
 
-            PHS_Logger::logf( 'Couldn\'t obtain JSON from payload: ['.$buf.']', $mailchimp_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Couldn\'t obtain JSON from payload: ['.$buf.']', $mailchimp_plugin::LOG_CHANNEL );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain JSON from payload.' ) );
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) ) {
+            $params = [];
+        }
 
         if( !isset( $params['log_payload'] ) )
             $params['log_payload'] = true;
@@ -405,15 +406,18 @@ class Mailchimp extends PHS_Library
         }
 
         if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
-         or empty( $response['http_code'] ) )
+         || empty( $response['http_code'] ) )
         {
-            PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $mailchimp_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Error sending request to ['.$api_url.']', $mailchimp_plugin::LOG_CHANNEL );
 
-            if( !empty( $params['request_error_msg'] ) )
-                PHS_Logger::logf( 'cURL said: '.$params['request_error_msg'].' (#'.(!empty( $params['request_error_no'] )?$params['request_error_no']:'0').')', $mailchimp_plugin::LOG_CHANNEL );
+            if( !empty( $params['request_error_msg'] ) ) {
+                PHS_Logger::error('cURL said: '.$params['request_error_msg'].' (#'.(!empty($params['request_error_no']) ? $params['request_error_no'] : '0').')',
+                    $mailchimp_plugin::LOG_CHANNEL);
+            }
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending request to MailChimp server.' ) );
             return false;
@@ -421,24 +425,25 @@ class Mailchimp extends PHS_Library
 
         if( $response['http_code'] != $params['ok_http_code'] )
         {
-            PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $mailchimp_plugin::LOG_CHANNEL );
-            PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $mailchimp_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $mailchimp_plugin::LOG_CHANNEL );
+            PHS_Logger::error( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $mailchimp_plugin::LOG_CHANNEL );
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'MailChimp server responded with an error.' ) );
             return false;
         }
 
-        if( empty( $response['response'] ) )
-            $response_arr = array();
-        else
-            $response_arr = @json_decode( $response['response'], true );
+        if( empty( $response['response'] ) ) {
+            $response_arr = [];
+        } else {
+            $response_arr = @json_decode($response['response'], true);
+        }
 
         $response['json_response_arr'] = $response_arr;
 
         return $response;
     }
-
 }

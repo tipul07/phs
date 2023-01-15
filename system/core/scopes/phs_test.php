@@ -35,14 +35,17 @@ class PHS_Scope_Test extends PHS_Scope
             if( empty( $notifications_arr ) || !is_array( $notifications_arr ) )
                 continue;
 
-            PHS_Logger::logf( ucfirst( $notification_type ).' notifications:'."\n".implode( "\n", $notifications_arr ), PHS_Logger::TYPE_TESTS );
+            PHS_Logger::notice( ucfirst( $notification_type ).' notifications:'."\n".implode( "\n", $notifications_arr ), PHS_Logger::TYPE_TESTS );
         }
 
-        if( !empty( $action_result['request_login'] ) )
-            PHS_Logger::logf( 'Script required login action, but we are in a test script...', PHS_Logger::TYPE_TESTS );
+        if( !empty( $action_result['request_login'] ) ) {
+            PHS_Logger::warning('Script required login action, but we are in a test script...', PHS_Logger::TYPE_TESTS);
+        }
 
-        if( !empty( $action_result['redirect_to_url'] ) )
-            PHS_Logger::logf( 'We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a test script...', PHS_Logger::TYPE_TESTS );
+        if( !empty( $action_result['redirect_to_url'] ) ) {
+            PHS_Logger::warning('We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a test script...',
+                PHS_Logger::TYPE_TESTS);
+        }
 
         return $action_result;
     }

@@ -5,13 +5,16 @@ namespace phs\system\core\models;
 use \phs\PHS;
 use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Params;
+use \phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Roles extends PHS_Model
 {
-    const ERR_READ = 10000, ERR_WRITE = 10001;
+    use PHS_Model_Trait_statuses;
 
-    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
-    protected static $STATUSES_ARR = [
+    public const ERR_READ = 10000, ERR_WRITE = 10001;
+
+    public const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
+    protected static array $STATUSES_ARR = [
         self::STATUS_INACTIVE => [ 'title' => 'Inactive' ],
         self::STATUS_ACTIVE => [ 'title' => 'Active' ],
         self::STATUS_DELETED => [ 'title' => 'Deleted' ],
@@ -63,68 +66,10 @@ class PHS_Model_Roles extends PHS_Model
         ];
     }
 
-    final public function get_statuses( $lang = false )
-    {
-        static $statuses_arr = [];
-
-        if( $lang === false
-        && !empty( $statuses_arr ) )
-            return $statuses_arr;
-
-        // Let these here so language parser would catch the texts...
-        $this->_pt( 'Inactive' );
-        $this->_pt( 'Active' );
-        $this->_pt( 'Deleted' );
-        $this->_pt( 'Suspended' );
-
-        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
-
-        if( $lang === false )
-            $statuses_arr = $result_arr;
-
-        return $result_arr;
-    }
-
-    final public function get_statuses_as_key_val( $lang = false )
-    {
-        static $statuses_key_val_arr = false;
-
-        if( $lang === false
-        && $statuses_key_val_arr !== false )
-            return $statuses_key_val_arr;
-
-        $key_val_arr = [];
-        if( ($statuses = $this->get_statuses( $lang )) )
-        {
-            foreach( $statuses as $key => $val )
-            {
-                if( !is_array( $val ) )
-                    continue;
-
-                $key_val_arr[$key] = $val['title'];
-            }
-        }
-
-        if( $lang === false )
-            $statuses_key_val_arr = $key_val_arr;
-
-        return $key_val_arr;
-    }
-
-    public function valid_status( $status, $lang = false )
-    {
-        $all_statuses = $this->get_statuses( $lang );
-        if( empty( $status )
-         || !isset( $all_statuses[$status] ) )
-            return false;
-
-        return $all_statuses[$status];
-    }
-
     public function is_active( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
-         || $role_arr['status'] != self::STATUS_ACTIVE )
+         || (int)$role_arr['status'] !== self::STATUS_ACTIVE )
             return false;
 
         return $role_arr;
@@ -133,7 +78,7 @@ class PHS_Model_Roles extends PHS_Model
     public function is_inactive( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
-         || $role_arr['status'] != self::STATUS_INACTIVE )
+         || (int)$role_arr['status'] !== self::STATUS_INACTIVE )
             return false;
 
         return $role_arr;
@@ -142,7 +87,7 @@ class PHS_Model_Roles extends PHS_Model
     public function is_deleted( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
-         || $role_arr['status'] != self::STATUS_DELETED )
+         || (int)$role_arr['status'] !== self::STATUS_DELETED )
             return false;
 
         return $role_arr;
@@ -151,7 +96,7 @@ class PHS_Model_Roles extends PHS_Model
     public function is_suspended( $role_data )
     {
         if( !($role_arr = $this->data_to_array( $role_data ))
-         || $role_arr['status'] != self::STATUS_SUSPENDED )
+         || (int)$role_arr['status'] !== self::STATUS_SUSPENDED )
             return false;
 
         return $role_arr;
@@ -239,15 +184,13 @@ class PHS_Model_Roles extends PHS_Model
         return $edit_result;
     }
 
-    private function load_dependencies()
+    private function _load_dependencies(): bool
     {
-        if( empty( self::$_accounts_model ) )
+        if( empty( self::$_accounts_model )
+         && !(self::$_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
         {
-            if( !(self::$_accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error loading accounts model.' ) );
-                return false;
-            }
+            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error loading required resources.' ) );
+            return false;
         }
 
         return true;
@@ -256,11 +199,11 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * Try transforming a string to role or role unit slug.
      *
-     * @param string $str String to be transformed in characters accepted as role slug
+     * @param  string  $str String to be transformed in characters accepted as role slug
      *
      * @return string Returns string containing resulting slug
      */
-    public function transform_string_to_slug( $str )
+    public function transform_string_to_slug( string $str ): string
     {
         $str = trim( (string)$str );
         if( empty( $str ) )
@@ -273,7 +216,7 @@ class PHS_Model_Roles extends PHS_Model
      * Returns an array of key-values of fields that should edit role unit in case role unit already exists
      * @return array
      */
-    public static function get_register_edit_role_unit_fields()
+    public static function get_register_edit_role_unit_fields(): array
     {
         return [
             'name' => '',
@@ -284,10 +227,10 @@ class PHS_Model_Roles extends PHS_Model
 
     public function get_all_role_units( $force = false )
     {
-        static $all_role_units = false;
+        static $all_role_units = null;
 
         if( empty( $force )
-        && $all_role_units !== false )
+        && $all_role_units !== null )
             return $all_role_units;
 
         if( !($model_settings = $this->get_db_settings()) )
@@ -800,7 +743,7 @@ class PHS_Model_Roles extends PHS_Model
             $params = [];
 
         if( empty( self::$_accounts_model )
-        && !$this->load_dependencies() )
+        && !$this->_load_dependencies() )
             return false;
 
         if( !is_array( $roles_arr ) )
@@ -845,7 +788,7 @@ class PHS_Model_Roles extends PHS_Model
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
-        && !$this->load_dependencies() )
+        && !$this->_load_dependencies() )
             return false;
 
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
@@ -908,7 +851,7 @@ class PHS_Model_Roles extends PHS_Model
             $params = [];
 
         if( empty( self::$_accounts_model )
-         && !$this->load_dependencies() )
+         && !$this->_load_dependencies() )
             return false;
 
         if( empty( $account_data )
@@ -1087,7 +1030,7 @@ class PHS_Model_Roles extends PHS_Model
             $roles_list = [ $roles_list ];
 
         if( !in_array( $params['logical_operation'], $logical_operations, true )
-         || (empty( self::$_accounts_model ) && !$this->load_dependencies())
+         || (empty( self::$_accounts_model ) && !$this->_load_dependencies())
          || !($all_role_ids = $this->get_all_roles())
          || !($role_ids = $this->roles_list_to_ids( $roles_list ))
          || !is_array( $role_ids ) )
@@ -1191,7 +1134,7 @@ class PHS_Model_Roles extends PHS_Model
             $role_units_list = [ $role_units_list ];
 
         if( !in_array( $params['logical_operation'], $logical_operations, true )
-         || (empty( self::$_accounts_model ) && !$this->load_dependencies())
+         || (empty( self::$_accounts_model ) && !$this->_load_dependencies())
          || !($all_role_unit_ids = $this->get_all_role_units())
          || !($role_unit_ids = $this->role_units_list_to_ids( $role_units_list ))
          || !is_array( $role_unit_ids ) )
@@ -1268,7 +1211,7 @@ class PHS_Model_Roles extends PHS_Model
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
-        && !$this->load_dependencies() )
+        && !$this->_load_dependencies() )
             return false;
 
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
@@ -1299,7 +1242,7 @@ class PHS_Model_Roles extends PHS_Model
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
-         && !$this->load_dependencies() )
+         && !$this->_load_dependencies() )
             return false;
 
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )

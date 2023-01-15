@@ -138,8 +138,8 @@ class PHS_Api_remote extends PHS_Api_base
             exit;
         }
 
-        if( $this->is_web_simulation()
-         && empty( $apikey_arr['allow_sw'] ) )
+        if( empty( $apikey_arr['allow_sw'] )
+         && $this->is_web_simulation() )
         {
             if( !$this->send_header_response( self::H_CODE_FORBIDDEN ) )
             {
@@ -147,7 +147,7 @@ class PHS_Api_remote extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -164,7 +164,7 @@ class PHS_Api_remote extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Method not allowed (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Method not allowed (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -180,7 +180,7 @@ class PHS_Api_remote extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'Method denied (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'Method denied (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -195,7 +195,7 @@ class PHS_Api_remote extends PHS_Api_base
                 return false;
             }
 
-            PHS_Logger::logf( 'IP denied (#'.$apikey_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_API );
+            PHS_Logger::warning( 'IP denied (#'.$apikey_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_API );
 
             exit;
         }
@@ -237,7 +237,7 @@ class PHS_Api_remote extends PHS_Api_base
             || !in_array( $request_ip, self::extract_strings_from_comma_separated( $domain_arr['ips_whitelist'], [ 'to_lowercase' => true ] ), true )
             ) )
         {
-            PHS_Logger::logf( 'IP denied (#'.$domain_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( 'IP denied (#'.$domain_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_AUTHENTICATION, $this->_pt( 'Access denied.' ) );
             return false;
@@ -247,7 +247,7 @@ class PHS_Api_remote extends PHS_Api_base
          || !($message_arr = @json_decode( $message_str, true ))
          || !($message_arr = $domain_model->validate_communication_message( $message_arr )) )
         {
-            PHS_Logger::logf( 'Error decoding message (#'.$domain_arr['id'].').'.
+            PHS_Logger::error( 'Error decoding message (#'.$domain_arr['id'].').'.
                               ($domain_model->has_error()?' Error: '.$domain_model->get_simple_error_message():''), PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_REMOTE_MESSAGE, $this->_pt( 'Error decoding message.' ) );
@@ -309,10 +309,11 @@ class PHS_Api_remote extends PHS_Api_base
 
         if( PHS::st_debugging_mode() )
         {
-            if( !($route_str = PHS::route_from_parts( $phs_route )) )
+            if( !($route_str = PHS::route_from_parts( $phs_route )) ) {
                 $route_str = 'N/A';
+            }
 
-            PHS_Logger::logf( 'Remote PHS route ['.$route_str.']', PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( 'Remote PHS route ['.$route_str.']', PHS_Logger::TYPE_REMOTE );
         }
 
         $this->api_flow_value( 'phs_route', $phs_route );
@@ -321,8 +322,9 @@ class PHS_Api_remote extends PHS_Api_base
 
         if( !$this->_before_route_run() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Running action was stopped by API instance.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
+            }
 
             return false;
         }
@@ -332,8 +334,9 @@ class PHS_Api_remote extends PHS_Api_base
         $edit_arr['fields'] = [];
         $edit_arr['fields']['last_incoming'] = date( $domain_model::DATETIME_DB );
 
-        if( ($new_domain_arr = $domain_model->edit( $domain_arr, $edit_arr )) )
+        if( ($new_domain_arr = $domain_model->edit( $domain_arr, $edit_arr )) ) {
             $domain_arr = $new_domain_arr;
+        }
 
         // Log request right before running the actual action...
         $remote_log_arr = false;
@@ -341,15 +344,17 @@ class PHS_Api_remote extends PHS_Api_base
         {
             if( !$domain_model->should_log_request_body( $domain_arr )
              || !($req_body_arr = $this->api_flow_value( 'remote_domain_message' ))
-             || !($req_body_str = @json_encode( $req_body_arr )) )
+             || !($req_body_str = @json_encode( $req_body_arr )) ) {
                 $req_body_str = null;
+            }
 
             $log_fields = [];
             $log_fields['route'] = PHS::get_route_as_string();
             $log_fields['body'] = $req_body_str;
 
-            if( !($remote_log_arr = $domain_model->domain_incoming_log( $domain_arr, $log_fields )) )
+            if( !($remote_log_arr = $domain_model->domain_incoming_log( $domain_arr, $log_fields )) ) {
                 $remote_log_arr = false;
+            }
         }
 
         // Reset any edit errors as we don't care about them...
@@ -360,10 +365,12 @@ class PHS_Api_remote extends PHS_Api_base
 
         if( !($action_result = PHS::execute_route( $execution_params )) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_RUN_ROUTE );
-            else
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_RUN_ROUTE);
+            } else {
+                $this->set_error(self::ERR_RUN_ROUTE,
+                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
+            }
 
             if( !empty( $remote_log_arr ) )
             {
@@ -372,8 +379,9 @@ class PHS_Api_remote extends PHS_Api_base
                 $log_fields['error_log'] = $this->get_simple_error_message();
 
                 // We don't care about errors...
-                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) ) {
                     $domain_model->reset_error();
+                }
             }
 
             return false;
@@ -381,8 +389,9 @@ class PHS_Api_remote extends PHS_Api_base
 
         if( !$this->_after_route_run() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_RUN_ROUTE, self::_t( 'Flow was stopped by API instance after action run.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
+            }
 
             if( !empty( $remote_log_arr ) )
             {
@@ -391,8 +400,9 @@ class PHS_Api_remote extends PHS_Api_base
                 $log_fields['error_log'] = $this->get_simple_error_message();
 
                 // We don't care about errors...
-                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+                if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) ) {
                     $domain_model->reset_error();
+                }
             }
 
             return false;
@@ -404,8 +414,9 @@ class PHS_Api_remote extends PHS_Api_base
             $log_fields['status'] = $domain_model::LOG_STATUS_RECEIVED;
 
             // We don't care about errors...
-            if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) )
+            if( !$domain_model->domain_incoming_log( $domain_arr, $log_fields, $remote_log_arr ) ) {
                 $domain_model->reset_error();
+            }
         }
 
         return $action_result;
@@ -416,22 +427,25 @@ class PHS_Api_remote extends PHS_Api_base
      */
     public function create_response_envelope( $response_arr, $errors_arr = false )
     {
-        if( !is_array( $response_arr ) )
+        if( !is_array( $response_arr ) ) {
             $response_arr = [];
+        }
 
         if( !array_key_exists( 'response_status', $response_arr )
          || is_array( $response_arr['response_status'] ) )
         {
-            if( @class_exists( '\\phs\\libraries\\PHS_Notifications', false ) )
+            if( @class_exists( PHS_Notifications::class, false ) ) {
                 $status_data = [
                     'success_messages' => PHS_Notifications::notifications_success(),
                     'warning_messages' => PHS_Notifications::notifications_warnings(),
                     'error_messages' => PHS_Notifications::notifications_errors(),
                 ];
+            }
             else
             {
-                if( empty( $errors_arr ) || !is_array( $errors_arr ) )
+                if( empty( $errors_arr ) || !is_array( $errors_arr ) ) {
                     $errors_arr = [];
+                }
 
                 $status_data = [
                     'success_messages' => [],
@@ -440,18 +454,19 @@ class PHS_Api_remote extends PHS_Api_base
                 ];
             }
 
-            if( empty( $response_arr['response_status'] ) )
+            if( empty( $response_arr['response_status'] ) ) {
                 $response_arr['response_status'] = [];
+            }
 
             $response_arr['response_status'] = self::validate_array( $response_arr['response_status'], $status_data );
         }
 
         // Check if we should remove response_status key from response
         if( array_key_exists( 'response_status', $response_arr )
-         && $response_arr['response_status'] === null )
-            unset( $response_arr['response_status'] );
+         && $response_arr['response_status'] === null ) {
+            unset($response_arr['response_status']);
+        }
 
         return $response_arr;
     }
 }
-

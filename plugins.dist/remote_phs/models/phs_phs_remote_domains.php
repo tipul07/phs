@@ -516,7 +516,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( '[CONNECTION_ERROR] Error updating remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
             return false;
@@ -548,7 +548,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
             }
 
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error connecting with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( '[CONNECTION_ERROR] Error connecting with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
 
             // Error sending request to remote domain
             $edit_arr = [];
@@ -560,7 +560,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
             if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
             {
-                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
+                PHS_Logger::error( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
                 return false;
@@ -579,7 +579,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
         {
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when waiting connection '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( '[CONNECTION_ERROR] Error updating remote domain when waiting connection '.$domain_arr['title'].' #'.$domain_arr['id'].'.', PHS_Logger::TYPE_REMOTE );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
             return false;
@@ -609,7 +609,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
             }
 
-            PHS_Logger::logf( '[CONNECTION_ERROR] Error sending connection confirmation with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
+            PHS_Logger::error( '[CONNECTION_ERROR] Error sending connection confirmation with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
 
             // Error sending request to remote domain
             $edit_arr = [];
@@ -621,7 +621,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
             if( !($new_domain_arr = $this->edit( $domain_arr, $edit_params )) )
             {
-                PHS_Logger::logf( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
+                PHS_Logger::error( '[CONNECTION_ERROR] Error updating remote domain when connection error.', PHS_Logger::TYPE_REMOTE );
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating remote domain details in database.' ) );
                 return false;
@@ -778,13 +778,13 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         {
             if( !($payload_str = @json_encode( $params['payload_arr'] )) )
             {
-                PHS_Logger::logf( '[ERROR] Error encoding payload in JSON for 3rd party API call.', $log_channel );
+                PHS_Logger::error( 'Error encoding payload in JSON for 3rd party API call.', $log_channel );
 
                 ob_start();
                 var_dump( $curl_params );
                 $request_params = @ob_get_clean();
 
-                PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
+                PHS_Logger::error( 'REMOTE API URL: '.$full_url."\n".
                                   'Params: '.$request_params, $log_channel );
 
                 $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error encoding payload in JSON for remote domain API call.' ) );
@@ -798,13 +798,13 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( !($api_response = PHS_Utils::quick_curl( $full_url, $curl_params ))
          || !is_array( $api_response ) )
         {
-            PHS_Logger::logf( '[ERROR] Error initiating call to remote domain API.', $log_channel );
+            PHS_Logger::error( 'Error initiating call to remote domain API.', $log_channel );
 
             ob_start();
             var_dump( $curl_params );
             $request_params = @ob_get_clean();
 
-            PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
+            PHS_Logger::error( 'REMOTE API URL: '.$full_url."\n".
                               'Params: '.$request_params."\n".
                               'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $log_channel );
 
@@ -814,13 +814,13 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( empty( $api_response['request_details'] ) || !is_array( $api_response['request_details'] ) )
         {
-            PHS_Logger::logf( '[ERROR] Error retrieving remote domain API request details.', $log_channel );
+            PHS_Logger::error( 'Error retrieving remote domain API request details.', $log_channel );
 
             ob_start();
             var_dump( $curl_params );
             $request_params = @ob_get_clean();
 
-            PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
+            PHS_Logger::error( 'REMOTE API URL: '.$full_url."\n".
                               'Params: '.$request_params."\n".
                               'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $log_channel );
 
@@ -831,7 +831,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( empty( $api_response['request_details']['http_code'] )
          || !in_array( (int)$api_response['request_details']['http_code'], [ 200, 201, 204 ], true ) )
         {
-            PHS_Logger::logf( '[ERROR] Remote domain API responded with HTTP code: '.$api_response['request_details']['http_code'], $log_channel );
+            PHS_Logger::error( 'Remote domain API responded with HTTP code: '.$api_response['request_details']['http_code'], $log_channel );
 
             $request_headers = (!empty( $api_response['request_details']['request_header'] )?$api_response['request_details']['request_header']:'N/A');
             if( !empty( $api_response['request_details']['request_params'] ) )
@@ -842,7 +842,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             } else
                 $request_params = 'N/A';
 
-            PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
+            PHS_Logger::error( 'REMOTE API URL: '.$full_url."\n".
                               'Request headers: '.$request_headers."\n".
                               'Params: '.$request_params."\n".
                               'Payload: '.(!empty( $payload_str )?$payload_str:'N/A')."\n".
@@ -856,7 +856,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !empty( $http_code ) )
         {
-            PHS_Logger::logf( 'REMOTE API URL: '.$full_url."\n".
+            PHS_Logger::notice( 'REMOTE API URL: '.$full_url."\n".
                               'Payload: '.(!empty( $payload_str )?$payload_str:'N/A')."\n".
                               'REMOTE API responded with HTTP code: ' . $api_response['request_details']['http_code'], $log_channel );
         }
@@ -872,7 +872,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
             elseif( !($api_response['response_json'] = @json_decode( $api_response['response'], true )) )
             {
-                PHS_Logger::logf( 'Couldn\'t decode API response.', $log_channel );
+                PHS_Logger::error( 'Couldn\'t decode API response.', $log_channel );
 
                 $request_headers = (!empty( $api_response['request_details']['request_header'] )?$api_response['request_details']['request_header']:'N/A');
                 if( !empty( $api_response['request_details']['request_params'] ) )
@@ -883,7 +883,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 } else
                     $request_params = 'N/A';
 
-                PHS_Logger::logf( 'GP API URL: '.$full_url."\n".
+                PHS_Logger::error( 'GP API URL: '.$full_url."\n".
                                   'Request headers: '.$request_headers."\n".
                                   'Params: '.$request_params."\n".
                                   'Payload: '.(!empty( $payload_str )?$payload_str:'N/A'), $log_channel );
@@ -898,7 +898,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             var_dump( $api_response );
             $buf = @ob_get_clean();
 
-            PHS_Logger::logf('REMOTE API URL: '.$full_url."\n".
+            PHS_Logger::info('REMOTE API URL: '.$full_url."\n".
                              'Payload: '.(!empty($payload_str) ? $payload_str : 'N/A')."\n".
                              'Response: '.$buf, $log_channel);
         }
@@ -906,7 +906,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $api_response;
     }
 
-    public function get_default_communication_message_arr()
+    public function get_default_communication_message_arr(): array
     {
         return [
             // What route should run
@@ -947,7 +947,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $msg;
     }
 
-    public function get_default_connection_settings_arr()
+    public function get_default_connection_settings_arr(): array
     {
         return [
             'crypt_key' => '',
@@ -1000,8 +1000,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $new_settings_arr = [];
         foreach( $defaults_arr as $key => $def )
         {
-            if( !array_key_exists( $key, $settings_arr ) )
+            if( !array_key_exists( $key, $settings_arr ) ) {
                 $settings_arr[$key] = $def;
+            }
 
             $new_settings_arr[$key] = $settings_arr[$key];
         }
@@ -1150,7 +1151,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($message_arr = $this->validate_communication_message( $message_arr )) )
         {
-            PHS_Logger::logf( '[ERROR] Error validating message to (#'.$domain_arr['id'].').'.
+            PHS_Logger::error( 'Error validating message to (#'.$domain_arr['id'].').'.
                               ($this->has_error()?' Error: '.$this->get_simple_error_message():''), PHS_Logger::TYPE_REMOTE );
 
             if( !$this->has_error() )
@@ -1158,17 +1159,19 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( empty( $message_arr['timezone'] ) )
-            $message_arr['timezone'] = (int)date( 'Z' );
+        if( empty( $message_arr['timezone'] ) ) {
+            $message_arr['timezone'] = (int) date('Z');
+        }
 
         if( !($message_json = @json_encode( $message_arr ))
          || !($message_str = $this->quick_encode( $domain_arr, $message_json )) )
         {
-            PHS_Logger::logf( '[ERROR] Error encoding message to (#'.$domain_arr['id'].').'.
+            PHS_Logger::error( 'Error encoding message to (#'.$domain_arr['id'].').'.
                               ($this->has_error()?' Error: '.$this->get_simple_error_message():''), PHS_Logger::TYPE_REMOTE );
 
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error encoding message.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encoding message.'));
+            }
             return false;
         }
 
@@ -1177,8 +1180,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $edit_arr['fields'] = [];
         $edit_arr['fields']['last_outgoing'] = date( self::DATETIME_DB );
 
-        if( ($new_domain_arr = $this->edit( $domain_arr, $edit_arr )) )
+        if( ($new_domain_arr = $this->edit( $domain_arr, $edit_arr )) ) {
             $domain_arr = $new_domain_arr;
+        }
 
         // Log request right before running the actual action...
         $remote_log_arr = false;
@@ -1186,11 +1190,13 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         {
             $log_fields = [];
             $log_fields['route'] = (!empty( $message_arr['route'] )?PHS::route_from_parts( $message_arr['route'] ):'-');
-            if( $this->should_log_request_body( $domain_arr ) )
+            if( $this->should_log_request_body( $domain_arr ) ) {
                 $log_fields['body'] = $message_json;
+            }
 
-            if( !($remote_log_arr = $this->domain_outgoing_log( $domain_arr, $log_fields )) )
+            if( !($remote_log_arr = $this->domain_outgoing_log( $domain_arr, $log_fields )) ) {
                 $remote_log_arr = false;
+            }
         }
 
         // Reset any edit errors as we don't care about them...
@@ -1203,8 +1209,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !($response_arr = $this->_send_remote_request_to_domain( $domain_arr, $payload_arr )) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending request to remote domain.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending request to remote domain.'));
+            }
 
             if( !empty( $remote_log_arr ) )
             {
@@ -1227,10 +1234,12 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $error_msg = '';
         if( !empty( $response_arr['error'] ) && is_array( $response_arr['error'] ) )
         {
-            if( !empty( $response_arr['error']['code'] ) )
-                $error_code = (int)$response_arr['error']['code'];
-            if( !empty( $response_arr['error']['message'] ) )
-                $error_msg = trim( $response_arr['error']['message'] );
+            if( !empty( $response_arr['error']['code'] ) ) {
+                $error_code = (int) $response_arr['error']['code'];
+            }
+            if( !empty( $response_arr['error']['message'] ) ) {
+                $error_msg = trim($response_arr['error']['message']);
+            }
         }
         $has_error = ($error_code!==0);
 
@@ -1248,8 +1257,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             }
 
             // We don't care about errors...
-            if( !$this->domain_outgoing_log( $domain_arr, $log_fields, $remote_log_arr ) )
+            if( !$this->domain_outgoing_log( $domain_arr, $log_fields, $remote_log_arr ) ) {
                 $this->reset_error();
+            }
         }
 
         return [
@@ -1278,8 +1288,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( $this->is_suspended( $record_arr ) )
+        if( $this->is_suspended( $record_arr ) ) {
             return $record_arr;
+        }
 
         $edit_arr = [];
         $edit_arr['status'] = self::STATUS_SUSPENDED;
@@ -1307,8 +1318,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         $edit_arr = [];
         $edit_arr['status'] = self::STATUS_DELETED;
@@ -1337,8 +1349,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         return $this->hard_delete( $record_arr, $flow_arr );
     }
@@ -1353,8 +1366,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
          || !($remote_plugin = PHS::load_plugin( 'remote_phs' ))
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          || !($account_arr = $accounts_model->data_to_array( $account_data, [ 'table_name' => 'users' ] ))
-         || !$remote_plugin->can_admin_manage_domains( $account_arr ) )
+         || !$remote_plugin->can_admin_manage_domains( $account_arr ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['remote_domain_data'] = $record_arr;
@@ -1376,12 +1390,14 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !$only_connected )
         {
-            if( $cached_domains !== false )
+            if( $cached_domains !== false ) {
                 return $cached_domains;
+            }
         } else
         {
-            if( $cached_connected_domains !== false )
+            if( $cached_connected_domains !== false ) {
                 return $cached_connected_domains;
+            }
         }
 
         $list_arr = $this->fetch_default_flow_params( [ 'table_name' => 'phs_remote_domains' ] );
@@ -1389,22 +1405,25 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $list_arr['order_by'] = 'title ASC';
 
         $cached_connected_domains = [];
-        if( !($cached_domains = $this->get_list( $list_arr )) )
+        if( !($cached_domains = $this->get_list( $list_arr )) ) {
             $cached_domains = [];
+        }
 
         else
         {
             foreach( $cached_domains as $d_id => $d_arr )
             {
-                if( !$this->is_connected( $d_arr ) )
+                if( !$this->is_connected( $d_arr ) ) {
                     continue;
+                }
 
                 $cached_connected_domains[$d_id] = $d_arr;
             }
         }
 
-        if( $only_connected )
+        if( $only_connected ) {
             return $cached_connected_domains;
+        }
 
         return $cached_domains;
     }
@@ -1418,8 +1437,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $this->reset_error();
 
-        if( !($results_arr = $this->get_all_remote_domains( $only_connected )) )
+        if( !($results_arr = $this->get_all_remote_domains( $only_connected )) ) {
             return [];
+        }
 
         $return_arr = [];
         foreach( $results_arr as $record_id => $record_arr )
@@ -1444,8 +1464,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $fields_arr ) || !is_array( $fields_arr ) )
+        if( empty( $fields_arr ) || !is_array( $fields_arr ) ) {
             $fields_arr = [];
+        }
 
         if( !($domain_arr = $this->data_to_array( $domain_data, [ 'table_name' => 'phs_remote_domains' ] ))
          || $this->is_deleted( $domain_arr ) )
@@ -1481,16 +1502,19 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( empty( $log_arr )
          && (empty( $fields_arr['status'] ) || !$this->valid_log_status( $fields_arr['status'] )) )
         {
-            if( (int)$fields_arr['type'] === self::LOG_TYPE_INCOMING )
+            if( (int)$fields_arr['type'] === self::LOG_TYPE_INCOMING ) {
                 $fields_arr['status'] = self::LOG_STATUS_RECEIVED;
+            }
             // Future-proof (in case we add new types)
-            elseif( (int)$fields_arr['type'] === self::LOG_TYPE_OUTGOING )
+            elseif( (int)$fields_arr['type'] === self::LOG_TYPE_OUTGOING ) {
                 $fields_arr['status'] = self::LOG_STATUS_SENDING;
+            }
         }
 
         if( !empty( $fields_arr['status'] )
-         && (int)$fields_arr['status'] !== self::LOG_STATUS_ERROR )
+         && (int)$fields_arr['status'] !== self::LOG_STATUS_ERROR ) {
             $fields_arr['error_log'] = null;
+        }
 
         $action_arr = $this->fetch_default_flow_params( [ 'table_name' => 'phs_remote_logs' ] );
         $action_arr['fields'] = $fields_arr;
@@ -1518,8 +1542,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
     protected function get_insert_prepare_params_phs_remote_domains( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( empty( $params['fields']['title'] ) )
         {
@@ -1528,19 +1553,22 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         }
 
         if( empty( $params['fields']['source'] )
-         || !$this->valid_status( $params['fields']['source'] ) )
+         || !$this->valid_status( $params['fields']['source'] ) ) {
             $params['fields']['source'] = self::SOURCE_MANUALLY;
+        }
 
         if( !empty( $params['fields']['remote_www'] ) )
         {
-            if( stripos( $params['fields']['remote_www'], 'https://' ) === 0 )
-                $params['fields']['remote_www'] = substr( $params['fields']['remote_www'], 8 );
-            elseif( stripos( $params['fields']['remote_www'], 'http://' ) === 0 )
-                $params['fields']['remote_www'] = substr( $params['fields']['remote_www'], 7 );
+            if( stripos( $params['fields']['remote_www'], 'https://' ) === 0 ) {
+                $params['fields']['remote_www'] = substr($params['fields']['remote_www'], 8);
+            } elseif( stripos( $params['fields']['remote_www'], 'http://' ) === 0 ) {
+                $params['fields']['remote_www'] = substr($params['fields']['remote_www'], 7);
+            }
 
             if( $params['fields']['remote_www'] !== ''
-             && substr( $params['fields']['remote_www'], -1 ) !== '/' )
+             && substr( $params['fields']['remote_www'], -1 ) !== '/' ) {
                 $params['fields']['remote_www'] .= '/';
+            }
         }
 
         // For programmatically added remote domains don't impose restrictions on fields
@@ -1573,10 +1601,11 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( !isset( $params['fields']['allow_incoming'] ) )
+        if( !isset( $params['fields']['allow_incoming'] ) ) {
             $params['fields']['allow_incoming'] = 1;
-        else
-            $params['fields']['allow_incoming'] = (!empty( $params['fields']['allow_incoming'] )?1:0);
+        } else {
+            $params['fields']['allow_incoming'] = (!empty($params['fields']['allow_incoming']) ? 1 : 0);
+        }
 
         $params['fields']['log_requests'] = (!empty( $params['fields']['log_requests'] )?1:0);
         $params['fields']['log_body'] = (!empty( $params['fields']['log_body'] )?1:0);
@@ -1593,16 +1622,18 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $cdate = date( self::DATETIME_DB );
 
         if( empty( $params['fields']['status'] )
-         || !$this->valid_status( $params['fields']['status'] ) )
+         || !$this->valid_status( $params['fields']['status'] ) ) {
             $params['fields']['status'] = self::STATUS_NOT_CONNECTED;
+        }
 
         $params['fields']['cdate'] = $cdate;
 
         if( empty( $params['fields']['status_date'] )
-         || empty_db_date( $params['fields']['status_date'] ) )
+         || empty_db_date( $params['fields']['status_date'] ) ) {
             $params['fields']['status_date'] = $params['fields']['cdate'];
-        else
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+        } else {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
@@ -1618,14 +1649,16 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( isset( $params['fields']['remote_www'] ) && !empty( $params['fields']['remote_www'] ) )
         {
             $params['fields']['remote_www'] = trim( $params['fields']['remote_www'] );
-            if( stripos( $params['fields']['remote_www'], 'https://' ) === 0 )
-                $params['fields']['remote_www'] = substr( $params['fields']['remote_www'], 8 );
-            elseif( stripos( $params['fields']['remote_www'], 'http://' ) === 0 )
-                $params['fields']['remote_www'] = substr( $params['fields']['remote_www'], 7 );
+            if( stripos( $params['fields']['remote_www'], 'https://' ) === 0 ) {
+                $params['fields']['remote_www'] = substr($params['fields']['remote_www'], 8);
+            } elseif( stripos( $params['fields']['remote_www'], 'http://' ) === 0 ) {
+                $params['fields']['remote_www'] = substr($params['fields']['remote_www'], 7);
+            }
 
             if( $params['fields']['remote_www'] !== ''
-             && substr( $params['fields']['remote_www'], -1 ) !== '/' )
+             && substr( $params['fields']['remote_www'], -1 ) !== '/' ) {
                 $params['fields']['remote_www'] .= '/';
+            }
         }
 
         if( isset( $params['fields']['remote_www'] ) && empty( $params['fields']['remote_www'] ) )
@@ -1634,8 +1667,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['out_apikey'] ) )
-            $params['fields']['out_apikey'] = trim( $params['fields']['out_apikey'] );
+        if( !empty( $params['fields']['out_apikey'] ) ) {
+            $params['fields']['out_apikey'] = trim($params['fields']['out_apikey']);
+        }
 
         if( isset( $params['fields']['out_apikey'] ) && empty( $params['fields']['out_apikey'] ) )
         {
@@ -1664,18 +1698,21 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( (isset( $params['fields']['remote_www'] ) && $params['fields']['remote_www'] !== $existing_arr['remote_www'])
          || (isset( $params['fields']['out_apikey'] ) && $params['fields']['out_apikey'] !== $existing_arr['out_apikey'])
          || (isset( $params['fields']['out_apisecret'] ) && $params['fields']['out_apisecret'] !== $existing_arr['out_apisecret'])
-         || (isset( $params['fields']['apikey_id'] ) && (int)$params['fields']['apikey_id'] !== (int)$existing_arr['apikey_id']) )
+         || (isset( $params['fields']['apikey_id'] ) && (int)$params['fields']['apikey_id'] !== (int)$existing_arr['apikey_id']) ) {
             $params['fields']['status'] = self::STATUS_NOT_CONNECTED;
+        }
 
-        if( isset( $params['fields']['out_apikey'] ) )
-            $out_apikey = trim( $params['fields']['out_apikey'] );
-        else
+        if( isset( $params['fields']['out_apikey'] ) ) {
+            $out_apikey = trim($params['fields']['out_apikey']);
+        } else {
             $out_apikey = $existing_arr['out_apikey'];
+        }
 
-        if( isset( $params['fields']['out_apisecret'] ) )
-            $out_apisecret = trim( $params['fields']['out_apisecret'] );
-        else
+        if( isset( $params['fields']['out_apisecret'] ) ) {
+            $out_apisecret = trim($params['fields']['out_apisecret']);
+        } else {
             $out_apisecret = $existing_arr['out_apisecret'];
+        }
 
         if( empty( $out_apikey ) && empty( $out_apisecret ) )
         {
@@ -1689,16 +1726,20 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( isset( $params['fields']['out_timeout'] ) )
-            $params['fields']['out_timeout'] = (int)$params['fields']['out_timeout'];
+        if( isset( $params['fields']['out_timeout'] ) ) {
+            $params['fields']['out_timeout'] = (int) $params['fields']['out_timeout'];
+        }
 
-        if( isset( $params['fields']['allow_incoming'] ) )
-            $params['fields']['allow_incoming'] = (!empty( $params['fields']['allow_incoming'] )?1:0);
+        if( isset( $params['fields']['allow_incoming'] ) ) {
+            $params['fields']['allow_incoming'] = (!empty($params['fields']['allow_incoming']) ? 1 : 0);
+        }
 
-        if( isset( $params['fields']['log_requests'] ) )
-            $params['fields']['log_requests'] = (!empty( $params['fields']['log_requests'] )?1:0);
-        if( isset( $params['fields']['log_body'] ) )
-            $params['fields']['log_body'] = (!empty( $params['fields']['log_body'] )?1:0);
+        if( isset( $params['fields']['log_requests'] ) ) {
+            $params['fields']['log_requests'] = (!empty($params['fields']['log_requests']) ? 1 : 0);
+        }
+        if( isset( $params['fields']['log_body'] ) ) {
+            $params['fields']['log_body'] = (!empty($params['fields']['log_body']) ? 1 : 0);
+        }
 
         if( !empty( $params['fields']['handle'] ) )
         {
@@ -1715,19 +1756,20 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !empty( $params['fields']['status'] )
          && (int)$params['fields']['status'] !== (int)$existing_arr['status']
-         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] )) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB );
-
-        elseif( !empty( $params['fields']['status_date'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] )) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB);
+        } elseif( !empty( $params['fields']['status_date'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
 
     protected function get_insert_prepare_params_phs_remote_logs( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( empty( $params['fields']['domain_id'] ) )
         {
@@ -1741,24 +1783,28 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( isset( $params['fields']['out_timeout'] ) )
-            $params['fields']['out_timeout'] = (int)$params['fields']['out_timeout'];
+        if( isset( $params['fields']['out_timeout'] ) ) {
+            $params['fields']['out_timeout'] = (int) $params['fields']['out_timeout'];
+        }
 
         if( empty( $params['fields']['type'] )
-         || !$this->valid_log_type( $params['fields']['type'] ) )
+         || !$this->valid_log_type( $params['fields']['type'] ) ) {
             $params['fields']['type'] = self::LOG_TYPE_OUTGOING;
+        }
 
         if( empty( $params['fields']['status'] )
-         || !$this->valid_log_status( $params['fields']['status'] ) )
+         || !$this->valid_log_status( $params['fields']['status'] ) ) {
             $params['fields']['status'] = self::LOG_STATUS_SENDING;
+        }
 
         $params['fields']['cdate'] = date( self::DATETIME_DB );
 
         if( empty( $params['fields']['status_date'] )
-         || empty_db_date( $params['fields']['status_date'] ) )
+         || empty_db_date( $params['fields']['status_date'] ) ) {
             $params['fields']['status_date'] = $params['fields']['cdate'];
-        else
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+        } else {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
@@ -1791,11 +1837,11 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         if( !empty( $params['fields']['status'] )
          && (int)$params['fields']['status'] !== (int)$existing_arr['status']
-         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] )) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB );
-
-        elseif( !empty( $params['fields']['status_date'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] )) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB);
+        } elseif( !empty( $params['fields']['status_date'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
@@ -1807,8 +1853,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         if( !empty( $params['flags'] ) && is_array( $params['flags'] ) )
         {
-            if( empty( $params['db_fields'] ) )
+            if( empty( $params['db_fields'] ) ) {
                 $params['db_fields'] = '';
+            }
 
             $model_table = $this->get_flow_table_name( $params );
             foreach( $params['flags'] as $flag )
@@ -1819,8 +1866,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
                         /** @var \phs\system\core\models\PHS_Model_Api_keys $api_keys_model */
                         if( !($api_keys_model = PHS::load_model( 'api_keys' ))
-                         || !($api_keys_table = $api_keys_model->get_flow_table_name( [ 'table_name' => 'api_keys' ] )) )
+                         || !($api_keys_table = $api_keys_model->get_flow_table_name( [ 'table_name' => 'api_keys' ] )) ) {
                             continue 2;
+                        }
 
                         $params['db_fields'] .= ', `'.$api_keys_table.'`.uid AS api_keys_uid, '.
                                                 ' `'.$api_keys_table.'`.title AS api_keys_title, '.
@@ -1840,8 +1888,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
                         /** @var \phs\system\core\models\PHS_Model_Api_keys $api_keys_model */
                         if( $params['table_name'] !== 'phs_remote_logs'
-                         || !($domains_table = $this->get_flow_table_name( [ 'table_name' => 'phs_remote_domains' ] )) )
+                         || !($domains_table = $this->get_flow_table_name( [ 'table_name' => 'phs_remote_domains' ] )) ) {
                             continue 2;
+                        }
 
                         $params['db_fields'] .= ', `'.$domains_table.'`.title AS phs_remote_domains_title, '.
                                                 ' `'.$domains_table.'`.handle AS phs_remote_domains_handle, '.
@@ -1878,8 +1927,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         // $params should be flow parameters...
         if( empty( $params ) || !is_array( $params )
-         || empty( $params['table_name'] ) )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         switch( $params['table_name'] )
@@ -2041,7 +2091,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     /**
      * This function is never used. Its purpose is to have translations for strings which are not translated in used methods
      */
-    private function _never_used_only_for_translation()
+    private function _never_used_only_for_translation(): void
     {
         $this->_pt( 'Not Connected' );
         $this->_pt( 'Waiting Connection' );

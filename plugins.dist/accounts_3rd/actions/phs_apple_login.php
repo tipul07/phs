@@ -151,7 +151,7 @@ class PHS_Action_apple_login extends PHS_Action
                                      $error_msg.$this->_pt( 'Please try again.' );
             } else
             {
-                PHS_Logger::logf( '[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
+                PHS_Logger::notice( '[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
             }
         }
 
@@ -159,7 +159,7 @@ class PHS_Action_apple_login extends PHS_Action
         {
             if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_APPLE, @json_encode( $account_info ) )) )
             {
-                PHS_Logger::logf( '[ERROR] Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
+                PHS_Logger::error( 'Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
             }
 
             if( !$accounts_model->is_active( $account_arr ) )

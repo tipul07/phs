@@ -287,19 +287,22 @@ class PHS_Firebase extends PHS_Library
             var_dump( $payload );
             $buf = ob_get_clean();
 
-            PHS_Logger::logf( 'Couldn\'t obtain JSON from payload: ['.$buf.']', $mobileapi_plugin::LOG_FIREBASE );
+            PHS_Logger::error( 'Couldn\'t obtain JSON from payload: ['.$buf.']', $mobileapi_plugin::LOG_FIREBASE );
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain JSON from payload.' ) );
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( !isset( $params['log_payload'] ) )
+        if( !isset( $params['log_payload'] ) ) {
             $params['log_payload'] = true;
-        if( empty( $params['ok_http_codes'] ) || !is_array( $params['ok_http_codes'] ) )
-            $params['ok_http_codes'] = [ 200 ];
+        }
+        if( empty( $params['ok_http_codes'] ) || !is_array( $params['ok_http_codes'] ) ) {
+            $params['ok_http_codes'] = [200];
+        }
 
         $base_url = trim( trim( $this->_api_settings['fcm_base_url'] ), './' );
         $rest_url = trim( trim( $this->_api_params['rest_url'] ), './' );
@@ -322,13 +325,16 @@ class PHS_Firebase extends PHS_Library
         if( !($response = PHS_Utils::quick_curl( $api_url, $api_params ))
          || empty( $response['http_code'] ) )
         {
-            PHS_Logger::logf( 'Error sending request to ['.$api_url.']', $mobileapi_plugin::LOG_FIREBASE );
+            PHS_Logger::error( 'Error sending request to ['.$api_url.']', $mobileapi_plugin::LOG_FIREBASE );
 
-            if( !empty( $params['request_error_msg'] ) )
-                PHS_Logger::logf( 'cURL said: '.$params['request_error_msg'].' (#'.(!empty( $params['request_error_no'] )?$params['request_error_no']:'0').')', $mobileapi_plugin::LOG_FIREBASE );
+            if( !empty( $params['request_error_msg'] ) ) {
+                PHS_Logger::error('cURL said: '.$params['request_error_msg'].' (#'.(!empty($params['request_error_no']) ? $params['request_error_no'] : '0').')',
+                    $mobileapi_plugin::LOG_FIREBASE);
+            }
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $mobileapi_plugin::LOG_FIREBASE );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $mobileapi_plugin::LOG_FIREBASE);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending request to Firebase server.' ) );
             return false;
@@ -336,20 +342,22 @@ class PHS_Firebase extends PHS_Library
 
         if( !in_array( (int)$response['http_code'], $params['ok_http_codes'], true ) )
         {
-            PHS_Logger::logf( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $mobileapi_plugin::LOG_FIREBASE );
-            PHS_Logger::logf( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $mobileapi_plugin::LOG_FIREBASE );
+            PHS_Logger::error( 'Error in response from ['.$api_url.'], http code: '.$response['http_code'], $mobileapi_plugin::LOG_FIREBASE );
+            PHS_Logger::error( 'Response: '.(!empty( $response['response'] )?$response['response']:'N/A'), $mobileapi_plugin::LOG_FIREBASE );
 
-            if( !empty( $params['log_payload'] ) )
-                PHS_Logger::logf( 'Payload: '.$payload_str, $mobileapi_plugin::LOG_FIREBASE );
+            if( !empty( $params['log_payload'] ) ) {
+                PHS_Logger::error('Payload: '.$payload_str, $mobileapi_plugin::LOG_FIREBASE);
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Firebase server responded with an error.' ) );
             return false;
         }
 
-        if( empty( $response['response'] ) )
+        if( empty( $response['response'] ) ) {
             $response_arr = [];
-        else
-            $response_arr = @json_decode( $response['response'], true );
+        } else {
+            $response_arr = @json_decode($response['response'], true);
+        }
 
         $response['json_response_arr'] = $response_arr;
 

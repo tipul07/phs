@@ -118,7 +118,7 @@ class PHS_Action_Google_register extends PHS_Api_action
                                               $error_msg );
             }
 
-            PHS_Logger::logf( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
+            PHS_Logger::notice( '[GOOGLE] Registered user #'.$account_arr['id'].' with details ['.print_r( $account_info, true ).'].', $accounts_trd_plugin::LOG_CHANNEL );
         } elseif( !$accounts_model->is_active( $account_arr ) )
         {
             // Account not found, and also we should not create new account...
@@ -128,7 +128,7 @@ class PHS_Action_Google_register extends PHS_Api_action
 
         if( !($db_linkage_arr = $services_model->link_user_with_service( $account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode( $account_info ) )) )
         {
-            PHS_Logger::logf( '[ERROR] Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
+            PHS_Logger::error( 'Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL );
         }
 
         $device_data = $mobile_plugin::import_api_data_with_definition_as_array( $request_arr['device_info'], $online_model::get_api_data_device_fields() );

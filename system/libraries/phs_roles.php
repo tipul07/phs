@@ -40,12 +40,12 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function transform_string_to_slug( $str )
+    public static function transform_string_to_slug( $str ): ?string
     {
         self::st_reset_error();
 
         if( !self::load_dependencies() )
-            return false;
+            return null;
 
         $role_model = self::$_role_model;
 

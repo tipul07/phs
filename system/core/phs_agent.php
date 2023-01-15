@@ -444,10 +444,10 @@ class PHS_Agent extends PHS_Registry
             return [ 'cmd' => $cmd_parts['cmd'], ];
         }
 
-        PHS_Logger::logf( 'Launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT );
+        PHS_Logger::notice( 'Launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT );
 
         if( PHS::st_debugging_mode() )
-            PHS_Logger::logf( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_AGENT );
+            PHS_Logger::debug( 'Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_AGENT );
 
         return (@system( $cmd_parts['cmd'] ) !== false );
     }
@@ -664,26 +664,29 @@ class PHS_Agent extends PHS_Registry
         $list_arr['order_by'] = 'run_async DESC';
 
         if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false
-         || !is_array( $jobs_list ) )
+         || !is_array( $jobs_list ) ) {
             return $return_arr;
+        }
 
         $return_arr['jobs_count'] = count( $jobs_list );
 
         foreach( $jobs_list as $job_arr )
         {
-            if( $this->run_job( $job_arr ) )
+            if( $this->run_job( $job_arr ) ) {
                 $return_arr['jobs_success']++;
+            }
 
             else
             {
                 $return_arr['jobs_errors']++;
 
-                if( $this->has_error() )
+                if( $this->has_error() ) {
                     $error_msg = $this->get_error_message();
-                else
+                } else {
                     $error_msg = 'Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']';
+                }
 
-                PHS_Logger::logf( $error_msg, PHS_Logger::TYPE_AGENT );
+                PHS_Logger::error( $error_msg, PHS_Logger::TYPE_AGENT );
             }
         }
 
@@ -697,7 +700,7 @@ class PHS_Agent extends PHS_Registry
          || !($parts_arr = explode( '::', $input_str, 2 ))
          || empty( $parts_arr[0] ) || empty( $parts_arr[1] ) )
         {
-            PHS_Logger::logf( 'Invalid input', PHS_Logger::TYPE_AGENT );
+            PHS_Logger::error( 'Invalid input', PHS_Logger::TYPE_AGENT );
             return false;
         }
 
@@ -713,7 +716,7 @@ class PHS_Agent extends PHS_Registry
          || !($job_arr = $agent_jobs_model->get_details( $job_id ))
          || $decrypted_parts[2] !== md5( $job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'] ) )
         {
-            PHS_Logger::logf( 'Input validation failed', PHS_Logger::TYPE_AGENT );
+            PHS_Logger::error( 'Input validation failed', PHS_Logger::TYPE_AGENT );
             return false;
         }
 
@@ -729,13 +732,15 @@ class PHS_Agent extends PHS_Registry
     {
         static $stalling_minutes = false;
 
-        if( $stalling_minutes !== false )
+        if( $stalling_minutes !== false ) {
             return $stalling_minutes;
+        }
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if( !($agent_jobs_model = PHS::load_model( 'agent_jobs' ))
-         || !($stalling_minutes = $agent_jobs_model->get_stalling_minutes()) )
+         || !($stalling_minutes = $agent_jobs_model->get_stalling_minutes()) ) {
             $stalling_minutes = 0;
+        }
 
         return $stalling_minutes;
     }
@@ -749,35 +754,41 @@ class PHS_Agent extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $extra ) || !is_array( $extra ) )
+        if( empty( $extra ) || !is_array( $extra ) ) {
             $extra = [];
+        }
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if( !empty( $extra['agent_jobs_model'] ) )
+        if( !empty( $extra['agent_jobs_model'] ) ) {
             $agent_jobs_model = $extra['agent_jobs_model'];
-        else
-            $agent_jobs_model = PHS::load_model( 'agent_jobs' );
+        } else {
+            $agent_jobs_model = PHS::load_model('agent_jobs');
+        }
 
         if( empty( $agent_jobs_model )
          || !($job_data = self::current_job_data())
          || !($job_arr = $agent_jobs_model->data_to_array( $job_data )) )
         {
-            if( $agent_jobs_model->has_error() )
-                self::st_copy_error( $agent_jobs_model );
+            if( $agent_jobs_model->has_error() ) {
+                self::st_copy_error($agent_jobs_model);
+            }
 
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t get agent job details.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t get agent job details.'));
+            }
 
             return false;
         }
 
         if( !($new_job = $agent_jobs_model->refresh_job( $job_arr )) )
         {
-            if( $agent_jobs_model->has_error() )
-                self::st_copy_error( $agent_jobs_model );
+            if( $agent_jobs_model->has_error() ) {
+                self::st_copy_error($agent_jobs_model);
+            }
 
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_JOB_DB, self::_t( 'Couldn\'t refresh agent job details.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t refresh agent job details.'));
+            }
 
             return false;
         }
@@ -795,29 +806,30 @@ class PHS_Agent extends PHS_Registry
     {
         self::st_reset_error();
 
-        if( empty( $extra ) || !is_array( $extra ) )
+        if( empty( $extra ) || !is_array( $extra ) ) {
             $extra = [];
+        }
 
-        if( empty( $extra['force_run'] ) )
-            $extra['force_run'] = false;
-        else
-            $extra['force_run'] = true;
+        $extra['force_run'] = !empty( $extra['force_run'] );
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if( !empty( $extra['agent_jobs_model'] ) )
+        if( !empty( $extra['agent_jobs_model'] ) ) {
             $agent_jobs_model = $extra['agent_jobs_model'];
-        else
-            $agent_jobs_model = PHS::load_model( 'agent_jobs' );
+        } else {
+            $agent_jobs_model = PHS::load_model('agent_jobs');
+        }
 
         if( empty( $job_data )
          || empty( $agent_jobs_model )
          || !($job_arr = $agent_jobs_model->data_to_array( $job_data )) )
         {
-            if( $agent_jobs_model->has_error() )
-                self::st_copy_error( $agent_jobs_model );
+            if( $agent_jobs_model->has_error() ) {
+                self::st_copy_error($agent_jobs_model);
+            }
 
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Couldn\'t get agent job details.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t get agent job details.'));
+            }
 
             return false;
         }
@@ -828,8 +840,9 @@ class PHS_Agent extends PHS_Registry
         {
             if( ($job_stalling = $agent_jobs_model->job_is_stalling( $job_arr )) === null )
             {
-                if( $agent_jobs_model->has_error() )
-                    self::st_copy_error( $agent_jobs_model );
+                if( $agent_jobs_model->has_error() ) {
+                    self::st_copy_error($agent_jobs_model);
+                }
 
                 return false;
             }
@@ -852,11 +865,13 @@ class PHS_Agent extends PHS_Registry
 
         if( !($new_job_arr = $agent_jobs_model->start_job( $job_arr, $job_params )) )
         {
-            if( $agent_jobs_model->has_error() )
-                self::st_copy_error( $agent_jobs_model );
+            if( $agent_jobs_model->has_error() ) {
+                self::st_copy_error($agent_jobs_model);
+            }
 
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Couldn\'t save background jobs details in database.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t save background jobs details in database.'));
+            }
 
             return false;
         }
@@ -868,8 +883,9 @@ class PHS_Agent extends PHS_Registry
         if( !PHS_Scope::current_scope( PHS_Scope::SCOPE_AGENT )
          || !PHS::set_route( $job_arr['route'] ) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error preparing environment.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
+            }
 
             $error_arr = self::st_get_error();
 
@@ -888,8 +904,9 @@ class PHS_Agent extends PHS_Registry
 
         if( !($action_result = PHS::execute_route( $execution_params )) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error executing route.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error executing route.'));
+            }
 
             $error_arr = self::st_get_error();
 

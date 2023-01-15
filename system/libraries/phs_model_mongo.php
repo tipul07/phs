@@ -239,11 +239,11 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             return false;
 
         if( empty( $this->_definition ) or !is_array( $this->_definition )
-         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or empty( $flow_params['table_name'] )
-         or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || empty( $flow_params['table_name'] )
+         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
             return false;
@@ -251,11 +251,11 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::logf( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']['.$this->get_model_driver().']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']['.$this->get_model_driver().']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( $this->_definition[$table_name] ) )
         {
-            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
             return false;
@@ -293,7 +293,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         if( !db_query( $sql, $db_connection ) )
         {
-            PHS_Logger::logf( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s for model %s.', $full_table_name, $this->instance_id() ) );
             return false;
@@ -305,7 +305,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         // Re-cache table structure...
         $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -322,7 +322,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
          or empty( $flow_params['table_name'] )
          or !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
             return false;
@@ -333,11 +333,11 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::logf( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( $this->_definition[$table_name] ) )
         {
-            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
             return false;
@@ -361,7 +361,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             {
                 if( !empty( $found_old_field_names_arr[$old_field_name] ) )
                 {
-                    PHS_Logger::logf( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE,
                                       self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
@@ -416,7 +416,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             // ALTER TABLE `table_name` ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci COMMENT "New comment"
             if( !db_query( $sql, $db_connection ) )
             {
-                PHS_Logger::logf( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error updating table properties %s for model %s.', $table_name, $this->instance_id() ) );
                 return false;
@@ -454,7 +454,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
                     {
                         if( !$this->has_error() )
                         {
-                            PHS_Logger::logf( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                            PHS_Logger::error( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error changing column %s, table %s, model %s.', $old_field_names_arr[$field_name], $full_table_name, $model_id ) );
                         }
@@ -470,7 +470,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
                 {
                     if( !$this->has_error() )
                     {
-                        PHS_Logger::logf( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                        PHS_Logger::error( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                         $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                     }
@@ -491,7 +491,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             {
                 if( !$this->has_error() )
                 {
-                    PHS_Logger::logf( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                 }
@@ -512,7 +512,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             {
                 if( !$this->has_error() )
                 {
-                    PHS_Logger::logf( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error dropping column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                 }
@@ -574,7 +574,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         // Force reloading table columns to be sure changes are not cached
         $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::logf( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1365,16 +1365,16 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $field_details = self::validate_array( $field_details, self::_default_field_arr() );
 
         if( empty( $field_name )
-         or $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
-         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or empty( $field_details ) or !is_array( $field_details )
-         or !($field_details = $this->_validate_field( $field_details ))
-         or !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
-         or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         or empty( $mysql_field_arr['field_str'] ) )
+         || $field_name == self::T_DETAILS_KEY
+         || $field_name == self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || empty( $field_details ) || !is_array( $field_details )
+         || !($field_details = $this->_validate_field( $field_details ))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || empty( $mysql_field_arr['field_str'] ) )
         {
-            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
@@ -1382,7 +1382,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         if( $this->check_column_exists( $field_name, $flow_params ) )
         {
-            PHS_Logger::logf( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] already exists.', $field_name ) );
             return false;
@@ -1398,7 +1398,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         {
             if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
             {
-                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table statement doesn\'t exist.', $params['after_column'] ) );
                 return false;
@@ -1411,7 +1411,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
         {
-            PHS_Logger::logf( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add column [%s].', $field_name ) );
             return false;
@@ -1421,7 +1421,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
                 return false;
@@ -1441,16 +1441,16 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $field_details = self::validate_array( $field_details, self::_default_field_arr() );
 
         if( empty( $field_name )
-         or $field_name == self::T_DETAILS_KEY
-         or $field_name == self::EXTRA_INDEXES_KEY
-         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         or empty( $field_details ) or !is_array( $field_details )
-         or !($field_details = $this->_validate_field( $field_details ))
-         or !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
-         or empty( $mysql_field_arr['field_str'] ) )
+         || $field_name == self::T_DETAILS_KEY
+         || $field_name == self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
+         || empty( $field_details ) || !is_array( $field_details )
+         || !($field_details = $this->_validate_field( $field_details ))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
+         || empty( $mysql_field_arr['field_str'] ) )
         {
-            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
@@ -1489,7 +1489,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         {
             if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
             {
-                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table (change) statement doesn\'t exist in table structure.', $params['after_column'] ) );
                 return false;
@@ -1501,20 +1501,20 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
         if( !db_query( $sql, $db_connection ) )
         {
-            PHS_Logger::logf( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to change column [%s].', $field_name ) );
             return false;
         }
 
         if( !empty( $params['alter_indexes'] )
-        and !empty( $old_field_name )
-        and !empty( $old_field_details ) and is_array( $old_field_details )
-        and empty( $old_field_details['primary'] ) and !empty( $old_field_details['index'] ) )
+         && !empty( $old_field_name )
+         && !empty( $old_field_details ) && is_array( $old_field_details )
+         && empty( $old_field_details['primary'] ) && !empty( $old_field_details['index'] ) )
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`', $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
                 return false;
@@ -1522,11 +1522,11 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         }
 
         if( !empty( $params['alter_indexes'] )
-        and !empty( $mysql_field_arr['keys_str'] ) )
+         && !empty( $mysql_field_arr['keys_str'] ) )
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
                 return false;
@@ -1621,17 +1621,17 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $this->reset_error();
 
         if( !($model_id = $this->instance_id())
-         or empty( $index_name )
-         or empty( $index_arr ) or !is_array( $index_arr )
-         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or !($index_arr = $this->validate_table_extra_index( $index_arr ))
-         or empty( $index_arr['fields'] ) or !is_array( $index_arr['fields'] )
-         or empty( $flow_params['table_name'] )
-         or empty( $this->_definition[$flow_params['table_name']] )
-         or !($full_table_name = $this->get_flow_table_name( $flow_params ))
-         or !($database_name = $this->get_db_database( $flow_params )) )
+         || empty( $index_name )
+         || empty( $index_arr ) || !is_array( $index_arr )
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || !($index_arr = $this->validate_table_extra_index( $index_arr ))
+         || empty( $index_arr['fields'] ) || !is_array( $index_arr['fields'] )
+         || empty( $flow_params['table_name'] )
+         || empty( $this->_definition[$flow_params['table_name']] )
+         || !($full_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($database_name = $this->get_db_database( $flow_params )) )
         {
-            PHS_Logger::logf( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
             return false;
@@ -1642,7 +1642,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $fields_str = '';
         foreach( $index_arr['fields'] as $field_name )
         {
-            $fields_str .= ($fields_str!=''?',':'').'`'.$field_name.'`';
+            $fields_str .= ($fields_str!==''?',':'').'`'.$field_name.'`';
         }
 
         // $sql =
@@ -1662,7 +1662,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         //
         // if( !db_query( $sql, $db_connection ) )
         // {
-        //     PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        //     PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
         //
         //     $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
         //     return false;
@@ -1672,9 +1672,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
                                ' FROM information_schema.statistics '.
                                ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
                                ' AND index_name LIKE \''.$index_name.'\'', $db_connection ))
-        and @mysqli_num_rows( $qid ) )
+         && @mysqli_num_rows( $qid ) )
         {
-            PHS_Logger::logf( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Extra index %s for table %s for model %s already exists.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
@@ -1682,7 +1682,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         if( !db_query( 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection ) )
         {
-            PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
@@ -1715,13 +1715,13 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $this->reset_error();
 
         if( !($model_id = $this->instance_id())
-         or empty( $index_name )
-         or !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         or empty( $flow_params['table_name'] )
-         or !($full_table_name = $this->get_flow_table_name( $flow_params ))
-         or !($database_name = $this->get_db_database( $flow_params )) )
+         || empty( $index_name )
+         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
+         || empty( $flow_params['table_name'] )
+         || !($full_table_name = $this->get_flow_table_name( $flow_params ))
+         || !($database_name = $this->get_db_database( $flow_params )) )
         {
-            PHS_Logger::logf( 'Error deleting extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error deleting extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error deleting extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
             return false;
@@ -1731,7 +1731,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
         {
-            PHS_Logger::logf( 'Error deleting extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error deleting extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;

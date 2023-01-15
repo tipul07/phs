@@ -73,9 +73,9 @@ class PHS_Ajax extends PHS_Registry
     public static function validate_input()
     {
         if( !($pub_key = PHS_Params::_g( self::PARAM_PUB_KEY, PHS_Params::T_INT ))
-         or !($check_sum = PHS_Params::_g( self::PARAM_CHECK_SUM, PHS_Params::T_ASIS )) )
+         || !($check_sum = PHS_Params::_g( self::PARAM_CHECK_SUM, PHS_Params::T_ASIS )) )
         {
-            PHS_Logger::logf( 'Required parameters not found.', PHS_Logger::TYPE_AJAX );
+            PHS_Logger::error( 'Required parameters not found.', PHS_Logger::TYPE_AJAX );
             return false;
         }
 
@@ -84,37 +84,46 @@ class PHS_Ajax extends PHS_Registry
         $pub_key += self::TIME_OFFSET;
 
         if( $computed_checksum != $check_sum
-         or $pub_key + self::checksum_timeout() < time() )
+         || $pub_key + self::checksum_timeout() < time() )
         {
-            PHS_Logger::logf( 'Checksum failed. ['.$computed_checksum.' != '.$check_sum.']', PHS_Logger::TYPE_AJAX );
+            PHS_Logger::error( 'Checksum failed. ['.$computed_checksum.' != '.$check_sum.']', PHS_Logger::TYPE_AJAX );
             return false;
         }
 
         return true;
     }
 
+    /**
+     * @param false|array $extra
+     *
+     * @return array|bool
+     */
     public static function run_route( $extra = false )
     {
         self::st_reset_error();
 
-        if( empty( $extra ) or !is_array( $extra ) )
-            $extra = array();
+        if( empty( $extra ) || !is_array( $extra ) ) {
+            $extra = [];
+        }
 
         if( !PHS_Scope::current_scope( PHS_Scope::SCOPE_AJAX ) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error preparing environment.' ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
+            }
 
             return false;
         }
 
-        $execution_params = array();
+        $execution_params = [];
         $execution_params['die_on_error'] = false;
 
         if( !($action_result = PHS::execute_route( $execution_params )) )
         {
-            if( !self::st_has_error() )
-                self::st_set_error( self::ERR_RUN_JOB, self::_t( 'Error executing route [%s].', PHS::get_route_as_string() ) );
+            if( !self::st_has_error() ) {
+                self::st_set_error(self::ERR_RUN_JOB,
+                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
+            }
 
             return false;
         }

@@ -216,7 +216,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
             return false;
@@ -224,11 +224,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::logf( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( $this->_definition[$table_name] ) )
         {
-            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
             return false;
@@ -238,10 +238,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( empty( $table_definition[self::T_DETAILS_KEY] ) )
+        if( empty( $table_definition[self::T_DETAILS_KEY] ) ) {
             $table_details = $this->_default_table_details_arr();
-        else
+        } else {
             $table_details = $table_definition[self::T_DETAILS_KEY];
+        }
 
         $sql = 'CREATE TABLE IF NOT EXISTS `'.$full_table_name.'` ( '."\n";
         $all_fields_str = '';
@@ -249,13 +250,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         foreach( $table_definition as $field_name => $field_details )
         {
             if( !($field_definition = $this->_get_mysql_field_definition( $field_name, $field_details ))
-             || !is_array( $field_definition ) || empty( $field_definition['field_str'] ) )
+             || !is_array( $field_definition ) || empty( $field_definition['field_str'] ) ) {
                 continue;
+            }
 
             $all_fields_str .= ($all_fields_str!==''?', '."\n":'').$field_definition['field_str'];
 
-            if( !empty( $field_definition['keys_str'] ) )
-                $keys_str .= ($keys_str!==''?',':'').$field_definition['keys_str'];
+            if( !empty( $field_definition['keys_str'] ) ) {
+                $keys_str .= ($keys_str !== '' ? ',' : '').$field_definition['keys_str'];
+            }
         }
 
         $sql .= $all_fields_str.
@@ -267,20 +270,21 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( $sql, $db_connection ) )
         {
-            PHS_Logger::logf( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s for model %s.', $full_table_name, $this->instance_id() ) );
             return false;
         }
 
-        if( !$this->_create_table_extra_indexes( $flow_params ) )
+        if( !$this->_create_table_extra_indexes( $flow_params ) ) {
             return false;
+        }
 
         // Re-cache table structure...
         // Do not recache table as we are done with it...
         // $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::logf( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -330,22 +334,23 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
             return false;
         }
 
-        if( !$this->check_table_exists( $flow_params ) )
-            return $this->install_table( $flow_params );
+        if( !$this->check_table_exists( $flow_params ) ) {
+            return $this->install_table($flow_params);
+        }
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::logf( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         if( empty( $this->_definition[$table_name] ) )
         {
-            PHS_Logger::logf( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
             return false;
@@ -364,8 +369,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         foreach( $table_definition as $field_name => $field_definition )
         {
             if( $field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY )
+             || $field_name === self::EXTRA_INDEXES_KEY ) {
                 continue;
+            }
 
             if( !empty( $db_table_definition ) )
             {
@@ -388,7 +394,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                     {
                         if( !empty( $found_old_field_names_arr[$old_field_name] ) )
                         {
-                            PHS_Logger::logf( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                            PHS_Logger::error( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                             $this->set_error( self::ERR_UPDATE_TABLE,
                                 self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
@@ -396,8 +402,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                         }
 
                         // Check if in current table structure we have this old name...
-                        if( empty( $db_table_definition[$old_field_name] ) )
+                        if( empty( $db_table_definition[$old_field_name] ) ) {
                             continue;
+                        }
 
                         $found_old_field_names_arr[$old_field_name] = true;
                         $old_field_names_arr[$field_name] = $old_field_name;
@@ -410,44 +417,50 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $db_connection = $this->get_db_connection( $flow_params );
 
         //region Table details
-        if( empty( $table_definition[self::T_DETAILS_KEY] ) )
+        if( empty( $table_definition[self::T_DETAILS_KEY] ) ) {
             $table_details = $this->_default_table_details_arr();
-        else
+        } else {
             $table_details = $table_definition[self::T_DETAILS_KEY];
+        }
 
-        if( empty( $db_table_details[self::T_DETAILS_KEY] ) )
+        if( empty( $db_table_details[self::T_DETAILS_KEY] ) ) {
             $db_table_details = $this->_default_table_details_arr();
-        else
+        } else {
             $db_table_details = $table_definition[self::T_DETAILS_KEY];
+        }
 
         if( ($changed_values = $this->_table_details_changed( $db_table_details, $table_details )) )
         {
             $sql = 'ALTER TABLE `'.$full_table_name.'`';
-            if( !empty( $changed_values['engine'] ) )
+            if( !empty( $changed_values['engine'] ) ) {
                 $sql .= ' ENGINE='.$changed_values['engine'];
+            }
 
             if( !empty( $changed_values['charset'] ) || !empty( $changed_values['collate'] ) )
             {
                 $sql .= ' DEFAULT CHARSET=';
-                if( !empty( $changed_values['charset'] ) )
+                if( !empty( $changed_values['charset'] ) ) {
                     $sql .= $changed_values['charset'];
-                else
+                } else {
                     $sql .= $table_details['charset'];
+                }
 
                 $sql .= ' COLLATE ';
-                if( !empty( $changed_values['collate'] ) )
+                if( !empty( $changed_values['collate'] ) ) {
                     $sql .= $changed_values['collate'];
-                else
+                } else {
                     $sql .= $table_details['collate'];
+                }
             }
 
-            if( !empty( $changed_values['comment'] ) )
-                $sql .= ' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'';
+            if( !empty( $changed_values['comment'] ) ) {
+                $sql .= ' COMMENT=\''.self::safe_escape($table_details['comment']).'\'';
+            }
 
             // ALTER TABLE `table_name` ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci COMMENT "New comment"
             if( !db_query( $sql, $db_connection ) )
             {
-                PHS_Logger::logf( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error updating table properties %s for model %s.', $table_name, $this->instance_id() ) );
                 return false;
@@ -487,7 +500,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                     {
                         if( !$this->has_error() )
                         {
-                            PHS_Logger::logf( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                            PHS_Logger::error( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                             $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error changing column %s, table %s, model %s.', $old_field_names_arr[$field_name], $full_table_name, $model_id ) );
                         }
@@ -503,7 +516,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 {
                     if( !$this->has_error() )
                     {
-                        PHS_Logger::logf( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                        PHS_Logger::error( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                         $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                     }
@@ -523,7 +536,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
              && !empty( $db_table_definition[$field_name]['index'] )
              && !$this->alter_table_drop_column_index( $field_name, $flow_params ) )
             {
-                PHS_Logger::logf( 'Error removing index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error removing index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error removing index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
 
@@ -540,7 +553,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             {
                 if( !$this->has_error() )
                 {
-                    PHS_Logger::logf( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error updating column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                 }
@@ -554,7 +567,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
              && !empty( $field_definition['index'] )
              && !$this->alter_table_add_column_index( $field_name, $field_definition, $flow_params ) )
             {
-                PHS_Logger::logf( 'Error adding index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error adding index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
                 if( !$this->has_error() )
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding index on column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
 
@@ -574,7 +587,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             {
                 if( !$this->has_error() )
                 {
-                    PHS_Logger::logf( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                    PHS_Logger::error( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
 
                     $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error dropping column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
                 }
@@ -637,7 +650,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         // Do not recache the table as we are done with it
         // $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::logf( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
     }
@@ -1824,7 +1837,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($my_driver = $this->get_model_driver())
          || empty( $mysql_field_arr['field_str'] ) )
         {
-            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
@@ -1832,23 +1845,25 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( $this->check_column_exists( $field_name, $flow_params ) )
         {
-            PHS_Logger::logf( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] already exists.', $field_name ) );
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['after_column'] ) || strtolower( trim( $params['after_column'] ) ) === '`first`' )
+        if( empty( $params['after_column'] ) || strtolower( trim( $params['after_column'] ) ) === '`first`' ) {
             $params['after_column'] = ' FIRST';
+        }
 
         else
         {
             if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
             {
-                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table statement doesn\'t exist.', $params['after_column'] ) );
                 return false;
@@ -1861,7 +1876,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
         {
-            PHS_Logger::logf( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add column [%s].', $field_name ) );
             return false;
@@ -1874,7 +1889,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
                 return false;
@@ -1910,7 +1925,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
          || empty( $mysql_field_arr['field_str'] ) )
         {
-            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
@@ -1931,25 +1946,25 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         else
             $db_old_field_name = $old_field_name;
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( !isset( $params['alter_indexes'] ) )
-            $params['alter_indexes'] = true;
-        else
-            $params['alter_indexes'] = !empty($params['alter_indexes'] );
+        $params['alter_indexes'] = (!isset( $params['alter_indexes'] ) || !empty( $params['alter_indexes'] ));
 
-        if( empty( $params['after_column'] ) )
+        if( empty( $params['after_column'] ) ) {
             $params['after_column'] = '';
+        }
 
-        elseif( strtolower( trim( $params['after_column'] ) ) === '`first`' )
+        elseif( strtolower( trim( $params['after_column'] ) ) === '`first`' ) {
             $params['after_column'] = ' FIRST';
+        }
 
         else
         {
             if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
             {
-                PHS_Logger::logf( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table (change) statement doesn\'t exist in table structure.', $params['after_column'] ) );
                 return false;
@@ -1961,7 +1976,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
         if( !db_query( $sql, $db_connection ) )
         {
-            PHS_Logger::logf( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to change column [%s].', $field_name ) );
             return false;
@@ -1980,7 +1995,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`', $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
                 return false;
@@ -1992,7 +2007,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         {
             if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
             {
-                PHS_Logger::logf( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+                PHS_Logger::error( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
                 $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
                 return false;
@@ -2094,15 +2109,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( empty( $field_name )
          || $field_name === self::T_DETAILS_KEY
          || $field_name === self::EXTRA_INDEXES_KEY
+         || empty( $field_details ) || !is_array( $field_details )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
          || !($my_driver = $this->get_model_driver())
-         || empty( $field_details ) || !is_array( $field_details )
          || !($field_details = $this->_validate_field( $field_details ))
          || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
          || empty( $mysql_field_arr['keys_str'] ) )
         {
-            PHS_Logger::logf( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
             return false;
@@ -2112,7 +2127,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
         {
-            PHS_Logger::logf( 'Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add index for column [%s].', $field_name ) );
             return false;
@@ -2193,8 +2208,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if( !($model_id = $this->instance_id())
-         || empty( $index_name )
+        if( empty( $index_name )
+         || !($model_id = $this->instance_id())
          || empty( $index_arr ) || !is_array( $index_arr )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || !($index_arr = $this->_validate_table_extra_index( $index_arr ))
@@ -2204,7 +2219,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($full_table_name = $this->get_flow_table_name( $flow_params ))
          || !($database_name = $this->get_db_database( $flow_params )) )
         {
-            PHS_Logger::logf( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
             return false;
@@ -2235,7 +2250,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         //
         // if( !db_query( $sql, $db_connection ) )
         // {
-        //     PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        //     PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
         //
         //     $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
         //     return false;
@@ -2247,7 +2262,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                                ' AND index_name LIKE \''.$index_name.'\'', $db_connection ))
          && @mysqli_num_rows( $qid ) )
         {
-            PHS_Logger::logf( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Extra index %s for table %s for model %s already exists.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
@@ -2255,7 +2270,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection ) )
         {
-            PHS_Logger::logf( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
@@ -2274,8 +2289,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) )
+        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
             return true;
+        }
 
         foreach( $indexes_array as $index_name => $index_arr )
         {
@@ -2299,13 +2315,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if( !($model_id = $this->instance_id())
-         || empty( $index_name )
+        if( empty( $index_name )
+         || !($model_id = $this->instance_id())
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
         {
-            PHS_Logger::logf( 'Error dropping index for model ['.(!empty( $model_id )?$model_id:'N/A').']. Bad parameters sent to method.', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error dropping index for model ['.(!empty( $model_id )?$model_id:'N/A').']. Bad parameters sent to method.', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
             return false;
@@ -2315,7 +2331,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
         {
-            PHS_Logger::logf( 'Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            PHS_Logger::error( 'Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
             $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
             return false;
