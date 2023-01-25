@@ -171,20 +171,19 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function apikeys_count_for_user_id( $user_id, $params = false )
+    public function apikeys_count_for_user_id( $user_id, $params = false ): int
     {
         $user_id = (int) $user_id;
-        if( empty( $user_id ) )
-            return false;
-
-        if( ($flow_params = $this->fetch_default_flow_params())
+        if( !empty( $user_id )
+         && ($flow_params = $this->fetch_default_flow_params())
          && ($table_name = $this->get_flow_table_name( $flow_params ))
          && ($qid = db_query( 'SELECT COUNT(*) AS total_apikeys '.
                               ' FROM `'.$table_name.'`'.
                               ' WHERE status != \''.self::STATUS_DELETED.'\' AND uid = \''.$user_id.'\'', $flow_params['db_connection'] ))
-         && ($total_arr = @mysqli_fetch_assoc( $qid ))
-         && !empty( $total_arr['total_apikeys'] ) )
-            return $total_arr['total_apikeys'];
+         && ($total_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] ))
+         && !empty( $total_arr['total_apikeys'] ) ) {
+            return (int)$total_arr['total_apikeys'];
+        }
 
         return 0;
     }
@@ -202,12 +201,14 @@ class PHS_Model_Api_keys extends PHS_Model
 
         if( !$only_active )
         {
-            if( $cached_api_keys !== false )
+            if( $cached_api_keys !== false ) {
                 return $cached_api_keys;
+            }
         } else
         {
-            if( $cached_active_api_keys !== false )
+            if( $cached_active_api_keys !== false ) {
                 return $cached_active_api_keys;
+            }
         }
 
         $list_arr = $this->fetch_default_flow_params( [ 'table_name' => 'api_keys' ] );
@@ -215,37 +216,39 @@ class PHS_Model_Api_keys extends PHS_Model
         $list_arr['order_by'] = 'title ASC';
 
         $cached_active_api_keys = [];
-        if( !($cached_api_keys = $this->get_list( $list_arr )) )
+        if( !($cached_api_keys = $this->get_list( $list_arr )) ) {
             $cached_api_keys = [];
-
-        else
+        } else
         {
             foreach( $cached_api_keys as $a_id => $a_arr )
             {
-                if( !$this->is_active( $a_arr ) )
+                if( !$this->is_active( $a_arr ) ) {
                     continue;
+                }
 
                 $cached_active_api_keys[$a_id] = $a_arr;
             }
         }
 
-        if( $only_active )
+        if( $only_active ) {
             return $cached_active_api_keys;
+        }
 
         return $cached_api_keys;
     }
 
     /**
-     * @param bool $only_active
+     * @param  bool  $only_active
      *
      * @return array
      */
-    public function get_all_api_keys_as_key_val( $only_active = false )
+    public function get_all_api_keys_as_key_val( bool $only_active = false ): array
     {
         $this->reset_error();
 
-        if( !($results_arr = $this->get_all_api_keys( $only_active )) )
+        if( !($results_arr = $this->get_all_api_keys( $only_active )) ) {
             return [];
+        }
 
         $return_arr = [];
         foreach( $results_arr as $record_id => $record_arr )
@@ -256,12 +259,12 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function generate_random_api_key()
+    public function generate_random_api_key(): string
     {
         return md5( uniqid( mt_rand(), true ) );
     }
 
-    public function generate_random_api_secret()
+    public function generate_random_api_secret(): string
     {
         return md5( uniqid( mt_rand(), true ) );
     }
@@ -271,32 +274,38 @@ class PHS_Model_Api_keys extends PHS_Model
      */
     protected function get_insert_prepare_params_api_keys( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
-        if( empty( $params['fields']['api_key'] ) )
+        if( empty( $params['fields']['api_key'] ) ) {
             $params['fields']['api_key'] = $this->generate_random_api_key();
-        if( empty( $params['fields']['api_secret'] ) )
+        }
+        if( empty( $params['fields']['api_secret'] ) ) {
             $params['fields']['api_secret'] = $this->generate_random_api_secret();
+        }
 
-        if( empty( $params['fields']['allow_sw'] ) )
+        if( empty( $params['fields']['allow_sw'] ) ) {
             $params['fields']['allow_sw'] = 0;
-        else
+        } else {
             $params['fields']['allow_sw'] = 1;
+        }
 
         $cdate = date( self::DATETIME_DB );
 
         if( empty( $params['fields']['status'] )
-         || !$this->valid_status( $params['fields']['status'] ) )
+         || !$this->valid_status( $params['fields']['status'] ) ) {
             $params['fields']['status'] = self::STATUS_ACTIVE;
+        }
 
         $params['fields']['cdate'] = $cdate;
 
         if( empty( $params['fields']['status_date'] )
-         || empty_db_date( $params['fields']['status_date'] ) )
+         || empty_db_date( $params['fields']['status_date'] ) ) {
             $params['fields']['status_date'] = $params['fields']['cdate'];
-        else
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+        } else {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
@@ -317,20 +326,21 @@ class PHS_Model_Api_keys extends PHS_Model
 
         if( array_key_exists( 'allow_sw', $params['fields'] ) )
         {
-            if( !empty( $params['fields']['allow_sw'] ) )
+            if( !empty( $params['fields']['allow_sw'] ) ) {
                 $params['fields']['allow_sw'] = 1;
-            else
+            } else {
                 $params['fields']['allow_sw'] = 0;
+            }
         }
 
         if( !empty( $params['fields']['status'] )
          && (int)$params['fields']['status'] !== (int)$existing_arr['status']
          && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] ))
-         && $this->valid_status( $params['fields']['status'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB );
-
-        elseif( !empty( $params['fields']['status_date'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+         && $this->valid_status( $params['fields']['status'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB);
+        } elseif( !empty( $params['fields']['status_date'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
         return $params;
     }
@@ -342,8 +352,9 @@ class PHS_Model_Api_keys extends PHS_Model
     {
         if( !empty( $params['flags'] ) && is_array( $params['flags'] ) )
         {
-            if( empty( $params['db_fields'] ) )
+            if( empty( $params['db_fields'] ) ) {
                 $params['db_fields'] = '';
+            }
 
             $model_table = $this->get_flow_table_name( $params );
             foreach( $params['flags'] as $flag )
@@ -382,8 +393,9 @@ class PHS_Model_Api_keys extends PHS_Model
     {
         // $params should be flow parameters...
         if( empty( $params ) || !is_array( $params )
-         || empty( $params['table_name'] ) )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         switch( $params['table_name'] )

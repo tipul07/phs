@@ -6,7 +6,7 @@ use \phs\PHS;
 use \phs\PHS_Db;
 use phs\PHS_Maintenance;
 
-abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
+abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 {
     public const FTYPE_UNKNOWN = 0,
           FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
@@ -145,7 +145,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( empty( $id )
          || !($qid = db_query( 'SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name( $params ).'` '.
                                ' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection'] ))
-         || !($item_arr = @mysqli_fetch_assoc( $qid )) ) {
+         || !($item_arr = $qid->fetchArray( SQLITE3_ASSOC )) ) {
             return false;
         }
 
@@ -173,11 +173,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if( $params['result_type'] === 'single' ) {
-            return @mysqli_fetch_assoc($common_arr['qid']);
+            return ($common_arr['qid'])->fetchArray( SQLITE3_ASSOC );
         }
 
         $item_arr = [];
-        while( ($row_arr = @mysqli_fetch_assoc( $common_arr['qid'] )) )
+        while( ($row_arr = ($common_arr['qid'])->fetchArray( SQLITE3_ASSOC )) )
         {
             $item_arr[$row_arr[$params['result_key']]] = $row_arr;
         }

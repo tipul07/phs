@@ -62,7 +62,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * @return string Returns model driver
      */
-    abstract public function get_model_driver();
+    abstract public function get_model_driver(): string;
 
     /**
      * A dynamic table structure means that table fields can be altered by plugins, so system will call update method each time an install check
@@ -79,7 +79,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return string What's primary key of the table
      */
-    abstract public function get_primary_key( $params = false );
+    abstract public function get_primary_key( $params = false ): string;
 
     /**
      * Prepares primary key for a query (intval for int or trim for strings)
@@ -96,7 +96,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return array Data types array
      */
-    abstract public function get_field_types();
+    abstract public function get_field_types(): array;
 
     /**
      * Checks if provided type is a valid data type and returns an array with details about data type
@@ -131,11 +131,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * Tells if table from provided flow exists in flow database
      *
      * @param bool|array $flow_params Flow parameters
-     * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
+     * @param  bool  $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
      * @return bool True if table exists in flow database and false if it doesn't exist
      */
-    abstract protected function _check_table_exists_for_model( $flow_params = false, $force = false );
+    abstract protected function _check_table_exists_for_model( $flow_params = false, bool $force = false ): bool;
 
     /**
      * Install a specific model table provided in flow parameters
@@ -144,7 +144,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    abstract protected function _install_table_for_model( $flow_params );
+    abstract protected function _install_table_for_model( $flow_params ): bool;
 
     /**
      * Update a specific model table provided in flow parameters
@@ -162,7 +162,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    abstract protected function _update_missing_table_for_model( $flow_params );
+    abstract protected function _update_missing_table_for_model( $flow_params ): bool;
 
     /**
      * This method will hard-delete a table from database defined by this model.
@@ -172,7 +172,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool Returns true if all tables were dropped or false on error
      */
-    abstract protected function _uninstall_table_for_model( $flow_params );
+    abstract protected function _uninstall_table_for_model( $flow_params ): bool;
 
     /**
      * Get table definition from database as an array which can be compared with model table structure
@@ -200,12 +200,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * Details related to table
      * @return array
      */
-    abstract protected function _default_table_details_arr();
+    abstract protected function _default_table_details_arr(): array;
     /**
      * Details related table extra indexes
      * @return array
      */
-    abstract protected function _default_table_extra_index_arr();
+    abstract protected function _default_table_extra_index_arr(): array;
 
     /**
      * Validate a field definition
@@ -256,12 +256,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * @param string $table_name
-     * @param string $driver
+     * @param  string  $table_name
+     * @param  string  $driver
      *
      * @return array
      */
-    protected static function get_cached_db_table_structure( $table_name, $driver )
+    protected static function get_cached_db_table_structure( string $table_name, string $driver ): array
     {
         return (!empty( self::$tables_arr[$driver][$table_name] )?self::$tables_arr[$driver][$table_name]:[]);
     }
@@ -376,15 +376,18 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $db_driver = false;
         if( !empty( $params ) && is_array( $params ) )
         {
-            if( !empty( $params['db_connection'] ) )
+            if( !empty( $params['db_connection'] ) ) {
                 return $params['db_connection'];
+            }
 
-            if( !empty( $params['db_driver'] ) )
+            if( !empty( $params['db_driver'] ) ) {
                 $db_driver = $params['db_driver'];
+            }
         }
 
-        if( empty( $db_driver ) )
+        if( empty( $db_driver ) ) {
             $db_driver = $this->get_model_driver();
+        }
 
         return PHS_Db::default_db_connection( $db_driver );
     }
@@ -536,12 +539,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     /**
      * Get table definition array
+     *
      * @param bool|array $flow_params Flow parameters
-     * @param bool $force
+     * @param  bool $force
      *
      * @return false|array
      */
-    public function get_table_details( $flow_params = false, $force = false )
+    public function get_table_details( $flow_params = false, bool $force = false )
     {
         $this->reset_error();
 
@@ -555,8 +559,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         $this->_check_table_exists_for_model( $flow_params, $force );
 
-        if( !($table_details = self::get_cached_db_table_structure( $flow_table_name, $my_driver )) )
+        if( !($table_details = self::get_cached_db_table_structure( $flow_table_name, $my_driver )) ) {
             return false;
+        }
 
         return $table_details;
     }
@@ -565,11 +570,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * Tells if table from provided flow exists in flow database
      *
      * @param bool|array $flow_params Flow parameters
-     * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
+     * @param  bool  $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
      * @return bool True if table exists in flow database and false if it doesn't exist
      */
-    public function check_table_exists( $flow_params = false, $force = false )
+    public function check_table_exists( $flow_params = false, bool $force = false ): bool
     {
         return (bool) $this->get_table_details( $flow_params, $force );
     }
@@ -578,11 +583,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * Get table definition from database as an array which can be compared with model table structure
      *
      * @param bool|array $flow_params Flow parameters
-     * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
+     * @param  bool  $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
      * @return bool|array Returns table structure as array or false if we couldn't obtain table structure from database
      */
-    public function get_table_columns_as_definition( $flow_params = false, $force = false )
+    public function get_table_columns_as_definition( $flow_params = false, bool $force = false )
     {
         $this->reset_error();
 
@@ -613,13 +618,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Check if a specified column exists in table definition array and if it exists return structure definition as array
      *
-     * @param string $field Field to be checked/retrieved
-     * @param bool|array $flow_params Flow parameters
-     * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
+     * @param  string  $field Field to be checked/retrieved
+     * @param  null|array  $flow_params Flow parameters
+     * @param  bool  $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
      * @return bool|array Returns column structure as array or false if we couldn't obtain column structure from flow table
      */
-    public function check_column_exists( $field, $flow_params = false, $force = false )
+    public function check_column_exists( string $field, array $flow_params = null, bool $force = false )
     {
         $this->reset_error();
 
@@ -797,20 +802,23 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     /**
      * Validate table extra indexes array definition
-     * @param array $indexes_arr
+     *
+     * @param  array $indexes_arr
      *
      * @return array
      */
-    protected function _validate_table_extra_indexes( $indexes_arr )
+    protected function _validate_table_extra_indexes(array $indexes_arr ): array
     {
-        if( empty( $indexes_arr ) || !is_array( $indexes_arr ) )
+        if( empty( $indexes_arr ) ) {
             return [];
+        }
 
         $new_indexes = [];
         foreach( $indexes_arr as $index_name => $index_arr )
         {
-            if( empty( $index_arr ) || !is_array( $index_arr ) )
+            if( empty( $index_arr ) || !is_array( $index_arr ) ) {
                 continue;
+            }
 
             $new_indexes[$index_name] = $this->_validate_table_extra_index( $index_arr );
         }
@@ -820,15 +828,17 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     /**
      * Validate table extra index array definition
-     * @param array $index_arr
      *
-     * @return array|bool
+     * @param  array $index_arr
+     *
+     * @return array
      */
-    protected function _validate_table_extra_index( $index_arr )
+    protected function _validate_table_extra_index(array $index_arr ): array
     {
         $def_values = $this->_default_table_extra_index_arr();
-        if( empty( $index_arr ) || !is_array( $index_arr ) )
+        if( empty( $index_arr ) ) {
             return $def_values;
+        }
 
         return self::validate_array( $index_arr, $def_values );
     }
@@ -894,11 +904,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * @param array $flow_params
+     * @param  array  $flow_params
      *
      * @return array|bool
      */
-    private function _all_fields_definition( $flow_params )
+    private function _all_fields_definition( array $flow_params )
     {
         $this->reset_error();
 
@@ -911,8 +921,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $fields_arr = $this->fields_definition( $flow_params );
         $instance_id = $this->instance_id();
         $plugin_instance_id = false;
-        if( ($plugin_obj = $this->get_plugin_instance()) )
+        if( ($plugin_obj = $this->get_plugin_instance()) ) {
             $plugin_instance_id = $plugin_obj->instance_id();
+        }
 
         $hook_params = self::default_table_fields_hook_args();
         $hook_params['model_id'] = $instance_id;
@@ -921,16 +932,19 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         // Plugin level customization
         if( !empty( $plugin_instance_id )
-         && ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params )) )
-            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
+         && ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params )) ) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
 
         // Model level customization
-        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params )) )
-            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
+        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params )) ) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
 
         // Table level customization
-        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params )) )
-            $fields_arr = self::merge_array_assoc( $extra_fields_arr['fields_arr'], $fields_arr );
+        if( ($extra_fields_arr = PHS::trigger_hooks( self::HOOK_TABLE_FIELDS, $hook_params )) ) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
 
         return $fields_arr;
     }
@@ -940,11 +954,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success, false on failure
      */
-    private function _validate_tables_definition()
+    private function _validate_tables_definition(): bool
     {
         if( !($all_tables_arr = $this->get_all_table_names())
-         || !is_array( $all_tables_arr ) )
+         || !is_array( $all_tables_arr ) ) {
             return false;
+        }
 
         foreach( $all_tables_arr as $table_name )
         {
@@ -954,8 +969,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 return false;
             }
 
-            if( !$this->_validate_definition( $flow_params ) )
+            if( !$this->_validate_definition( $flow_params ) ) {
                 return false;
+            }
         }
 
         return true;
@@ -968,7 +984,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success, false on failure
      */
-    private function _validate_definition( $params = false )
+    private function _validate_definition( array $params = null ): bool
     {
         if( !($params = $this->fetch_default_flow_params( $params )) )
         {
@@ -976,8 +992,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if( !empty( $this->_definition[$params['table_name']] ) )
+        if( !empty( $this->_definition[$params['table_name']] ) ) {
             return true;
+        }
 
         if( !($model_fields = $this->_all_fields_definition( $params ))
          || !is_array( $model_fields ) )
@@ -1010,10 +1027,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             $this->_definition[$params['table_name']][$field_name] = $new_field_arr;
         }
 
-        if( empty( $this->_definition[$params['table_name']][self::T_DETAILS_KEY] ) )
+        if( empty( $this->_definition[$params['table_name']][self::T_DETAILS_KEY] ) ) {
             $this->_definition[$params['table_name']][self::T_DETAILS_KEY] = $this->_default_table_details_arr();
-        if( empty( $this->_definition[$params['table_name']][self::EXTRA_INDEXES_KEY] ) )
+        }
+        if( empty( $this->_definition[$params['table_name']][self::EXTRA_INDEXES_KEY] ) ) {
             $this->_definition[$params['table_name']][self::EXTRA_INDEXES_KEY] = [];
+        }
 
         return true;
     }
@@ -1023,7 +1042,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return void
      */
-    protected function _do_construct( $instance_details = false )
+    protected function _do_construct( $instance_details = false ): void
     {
         parent::_do_construct( $instance_details );
 
@@ -1033,30 +1052,35 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Populate missing flow parameters in provided flow
      *
-     * @param bool|array $params Flow parameters
+     * @param  false|array  $params Flow parameters
      *
-     * @return array|bool Complete flow parameters or false on failure
+     * @return array|false Complete flow parameters or false on failure
      */
     public function fetch_default_flow_params( $params = false )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['table_name'] ) )
-            $params['table_name'] = $this->get_table_name( $params );
+        if( empty( $params['table_name'] ) ) {
+            $params['table_name'] = $this->get_table_name($params);
+        }
 
-        if( empty( $params['table_index'] ) )
-            $params['table_index'] = $this->get_primary_key( $params );
+        if( empty( $params['table_index'] ) ) {
+            $params['table_index'] = $this->get_primary_key($params);
+        }
 
-        if( !isset( $params['db_connection'] ) )
-            $params['db_connection'] = $this->get_db_connection( $params );
+        if( !isset( $params['db_connection'] ) ) {
+            $params['db_connection'] = $this->get_db_connection($params);
+        }
 
         $params['db_driver'] = $this->get_model_driver();
 
         if( empty( $params['table_index'] ) || empty( $params['table_name'] ) || !isset( $params['db_connection'] )
          || !($all_tables = $this->get_all_table_names())
-         || !in_array( $params['table_name'], $all_tables, true ) )
+         || !in_array( $params['table_name'], $all_tables, true ) ) {
             return false;
+        }
 
         return $params;
     }
@@ -1084,13 +1108,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         foreach( $table_fields as $field_name => $field_details )
         {
             if( $field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY )
+             || $field_name === self::EXTRA_INDEXES_KEY ) {
                 continue;
+            }
 
-            if( isset( $field_details['default'] ) )
+            if( isset( $field_details['default'] ) ) {
                 $data_arr[$field_name] = $field_details['default'];
-            else
-                $data_arr[$field_name] = $this->_validate_field_value( 0, $field_name, $field_details );
+            } else {
+                $data_arr[$field_name] = $this->_validate_field_value(0, $field_name, $field_details);
+            }
         }
 
         $hook_params = PHS_Hooks::default_model_empty_data_hook_args();
@@ -1098,8 +1124,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $hook_params['flow_params'] = $params;
 
         if( ($hook_result = PHS::trigger_hooks( PHS_Hooks::H_MODEL_EMPTY_DATA, $hook_params ))
-         && is_array( $hook_result ) && !empty( $hook_result['data_arr'] ) )
-            $data_arr = self::merge_array_assoc( $data_arr, $hook_result['data_arr'] );
+         && is_array( $hook_result ) && !empty( $hook_result['data_arr'] ) ) {
+            $data_arr = self::merge_array_assoc($data_arr, $hook_result['data_arr']);
+        }
 
         return $data_arr;
     }
@@ -1107,21 +1134,23 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Retrieve a column definition from table definition structure
      *
-     * @param string $field Column name
+     * @param  string  $field Column name
      * @param bool|array $params Flow parameters
      *
      * @return bool|array|null Return column definition as array, null if column is not in table structure definition or false on failure
      */
-    public function table_field_details( $field, $params = false )
+    public function table_field_details( string $field, $params = false )
     {
         $this->reset_error();
 
         $table = false;
-        if( strpos( $field, '.' ) !== false )
-            list( $table, $field ) = explode( '.', $field, 2 );
+        if( strpos( $field, '.' ) !== false ) {
+            [$table, $field] = explode('.', $field, 2);
+        }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         $params['table_name'] = $table;
 
@@ -1138,8 +1167,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if( empty( $table_fields[$field] ) || !is_array( $table_fields[$field] ) )
+        if( empty( $table_fields[$field] ) || !is_array( $table_fields[$field] ) ) {
             return null;
+        }
 
         return $table_fields[$field];
     }
@@ -1148,11 +1178,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * When inserting or editing records in database, this method will normalize and validate provided data and give an array of values that should be used
      * in insert or edit call
      *
-     * @param array $params Flow parameters
+     * @param  array  $params Flow parameters
      *
      * @return array|bool Validated data structure or false on failure
      */
-    protected function validate_data_for_fields( $params )
+    protected function validate_data_for_fields( array $params )
     {
         $this->reset_error();
 
@@ -1229,8 +1259,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     public function get_details_fields( $constrain_arr, $params = false )
     {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
+        if( !($params = $this->fetch_default_flow_params( $params )) ) {
             return false;
+        }
 
         return $this->_get_details_fields_for_model( $constrain_arr, $params );
     }
@@ -1246,8 +1277,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     public function get_details( $id, $params = false )
     {
         if( !($params = $this->fetch_default_flow_params( $params ))
-         || !($id = $this->prepare_primary_key( $id, $params )) )
+         || !($id = $this->prepare_primary_key( $id, $params )) ) {
             return false;
+        }
 
         return $this->_get_details_for_model( $id, $params );
     }
@@ -1265,27 +1297,33 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     public function data_to_array( $item_data, $params = false )
     {
         if( empty( $item_data )
-         || !($params = $this->fetch_default_flow_params( $params )) )
+         || !($params = $this->fetch_default_flow_params( $params )) ) {
             return false;
+        }
 
         $id = 0;
         $item_arr = false;
         if( is_array( $item_data ) )
         {
-            if( !empty( $item_data[$params['table_index']] ) )
-                $id = (int)$item_data[$params['table_index']];
+            if( !empty( $item_data[$params['table_index']] ) ) {
+                $id = (int) $item_data[$params['table_index']];
+            }
             $item_arr = $item_data;
-        } else
-            $id = $this->prepare_primary_key( $item_data );
+        } else {
+            $id = $this->prepare_primary_key($item_data);
+        }
 
-        if( empty( $id ) && (!is_array( $item_arr ) || empty( $item_arr[$params['table_index']] )) )
+        if( empty( $id ) && (!is_array( $item_arr ) || empty( $item_arr[$params['table_index']] )) ) {
             return false;
+        }
 
-        if( empty( $item_arr ) )
-            $item_arr = $this->get_details( $id, $params );
+        if( empty( $item_arr ) ) {
+            $item_arr = $this->get_details($id, $params);
+        }
 
-        if( empty( $item_arr ) || !is_array( $item_arr ) )
+        if( empty( $item_arr ) || !is_array( $item_arr ) ) {
             return false;
+        }
 
         return $item_arr;
     }
@@ -1464,7 +1502,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    final protected function install_table( $flow_params )
+    final protected function install_table( $flow_params ): bool
     {
         $this->reset_error();
 
@@ -1608,7 +1646,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    final protected function update_table( $flow_params )
+    final protected function update_table( $flow_params ): bool
     {
         $this->reset_error();
 
@@ -1622,7 +1660,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    final protected function update_missing_table( $flow_params )
+    final protected function update_missing_table( $flow_params ): bool
     {
         $this->reset_error();
 

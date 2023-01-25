@@ -7,6 +7,7 @@ if( !defined( 'DATETIME_T_FORMAT' ) )
 
 use \phs\PHS_Db;
 use \phs\libraries\PHS_Model;
+use phs\libraries\PHS_Model_Core_base;
 
 function phs_version(): string
 {
@@ -325,96 +326,111 @@ function db_last_error( $connection = false )
     return $db_instance->get_error();
 }
 
-function db_fetch_assoc( $qid, $connection = false )
+function db_fetch_assoc( $qid, $connection = false ): ?array
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
+        } elseif( PHS_DB_SILENT_ERRORS ) {
+            return null;
+        }
 
-        elseif( PHS_DB_SILENT_ERRORS )
-            return false;
-
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
-        return false;
+        return null;
     }
 
     return $db_instance->fetch_assoc( $qid );
 }
 
-function db_num_rows( $qid, $connection = false )
+/**
+ * @param $qid
+ * @param false|string $connection
+ *
+ * @return int
+ */
+function db_num_rows( $qid, $connection = false ): int
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
+        } elseif( PHS_DB_SILENT_ERRORS ) {
+            return 0;
+        }
 
-        elseif( PHS_DB_SILENT_ERRORS )
-            return false;
-
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
-        return false;
+        return 0;
     }
 
     return $db_instance->num_rows( $qid );
 }
 
-function db_query_count( $connection = false )
+function db_query_count( $connection = false ): int
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return 0;
+    }
 
     return $db_instance->queries_number();
 }
 
 function db_affected_rows( $connection = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return 0;
+    }
 
     return $db_instance->affected_rows();
 }
 
 function db_quick_insert( $table_name, $insert_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return '';
+    }
 
     return $db_instance->quick_insert( $table_name, $insert_arr, $connection, $params );
 }
 
 function db_quick_edit( $table_name, $edit_arr, $connection = false, $params = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return '';
+    }
 
     return $db_instance->quick_edit( $table_name, $edit_arr, $connection, $params );
 }
 
 function db_escape( $fields, $connection = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return false;
+    }
 
     return $db_instance->escape( $fields, $connection );
 }
 
 function db_last_id( $connection = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return -1;
+    }
 
     return $db_instance->last_inserted_id();
 }
 
 function db_settings( $connection = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return -1;
+    }
 
     return $db_instance->connection_settings( $connection );
 }
@@ -423,8 +439,9 @@ function db_connection_identifier( $connection )
 {
     if( empty( $connection )
      || !($connection_identifier = PHS_Db::get_connection_identifier( $connection ))
-     || !is_array( $connection_identifier ) )
+     || !is_array( $connection_identifier ) ) {
         return false;
+    }
 
     return $connection_identifier;
 }
@@ -433,8 +450,9 @@ function db_prefix( $connection = false )
 {
     if( !($db_settings = db_settings( $connection ))
      || !is_array( $db_settings )
-     || empty( $db_settings['prefix'] ) )
+     || empty( $db_settings['prefix'] ) ) {
         return '';
+    }
 
     return $db_settings['prefix'];
 }
@@ -443,8 +461,9 @@ function db_database( $connection = false )
 {
     if( !($db_settings = db_settings( $connection ))
      || !is_array( $db_settings )
-     || empty( $db_settings['database'] ) )
+     || empty( $db_settings['database'] ) ) {
         return '';
+    }
 
     return $db_settings['database'];
 }
@@ -461,10 +480,12 @@ function db_dump( $dump_params, $connection = false )
 
     if( !($dump_result = $db_instance->dump_database( $dump_params )) )
     {
-        if( $db_instance->has_error() )
-            PHS_Db::st_copy_error( $db_instance );
-        else
-            PHS_Db::st_set_error( PHS_Db::ERR_DATABASE, PHS_Db::_t( 'Error obtaining dump commands from driver instance.' ) );
+        if( $db_instance->has_error() ) {
+            PHS_Db::st_copy_error($db_instance);
+        } else {
+            PHS_Db::st_set_error(PHS_Db::ERR_DATABASE,
+                PHS_Db::_t('Error obtaining dump commands from driver instance.'));
+        }
 
         return false;
     }
@@ -480,16 +501,13 @@ function form_str( $str )
     return str_replace( '"', '&quot;', $str );
 }
 
-function textarea_str( $str )
+function textarea_str( $str ): string
 {
     return str_replace( [ '<', '>' ], [ '&lt;', '&gt;' ], $str );
 }
 
-function make_sure_is_filename( $str )
+function make_sure_is_filename( string $str ): string
 {
-    if( !is_string( $str ) )
-        return false;
-
     return str_replace(
         [ '..', '/', '\\', '~', '<', '>', '|', '`', '*', '&', ],
         [ '.', '', '', '', '', '', '', '', '', '', ],
@@ -497,25 +515,23 @@ function make_sure_is_filename( $str )
 }
 
 /**
- * @param string $str
+ * @param  string  $str
  * @param bool|array $params
  *
  * @return int
  */
-function seconds_passed( $str, $params = false )
+function seconds_passed( $str, $params = false ): int
 {
-    return time() - (int)parse_db_date( $str, $params );
+    return time() - parse_db_date( $str, $params );
 }
 
-function validate_db_date_array( $date_arr )
+function validate_db_date_array( array $date_arr ): bool
 {
-    if( !is_array( $date_arr ) )
-        return false;
-
     for( $i = 0; $i < 6; $i++ )
     {
-        if( !isset( $date_arr[$i] ) )
+        if( !isset( $date_arr[$i] ) ) {
             return false;
+        }
 
         $date_arr[$i] = (int)$date_arr[$i];
     }
@@ -526,20 +542,21 @@ function validate_db_date_array( $date_arr )
      || $date_arr[3] < 0 || $date_arr[3] > 23
      || $date_arr[4] < 0 || $date_arr[4] > 59
      || $date_arr[5] < 0 || $date_arr[5] > 59
-        )
+        ) {
         return false;
+    }
 
     return true;
 }
 
 /**
- * @param string $date
+ * @param  string  $date
  *
  * @return bool
  */
-function empty_t_date( $date )
+function empty_t_date( string $date ): bool
 {
-    return (empty( $date ) || (string)$date === DATETIME_T_EMPTY || (string)$date === PHS_Model::DATE_EMPTY);
+    return (empty( $date ) || $date === DATETIME_T_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY);
 }
 
 /**
@@ -718,34 +735,34 @@ function is_db_date( $date, $params = false )
 
     $result_arr = array_merge( $date_, $time_ );
     if( !empty( $params['validate_intervals'] )
-     && !validate_db_date_array( $result_arr ) )
+     && !validate_db_date_array( $result_arr ) ) {
         return false;
+    }
 
     return $result_arr;
 }
 
 /**
  * @param string|array $date
- * @param bool|array $params
+ * @param false|array $params
  *
  * @return int
  */
-function parse_db_date( $date, $params = false )
+function parse_db_date( $date, $params = false ): int
 {
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params) ) {
         $params = [];
+    }
 
-    if( !isset( $params['validate_intervals'] ) )
-        $params['validate_intervals'] = true;
-    else
-        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+    $params['validate_intervals'] = (!isset( $params['validate_intervals'] ) || !empty( $params['validate_intervals'] ));
 
     if( is_array( $date ) )
     {
         for( $i = 0; $i < 6; $i++ )
         {
-            if( !isset( $date[$i] ) )
+            if( !isset( $date[$i] ) ) {
                 return 0;
+            }
 
             $date[$i] = (int)$date[$i];
         }
@@ -753,74 +770,80 @@ function parse_db_date( $date, $params = false )
         $date_arr = $date;
 
         if( !empty( $params['validate_intervals'] )
-         && !validate_db_date_array( $date_arr ) )
+         && !validate_db_date_array( $date_arr ) ) {
             return 0;
+        }
     } elseif( is_string( $date ) )
     {
-        if( !($date_arr = is_db_date( $date, $params )) )
+        if( !($date_arr = is_db_date( $date, $params )) ) {
             return 0;
-    } else
+        }
+    } else {
         return 0;
+    }
 
-    if( false === ($ret_val = @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] )) )
+    if( false === ($ret_val = @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] )) ) {
         $ret_val = 0;
+    }
 
     return $ret_val;
 }
 
 /**
- * @param string $date
+ * @param  string  $date
  *
  * @return bool
  */
-function empty_db_date( $date )
+function empty_db_date( $date ): bool
 {
-    return (empty( $date ) || (string)$date === PHS_Model::DATETIME_EMPTY || (string)$date === PHS_Model::DATE_EMPTY);
+    return (empty( $date ) || (string)$date === PHS_Model_Core_base::DATETIME_EMPTY || (string)$date === PHS_Model_Core_base::DATE_EMPTY);
 }
 
 /**
- * @param string $date
+ * @param  string  $date
  * @param bool|string $format
  *
  * @return false|string|null
  */
 function validate_db_date( $date, $format = false )
 {
-    if( empty_db_date( $date ) )
+    if( empty_db_date( $date ) ) {
         return null;
+    }
 
-    if( $format === false )
-        $format = PHS_Model::DATETIME_DB;
+    if( $format === false ) {
+        $format = PHS_Model_Core_base::DATETIME_DB;
+    }
 
     return @date( $format, parse_db_date( $date ) );
 }
 
 /**
- * @param string $str
+ * @param  string  $str
  *
  * @return string
  */
-function prepare_data( $str )
+function prepare_data( string $str ): string
 {
     return str_replace( '\'', '\\\'', str_replace( '\\\'', '\'', $str ) );
 }
 
 /**
- * @param string $url
+ * @param  string  $url
  *
  * @return string
  */
-function safe_url( $url )
+function safe_url( string $url ): string
 {
     return str_replace( [ '?', '&', '#' ], [ '%3F', '%26', '%23' ], $url );
 }
 
 /**
- * @param string $url
+ * @param  string  $url
  *
  * @return string
  */
-function from_safe_url( $url )
+function from_safe_url( string $url ): string
 {
     return str_replace( [ '%3F', '%26', '%23' ], [ '?', '&', '#' ], $url );
 }
@@ -864,10 +887,11 @@ function array_to_query_string( $arr, $params = false )
             if( !empty( $params['raw_encode_values'] ) )
                 $val = urlencode( $val );
 
-            if( empty( $params['array_name'] ) )
+            if( empty( $params['array_name'] ) ) {
                 $return_str .= $key.'='.$val;
-            else
+            } else {
                 $return_str .= $params['array_name'].'['.$key.']='.$val;
+            }
         }
     }
 
@@ -875,15 +899,16 @@ function array_to_query_string( $arr, $params = false )
 }
 
 /**
- * @param string $str
+ * @param  string  $str
  * @param array $params
  *
  * @return string
  */
-function add_url_params( $str, $params )
+function add_url_params( $str, $params ): string
 {
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         return $str;
+    }
 
     $anchor = '';
 
@@ -894,11 +919,13 @@ function add_url_params( $str, $params )
         $anchor = '#'.$anch_arr[1];
     }
 
-    if( strpos( $str, '?' ) === false )
+    if( strpos( $str, '?' ) === false ) {
         $str .= '?';
+    }
 
-    if( ($params_res = array_to_query_string( $params )) )
+    if( ($params_res = array_to_query_string( $params )) ) {
         $str .= '&'.$params_res;
+    }
 
     return $str.$anchor;
 }
@@ -911,8 +938,9 @@ function add_url_params( $str, $params )
  */
 function exclude_params( $str, $params )
 {
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         return $str;
+    }
 
     $add_quest = false;
     $anchor = '';
@@ -933,8 +961,9 @@ function exclude_params( $str, $params )
         $script = $quest_arr[0];
         $param_str = $quest_arr[1];
         $add_quest = true;
-    } else
+    } else {
         $script = $str;
+    }
 
     if( $param_str === '' )
     {
@@ -958,39 +987,43 @@ function exclude_params( $str, $params )
         $new_query_args = [];
         foreach( $res as $key => $val )
         {
-            if( in_array( $key, $params, true ) )
+            if( in_array( $key, $params, true ) ) {
                 continue;
+            }
 
             $new_query_args[$key] = $val;
         }
 
-        if( !empty( $new_query_args ) )
-            $params_res = array_to_query_string( $new_query_args );
+        if( !empty( $new_query_args ) ) {
+            $params_res = array_to_query_string($new_query_args);
+        }
     }
 
-    if( $add_quest )
+    if( $add_quest ) {
         $params_res = '?'.$params_res;
+    }
 
     return $script.$params_res.$anchor;
 }
 
 /**
- * @param int $files
+ * @param  int  $files
  *
  * @return string
  */
-function format_filesize( $files )
+function format_filesize( int $files ): string
 {
-    $files = (int)$files;
+    if( $files >= 1073741824 ) {
+        return (round($files / 1073741824 * 100) / 100).'GB';
+    }
 
-    if( $files >= 1073741824 )
-        $return_str = (round( $files / 1073741824 * 100 ) / 100) . 'GB';
-    elseif( $files >= 1048576 )
-        $return_str = (round( $files / 1048576 * 100 ) / 100) . 'MB';
-    elseif( $files >= 1024 )
-        $return_str = (round( $files / 1024 * 100 ) / 100) . 'KB';
-    else
-        $return_str = $files.'Bytes';
+    if( $files >= 1048576 ) {
+        return (round($files / 1048576 * 100) / 100).'MB';
+    }
 
-    return $return_str;
+    if( $files >= 1024 ) {
+        return (round($files / 1024 * 100) / 100).'KB';
+    }
+
+    return $files.'Bytes';
 }

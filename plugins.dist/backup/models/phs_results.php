@@ -12,19 +12,19 @@ use \phs\libraries\PHS_Utils;
 
 class PHS_Model_Results extends PHS_Model
 {
-    const STATUS_PENDING = 1, STATUS_RUNNING = 2, STATUS_FINISHED = 3, STATUS_ERROR = 4;
-    protected static $STATUSES_ARR = array(
-        self::STATUS_PENDING => array( 'title' => 'Pending' ),
-        self::STATUS_RUNNING => array( 'title' => 'Running' ),
-        self::STATUS_FINISHED => array( 'title' => 'Finished' ),
-        self::STATUS_ERROR => array( 'title' => 'Error' ),
-    );
+    public const STATUS_PENDING = 1, STATUS_RUNNING = 2, STATUS_FINISHED = 3, STATUS_ERROR = 4;
+    protected static array $STATUSES_ARR = [
+        self::STATUS_PENDING => ['title' => 'Pending'],
+        self::STATUS_RUNNING => ['title' => 'Running'],
+        self::STATUS_FINISHED => ['title' => 'Finished'],
+        self::STATUS_ERROR => ['title' => 'Error'],
+    ];
 
-    const FILE_TYPE_LOG = 1, FILE_TYPE_RESULT = 2;
-    protected static $FILE_TYPES_ARR = array(
-        self::FILE_TYPE_LOG => array( 'title' => 'Log file' ),
-        self::FILE_TYPE_RESULT => array( 'title' => 'Result file' ),
-    );
+    public const FILE_TYPE_LOG = 1, FILE_TYPE_RESULT = 2;
+    protected static array $FILE_TYPES_ARR = [
+        self::FILE_TYPE_LOG => ['title' => 'Log file'],
+        self::FILE_TYPE_RESULT => ['title' => 'Result file'],
+    ];
 
     /**
      * @return string Returns version of model
@@ -383,23 +383,26 @@ class PHS_Model_Results extends PHS_Model
     {
         $this->reset_error();
 
-        $result_id = intval( $result_id );
+        $result_id = (int) $result_id;
         if( empty( $result_id )
-         or !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
-         or !($brf_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !($br_table_name = $this->get_flow_table_name( $br_flow_params ))
-         or !($brf_table_name = $this->get_flow_table_name( $brf_flow_params ))
-         or !($qid = db_query( 'SELECT SUM(`size`) AS total_size FROM `'.$brf_table_name.'` WHERE result_id = \''.$result_id.'\'', $brf_flow_params['db_connection'] ))
-         or !($total_arr = @mysqli_fetch_assoc( $qid )) )
+         || !($br_flow_params = $this->fetch_default_flow_params( ['table_name' => 'backup_results']))
+         || !($brf_flow_params = $this->fetch_default_flow_params( ['table_name' => 'backup_results_files']))
+         || !($br_table_name = $this->get_flow_table_name( $br_flow_params ))
+         || !($brf_table_name = $this->get_flow_table_name( $brf_flow_params ))
+         || !($qid = db_query( 'SELECT SUM(`size`) AS total_size FROM `'.$brf_table_name.'` '.
+                               ' WHERE result_id = \''.$result_id.'\'', $brf_flow_params['db_connection'] ))
+         || !($total_arr = @db_fetch_assoc( $qid, $brf_flow_params['db_connection'] )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain backup result files from database.' ) );
             return false;
         }
 
-        if( empty( $total_arr['total_size'] ) )
+        if( empty( $total_arr['total_size'] ) ) {
             $total_arr['total_size'] = 0;
+        }
 
-        if( !db_query( 'UPDATE `'.$br_table_name.'` SET size = \''.$total_arr['total_size'].'\' WHERE id = \''.$result_id.'\'', $br_flow_params['db_connection'] ) )
+        if( !db_query( 'UPDATE `'.$br_table_name.'` SET size = \''.$total_arr['total_size'].'\' '.
+                       ' WHERE id = \''.$result_id.'\'', $br_flow_params['db_connection'] ) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error updating backup result size.' ) );
             return false;
@@ -414,42 +417,46 @@ class PHS_Model_Results extends PHS_Model
 
         $result_id = (int)$result_id;
         if( empty( $result_id )
-         or !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
-         or !($brf_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !($br_table_name = $this->get_flow_table_name( $br_flow_params ))
-         or !($brf_table_name = $this->get_flow_table_name( $brf_flow_params ))
-         or !($qid = db_query( 'SELECT * FROM `'.$brf_table_name.'` WHERE result_id = \''.$result_id.'\'', $brf_flow_params['db_connection'] )) )
+         || !($br_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) ))
+         || !($brf_flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
+         || !($br_table_name = $this->get_flow_table_name( $br_flow_params ))
+         || !($brf_table_name = $this->get_flow_table_name( $brf_flow_params ))
+         || !($qid = db_query( 'SELECT * FROM `'.$brf_table_name.'` WHERE result_id = \''.$result_id.'\'', $brf_flow_params['db_connection'] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Cannot obtain backup result files from database.' ) );
             return false;
         }
 
         // As we don't have any records, be sure result size is 0
-        if( !@mysqli_num_rows( $qid ) )
-            return $this->update_result_size( $result_id );
+        if( !db_num_rows( $qid, $brf_flow_params['db_connection'] ) ) {
+            return $this->update_result_size($result_id);
+        }
 
         $we_have_error = false;
         $sizes_changed = false;
         $total_size = 0;
-        while( ($result_file_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($result_file_arr = @db_fetch_assoc( $qid, $brf_flow_params['db_connection'] )) )
         {
             if( empty( $result_file_arr['file'] )
-             or !@file_exists( $result_file_arr['file'] ) )
+             || !@file_exists( $result_file_arr['file'] ) )
             {
                 $we_have_error = true;
                 continue;
             }
 
-            if( !($file_size = @filesize( $result_file_arr['file'] )) )
+            if( !($file_size = @filesize( $result_file_arr['file'] )) ) {
                 $file_size = 0;
+            }
 
             if( (int)$file_size !== (int)$result_file_arr['size'] )
             {
                 $sizes_changed = true;
                 $result_file_arr['size'] = $file_size;
 
-                if( !db_query( 'UPDATE `'.$brf_table_name.'` SET size = \''.$file_size.'\' WHERE id = \''.$result_file_arr['id'].'\'', $brf_flow_params['db_connection'] ) )
+                if( !db_query( 'UPDATE `'.$brf_table_name.'` SET size = \''.$file_size.'\' '.
+                               ' WHERE id = \''.$result_file_arr['id'].'\'', $brf_flow_params['db_connection'] ) ) {
                     $we_have_error = true;
+                }
             }
 
             $total_size += $result_file_arr['size'];
@@ -461,8 +468,9 @@ class PHS_Model_Results extends PHS_Model
             return false;
         }
 
-        if( empty( $sizes_changed ) )
+        if( empty( $sizes_changed ) ) {
             return $total_size;
+        }
 
         return $this->update_result_size( $result_id );
     }
@@ -471,20 +479,22 @@ class PHS_Model_Results extends PHS_Model
     {
         $this->reset_error();
 
-        $result_id = intval( $result_id );
+        $result_id = (int) $result_id;
         if( empty( $result_id )
-         or !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE result_id = \''.$result_id.'\' ORDER BY `id` ASC', $flow_params['db_connection'] )) )
+         || !($flow_params = $this->fetch_default_flow_params( ['table_name' => 'backup_results_files']))
+         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE result_id = \''.$result_id.'\' ORDER BY `id` ASC', $flow_params['db_connection'] )) )
         {
             $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Cannot obtain backup result files from database.' ) );
             return false;
         }
 
-        if( !@mysqli_num_rows( $qid ) )
-            return array();
+        if( !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
+            return [];
+        }
 
-        $return_arr = array();
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        $return_arr = [];
+        while( ($link_arr = @db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[$link_arr['id']] = $link_arr;
         }
@@ -496,13 +506,11 @@ class PHS_Model_Results extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) ) {
+            $params = [];
+        }
 
-        if( !isset( $params['update_result'] ) )
-            $params['update_result'] = true;
-        else
-            $params['update_result'] = (!empty( $params['update_result'] )?true:false);
+        $params['update_result'] = (!isset( $params['update_result'] ) || !empty( $params['update_result'] ));
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
         if( !($backup_plugin = PHS::load_plugin( 'backup' )) )
@@ -518,15 +526,18 @@ class PHS_Model_Results extends PHS_Model
         }
 
         // Error obtaining backup result files from database
-        if( ($result_files_arr = $this->get_result_files( $result_arr['id'] )) === false )
+        if( ($result_files_arr = $this->get_result_files( $result_arr['id'] )) === false ) {
             return false;
+        }
 
         // No result files in database...
-        if( empty( $result_files_arr ) or !is_array( $result_files_arr ) )
+        if( empty( $result_files_arr ) || !is_array( $result_files_arr ) ) {
             return $result_arr;
+        }
 
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE result_id = \''.$result_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
+        if( !($flow_params = $this->fetch_default_flow_params( ['table_name' => 'backup_results_files']))
+         || !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                       ' WHERE result_id = \''.$result_arr['id'].'\'', $flow_params['db_connection'] ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink result files from result.' ) );
             return false;
@@ -535,18 +546,19 @@ class PHS_Model_Results extends PHS_Model
         foreach( $result_files_arr as $file_id => $file_arr )
         {
             if( empty( $file_arr['file'] )
-             or !@file_exists( $file_arr['file'] ) )
+             || !@file_exists( $file_arr['file'] ) ) {
                 continue;
+            }
 
             @unlink( $file_arr['file'] );
         }
 
         if( !empty( $params['update_result'] ) )
         {
-            $edit_arr = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) );
-            $edit_arr['fields'] = array(
+            $edit_arr = $this->fetch_default_flow_params( ['table_name' => 'backup_results']);
+            $edit_arr['fields'] = [
                 'size' => 0,
-            );
+            ];
 
             if( !($new_result_arr = $this->edit( $result_arr, $edit_arr )) )
             {
@@ -570,8 +582,8 @@ class PHS_Model_Results extends PHS_Model
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !($result_file_arr = $this->data_to_array( $result_file_data, $flow_params )) )
+        if( !($flow_params = $this->fetch_default_flow_params( ['table_name' => 'backup_results_files']))
+         || !($result_file_arr = $this->data_to_array( $result_file_data, $flow_params )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Backup result file not found in database.' ) );
             return false;
@@ -584,26 +596,26 @@ class PHS_Model_Results extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) or !is_array( $params ) )
-            $params = array();
+        if( empty( $params ) || !is_array( $params ) ) {
+            $params = [];
+        }
 
-        if( !isset( $params['update_result'] ) )
-            $params['update_result'] = true;
-        else
-            $params['update_result'] = (!empty( $params['update_result'] )?true:false);
+        $params['update_result'] = (!isset( $params['update_result'] ) || !empty( $params['update_result'] ));
 
         $result_file_arr['{result_data}'] = false;
         if( !empty( $params['update_result'] ) )
         {
-            $edit_arr = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results' ) );
-            $edit_arr['fields'] = array(
-                'size' => array( 'raw_field' => true, 'value' => 'size - '.$result_file_arr['size'] ),
-            );
+            $edit_arr = $this->fetch_default_flow_params( ['table_name' => 'backup_results']);
+            $edit_arr['fields'] = [
+                'size' => ['raw_field' => true, 'value' => 'size - '.$result_file_arr['size']],
+            ];
 
             if( !($result_arr = $this->edit( $result_file_arr['result_id'], $edit_arr )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error updating result details from database.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_FUNCTIONALITY,
+                        $this->_pt('Error updating result details from database.'));
+                }
 
                 return false;
             }
@@ -674,14 +686,14 @@ class PHS_Model_Results extends PHS_Model
         }
 
         if( empty( $result_data )
-         or !($result_arr = $this->data_to_array( $result_data )) )
+         || !($result_arr = $this->data_to_array( $result_data )) )
         {
             $this->set_error( self::ERR_PARAMETERS, self::_t( 'Backup result not found in database.' ) );
             return false;
         }
 
         if( !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'backup_results_files' ) ))
-         or !($result_files_table_name = $this->get_flow_table_name( $flow_params )) )
+         || !($result_files_table_name = $this->get_flow_table_name( $flow_params )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Invalid flow parameters.' ) );
             return false;
@@ -713,27 +725,27 @@ class PHS_Model_Results extends PHS_Model
             $total_file_size = 0;
             foreach( $files_arr as $file_arr )
             {
-                if( empty( $file_arr ) or !@is_array( $file_arr )
-                 or empty( $file_arr['file'] ) )
+                if( empty( $file_arr ) || !@is_array( $file_arr )
+                 || empty( $file_arr['file'] ) )
                     continue;
 
                 if( !@file_exists( $file_arr['file'] )
-                 or !@is_file( $file_arr['file'] )
-                 or !($file_size = @filesize( $file_arr['file'] )) )
+                 || !@is_file( $file_arr['file'] )
+                 || !($file_size = @filesize( $file_arr['file'] )) )
                     $file_size = 0;
 
                 if( empty( $file_arr['id'] )
-                 or empty( $existing_files[$file_arr['id']] ) )
+                 || empty( $existing_files[$file_arr['id']] ) )
                 {
                     if( isset( $file_arr['id'] ) )
                         unset( $file_arr['id'] );
 
                     if( empty( $file_arr['type'] )
-                     or !$this->valid_file_type( $file_arr['type'] ) )
+                     || !$this->valid_file_type( $file_arr['type'] ) )
                         $file_arr['type'] = self::FILE_TYPE_RESULT;
 
                     if( empty( $file_arr['target_id'] )
-                     or !$rules_model->valid_target( $file_arr['target_id'] ) )
+                     || !$rules_model->valid_target( $file_arr['target_id'] ) )
                         $file_arr['target_id'] = $rules_model::BACKUP_TARGET_UPLOADS;
 
                     // insert
@@ -834,11 +846,11 @@ class PHS_Model_Results extends PHS_Model
      */
     protected function get_insert_prepare_params_backup_results( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         if( empty( $params['fields']['run_dir'] )
-         or !@is_dir( $params['fields']['run_dir'] ) )
+         || !@is_dir( $params['fields']['run_dir'] ) )
         {
             $this->set_error( self::ERR_INSERT, $this->_pt( 'Please provide running backup rule directory.' ) );
             return false;
@@ -853,13 +865,13 @@ class PHS_Model_Results extends PHS_Model
         $cdate = date( self::DATETIME_DB );
 
         if( empty( $params['fields']['status'] )
-         or !$this->valid_status( $params['fields']['status'] ) )
+         || !$this->valid_status( $params['fields']['status'] ) )
             $params['fields']['status'] = self::STATUS_PENDING;
 
         $params['fields']['cdate'] = $cdate;
 
         if( empty( $params['fields']['status_date'] )
-         or empty_db_date( $params['fields']['status_date'] ) )
+         || empty_db_date( $params['fields']['status_date'] ) )
             $params['fields']['status_date'] = $params['fields']['cdate'];
         else
             $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
@@ -1004,8 +1016,8 @@ class PHS_Model_Results extends PHS_Model
                 if( $result_files_arr['total_size'] != $existing_data['size'] )
                 {
                     if( !($flow_params = $this->fetch_default_flow_params( $params ))
-                     or !($table_name = $this->get_flow_table_name( $flow_params ))
-                     or !db_query( 'UPDATE `'.$table_name.'` SET size = \''.$result_files_arr['total_size'].'\' WHERE id = \''.$existing_data['id'].'\'', $flow_params['db_connection'] ) )
+                     || !($table_name = $this->get_flow_table_name( $flow_params ))
+                     || !db_query( 'UPDATE `'.$table_name.'` SET size = \''.$result_files_arr['total_size'].'\' WHERE id = \''.$existing_data['id'].'\'', $flow_params['db_connection'] ) )
                     {
                         if( !$this->has_error() )
                             $this->set_error( self::ERR_EDIT, $this->_pt( 'Error linking result files to backup result.' ) );
@@ -1032,7 +1044,7 @@ class PHS_Model_Results extends PHS_Model
      */
     protected function get_insert_prepare_params_backup_results_files( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
@@ -1055,14 +1067,14 @@ class PHS_Model_Results extends PHS_Model
         }
 
         if( empty( $params['fields']['target_id'] )
-         or !$rules_model->valid_target( $params['fields']['target_id'] ) )
+         || !$rules_model->valid_target( $params['fields']['target_id'] ) )
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a backup result file target id.' ) );
             return false;
         }
 
         if( empty( $params['fields']['type'] )
-         or !$this->valid_file_type( $params['fields']['type'] ) )
+         || !$this->valid_file_type( $params['fields']['type'] ) )
             $params['fields']['type'] = self::FILE_TYPE_RESULT;
 
         return $params;
@@ -1080,7 +1092,7 @@ class PHS_Model_Results extends PHS_Model
      */
     protected function get_edit_prepare_params_backup_results_files( $existing_data, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) )
             return false;
 
 
@@ -1106,7 +1118,7 @@ class PHS_Model_Results extends PHS_Model
             }
 
             if( empty( $params['fields']['target_id'] )
-             or !$rules_model->valid_target( $params['fields']['target_id'] ) )
+             || !$rules_model->valid_target( $params['fields']['target_id'] ) )
             {
                 $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a backup result file target id.' ) );
                 return false;
@@ -1114,7 +1126,7 @@ class PHS_Model_Results extends PHS_Model
         }
 
         if( empty( $params['fields']['type'] )
-         or !$this->valid_file_type( $params['fields']['type'] ) )
+         || !$this->valid_file_type( $params['fields']['type'] ) )
         {
             $this->set_error( self::ERR_INSERT, self::_t( 'Please provide a backup result file type.' ) );
             return false;
@@ -1141,7 +1153,7 @@ class PHS_Model_Results extends PHS_Model
                         if( $params['table_name'] == 'backup_results' )
                         {
                             if( !($rules_model = PHS::load_model( 'rules', 'backup' ))
-                             or !($rules_table = $rules_model->get_flow_table_name( array( 'table_name' => 'backup_rules' ))) )
+                             || !($rules_table = $rules_model->get_flow_table_name( array( 'table_name' => 'backup_rules' ))) )
                                 continue 2;
 
                             $params['db_fields'] .= ', `'.$rules_table.'`.title AS backup_rules_title, '.
@@ -1186,89 +1198,90 @@ class PHS_Model_Results extends PHS_Model
     final public function fields_definition( $params = false )
     {
         // $params should be flow parameters...
-        if( empty( $params ) or !is_array( $params )
-         or empty( $params['table_name'] ) )
+        if( empty( $params ) || !is_array( $params )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
-        $return_arr = array();
+        $return_arr = [];
         switch( $params['table_name'] )
         {
             case 'backup_results':
-                $return_arr = array(
-                    'id' => array(
+                $return_arr = [
+                    'id' => [
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'rule_id' => array(
+                    ],
+                    'rule_id' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
-                    ),
-                    'run_dir' => array(
+                    ],
+                    'run_dir' => [
                         'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                         'comment' => 'Directory where backup rule runs',
-                    ),
-                    'size' => array(
+                    ],
+                    'size' => [
                         'type' => self::FTYPE_BIGINT,
-                    ),
-                    'copied' => array(
+                    ],
+                    'copied' => [
                         'type' => self::FTYPE_DATETIME,
                         'index' => true,
                         'comment' => 'Date when results were copied',
-                    ),
-                    'copy_error' => array(
+                    ],
+                    'copy_error' => [
                         'type' => self::FTYPE_TEXT,
                         'nullable' => true,
-                    ),
-                    'status' => array(
+                    ],
+                    'status' => [
                         'type' => self::FTYPE_TINYINT,
-                        'length' => '2',
+                        'length' => 2,
                         'index' => true,
-                    ),
-                    'status_date' => array(
+                    ],
+                    'status_date' => [
                         'type' => self::FTYPE_DATETIME,
-                    ),
-                    'cdate' => array(
+                    ],
+                    'cdate' => [
                         'type' => self::FTYPE_DATETIME,
-                    ),
-                );
+                    ],
+                ];
             break;
 
             case 'backup_results_files':
-                $return_arr = array(
-                    'id' => array(
+                $return_arr = [
+                    'id' => [
                         'type' => self::FTYPE_INT,
                         'primary' => true,
                         'auto_increment' => true,
-                    ),
-                    'result_id' => array(
+                    ],
+                    'result_id' => [
                         'type' => self::FTYPE_INT,
                         'index' => true,
-                    ),
-                    'file' => array(
+                    ],
+                    'file' => [
                         'type' => self::FTYPE_TEXT,
                         'nullable' => true,
                         'comment' => 'Full path to resulting file',
-                    ),
-                    'size' => array(
+                    ],
+                    'size' => [
                         'type' => self::FTYPE_BIGINT,
-                    ),
-                    'target_id' => array(
+                    ],
+                    'target_id' => [
                         'type' => self::FTYPE_TINYINT,
-                        'length' => '2',
+                        'length' => 2,
                         'index' => true,
                         'comment' => 'What was the target for this file',
-                    ),
-                    'type' => array(
+                    ],
+                    'type' => [
                         'type' => self::FTYPE_TINYINT,
-                        'length' => '2',
+                        'length' => 2,
                         'index' => true,
                         'comment' => 'Log file, result file',
-                    ),
-                );
+                    ],
+                ];
             break;
-       }
+        }
 
         return $return_arr;
     }

@@ -467,10 +467,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND `'.$r_table_name.'`.copy_results != 0', $r_flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $r_flow_params['db_connection'] ) ) {
             return $return_arr;
+        }
 
-        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($rule_arr = db_fetch_assoc( $qid, $r_flow_params['db_connection'] )) )
         {
             if( empty( $rule_arr['copy_results'] )
              || !($rule_with_settings = $rules_model->get_rule_ftp_settings( $rule_arr )) )
@@ -544,7 +545,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             // select results which were not copied before or ones that system tried to copy and had error, but one day old if error
             if( !($br_qid = db_query( $results_sql, $br_flow_params['db_connection'] ))
-             || !($results_count = @mysqli_num_rows( $br_qid )) )
+             || !($results_count = db_num_rows( $br_qid, $br_flow_params['db_connection'] )) )
             {
                 PHS_Logger::notice( 'No results to copy for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
@@ -554,7 +555,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             // Get next file to be copied. In case we have more processes uploading files to be sure there's one that picks a transfer.
             while( ($br_qid = db_query( $results_sql.' LIMIT 0, 1', $br_flow_params['db_connection'] ))
-                && ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
+                && ($result_arr = db_fetch_assoc( $br_qid, $br_flow_params['db_connection'] )) )
             {
                 $edit_arr = [
                     'fields' => [
@@ -747,11 +748,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' WHERE '.
                               ' `'.$r_table_name.'`.status = \''.$rules_model::STATUS_ACTIVE.'\' '.
                               ' AND `'.$r_table_name.'`.delete_after_days > 0', $r_flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) ) {
+         || !db_num_rows( $qid, $r_flow_params['db_connection'] ) ) {
             return $return_arr;
         }
 
-        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($rule_arr = db_fetch_assoc( $qid, $r_flow_params['db_connection'] )) )
         {
             if( !($br_qid = db_query( 'SELECT `'.$br_table_name.'`.* '.
                                    ' FROM `'.$br_table_name.'`'.
@@ -759,7 +760,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                                    ' (`'.$br_table_name.'`.status = \''.$results_model::STATUS_FINISHED.'\' OR '.
                                             ' `'.$br_table_name.'`.status = \''.$results_model::STATUS_ERROR.'\') '.
                                    ' AND `'.$br_table_name.'`.status_date <= \''.date( $results_model::DATETIME_DB, $now_time - $rule_arr['delete_after_days'] * 86400).'\'', $br_flow_params['db_connection'] ))
-             || !($results_count = @mysqli_num_rows( $br_qid )) )
+             || !($results_count = db_num_rows( $br_qid, $br_flow_params['db_connection'] )) )
             {
                 PHS_Logger::notice( 'Nothing older than '.$rule_arr['delete_after_days'].' days to be deleted for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
                 continue;
@@ -767,7 +768,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
             PHS_Logger::notice( 'Trying to delete '.$results_count.' results older than '.$rule_arr['delete_after_days'].' days for rule #'.$rule_arr['id'].'.', self::LOG_CHANNEL );
 
-            while( ($result_arr = @mysqli_fetch_assoc( $br_qid )) )
+            while( ($result_arr = db_fetch_assoc( $br_qid, $br_flow_params['db_connection'] )) )
             {
                 if( $results_model->act_delete( $result_arr ) )
                 {
@@ -827,11 +828,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                               ' AND (`'.$rd_table_name.'`.day = \''.$today_day.'\' OR `'.$rd_table_name.'`.day = 0)'.
                               ' AND `'.$r_table_name.'`.hour = \''.$now_hour.'\''.
                               ' AND (`'.$r_table_name.'`.last_run IS NULL OR DAYOFYEAR(`'.$r_table_name.'`.last_run) != '.$day_of_year.')', $r_flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) ) {
+         || !db_num_rows( $qid, $r_flow_params['db_connection'] ) ) {
             return $return_arr;
         }
 
-        while( ($rule_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($rule_arr = db_fetch_assoc( $qid, $r_flow_params['db_connection'] )) )
         {
             $return_arr['backup_rules']++;
             if( !($run_result = $rules_model->run_backup_rule_bg( $rule_arr )) ) {

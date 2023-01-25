@@ -22,7 +22,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
      *
      * @return void
      */
-    protected function _do_construct( $instance_details = false )
+    protected function _do_construct( $instance_details = false ): void
     {
         parent::_do_construct( $instance_details );
         $this->load_depencies();
