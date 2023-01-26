@@ -1,9 +1,11 @@
 <?php
 
-if( !defined( 'DATETIME_T_EMPTY' ) )
-    define( 'DATETIME_T_EMPTY', '0000-00-00T00:00:00' );
-if( !defined( 'DATETIME_T_FORMAT' ) )
-    define( 'DATETIME_T_FORMAT', 'Y-m-d\TH:i:s' );
+if( !defined( 'DATETIME_T_EMPTY' ) ) {
+    define('DATETIME_T_EMPTY', '0000-00-00T00:00:00');
+}
+if( !defined( 'DATETIME_T_FORMAT' ) ) {
+    define('DATETIME_T_FORMAT', 'Y-m-d\TH:i:s');
+}
 
 use \phs\PHS_Db;
 use \phs\libraries\PHS_Model;
@@ -23,81 +25,110 @@ function phs_init_before_bootstrap(): bool
      || !defined( 'PHS_DEFAULT_PORT' )
      || !defined( 'PHS_DEFAULT_SSL_DOMAIN' )
      || !defined( 'PHS_DEFAULT_SSL_PORT' )
-     || !defined( 'PHS_DEFAULT_DOMAIN_PATH' ) )
+     || !defined( 'PHS_DEFAULT_DOMAIN_PATH' ) ) {
         return false;
+    }
 
-    if( $did_definitions !== null )
+    if( $did_definitions !== null ) {
         return true;
+    }
 
     $did_definitions = true;
 
-    if( !defined( 'PHS_DEFAULT_FULL_PATH_WWW' ) )
-        define( 'PHS_DEFAULT_FULL_PATH_WWW', PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT!==''?':':'').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
-    if( !defined( 'PHS_DEFAULT_FULL_SSL_PATH_WWW' ) )
-        define( 'PHS_DEFAULT_FULL_SSL_PATH_WWW', PHS_DEFAULT_SSL_DOMAIN.(PHS_DEFAULT_SSL_PORT!==''?':':'').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH );
+    if( !defined( 'PHS_DEFAULT_FULL_PATH_WWW' ) ) {
+        define('PHS_DEFAULT_FULL_PATH_WWW',
+            PHS_DEFAULT_DOMAIN.(PHS_DEFAULT_PORT !== '' ? ':' : '').PHS_DEFAULT_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH);
+    }
+    if( !defined( 'PHS_DEFAULT_FULL_SSL_PATH_WWW' ) ) {
+        define('PHS_DEFAULT_FULL_SSL_PATH_WWW',
+            PHS_DEFAULT_SSL_DOMAIN.(PHS_DEFAULT_SSL_PORT !== '' ? ':' : '').PHS_DEFAULT_SSL_PORT.'/'.PHS_DEFAULT_DOMAIN_PATH);
+    }
 
-    if( !defined( 'PHS_DEFAULT_HTTP' ) )
-        define( 'PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW );
-    if( !defined( 'PHS_DEFAULT_HTTPS' ) )
-        define( 'PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW );
+    if( !defined( 'PHS_DEFAULT_HTTP' ) ) {
+        define('PHS_DEFAULT_HTTP', 'http://'.PHS_DEFAULT_FULL_PATH_WWW);
+    }
+    if( !defined( 'PHS_DEFAULT_HTTPS' ) ) {
+        define('PHS_DEFAULT_HTTPS', 'https://'.PHS_DEFAULT_FULL_SSL_PATH_WWW);
+    }
 
     // Root folders
-    if( !defined( 'PHS_SETUP_DIR' ) )
-        define( 'PHS_SETUP_DIR', PHS_PATH.'_setup/' );
-    if( !defined( 'PHS_CONFIG_DIR' ) )
-        define( 'PHS_CONFIG_DIR', PHS_PATH.'config/' );
-    if( !defined( 'PHS_SYSTEM_DIR' ) )
-        define( 'PHS_SYSTEM_DIR', PHS_PATH.'system/' );
-    if( !defined( 'PHS_PLUGINS_DIR' ) )
-        define( 'PHS_PLUGINS_DIR', PHS_PATH.'plugins/' );
+    if( !defined( 'PHS_SETUP_DIR' ) ) {
+        define('PHS_SETUP_DIR', PHS_PATH.'_setup/');
+    }
+    if( !defined( 'PHS_CONFIG_DIR' ) ) {
+        define('PHS_CONFIG_DIR', PHS_PATH.'config/');
+    }
+    if( !defined( 'PHS_SYSTEM_DIR' ) ) {
+        define('PHS_SYSTEM_DIR', PHS_PATH.'system/');
+    }
+    if( !defined( 'PHS_PLUGINS_DIR' ) ) {
+        define('PHS_PLUGINS_DIR', PHS_PATH.'plugins/');
+    }
 
     // If logging dir is not setup in main.php or config/*, default location is in system/logs/
-    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) )
-        define( 'PHS_DEFAULT_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
+    if( !defined( 'PHS_DEFAULT_LOGS_DIR' ) ) {
+        define('PHS_DEFAULT_LOGS_DIR', PHS_SYSTEM_DIR.'logs/');
+    }
 
     // If uploads dir is not setup in main.php or config/*, default location is in _uploads/
-    if( !defined( 'PHS_DEFAULT_UPLOADS_DIR' ) )
-        define( 'PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/' );
+    if( !defined( 'PHS_DEFAULT_UPLOADS_DIR' ) ) {
+        define('PHS_DEFAULT_UPLOADS_DIR', PHS_PATH.'_uploads/');
+    }
 
     // If assets dir is not setup in main.php or config/*, default location is in assets/
-    if( !defined( 'PHS_DEFAULT_ASSETS_DIR' ) )
-        define( 'PHS_DEFAULT_ASSETS_DIR', PHS_PATH.'assets/' );
+    if( !defined( 'PHS_DEFAULT_ASSETS_DIR' ) ) {
+        define('PHS_DEFAULT_ASSETS_DIR', PHS_PATH.'assets/');
+    }
 
     // Second level folders
-    if( !defined( 'PHS_CORE_DIR' ) )
-        define( 'PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/' );
-    if( !defined( 'PHS_LIBRARIES_DIR' ) )
-        define( 'PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/' );
+    if( !defined( 'PHS_CORE_DIR' ) ) {
+        define('PHS_CORE_DIR', PHS_SYSTEM_DIR.'core/');
+    }
+    if( !defined( 'PHS_LIBRARIES_DIR' ) ) {
+        define('PHS_LIBRARIES_DIR', PHS_SYSTEM_DIR.'libraries/');
+    }
 
-    if( !defined( 'PHS_CORE_MODEL_DIR' ) )
-        define( 'PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/' );
-    if( !defined( 'PHS_CORE_CONTROLLER_DIR' ) )
-        define( 'PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/' );
-    if( !defined( 'PHS_CORE_VIEW_DIR' ) )
-        define( 'PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/' );
-    if( !defined( 'PHS_CORE_ACTION_DIR' ) )
-        define( 'PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/' );
-    if( !defined( 'PHS_CORE_CONTRACT_DIR' ) )
-        define( 'PHS_CORE_CONTRACT_DIR', PHS_CORE_DIR.'contracts/' );
-    if( !defined( 'PHS_CORE_EVENT_DIR' ) )
-        define( 'PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/' );
-    if( !defined( 'PHS_CORE_PLUGIN_DIR' ) )
-        define( 'PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/' );
-    if( !defined( 'PHS_CORE_SCOPE_DIR' ) )
-        define( 'PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/' );
-    if( !defined( 'PHS_CORE_LIBRARIES_DIR' ) )
-        define( 'PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/' );
+    if( !defined( 'PHS_CORE_MODEL_DIR' ) ) {
+        define('PHS_CORE_MODEL_DIR', PHS_CORE_DIR.'models/');
+    }
+    if( !defined( 'PHS_CORE_CONTROLLER_DIR' ) ) {
+        define('PHS_CORE_CONTROLLER_DIR', PHS_CORE_DIR.'controllers/');
+    }
+    if( !defined( 'PHS_CORE_VIEW_DIR' ) ) {
+        define('PHS_CORE_VIEW_DIR', PHS_CORE_DIR.'views/');
+    }
+    if( !defined( 'PHS_CORE_ACTION_DIR' ) ) {
+        define('PHS_CORE_ACTION_DIR', PHS_CORE_DIR.'actions/');
+    }
+    if( !defined( 'PHS_CORE_CONTRACT_DIR' ) ) {
+        define('PHS_CORE_CONTRACT_DIR', PHS_CORE_DIR.'contracts/');
+    }
+    if( !defined( 'PHS_CORE_EVENT_DIR' ) ) {
+        define('PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/');
+    }
+    if( !defined( 'PHS_CORE_PLUGIN_DIR' ) ) {
+        define('PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/');
+    }
+    if( !defined( 'PHS_CORE_SCOPE_DIR' ) ) {
+        define('PHS_CORE_SCOPE_DIR', PHS_CORE_DIR.'scopes/');
+    }
+    if( !defined( 'PHS_CORE_LIBRARIES_DIR' ) ) {
+        define('PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/');
+    }
 
     // These paths will need a www pair, but after bootstrap
-    if( !defined( 'PHS_THEMES_DIR' ) )
-        define( 'PHS_THEMES_DIR', PHS_PATH.'themes/' );
-    if( !defined( 'PHS_LANGUAGES_DIR' ) )
-        define( 'PHS_LANGUAGES_DIR', PHS_PATH.'languages/' );
+    if( !defined( 'PHS_THEMES_DIR' ) ) {
+        define('PHS_THEMES_DIR', PHS_PATH.'themes/');
+    }
+    if( !defined( 'PHS_LANGUAGES_DIR' ) ) {
+        define('PHS_LANGUAGES_DIR', PHS_PATH.'languages/');
+    }
 
     // name of directory where email templates are stored (either theme relative or plugin relative)
     // eg. (themes/default/emails or plugins/accounts/templates/emails)
-    if( !defined( 'PHS_EMAILS_DIRS' ) )
-        define( 'PHS_EMAILS_DIRS', 'emails' );
+    if( !defined( 'PHS_EMAILS_DIRS' ) ) {
+        define('PHS_EMAILS_DIRS', 'emails');
+    }
 
     return true;
 }
@@ -121,26 +152,28 @@ function generate_guid(): string
 /**
  * @param  string  $ip
  *
- * @return bool|string
+ * @return string
  */
-function validate_ip( string $ip )
+function validate_ip( string $ip ): string
 {
     if( @function_exists( 'filter_var' ) && defined( 'FILTER_VALIDATE_IP' ) )
     {
         $ret_val = filter_var( $ip, FILTER_VALIDATE_IP );
-        return ($ret_val?trim( $ret_val ):false);
+        return ($ret_val?trim( $ret_val ):'');
     }
 
     if( !($ip_numbers = explode( '.', $ip ))
-     || !is_array( $ip_numbers ) || count( $ip_numbers ) !== 4 )
-        return false;
+     || !is_array( $ip_numbers ) || count( $ip_numbers ) !== 4 ) {
+        return '';
+    }
 
     $parsed_ip = '';
     foreach( $ip_numbers as $ip_part )
     {
         $ip_part = (int)$ip_part;
-        if( $ip_part < 0 || $ip_part > 255 )
-            return false;
+        if( $ip_part < 0 || $ip_part > 255 ) {
+            return '';
+        }
 
         $parsed_ip = ($parsed_ip!==''?'.':'').$ip_part;
     }
@@ -151,23 +184,27 @@ function validate_ip( string $ip )
 /**
  * @return string
  */
-function request_ip()
+function request_ip(): string
 {
     $guessed_ip = '';
     // CloudFlare proxy
-    if( !empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) )
-        $guessed_ip = validate_ip( $_SERVER['HTTP_CF_CONNECTING_IP'] );
+    if( !empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+        $guessed_ip = validate_ip($_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
 
     if( empty( $guessed_ip )
-     && !empty( $_SERVER['HTTP_CLIENT_IP'] ) )
-        $guessed_ip = validate_ip( $_SERVER['HTTP_CLIENT_IP'] );
+     && !empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+        $guessed_ip = validate_ip($_SERVER['HTTP_CLIENT_IP']);
+    }
 
     if( empty( $guessed_ip )
-     && !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) )
-        $guessed_ip = validate_ip( $_SERVER['HTTP_X_FORWARDED_FOR'] );
+     && !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+        $guessed_ip = validate_ip($_SERVER['HTTP_X_FORWARDED_FOR']);
+    }
 
-    if( empty( $guessed_ip ) )
-        $guessed_ip = (!empty( $_SERVER['REMOTE_ADDR'] )?trim( $_SERVER['REMOTE_ADDR'] ):'');
+    if( empty( $guessed_ip ) ) {
+        $guessed_ip = (!empty($_SERVER['REMOTE_ADDR']) ? trim($_SERVER['REMOTE_ADDR']) : '');
+    }
 
     return $guessed_ip;
 }
@@ -180,14 +217,15 @@ function db_supress_errors( $connection = false )
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
+        } elseif( PHS_DB_SILENT_ERRORS ) {
             return false;
+        }
 
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
         return false;
     }
@@ -201,14 +239,15 @@ function db_restore_errors_state( $connection = false )
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
+        } elseif( PHS_DB_SILENT_ERRORS ) {
             return false;
+        }
 
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
         return false;
     }
@@ -222,19 +261,20 @@ function db_query_insert( $query, $connection = false )
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
+        } elseif( PHS_DB_SILENT_ERRORS ) {
             return false;
+        }
 
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
         return false;
     }
 
-    if( !($qid = $db_instance->query( $query, $connection )) )
+    if( !$db_instance->query( $query, $connection ) )
     {
         if( $db_instance->display_errors() )
         {
@@ -245,23 +285,22 @@ function db_query_insert( $query, $connection = false )
         return 0;
     }
 
-    $last_id = $db_instance->last_inserted_id();
-
-    return $last_id;
+    return $db_instance->last_inserted_id();
 }
 
 function db_query( $query, $connection = false )
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
+        } elseif( PHS_DB_SILENT_ERRORS ) {
             return false;
+        }
 
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
         return false;
     }
@@ -292,14 +331,15 @@ function db_test_connection( $connection = false )
 {
     if( !($db_instance = PHS_Db::db( $connection )) )
     {
-        if( PHS_Db::st_debugging_mode() )
+        if( PHS_Db::st_debugging_mode() ) {
             PHS_Db::st_throw_error();
-
-        elseif( PHS_DB_SILENT_ERRORS )
+        } elseif( PHS_DB_SILENT_ERRORS ) {
             return false;
+        }
 
-        if( PHS_DB_DIE_ON_ERROR )
+        if( PHS_DB_DIE_ON_ERROR ) {
             exit;
+        }
 
         return false;
     }
@@ -320,8 +360,9 @@ function db_test_connection( $connection = false )
 
 function db_last_error( $connection = false )
 {
-    if( !($db_instance = PHS_Db::db( $connection )) )
+    if( !($db_instance = PHS_Db::db( $connection )) ) {
         return false;
+    }
 
     return $db_instance->get_error();
 }
@@ -567,24 +608,25 @@ function empty_t_date( string $date ): bool
  */
 function is_t_date( $date, $params = false )
 {
-    if( is_string( $date ) )
-        $date = trim( $date );
+    if( is_string( $date ) ) {
+        $date = trim($date);
+    }
 
     if( empty( $date )
      || !is_string( $date )
-     || strpos( $date, 'T' ) === false )
+     || strpos( $date, 'T' ) === false ) {
         return false;
+    }
 
-    if( empty_t_date( $date ) )
-        return [ 0, 0, 0, 0, 0, 0 ];
+    if( empty_t_date( $date ) ) {
+        return [0, 0, 0, 0, 0, 0];
+    }
 
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         $params = [];
+    }
 
-    if( !isset( $params['validate_intervals'] ) )
-        $params['validate_intervals'] = true;
-    else
-        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+    $params['validate_intervals'] = (!isset( $params['validate_intervals'] ) || !empty( $params['validate_intervals'] ));
 
     if( strpos( $date, 'T' ) !== false )
     {
@@ -600,8 +642,9 @@ function is_t_date( $date, $params = false )
     for( $i = 0; $i < 3; $i++ )
     {
         if( !isset( $date_[$i] )
-         || !isset( $time_[$i] ) )
+         || !isset( $time_[$i] ) ) {
             return false;
+        }
 
         if( $i === 2
          && !empty( $time_[$i] ) )
@@ -616,8 +659,9 @@ function is_t_date( $date, $params = false )
 
     $result_arr = array_merge( $date_, $time_ );
     if( !empty( $params['validate_intervals'] )
-     && !validate_db_date_array( $result_arr ) )
+     && !validate_db_date_array( $result_arr ) ) {
         return false;
+    }
 
     return $result_arr;
 }
@@ -630,42 +674,41 @@ function is_t_date( $date, $params = false )
  */
 function parse_t_date( $date, $params = false )
 {
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         $params = [];
+    }
 
-    if( !isset( $params['offset_seconds'] ) && !isset( $params['offset_hours'] ) )
+    $params['validate_intervals'] = (!isset( $params['validate_intervals'] ) || !empty( $params['validate_intervals'] ));
+
+    if( !isset( $params['offset_seconds'] ) && !isset( $params['offset_hours'] ) ) {
         $params['offset_seconds'] = 0;
+    }
 
     else
     {
         // offset in seconds...
-        if( isset( $params['offset_seconds'] ) )
-            $params['offset_seconds'] = (int)$params['offset_seconds'];
-
-        else
+        if( isset( $params['offset_seconds'] ) ) {
+            $params['offset_seconds'] = (int) $params['offset_seconds'];
+        } else
         {
             // offset in hours...
-            if( empty( $params['offset_hours'] ) )
+            if( empty( $params['offset_hours'] ) ) {
                 $params['offset_seconds'] = 0;
-
-            else
-                $params['offset_seconds'] = (int)$params['offset_hours'] * 3600;
+            } else {
+                $params['offset_seconds'] = (int) $params['offset_hours'] * 3600;
+            }
         }
 
         $params['offset_seconds'] = @date( 'Z' ) - $params['offset_seconds'];
     }
 
-    if( !isset( $params['validate_intervals'] ) )
-        $params['validate_intervals'] = true;
-    else
-        $params['validate_intervals'] = (!empty( $params['validate_intervals'] ));
-
     if( is_array( $date ) )
     {
         for( $i = 0; $i < 6; $i++ )
         {
-            if( !isset( $date[$i] ) )
+            if( !isset( $date[$i] ) ) {
                 return 0;
+            }
 
             $date[$i] = (int)$date[$i];
         }
@@ -673,14 +716,17 @@ function parse_t_date( $date, $params = false )
         $date_arr = $date;
 
         if( !empty( $params['validate_intervals'] )
-         && !validate_db_date_array( $date_arr ) )
+         && !validate_db_date_array( $date_arr ) ) {
             return 0;
+        }
     } elseif( is_string( $date ) )
     {
-        if( !($date_arr = is_t_date( $date, $params )) )
+        if( !($date_arr = is_t_date( $date, $params )) ) {
             return 0;
-    } else
+        }
+    } else {
         return 0;
+    }
 
     return @mktime( $date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0] ) + $params['offset_seconds'];
 }
@@ -693,24 +739,25 @@ function parse_t_date( $date, $params = false )
  */
 function is_db_date( $date, $params = false )
 {
-    if( is_string( $date ) )
-        $date = trim( $date );
+    if( is_string( $date ) ) {
+        $date = trim($date);
+    }
 
     if( empty( $date )
      || !is_string( $date )
-     || strpos( $date, '-' ) === false )
+     || strpos( $date, '-' ) === false ) {
         return false;
+    }
 
-    if( empty_db_date( $date ) )
-        return [ 0, 0, 0, 0, 0, 0 ];
+    if( empty_db_date( $date ) ) {
+        return [0, 0, 0, 0, 0, 0];
+    }
 
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         $params = [];
+    }
 
-    if( !isset( $params['validate_intervals'] ) )
-        $params['validate_intervals'] = true;
-    else
-        $params['validate_intervals'] = (!empty( $params['validate_intervals'] )?true:false);
+    $params['validate_intervals'] = (!isset( $params['validate_intervals'] ) || !empty( $params['validate_intervals'] ));
 
     if( strpos( $date, ' ' ) !== false )
     {
@@ -726,8 +773,9 @@ function is_db_date( $date, $params = false )
     for( $i = 0; $i < 3; $i++ )
     {
         if( !isset( $date_[$i] )
-         || !isset( $time_[$i] ) )
+         || !isset( $time_[$i] ) ) {
             return false;
+        }
 
         $date_[$i] = (int)$date_[$i];
         $time_[$i] = (int)$time_[$i];
@@ -858,18 +906,23 @@ function from_safe_url( string $url ): string
  */
 function array_to_query_string( $arr, $params = false )
 {
-    if( empty( $params ) || !is_array( $params ) )
+    if( empty( $params ) || !is_array( $params ) ) {
         $params = [];
+    }
 
-    if( !isset( $params['arg_separator'] ) )
+    if( !isset( $params['arg_separator'] ) ) {
         $params['arg_separator'] = '&';
-    if( !isset( $params['raw_encode_values'] ) )
+    }
+    if( !isset( $params['raw_encode_values'] ) ) {
         $params['raw_encode_values'] = true;
-    if( empty( $params['array_name'] ) )
+    }
+    if( empty( $params['array_name'] ) ) {
         $params['array_name'] = '';
+    }
 
-    if( empty( $arr ) || !is_array( $arr ) )
+    if( empty( $arr ) || !is_array( $arr ) ) {
         return '';
+    }
 
     $return_str = '';
     foreach( $arr as $key => $val )
@@ -884,8 +937,9 @@ function array_to_query_string( $arr, $params = false )
             $return_str .= array_to_query_string( $val, $call_params );
         } else
         {
-            if( !empty( $params['raw_encode_values'] ) )
-                $val = urlencode( $val );
+            if( !empty( $params['raw_encode_values'] ) ) {
+                $val = urlencode($val);
+            }
 
             if( empty( $params['array_name'] ) ) {
                 $return_str .= $key.'='.$val;

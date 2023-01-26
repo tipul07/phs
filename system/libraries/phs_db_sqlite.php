@@ -27,7 +27,7 @@ class PHS_Db_sqlite extends PHS_Db_class
     private int $last_inserted_id;
     private int $affected_rows;
 
-    public function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = null )
     {
         $this->query_id = null;
         $this->connection_id = null;

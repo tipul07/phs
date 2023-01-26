@@ -35,7 +35,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     // Used to surpress database errors on specific queries
     protected ?array $error_state = null;
 
-    public function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = null )
     {
         parent::__construct();
 

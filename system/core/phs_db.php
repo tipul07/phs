@@ -3,6 +3,7 @@
 namespace phs;
 
 use \phs\libraries\PHS_Registry;
+use phs\libraries\PHS_Db_sqlite;
 use \phs\libraries\PHS_Db_mysqli;
 use \phs\libraries\PHS_Db_mongo;
 
@@ -430,14 +431,14 @@ final class PHS_Db extends PHS_Registry
                 {
                     include_once( PHS_LIBRARIES_DIR . 'phs_db_sqlite.php' );
 
-                    if( !($db_instance = new PHS_Db_mongo())
+                    if( !($db_instance = new PHS_Db_sqlite())
                      || $db_instance->has_error() )
                     {
                         if( $db_instance ) {
                             self::st_copy_error($db_instance);
                         } else {
                             self::st_set_error(self::ERR_DATABASE,
-                                self::_t('Database initialization error (Mongo driver).'));
+                                self::_t('Database initialization error (SQLite driver).'));
                         }
 
                         return false;
@@ -449,7 +450,7 @@ final class PHS_Db extends PHS_Registry
                     $db_instance->die_on_errors( PHS_DB_DIE_ON_ERROR );
                     $db_instance->debug_errors( $on_debugging_mode );
 
-                    self::set_data( self::DB_MONGO_INSTANCE, $db_instance );
+                    self::set_data( self::DB_SQLITE_INSTANCE, $db_instance );
                 }
             break;
 

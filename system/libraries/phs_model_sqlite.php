@@ -1819,19 +1819,21 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
         if( $field_name === self::T_DETAILS_KEY
          || $field_name === self::EXTRA_INDEXES_KEY
-         || empty( $field_details ) || !is_array( $field_details )
+         || empty( $field_details )
          || !($field_details = $this->_validate_field( $field_details ))
          || !($type_details = $this->valid_field_type( $field_details['type'] ))
-         )
+         ) {
             return false;
+        }
 
         $field_str = '';
         $keys_str = '';
 
         $field_details['type'] = (int)$field_details['type'];
 
-        if( !empty( $field_details['primary'] ) )
+        if( !empty( $field_details['primary'] ) ) {
             $keys_str = ' PRIMARY KEY (`'.$field_name.'`)';
+        }
         elseif( !empty( $field_details['index'] ) )
             $keys_str = ' KEY `'.$field_name.'` (`'.$field_name.'`)';
 

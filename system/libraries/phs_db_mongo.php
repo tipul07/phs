@@ -33,7 +33,7 @@ class PHS_Db_mongo extends PHS_Db_class
     //! Query result details...
     private $last_inserted_id, $inserted_rows, $updated_rows;
 
-    public function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = null )
     {
         $this->query_id = false;
         $this->managers_obj = null;
@@ -152,7 +152,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $this->last_inserted_id;
     }
 
-    public function affected_rows()
+    public function affected_rows(): int
     {
         return $this->inserted_rows + $this->updated_rows;
     }
