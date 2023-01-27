@@ -616,7 +616,7 @@ class PHS_Agent extends PHS_Registry
         $list_arr['fields']['pid'] = [ 'check' => '!=', 'value' => '0' ];
         $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
 
-        if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false
+        if( !($jobs_list = $agent_jobs_model->get_list( $list_arr ))
          || !is_array( $jobs_list ) )
             return $return_arr;
 
@@ -663,7 +663,7 @@ class PHS_Agent extends PHS_Registry
         $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
         $list_arr['order_by'] = 'run_async DESC';
 
-        if( ($jobs_list = $agent_jobs_model->get_list( $list_arr )) === false
+        if( !($jobs_list = $agent_jobs_model->get_list( $list_arr ))
          || !is_array( $jobs_list ) ) {
             return $return_arr;
         }

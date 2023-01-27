@@ -5,7 +5,9 @@
     },
     "require": {
         "ext-json": "*",
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "ext-sqlite3": "*",
+        "ext-mongodb": "*"
     },
     "autoload-dev": {
         "psr-4": {

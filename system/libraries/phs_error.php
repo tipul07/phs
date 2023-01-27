@@ -69,27 +69,27 @@ class PHS_Error
      * Throw exception with error code and error message only if there is an error code different than self::ERR_OK
      *
      * @return bool
-     * @throws \Exception
      */
-    public function throw_error()
+    public function throw_error(): bool
     {
-        if( $this->error_no === self::ERR_OK )
+        if( $this->error_no === self::ERR_OK ) {
             return false;
+        }
 
         echo 'Full backtrace:'."\n".
              $this->debug_call_backtrace( 1 );
 
-        if( $this->debugging_mode() )
-            throw new \Exception( $this->error_debug_msg.":\n".$this->error_msg, $this->error_no );
-        else
-            throw new \Exception( $this->error_simple_msg, $this->error_no );
+        if( $this->debugging_mode() ) {
+            throw new \RuntimeException($this->error_debug_msg.":\n".$this->error_msg, $this->error_no);
+        }
+
+        throw new \RuntimeException($this->error_simple_msg, $this->error_no);
     }
 
     /**
      * @return bool
-     * @throws \Exception
      */
-    public static function st_throw_error()
+    public static function st_throw_error(): bool
     {
         return self::get_error_static_instance()->throw_error();
     }

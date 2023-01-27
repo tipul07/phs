@@ -114,8 +114,9 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         if( empty( $font )
          || !($dir_path = $this->instance_plugin_path())
          || !@is_dir( $dir_path.self::FONT_DIR )
-         || !@file_exists( $dir_path.self::FONT_DIR.'/'.$font ) )
+         || !@file_exists( $dir_path.self::FONT_DIR.'/'.$font ) ) {
             return false;
+        }
 
         return $dir_path.self::FONT_DIR.'/'.$font;
     }

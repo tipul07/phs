@@ -7,7 +7,7 @@ interface PHS_Db_interface
     // Getter and setter for connection settings
     public function connection_settings( $connection_name, $conn_settings = false );
 
-    public function test_connection( $connection_name = false );
+    public function test_connection( $connection_name = false ): bool;
 
     /**
      * Do the query and return query ID
@@ -15,7 +15,7 @@ interface PHS_Db_interface
      * @param string|array $query
      * @param bool|string $connection_name
      *
-     * @return bool|\mysqli_result|\MongoDB\Driver\WriteResult
+     * @return bool|\mysqli_result|\MongoDB\Driver\WriteResult|\SQLite3Result
      */
     public function query( $query, $connection_name = false );
 
@@ -29,13 +29,22 @@ interface PHS_Db_interface
     public function display_errors( $var = null );
 
     // Getter and setter for queries number for current driver
-    public function queries_number( $incr = false );
+    public function queries_number( bool $incr = false ): int;
 
-    // Fetch associative array from database resource
-    public function fetch_assoc( $qid );
+    /**
+     * Fetch associative array from database resource
+     * @param $qid
+     * @return null|array
+     */
+    public function fetch_assoc( $qid ): ?array;
 
-    // Returns number of records from database resource
-    public function num_rows( $qid );
+    /**
+     * Returns number of records from database resource
+     * @param mixed $qid Query id
+     *
+     * @return int|string
+     */
+    public function num_rows( $qid ): int;
 
     // Returns an INSERT query string for table $table_name for $insert_arr data
     public function quick_insert( $table_name, $insert_arr, $connection_name = false, $params = false );

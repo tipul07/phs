@@ -103,8 +103,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
         if( $this->_check_record_for_current_scope( $record_arr, $scope_arr ) )
         {
-            if( !$page )
+            if( !$page ) {
                 $records_arr[] = $record_arr;
+            }
             $count_offset = 1;
         }
 
@@ -491,8 +492,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = trim( $action['action_params'] );
+                if( !empty( $action['action_params'] ) ) {
+                    $action['action_params'] = trim($action['action_params']);
+                }
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                  || empty( $instance_details['instance_type'] )
@@ -511,19 +513,21 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( !$plugin_obj->install() )
+                if( !$plugin_obj->install() ) {
                     $action_result_params['action_result'] = 'failed';
-                else
+                } else {
                     $action_result_params['action_result'] = 'success';
+                }
             break;
 
             case 'activate_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Plugin activated with success.' ) );
-                    elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Activating plugin failed. Please try again.' ) );
+                    if( $action['action_result'] === 'success' ) {
+                        PHS_Notifications::add_success_notice($this->_pt('Plugin activated with success.'));
+                    } elseif( $action['action_result'] === 'failed' ) {
+                        PHS_Notifications::add_error_notice($this->_pt('Activating plugin failed. Please try again.'));
+                    }
 
                     return true;
                 }
@@ -535,8 +539,9 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( !empty( $action['action_params'] ) )
-                    $action['action_params'] = trim( $action['action_params'] );
+                if( !empty( $action['action_params'] ) ) {
+                    $action['action_params'] = trim($action['action_params']);
+                }
 
                 if( !($instance_details = PHS_Instantiable::valid_instance_id( $action['action_params'] ))
                     || empty( $instance_details['instance_type'] )
@@ -555,19 +560,21 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if( !$plugin_obj->activate_plugin() )
+                if( !$plugin_obj->activate_plugin() ) {
                     $action_result_params['action_result'] = 'failed';
-                else
+                } else {
                     $action_result_params['action_result'] = 'success';
+                }
             break;
 
             case 'inactivate_plugin':
                 if( !empty( $action['action_result'] ) )
                 {
-                    if( $action['action_result'] === 'success' )
-                        PHS_Notifications::add_success_notice( $this->_pt( 'Plugin inactivated with success.' ) );
-                    elseif( $action['action_result'] === 'failed' )
-                        PHS_Notifications::add_error_notice( $this->_pt( 'Inactivating plugin failed. Please try again.' ) );
+                    if( $action['action_result'] === 'success' ) {
+                        PHS_Notifications::add_success_notice($this->_pt('Plugin inactivated with success.'));
+                    } elseif( $action['action_result'] === 'failed' ) {
+                        PHS_Notifications::add_error_notice($this->_pt('Inactivating plugin failed. Please try again.'));
+                    }
 
                     return true;
                 }

@@ -40,8 +40,9 @@ class PHS_Contract_Account extends PHS_Contract
      */
     public function get_parsing_data_model_flow()
     {
-        if( !$this->_load_dependencies() )
+        if( !$this->_load_dependencies() ) {
             return false;
+        }
 
         return $this->_accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] );
     }

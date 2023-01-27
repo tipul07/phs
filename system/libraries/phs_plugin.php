@@ -696,15 +696,18 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             foreach( $plugins_modules_arr as $module_id => $module_arr )
             {
-                if( (int)$module_arr['status'] === PHS_Model_Plugins::STATUS_INACTIVE )
+                if( (int)$module_arr['status'] === PHS_Model_Plugins::STATUS_INACTIVE ) {
                     continue;
+                }
 
                 if( !$this->_plugins_instance->edit( $module_arr, $edit_params_arr ) )
                 {
-                    if( $this->_plugins_instance->has_error() )
-                        $this->copy_error( $this->_plugins_instance, self::ERR_CHANGES );
-                    else
-                        $this->set_error( self::ERR_CHANGES, self::_t( 'Error inactivating %s %s.', $module_arr['type'], $module_arr['instance_id'] ) );
+                    if( $this->_plugins_instance->has_error() ) {
+                        $this->copy_error($this->_plugins_instance, self::ERR_CHANGES);
+                    } else {
+                        $this->set_error(self::ERR_CHANGES,
+                            self::_t('Error inactivating %s %s.', $module_arr['type'], $module_arr['instance_id']));
+                    }
 
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error inactivating database record ['.$module_arr['instance_id'].']' );
 
