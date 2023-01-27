@@ -17,21 +17,21 @@ class PHSMaintenance extends PHS_Cli
 {
     use PHS_Cli_plugins_trait, PHS_Export_import;
 
-    const APP_NAME = 'PHSMaintenance',
+    public const APP_NAME = 'PHSMaintenance',
           APP_VERSION = '1.1.0',
           APP_DESCRIPTION = 'Manage framework functionality and plugins.';
 
-    public function get_app_dir()
+    public function get_app_dir(): string
     {
         return __DIR__.'/';
     }
 
-    protected function _get_app_options_definition()
+    protected function _get_app_options_definition(): array
     {
         return [];
     }
 
-    protected function _get_app_commands_definition()
+    protected function _get_app_commands_definition(): array
     {
         return [
             'phs_setup' => [
@@ -45,6 +45,10 @@ class PHSMaintenance extends PHS_Cli
             'update' => [
                 'description' => 'Check plugins database version against script version and update if required.',
                 'callback' => [$this, 'cmd_update'],
+            ],
+            'dry_update' => [
+                'description' => 'Export to SQL statements used to update database structure.',
+                'callback' => [$this, 'cmd_dry_update'],
             ],
             'plugins' => [
                 'description' => 'List available plugins',
@@ -64,7 +68,7 @@ class PHSMaintenance extends PHS_Cli
     //
     //region Environment initialization
     //
-    protected function _init_app()
+    protected function _init_app(): bool
     {
         $this->reset_error();
 
@@ -76,7 +80,7 @@ class PHSMaintenance extends PHS_Cli
     //endregion Environment initialization
     //
 
-    public function cli_maintenance_output( $msg )
+    public function cli_maintenance_output( $msg ): void
     {
         $this->_echo( $msg );
     }
@@ -529,7 +533,7 @@ class PHSMaintenance extends PHS_Cli
     //endregion setup action
     //
 
-    public function cmd_web_update()
+    public function cmd_web_update(): bool
     {
         $this->reset_error();
 
@@ -541,12 +545,24 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    public function cmd_update()
+    public function cmd_dry_update(): bool
+    {
+        $this->set_output_colors( false );
+
+        if( !defined( 'PHS_DRY_INSTALL' ) ) {
+            define('PHS_DRY_INSTALL', true);
+        }
+
+        return $this->cmd_update( true );
+    }
+
+    public function cmd_update( bool $dry_run = false ): bool
     {
         $this->reset_error();
 
-        if( !defined( 'PHS_INSTALLING_FLOW' ) )
-            define( 'PHS_INSTALLING_FLOW', true );
+        if( !defined( 'PHS_INSTALLING_FLOW' ) ) {
+            define('PHS_INSTALLING_FLOW', true);
+        }
 
         $this->_continous_flush( true );
 
@@ -582,8 +598,9 @@ class PHSMaintenance extends PHS_Cli
                         $install_result = self::validate_error_arr( $install_result );
                         $this->_echo_error( 'Error while running custom install script ['.$install_script.']:'  );
 
-                        if( self::arr_has_error( $install_result ) )
-                            $this->_echo( self::arr_get_simple_error_message( $install_result ) );
+                        if( self::arr_has_error( $install_result ) ) {
+                            $this->_echo(self::arr_get_simple_error_message($install_result));
+                        }
 
                         return true;
                     }
@@ -606,7 +623,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    public function cmd_list_plugins()
+    public function cmd_list_plugins(): bool
     {
         $this->reset_error();
 
@@ -625,35 +642,41 @@ class PHSMaintenance extends PHS_Cli
         $this->_echo( self::_t( 'Found %s plugin directories...', count( $plugins_dirs_arr ) ) );
         foreach( $plugins_dirs_arr as $plugin_name )
         {
-            if( !($plugin_info = $this->_gather_plugin_info( $plugin_name )) )
+            if( !($plugin_info = $this->_gather_plugin_info( $plugin_name )) ) {
                 $plugin_info = self::_get_default_plugin_info_definition();
+            }
 
             $extra_info = '';
             if( !empty( $plugin_info ) )
             {
-                if( !empty( $plugin_info['is_installed'] ) )
-                    $extra_info .= '['.$this->cli_color( self::_t( 'Installed' ), 'green' ).']';
-                else
-                    $extra_info .= '['.$this->cli_color( self::_t( 'NOT INSTALLED' ), 'red' ).']';
+                if( !empty( $plugin_info['is_installed'] ) ) {
+                    $extra_info .= '['.$this->cli_color(self::_t('Installed'), 'green').']';
+                } else {
+                    $extra_info .= '['.$this->cli_color(self::_t('NOT INSTALLED'), 'red').']';
+                }
 
                 $extra_info .= ' ';
 
                 if( !empty( $plugin_info['is_installed'] ) )
                 {
-                    if( !empty( $plugin_info['is_active'] ) )
-                        $extra_info .= '['.$this->cli_color( self::_t( 'Active' ), 'green' ).']';
-                    else
-                        $extra_info .= '['.$this->cli_color( self::_t( 'NOT ACTIVE' ), 'red' ).']';
+                    if( !empty( $plugin_info['is_active'] ) ) {
+                        $extra_info .= '['.$this->cli_color(self::_t('Active'), 'green').']';
+                    } else {
+                        $extra_info .= '['.$this->cli_color(self::_t('NOT ACTIVE'), 'red').']';
+                    }
 
                     $extra_info .= ' ';
                 }
 
-                if( !empty( $plugin_info['name'] ) )
+                if( !empty( $plugin_info['name'] ) ) {
                     $extra_info .= $plugin_info['name'];
-                if( !empty( $plugin_info['version'] ) )
-                    $extra_info .= ($extra_info!==''?' ':'').'(v'.$plugin_info['version'].')';
-                if( !empty( $plugin_info['models_count'] ) )
-                    $extra_info .= ($extra_info!==''?', ':'').$plugin_info['models_count'].' models';
+                }
+                if( !empty( $plugin_info['version'] ) ) {
+                    $extra_info .= ($extra_info !== '' ? ' ' : '').'(v'.$plugin_info['version'].')';
+                }
+                if( !empty( $plugin_info['models_count'] ) ) {
+                    $extra_info .= ($extra_info !== '' ? ', ' : '').$plugin_info['models_count'].' models';
+                }
             }
 
             $this->_echo( ' - '.$this->cli_color( $plugin_name, 'yellow' ).($extra_info!==''?': ':'').$extra_info );
@@ -664,12 +687,13 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _set_and_echo_error( $error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true )
+    private function _set_and_echo_error( $error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true ): void
     {
-        if( $force_set || !$this->has_error() )
-            $this->set_error( $error_code, $error_msg );
-        else
+        if( $force_set || !$this->has_error() ) {
+            $this->set_error($error_code, $error_msg);
+        } else {
             $error_msg = $this->get_simple_error_message();
+        }
 
         $this->_echo_error( $error_msg );
     }
