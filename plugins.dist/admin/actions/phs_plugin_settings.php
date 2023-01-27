@@ -101,13 +101,15 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $module_details['settings'] = [];
 
                 if( !($model_instance = PHS::load_model( $model_name, ($this->_plugin_obj?$this->_plugin_obj->instance_plugin_name():false) ))
-                 || !($settings_arr = $model_instance->validate_settings_structure()) )
+                 || !($settings_arr = $model_instance->validate_settings_structure()) ) {
                     continue;
+                }
 
                 $model_id = $model_instance->instance_id();
 
-                if( !($model_db_details = $model_instance->get_db_details()) )
+                if( !($model_db_details = $model_instance->get_db_details()) ) {
                     $model_db_details = [];
+                }
 
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
@@ -206,10 +208,11 @@ class PHS_Action_Plugin_settings extends PHS_Action
                     return $action_result;
                 }
 
-                if( $module_instance->has_error() )
-                    PHS_Notifications::add_error_notice( $module_instance->get_error_message() );
-                else
-                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving settings in database. Please try again.' ) );
+                if( $module_instance->has_error() ) {
+                    PHS_Notifications::add_error_notice($module_instance->get_error_message());
+                } else {
+                    PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
+                }
             }
         }
 

@@ -682,22 +682,21 @@ class PHS_Model_Api_online extends PHS_Model
                                ' uid = \''.$session_arr['uid'].'\' '.
                                ' AND id != \''.$session_arr['id'].'\'',
                 $session_flow['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $session_flow['db_connection'] ) )
             return $session_arr;
 
         $device_ids = [];
-        while( ($s_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($s_arr = db_fetch_assoc( $qid, $session_flow['db_connection'] )) )
         {
             if( !empty( $s_arr['device_id'] )
-             && (int)$s_arr['device_id'] !== (int)$session_arr[self::DEVICE_KEY]['id'] )
-                $device_ids[(int)$s_arr['device_id']] = true;
+             && (int)$s_arr['device_id'] !== (int)$session_arr[self::DEVICE_KEY]['id'] ) {
+                $device_ids[(int) $s_arr['device_id']] = true;
+            }
         }
 
         // low level query, so we don't trigger anything when we delete old sessions
         db_query( 'DELETE FROM `'.$sessions_table_name.'` WHERE '.
-                  ' uid = \''.$session_arr['uid'].'\' '.
-                  ' AND id != \''.$session_arr['id'].'\'',
-            $session_flow['db_connection'] );
+                  ' uid = \''.$session_arr['uid'].'\' AND id != \''.$session_arr['id'].'\'', $session_flow['db_connection'] );
 
         // Update devices...
         if( !empty( $device_ids ) )
@@ -732,8 +731,9 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $session_data )
          || !($session_arr = $this->populate_session_with_device_data( $session_data )) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Session not found in database.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Session not found in database.'));
+            }
             return false;
         }
 
@@ -766,29 +766,34 @@ class PHS_Model_Api_online extends PHS_Model
         if( empty( $params['fields']['uid'] ) )
             $params['fields']['uid'] = 0;
 
-        if( empty( $params['fields']['api_key'] ) )
+        if( empty( $params['fields']['api_key'] ) ) {
             $params['fields']['api_key'] = $this->generate_api_key();
-        if( empty( $params['fields']['api_secret'] ) )
+        }
+        if( empty( $params['fields']['api_secret'] ) ) {
             $params['fields']['api_secret'] = $this->generate_api_secret();
+        }
 
         $params['fields']['cdate'] = date( self::DATETIME_DB );
         $params['fields']['last_update'] = $params['fields']['cdate'];
 
-        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) )
+        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) ) {
             $params[self::DEVICE_KEY] = false;
+        }
 
         return $params;
     }
 
     protected function get_edit_prepare_params_mobileapi_online( $existing_data, $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
-        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) )
+        if( empty( $params[self::DEVICE_KEY] ) || !is_array( $params[self::DEVICE_KEY] ) ) {
             $params[self::DEVICE_KEY] = false;
+        }
 
         return $params;
     }
@@ -798,8 +803,9 @@ class PHS_Model_Api_online extends PHS_Model
         if( !empty( $params[self::DEVICE_KEY] ) && is_array( $params[self::DEVICE_KEY] ) )
         {
             // Update contact address
-            if( !($new_device_arr = $this->update_session_device( $insert_arr, $params[self::DEVICE_KEY] )) )
+            if( !($new_device_arr = $this->update_session_device( $insert_arr, $params[self::DEVICE_KEY] )) ) {
                 return false;
+            }
 
             $insert_arr['device_id'] = $new_device_arr['id'];
             $insert_arr[self::DEVICE_KEY] = $new_device_arr;
@@ -815,13 +821,15 @@ class PHS_Model_Api_online extends PHS_Model
             // Update new updated fields...
             foreach( $edit_arr as $field => $val )
             {
-                if( @array_key_exists( $field, $existing_data ) )
+                if( @array_key_exists( $field, $existing_data ) ) {
                     $existing_data[$field] = $val;
+                }
             }
 
             // Update session device
-            if( !($new_device_arr = $this->update_session_device( $existing_data, $params[self::DEVICE_KEY] )) )
+            if( !($new_device_arr = $this->update_session_device( $existing_data, $params[self::DEVICE_KEY] )) ) {
                 return false;
+            }
 
             $existing_data['device_id'] = $new_device_arr['id'];
             $existing_data[self::DEVICE_KEY] = $new_device_arr;
@@ -840,18 +848,12 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['only_logged_in'] ) )
-            $params['only_logged_in'] = false;
-        else
-            $params['only_logged_in'] = true;
-
-        if( empty( $params['device_type'] ) )
-            $params['device_type'] = false;
-        else
-            $params['device_type'] = (int)$params['device_type'];
+        $params['only_logged_in'] = !empty( $params['only_logged_in'] );
+        $params['device_type'] = $params['device_type'] ?? 0;
 
         if( !empty( $params['device_type'] )
          && !$this->valid_device_type( $params['device_type'] ) )
@@ -881,15 +883,17 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         $list_arr = $devices_flow;
-        if( !empty( $params['only_logged_in'] ) )
+        if( !empty( $params['only_logged_in'] ) ) {
             $list_arr['fields']['uid'] = $account_arr['id'];
-        else
+        } else {
             $list_arr['fields']['owner_id'] = $account_arr['id'];
+        }
 
         if( !($devices_arr = $this->get_list( $list_arr )) )
         {
-            if( $this->has_error() )
+            if( $this->has_error() ) {
                 return false;
+            }
 
             $devices_arr = [];
         }
@@ -923,8 +927,9 @@ class PHS_Model_Api_online extends PHS_Model
         if( !empty( $db_device_arr )
          && ((int)$db_device_arr['device_type'] !== (int)$device_params['device_type']
                 || (string)$db_device_arr['device_token'] !== (string)$device_params['device_token'])
-        )
+        ) {
             $db_device_arr = false;
+        }
 
         if( empty( $db_device_arr ) )
         {
@@ -939,13 +944,15 @@ class PHS_Model_Api_online extends PHS_Model
         $db_fields_device = $device_params;
 
         // id field might be null
-        if( array_key_exists( 'id', $db_fields_device ) )
-            unset( $db_fields_device['id'] );
+        if( array_key_exists( 'id', $db_fields_device ) ) {
+            unset($db_fields_device['id']);
+        }
 
         if( empty( $db_device_arr ) )
         {
-            if( empty( $db_fields_device['source'] ) )
+            if( empty( $db_fields_device['source'] ) ) {
                 $db_fields_device['source'] = self::SOURCE_NATIVE;
+            }
 
             if( !$this->valid_source( $db_fields_device['source'] ) )
             {
@@ -958,8 +965,9 @@ class PHS_Model_Api_online extends PHS_Model
 
             if( !($new_device_arr = $this->insert( $device_params_arr )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving session device details to database.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving session device details to database.'));
+                }
 
                 return false;
             }
@@ -970,8 +978,9 @@ class PHS_Model_Api_online extends PHS_Model
 
             if( !($new_device_arr = $this->edit( $db_device_arr, $device_params_arr )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_EDIT, $this->_pt( 'Error saving session device details to database.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving session device details to database.'));
+                }
 
                 return false;
             }
@@ -999,8 +1008,9 @@ class PHS_Model_Api_online extends PHS_Model
         }
 
         $device_id = 0;
-        if( !empty( $session_arr['device_id'] ) )
+        if( !empty( $session_arr['device_id'] ) ) {
             $device_id = $session_arr['device_id'];
+        }
 
         $db_fields_device = $device_params;
 
@@ -1011,8 +1021,9 @@ class PHS_Model_Api_online extends PHS_Model
 
         if( !($new_device_arr = $this->update_device( $db_fields_device, $device_id )) )
         {
-            if( $this->has_error() )
-                $this->set_error( self::ERR_EDIT, $this->_pt( 'Couldn\'t update session device.' ) );
+            if( $this->has_error() ) {
+                $this->set_error(self::ERR_EDIT, $this->_pt('Couldn\'t update session device.'));
+            }
 
             return false;
         }
@@ -1055,24 +1066,28 @@ class PHS_Model_Api_online extends PHS_Model
         $return_arr['deleted'] = 0;
 
         if( !($plugin_settings = $mobileapi_plugin->get_plugin_settings())
-         || !is_array( $plugin_settings )
-         || empty( $plugin_settings['api_session_lifetime'] ) )
+         || empty( $plugin_settings['api_session_lifetime'] ) ) {
             return $return_arr;
+        }
 
         $plugin_settings['api_session_lifetime'] = (int)$plugin_settings['api_session_lifetime'];
 
         $list_arr = $mapi_online_flow;
-        $list_arr['fields']['last_update'] = [ 'check' => '<=', 'value' => date( self::DATETIME_DB, time() + $plugin_settings['api_session_lifetime'] * 3600 ) ];
+        $list_arr['fields']['last_update'] = [
+            'check' => '<=',
+            'value' => date( self::DATETIME_DB, time() + $plugin_settings['api_session_lifetime'] * 3600 )
+        ];
 
-        if( ($sessions_list = $this->get_list( $list_arr )) === false
+        if( !($sessions_list = $this->get_list( $list_arr ))
          || !is_array( $sessions_list ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying database for API mobile sessions.' ) );
             return false;
         }
 
-        if( empty( $sessions_list ) )
+        if( empty( $sessions_list ) ) {
             return $return_arr;
+        }
 
         PHS_Logger::notice( 'Deleting '.count( $sessions_list ).' API mobile sessions.', $mobileapi_plugin::LOG_CHANNEL );
 
@@ -1085,8 +1100,9 @@ class PHS_Model_Api_online extends PHS_Model
                 $return_arr['errors']++;
 
                 $error_msg = 'N/A';
-                if( $this->has_error() )
+                if( $this->has_error() ) {
                     $error_msg = $this->get_simple_error_message();
+                }
 
                 PHS_Logger::notice( 'Error logging out session #'.$session_id.': '.$error_msg, $mobileapi_plugin::LOG_CHANNEL );
                 continue;
@@ -1116,16 +1132,20 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        if( empty( $params['fields']['uid'] ) )
+        if( empty( $params['fields']['uid'] ) ) {
             $params['fields']['uid'] = 0;
+        }
 
-        if( empty( $params['fields']['owner_id'] ) && !empty( $params['fields']['uid'] ) )
+        if( empty( $params['fields']['owner_id'] ) && !empty( $params['fields']['uid'] ) ) {
             $params['fields']['owner_id'] = $params['fields']['uid'];
+        }
 
-        if( empty( $params['fields']['api_key'] ) )
+        if( empty( $params['fields']['api_key'] ) ) {
             $params['fields']['api_key'] = $this->generate_api_key();
-        if( empty( $params['fields']['api_secret'] ) )
+        }
+        if( empty( $params['fields']['api_secret'] ) ) {
             $params['fields']['api_secret'] = $this->generate_api_secret();
+        }
 
         $params['fields']['cdate'] = date( self::DATETIME_DB );
         $params['fields']['last_update'] = $params['fields']['cdate'];
@@ -1135,8 +1155,9 @@ class PHS_Model_Api_online extends PHS_Model
 
     protected function get_edit_prepare_params_mobileapi_devices( $existing_data, $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( isset( $params['fields']['device_token'] ) && empty( $params['fields']['device_token'] ) )
         {
@@ -1151,8 +1172,9 @@ class PHS_Model_Api_online extends PHS_Model
             return false;
         }
 
-        if( empty( $existing_data['owner_id'] ) && !empty( $params['fields']['uid'] ) )
+        if( empty( $existing_data['owner_id'] ) && !empty( $params['fields']['uid'] ) ) {
             $params['fields']['owner_id'] = $params['fields']['uid'];
+        }
 
         $params['fields']['last_update'] = date( self::DATETIME_DB );
 
@@ -1166,8 +1188,9 @@ class PHS_Model_Api_online extends PHS_Model
     {
         if( !empty( $params['flags'] ) && is_array( $params['flags'] ) )
         {
-            if( empty( $params['db_fields'] ) )
+            if( empty( $params['db_fields'] ) ) {
                 $params['db_fields'] = '';
+            }
 
             $model_table = $this->get_flow_table_name( $params );
             foreach( $params['flags'] as $flag )
@@ -1177,8 +1200,9 @@ class PHS_Model_Api_online extends PHS_Model
                     case 'include_account_details':
 
                         if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
-                         || !($accounts_table = $accounts_model->get_flow_table_name()) )
+                         || !($accounts_table = $accounts_model->get_flow_table_name()) ) {
                             continue 2;
+                        }
 
                         $params['db_fields'] .= ', `'.$accounts_table.'`.nick AS account_nick, '.
                                                 ' `'.$accounts_table.'`.email AS account_email, '.
@@ -1212,11 +1236,11 @@ class PHS_Model_Api_online extends PHS_Model
         $lat2 = (float)$lat2;
         $long1 = (float)$long1;
         $long2 = (float)$long2;
-        if( $lat1 === $lat2 && $long1 === $long2 )
+        if( $lat1 === $lat2 && $long1 === $long2 ) {
             return [
-                'lat' => $lat1,
-                'long' => $long1,
+                'lat' => $lat1, 'long' => $long1,
             ];
+        }
 
         $center_y_dist = max( $lat1, $lat2 ) - min( $lat1, $lat2 );
         $center_x_dist = max( $long1, $long2 ) - min( $long1, $long2 );
@@ -1237,8 +1261,9 @@ class PHS_Model_Api_online extends PHS_Model
         $lat2 = (float)$lat2;
         $long1 = (float)$long1;
         $long2 = (float)$long2;
-        if( $lat1 === $lat2 && $long1 === $long2 )
+        if( $lat1 === $lat2 && $long1 === $long2 ) {
             return 0;
+        }
 
         $earth_radius = 6371;
 
@@ -1248,8 +1273,8 @@ class PHS_Model_Api_online extends PHS_Model
         $lonTo = deg2rad( $long2 );
 
         $lonDelta = $lonTo - $lonFrom;
-        $a = pow(cos($latTo) * sin($lonDelta), 2) +
-             pow(cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta), 2);
+        $a = ((cos($latTo) * sin($lonDelta)) ** 2)
+             + ((cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta)) ** 2);
         $b = sin($latFrom) * sin($latTo) + cos($latFrom) * cos($latTo) * cos($lonDelta);
 
         $angle = atan2(sqrt($a), $b);
@@ -1267,30 +1292,30 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $lat = (float)$lat;
         $long = (float)$long;
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['distance_field_name'] ) )
+        if( empty( $params['distance_field_name'] ) ) {
             $params['distance_field_name'] = 'distance';
-        if( empty( $params['table_lat'] ) )
+        }
+        if( empty( $params['table_lat'] ) ) {
             $params['table_lat'] = 'lat';
-        if( empty( $params['table_long'] ) )
+        }
+        if( empty( $params['table_long'] ) ) {
             $params['table_long'] = 'long';
+        }
 
-        if( !isset( $params['result_in_km'] ) )
-            $params['result_in_km'] = true;
-        else
-            $params['result_in_km'] = (!empty( $params['result_in_km'] ));
+        $params['result_in_km'] = (!isset( $params['result_in_km'] ) || !empty( $params['result_in_km'] ));
 
-        if( empty( $params['range'] ) )
+        if( empty( $params['range'] ) ) {
             $params['range'] = 0;
+        }
 
-        if( $params['result_in_km'] )
-        {
+        if( $params['result_in_km'] ) {
             $earth_radius = 6371;
             $one_deg_lat = 111;
-        } else
-        {
+        } else {
             $earth_radius = 3959;
             $one_deg_lat = 69;
         }
@@ -1351,8 +1376,9 @@ class PHS_Model_Api_online extends PHS_Model
     {
         // $params should be flow parameters...
         if( empty( $params ) || !is_array( $params )
-         || empty( $params['table_name'] ) )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         switch( $params['table_name'] )

@@ -997,7 +997,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( ($qid = db_query( 'SELECT COUNT(*) AS total_history_records '.
                               ' FROM `'.$uph_table_name.'`'.
                               ' WHERE uid = \''.$account_arr['id'].'\'', $flow_params['db_connection'] ))
-         && ($record_arr = @mysqli_fetch_assoc( $qid ))
+         && ($record_arr = @db_fetch_assoc( $qid, $flow_params['db_connection'] ))
          && ($records_to_delete = $record_arr['total_history_records'] - $history_count + 1) > 0 )
         {
             // delete extra records
@@ -1070,15 +1070,16 @@ class PHS_Model_Accounts extends PHS_Model
                               ' FROM `'.$uph_table_name.'`'.
                               ' WHERE uid = \''.$account_arr['id'].'\' '.
                               ' ORDER BY cdate DESC LIMIT 0, '.$history_count, $flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['history_count'] = $history_count;
         $return_arr['oldest_password_date_timestamp'] = false;
         $return_arr['matched_history_data'] = false;
 
-        while( ($history_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($history_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             if( empty( $return_arr['oldest_password_date_timestamp'] ) )
                 $return_arr['oldest_password_date_timestamp'] = parse_db_date( $history_arr['cdate'] );
@@ -2681,12 +2682,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !($users_count = @mysqli_num_rows( $qid )) )
+        if( !($users_count = db_num_rows( $qid, $flow_params['db_connection'] )) ) {
             return true;
+        }
 
         PHS_Logger::notice( 'Converting passwords from md5 to sha256 for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
-        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($users_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             if( empty( $users_arr['pass_clear'] )
              || !($pass_clear = PHS_Crypt::quick_decode( $users_arr['pass_clear'] )) )
@@ -2751,12 +2753,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !($users_count = @mysqli_num_rows( $qid )) )
+        if( !($users_count = db_num_rows( $qid, $flow_params['db_connection'] )) ) {
             return true;
+        }
 
         PHS_Logger::notice( 'Converting passwords salts for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
-        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($users_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             // Already converted...
             if( empty( $users_arr['pass_salt'] ) ) {

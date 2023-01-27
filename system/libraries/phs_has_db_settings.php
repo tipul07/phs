@@ -17,9 +17,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     // Array with default values for settings (key => val) array
     protected $_default_settings = [];
     // Database record
-    protected $_db_details = [];
+    protected array $_db_details = [];
     // Database settings field parsed as array
-    protected $_db_settings = [];
+    protected array $_db_settings = [];
 
     /** @var bool|\phs\system\core\models\PHS_Model_Plugins $_plugins_instance */
     protected $_plugins_instance = false;
@@ -233,34 +233,38 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     /**
      * @return array
      */
-    final public function get_default_settings()
+    final public function get_default_settings(): array
     {
-        if( !empty( $this->_default_settings ) )
+        if( !empty( $this->_default_settings ) ) {
             return $this->_default_settings;
+        }
 
-        if( empty( $this->_settings_structure ) )
+        if( empty( $this->_settings_structure ) ) {
             $this->validate_settings_structure();
+        }
 
         $this->_default_settings = $this->_get_default_settings_for_structure( $this->_settings_structure );
 
         return $this->_default_settings;
     }
 
-    private function _get_default_settings_for_structure( $structure_arr )
+    private function _get_default_settings_for_structure( $structure_arr ): array
     {
         $default_arr = [];
         foreach( $structure_arr as $field_name => $field_arr )
         {
             if( self::settings_field_is_group( $field_arr ) )
             {
-                if( ($group_default = $this->_get_default_settings_for_structure( $field_arr['group_fields'] )) )
-                    $default_arr = self::merge_array_assoc( $default_arr, $group_default );
+                if( ($group_default = $this->_get_default_settings_for_structure( $field_arr['group_fields'] )) ) {
+                    $default_arr = self::merge_array_assoc($default_arr, $group_default);
+                }
 
                 continue;
             }
 
-            if( !empty( $field_arr['ignore_field_value'] ) )
+            if( !empty( $field_arr['ignore_field_value'] ) ) {
                 continue;
+            }
 
             $default_arr[$field_name] = $field_arr['default'];
         }
@@ -269,20 +273,22 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param bool $force Forces reading details from database (ignoring cached value)
+     * @param  bool  $force Forces reading details from database (ignoring cached value)
      *
-     * @return array|bool
+     * @return array|null
      */
-    public function get_db_details( $force = false )
+    public function get_db_details( bool $force = false ): ?array
     {
         if( empty( $force )
-         && !empty( $this->_db_details ) )
+         && !empty( $this->_db_details ) ) {
             return $this->_db_details;
+        }
 
         if( !$this->_load_plugins_instance()
          || !($db_details = $this->_plugins_instance->get_plugins_db_details( $this->instance_id(), $force ))
-         || !is_array( $db_details ) )
-            return false;
+         || !is_array( $db_details ) ) {
+            return null;
+        }
 
         $this->_db_details = $db_details;
 
@@ -290,15 +296,16 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param bool $force Forces reading details from database (ignoring cached value)
+     * @param  bool  $force Forces reading details from database (ignoring cached value)
      *
-     * @return array|bool Settings saved in database for current instance
+     * @return array Settings saved in database for current instance
      */
-    public function get_db_settings( $force = false )
+    public function get_db_settings( bool $force = false ): array
     {
         if( empty( $force )
-         && !empty( $this->_db_settings ) )
+         && !empty( $this->_db_settings ) ) {
             return $this->_db_settings;
+        }
 
         if( !$this->_load_plugins_instance()
          || !($db_settings = $this->_plugins_instance->get_plugins_db_settings(
@@ -306,15 +313,16 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
              $this->get_default_settings(),
              $this->get_all_settings_keys_to_obfuscate(),
              $force ))
-         || !is_array( $db_settings ) )
-            return false;
+         || !is_array( $db_settings ) ) {
+            return [];
+        }
 
         $this->_db_settings = $db_settings;
 
         return $this->_db_settings;
     }
 
-    public function save_db_settings( $settings_arr )
+    public function save_db_settings( $settings_arr ): array
     {
         if( !$this->_load_plugins_instance()
          || !($db_settings = $this->_plugins_instance->save_plugins_db_settings(
@@ -322,13 +330,14 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
              $settings_arr,
              $this->get_all_settings_keys_to_obfuscate(),
              $this->get_default_settings() ))
-         || !is_array( $db_settings ) )
-            return false;
+         || !is_array( $db_settings ) ) {
+            return [];
+        }
 
         $this->_db_settings = $db_settings;
 
         // invalidate cached data...
-        $this->_db_details = false;
+        $this->_db_details = [];
 
         return $this->_db_settings;
     }
@@ -338,8 +347,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
         if( !$this->_load_plugins_instance()
          || !($db_details = $this->get_db_details())
-         || !$this->_plugins_instance->active_status( $db_details['status'] ) )
+         || !$this->_plugins_instance->active_status( $db_details['status'] ) ) {
             return false;
+        }
 
         return $db_details;
     }

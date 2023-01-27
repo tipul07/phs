@@ -142,10 +142,11 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return void
      */
-    protected function _do_construct( $instance_details = false )
+    protected function _do_construct( $instance_details = false ): void
     {
-        if( empty( $instance_details ) || !is_array( $instance_details ) )
+        if( empty( $instance_details ) || !is_array( $instance_details ) ) {
             $instance_details = self::empty_instance_details();
+        }
 
         $this->_set_instance_details( $instance_details );
     }
@@ -233,12 +234,14 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     public function get_plugin_settings(): array
     {
-        if( !($plugin_obj = $this->get_plugin_instance()) )
+        if( !($plugin_obj = $this->get_plugin_instance()) ) {
             return [];
+        }
 
         if( ($plugins_settings = $plugin_obj->get_db_settings()) === false
-         || empty( $plugins_settings ) || !is_array( $plugins_settings ) )
+         || empty( $plugins_settings ) || !is_array( $plugins_settings ) ) {
             $plugins_settings = $plugin_obj->get_default_settings();
+        }
 
         return $plugins_settings;
     }
@@ -264,8 +267,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_id(): string
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['instance_id'] ) )
+         || empty( $this->instance_details['instance_id'] ) ) {
             return '';
+        }
 
         return $this->instance_details['instance_id'];
     }
@@ -286,44 +290,48 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_name(): string
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['instance_name'] ) )
+         || empty( $this->instance_details['instance_name'] ) ) {
             return '';
+        }
 
         return $this->instance_details['instance_name'];
     }
 
     /**
-     * @return string
+     * @return false|string
      */
-    final public function instance_plugin_name(): string
+    final public function instance_plugin_name()
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['plugin_name'] ) )
+         || empty( $this->instance_details['plugin_name'] ) ) {
             return false;
+        }
 
         return $this->instance_details['plugin_name'];
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
-    final public function instance_plugin_www()
+    final public function instance_plugin_www(): string
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['plugin_www'] ) )
+         || empty( $this->instance_details['plugin_www'] ) ) {
             return '';
+        }
 
         return $this->instance_details['plugin_www'];
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
-    final public function instance_plugin_path()
+    final public function instance_plugin_path(): string
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['plugin_path'] ) )
+         || empty( $this->instance_details['plugin_path'] ) ) {
             return '';
+        }
 
         return $this->instance_details['plugin_path'];
     }
@@ -334,8 +342,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_subdir(): string
     {
         if( empty( $this->instance_details )
-         || empty( $this->instance_details['instance_subdir'] ) )
+         || empty( $this->instance_details['instance_subdir'] ) ) {
             return '';
+        }
 
         return $this->instance_details['instance_subdir'];
     }
@@ -346,8 +355,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_templates_www(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) ) {
             return '';
+        }
 
         return $prefix.self::TEMPLATES_DIR.'/';
     }
@@ -358,8 +368,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_templates_path(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) ) {
             return '';
+        }
 
         return $prefix.self::TEMPLATES_DIR.'/';
     }
@@ -370,8 +381,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_www(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) ) {
             return '';
+        }
 
         return $prefix.self::TESTS_DIR.'/';
     }
@@ -382,8 +394,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_path(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) ) {
             return '';
+        }
 
         return $prefix.self::TESTS_DIR.'/';
     }
@@ -393,8 +406,9 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_behat_www(): string
     {
-        if( !($prefix = $this->instance_plugin_tests_www()) )
+        if( !($prefix = $this->instance_plugin_tests_www()) ) {
             return '';
+        }
 
         return $prefix.self::BEHAT_DIR.'/';
     }
@@ -404,8 +418,9 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_behat_path(): string
     {
-        if( !($prefix = $this->instance_plugin_tests_path()) )
+        if( !($prefix = $this->instance_plugin_tests_path()) ) {
             return '';
+        }
 
         return $prefix.self::BEHAT_DIR.'/';
     }
@@ -435,8 +450,9 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_testunit_www(): string
     {
-        if( !($prefix = $this->instance_plugin_tests_www()) )
+        if( !($prefix = $this->instance_plugin_tests_www()) ) {
             return '';
+        }
 
         return $prefix.self::TESTUNIT_DIR.'/';
     }
@@ -446,8 +462,9 @@ abstract class PHS_Instantiable extends PHS_Registry
      */
     final public function instance_plugin_testunit_path(): string
     {
-        if( !($prefix = $this->instance_plugin_tests_path()) )
+        if( !($prefix = $this->instance_plugin_tests_path()) ) {
             return '';
+        }
 
         return $prefix.self::TESTUNIT_DIR.'/';
     }
@@ -458,8 +475,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_languages_www(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) ) {
             return '';
+        }
 
         return $prefix.self::LANGUAGES_DIR.'/';
     }
@@ -470,8 +488,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_languages_path(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) ) {
             return '';
+        }
 
         return $prefix.self::LANGUAGES_DIR.'/';
     }
@@ -482,8 +501,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_email_templates_www(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) ) {
             return '';
+        }
 
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
     }
@@ -494,8 +514,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_email_templates_path(): string
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path()) )
+         || !($prefix = $this->instance_plugin_path()) ) {
             return '';
+        }
 
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
     }
@@ -508,8 +529,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         if( $this->instance_is_core()
          || !($plugin_name = $this->instance_plugin_name())
          || !($prefix_path = $this->instance_plugin_path())
-         || !($prefix_www = $this->instance_plugin_www()) )
+         || !($prefix_www = $this->instance_plugin_www()) ) {
             return [];
+        }
 
         $current_lang = PHS::get_current_language();
 
@@ -519,13 +541,17 @@ abstract class PHS_Instantiable extends PHS_Registry
             $check_dir = PHS_THEMES_DIR . $theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS .'/'. $current_lang;
             if( !empty( $current_lang )
              && @file_exists( $check_dir )
-             && @is_dir( $check_dir ) )
-                $pairs_arr[$check_dir.'/'] = PHS_THEMES_WWW.$theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+             && @is_dir( $check_dir ) ) {
+                $pairs_arr[$check_dir.'/'] =
+                    PHS_THEMES_WWW.$theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+            }
 
             $check_dir = PHS_THEMES_DIR . $theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS;
             if( @file_exists( $check_dir )
-             && @is_dir( $check_dir ) )
-                $pairs_arr[$check_dir.'/'] = PHS_THEMES_WWW.$theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+             && @is_dir( $check_dir ) ) {
+                $pairs_arr[$check_dir.'/'] =
+                    PHS_THEMES_WWW.$theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+            }
         }
 
         if( ($themes_arr = PHS::get_cascading_themes())
@@ -533,22 +559,27 @@ abstract class PHS_Instantiable extends PHS_Registry
         {
             foreach( $themes_arr as $c_theme )
             {
-                if( empty( $c_theme ) )
+                if( empty( $c_theme ) ) {
                     continue;
+                }
 
                 $check_dir = PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS .'/'. $current_lang;
                 if( !empty( $current_lang )
                  && empty( $pairs_arr[$check_dir . '/'] )
                  && @file_exists( $check_dir )
-                 && @is_dir( $check_dir ) )
-                    $pairs_arr[$check_dir . '/'] = PHS_THEMES_WWW . $c_theme . '/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/' . $plugin_name . PHS_EMAILS_DIRS . $current_lang . '/';
+                 && @is_dir( $check_dir ) ) {
+                    $pairs_arr[$check_dir.'/'] =
+                        PHS_THEMES_WWW.$c_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.PHS_EMAILS_DIRS.$current_lang.'/';
+                }
 
                 $check_dir = PHS_THEMES_DIR . $c_theme .'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'. $plugin_name .'/'. PHS_EMAILS_DIRS;
                 if( !empty( $current_lang )
                  && empty( $pairs_arr[$check_dir . '/'] )
                  && @file_exists( $check_dir )
-                 && @is_dir( $check_dir ) )
-                    $pairs_arr[$check_dir . '/'] = PHS_THEMES_WWW . $c_theme . '/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/' . $plugin_name . PHS_EMAILS_DIRS . '/';
+                 && @is_dir( $check_dir ) ) {
+                    $pairs_arr[$check_dir.'/'] =
+                        PHS_THEMES_WWW.$c_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.PHS_EMAILS_DIRS.'/';
+                }
             }
         }
 
@@ -559,16 +590,18 @@ abstract class PHS_Instantiable extends PHS_Registry
             {
                 $check_dir = PHS_THEMES_DIR.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang;
                 if( @file_exists( $check_dir )
-                 && @is_dir( $check_dir ) )
+                 && @is_dir( $check_dir ) ) {
                     $pairs_arr[$check_dir.'/'] =
-                        PHS_THEMES_WWW.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+                        PHS_THEMES_WWW.$default_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/'.$current_lang.'/';
+                }
             }
 
             $check_dir = PHS_THEMES_DIR.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS;
             if( @file_exists( $check_dir )
-             && @is_dir( $check_dir ) )
+             && @is_dir( $check_dir ) ) {
                 $pairs_arr[$check_dir.'/'] =
-                    PHS_THEMES_WWW.$default_theme.'/'. self::THEMES_PLUGINS_TEMPLATES_DIR .'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+                    PHS_THEMES_WWW.$default_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.PHS_EMAILS_DIRS.'/';
+            }
         }
 
         return $pairs_arr;
@@ -596,10 +629,11 @@ abstract class PHS_Instantiable extends PHS_Registry
             return '';
         }
 
-        if( empty( $plugin_name ) )
+        if( empty( $plugin_name ) ) {
             $plugin_name = self::CORE_PLUGIN;
-        else
-            $plugin_name = self::safe_escape_plugin_name( $plugin_name );
+        } else {
+            $plugin_name = self::safe_escape_plugin_name($plugin_name);
+        }
 
         if( empty( $instance_name ) )
         {

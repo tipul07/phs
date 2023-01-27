@@ -62,27 +62,32 @@ class PHS_Step_2 extends PHS_Step
         return true;
     }
 
-    public function test_db_connection( $db_settings, $connection_name = false )
+    public function test_db_connection( $db_settings, string $connection_name = null )
     {
-        if( empty( $connection_name ) )
-            $connection_name = 'phs_tmp_db_connection_'.microtime( true );
+        if( empty( $connection_name ) ) {
+            $connection_name = 'phs_tmp_db_connection_'.microtime(true);
+        }
 
         if( !($settings_arr = PHS_Db::add_db_connection( $connection_name, $db_settings )) )
         {
-            if( self::st_has_error() )
-                $this->copy_static_error( self::ERR_CREATE_CONNECTION );
-            else
-                $this->set_error( self::ERR_CREATE_CONNECTION, 'Error adding DB connection.' );
+            if( self::st_has_error() ) {
+                $this->copy_static_error(self::ERR_CREATE_CONNECTION);
+            } else {
+                $this->set_error(self::ERR_CREATE_CONNECTION, 'Error adding DB connection.');
+            }
 
             return false;
         }
 
-        if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
-            define( 'PHS_DB_SILENT_ERRORS', true );
-        if( !defined( 'PHS_DB_DIE_ON_ERROR' ) )
-            define( 'PHS_DB_DIE_ON_ERROR', false );
-        if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
-            define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
+        if( !defined( 'PHS_DB_SILENT_ERRORS' ) ) {
+            define('PHS_DB_SILENT_ERRORS', true);
+        }
+        if( !defined( 'PHS_DB_DIE_ON_ERROR' ) ) {
+            define('PHS_DB_DIE_ON_ERROR', false);
+        }
+        if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) ) {
+            define('PHS_DB_CLOSE_AFTER_QUERY', true);
+        }
 
         if( !db_test_connection( $connection_name ) )
         {

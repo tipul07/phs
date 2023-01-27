@@ -380,7 +380,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_roles_ids_for_roles_units_list( $role_units_arr )
+    public function get_roles_ids_for_roles_units_list( $role_units_arr ): array
     {
         if( empty( $role_units_arr ) || !is_array( $role_units_arr )
          || !($flow_params = $this->fetch_default_flow_params( array( 'table_name' => 'roles_units_links' ) ))
@@ -388,11 +388,11 @@ class PHS_Model_Roles extends PHS_Model
          || !is_array( $role_units_ids )
          || !($qid = db_query( 'SELECT role_id FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
                                ' WHERE role_unit_id IN ('.@implode( ',', $role_units_ids ).')', $flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) )
             return [];
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[] = $link_arr['role_id'];
         }
@@ -400,7 +400,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_roles_ids_for_roles_units_list_grouped( $role_units_arr )
+    public function get_roles_ids_for_roles_units_list_grouped( $role_units_arr ): array
     {
         if( empty( $role_units_arr ) || !is_array( $role_units_arr )
          || !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units_links' ] ))
@@ -408,15 +408,17 @@ class PHS_Model_Roles extends PHS_Model
          || !is_array( $role_units_ids )
          || !($qid = db_query( 'SELECT role_id, role_unit_id FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
                                ' WHERE role_unit_id IN ('.@implode( ',', $role_units_ids ).')', $flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $role_unit_id = (int)$link_arr['role_unit_id'];
-            if( empty( $return_arr[$role_unit_id] ) )
+            if( empty( $return_arr[$role_unit_id] ) ) {
                 $return_arr[$role_unit_id] = [];
+            }
 
             $return_arr[$role_unit_id][] = (int)$link_arr['role_id'];
         }
@@ -424,19 +426,21 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_role_ids_for_user( $user_id )
+    public function get_role_ids_for_user( $user_id ): array
     {
         $this->reset_error();
 
         $user_id = (int)$user_id;
         if( empty( $user_id )
          || !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'roles_users' ] ))
-         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE user_id = \''.$user_id.'\'', $this->get_db_connection( $flow_params ) ))
-         || !@mysqli_num_rows( $qid ) )
+         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE user_id = \''.$user_id.'\'', $flow_params['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[] = (int)$link_arr['role_id'];
         }
@@ -444,19 +448,21 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_role_unit_ids_for_role( $role_id )
+    public function get_role_unit_ids_for_role( $role_id ): array
     {
         $this->reset_error();
 
         $role_id = (int)$role_id;
         if( empty( $role_id )
          || !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units_links' ] ))
-         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE role_id = \''.$role_id.'\'', $this->get_db_connection( $flow_params ) ))
-         || !@mysqli_num_rows( $qid ) )
+         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE role_id = \''.$role_id.'\'', $flow_params['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[] = (int)$link_arr['role_unit_id'];
         }
@@ -472,10 +478,11 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array
      */
-    public function roles_list_to_ids( $roles_arr, $fresh_roles = false )
+    public function roles_list_to_ids( $roles_arr, $fresh_roles = false ): array
     {
-        if( empty( $roles_arr ) || !is_array( $roles_arr ) )
+        if( empty( $roles_arr ) || !is_array( $roles_arr ) ) {
             return [];
+        }
 
         $role_ids_arr = [];
         $role_slugs_arr = [];
@@ -483,17 +490,19 @@ class PHS_Model_Roles extends PHS_Model
         {
             // check if number is passed as string
             if( is_scalar( $role_data )
-             && (string)intval( $role_data ) === (string)$role_data )
-                $role_data = (int)$role_data;
+             && (string)intval( $role_data ) === (string)$role_data ) {
+                $role_data = (int) $role_data;
+            }
 
-            if( is_string( $role_data ) )
+            if( is_string( $role_data ) ) {
                 // slug
                 $role_slugs_arr[] = $role_data;
-            elseif( is_int( $role_data ) )
-                $role_ids_arr[(int)$role_data] = true;
-            elseif( is_array( $role_data )
-                 && !empty( $role_data['id'] ) )
-                $role_ids_arr[(int)$role_data['id']] = true;
+            } elseif( is_int( $role_data ) ) {
+                $role_ids_arr[(int) $role_data] = true;
+            } elseif( is_array( $role_data )
+                 && !empty( $role_data['id'] ) ) {
+                $role_ids_arr[(int) $role_data['id']] = true;
+            }
         }
 
         if( !empty( $role_slugs_arr ) )
@@ -948,17 +957,17 @@ class PHS_Model_Roles extends PHS_Model
          || !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
          || !($roles_units_links_table = $this->get_flow_table_name( $flow_params_rul ))
          || !($ids_arr = $this->roles_list_to_ids( [ $role_data ] ))
-         || !is_array( $ids_arr )
          || !($role_id = @array_shift( $ids_arr ))
          || !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
                                ' FROM `'.$roles_units_table.'` '.
                                ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
-                               ' WHERE `'.$roles_units_links_table.'`.role_id = \''.(int)$role_id.'\'', $this->get_db_connection( $flow_params_ru ) ))
-         || !@mysqli_num_rows( $qid ) )
+                               ' WHERE `'.$roles_units_links_table.'`.role_id = \''.(int)$role_id.'\'', $flow_params_ru['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params_ru['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($slug_arr = db_fetch_assoc( $qid, $flow_params_ru['db_connection'] )) )
         {
             $return_arr[] = $slug_arr['slug'];
         }
@@ -971,12 +980,13 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @param string|array $roles_slugs signle slug or array of role slugs / ids
      *
-     * @return array|bool False on error or an array of slugs for provided roles
+     * @return array array of slugs for provided roles
      */
-    public function get_role_units_slugs_from_roles_slugs( $roles_slugs )
+    public function get_role_units_slugs_from_roles_slugs( $roles_slugs ): array
     {
-        if( !is_array( $roles_slugs ) )
-            $roles_slugs = [ $roles_slugs ];
+        if( !is_array( $roles_slugs ) ) {
+            $roles_slugs = [$roles_slugs];
+        }
 
         if( !($flow_params_ru = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units' ] ))
          || !($flow_params_rul = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units_links' ] ))
@@ -986,12 +996,13 @@ class PHS_Model_Roles extends PHS_Model
          || !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
                                ' FROM `'.$roles_units_table.'` '.
                                ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
-                               ' WHERE `'.$roles_units_links_table.'`.role_id IN (\''.implode( '\', \'', $ids_arr ).'\')', $this->get_db_connection( $flow_params_ru ) ))
-         || !@mysqli_num_rows( $qid ) )
+                               ' WHERE `'.$roles_units_links_table.'`.role_id IN (\''.implode( '\', \'', $ids_arr ).'\')', $flow_params_ru['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params_ru['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($slug_arr = db_fetch_assoc( $qid, $flow_params_ru['db_connection'] )) )
         {
             $return_arr[] = $slug_arr['slug'];
         }
@@ -1242,8 +1253,9 @@ class PHS_Model_Roles extends PHS_Model
         $this->reset_error();
 
         if( empty( self::$_accounts_model )
-         && !$this->_load_dependencies() )
+         && !$this->_load_dependencies() ) {
             return false;
+        }
 
         if( !($account_arr = self::$_accounts_model->data_to_array( $account_data )) )
         {
@@ -1252,7 +1264,6 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         if( !($role_ids = $this->get_role_ids_for_user( $account_arr['id'] ))
-         || !is_array( $role_ids )
          || !($flow_params_ru = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units' ] ))
          || !($flow_params_rul = $this->fetch_default_flow_params( [ 'table_name' => 'roles_units_links' ] ))
          || !($roles_units_table = $this->get_flow_table_name( $flow_params_ru ))
@@ -1260,12 +1271,13 @@ class PHS_Model_Roles extends PHS_Model
          || !($qid = db_query( 'SELECT `'.$roles_units_table.'`.slug '.
                                ' FROM `'.$roles_units_table.'` '.
                                ' LEFT JOIN `'.$roles_units_links_table.'` ON `'.$roles_units_links_table.'`.role_unit_id = `'.$roles_units_table.'`.id '.
-                               ' WHERE `'.$roles_units_links_table.'`.role_id IN ('.implode( ',', $role_ids ).')', $this->get_db_connection( $flow_params_ru ) ))
-         || !@mysqli_num_rows( $qid ) )
+                               ' WHERE `'.$roles_units_links_table.'`.role_id IN ('.implode( ',', $role_ids ).')', $flow_params_ru['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params_ru['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($slug_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($slug_arr = db_fetch_assoc( $qid, $flow_params_ru['db_connection'] )) )
         {
             $return_arr[$slug_arr['slug']] = true;
         }
@@ -1276,8 +1288,9 @@ class PHS_Model_Roles extends PHS_Model
 
     protected function get_insert_prepare_params_roles( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( empty( $params['fields']['slug'] ) )
         {

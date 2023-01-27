@@ -33,7 +33,7 @@ class PHS_Db_mongo extends PHS_Db_class
     //! Query result details...
     private $last_inserted_id, $inserted_rows, $updated_rows;
 
-    public function __construct( $mysql_settings = false )
+    public function __construct( $mysql_settings = null )
     {
         $this->query_id = false;
         $this->managers_obj = null;
@@ -79,7 +79,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return '';
     }
 
-    protected function default_custom_settings_structure()
+    protected function default_custom_settings_structure(): array
     {
         return [
             // FULL connection URI(s). This is prefferable as it supports multiple Mongo servers
@@ -98,16 +98,19 @@ class PHS_Db_mongo extends PHS_Db_class
         ];
     }
 
-    protected function custom_settings_validation( $conn_settings )
+    protected function custom_settings_validation( array $conn_settings ): ?array
     {
-        if( !$this->custom_settings_are_valid( $conn_settings ) )
-            return false;
+        if( !$this->custom_settings_are_valid( $conn_settings ) ) {
+            return null;
+        }
 
-        if( empty( $conn_settings['uri_options'] ) || !is_array( $conn_settings['uri_options'] ) )
+        if( empty( $conn_settings['uri_options'] ) || !is_array( $conn_settings['uri_options'] ) ) {
             $conn_settings['uri_options'] = [];
+        }
 
-        if( !empty( $conn_settings['port'] ) )
-            $conn_settings['port'] = (int)$conn_settings['port'];
+        if( !empty( $conn_settings['port'] ) ) {
+            $conn_settings['port'] = (int) $conn_settings['port'];
+        }
 
         return $conn_settings;
     }
@@ -131,7 +134,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $conn_settings;
     }
 
-    protected function default_connection_name()
+    protected function default_connection_name(): string
     {
         return self::DEFAULT_CONNECTION_NAME;
     }
@@ -149,7 +152,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $this->last_inserted_id;
     }
 
-    public function affected_rows()
+    public function affected_rows(): int
     {
         return $this->inserted_rows + $this->updated_rows;
     }
@@ -302,9 +305,9 @@ class PHS_Db_mongo extends PHS_Db_class
         return $edit_arr;
     }
 
-    public function test_connection( $connection_name = false )
+    public function test_connection( $connection_name = false ): bool
     {
-        return $this->connect( $connection_name );
+        return (bool)$this->connect( $connection_name );
     }
 
     public static function default_query_options_arr()
@@ -494,18 +497,15 @@ class PHS_Db_mongo extends PHS_Db_class
         return $fields;
     }
 
-    public function queries_number( $incr = false )
+    public function queries_number( bool $incr = false ): int
     {
-        static $queries_no;
+        static $queries_no = 0;
 
-        if( !is_numeric( $queries_no ) )
-            $queries_no = 0;
-
-        if( $incr === false )
+        if( $incr === false ) {
             return $queries_no;
+        }
 
         $queries_no++;
-
         return $queries_no;
     }
 
@@ -514,13 +514,15 @@ class PHS_Db_mongo extends PHS_Db_class
         if( empty( $qid )
             // MongoDB\Driver\Cursor
          || @gettype( $qid ) !== 'object'
-         || !($qid instanceof Cursor) )
+         || !($qid instanceof Cursor) ) {
             return false;
+        }
 
         try {
             if( !($result_arr = $qid->toArray())
-             || empty( $result_arr[0] ) )
+             || empty( $result_arr[0] ) ) {
                 return false;
+            }
         } catch( \Exception $e )
         {
             return false;
@@ -529,17 +531,19 @@ class PHS_Db_mongo extends PHS_Db_class
         return $result_arr[0];
     }
 
-    public function num_rows( $qid )
+    public function num_rows( $qid ): int
     {
         if( empty( $qid )
          || @gettype( $qid ) !== 'object'
-         || !($qid instanceof Cursor) )
-            return false;
+         || !($qid instanceof Cursor) ) {
+            return 0;
+        }
 
         try {
             if( !($result_arr = $qid->toArray())
-             || !($count_val = count( $result_arr )) )
+             || !($count_val = count( $result_arr )) ) {
                 return 0;
+            }
         } catch( \Exception $e )
         {
             return 0;
