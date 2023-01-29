@@ -2,7 +2,6 @@
 
 namespace phs;
 
-use phs\libraries\PHS_Error;
 use \phs\libraries\PHS_Registry;
 
 abstract class PHS_Cli extends PHS_Registry
@@ -15,62 +14,62 @@ abstract class PHS_Cli extends PHS_Registry
     public const VERBOSE_L0 = 0, VERBOSE_L1 = 1, VERBOSE_L2 = 2, VERBOSE_L3 = 3;
 
     /** @var int How much verbosity do we need */
-    protected $_verbose_level = self::VERBOSE_L1;
+    protected int $_verbose_level = self::VERBOSE_L1;
 
     /** @var int|bool Instead of sending verbose level for each echo, we can set it as long as we don't change it again */
     protected $_block_verbose = false;
 
     /** @var bool Flush _echo commands as soon as received without buffering output */
-    protected $_continous_flush = false;
+    protected bool $_continous_flush = false;
 
-    /** @var string|bool Name of the script in command line */
-    protected $_cli_script = false;
+    /** @var string Name of the script in command line */
+    protected string $_cli_script = '';
 
     /** @var bool Tells if application output can support colors */
-    protected $_output_colors = true;
+    protected bool $_output_colors = true;
 
     /**
      * Options passed to this app in command line
-     * @var bool|array
+     * @var array
      */
-    private $_options = false;
+    private array $_options = [];
 
     /**
      * Definition of app options that can be passed in command line
-     * @var bool|array
+     * @var array
      */
-    private $_options_definition = false;
+    private array $_options_definition = [];
 
     /**
      * Index array for available options definitions.
      * Used to quickly get to an option definition knowing short or long argument
-     * @var bool|array
+     * @var array
      */
-    private $_options_as_keys = false;
+    private array $_options_as_keys = [];
 
     /**
      * Command passed to this app in command line
-     * @var bool|array
+     * @var array
      */
-    private $_command = false;
+    private array $_command = [];
 
     /**
      * Definition of app commands that can be passed in command line
-     * @var bool|array
+     * @var array
      */
-    private $_commands_definition = false;
+    private array $_commands_definition = [];
 
-    /** @var bool|array A result after application runs which will be presented to end-user */
-    protected $_app_result = false;
+    /** @var array A result after application runs which will be presented to end-user */
+    protected array $_app_result = [];
 
     /** @var PHS_Cli[] */
-    private static $_my_instances = [];
+    private static array $_my_instances = [];
 
     /**
      * Returns directory where app script is
      * @return string
      */
-    abstract public function get_app_dir();
+    abstract public function get_app_dir(): string;
 
     /**
      * Initializes application before starting command line processing
@@ -78,20 +77,20 @@ abstract class PHS_Cli extends PHS_Registry
      * If any errors should be displayed in console, $this->set_error() method should be used
      * @return bool
      */
-    abstract protected function _init_app();
+    abstract protected function _init_app(): bool;
 
     /**
      * This method defines command line options which this application expects
      * @return array
      * @see self::
      */
-    abstract protected function _get_app_options_definition();
+    abstract protected function _get_app_options_definition(): array;
 
     /**
      * This method defines command line commands which this application expects
      * @return array
      */
-    abstract protected function _get_app_commands_definition();
+    abstract protected function _get_app_commands_definition(): array;
 
     /**
      * PHS_Cli constructor.
@@ -100,22 +99,27 @@ abstract class PHS_Cli extends PHS_Registry
     {
         parent::__construct();
 
-        if( empty( $_SERVER ) || !is_array( $_SERVER ) )
+        if( empty( $_SERVER ) || !is_array( $_SERVER ) ) {
             $_SERVER = [];
-        if( empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] ) )
+        }
+        if( empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] ) ) {
             $_SERVER['argv'] = [];
+        }
 
         $cli_arguments = $_SERVER['argv'];
 
-        if( !empty( $cli_arguments[0] ) )
+        if( !empty( $cli_arguments[0] ) ) {
             $this->_cli_script = $cli_arguments[0];
+        }
 
         @array_shift( $cli_arguments );
-        if( empty( $cli_arguments ) )
+        if( empty( $cli_arguments ) ) {
             $cli_arguments = [];
+        }
 
-        if( !$this->_init_app() )
+        if( !$this->_init_app() ) {
             return;
+        }
 
         $this->_validate_app_options( $this->_get_app_options_definition() );
 
@@ -128,7 +132,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_extract_app_command( $cli_arguments );
     }
 
-    public function run()
+    public function run(): void
     {
         if( empty( $_SERVER ) || !is_array( $_SERVER )
          || empty( $_SERVER['argc'] )
@@ -161,37 +165,40 @@ abstract class PHS_Cli extends PHS_Registry
             if( empty( $command_arr['callback'] )
              && !@is_callable( $command_arr['callback'] ) )
             {
-                $this->_echo( $this->cli_color( 'ERROR', 'red' ).': '.self::_t( 'Provided command doesn\'t have a callback function.' ) );
+                $this->_echo( $this->cli_color( 'ERROR', 'red' ).': '.
+                              self::_t( 'Provided command doesn\'t have a callback function.' ) );
                 $this->_output_result_and_exit();
             }
 
-            if( false === ($save_result = @call_user_func( $command_arr['callback'] )) )
+            if( false === @call_user_func( $command_arr['callback'] ) )
             {
-                $this->_echo( self::_t( '[COMMAND_RUN] Executing command [%s] returned false value.', $command_arr['command_name'] ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                $this->_echo( self::_t( '[COMMAND_RUN] Executing command [%s] returned false value.', $command_arr['command_name'] ),
+                    [ 'verbose_lvl' => self::VERBOSE_L3 ] );
             }
         }
 
         $this->_output_result_and_exit();
     }
 
-    protected function _extract_app_command( $argv )
+    protected function _extract_app_command( $argv ): bool
     {
         $this->reset_error();
 
         $old_verbosity = $this->_verbosity_block( self::VERBOSE_L3 );
 
         // Obtain command line options and match them against what application has defined as options
-        $this->_command = false;
+        $this->_command = [];
         $command_name = '';
         $command_arguments_arr = [];
         foreach( $argv as $cli_argument )
         {
             // check if argument starts with - or -- (is an option)
             if( 0 === strpos( $cli_argument, '-' )
-             || 0 === strpos( $cli_argument, '--' ) )
+             || 0 === strpos( $cli_argument, '--' ) ) {
                 continue;
+            }
 
-            if( $this->_command !== false
+            if( $this->_command
             || ('' !== ($low_cli_argument = strtolower( trim( $cli_argument ) ))
                     && empty( $this->_commands_definition[$low_cli_argument] )) )
             {
@@ -206,9 +213,8 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_verbosity_block( $old_verbosity );
 
         // If we didn't find any command in command line arguments, don't set here the error
-        // Error will be displayed in run() method
-        if( false === $this->_command )
-        {
+        // as it will be displayed in run() method
+        if( !$this->_command ) {
             return true;
         }
 
@@ -219,15 +225,14 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    protected function _extract_app_options( $argv )
+    protected function _extract_app_options( $argv ): void
     {
         // Obtain command line options and match them against what application has defined as options
         $this->_options = [];
         $old_verbosity = $this->_verbosity_block( self::VERBOSE_L3 );
         foreach( $argv as $cli_argument )
         {
-            if( !($parsed_option = $this->_extract_option_from_argument( $cli_argument )) )
-            {
+            if( !($parsed_option = $this->_extract_option_from_argument( $cli_argument )) ) {
                 continue;
             }
 
@@ -235,12 +240,14 @@ abstract class PHS_Cli extends PHS_Registry
             $index_arr = false;
             if( !empty( $parsed_option['is_short'] ) )
             {
-                if( !empty( $this->_options_as_keys['short'][$parsed_option['option']] ) )
+                if( !empty( $this->_options_as_keys['short'][$parsed_option['option']] ) ) {
                     $index_arr = $this->_options_as_keys['short'][$parsed_option['option']];
+                }
             } else
             {
-                if( !empty( $this->_options_as_keys['long'][$parsed_option['option']] ) )
+                if( !empty( $this->_options_as_keys['long'][$parsed_option['option']] ) ) {
                     $index_arr = $this->_options_as_keys['long'][$parsed_option['option']];
+                }
             }
 
             if( !empty( $index_arr )
@@ -256,22 +263,20 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_verbosity_block( $old_verbosity );
     }
 
-    private function _extract_option_from_argument( $arg )
+    private function _extract_option_from_argument( $arg ): ?array
     {
-        if( empty( $arg ) || !is_string( $arg ) )
-            return false;
+        if( empty( $arg ) || !is_string( $arg ) ) {
+            return null;
+        }
 
         $is_short_arg = false;
-        if( strpos( $arg, '--' ) === 0 )
-        {
+        if( strpos( $arg, '--' ) === 0 ) {
             $arg = substr( $arg, 2 );
-        } elseif( strpos( $arg, '-' ) === 0 )
-        {
+        } elseif( strpos( $arg, '-' ) === 0 ) {
             $is_short_arg = true;
             $arg = substr( $arg, 1 );
-        } else
-        {
-            return false;
+        } else {
+            return null;
         }
 
         $return_arr = self::get_command_line_option_node_definition();
@@ -286,18 +291,22 @@ abstract class PHS_Cli extends PHS_Registry
             if( isset( $arg_arr[1] ) )
             {
                 $return_arr['value'] = $arg_arr[1];
-                if( $return_arr['value'] === 'null' )
+                if( $return_arr['value'] === 'null' ) {
                     $return_arr['value'] = null;
-                elseif( $return_arr['value'] === 'false' )
+                }
+                elseif( $return_arr['value'] === 'false' ) {
                     $return_arr['value'] = false;
-                elseif( $return_arr['value'] === 'true' )
+                }
+                elseif( $return_arr['value'] === 'true' ) {
                     $return_arr['value'] = true;
+                }
                 elseif( is_numeric( $return_arr['value'] ) )
                 {
-                    if( false === strpos( $return_arr['value'], '.' ) )
-                        $return_arr['value'] = (int)$return_arr['value'];
-                    else
-                        $return_arr['value'] = (float)$return_arr['value'];
+                    if( false === strpos( $return_arr['value'], '.' ) ) {
+                        $return_arr['value'] = (int) $return_arr['value'];
+                    } else {
+                        $return_arr['value'] = (float) $return_arr['value'];
+                    }
                 }
             }
         }
@@ -307,172 +316,189 @@ abstract class PHS_Cli extends PHS_Registry
         return $return_arr;
     }
 
-    protected function _output_result_and_exit()
+    protected function _output_result_and_exit(): void
     {
-        if( $this->_app_result === false )
+        if( !$this->_app_result ) {
             $this->_reset_app_result();
+        }
 
         // Exit statuses should be in the range 0 to 254, the exit status 255 is reserved by PHP and shall not be used.
         // The status 0 is used to terminate the program successfully.
-        if( 254 < ($exit_code = (int)$this->get_error_code()) )
+        if( 254 < ($exit_code = (int)$this->get_error_code()) ) {
             $exit_code = 254;
+        }
 
         if( $this->_app_result['buffer'] === ''
-         || self::VERBOSE_L0 === $this->get_app_verbosity() )
-            exit( $exit_code );
+         || self::VERBOSE_L0 === $this->get_app_verbosity() ) {
+            exit($exit_code);
+        }
 
         $this->_flush_output();
 
         exit( $exit_code );
     }
 
-    protected function _flush_output()
+    protected function _flush_output(): void
     {
-        if( $this->_app_result === false )
+        if( !$this->_app_result ) {
             $this->_reset_app_result();
+        }
 
         echo $this->_app_result['buffer'];
         $this->_app_result['buffer'] = '';
     }
 
-    protected function _reset_output()
+    protected function _reset_output(): void
     {
-        if( $this->_app_result === false )
+        if( !$this->_app_result ) {
             $this->_reset_app_result();
+        }
 
         $this->_app_result['buffer'] = '';
     }
 
-    protected function _add_buffer_to_result( $buf )
+    protected function _add_buffer_to_result( $buf ): void
     {
-        if( $this->_app_result === false )
+        if( !$this->_app_result ) {
             $this->_reset_app_result();
+        }
 
         $this->_app_result['buffer'] .= $buf;
     }
 
-    protected function _had_option_as_command( $val = null )
+    protected function _had_option_as_command( $val = null ): bool
     {
-        if( $this->_app_result === false )
+        if( !$this->_app_result ) {
             $this->_reset_app_result();
+        }
 
-        if( $val === null )
-            return (bool)$this->_app_result['had_option_as_command'];
+        if( $val === null ) {
+            return (bool) $this->_app_result['had_option_as_command'];
+        }
 
         $this->_app_result['had_option_as_command'] = (!empty( $val ));
 
         return true;
     }
 
-    protected function _reset_app_result()
+    protected function _reset_app_result(): void
     {
         $this->_app_result = self::get_app_result_definition();
     }
 
-    protected function _process_app_options_on_init()
+    protected function _process_app_options_on_init(): void
     {
         // Start processing each parameter based on priority
         if( !empty( $this->_options ) )
         {
             foreach( $this->_options as $app_option_name => $app_option_details )
             {
-                $this->_echo( self::_t( '[INIT_LEVEL] Executing option [%s]', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                $this->_echo( self::_t( '[INIT_LEVEL] Executing option [%s]', $app_option_name ),
+                    [ 'verbose_lvl' => self::VERBOSE_L3 ] );
 
                 if( empty( $app_option_details['app_option'] )
                  || !is_array( $app_option_details['app_option'] )
                  || empty( $app_option_details['app_option']['callback_init'] )
                  || !is_callable( $app_option_details['app_option']['callback_init'] ) )
                 {
-                    $this->_echo( self::_t( '[INIT_LEVEL] Nothing to execute for option [%s]', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                    $this->_echo( self::_t( '[INIT_LEVEL] Nothing to execute for option [%s]', $app_option_name ),
+                        [ 'verbose_lvl' => self::VERBOSE_L3 ] );
                     continue;
                 }
 
-                if( !empty( $app_option_details['app_option']['behaves_as_command'] ) )
-                    $this->_had_option_as_command( true );
+                if( !empty( $app_option_details['app_option']['behaves_as_command'] ) ) {
+                    $this->_had_option_as_command(true);
+                }
 
-                if( false === ($save_result = @call_user_func( $app_option_details['app_option']['callback_init'], $app_option_details )) )
+                if( false === @call_user_func( $app_option_details['app_option']['callback_init'], $app_option_details ) )
                 {
-                    $this->_echo( self::_t( '[INIT_LEVEL] Executing option [%s] returned false value.', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                    $this->_echo( self::_t( '[INIT_LEVEL] Executing option [%s] returned false value.', $app_option_name ),
+                        [ 'verbose_lvl' => self::VERBOSE_L3 ] );
                 }
             }
         }
     }
 
-    protected function _process_app_options_on_run()
+    protected function _process_app_options_on_run(): void
     {
         // Start processing options that have callbacks for run() method
-        if( empty( $this->_options ) )
+        if( empty( $this->_options ) ) {
             return;
+        }
 
         foreach( $this->_options as $app_option_name => $app_option_details )
         {
-            $this->_echo( self::_t( '[RUN_LEVEL] Executing option [%s]', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+            $this->_echo( self::_t( '[RUN_LEVEL] Executing option [%s]', $app_option_name ),
+                [ 'verbose_lvl' => self::VERBOSE_L3 ] );
 
             if( empty( $app_option_details['app_option'] )
              || !is_array( $app_option_details['app_option'] )
              || empty( $app_option_details['app_option']['callback_run'] )
              || !is_callable( $app_option_details['app_option']['callback_run'] ) )
             {
-                $this->_echo( self::_t( '[RUN_LEVEL] Nothing to execute for option [%s]', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                $this->_echo( self::_t( '[RUN_LEVEL] Nothing to execute for option [%s]', $app_option_name ),
+                    [ 'verbose_lvl' => self::VERBOSE_L3 ] );
                 continue;
             }
 
-            if( !empty( $app_option_details['app_option']['behaves_as_command'] ) )
-                $this->_had_option_as_command( true );
+            if( !empty( $app_option_details['app_option']['behaves_as_command'] ) ) {
+                $this->_had_option_as_command(true);
+            }
 
-            if( false === ($save_result = @call_user_func( $app_option_details['app_option']['callback_run'], $app_option_details )) )
+            if( false === @call_user_func( $app_option_details['app_option']['callback_run'], $app_option_details ) )
             {
-                $this->_echo( self::_t( '[RUN_LEVEL] Executing option [%s] returned false value.', $app_option_name ), [ 'verbose_lvl' => self::VERBOSE_L3 ] );
+                $this->_echo( self::_t( '[RUN_LEVEL] Executing option [%s] returned false value.', $app_option_name ),
+                    [ 'verbose_lvl' => self::VERBOSE_L3 ] );
             }
         }
     }
 
-    public function get_app_name()
+    public function get_app_name(): string
     {
         return static::APP_NAME;
     }
 
-    public function get_app_version()
+    public function get_app_version(): string
     {
         return static::APP_VERSION;
     }
 
-    public function get_app_description()
+    public function get_app_description(): string
     {
         return static::APP_DESCRIPTION;
     }
 
-    public function get_app_options()
+    public function get_app_options(): array
     {
         return $this->_options;
     }
 
-    public function get_app_command()
+    public function get_app_command(): array
     {
         return $this->_command;
     }
 
-    public function get_app_options_definition()
+    public function get_app_options_definition(): array
     {
         return $this->_options_definition;
     }
 
-    public function get_app_commands_definition()
+    public function get_app_commands_definition(): array
     {
         return $this->_commands_definition;
     }
 
-    public function get_app_verbosity()
+    public function get_app_verbosity(): int
     {
         return $this->_verbose_level;
     }
 
-    public function get_app_cli_script()
+    public function get_app_cli_script(): string
     {
         return $this->_cli_script;
     }
 
-    public function get_app_output_colors()
+    public function get_app_output_colors(): bool
     {
         return $this->_output_colors;
     }
@@ -651,16 +677,17 @@ abstract class PHS_Cli extends PHS_Registry
     }
 
     /**
-     * @param array $app_commands
+     * @param  array  $app_commands
      *
      * @return array|bool
      */
-    private function _validate_app_commands( $app_commands )
+    private function _validate_app_commands( array $app_commands )
     {
         $this->reset_error();
 
-        if( empty( $app_commands ) || !is_array( $app_commands ) )
+        if( empty( $app_commands ) ) {
             $app_commands = [];
+        }
 
         $app_commands = self::validate_array( $app_commands, $this->_default_app_commands() );
 
@@ -676,13 +703,13 @@ abstract class PHS_Cli extends PHS_Registry
              || $command_name === '' )
             {
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Command %s should have a string in key array definition.', $command_count ) );
-                return false;
+                return null;
             }
 
             if( empty( $command_arr ) || !is_array( $command_arr ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, self::_t( 'Command %s should have an array as definition.', $command_name ) );
-                return false;
+                return null;
             }
 
             $command_arr = self::validate_array( $command_arr, $node_definition );
@@ -701,14 +728,20 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_verbosity( $args )
+    public function cli_option_verbosity( $args ): bool
     {
         if( empty( $args ) || !is_array( $args )
-         || !isset( $args['value'] ) )
+         || !isset( $args['value'] ) ) {
             return false;
+        }
 
-        $this->_verbose_level = (int)$args['value'];
+        $this->set_verbosity( (int)$args['value'] );
         return true;
+    }
+
+    public function set_verbosity( int $v ): void
+    {
+        $this->_verbose_level = $v;
     }
 
     /**
@@ -716,14 +749,20 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_output_colors( $args )
+    public function cli_option_output_colors( $args ): bool
     {
         if( empty( $args ) || !is_array( $args )
-         || !isset( $args['value'] ) )
+         || !isset( $args['value'] ) ) {
             return false;
+        }
 
-        $this->_output_colors = (empty( $args['value'] ));
+        $this->set_output_colors( empty( $args['value'] ) );
         return true;
+    }
+
+    public function set_output_colors( bool $c ): void
+    {
+        $this->_output_colors = $c;
     }
 
     /**
@@ -731,14 +770,20 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_continous_flush( $args )
+    public function cli_option_continous_flush( $args ): bool
     {
         if( empty( $args ) || !is_array( $args )
-         || !isset( $args['value'] ) )
+         || !isset( $args['value'] ) ) {
             return false;
+        }
 
-        $this->_continous_flush = (empty( $args['value'] ));
+        $this->set_continous_flush( empty( $args['value'] ) );
         return true;
+    }
+
+    public function set_continous_flush( bool $f ): void
+    {
+        $this->_continous_flush = $f;
     }
 
     /**
@@ -746,8 +791,9 @@ abstract class PHS_Cli extends PHS_Registry
      */
     public function cli_option_help()
     {
-        if( !$this->cli_option_version() )
+        if( !$this->cli_option_version() ) {
             return false;
+        }
 
         $this->_echo( '' );
         $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] [command] [arguments]' );
@@ -761,8 +807,9 @@ abstract class PHS_Cli extends PHS_Registry
             {
                 $this->_echo( $command_name );
 
-                if( !empty( $command_arr['description'] ) )
-                    $this->_echo( '  '.$command_arr['description'] );
+                if( !empty( $command_arr['description'] ) ) {
+                    $this->_echo('  '.$command_arr['description']);
+                }
             }
 
             $this->_echo( '' );
@@ -774,15 +821,18 @@ abstract class PHS_Cli extends PHS_Registry
             foreach( $options_arr as $option_name => $option_arr )
             {
                 $option_vars = '';
-                if( !empty( $option_arr['short'] ) )
+                if( !empty( $option_arr['short'] ) ) {
                     $option_vars .= '-'.$option_arr['short'];
-                if( !empty( $option_arr['long'] ) )
-                    $option_vars .= ($option_vars!==''?', ':'').'--'.$option_arr['long'];
+                }
+                if( !empty( $option_arr['long'] ) ) {
+                    $option_vars .= ($option_vars !== '' ? ', ' : '').'--'.$option_arr['long'];
+                }
 
                 $this->_echo( $option_vars );
 
-                if( !empty( $option_arr['description'] ) )
-                    $this->_echo( '  '.$option_arr['description'] );
+                if( !empty( $option_arr['description'] ) ) {
+                    $this->_echo('  '.$option_arr['description']);
+                }
             }
 
             $this->_echo( '' );
@@ -794,7 +844,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public function cli_option_version()
+    public function cli_option_version(): bool
     {
         $this->_echo( $this->get_app_name().' - version '.$this->get_app_version() );
         $this->_echo( $this->get_app_description() );
@@ -805,7 +855,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public static function running_in_cli()
+    public static function running_in_cli(): bool
     {
         return (PHP_SAPI==='cli');
     }
@@ -817,8 +867,9 @@ abstract class PHS_Cli extends PHS_Registry
      */
     protected function _verbosity_block( $lvl = false )
     {
-        if( $lvl === false )
+        if( $lvl === false ) {
             return $this->_block_verbose;
+        }
 
         $old_verbosity = ($this->_block_verbose===false?$this->get_app_verbosity():$this->_block_verbose);
         $this->_block_verbose = (int)$lvl;
@@ -835,8 +886,9 @@ abstract class PHS_Cli extends PHS_Registry
      */
     protected function _continous_flush( bool $flush = null ): bool
     {
-        if( $flush === null )
+        if( $flush === null ) {
             return $this->_continous_flush;
+        }
 
         $old_continous_flush = $this->_continous_flush;
         $this->_continous_flush = (!empty( $flush ));
@@ -865,8 +917,9 @@ abstract class PHS_Cli extends PHS_Registry
     {
         if( empty( $args_arr )
          || null === ($first_arg = @array_shift( $args_arr ))
-         || !is_string( $first_arg ) )
+         || !is_string( $first_arg ) ) {
             return false;
+        }
 
         if( '' === ($first_arg = trim( $first_arg )) ){
             return static::_get_one_argument( $args_arr );
@@ -891,12 +944,14 @@ abstract class PHS_Cli extends PHS_Registry
     {
         static $arguments = [];
 
-        if( null !== $args_arr )
+        if( null !== $args_arr ) {
             $arguments = $args_arr;
+        }
 
         if( empty( $arguments )
-         || !($args_result = $this::_get_one_argument( $arguments )) )
+         || !($args_result = $this::_get_one_argument( $arguments )) ) {
             return '';
+        }
 
         $arguments = $args_result['rest'];
 
@@ -922,19 +977,23 @@ abstract class PHS_Cli extends PHS_Registry
      */
     public function _echo( string $msg, array $params = [] ): bool
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         if( !isset( $params['verbose_lvl'] ) )
         {
-            if( false === ($params['verbose_lvl'] = $this->_verbosity_block()) )
+            if( false === ($params['verbose_lvl'] = $this->_verbosity_block()) ) {
                 $params['verbose_lvl'] = self::VERBOSE_L1;
-        } else
-            $params['verbose_lvl'] = (int)$params['verbose_lvl'];
+            }
+        } else {
+            $params['verbose_lvl'] = (int) $params['verbose_lvl'];
+        }
 
         if( !($now_verbosity = $this->get_app_verbosity())
-         || $now_verbosity < $params['verbose_lvl'] )
+         || $now_verbosity < $params['verbose_lvl'] ) {
             return true;
+        }
 
         $params['force_echo'] = (!empty( $params['force_echo'] ));
         $params['flush_output'] = (!empty( $params['flush_output'] ));
@@ -944,11 +1003,13 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_add_buffer_to_result( $msg );
 
         if( !empty( $params['flush_output'] )
-         || $this->_continous_flush() )
+         || $this->_continous_flush() ) {
             $this->_flush_output();
+        }
 
-        if( !empty( $params['force_echo'] ) )
+        if( !empty( $params['force_echo'] ) ) {
             echo $msg;
+        }
 
         return true;
     }
@@ -964,8 +1025,9 @@ abstract class PHS_Cli extends PHS_Registry
      */
     public function cli_color( string $str, string $color, string $background = '' ): string
     {
-        if( !$this->get_app_output_colors() )
+        if( !$this->get_app_output_colors() ) {
             return $str;
+        }
 
         return self::st_cli_color( $str, $color, $background );
     }
@@ -984,17 +1046,20 @@ abstract class PHS_Cli extends PHS_Registry
         $colors_arr = self::get_cli_colors_definition();
 
         if( empty( $colors_arr['color'][$color] )
-         && empty( $colors_arr['background'][$background] ) )
+         && empty( $colors_arr['background'][$background] ) ) {
             return $str;
+        }
 
         $color = $colors_arr['color'][$color] ?? '';
         $background = $colors_arr['background'][$background] ?? '';
 
         $colored_str = '';
-        if( $color !== '' )
+        if( $color !== '' ) {
             $colored_str .= "\033[".$color.'m';
-        if( $background !== '' )
+        }
+        if( $background !== '' ) {
             $colored_str .= "\033[".$background.'m';
+        }
 
         $colored_str .= $str."\033[0m";
 
@@ -1046,17 +1111,16 @@ abstract class PHS_Cli extends PHS_Registry
         // ::class added in 5.5 => we will add PHP 5.5 dependency if we use static::class,
         // so we use get_called_class() added in PHP 5.3
         // Update: PHP min version now is 5.6+
-        if( $app_class_name === false )
+        if( $app_class_name === false
+         && !($app_class_name = static::class) )
         {
-            if( !($app_class_name = static::class) )
-            {
-                self::st_copy_error( self::_t( 'Cannot obtain called class name.' ) );
-                return false;
-            }
+            self::st_copy_error( self::_t( 'Cannot obtain called class name.' ) );
+            return false;
         }
 
-        if( !empty( self::$_my_instances[$app_class_name] ) )
+        if( !empty( self::$_my_instances[$app_class_name] ) ) {
             return self::$_my_instances[$app_class_name];
+        }
 
         /** @var \phs\PHS_Cli $app_instance */
         $app_instance = new $app_class_name();

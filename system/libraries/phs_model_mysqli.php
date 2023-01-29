@@ -218,7 +218,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
+        if( empty( $this->_definition )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
@@ -275,7 +275,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 (!empty( $table_details['collate'] )?' COLLATE '.$table_details['collate']:'').
                 (!empty( $table_details['comment'] )?' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'':'').';';
 
-        if( !db_query( $sql, $db_connection ) )
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -332,7 +334,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model( $flow_params )
+    protected function _update_table_for_model( $flow_params ): bool
     {
         $this->reset_error();
 
@@ -340,7 +342,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
+        if( empty( $this->_definition )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
@@ -434,10 +436,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $table_details = $table_definition[self::T_DETAILS_KEY];
         }
 
-        if( empty( $db_table_details[self::T_DETAILS_KEY] ) ) {
+        if( empty( $db_table_definition[self::T_DETAILS_KEY] ) ) {
             $db_table_details = $this->_default_table_details_arr();
         } else {
-            $db_table_details = $table_definition[self::T_DETAILS_KEY];
+            $db_table_details = $db_table_definition[self::T_DETAILS_KEY];
         }
 
         if( ($changed_values = $this->_table_details_changed( $db_table_details, $table_details )) )
@@ -469,7 +471,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
 
             // ALTER TABLE `table_name` ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci COMMENT "New comment"
-            if( !db_query( $sql, $db_connection ) )
+            if( PHS_Db::dry_update() ) {
+                PHS_Db::dry_update_output( $sql );
+            } elseif( !db_query( $sql, $db_connection ) )
             {
                 PHS_Logger::error( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -670,10 +674,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
         }
 
-        // Force reloading table columns to be sure changes are not cached
-        // Do not recache the table as we are done with it
-        // $this->get_table_columns_as_definition( $flow_params, true );
-
         PHS_Logger::notice( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
         return true;
@@ -749,7 +749,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-        while( ($field_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        while( ($field_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( !is_array( $field_arr )
              || empty( $field_arr['Field'] ) ) {
@@ -764,9 +764,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return true;
     }
 
-    private function _get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force = false )
+    private function _get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, bool $force = false ): bool
     {
-        if( ($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
+        if( !($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
         {
             $this->set_error( self::ERR_READ_DB_STRUCTURE,
                 self::_t( 'Error reading indexes of table %s.', $flow_table_name ) );
@@ -774,7 +774,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        while( ($index_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( !is_array( $index_arr )
              || empty( $index_arr['Key_name'] )
@@ -782,7 +782,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 continue;
             }
 
-            if( strtoupper( $index_arr['Key_name'] ) === 'PRIMARY' )
+            $index_name = $index_arr['Key_name'];
+
+            if( strtoupper( $index_name ) === 'PRIMARY' )
             {
                 // make sure we have primary column set
                 if( !empty( $structure_arr[$index_arr['Column_name']] ) ) {
@@ -792,10 +794,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 continue;
             }
 
-            if( !empty( $structure_arr[$index_arr['Key_name']] ) )
+            if( !empty( $structure_arr[$index_name] ) )
             {
                 // We have this field defined in the table... Make sure it has index set
-                $structure_arr[$index_arr['Key_name']]['index'] = true;
+                $structure_arr[$index_name]['index'] = true;
                 continue;
             }
 
@@ -806,62 +808,26 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $structure_arr[self::EXTRA_INDEXES_KEY] = [];
             }
 
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] = [];
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] ) ) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] = [];
             }
 
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] = [];
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] ) ) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] = [];
             }
 
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'][] = $index_arr['Column_name'];
+            $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'][] = $index_arr['Column_name'];
 
             if( empty( $index_arr['Non_unique'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = true;
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['unique'] = true;
             } else {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = false;
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['unique'] = false;
             }
         }
 
         self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
-
-        /**
-        if( !($qid = db_query( 'SELECT * FROM information_schema.statistics '.
-                              ' WHERE '.
-                              ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
-                              ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
-        {
-        }
-
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-        {
-            if( !is_array( $index_arr )
-             || empty( $index_arr['INDEX_NAME'] )
-             || empty( $index_arr['COLUMN_NAME'] ) )
-                continue;
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
-
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
-
-            if( empty( $index_arr['NON_UNIQUE'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
-            else
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
-        }
-        /**/
 
         return true;
     }
@@ -908,8 +874,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         return [
             'engine' => 'InnoDB',
-            'charset' => 'utf8',
-            'collate' => 'utf8_general_ci',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_general_ci',
             'comment' => '',
         ];
     }
@@ -1534,7 +1500,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $model_field_arr;
     }
 
-    public function check_extra_index_exists( $index_name, $flow_params = false, $force = false )
+    public function check_extra_index_exists( $index_name, $flow_params = false, bool $force = false )
     {
         $this->reset_error();
 
@@ -1661,39 +1627,25 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $default_table_details = $this->_default_table_details_arr();
 
         if( !($details1_arr = self::validate_array( $details1_arr, $default_table_details ))
-         || !($details2_arr = self::validate_array( $details2_arr, $default_table_details )) )
-            return array_keys( $default_table_details );
-
-        $keys_changed = [];
-        if( strtolower( trim( $details1_arr['engine'] ) ) !== strtolower( trim( $details2_arr['engine'] ) ) )
-            $keys_changed['engine'] = $details2_arr['engine'];
-        if( strtolower( trim( $details1_arr['charset'] ) ) !== strtolower( trim( $details2_arr['charset'] ) ) )
-            $keys_changed['charset'] = $details2_arr['charset'];
-        if( strtolower( trim( $details1_arr['collate'] ) ) !== strtolower( trim( $details2_arr['collate'] ) ) )
-            $keys_changed['collate'] = $details2_arr['collate'];
-        if( trim( $details1_arr['comment'] ) !== trim( $details2_arr['comment'] ) )
-            $keys_changed['comment'] = $details2_arr['comment'];
-
-        return (!empty( $keys_changed )?$keys_changed:false);
-    }
-
-    /**
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function get_definition( $params = false )
-    {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
+         || !($details2_arr = self::validate_array( $details2_arr, $default_table_details )) ) {
+            return array_keys($default_table_details);
         }
 
-        if( empty( $this->_definition[$params['table_name']] ) )
-            return false;
+        $keys_changed = [];
+        if( strtolower( trim( $details1_arr['engine'] ) ) !== strtolower( trim( $details2_arr['engine'] ) ) ) {
+            $keys_changed['engine'] = $details2_arr['engine'];
+        }
+        if( strtolower( trim( $details1_arr['charset'] ) ) !== strtolower( trim( $details2_arr['charset'] ) ) ) {
+            $keys_changed['charset'] = $details2_arr['charset'];
+        }
+        if( strtolower( trim( $details1_arr['collate'] ) ) !== strtolower( trim( $details2_arr['collate'] ) ) ) {
+            $keys_changed['collate'] = $details2_arr['collate'];
+        }
+        if( trim( $details1_arr['comment'] ) !== trim( $details2_arr['comment'] ) ) {
+            $keys_changed['comment'] = $details2_arr['comment'];
+        }
 
-        return $this->_definition[$params['table_name']];
+        return (!empty( $keys_changed )?$keys_changed:false);
     }
 
     /**
@@ -1940,7 +1892,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
+        $sql = 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'];
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -1951,28 +1906,39 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         // We change cache on the fly...
         self::cached_db_set_column_definition( $field_name, $field_details, $flow_table_name, $my_driver );
 
-        if( !empty( $mysql_field_arr['keys_str'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+        if( !empty( $mysql_field_arr['keys_str'] ) )
         {
-            PHS_Logger::error( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            $sql = 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'];
+            if( PHS_Db::dry_update() ) {
+                PHS_Db::dry_update_output( $sql );
+            } elseif( !db_query( $sql, $db_connection ) )
+            {
+                PHS_Logger::error( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
-            return false;
+                $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
+                return false;
+            }
         }
 
         return true;
     }
 
     /**
-     * @param string $field_name
-     * @param array $field_details
+     * @param  string  $field_name
+     * @param  array  $field_details
      * @param bool|array $old_field
      * @param bool|array $flow_params
-     * @param bool|array $params
+     * @param  null|array  $params
      *
      * @return bool
      */
-    final public function alter_table_change_column( $field_name, $field_details, $old_field = false, $flow_params = false, $params = false ): bool
+    final public function alter_table_change_column(
+        string $field_name,
+        array $field_details,
+        $old_field = false,
+        $flow_params = false,
+        array $params = null
+    ): bool
     {
         $this->reset_error();
 
@@ -2040,7 +2006,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
-        if( !db_query( $sql, $db_connection ) )
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -2057,35 +2025,45 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if( !empty( $params['alter_indexes'] )
          && !empty( $old_field_name )
          && !empty( $old_field_details ) && is_array( $old_field_details )
-         && empty( $old_field_details['primary'] ) && !empty( $old_field_details['index'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`', $db_connection ) )
+         && empty( $old_field_details['primary'] ) && !empty( $old_field_details['index'] ) )
         {
-            PHS_Logger::error( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            $sql = 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`';
+            if( PHS_Db::dry_update() ) {
+                PHS_Db::dry_update_output( $sql );
+            } elseif( !db_query( $sql, $db_connection ) )
+            {
+                PHS_Logger::error( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
-            return false;
+                $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
+                return false;
+            }
         }
 
         if( !empty( $params['alter_indexes'] )
-         && !empty( $mysql_field_arr['keys_str'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+         && !empty( $mysql_field_arr['keys_str'] ) )
         {
-            PHS_Logger::error( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
+            $sql = 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'];
+            if( PHS_Db::dry_update() ) {
+                PHS_Db::dry_update_output( $sql );
+            } elseif( !db_query( $sql, $db_connection ) )
+            {
+                PHS_Logger::error( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
-            return false;
+                $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
+                return false;
+            }
         }
 
         return true;
     }
 
     /**
-     * @param string $field_name
+     * @param  string  $field_name
      * @param bool|array $flow_params
      *
      * @return bool
      */
-    final public function alter_table_drop_column( $field_name, $flow_params = false ): bool
+    final public function alter_table_drop_column( string $field_name, $flow_params = false ): bool
     {
         $this->reset_error();
 
@@ -2106,7 +2084,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
+        $sql = 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN `'.$field_name.'`';
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
             return false;
@@ -2119,12 +2100,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     }
 
     /**
-     * @param string $field_name
+     * @param  string  $field_name
      * @param bool|array $flow_params
      *
      * @return bool
      */
-    final public function alter_table_drop_column_index( $field_name, $flow_params = false ): bool
+    final public function alter_table_drop_column_index( string $field_name, $flow_params = false ): bool
     {
         $this->reset_error();
 
@@ -2145,7 +2126,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'DROP INDEX `'.$field_name.'` ON `'.$flow_table_name.'`', $db_connection ) )
+        $sql = 'DROP INDEX `'.$field_name.'` ON `'.$flow_table_name.'`';
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop index on [%s].', $field_name ) );
             return false;
@@ -2158,13 +2142,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     }
 
     /**
-     * @param string $field_name
-     * @param array $field_details
+     * @param  string  $field_name
+     * @param  array  $field_details
      * @param bool|array $flow_params
      *
      * @return bool
      */
-    final public function alter_table_add_column_index( $field_name, $field_details, $flow_params = false ): bool
+    final public function alter_table_add_column_index( string $field_name, array $field_details, $flow_params = false ): bool
     {
         $this->reset_error();
 
@@ -2189,7 +2173,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
+        $sql = 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'];
+
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -2212,7 +2200,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
+        if( empty( $this->_definition )
          || !($model_id = $this->instance_id())
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
@@ -2225,7 +2213,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
          || !is_array( $table_definition[self::EXTRA_INDEXES_KEY] )
-         || !($database_name = $this->get_db_database( $flow_params )) ) {
+         || !$this->get_db_database( $flow_params ) ) {
             return true;
         }
 
@@ -2240,16 +2228,16 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     }
 
     /**
-     * @param array $indexes_array
+     * @param  array  $indexes_array
      * @param bool|array $flow_params
      *
      * @return bool
      */
-    public function create_table_extra_indexes_from_array( $indexes_array, $flow_params = false ): bool
+    public function create_table_extra_indexes_from_array( array $indexes_array, $flow_params = false ): bool
     {
         $this->reset_error();
 
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
+        if( empty( $indexes_array ) ) {
             return true;
         }
 
@@ -2303,29 +2291,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $fields_str .= ($fields_str!==''?',':'').'`'.$field_name.'`';
         }
 
-        // $sql =
-        //     'SELECT IF ('.
-        //         ' EXISTS( '.
-        //             'SELECT DISTINCT index_name FROM information_schema.statistics '.
-        //             ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
-        //             ' AND index_name LIKE \''.$index_name.'\''.
-        //         ' )'.
-        //     ' ,\'SELECT \'\'index exists\'\' junk;\' '.
-        //     ' ,\'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.');\''.
-        //     ') INTO @a;'."\n".
-        //     'USE \''.$database_name.'\';'."\n".
-        //     'PREPARE stmt1 FROM @a;'."\n".
-        //     'EXECUTE stmt1;'."\n".
-        //     'DEALLOCATE PREPARE stmt1;'."\n";
-        //
-        // if( !db_query( $sql, $db_connection ) )
-        // {
-        //     PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
-        //
-        //     $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
-        //     return false;
-        // }
-
         if( ($qid = db_query( 'SELECT DISTINCT index_name '.
                                ' FROM information_schema.statistics '.
                                ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
@@ -2338,7 +2303,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        if( !db_query( 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection ) )
+        $sql = 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').
+               ' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')';
+
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 
@@ -2350,25 +2320,21 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     }
 
     /**
-     * @param array $indexes_array
+     * @param  array  $indexes_array
      * @param bool|array $flow_params
      *
      * @return bool
      */
-    protected function drop_table_indexes_from_array( $indexes_array, $flow_params = false ): bool
+    protected function drop_table_indexes_from_array( array $indexes_array, $flow_params = false ): bool
     {
         $this->reset_error();
 
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
+        if( empty( $indexes_array ) ) {
             return true;
         }
 
         foreach( $indexes_array as $index_name => $index_arr )
         {
-            // if( empty( $index_arr ) || !is_array( $index_arr ) ) {
-            //     continue;
-            // }
-
             if( !$this->drop_table_index( $index_name, $flow_params ) ) {
                 return false;
             }
@@ -2401,7 +2367,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection( $flow_params );
 
-        if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
+        $sql = 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`';
+
+        if( PHS_Db::dry_update() ) {
+            PHS_Db::dry_update_output( $sql );
+        } elseif( !db_query( $sql, $db_connection ) )
         {
             PHS_Logger::error( 'Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
 

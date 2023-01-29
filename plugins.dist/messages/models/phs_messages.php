@@ -14,7 +14,7 @@ class PHS_Model_Messages extends PHS_Model
 {
     public const CUSTOM_SETTINGS_KEY = '{custom_settings}';
 
-    const ERR_READ = 10000, ERR_WRITE = 10001;
+    public const ERR_READ = 10000, ERR_WRITE = 10001;
 
     public const DEST_TYPE_USERS_IDS = 1, DEST_TYPE_HANDLERS = 2, DEST_TYPE_USERS = 3, DEST_TYPE_LEVEL = 4,
           DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
@@ -53,7 +53,7 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.1.0';
+        return '1.1.1';
     }
 
     /**

@@ -3,6 +3,6 @@
     "vendor_name": "PHS",
     "name": "Remote PHS Connections",
     "description": "Handles 3rd party PHS platform connections.",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "models": [ "phs_remote_domains" ]
 }

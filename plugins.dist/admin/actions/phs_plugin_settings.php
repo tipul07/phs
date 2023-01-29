@@ -278,24 +278,28 @@ class PHS_Action_Plugin_settings extends PHS_Action
                     {
                         foreach( $db_settings as $s_key => $s_val )
                         {
-                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
+                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) ) {
                                 $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                            }
                         }
                     } else
                     {
-                        if( isset( $save_result['{new_settings_fields}'] ) )
-                            unset( $save_result['{new_settings_fields}'] );
+                        if( isset( $save_result['{new_settings_fields}'] ) ) {
+                            unset($save_result['{new_settings_fields}']);
+                        }
 
                         $new_settings_arr[$field_name] = $save_result;
                     }
                 }
             }
 
-            elseif( self::st_has_error() )
-                PHS_Notifications::add_error_notice( self::st_get_error_message() );
+            elseif( self::st_has_error() ) {
+                PHS_Notifications::add_error_notice(self::st_get_error_message());
+            }
 
-            if( self::st_has_warnings() )
-                PHS_Notifications::add_warning_notice( self::st_get_warnings() );
+            if( self::st_has_warnings() ) {
+                PHS_Notifications::add_warning_notice(self::st_get_warnings());
+            }
         }
 
         return $new_settings_arr;

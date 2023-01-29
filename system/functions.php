@@ -487,7 +487,7 @@ function db_connection_identifier( $connection )
     return $connection_identifier;
 }
 
-function db_prefix( $connection = false )
+function db_prefix( $connection = false ): string
 {
     if( !($db_settings = db_settings( $connection ))
      || !is_array( $db_settings )
@@ -498,7 +498,7 @@ function db_prefix( $connection = false )
     return $db_settings['prefix'];
 }
 
-function db_database( $connection = false )
+function db_database( $connection = false ): string
 {
     if( !($db_settings = db_settings( $connection ))
      || !is_array( $db_settings )

@@ -332,7 +332,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model( $flow_params )
+    protected function _update_table_for_model( $flow_params ): bool
     {
         $this->reset_error();
 
@@ -340,7 +340,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             return false;
         }
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
+        if( empty( $this->_definition )
          || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
          || empty( $flow_params['table_name'] )
          || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
@@ -908,8 +908,8 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     {
         return [
             'engine' => 'InnoDB',
-            'charset' => 'utf8',
-            'collate' => 'utf8_general_ci',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_general_ci',
             'comment' => '',
         ];
     }
@@ -1383,9 +1383,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
         $default_table_details = $this->_default_table_details_arr();
         if( ($qid = db_query( 'SHOW TABLE STATUS', $db_connection ))
-         && @mysqli_num_rows( $qid ) )
+         && $qid->numColumns() )
         {
-            while( ($result_arr = @mysqli_fetch_assoc( $qid )) )
+            while( ($result_arr = $qid->fetch_assoc()) )
             {
                 if( empty( $result_arr['Name'] ) ) {
                     continue;
@@ -1434,8 +1434,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     private function _get_type_from_mysql_field_type( $type )
     {
         $type = trim( $type );
-        if( empty( $type ) )
+        if( empty( $type ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['type'] = self::FTYPE_UNKNOWN;
@@ -1534,7 +1535,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         return $model_field_arr;
     }
 
-    public function check_extra_index_exists( $index_name, $flow_params = false, $force = false )
+    public function check_extra_index_exists( $index_name, $flow_params = false, bool $force = false )
     {
         $this->reset_error();
 
@@ -1675,25 +1676,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             $keys_changed['comment'] = $details2_arr['comment'];
 
         return (!empty( $keys_changed )?$keys_changed:false);
-    }
-
-    /**
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function get_definition( $params = false )
-    {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        if( empty( $this->_definition[$params['table_name']] ) )
-            return false;
-
-        return $this->_definition[$params['table_name']];
     }
 
     /**
@@ -2305,34 +2287,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             $fields_str .= ($fields_str!==''?',':'').'`'.$field_name.'`';
         }
 
-        // $sql =
-        //     'SELECT IF ('.
-        //         ' EXISTS( '.
-        //             'SELECT DISTINCT index_name FROM information_schema.statistics '.
-        //             ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
-        //             ' AND index_name LIKE \''.$index_name.'\''.
-        //         ' )'.
-        //     ' ,\'SELECT \'\'index exists\'\' junk;\' '.
-        //     ' ,\'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.');\''.
-        //     ') INTO @a;'."\n".
-        //     'USE \''.$database_name.'\';'."\n".
-        //     'PREPARE stmt1 FROM @a;'."\n".
-        //     'EXECUTE stmt1;'."\n".
-        //     'DEALLOCATE PREPARE stmt1;'."\n";
-        //
-        // if( !db_query( $sql, $db_connection ) )
-        // {
-        //     PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
-        //
-        //     $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
-        //     return false;
-        // }
-
         if( ($qid = db_query( 'SELECT DISTINCT index_name '.
                                ' FROM information_schema.statistics '.
                                ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
                                ' AND index_name LIKE \''.$index_name.'\'', $db_connection ))
-         && @mysqli_num_rows( $qid ) )
+         && $qid->numColumns() )
         {
             PHS_Logger::error( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
 

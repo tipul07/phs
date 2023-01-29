@@ -11,40 +11,46 @@ use phs\libraries\PHS_Instantiable;
 final class PHS_Maintenance extends PHS_Registry
 {
     // How much will an update token be available in seconds
-    const UPDATE_TOKEN_LIFETIME = 86400;
+    public const UPDATE_TOKEN_LIFETIME = 86400;
 
     // Update token parameter names
-    const PARAM_UPDATE_TOKEN_HASH = '_phs_uth', PARAM_UPDATE_TOKEN_PUBKEY = '_phs_upk';
+    public const PARAM_UPDATE_TOKEN_HASH = '_phs_uth', PARAM_UPDATE_TOKEN_PUBKEY = '_phs_upk';
 
-    static private $last_output = null;
+    static private int $last_output = 0;
 
-    static private $low_level_db_structure_cache = 0;
+    static private int $low_level_db_structure_cache = 0;
 
-    public static function lock_db_structure_read()
+    public static function lock_db_structure_read(): int
     {
         return ++self::$low_level_db_structure_cache;
     }
 
-    public static function unlock_db_structure_read()
+    public static function unlock_db_structure_read(): int
     {
-        if( self::$low_level_db_structure_cache === 0 )
+        if( self::$low_level_db_structure_cache === 0 ) {
             return 0;
+        }
 
         return --self::$low_level_db_structure_cache;
     }
 
-    public static function release_db_structure_lock()
+    public static function release_db_structure_lock(): void
     {
         self::$low_level_db_structure_cache = 0;
     }
 
-    public static function db_structure_is_locked()
+    public static function db_structure_is_locked(): bool
     {
         return self::$low_level_db_structure_cache > 0;
     }
 
-    public static function output( $msg )
+    public static function output( $msg ): void
     {
+        // We don't need to output anything else than SQL statements
+        if( PHS_Db::dry_update() ) {
+            return;
+        }
+
         // In logs, we have timestamps
         PHS_Logger::notice( $msg, PHS_Logger::TYPE_MAINTENANCE );
 
@@ -75,8 +81,9 @@ final class PHS_Maintenance extends PHS_Registry
         /** @var false|callable $output_callback */
         static $output_callback = false;
 
-        if( $callback === null )
+        if( $callback === null ) {
             return $output_callback;
+        }
 
         self::st_reset_error();
 
@@ -97,16 +104,17 @@ final class PHS_Maintenance extends PHS_Registry
         return true;
     }
 
-    public static function generate_framework_update_token()
+    public static function generate_framework_update_token(): array
     {
         $pub_key = time() + self::UPDATE_TOKEN_LIFETIME;
         $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
         if( @function_exists( 'hash' )
          && ($hash_algos = @hash_algos())
-         && in_array( 'sha256', $hash_algos, true ) )
-            $hashed_str = hash( 'sha256', $clean_str );
-        else
-            $hashed_str = md5( $clean_str );
+         && in_array( 'sha256', $hash_algos, true ) ) {
+            $hashed_str = hash('sha256', $clean_str);
+        } else {
+            $hashed_str = md5($clean_str);
+        }
 
         return [
             'pub_key' => $pub_key,
@@ -114,7 +122,7 @@ final class PHS_Maintenance extends PHS_Registry
         ];
     }
 
-    public static function get_framework_update_url_with_token()
+    public static function get_framework_update_url_with_token(): string
     {
         $token = self::generate_framework_update_token();
 
@@ -123,25 +131,25 @@ final class PHS_Maintenance extends PHS_Registry
             self::PARAM_UPDATE_TOKEN_PUBKEY => $token['pub_key'],
         ];
 
-        if( !($query_string = @http_build_query( $args )) )
+        if( !($query_string = @http_build_query( $args )) ) {
             $query_string = '';
+        }
 
         return PHS::get_update_script_url( true ).'?'.$query_string;
     }
 
     /**
-     * @param int $pub_key
-     * @param string $hash
+     * @param  int  $pub_key
+     * @param  string  $hash
      *
      * @return bool
      */
-    public static function validate_framework_update_params( $pub_key, $hash )
+    public static function validate_framework_update_params( int $pub_key, string $hash ): bool
     {
-        $pub_key = (int)$pub_key;
         if( empty( $pub_key ) || empty( $hash )
-         || !is_string( $hash )
-         || $pub_key < time() )
+         || $pub_key < time() ) {
             return false;
+        }
 
         $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
         if( @function_exists( 'hash' )
@@ -150,8 +158,9 @@ final class PHS_Maintenance extends PHS_Registry
         {
             // hash_equals available in PHP >= 5.6.0
             $generated_hash = hash( 'sha256', $clean_str );
-            if( @function_exists( 'hash_equals' ) )
-                return @hash_equals( $generated_hash, $hash );
+            if( @function_exists( 'hash_equals' ) ) {
+                return @hash_equals($generated_hash, $hash);
+            }
 
             return ($generated_hash === $hash);
         }
@@ -162,21 +171,22 @@ final class PHS_Maintenance extends PHS_Registry
     /**
      * @return bool
      */
-    public static function validate_framework_update_action()
+    public static function validate_framework_update_action(): bool
     {
-        return (($pub_key = PHS_Params::_gp( self::PARAM_UPDATE_TOKEN_PUBKEY, PHS_Params::T_NOHTML ))
+        return (($pub_key = PHS_Params::_gp( self::PARAM_UPDATE_TOKEN_PUBKEY, PHS_Params::T_INT ))
              && ($hash = PHS_Params::_gp( self::PARAM_UPDATE_TOKEN_HASH, PHS_Params::T_NOHTML ))
              && self::validate_framework_update_params( $pub_key, $hash ));
     }
 
     /**
      * Check if provided dir contains a valid plugin named $plugin
-     * @param string $plugin
-     * @param string $repo_dir An absolute path or relative path from framework plugins directory
+     *
+     * @param  string $plugin
+     * @param  string  $repo_dir An absolute path or relative path from framework plugins directory
      *
      * @return false|array
      */
-    public static function check_plugin_in_repo( $plugin, $repo_dir )
+    public static function check_plugin_in_repo(string $plugin, string $repo_dir )
     {
         self::st_reset_error();
 
@@ -203,28 +213,32 @@ final class PHS_Maintenance extends PHS_Registry
 
     /**
      * Check if provided dir
-     * @param string $repo_dir
      *
-     * @return false|string
+     * @param  string  $repo_dir
+     * @param  bool  $slash_ended
+     *
+     * @return string
      */
-    public static function convert_plugin_repo_to_real_path( $repo_dir, $slash_ended = true )
+    public static function convert_plugin_repo_to_real_path( string $repo_dir, bool $slash_ended = true ): string
     {
-        if( substr( $repo_dir, 0, 1 ) === '/' )
-            return ($slash_ended?rtrim( $repo_dir, '/' ).'/':$repo_dir);
+        if( substr( $repo_dir, 0, 1 ) === '/' ) {
+            return ($slash_ended ? rtrim($repo_dir, '/').'/' : $repo_dir);
+        }
 
-        if( !($real_path = @realpath( PHS_PLUGINS_DIR.$repo_dir )) )
-            return false;
+        if( !($real_path = @realpath( PHS_PLUGINS_DIR.$repo_dir )) ) {
+            return '';
+        }
 
         return ($slash_ended?rtrim( $real_path, '/' ).'/':$real_path);
     }
 
-    public static function symlink_plugin_from_repo( $plugin, $repo_dir )
+    public static function symlink_plugin_from_repo( string $plugin, string $repo_dir ): bool
     {
         self::st_reset_error();
 
         if( empty( $plugin ) || empty( $repo_dir )
          || !($real_path = self::convert_plugin_repo_to_real_path( $repo_dir ))
-         || !($plugin_json_arr = self::check_plugin_in_repo( $plugin, $repo_dir ))
+         || !self::check_plugin_in_repo( $plugin, $repo_dir )
          || !($instance_details = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( strtolower( $plugin ) ),
                 $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
         {
@@ -238,26 +252,26 @@ final class PHS_Maintenance extends PHS_Registry
             return false;
         }
 
-        if( !empty( $instance_details['plugin_is_setup'] ) )
+        if( !empty( $instance_details['plugin_is_setup'] ) ) {
             return true;
+        }
 
         return @symlink( rtrim( $repo_dir, '/' ).'/'.$plugin, PHS_PLUGINS_DIR.$plugin );
     }
 
-    public static function plugin_is_symlinked_with_repo( $plugin, $repo_dir )
+    public static function plugin_is_symlinked_with_repo( string $plugin, string $repo_dir ): bool
     {
         if( empty( $plugin ) || empty( $repo_dir )
-         || !($plugin_json_arr = self::check_plugin_in_repo( $plugin, $repo_dir ))
+         || !self::check_plugin_in_repo( $plugin, $repo_dir )
          || !($instance_details = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( strtolower( $plugin ) ),
-                $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
-        {
+                $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) ) {
             return false;
         }
 
         return !empty( $instance_details['plugin_is_setup'] );
     }
 
-    public static function plugin_is_symlinked( $plugin )
+    public static function plugin_is_symlinked( $plugin ): bool
     {
         return (!empty( $plugin )
                 && ($instance_details = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( strtolower( $plugin ) ),
@@ -265,16 +279,22 @@ final class PHS_Maintenance extends PHS_Registry
                 && !empty( $instance_details['plugin_is_setup'] ));
     }
 
-    public static function unlink_plugin( $plugin )
+    public static function unlink_plugin( $plugin ): bool
     {
         self::st_reset_error();
 
         if( empty( $plugin )
-         || !($instance_details = PHS_Instantiable::get_instance_details( 'PHS_Plugin_'.ucfirst( strtolower( $plugin ) ), $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) )
+         || !($instance_details =
+                PHS_Instantiable::get_instance_details(
+                    'PHS_Plugin_'.ucfirst( strtolower( $plugin ) ),
+                    $plugin,
+                    PHS_Instantiable::INSTANCE_TYPE_PLUGIN )) ) {
             return false;
+        }
 
-        if( empty( $instance_details['plugin_is_setup'] ) )
+        if( empty( $instance_details['plugin_is_setup'] ) ) {
             return true;
+        }
 
         if( empty( $instance_details['plugin_is_link'] ) )
         {

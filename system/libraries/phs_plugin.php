@@ -3,6 +3,7 @@
 namespace phs\libraries;
 
 use \phs\PHS;
+use phs\PHS_Db;
 use \phs\PHS_Maintenance;
 use \phs\PHS_Agent;
 use \phs\system\core\models\PHS_Model_Plugins;
@@ -28,7 +29,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     // For which languages we already checked plugin language file
     // Languages might be defined by other plugins at bootstrap and current language might change
-    private $_custom_lang_files_included = [];
+    private array $_custom_lang_files_included = [];
 
     final public function instance_type(): string
     {
@@ -51,8 +52,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public function get_models(): array
     {
         if( !($json_arr = $this->get_plugin_json_info())
-         || empty( $json_arr['models'] ) )
+         || empty( $json_arr['models'] ) ) {
             return [];
+        }
 
         return $json_arr['models'];
     }
@@ -60,11 +62,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return string Returns version of plugin
      */
-    public function get_plugin_version()
+    public function get_plugin_version(): string
     {
         if( !($json_arr = $this->get_plugin_json_info())
-         || empty( $json_arr['version'] ) )
+         || empty( $json_arr['version'] ) ) {
             return '0.0.0';
+        }
 
         return $json_arr['version'];
     }
@@ -209,31 +212,35 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $buffer;
     }
 
-    public function include_plugin_language_files()
+    public function include_plugin_language_files(): void
     {
         if( !($current_language = self::get_current_language())
-         || !empty( $this->_custom_lang_files_included[$current_language] ) )
+         || !empty( $this->_custom_lang_files_included[$current_language] ) ) {
             return;
+        }
 
         $this->_custom_lang_files_included[$current_language] = true;
 
         $languages_dir = $this->instance_plugin_languages_path();
 
-        if( !@is_dir( rtrim( $languages_dir, '/\\' ) ) )
+        if( !@is_dir( rtrim( $languages_dir, '/\\' ) ) ) {
             return;
+        }
 
         self::scan_for_language_files( $languages_dir );
     }
 
     /**
-     * @param bool $slash_ended
+     * @param  bool  $slash_ended
+     *
      * @return bool|string
      */
-    final public function get_plugin_libraries_www( $slash_ended = true )
+    final public function get_plugin_libraries_www( bool $slash_ended = true )
     {
         if( $this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www()) )
+         || !($prefix = $this->instance_plugin_www()) ) {
             return false;
+        }
 
         return $prefix.self::LIBRARIES_DIR.($slash_ended?'/':'');
     }
@@ -285,13 +292,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_library_full_www( $library, $params = false )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
-        if( empty( $params['path_in_lib_dir'] ) )
+        if( empty( $params['path_in_lib_dir'] ) ) {
             $params['path_in_lib_dir'] = '';
-        else
-            $params['path_in_lib_dir'] = trim( str_replace( '.', '', $params['path_in_lib_dir'] ), '\\/' ).'/';
+        } else {
+            $params['path_in_lib_dir'] = trim(str_replace('.', '', $params['path_in_lib_dir']), '\\/').'/';
+        }
 
         $library = self::safe_escape_library_name( $library );
         if( empty( $library )
@@ -313,19 +322,24 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
         // so class name is from "root" namespace
-        if( empty( $params['full_class_name'] ) )
-            $params['full_class_name'] = '\\'.ltrim( $library, '\\' );
-        if( empty( $params['init_params'] ) )
+        if( empty( $params['full_class_name'] ) ) {
+            $params['full_class_name'] = '\\'.ltrim($library, '\\');
+        }
+        if( empty( $params['init_params'] ) ) {
             $params['init_params'] = false;
-        if( empty( $params['as_singleton'] ) )
+        }
+        if( empty( $params['as_singleton'] ) ) {
             $params['as_singleton'] = true;
-        if( empty( $params['path_in_lib_dir'] ) )
+        }
+        if( empty( $params['path_in_lib_dir'] ) ) {
             $params['path_in_lib_dir'] = '';
+        }
 
         if( !($library = self::safe_escape_library_name( $library )) )
         {
@@ -334,8 +348,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if( !empty( $params['as_singleton'] )
-         && !empty( $this->_libraries_instances[$library] ) )
+         && !empty( $this->_libraries_instances[$library] ) ) {
             return $this->_libraries_instances[$library];
+        }
 
         if( !($file_path = $this->get_library_full_path( $library, [ 'path_in_lib_dir' => $params['path_in_lib_dir'] ] )) )
         {
@@ -354,10 +369,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var \phs\libraries\PHS_Library $library_instance */
-        if( empty( $params['init_params'] ) )
+        if( empty( $params['init_params'] ) ) {
             $library_instance = new $params['full_class_name']();
-        else
-            $library_instance = new $params['full_class_name']( $params['init_params'] );
+        } else {
+            $library_instance = new $params['full_class_name']($params['init_params']);
+        }
 
         if( !($library_instance instanceof PHS_Library) )
         {
@@ -382,16 +398,18 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if( !empty( $params['as_singleton'] ) )
+        if( !empty( $params['as_singleton'] ) ) {
             $this->_libraries_instances[$library] = $library_instance;
+        }
 
         return $library_instance;
     }
 
-    public function email_template_resource_from_file( $file )
+    public function email_template_resource_from_file( $file ): array
     {
-        if( !($init_arr = $this->instance_plugin_themes_email_templates_pairs()) )
+        if( !($init_arr = $this->instance_plugin_themes_email_templates_pairs()) ) {
             $init_arr = [];
+        }
 
         $template_arr = [
             'file' => $file,
@@ -399,8 +417,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
 
         if( ($plugin_path = $this->instance_plugin_email_templates_path())
-         && ($www_path = $this->instance_plugin_email_templates_www()) )
-            $template_arr['extra_paths'][PHS::relative_path( $plugin_path )] = PHS::relative_url( $www_path );
+         && ($www_path = $this->instance_plugin_email_templates_www()) ) {
+            $template_arr['extra_paths'][PHS::relative_path($plugin_path)] = PHS::relative_url($www_path);
+        }
 
         return $template_arr;
     }
@@ -449,10 +468,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             {
                 if( !($model_obj = PHS::load_model( $model_name, $this->instance_plugin_name() )) )
                 {
-                    if( PHS::st_has_error() )
-                        $this->copy_static_error( self::ERR_UPDATE );
-                    else
-                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model %s.', $model_name ) );
+                    if( PHS::st_has_error() ) {
+                        $this->copy_static_error(self::ERR_UPDATE);
+                    } else {
+                        $this->set_error(self::ERR_UPDATE, self::_t('Error updating model %s.', $model_name));
+                    }
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -1187,10 +1207,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if( !$model_obj->install() )
                 {
-                    if( $model_obj->has_error() )
-                        $this->copy_error( $model_obj, self::ERR_INSTALL );
-                    else
-                        $this->set_error( self::ERR_INSTALL, self::_t( 'Error installing model %s.', $model_obj->instance_id() ) );
+                    if( $model_obj->has_error() ) {
+                        $this->copy_error($model_obj, self::ERR_INSTALL);
+                    } else {
+                        $this->set_error(self::ERR_INSTALL,
+                            self::_t('Error installing model %s.', $model_obj->instance_id()));
+                    }
 
                     PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Error installing model ['.$model_name.']: '.$this->get_error_message() );
 
@@ -1201,8 +1223,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if( !$this->custom_after_install() )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_INSTALL, self::_t( 'Finishing plugin installation failed. Please uninstall, then re-install the plugin.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_INSTALL,
+                    self::_t('Finishing plugin installation failed. Please uninstall, then re-install the plugin.'));
+            }
 
             PHS_Maintenance::output( '['.$this->instance_plugin_name().'] !!! Error in plugin custom install finish functionality: '.$this->get_error_message() );
 
@@ -1419,12 +1443,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * Performs any necessary actions when updating plugin from $old_version to $new_version
      *
-     * @param string $old_version Old version of plugin
-     * @param string $new_version New version of plugin
+     * @param  string  $old_version Old version of plugin
+     * @param  string  $new_version New version of plugin
      *
      * @return bool true on success, false on failure
      */
-    final public function update( $old_version, $new_version )
+    final public function update( string $old_version, string $new_version ): bool
     {
         $this->reset_error();
 
@@ -1438,16 +1462,24 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] Updating plugin from ['.$old_version.'] to ['.$new_version.']...' );
 
-        if( !$this->install_roles()
-         || !$this->install_agent_jobs() )
+        $is_dry_update = PHS_Db::dry_update();
+
+        // If it is a dry update, don't install new roles or agent jobs
+        if( !$is_dry_update
+         && (!$this->install_roles()
+             || !$this->install_agent_jobs()) ) {
             return false;
+        }
 
         PHS_Maintenance::lock_db_structure_read();
 
-        if( !$this->custom_update( $old_version, $new_version ) )
+        // If it is a dry update, don't trigger custom updates
+        if( !$is_dry_update
+         && !$this->custom_update( $old_version, $new_version ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom update functionality failed.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_UPDATE, self::_t('Plugin custom update functionality failed.'));
+            }
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1472,10 +1504,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             {
                 if( !($model_obj = PHS::load_model( $model_name, $this->instance_plugin_name() )) )
                 {
-                    if( PHS::st_has_error() )
-                        $this->copy_static_error( self::ERR_UPDATE );
-                    else
-                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error loading model %s.', $model_name ) );
+                    if( PHS::st_has_error() ) {
+                        $this->copy_static_error(self::ERR_UPDATE);
+                    } else {
+                        $this->set_error(self::ERR_UPDATE, self::_t('Error loading model %s.', $model_name));
+                    }
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -1485,10 +1518,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 if( !($model_details = $model_obj->get_db_details( true ))
-                 || empty( $model_details['version'] ) )
+                 || empty( $model_details['version'] ) ) {
                     $old_model_version = '0.0.0';
-                else
+                } else {
                     $old_model_version = $model_details['version'];
+                }
 
                 $current_version = $model_obj->get_model_version();
 
@@ -1501,10 +1535,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if( !$model_obj->update( $old_model_version, $current_version ) )
                 {
-                    if( $model_obj->has_error() )
-                        $this->copy_error( $model_obj, self::ERR_UPDATE );
-                    else
-                        $this->set_error( self::ERR_UPDATE, self::_t( 'Error updating model [%s] from plugin [%s]', $model_obj->instance_name(), $this->instance_name() ) );
+                    if( $model_obj->has_error() ) {
+                        $this->copy_error($model_obj, self::ERR_UPDATE);
+                    } else {
+                        $this->set_error(self::ERR_UPDATE,
+                            self::_t('Error updating model [%s] from plugin [%s]', $model_obj->instance_name(),
+                                $this->instance_name()));
+                    }
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -1515,10 +1552,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
         }
 
-        if( !$this->custom_after_update( $old_version, $new_version ) )
+        // If it is a dry update, don't trigger custom updates
+        if( !$is_dry_update
+         && !$this->custom_after_update( $old_version, $new_version ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_UPDATE, self::_t( 'Plugin custom after update functionality failed.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_UPDATE, self::_t('Plugin custom after update functionality failed.'));
+            }
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1528,19 +1568,22 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if( ($plugin_info = $this->get_plugin_info())
-         && !empty( $plugin_info['name'] ) )
+         && !empty( $plugin_info['name'] ) ) {
             $plugin_name = $plugin_info['name'];
-        else
+        } else {
             $plugin_name = $this->instance_plugin_name();
+        }
 
-        if( !($db_details = $this->_plugins_instance->update_record(
+        if( !$is_dry_update
+         && (!($db_details = $this->_plugins_instance->update_record(
             $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_plugin_version() ))
-         || empty( $db_details['new_data'] ) )
-        {
-            if( $this->_plugins_instance->has_error() )
-                $this->copy_error( $this->_plugins_instance );
-            else
-                $this->set_error( self::ERR_UPDATE, self::_t( 'Error saving plugin details to database.' ) );
+             || empty( $db_details['new_data'] ))
+        ) {
+            if( $this->_plugins_instance->has_error() ) {
+                $this->copy_error($this->_plugins_instance);
+            } else {
+                $this->set_error(self::ERR_UPDATE, self::_t('Error saving plugin details to database.'));
+            }
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1553,10 +1596,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         PHS_Maintenance::output( '['.$this->instance_plugin_name().'] DONE Updating plugin!' );
 
-        return $db_details['new_data'];
+        return true;
     }
 
-    final public static function default_plugin_details_fields()
+    final public static function default_plugin_details_fields(): array
     {
         return [
             'id' => '', // full instance id $instance_type.':'.$plugin_name.':'.$instance_name
@@ -1587,7 +1630,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function core_plugin_details_fields()
+    public static function core_plugin_details_fields(): array
     {
         $return_arr = [
             'id' => PHS_Instantiable::CORE_PLUGIN,
@@ -1615,12 +1658,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     final public function get_plugin_json_info()
     {
-        if( $this->_plugin_json_details !== false )
+        if( $this->_plugin_json_details !== false ) {
             return $this->_plugin_json_details;
+        }
 
         if( !($plugin_name = $this->instance_plugin_name())
-         || !($json_arr = PHS::get_plugin_json_info( $plugin_name )) )
+         || !($json_arr = PHS::get_plugin_json_info( $plugin_name )) ) {
             $json_arr = [];
+        }
 
         $this->_plugin_json_details = self::validate_array_to_new_array( $json_arr, self::default_plugin_details_fields() );
 
@@ -1632,22 +1677,26 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     final public function get_plugin_info()
     {
-        if( !empty( $this->_plugin_details ) )
+        if( !empty( $this->_plugin_details ) ) {
             return $this->_plugin_details;
+        }
 
-        if( !$this->_load_plugins_instance() )
+        if( !$this->_load_plugins_instance() ) {
             return false;
+        }
 
         $plugin_details = self::validate_array( $this->get_plugin_details(), self::default_plugin_details_fields() );
         if( ($json_info = $this->get_plugin_json_info())
-         && !empty( $json_info['data_from_json'] ) )
-            $plugin_details = self::merge_array_assoc( $plugin_details, $json_info );
+         && !empty( $json_info['data_from_json'] ) ) {
+            $plugin_details = self::merge_array_assoc($plugin_details, $json_info);
+        }
 
         $plugin_details['id'] = $this->instance_id();
         $plugin_details['plugin_name'] = $this->instance_plugin_name();
 
-        if( empty( $plugin_details['name'] ) )
+        if( empty( $plugin_details['name'] ) ) {
             $plugin_details['name'] = $this->instance_name();
+        }
 
         $plugin_details['script_version'] = $this->get_plugin_version();
         $plugin_details['models'] = $this->get_models();
@@ -1671,5 +1720,4 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         return $this->_plugin_details;
     }
-
 }

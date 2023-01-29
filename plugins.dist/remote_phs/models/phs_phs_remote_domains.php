@@ -15,8 +15,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
-    const STATUS_NOT_CONNECTED = 1, STATUS_WAITING_CONNECTION = 2, STATUS_CONNECTED = 3, STATUS_CONNECTION_ERROR = 4, STATUS_SUSPENDED = 5, STATUS_DELETED = 6;
-    protected static $STATUSES_ARR = [
+    public const STATUS_NOT_CONNECTED = 1, STATUS_WAITING_CONNECTION = 2, STATUS_CONNECTED = 3,
+        STATUS_CONNECTION_ERROR = 4, STATUS_SUSPENDED = 5, STATUS_DELETED = 6;
+    protected static array $STATUSES_ARR = [
         self::STATUS_NOT_CONNECTED => [ 'title' => 'Not Connected' ],
         self::STATUS_WAITING_CONNECTION => [ 'title' => 'Waiting Connection' ],
         self::STATUS_CONNECTED => [ 'title' => 'Connected' ],
@@ -25,22 +26,22 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         self::STATUS_DELETED => [ 'title' => 'Deleted' ],
     ];
 
-    const LOG_STATUS_SENDING = 1, LOG_STATUS_SENT = 2, LOG_STATUS_ERROR = 3, LOG_STATUS_RECEIVED = 4;
-    protected static $LOG_STATUSES_ARR = [
+    public const LOG_STATUS_SENDING = 1, LOG_STATUS_SENT = 2, LOG_STATUS_ERROR = 3, LOG_STATUS_RECEIVED = 4;
+    protected static array $LOG_STATUSES_ARR = [
         self::LOG_STATUS_SENDING => [ 'title' => 'Sending' ],
         self::LOG_STATUS_SENT => [ 'title' => 'Sent' ],
         self::LOG_STATUS_ERROR => [ 'title' => 'Error' ],
         self::LOG_STATUS_RECEIVED => [ 'title' => 'Received' ],
     ];
 
-    const LOG_TYPE_INCOMING = 1, LOG_TYPE_OUTGOING = 2;
-    protected static $LOG_TYPES_ARR = [
+    public const LOG_TYPE_INCOMING = 1, LOG_TYPE_OUTGOING = 2;
+    protected static array $LOG_TYPES_ARR = [
         self::LOG_TYPE_INCOMING => [ 'title' => 'Incoming' ],
         self::LOG_TYPE_OUTGOING => [ 'title' => 'Outgoing' ],
     ];
 
-    const SOURCE_MANUALLY = 1, SOURCE_PROGRAMMATICALLY = 2;
-    protected static $SOURCES_ARR = [
+    public const SOURCE_MANUALLY = 1, SOURCE_PROGRAMMATICALLY = 2;
+    protected static array $SOURCES_ARR = [
         self::SOURCE_MANUALLY => [ 'title' => 'Manually' ],
         self::SOURCE_PROGRAMMATICALLY => [ 'title' => 'Programmatically' ],
     ];
@@ -50,7 +51,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.5';
+        return '1.0.6';
     }
 
     /**
@@ -78,17 +79,20 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         static $log_statuses_arr = [];
 
-        if( empty( self::$LOG_STATUSES_ARR ) )
+        if( empty( self::$LOG_STATUSES_ARR ) ) {
             return [];
+        }
 
         if( $lang === false
-         && !empty( $log_statuses_arr ) )
+         && !empty( $log_statuses_arr ) ) {
             return $log_statuses_arr;
+        }
 
         $result_arr = $this->translate_array_keys( self::$LOG_STATUSES_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $log_statuses_arr = $result_arr;
+        }
 
         return $result_arr;
     }
@@ -103,23 +107,26 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         static $log_statuses_key_val_arr = false;
 
         if( $lang === false
-         && $log_statuses_key_val_arr !== false )
+         && $log_statuses_key_val_arr !== false ) {
             return $log_statuses_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($log_statuses_arr = $this->get_log_statuses( $lang )) )
         {
             foreach( $log_statuses_arr as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $log_statuses_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
@@ -134,8 +141,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $all_statuses = $this->get_log_statuses( $lang );
         if( empty( $status )
-         || !isset( $all_statuses[$status] ) )
+         || !isset( $all_statuses[$status] ) ) {
             return false;
+        }
 
         return $all_statuses[$status];
     }
@@ -149,17 +157,20 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         static $types_arr = [];
 
-        if( empty( self::$LOG_TYPES_ARR ) )
+        if( empty( self::$LOG_TYPES_ARR ) ) {
             return [];
+        }
 
         if( $lang === false
-         && !empty( $types_arr ) )
+         && !empty( $types_arr ) ) {
             return $types_arr;
+        }
 
         $result_arr = $this->translate_array_keys( self::$LOG_TYPES_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $types_arr = $result_arr;
+        }
 
         return $result_arr;
     }
@@ -174,23 +185,26 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         static $types_key_val_arr = false;
 
         if( $lang === false
-         && $types_key_val_arr !== false )
+         && $types_key_val_arr !== false ) {
             return $types_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($types_arr = $this->get_log_types( $lang )) )
         {
             foreach( $types_arr as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $types_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
@@ -205,8 +219,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $all_types = $this->get_log_types( $lang );
         if( empty( $type )
-         || !isset( $all_types[$type] ) )
+         || !isset( $all_types[$type] ) ) {
             return false;
+        }
 
         return $all_types[$type];
     }
@@ -220,17 +235,20 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         static $sources_arr = [];
 
-        if( empty( self::$SOURCES_ARR ) )
+        if( empty( self::$SOURCES_ARR ) ) {
             return [];
+        }
 
         if( $lang === false
-         && !empty( $sources_arr ) )
+         && !empty( $sources_arr ) ) {
             return $sources_arr;
+        }
 
         $result_arr = $this->translate_array_keys( self::$SOURCES_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $sources_arr = $result_arr;
+        }
 
         return $result_arr;
     }
@@ -245,23 +263,26 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         static $sources_key_val_arr = false;
 
         if( $lang === false
-         && $sources_key_val_arr !== false )
+         && $sources_key_val_arr !== false ) {
             return $sources_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($sources_arr = $this->get_remote_domain_sources( $lang )) )
         {
             foreach( $sources_arr as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $sources_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
@@ -276,8 +297,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $all_sources = $this->get_remote_domain_sources( $lang );
         if( empty( $source )
-         || !isset( $all_sources[$source] ) )
+         || !isset( $all_sources[$source] ) ) {
             return false;
+        }
 
         return $all_sources[$source];
     }
@@ -290,8 +312,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_not_connected( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_NOT_CONNECTED )
+         || (int)$record_arr['status'] !== self::STATUS_NOT_CONNECTED ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -304,8 +327,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_waiting_connection( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_WAITING_CONNECTION )
+         || (int)$record_arr['status'] !== self::STATUS_WAITING_CONNECTION ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -318,8 +342,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_connected( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_CONNECTED )
+         || (int)$record_arr['status'] !== self::STATUS_CONNECTED ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -332,8 +357,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_connection_error( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_CONNECTION_ERROR )
+         || (int)$record_arr['status'] !== self::STATUS_CONNECTION_ERROR ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -346,8 +372,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_suspended( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_SUSPENDED )
+         || (int)$record_arr['status'] !== self::STATUS_SUSPENDED ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -360,8 +387,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_deleted( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['status'] !== self::STATUS_DELETED )
+         || (int)$record_arr['status'] !== self::STATUS_DELETED ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -374,8 +402,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_source_manually( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['source'] !== self::SOURCE_MANUALLY )
+         || (int)$record_arr['source'] !== self::SOURCE_MANUALLY ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -388,8 +417,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function is_source_programmatically( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || (int)$record_arr['source'] !== self::SOURCE_PROGRAMMATICALLY )
+         || (int)$record_arr['source'] !== self::SOURCE_PROGRAMMATICALLY ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -402,8 +432,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function should_log_requests( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || empty( $record_arr['log_requests'] ) )
+         || empty( $record_arr['log_requests'] ) ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -416,8 +447,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function should_log_request_body( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || empty( $record_arr['log_body'] ) )
+         || empty( $record_arr['log_body'] ) ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -430,8 +462,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     public function should_allow_incoming_requests( $record_data )
     {
         if( !($record_arr = $this->data_to_array( $record_data, [ 'table_name' => 'phs_remote_domains' ] ))
-         || empty( $record_arr['allow_incoming'] ) )
+         || empty( $record_arr['allow_incoming'] ) ) {
             return false;
+        }
 
         return $record_arr;
     }
@@ -453,16 +486,18 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( $this->is_connected( $record_arr ) )
+        if( $this->is_connected( $record_arr ) ) {
             return $record_arr;
+        }
 
         if( !PHS_Bg_jobs::run( [ 'p' => 'remote_phs', 'c' => 'index_bg', 'a' => 'connect_bg', 'ad' => 'connection' ],
                                [ 'rdid' => $record_arr['id'] ] ) )
         {
-            if( self::st_has_error() )
+            if( self::st_has_error() ) {
                 $error_msg = self::st_get_error_message();
-            else
-                $error_msg = $this->_pt( 'Error starting connection process. Please try again.' );
+            } else {
+                $error_msg = $this->_pt('Error starting connection process. Please try again.');
+            }
 
             $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
             return false;
@@ -488,14 +523,16 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             return false;
         }
 
-        if( $this->is_connected( $domain_arr ) )
+        if( $this->is_connected( $domain_arr ) ) {
             return $domain_arr;
+        }
 
         $crypt_key = PHS_Crypt::generate_crypt_key();
         $crypt_internal_keys = PHS_Crypt::generate_crypt_internal_keys();
 
-        if( !($settings_arr = $this->decode_connection_settings( $domain_arr )) )
+        if( !($settings_arr = $this->decode_connection_settings( $domain_arr )) ) {
             $settings_arr = $this->get_default_connection_settings_arr();
+        }
 
         $settings_arr['crypt_key'] = $crypt_key;
         $settings_arr['crypt_internal_keys'] = $crypt_internal_keys;
@@ -534,18 +571,21 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
          || empty( $api_response['response_json']['response'] ) || !is_array( $api_response['response_json']['response'] )
          || empty( $api_response['response_json']['response']['remote_id'] ) )
         {
-            if( $this->has_error() )
+            if( $this->has_error() ) {
                 $error_log = $this->get_simple_error_message();
-            else
+            } else {
                 $error_log = 'Error sending initial connect request.';
+            }
 
             if( !empty( $api_response['response_json'] ) && is_array( $api_response['response_json'] )
              && empty( $api_response['response_json']['error'] ) && is_array( $api_response['response_json']['error'] ) )
             {
-                if( !empty( $api_response['response_json']['error']['code'] ) )
+                if( !empty( $api_response['response_json']['error']['code'] ) ) {
                     $error_log .= ' #'.$api_response['response_json']['error']['code'];
-                if( !empty( $api_response['response_json']['error']['message'] ) )
+                }
+                if( !empty( $api_response['response_json']['error']['message'] ) ) {
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
+                }
             }
 
             PHS_Logger::error( '[CONNECTION_ERROR] Error connecting with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
@@ -591,22 +631,23 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $payload_arr['remote_www'] = PHS::get_base_domain_and_path();
 
         if( !($api_response = $this->_send_api_request_to_domain( $domain_arr, 'phs_remote/connect_confirm', $payload_arr ))
-         || empty( $api_response['response_json'] ) || !is_array( $api_response['response_json'] )
-         || empty( $api_response['response_json']['response'] ) || !is_array( $api_response['response_json']['response'] )
          || empty( $api_response['response_json']['response']['remote_id'] ) )
         {
-            if( $this->has_error() )
+            if( $this->has_error() ) {
                 $error_log = $this->get_simple_error_message();
-            else
+            } else {
                 $error_log = 'Error sending connection confirmation request.';
+            }
 
             if( !empty( $api_response['response_json'] ) && is_array( $api_response['response_json'] )
              && empty( $api_response['response_json']['error'] ) && is_array( $api_response['response_json']['error'] ) )
             {
-                if( !empty( $api_response['response_json']['error']['code'] ) )
+                if( !empty( $api_response['response_json']['error']['code'] ) ) {
                     $error_log .= ' #'.$api_response['response_json']['error']['code'];
-                if( !empty( $api_response['response_json']['error']['message'] ) )
+                }
+                if( !empty( $api_response['response_json']['error']['message'] ) ) {
                     $error_log .= ' '.$api_response['response_json']['error']['message'];
+                }
             }
 
             PHS_Logger::error( '[CONNECTION_ERROR] Error sending connection confirmation with remote domain '.$domain_arr['title'].' #'.$domain_arr['id'].': '.$error_log, PHS_Logger::TYPE_REMOTE );
@@ -671,8 +712,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $request_params ) || !is_array( $request_params ) )
+        if( empty( $request_params ) || !is_array( $request_params ) ) {
             $request_params = [];
+        }
 
         if( empty( $domain_data )
          || !($domain_arr = $this->data_to_array( $domain_data, [ 'table_name' => 'phs_remote_domains' ] )) )
@@ -726,35 +768,42 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     {
         $this->reset_error();
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
-
-        if( !isset( $params['timeout'] ) )
-            $params['timeout'] = 30;
-        else
-            $params['timeout'] = (int)$params['timeout'];
-
-        if( !isset( $params['extra_get_params'] ) || !is_array( $params['extra_get_params'] ) )
-            $params['extra_get_params'] = [];
-
-        if( empty( $params['auth'] ) || !is_array( $params['auth'] ) )
-            $params['auth'] = false;
-
-        else
-        {
-            if( empty( $params['auth']['user'] ) )
-                $params['auth']['user'] = '';
-            if( empty( $params['auth']['pass'] ) )
-                $params['auth']['pass'] = '';
         }
 
-        if( !isset( $params['expect_json'] ) )
+        if( !isset( $params['timeout'] ) ) {
+            $params['timeout'] = 30;
+        } else {
+            $params['timeout'] = (int) $params['timeout'];
+        }
+
+        if( !isset( $params['extra_get_params'] ) || !is_array( $params['extra_get_params'] ) ) {
+            $params['extra_get_params'] = [];
+        }
+
+        if( empty( $params['auth'] ) || !is_array( $params['auth'] ) ) {
+            $params['auth'] = false;
+        } else
+        {
+            if( empty( $params['auth']['user'] ) ) {
+                $params['auth']['user'] = '';
+            }
+            if( empty( $params['auth']['pass'] ) ) {
+                $params['auth']['pass'] = '';
+            }
+        }
+
+        if( !isset( $params['expect_json'] ) ) {
             $params['expect_json'] = true;
-        if( empty( $params['payload_arr'] ) )
+        }
+        if( empty( $params['payload_arr'] ) ) {
             $params['payload_arr'] = false;
+        }
         if( empty( $params['log_channel'] )
-         || !PHS_Logger::defined_channel( $params['log_channel'] ) )
+         || !PHS_Logger::defined_channel( $params['log_channel'] ) ) {
             $params['log_channel'] = PHS_Logger::TYPE_REMOTE;
+        }
 
         $log_channel = $params['log_channel'];
 
@@ -839,8 +888,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 ob_start();
                 var_dump( $api_response['request_details']['request_params'] );
                 $request_params = @ob_get_clean();
-            } else
+            } else {
                 $request_params = 'N/A';
+            }
 
             PHS_Logger::error( 'REMOTE API URL: '.$full_url."\n".
                               'Request headers: '.$request_headers."\n".
@@ -867,8 +917,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         if( $http_code !== 204
          && !empty( $params['expect_json'] ) )
         {
-            if( empty( $api_response['response'] ) )
+            if( empty( $api_response['response'] ) ) {
                 $api_response['response_json'] = [];
+            }
 
             elseif( !($api_response['response_json'] = @json_decode( $api_response['response'], true )) )
             {
@@ -880,8 +931,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                     ob_start();
                     var_dump( $api_response['request_details']['request_params'] );
                     $request_params = @ob_get_clean();
-                } else
+                } else {
                     $request_params = 'N/A';
+                }
 
                 PHS_Logger::error( 'GP API URL: '.$full_url."\n".
                                   'Request headers: '.$request_headers."\n".
@@ -957,15 +1009,17 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
     public function encode_connection_settings( $connection_settings_arr )
     {
-        if( empty( $connection_settings_arr ) || !is_array( $connection_settings_arr ) )
+        if( empty( $connection_settings_arr ) || !is_array( $connection_settings_arr ) ) {
             $connection_settings_arr = [];
+        }
 
         $settings_arr = [];
         $defaults_arr = $this->get_default_connection_settings_arr();
         foreach( $defaults_arr as $key => $def )
         {
-            if( !array_key_exists( $key, $connection_settings_arr ) )
+            if( !array_key_exists( $key, $connection_settings_arr ) ) {
                 $connection_settings_arr[$key] = $def;
+            }
 
             $settings_arr[$key] = $connection_settings_arr[$key];
         }
@@ -986,8 +1040,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
         $defaults_arr = $this->get_default_connection_settings_arr();
 
-        if( empty( $domain_arr['connection_settings'] ) )
+        if( empty( $domain_arr['connection_settings'] ) ) {
             return $defaults_arr;
+        }
 
         if( !($settings_str = PHS_Crypt::quick_decode( $domain_arr['connection_settings'] ))
          || null === ($settings_arr = @json_decode( $settings_str, true ))
@@ -1100,8 +1155,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $this->reset_error();
 
         if( empty( $domain_handler )
-         || !($domain_arr = $this->get_details_fields( [ 'handle' => $domain_handler ], [ 'table_name' => 'phs_remote_domains' ] )) )
+         || !($domain_arr = $this->get_details_fields( [ 'handle' => $domain_handler ], [ 'table_name' => 'phs_remote_domains' ] )) ) {
             return false;
+        }
 
         return $domain_arr;
     }

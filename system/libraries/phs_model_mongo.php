@@ -313,7 +313,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_table_for_model( $flow_params )
+    protected function _update_table_for_model( $flow_params ): bool
     {
         $this->reset_error();
 
@@ -1096,7 +1096,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return $model_field_arr;
     }
 
-    public function check_extra_index_exists( $index_name, $flow_params = false, $force = false )
+    public function check_extra_index_exists( $index_name, $flow_params = false, bool $force = false )
     {
         $this->reset_error();
 
@@ -1177,20 +1177,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             $keys_changed['comment'] = $details2_arr['comment'];
 
         return (!empty( $keys_changed )?$keys_changed:false);
-    }
-
-    public function get_definition( $params = false )
-    {
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        if( empty( $this->_definition[$params['table_name']] ) )
-            return false;
-
-        return $this->_definition[$params['table_name']];
     }
 
     public function table_field_details( string $field, $params = false )
@@ -1601,17 +1587,19 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    public function create_table_extra_indexes_from_array( $indexes_array, $flow_params = false )
+    public function create_table_extra_indexes_from_array( array $indexes_array, $flow_params = false ): bool
     {
         $this->reset_error();
 
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) )
+        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
             return true;
+        }
 
         foreach( $indexes_array as $index_name => $index_arr )
         {
-            if( empty( $index_arr ) || !is_array( $index_arr ) )
+            if( empty( $index_arr ) || !is_array( $index_arr ) ) {
                 continue;
+            }
 
             if( !$this->_create_table_extra_index( $index_name, $index_arr, $flow_params ) )
                 return false;
