@@ -36,7 +36,7 @@
     foreach( [ PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ] as $bstrap_dir )
     {
         if( ($install_scripts = @glob( $bstrap_dir . '*/install.php', GLOB_BRACE ))
-        and is_array( $install_scripts ) )
+         && is_array( $install_scripts ) )
         {
             foreach( $install_scripts as $install_script )
             {

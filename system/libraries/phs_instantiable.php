@@ -731,10 +731,11 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $instance_type_accepts_subdirs = in_array( $instance_type, self::instance_types_that_allow_subdirs(), true );
 
-        if( !is_string( $instance_subdir ) )
+        if( !is_string( $instance_subdir ) ) {
             $instance_subdir = '';
-        else
-            $instance_subdir = trim( trim( $instance_subdir ), '/\\' );
+        } else {
+            $instance_subdir = trim(trim($instance_subdir), '/\\');
+        }
 
         if( '' !== $instance_subdir
          && (!$instance_type_accepts_subdirs || '' === ($instance_subdir = self::safe_escape_instance_subdir_path( $instance_subdir ))) )
@@ -757,17 +758,12 @@ abstract class PHS_Instantiable extends PHS_Registry
             return false;
         }
 
-        if( empty( $plugin_name ) )
+        if( empty( $plugin_name ) ) {
             $plugin_name = self::CORE_PLUGIN;
-        else
+        } elseif( !($plugin_name = self::safe_escape_plugin_name( $plugin_name )) )
         {
-            $plugin_name = self::safe_escape_plugin_name( $plugin_name );
-
-            if( $plugin_name === self::CORE_PLUGIN )
-            {
-                self::st_set_error( self::ERR_INSTANCE, self::_t( 'Plugin name not allowed.' ) );
-                return false;
-            }
+            self::st_set_error( self::ERR_INSTANCE, self::_t( 'Plugin name not allowed.' ) );
+            return false;
         }
 
         // We don't have core plugins...
@@ -795,19 +791,21 @@ abstract class PHS_Instantiable extends PHS_Registry
         $return_arr['instance_class'] = $class;
         $return_arr['instance_full_class'] = '\\phs\\';
 
-        if( $plugin_name === self::CORE_PLUGIN )
+        if( $plugin_name === self::CORE_PLUGIN ) {
             $return_arr['instance_full_class'] .= 'system\\core\\';
-        else
+        } else {
             $return_arr['instance_full_class'] .= 'plugins\\'.$plugin_name.'\\';
+        }
 
-        if( !($instance_type_dir = self::instance_type_dir( $instance_type )) )
+        if( !($instance_type_dir = self::instance_type_dir( $instance_type )) ) {
             $instance_type_dir = '';
-
-        else
+        } else {
             $return_arr['instance_full_class'] .= $instance_type_dir.'\\';
+        }
 
-        if( !empty( $subdir_namespace ) )
+        if( !empty( $subdir_namespace ) ) {
             $return_arr['instance_full_class'] .= $subdir_namespace.'\\';
+        }
 
         $return_arr['instance_full_class'] .= $class;
 
@@ -870,8 +868,9 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = trim( substr( $class, 11 ), '_' );
 
-                if( empty( $return_arr['instance_name'] ) )
+                if( empty( $return_arr['instance_name'] ) ) {
                     $return_arr['instance_name'] = 'index';
+                }
 
                 if( $plugin_name === self::CORE_PLUGIN )
                 {
@@ -894,8 +893,9 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = trim( substr( $class, 13 ), '_' );
 
-                if( empty( $return_arr['instance_name'] ) )
+                if( empty( $return_arr['instance_name'] ) ) {
                     $return_arr['instance_name'] = 'index';
+                }
 
                 if( $plugin_name === self::CORE_PLUGIN )
                 {
@@ -918,8 +918,9 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = trim( substr( $class, 10 ), '_' );
 
-                if( empty( $return_arr['instance_name'] ) )
+                if( empty( $return_arr['instance_name'] ) ) {
                     $return_arr['instance_name'] = 'index';
+                }
 
                 if( $plugin_name === self::CORE_PLUGIN )
                 {
@@ -943,8 +944,9 @@ abstract class PHS_Instantiable extends PHS_Registry
 
                 $return_arr['instance_name'] = trim( substr( $class, 8 ), '_' );
 
-                if( empty( $return_arr['instance_name'] ) )
+                if( empty( $return_arr['instance_name'] ) ) {
                     $return_arr['instance_name'] = 'view';
+                }
 
                 if( $plugin_name === self::CORE_PLUGIN )
                 {
@@ -994,18 +996,20 @@ abstract class PHS_Instantiable extends PHS_Registry
             break;
         }
 
-        if( $subdir_path !== '' )
+        if( $subdir_path !== '' ) {
             $return_arr['instance_path'] .= $subdir_path.'/';
-
+        }
 
         $return_arr['instance_name'] = ucfirst( strtolower( $return_arr['instance_name'] ) );
         $return_arr['instance_full_name'] = ($subdir_namespace!==''?$subdir_namespace.'\\':'').$return_arr['instance_name'];
 
-        if( !($instance_id = self::generate_instance_id( $instance_type, $return_arr['instance_full_name'], $plugin_name )) )
+        if( !($instance_id = self::generate_instance_id( $instance_type, $return_arr['instance_full_name'], $plugin_name )) ) {
             return false;
+        }
 
-        if( !empty( self::$instances_details[$instance_id] ) )
+        if( !empty( self::$instances_details[$instance_id] ) ) {
             return self::$instances_details[$instance_id];
+        }
 
         if( !empty( $return_arr['plugin_path'] )
          && ($noslash_path = rtrim($return_arr['plugin_path'], '/' ))
@@ -1016,8 +1020,9 @@ abstract class PHS_Instantiable extends PHS_Registry
             {
                 $return_arr['plugin_real_path'] = $return_arr['plugin_link_path'] = $link_details;
                 if( substr( $link_details, 0, 1 ) !== '/'
-                 && ($real_path = @realpath( PHS_PLUGINS_DIR.$return_arr['plugin_link_path'] )) )
+                 && ($real_path = @realpath( PHS_PLUGINS_DIR.$return_arr['plugin_link_path'] )) ) {
                     $return_arr['plugin_real_path'] = $real_path;
+                }
             }
         }
 
@@ -1028,13 +1033,13 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if( ($instance_types_arr = self::get_instance_types()) )
         {
-            if( $return_arr['plugin_name'] === self::CORE_PLUGIN )
+            if( $return_arr['plugin_name'] === self::CORE_PLUGIN ) {
                 $path_prefix = PHS_CORE_DIR;
-            else
+            } else {
                 $path_prefix = $return_arr['plugin_path'];
+            }
 
-            foreach( $instance_types_arr as $type_id => $type_details )
-            {
+            foreach( $instance_types_arr as $type_id => $type_details ) {
                 $return_arr['plugin_paths'][$type_id] = $path_prefix.$type_details['dir_name'].($type_details['dir_name']!==''?'/':'');
             }
 
@@ -1265,7 +1270,7 @@ abstract class PHS_Instantiable extends PHS_Registry
          || empty( $instance_details['loader_method'] )
          || !@method_exists( PHS::class, $instance_details['loader_method'] ) )
         {
-            self::st_set_error( self::ERR_CLASS_NAME, self::_t( 'Cannot extract required information to instantiate class.' ) );
+            self::st_set_error( self::ERR_CLASS_NAME, self::_t( 'Cannot extract required information to instantiate class.' ).'['.$full_class_name.']' );
             return null;
         }
 

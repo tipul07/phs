@@ -1,8 +1,9 @@
 <?php
 
     if( !defined( 'PHS_VERSION' )
-     || !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
+     || !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) ) {
         exit;
+    }
 
     use \phs\PHS;
     use \phs\PHS_Maintenance;

@@ -24,6 +24,8 @@ final class PHS_Db extends PHS_Registry
     private static bool $inited = false;
     private static ?PHS_Db $instance = null;
     private static bool $check_db_fields_boundaries = true;
+    //! Tells if we are running in a dry update mode (exporting database structure queries)
+    private static bool $dry_update = false;
 
     public function __construct()
     {
@@ -185,6 +187,29 @@ final class PHS_Db extends PHS_Registry
         self::$check_db_fields_boundaries = (!empty( $check ));
 
         return self::$check_db_fields_boundaries;
+    }
+
+    /**
+     * Tells if we are running in a dry update CLI mode. This means all queries which affect database structure
+     * (CREATE and ALTER) will be exported
+     *
+     * @param  null|bool $dry_run
+     *
+     * @return bool
+     */
+    public static function dry_update( bool $dry_run = null ): bool
+    {
+        if( $dry_run === null ) {
+            return self::$dry_update;
+        }
+
+        self::$dry_update = (!empty( $dry_run ));
+        return self::$dry_update;
+    }
+
+    public static function dry_update_output( $str ): void
+    {
+        echo $str."\n";
     }
 
     public static function get_connection_identifier( $connection_name )
