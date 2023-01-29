@@ -46,7 +46,7 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     /**

@@ -766,7 +766,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
     private function _get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, bool $force = false ): bool
     {
-        if( ($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
+        if( !($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
         {
             $this->set_error( self::ERR_READ_DB_STRUCTURE,
                 self::_t( 'Error reading indexes of table %s.', $flow_table_name ) );
@@ -774,7 +774,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+        while( ($index_arr = @mysqli_fetch_assoc( $qid )) )
         {
             if( !is_array( $index_arr )
              || empty( $index_arr['Key_name'] )
@@ -782,7 +782,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 continue;
             }
 
-            if( strtoupper( $index_arr['Key_name'] ) === 'PRIMARY' )
+            $index_name = $index_arr['Key_name'];
+
+            if( strtoupper( $index_name ) === 'PRIMARY' )
             {
                 // make sure we have primary column set
                 if( !empty( $structure_arr[$index_arr['Column_name']] ) ) {
@@ -792,10 +794,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 continue;
             }
 
-            if( !empty( $structure_arr[$index_arr['Key_name']] ) )
+            if( !empty( $structure_arr[$index_name] ) )
             {
                 // We have this field defined in the table... Make sure it has index set
-                $structure_arr[$index_arr['Key_name']]['index'] = true;
+                $structure_arr[$index_name]['index'] = true;
                 continue;
             }
 
@@ -806,62 +808,26 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $structure_arr[self::EXTRA_INDEXES_KEY] = [];
             }
 
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] = [];
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] ) ) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name] = [];
             }
 
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] = [];
+            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
+             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] ) ) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'] = [];
             }
 
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'][] = $index_arr['Column_name'];
+            $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['fields'][] = $index_arr['Column_name'];
 
             if( empty( $index_arr['Non_unique'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = true;
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['unique'] = true;
             } else {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = false;
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_name]['unique'] = false;
             }
         }
 
         self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
-
-        /**
-        if( !($qid = db_query( 'SELECT * FROM information_schema.statistics '.
-                              ' WHERE '.
-                              ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
-                              ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
-        {
-        }
-
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-        {
-            if( !is_array( $index_arr )
-             || empty( $index_arr['INDEX_NAME'] )
-             || empty( $index_arr['COLUMN_NAME'] ) )
-                continue;
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
-
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
-
-            if( empty( $index_arr['NON_UNIQUE'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
-            else
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
-        }
-        /**/
 
         return true;
     }

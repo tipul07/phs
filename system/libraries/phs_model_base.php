@@ -292,7 +292,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     protected static function cached_db_table_structure_has_fields( array $structure ): bool
     {
-        return (empty( $structure ) || empty( $structure[self::T_DETAILS_KEY] ) || count( $structure ) > 1);
+        return (!empty( $structure ) && !empty( $structure[self::T_DETAILS_KEY] ) && count( $structure ) > 1);
     }
 
     /**
