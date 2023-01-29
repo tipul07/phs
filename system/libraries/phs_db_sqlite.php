@@ -3,17 +3,13 @@
 namespace phs\libraries;
 
 use \phs\PHS_Db;
-
-//! If only one server/db connection is used or parameter sent to settings method is one array containing only one mysql connection settings, these settings will be kept in settings array with this index
-/**
- * @deprecated
- */
-define( 'PHS_MYSQL_DEF_CONNECTION_NAME', '@def_connection@' );
+use \SQLite3;
+use \SQLite3Result;
 
 /**
- *  MySQL class parser for PHS suite...
+ *  SQLite class parser for PHS suite...
  */
-class PHS_Db_mysqli extends PHS_Db_class
+class PHS_Db_sqlite extends PHS_Db_class
 {
     public const DEFAULT_CONNECTION_NAME = '@def_connection@';
 
@@ -21,28 +17,28 @@ class PHS_Db_mysqli extends PHS_Db_class
     private bool $close_after_query = true;
 
     //! In case connection is not closed after each query this should keep connection id
-    /** @var \mysqli[string]  */
-    private $connection_id;
+    /** @var null|array[string]  */
+    private ?array $connection_id;
 
-    //! Hold last query id
-    private $query_id;
+    /** @var ?SQLite3Result $query_id  */
+    private ?SQLite3Result $query_id;
 
-    //! Query result details...
-    private $last_inserted_id;
+    /** @var int */
+    private int $last_inserted_id;
     private int $affected_rows;
 
     public function __construct( $mysql_settings = null )
     {
-        $this->query_id = false;
+        $this->query_id = null;
         $this->connection_id = null;
 
-        $this->last_inserted_id = false;
+        $this->last_inserted_id = 0;
         $this->affected_rows = 0;
 
         parent::__construct( $mysql_settings );
     }
 
-    public function query_id()
+    public function query_id(): ?SQLite3Result
     {
         return $this->query_id;
     }
@@ -81,8 +77,9 @@ class PHS_Db_mysqli extends PHS_Db_class
             $connection_name = $this->default_connection();
         }
 
-        if( $this->is_connected( $connection_name ) ) {
-            return @mysqli_error($this->connection_id[$connection_name]);
+        /** @var SQLite3|null $obj */
+        if( ($obj = $this->is_connected( $connection_name )) ) {
+            return $obj->lastErrorMsg();
         }
 
         return '';
@@ -90,16 +87,18 @@ class PHS_Db_mysqli extends PHS_Db_class
 
     protected function default_custom_settings_structure(): array
     {
+        $db_flags = (defined('SQLITE3_OPEN_READWRITE') && defined('SQLITE3_OPEN_CREATE')) ?
+            SQLITE3_OPEN_READWRITE|SQLITE3_OPEN_CREATE : 0;
+
         return [
-            'user' => '',
-            'password' => '',
-            'host' => 'localhost',
-            'port' => 3306,
+            // filename or :memory:
             'database' => '',
+            'flags' => $db_flags,
+            // If you want to encrypt database...
+            'encryption_key' => '',
             'prefix' => '',
             'charset' => '',
             'timezone' => '',
-            'use_pconnect' => true,
         ];
     }
 
@@ -109,12 +108,6 @@ class PHS_Db_mysqli extends PHS_Db_class
             return null;
         }
 
-        if( !empty( $conn_settings['port'] ) ) {
-            $conn_settings['port'] = (int) $conn_settings['port'];
-        }
-
-        $conn_settings['use_pconnect'] = (!isset( $conn_settings['use_pconnect'] ) || !empty( $conn_settings['use_pconnect'] ));
-
         return $conn_settings;
     }
 
@@ -123,10 +116,11 @@ class PHS_Db_mysqli extends PHS_Db_class
         $this->reset_error();
 
         if( empty( $conn_settings )
-         || (empty( $conn_settings['driver'] ) && $conn_settings['driver'] !== PHS_Db::DB_DRIVER_MYSQLI)
-         || !isset( $conn_settings['database'] ) || !isset( $conn_settings['user'] ) || !isset( $conn_settings['password'] ) )
+         || (empty( $conn_settings['driver'] ) && $conn_settings['driver'] !== PHS_Db::DB_DRIVER_SQLITE)
+         || empty( $conn_settings['database'] )
+         || !isset( $conn_settings['flags'] ) || !isset( $conn_settings['encryption_key'] ) )
         {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Database, user or password not pressent in settings array.' ) );
+            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Database details not present in settings array.' ) );
             return false;
         }
 
@@ -147,9 +141,9 @@ class PHS_Db_mysqli extends PHS_Db_class
     /**
      * @param false|string $connection_name
      *
-     * @return false|\mysqli
+     * @return null|SQLite3
      */
-    public function is_connected( $connection_name = false )
+    public function is_connected( $connection_name = false ): ?SQLite3
     {
         if( $connection_name === false ) {
             $connection_name = $this->default_connection();
@@ -158,8 +152,8 @@ class PHS_Db_mysqli extends PHS_Db_class
         if( empty( $this->connection_id ) || !is_array( $this->connection_id )
          || empty( $this->connection_id[$connection_name] )
          || $this->my_settings === false
-         || !@is_object( $this->connection_id[$connection_name] ) || !($this->connection_id[$connection_name] instanceof \mysqli) ) {
-            return false;
+         || !@is_object( $this->connection_id[$connection_name] ) || !($this->connection_id[$connection_name] instanceof SQLite3) ) {
+            return null;
         }
 
         return $this->connection_id[$connection_name];
@@ -176,11 +170,11 @@ class PHS_Db_mysqli extends PHS_Db_class
             $connection_name = $this->default_connection();
         }
 
-        if( !$this->is_connected( $connection_name ) ) {
+        if( !($con = $this->is_connected( $connection_name )) ) {
             return false;
         }
 
-        @mysqli_close( $this->connection_id[$connection_name] );
+        $con->close();
         $this->connection_id[$connection_name] = null;
 
         return true;
@@ -189,9 +183,9 @@ class PHS_Db_mysqli extends PHS_Db_class
     /**
      * @param false|string $connection_name
      *
-     * @return bool|\mysqli
+     * @return bool
      */
-    public function connect( $connection_name = false )
+    public function connect( $connection_name = false ): bool
     {
         if( $connection_name === false ) {
             $connection_name = $this->default_connection();
@@ -201,129 +195,32 @@ class PHS_Db_mysqli extends PHS_Db_class
             return false;
         }
 
-        if( ($resource_id = $this->is_connected( $connection_name )) ) {
-            return $resource_id;
+        if( $this->is_connected( $connection_name ) ) {
+            return true;
         }
 
         if( empty( $this->connection_id ) || !is_array( $this->connection_id ) ) {
             $this->connection_id = [];
         }
 
-        $host = $conn_settings['host'];
-        if( !empty( $conn_settings['use_pconnect'] ) ) {
-            $host = 'p:'.$conn_settings['host'];
-        }
-
         try {
-            $this->connection_id[$connection_name] =
-                @mysqli_connect( $host, $conn_settings['user'], $conn_settings['password'],
-                    $conn_settings['database'], $conn_settings['port'] );
+            $this->connection_id[$connection_name]
+                = new SQLite3( $conn_settings['database'], $conn_settings['flags'], $conn_settings['encryption_key'] );
         } catch( \Exception $e ) {
             $this->connection_id[$connection_name] = null;
         }
 
         if( empty( $this->connection_id[$connection_name] )
-         || !is_object( $this->connection_id[$connection_name] ) || !($this->connection_id[$connection_name] instanceof \mysqli) )
+         || !is_object( $this->connection_id[$connection_name] ) || !($this->connection_id[$connection_name] instanceof SQLite3) )
         {
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to '.$host.', user '.$conn_settings['user'].
-                                    ($conn_settings['password']!==''?' (with password)':'').
-                                    (!empty( $conn_settings['use_pconnect'] )?' (using permanent)':'').'.',
-                                 'Cannot connect to database server.',
+                                 'Cannot connect to database '.$conn_settings['database'].'.',
+                                 'Cannot connect to database.',
                                  $connection_name );
             return false;
         }
 
         $this->last_connection_name = $connection_name;
-
-        if( !empty( $conn_settings['charset'] ) )
-        {
-            try {
-                @mysqli_query($this->connection_id[$connection_name],
-                    'SET NAMES \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
-                        $conn_settings['charset']).'\'');
-                @mysqli_query($this->connection_id[$connection_name],
-                    'SET CHARACTER SET \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
-                        $conn_settings['charset']).'\'');
-                @mysqli_set_charset($this->connection_id[$connection_name], $conn_settings['charset']);
-            } catch( \Exception $e ) {}
-        }
-
-        if( !empty( $conn_settings['timezone'] ) )
-        {
-            try {
-                @mysqli_query($this->connection_id[$connection_name],
-                    'SET time_zone = \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
-                        $conn_settings['timezone']).'\'');
-            } catch( \Exception $e ) {}
-        }
-
-        if( !empty( $conn_settings['driver_settings'] ) && is_array( $conn_settings['driver_settings'] ) )
-        {
-            $conn_settings['driver_settings'] = self::validate_array_recursive( $conn_settings['driver_settings'],
-                                                                                self::get_default_driver_settings() );
-
-            $sql_mode_add_arr = [];
-            $sql_mode_remove_arr = [];
-            if( !empty( $conn_settings['driver_settings']['sql_mode'] )
-             && is_string( $conn_settings['driver_settings']['sql_mode'] )
-            && ($sql_mode_arr = explode( ',', $conn_settings['driver_settings']['sql_mode'] )) )
-            {
-                foreach( $sql_mode_arr as $mysql_mode_flag )
-                {
-                    $mysql_mode_flag = trim( $mysql_mode_flag );
-                    if( substr( $mysql_mode_flag, 0, 1 ) === '-' ) {
-                        $sql_mode_remove_arr[substr($mysql_mode_flag, 1)] = true;
-                    } else
-                    {
-                        if( substr( $mysql_mode_flag, 0, 1 ) === '+' ) {
-                            $mysql_mode_flag = substr($mysql_mode_flag, 1);
-                        }
-
-                        $sql_mode_add_arr[$mysql_mode_flag] = true;
-                    }
-                }
-
-                $new_sql_mode_arr = [];
-                if( (!empty( $sql_mode_remove_arr ) || !empty( $sql_mode_add_arr ))
-                 && ($qid = @mysqli_query( $this->connection_id[$connection_name],
-                                           'SELECT @@session.sql_mode AS session_sql_mode' ))
-                 && ($session_data = @mysqli_fetch_assoc( $qid ))
-                 && isset( $session_data['session_sql_mode'] ) )
-                {
-                    if( !empty( $session_data['session_sql_mode'] )
-                    && ($session_sql_mode_arr = explode( ',', $session_data['session_sql_mode'] )) )
-                    {
-                        foreach( $session_sql_mode_arr as $mysql_mode_flag )
-                        {
-                            $mysql_mode_flag = trim( $mysql_mode_flag );
-                            if( empty( $mysql_mode_flag )
-                             || !empty( $sql_mode_remove_arr[$mysql_mode_flag] ) )
-                                continue;
-
-                            $new_sql_mode_arr[] = $mysql_mode_flag;
-                        }
-                    }
-
-                    if( !empty( $sql_mode_add_arr ) )
-                    {
-                        foreach( $sql_mode_add_arr as $mysql_mode_flag => $junk )
-                        {
-                            $new_sql_mode_arr[] = $mysql_mode_flag;
-                        }
-                    }
-                }
-
-                if( !empty( $new_sql_mode_arr ) )
-                {
-                    try {
-                        @mysqli_query($this->connection_id[$connection_name],
-                            'SET @@session.sql_mode = \''.@mysqli_real_escape_string($this->connection_id[$connection_name],
-                                implode(',', $new_sql_mode_arr)).'\'');
-                    } catch( \Exception $e ) {}
-                }
-            }
-        }
 
         return true;
     }
@@ -476,24 +373,29 @@ class PHS_Db_mysqli extends PHS_Db_class
      */
     public function formated_query( $format, $fields = false, $connection_name = false )
     {
-        if( $connection_name === false )
+        if( $connection_name === false ) {
             $connection_name = $this->default_connection();
+        }
 
-        if( ($conn_settings = $this->connection_settings( $connection_name )) === false )
+        if( ($conn_settings = $this->connection_settings( $connection_name )) === false ) {
             return false;
+        }
 
         // We connect now to database because we don't need escape and query methods to open 2 connections...
         // if connect wasn't called separately, call it now
         if( !$this->is_connected( $connection_name )
-         && $this->connect( $connection_name ) === false )
+         && $this->connect( $connection_name ) === false ) {
             return false;
+        }
 
         // make sure we have a connection
-        if( !$this->is_connected( $connection_name ) )
+        if( !$this->is_connected( $connection_name ) ) {
             return false;
+        }
 
-        if( $fields !== false && !empty( $fields ) )
-            $fields = $this->escape( $fields, $connection_name );
+        if( !empty( $fields ) ) {
+            $fields = $this->escape($fields, $connection_name);
+        }
 
         $mysql_str = @vsprintf( $format, $fields );
         if( $mysql_str === '' )
@@ -502,16 +404,18 @@ class PHS_Db_mysqli extends PHS_Db_class
                                  'Bad format for query: '.(is_string( $format )?htmlspecialchars( $format ):print_r( $format, true )).(is_array( $fields )?' - ['.count( $fields ).' parameters passed]':''),
                                  'Bad query format.',
                                  $connection_name );
-            if( $this->close_after_query )
+            if( $this->close_after_query ) {
                 $this->close();
+            }
             return false;
         }
 
         $qid = $this->query( $mysql_str, $connection_name );
 
         // just to be sure...
-        if( $this->close_after_query )
-            $this->close( $connection_name );
+        if( $this->close_after_query ) {
+            $this->close($connection_name);
+        }
 
         return $qid;
     }
@@ -525,7 +429,7 @@ class PHS_Db_mysqli extends PHS_Db_class
     {
         $this->reset_error();
 
-        if( !$this->query( 'SHOW TABLES;', $connection_name ) )
+        if( !$this->query( 'SELECT * FROM sqlite_schema;', $connection_name ) )
         {
             if( !$this->has_error() ) {
                 $this->set_my_error(
@@ -546,21 +450,12 @@ class PHS_Db_mysqli extends PHS_Db_class
      * @param string|array $query
      * @param false|string $connection_name
      *
-     * @return bool|\mysqli_result
+     * @return null|SQLite3Result
      */
     public function query( $query, $connection_name = false )
     {
         if( $connection_name === false ) {
             $connection_name = $this->default_connection();
-        }
-
-        if( ($conn_settings = $this->connection_settings( $connection_name )) === false )
-        {
-            $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot get MySQL connection settings. Make sure database settings are set.',
-                                 'Unknown database settings',
-                                 $connection_name );
-            return false;
         }
 
         // if connect wasn't called separately call it now
@@ -570,35 +465,23 @@ class PHS_Db_mysqli extends PHS_Db_class
                                  'Cannot connect to database with connection '.$connection_name.'.',
                                  'Cannot connect to database.',
                                  $connection_name );
-            return false;
+            return null;
         }
 
         // make sure we have a connection
-        if( !$this->is_connected( $connection_name ) )
+        if( !($sqlite = $this->is_connected( $connection_name )) )
         {
             $this->set_my_error( self::ERR_CONNECT,
-                                 'Cannot connect to database with connection '.$connection_name.'. (server error?)',
+                                 'Cannot connect to database with connection '.$connection_name.'.',
                                  'Cannot connect to database.',
                                  $connection_name );
-            return false;
+            return null;
         }
 
-        if( !@mysqli_select_db( $this->connection_id[$connection_name], $conn_settings['database'] ) )
-        {
-            $this->set_my_error( self::ERR_DATABASE,
-                'Cannot acces <b>'.$conn_settings['database'].'</b> database with user <b>'.$conn_settings['user'].'</b>.',
-                'Cannot select database.',
-                $connection_name );
-            $this->close();
-            return false;
-        }
-
-        $thrown_error_msg = '';
-        try {
-            $this->query_id = @mysqli_query( $this->connection_id[$connection_name], $query );
-        } catch( \Exception $e ) {
-            $this->query_id = false;
-            $thrown_error_msg = $e->getMessage();
+        $last_error_msg = '';
+        if( !($this->query_id = $sqlite->query( $query )) ) {
+            $this->query_id = null;
+            $last_error_msg = $sqlite->lastErrorMsg();
         }
 
         $this->queries_number( true );
@@ -607,28 +490,17 @@ class PHS_Db_mysqli extends PHS_Db_class
         {
             $this->set_my_error( self::ERR_QUERY,
                                  'Error on query: '.(is_string( $query )?htmlspecialchars( $query ):print_r( $query, true ))."\n".
-                                 'MySQL error: ['.@mysqli_error( $this->connection_id[$connection_name] ).']'.
-                                    ($thrown_error_msg!==''?'[Exception:'.$thrown_error_msg.']':''),
+                                 'SQLite error: ['.$last_error_msg.']',
                                  'Error running query.',
                                  $connection_name );
-            if( $this->close_after_query )
-                $this->close( $connection_name );
-            return false;
+            if( $this->close_after_query ) {
+                $this->close($connection_name);
+            }
+            return null;
         }
 
-        $this->last_inserted_id = @mysqli_insert_id( $this->connection_id[$connection_name] );
-        /**
-         * If the last query was a DELETE query with no WHERE clause, all the records will have been deleted
-         * from the table but this function will return zero with MySQL versions prior to 4.1.2.
-         *
-         * When using UPDATE, MySQL will not update columns where the new value is the same as the old value.
-         * This creates the possibility that mysql_affected_rows() may not actually equal the number of rows matched,
-         * only the number of rows that were literally affected by the query.
-         *
-         * The REPLACE statement first deletes the record with the same primary key and then inserts the new record.
-         * This function returns the number of deleted records plus the number of inserted records.
-         */
-        $this->affected_rows = (int)@mysqli_affected_rows( $this->connection_id[$connection_name] );
+        $this->last_inserted_id = $sqlite->lastInsertRowID();
+        $this->affected_rows = $sqlite->changes();
 
         if( $this->close_after_query ) {
             $this->close($connection_name);
@@ -817,9 +689,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      */
     public static function get_default_driver_settings(): array
     {
-        return [
-            'sql_mode' => '',
-        ];
+        return [];
     }
 
     /**
@@ -900,7 +770,7 @@ class PHS_Db_mysqli extends PHS_Db_class
         }
 
         // make sure we have a connection
-        if( !$this->is_connected( $connection_name ) ) {
+        if( !($sqlite = $this->is_connected( $connection_name )) ) {
             return false;
         }
 
@@ -910,16 +780,7 @@ class PHS_Db_mysqli extends PHS_Db_class
                 continue;
             }
 
-            try {
-                if( ($escaped_str =
-                        @mysqli_real_escape_string( $this->connection_id[$connection_name], $val )) === false ) {
-                    continue;
-                }
-            } catch( \Exception $ex ) {
-                continue;
-            }
-
-            $escape_fields[$key] = $escaped_str;
+            $escape_fields[$key] = $sqlite::escapeString( $val );
         }
 
         if( $connection_opened_now && $this->close_after_query ) {
@@ -952,8 +813,8 @@ class PHS_Db_mysqli extends PHS_Db_class
             {
                 $error = $this->get_error();
 
-                if( $this->is_connected( $connection_name ) ) {
-                    echo '<p><b>MySql error</b>: '.@mysqli_error($this->connection_id[$connection_name]).'</p>';
+                if( ($sqlite = $this->is_connected( $connection_name )) ) {
+                    echo '<p><b>SQLite error</b>: '.$sqlite->lastErrorMsg().'</p>';
                 }
                 echo '<p><pre>'.$error['error_msg'].'</pre></p>';
             } else
@@ -989,33 +850,33 @@ class PHS_Db_mysqli extends PHS_Db_class
     }
 
     /**
-     * @param \mysqli_result $qid
+     * @param SQLite3Result $qid
      *
      * @return false|string[]|null
      */
     public function fetch_assoc( $qid ): ?array
     {
         if( empty( $qid )
-         || !($qid instanceof \mysqli_result) ) {
+         || !($qid instanceof SQLite3Result) ) {
             return null;
         }
 
-        return @mysqli_fetch_assoc( $qid );
+        return $qid->fetchArray( SQLITE3_ASSOC );
     }
 
     /**
-     * @param  \mysqli_result  $qid
+     * @param SQLite3Result $qid
      *
      * @return int
      */
     public function num_rows( $qid ): int
     {
         if( empty( $qid )
-         || !($qid instanceof \mysqli_result) ) {
+         || !($qid instanceof SQLite3Result ) ) {
             return 0;
         }
 
-        return @mysqli_num_rows( $qid );
+        return $qid->numColumns();
     }
 
     /**
@@ -1027,8 +888,6 @@ class PHS_Db_mysqli extends PHS_Db_class
     {
         if( !($dump_params = self::validate_array_recursive( $dump_params, self::default_dump_parameters() ))
          || !($dump_params = parent::dump_database( $dump_params ))
-         || empty( $dump_params['binaries'] ) || !is_array( $dump_params['binaries'] )
-         || empty( $dump_params['binaries']['mysqldump_bin'] )
          || empty( $dump_params['connection_identifier'] ) )
         {
             if( !$this->has_error() ) {
@@ -1048,25 +907,6 @@ class PHS_Db_mysqli extends PHS_Db_class
 
         $connection_identifier = $dump_params['connection_identifier']['identifier'];
 
-        $credentials_file = $dump_params['output_dir'].'/export_'.$connection_identifier.'.cnf';
-        if( !($fil = @fopen( $credentials_file, 'wb' )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error creating dump credentials file.' ) );
-            return false;
-        }
-
-        if( !@fwrite( $fil, '[mysqldump]'."\n".
-                           'user = '.$connection_settings['user']."\n".
-                           'password = '.$connection_settings['password']."\n" ) )
-        {
-            @unlink( $credentials_file );
-
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t write to dump credentials file.' ) );
-            return false;
-        }
-        @fflush( $fil );
-        @fclose( $fil );
-
         $dump_file = $connection_identifier.'.'.$dump_params['connection_identifier']['type'];
 
         $output_file = $dump_params['output_dir'].'/'.$dump_file;
@@ -1081,15 +921,8 @@ class PHS_Db_mysqli extends PHS_Db_class
             $dump_params['generated_files'] = [];
         }
 
-        $dump_params['generated_files'][] = $credentials_file;
-
-        // mysqldump -av --user=root -p --add-drop-table=true --comments=true testdb > testdb.sql 2> output.log
-        $dump_params['dump_commands_for_shell'][] = $dump_params['binaries']['mysqldump_bin'].
-                                                 ' --defaults-extra-file='.$credentials_file.
-                                                 ' --host='.$connection_settings['host'].' --port='.$connection_settings['port'].
-                                                 (!empty( $dump_params['log_file'] )?' --log-error='.$dump_params['log_file']:'').
-                                                 ' -av --add-drop-table=true --comments=true '.
-                                                 $connection_settings['database'].' > '.$output_file;
+        // We just copy the sqlite file...
+        $dump_params['dump_commands_for_shell'][] = 'cp '.$connection_settings['database'].' '.$output_file;
 
         if( empty( $dump_params['zip_dump'] ) ) {
             $dump_params['resulting_files']['dump_files'][] = $output_file;
@@ -1105,12 +938,6 @@ class PHS_Db_mysqli extends PHS_Db_class
 
             $dump_params['resulting_files']['dump_files'][] = $zip_file;
         }
-
-        if( !empty( $dump_params['log_file'] ) ) {
-            $dump_params['resulting_files']['log_files'][] = $dump_params['log_file'];
-        }
-
-        $dump_params['delete_files_after_export'][] = $credentials_file;
 
         return $dump_params;
     }

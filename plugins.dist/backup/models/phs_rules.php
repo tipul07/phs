@@ -12,29 +12,32 @@ use \phs\libraries\PHS_Model;
 use \phs\libraries\PHS_Db_class;
 use \phs\libraries\PHS_Utils;
 use \phs\libraries\PHS_Line_params;
+use phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Rules extends PHS_Model
 {
-    const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
-    protected static $STATUSES_ARR = [
+    use PHS_Model_Trait_statuses;
+
+    public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3, STATUS_SUSPENDED = 4;
+    protected static array $STATUSES_ARR = [
         self::STATUS_ACTIVE => [ 'title' => 'Active' ],
         self::STATUS_INACTIVE => [ 'title' => 'Inactive' ],
         self::STATUS_DELETED => [ 'title' => 'Deleted' ],
         self::STATUS_SUSPENDED => [ 'title' => 'Suspended' ],
     ];
 
-    const BACKUP_TARGET_DATABASE = 1, BACKUP_TARGET_UPLOADS = 2;
-    protected static $BACKUP_TARGETS_ARR = [
+    public const BACKUP_TARGET_DATABASE = 1, BACKUP_TARGET_UPLOADS = 2;
+    protected static array $BACKUP_TARGETS_ARR = [
         self::BACKUP_TARGET_DATABASE => [ 'title' => 'Database' ],
         self::BACKUP_TARGET_UPLOADS => [ 'title' => 'Uploaded files' ],
     ];
 
-    const COPY_FTP = 1;
-    protected static $COPY_RESULTS_ARR = [
+    public const COPY_FTP = 1;
+    protected static array $COPY_RESULTS_ARR = [
         self::COPY_FTP => [ 'title' => 'Copy to FTP' ],
     ];
 
-    const DAY_ALL = 0, DAY_MONDAY = 1, DAY_TUESDAY = 2, DAY_WEDNESDAY = 3, DAY_THURSDAY = 4, DAY_FRIDAY = 5, DAY_SATURDAY = 6, DAY_SUNDAY = 7;
+    public const DAY_ALL = 0, DAY_MONDAY = 1, DAY_TUESDAY = 2, DAY_WEDNESDAY = 3, DAY_THURSDAY = 4, DAY_FRIDAY = 5, DAY_SATURDAY = 6, DAY_SUNDAY = 7;
 
     // const BACKUP_TARGET_ALL = ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
 
@@ -43,7 +46,7 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     /**
@@ -65,173 +68,127 @@ class PHS_Model_Rules extends PHS_Model
     /**
      * @return int
      */
-    public function get_all_targets()
+    public function get_all_targets(): int
     {
         return ((1 << self::BACKUP_TARGET_DATABASE)|(1 << self::BACKUP_TARGET_UPLOADS));
     }
 
-    final public function get_statuses( $lang = false )
-    {
-        static $statuses_arr = array();
-
-        if( $lang === false
-        and !empty( $statuses_arr ) )
-            return $statuses_arr;
-
-        // Let these here so language parser would catch the texts...
-        $this->_pt( 'Inactive' );
-        $this->_pt( 'Active' );
-        $this->_pt( 'Deleted' );
-        $this->_pt( 'Suspended' );
-
-        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, array( 'title' ), $lang );
-
-        if( $lang === false )
-            $statuses_arr = $result_arr;
-
-        return $result_arr;
-    }
-
-    final public function get_statuses_as_key_val( $lang = false )
-    {
-        static $statuses_key_val_arr = false;
-
-        if( $lang === false
-        and $statuses_key_val_arr !== false )
-            return $statuses_key_val_arr;
-
-        $key_val_arr = array();
-        if( ($statuses = $this->get_statuses( $lang )) )
-        {
-            foreach( $statuses as $key => $val )
-            {
-                if( !is_array( $val ) )
-                    continue;
-
-                $key_val_arr[$key] = $val['title'];
-            }
-        }
-
-        if( $lang === false )
-            $statuses_key_val_arr = $key_val_arr;
-
-        return $key_val_arr;
-    }
-
-    public function valid_status( $status, $lang = false )
-    {
-        $all_statuses = $this->get_statuses( $lang );
-        if( empty( $status )
-         || !isset( $all_statuses[$status] ) )
-            return false;
-
-        return $all_statuses[$status];
-    }
-
-    final public function get_copy_results( $lang = false )
+    final public function get_copy_results( $lang = false ): array
     {
         static $copy_results_arr = [];
 
         if( $lang === false
-         && !empty( $copy_results_arr ) )
+         && !empty( $copy_results_arr ) ) {
             return $copy_results_arr;
+        }
 
         // Let these here so language parser would catch the texts...
         $this->_pt( 'Copy to FTP' );
 
         $result_arr = $this->translate_array_keys( self::$COPY_RESULTS_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $copy_results_arr = $result_arr;
+        }
 
         return $result_arr;
     }
 
-    final public function get_copy_results_as_key_val( $lang = false )
+    final public function get_copy_results_as_key_val( $lang = false ): ?array
     {
-        static $copy_results_key_val_arr = false;
+        static $copy_results_key_val_arr = null;
 
         if( $lang === false
-         && $copy_results_key_val_arr !== false )
+         && $copy_results_key_val_arr !== null ) {
             return $copy_results_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($copy_results = $this->get_copy_results( $lang )) )
         {
             foreach( $copy_results as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $copy_results_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
 
-    public function valid_copy_results( $copy_result, $lang = false )
+    public function valid_copy_results( $copy_result, $lang = false ): ?array
     {
         $all_copy_results = $this->get_copy_results( $lang );
         if( empty( $copy_result )
-         || !isset( $all_copy_results[$copy_result] ) )
-            return false;
+         || !isset( $all_copy_results[$copy_result] ) ) {
+            return null;
+        }
 
         return $all_copy_results[$copy_result];
     }
 
-    final public function get_targets( $lang = false )
+    final public function get_targets( $lang = false ): array
     {
         static $targets_arr = [];
 
         if( $lang === false
-         && !empty( $targets_arr ) )
+         && !empty( $targets_arr ) ) {
             return $targets_arr;
+        }
 
         $result_arr = $this->translate_array_keys( self::$BACKUP_TARGETS_ARR, [ 'title' ], $lang );
 
-        if( $lang === false )
+        if( $lang === false ) {
             $targets_arr = $result_arr;
+        }
 
         return $result_arr;
     }
 
-    final public function get_targets_as_key_val( $lang = false )
+    final public function get_targets_as_key_val( $lang = false ): ?array
     {
-        static $targets_key_val_arr = false;
+        static $targets_key_val_arr = null;
 
         if( $lang === false
-         && $targets_key_val_arr !== false )
+         && $targets_key_val_arr !== null ) {
             return $targets_key_val_arr;
+        }
 
         $key_val_arr = [];
         if( ($targets = $this->get_targets( $lang )) )
         {
             foreach( $targets as $key => $val )
             {
-                if( !is_array( $val ) )
+                if( !is_array( $val ) ) {
                     continue;
+                }
 
                 $key_val_arr[$key] = $val['title'];
             }
         }
 
-        if( $lang === false )
+        if( $lang === false ) {
             $targets_key_val_arr = $key_val_arr;
+        }
 
         return $key_val_arr;
     }
 
-    public function get_rule_days( $lang = false )
+    public function get_rule_days( $lang = false ): ?array
     {
-        static $days_arr = false;
+        static $days_arr = null;
 
         if( $lang === false
-        and !empty( $days_arr ) )
+        && !empty( $days_arr ) ) {
             return $days_arr;
+        }
 
         $return_arr = [
             self::DAY_ALL => $this->_pt( 'Each day', $lang ),
@@ -244,54 +201,60 @@ class PHS_Model_Rules extends PHS_Model
             self::DAY_SUNDAY => $this->_pt( 'Sunday', $lang ),
         ];
 
-        if( $lang === false )
+        if( $lang === false ) {
             $days_arr = $return_arr;
+        }
 
         return $return_arr;
     }
 
-    public function valid_target( $target, $lang = false )
+    public function valid_target( $target, $lang = false ): ?array
     {
         $all_targets = $this->get_targets( $lang );
         if( empty( $target )
-         || !isset( $all_targets[$target] ) )
-            return false;
+         || !isset( $all_targets[$target] ) ) {
+            return null;
+        }
 
         return $all_targets[$target];
     }
 
-    public function is_active( $record_data )
+    public function is_active( $record_data ): ?array
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         || (int)$record_arr['status'] !== self::STATUS_ACTIVE )
-            return false;
+         || (int)$record_arr['status'] !== self::STATUS_ACTIVE ) {
+            return null;
+        }
 
         return $record_arr;
     }
 
-    public function is_inactive( $record_data )
+    public function is_inactive( $record_data ): ?array
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         || (int)$record_arr['status'] !== self::STATUS_INACTIVE )
-            return false;
+         || (int)$record_arr['status'] !== self::STATUS_INACTIVE ) {
+            return null;
+        }
 
         return $record_arr;
     }
 
-    public function is_deleted( $record_data )
+    public function is_deleted( $record_data ): ?array
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         || (int)$record_arr['status'] !== self::STATUS_DELETED )
-            return false;
+         || (int)$record_arr['status'] !== self::STATUS_DELETED ) {
+            return null;
+        }
 
         return $record_arr;
     }
 
-    public function is_suspended( $record_data )
+    public function is_suspended( $record_data ): ?array
     {
         if( !($record_arr = $this->data_to_array( $record_data ))
-         || (int)$record_arr['status'] !== self::STATUS_SUSPENDED )
-            return false;
+         || (int)$record_arr['status'] !== self::STATUS_SUSPENDED ) {
+            return null;
+        }
 
         return $record_arr;
     }
@@ -326,8 +289,9 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( $this->is_active( $record_arr ) )
+        if( $this->is_active( $record_arr ) ) {
             return $record_arr;
+        }
 
         $edit_arr = [];
         $edit_arr['status'] = self::STATUS_ACTIVE;
@@ -368,8 +332,9 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( $this->is_inactive( $record_arr ) )
+        if( $this->is_inactive( $record_arr ) ) {
             return $record_arr;
+        }
 
         $edit_arr = [];
         $edit_arr['status'] = self::STATUS_INACTIVE;
@@ -397,8 +362,9 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             $params = [];
+        }
 
         $edit_arr = [];
         $edit_arr['status'] = self::STATUS_DELETED;
@@ -409,7 +375,7 @@ class PHS_Model_Rules extends PHS_Model
         return $this->edit( $record_arr, $edit_params_arr );
     }
 
-    public function act_suspend_all_rules()
+    public function act_suspend_all_rules(): bool
     {
         $this->reset_error();
 
@@ -429,7 +395,7 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
-    public function act_unsuspend_all_rules()
+    public function act_unsuspend_all_rules(): bool
     {
         $this->reset_error();
 
@@ -465,8 +431,9 @@ class PHS_Model_Rules extends PHS_Model
          || !($plugin_obj = PHS::load_plugin( 'backup' ))
          || !($accounts_model = PHS::load_model( 'accounts', 'accounts' ))
          || !($account_arr = $accounts_model->data_to_array( $account_data ))
-         || !PHS_Roles::user_has_role_units( $account_arr, $plugin_obj::ROLEU_MANAGE_RULES ) )
+         || !PHS_Roles::user_has_role_units( $account_arr, $plugin_obj::ROLEU_MANAGE_RULES ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['rule_data'] = $rule_arr;
@@ -502,10 +469,11 @@ class PHS_Model_Rules extends PHS_Model
 
         if( !($result_details = $backup_plugin->get_location_for_path( $rule_arr['location'], $params )) )
         {
-            if( $backup_plugin->has_error() )
-                $this->copy_error( $backup_plugin );
-            else
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t obtain rule location path details.' ) );
+            if( $backup_plugin->has_error() ) {
+                $this->copy_error($backup_plugin);
+            } else {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain rule location path details.'));
+            }
             return false;
         }
 
@@ -538,8 +506,9 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if( !($location_arr = $this->get_location_for_rule( $rule_arr, $params ))
-         || empty( $location_arr['full_path'] ) )
+         || empty( $location_arr['full_path'] ) ) {
             return false;
+        }
 
         return $backup_plugin->get_directory_stats( $location_arr['full_path'] );
     }
@@ -576,8 +545,10 @@ class PHS_Model_Rules extends PHS_Model
          || empty( $location_details['full_path'] )
          || empty( $location_details['location_exists'] ) )
         {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Couldn\'t create backup location for provided rule.' ) );
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Couldn\'t create backup location for provided rule.'));
+            }
 
             PHS_Logger::error( 'Error (R#'.$rule_arr['id'].'): Failed creating backup location directory.', $backup_plugin::LOG_CHANNEL );
             return false;
@@ -638,16 +609,15 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         // Zip database dump
-        if( !isset( $params['zip_dump'] ) )
-            $params['zip_dump'] = true;
-        else
-            $params['zip_dump'] = (!empty( $params['zip_dump'] ));
+        $params['zip_dump'] = (!isset( $params['zip_dump'] ) || !empty( $params['zip_dump'] ));
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
-        if( empty( $params['zip_bin'] ) )
+        if( empty( $params['zip_bin'] ) ) {
             $params['zip_bin'] = '';
-        if( empty( $params['mysqldump_bin'] ) )
+        }
+        if( empty( $params['mysqldump_bin'] ) ) {
             $params['mysqldump_bin'] = '';
+        }
 
         if( empty( $output_dir )
          || !@is_dir( $output_dir )
@@ -671,7 +641,7 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        // If no database connection is defined, return true so we don't trigger errors
+        // If no database connection is defined, return true, so we don't trigger errors
         if( !($db_connections = PHS_Db::get_db_connection())
          || !is_array( $db_connections ) )
         {
@@ -1407,20 +1377,21 @@ class PHS_Model_Rules extends PHS_Model
      *
      * @return array
      */
-    public function get_rule_days_as_array( $rule_id )
+    public function get_rule_days_as_array( $rule_id ): array
     {
         $this->reset_error();
 
         $rule_id = (int)$rule_id;
         if( empty( $rule_id )
          || !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'backup_rules_days' ] ))
-         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\' ORDER BY `day` ASC', $this->get_db_connection( $flow_params ) ))
-         || !@mysqli_num_rows( $qid ) ) {
+         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE rule_id = \''.$rule_id.'\' ORDER BY `day` ASC', $flow_params['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return [];
         }
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[] = $link_arr['day'];
         }
@@ -1433,7 +1404,7 @@ class PHS_Model_Rules extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_all_days_for_rule( $rule_data )
+    public function unlink_all_days_for_rule( $rule_data ): bool
     {
         $this->reset_error();
 
@@ -1444,7 +1415,8 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if( !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'backup_rules_days' ] ))
-         || !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_arr['id'].'\'', $this->get_db_connection( $flow_params ) ) )
+         || !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                       ' WHERE rule_id = \''.$rule_arr['id'].'\'', $flow_params['db_connection'] ) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t unlink days for backup rule.' ) );
             return false;
@@ -1479,8 +1451,9 @@ class PHS_Model_Rules extends PHS_Model
 
         else
         {
-            if( !($rule_arr['{ftp_settings}'] = PHS_Line_params::parse_string( $rule_arr['ftp_settings'] )) )
+            if( !($rule_arr['{ftp_settings}'] = PHS_Line_params::parse_string( $rule_arr['ftp_settings'] )) ) {
                 $rule_arr['{ftp_settings}'] = [];
+            }
 
             if( !empty( $rule_arr['{ftp_settings}']['pass'] )
              && false === ($rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode( $rule_arr['{ftp_settings}']['pass'] )) )
@@ -1596,7 +1569,7 @@ class PHS_Model_Rules extends PHS_Model
         if( $day_zero_to_be_added )
         {
             if( $should_delete_rest_but_zero
-            and !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND day != 0', $db_connection ) )
+            && !db_query( 'DELETE FROM `'.$rules_days_table_name.'` WHERE rule_id = \''.$rule_arr['id'].'\' AND day != 0', $db_connection ) )
             {
                 $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error un-linking days for backup rule.' ) );
                 return false;
@@ -1652,19 +1625,21 @@ class PHS_Model_Rules extends PHS_Model
      *
      * @return array
      */
-    public function get_rule_days_as_list( $rule_id )
+    public function get_rule_days_as_list( $rule_id ): array
     {
         $this->reset_error();
 
         $rule_id = (int)$rule_id;
         if( empty( $rule_id )
          || !($flow_params = $this->fetch_default_flow_params( [ 'table_name' => 'backup_rules_days' ] ))
-         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` WHERE rule_id = \''.$rule_id.'\'', $this->get_db_connection( $flow_params ) ))
-         || !@mysqli_num_rows( $qid ) )
+         || !($qid = db_query( 'SELECT * FROM `'.$this->get_flow_table_name( $flow_params ).'` '.
+                               ' WHERE rule_id = \''.$rule_id.'\'', $flow_params['db_connection'] ))
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return [];
+        }
 
         $return_arr = [];
-        while( ($link_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($link_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             $return_arr[(int)$link_arr['id']] = $link_arr;
         }
@@ -1679,8 +1654,9 @@ class PHS_Model_Rules extends PHS_Model
      */
     protected function get_insert_prepare_params_backup_rules( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( empty( $params['fields']['title'] ) )
         {
@@ -1688,8 +1664,9 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if( empty( $params['fields']['copy_results'] ) )
+        if( empty( $params['fields']['copy_results'] ) ) {
             $params['fields']['copy_results'] = 0;
+        }
 
         elseif( !$this->valid_copy_results( $params['fields']['copy_results'] ) )
         {
@@ -1711,13 +1688,15 @@ class PHS_Model_Rules extends PHS_Model
 
                 if( !empty( $params['fields']['ftp_settings'] ) )
                 {
-                    if( !is_array( $params['fields']['ftp_settings'] ) )
-                        $params['fields']['ftp_settings'] = PHS_Line_params::parse_string( $params['fields']['ftp_settings'] );
+                    if( !is_array( $params['fields']['ftp_settings'] ) ) {
+                        $params['fields']['ftp_settings'] =
+                            PHS_Line_params::parse_string($params['fields']['ftp_settings']);
+                    }
                 }
 
                 if( empty( $params['fields']['ftp_settings'] )
-                 or !is_array( $params['fields']['ftp_settings'] )
-                 or !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
+                 || !is_array( $params['fields']['ftp_settings'] )
+                 || !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
                 {
                     $this->set_error( self::ERR_INSERT, $this->_pt( 'Invalid FTP settings.' ) );
                     return false;
@@ -1919,20 +1898,23 @@ class PHS_Model_Rules extends PHS_Model
 
                         if( !empty( $params['fields']['ftp_settings'] ) )
                         {
-                            if( !is_array( $params['fields']['ftp_settings'] ) )
-                                $params['fields']['ftp_settings'] = PHS_Line_params::parse_string( $params['fields']['ftp_settings'] );
+                            if( !is_array( $params['fields']['ftp_settings'] ) ) {
+                                $params['fields']['ftp_settings'] =
+                                    PHS_Line_params::parse_string($params['fields']['ftp_settings']);
+                            }
                         }
 
                         if( empty( $params['fields']['ftp_settings'] )
-                         or !is_array( $params['fields']['ftp_settings'] )
-                         or !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
+                         || !is_array( $params['fields']['ftp_settings'] )
+                         || !$ftp_obj::settings_valid( $params['fields']['ftp_settings'] ) )
                         {
                             $this->set_error( self::ERR_EDIT, $this->_pt( 'Invalid FTP settings.' ) );
                             return false;
                         }
 
-                        if( empty( $params['fields']['ftp_settings']['pass'] ) )
+                        if( empty( $params['fields']['ftp_settings']['pass'] ) ) {
                             $params['fields']['ftp_settings']['pass'] = '';
+                        }
 
                         if( false === ($encoded_pass = PHS_Crypt::quick_encode( $params['fields']['ftp_settings']['pass'] )) )
                         {
@@ -1952,17 +1934,19 @@ class PHS_Model_Rules extends PHS_Model
         {
             if( !($location_check = $backup_plugin->resolve_directory_location( $params['fields']['location'] )) )
             {
-                if( $backup_plugin->has_error() )
-                    $this->copy_error( $backup_plugin );
-                else
-                    $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Provided backup location couldn\'t be checked.' ) );
+                if( $backup_plugin->has_error() ) {
+                    $this->copy_error($backup_plugin);
+                } else {
+                    $this->set_error(self::ERR_PARAMETERS,
+                        $this->_pt('Provided backup location couldn\'t be checked.'));
+                }
 
                 return false;
             }
 
             // we have an absolute path
             if( empty( $location_check['location_exists'] )
-             or empty( $location_check['location_is_dir'] ) )
+             || empty( $location_check['location_is_dir'] ) )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Provided backup location is not a directory.' ) );
                 return false;
@@ -1978,10 +1962,10 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if( isset( $params['fields']['hour'] )
-        and !is_array( $params['fields']['hour'] ) )
+        && !is_array( $params['fields']['hour'] ) )
         {
-            $params['fields']['hour'] = intval( $params['fields']['hour'] );
-            if( $params['fields']['hour'] < 0 or $params['fields']['hour'] > 23 )
+            $params['fields']['hour'] = (int) $params['fields']['hour'];
+            if( $params['fields']['hour'] < 0 || $params['fields']['hour'] > 23 )
             {
                 $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Please provide a valid backup hour.' ) );
                 return false;
@@ -1990,25 +1974,26 @@ class PHS_Model_Rules extends PHS_Model
 
         if( isset( $params['fields']['target'] ) )
         {
-            if( empty( $params['fields']['target'] ) )
+            if( empty( $params['fields']['target'] ) ) {
                 $params['fields']['target'] = $this->get_all_targets();
-
-            elseif( is_array( $params['fields']['target'] ) )
+            } elseif( is_array( $params['fields']['target'] ) )
             {
-                if( !($target_bits = $this->targets_arr_to_bits( $params['fields']['target'] )) )
+                if( !($target_bits = $this->targets_arr_to_bits( $params['fields']['target'] )) ) {
                     $target_bits = $this->get_all_targets();
+                }
 
                 $params['fields']['target'] = $target_bits;
             } else
             {
-                $params['fields']['target'] = intval( $params['fields']['target'] );
+                $params['fields']['target'] = (int) $params['fields']['target'];
                 if( ($targets_arr = $this->get_targets_as_key_val()) )
                 {
                     $target_bits = 0;
                     foreach( $targets_arr as $target_key => $target_name )
                     {
-                        if( ($params['fields']['target'] & (1 << $target_key)) )
+                        if( ($params['fields']['target'] & (1 << $target_key)) ) {
                             $target_bits |= (1 << $target_key);
+                        }
                     }
 
                     $params['fields']['target'] = $target_bits;
@@ -2017,20 +2002,24 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if( !empty( $params['fields']['status'] )
-        and (empty( $params['fields']['status_date'] ) or empty_db_date( $params['fields']['status_date'] ))
-        and $this->valid_status( $params['fields']['status'] )
-        and $params['fields']['status'] != $existing_arr['status'] )
-            $params['fields']['status_date'] = date( self::DATETIME_DB );
+         && (int)$params['fields']['status'] !== (int)$existing_arr['status']
+         && (empty( $params['fields']['status_date'] ) || empty_db_date( $params['fields']['status_date'] ))
+         && $this->valid_status( $params['fields']['status'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB);
+        }
 
-        elseif( !empty( $params['fields']['status_date'] ) )
-            $params['fields']['status_date'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['status_date'] ) );
+        elseif( !empty( $params['fields']['status_date'] ) ) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
 
 
-        if( !empty( $params['fields']['last_run'] ) )
-            $params['fields']['last_run'] = date( self::DATETIME_DB, parse_db_date( $params['fields']['last_run'] ) );
+        if( !empty( $params['fields']['last_run'] ) ) {
+            $params['fields']['last_run'] = date(self::DATETIME_DB, parse_db_date($params['fields']['last_run']));
+        }
 
-        if( empty( $params['{days_arr}'] ) or !is_array( $params['{days_arr}'] ) )
+        if( empty( $params['{days_arr}'] ) || !is_array( $params['{days_arr}'] ) ) {
             $params['{days_arr}'] = false;
+        }
 
         return $params;
     }
@@ -2048,15 +2037,14 @@ class PHS_Model_Rules extends PHS_Model
      */
     protected function edit_after_backup_rules( $existing_data, $edit_arr, $params )
     {
-        if( !empty( $params['{days_arr}'] ) and is_array( $params['{days_arr}'] ) )
+        if( !empty( $params['{days_arr}'] ) && is_array( $params['{days_arr}'] )
+         && !($existing_data['{days_arr}'] = $this->link_days_to_rule( $existing_data, $params['{days_arr}'] )) )
         {
-            if( !($existing_data['{days_arr}'] = $this->link_days_to_rule( $existing_data, $params['{days_arr}'] )) )
-            {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_INSERT, $this->_pt( 'Error linking days to backup rule.' ) );
-
-                return false;
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_INSERT, $this->_pt('Error linking days to backup rule.'));
             }
+
+            return false;
         }
 
         return $existing_data;
@@ -2073,13 +2061,16 @@ class PHS_Model_Rules extends PHS_Model
      */
     protected function get_insert_prepare_params_backup_rules_days( $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
-        if( !empty( $params['fields']['rule_id'] ) )
-            $params['fields']['rule_id'] = (int)$params['fields']['rule_id'];
-        if( !empty( $params['fields']['day'] ) )
-            $params['fields']['day'] = (int)$params['fields']['day'];
+        if( !empty( $params['fields']['rule_id'] ) ) {
+            $params['fields']['rule_id'] = (int) $params['fields']['rule_id'];
+        }
+        if( !empty( $params['fields']['day'] ) ) {
+            $params['fields']['day'] = (int) $params['fields']['day'];
+        }
 
         if( empty( $params['fields']['rule_id'] ) )
         {
@@ -2108,13 +2099,16 @@ class PHS_Model_Rules extends PHS_Model
      */
     protected function get_edit_prepare_params_backup_rules_days( $existing_data, $params )
     {
-        if( empty( $params ) or !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
-        if( isset( $params['fields']['rule_id'] ) )
-            $params['fields']['rule_id'] = (int)$params['fields']['rule_id'];
-        if( isset( $params['fields']['day'] ) )
-            $params['fields']['day'] = (int)$params['fields']['day'];
+        if( isset( $params['fields']['rule_id'] ) ) {
+            $params['fields']['rule_id'] = (int) $params['fields']['rule_id'];
+        }
+        if( isset( $params['fields']['day'] ) ) {
+            $params['fields']['day'] = (int) $params['fields']['day'];
+        }
 
         if( isset( $params['fields']['rule_id'] ) && empty( $params['fields']['rule_id'] ) )
         {
@@ -2139,8 +2133,9 @@ class PHS_Model_Rules extends PHS_Model
     {
         // $params should be flow parameters...
         if( empty( $params ) || !is_array( $params )
-         || empty( $params['table_name'] ) )
+         || empty( $params['table_name'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         switch( $params['table_name'] )
@@ -2223,5 +2218,13 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         return $return_arr;
+    }
+
+    private function _not_used_only_for_translation(): void
+    {
+        $this->_pt( 'Inactive' );
+        $this->_pt( 'Active' );
+        $this->_pt( 'Deleted' );
+        $this->_pt( 'Suspended' );
     }
 }

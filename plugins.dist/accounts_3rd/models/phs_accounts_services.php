@@ -7,8 +7,8 @@ use \phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Accounts_services extends PHS_Model
 {
-    const SERVICE_GOOGLE = 1, SERVICE_APPLE = 2, SERVICE_FACEBOOK = 3;
-    protected static $SERVICES_ARR = [
+    public const SERVICE_GOOGLE = 1, SERVICE_APPLE = 2, SERVICE_FACEBOOK = 3;
+    protected static array $SERVICES_ARR = [
         self::SERVICE_GOOGLE => [ 'title' => 'Google' ],
         self::SERVICE_APPLE => [ 'title' => 'Apple' ],
         self::SERVICE_FACEBOOK => [ 'title' => 'Facebook' ],
@@ -19,7 +19,7 @@ class PHS_Model_Accounts_services extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**

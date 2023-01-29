@@ -11,7 +11,7 @@ class PHS_Model_Accounts_details extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -40,8 +40,9 @@ class PHS_Model_Accounts_details extends PHS_Model
 
     protected function get_insert_prepare_params_users_details( $params )
     {
-        if( empty( $params ) || !is_array( $params ) )
+        if( empty( $params ) || !is_array( $params ) ) {
             return false;
+        }
 
         if( empty( $params['fields']['uid'] ) )
         {
@@ -49,21 +50,27 @@ class PHS_Model_Accounts_details extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['title'] ) )
-            $params['fields']['title'] = substr( $params['fields']['title'], 0, 20 );
-        if( !empty( $params['fields']['fname'] ) )
-            $params['fields']['fname'] = substr( $params['fields']['fname'], 0, 255 );
-        if( !empty( $params['fields']['lname'] ) )
-            $params['fields']['lname'] = substr( $params['fields']['lname'], 0, 255 );
-        if( !empty( $params['fields']['phone'] ) )
-            $params['fields']['phone'] = substr( $params['fields']['phone'], 0, 50 );
-        if( !empty( $params['fields']['company'] ) )
-            $params['fields']['company'] = substr( $params['fields']['company'], 0, 255 );
+        if( !empty( $params['fields']['title'] ) ) {
+            $params['fields']['title'] = substr($params['fields']['title'], 0, 20);
+        }
+        if( !empty( $params['fields']['fname'] ) ) {
+            $params['fields']['fname'] = substr($params['fields']['fname'], 0, 255);
+        }
+        if( !empty( $params['fields']['lname'] ) ) {
+            $params['fields']['lname'] = substr($params['fields']['lname'], 0, 255);
+        }
+        if( !empty( $params['fields']['phone'] ) ) {
+            $params['fields']['phone'] = substr($params['fields']['phone'], 0, 50);
+        }
+        if( !empty( $params['fields']['company'] ) ) {
+            $params['fields']['company'] = substr($params['fields']['company'], 0, 255);
+        }
 
-        if( !isset( $params['fields']['limit_emails'] ) )
+        if( !isset( $params['fields']['limit_emails'] ) ) {
             $params['fields']['limit_emails'] = 0;
-        else
-            $params['fields']['limit_emails'] = (!empty( $params['fields']['limit_emails'] )?1:0);
+        } else {
+            $params['fields']['limit_emails'] = (!empty($params['fields']['limit_emails']) ? 1 : 0);
+        }
 
         return $params;
     }

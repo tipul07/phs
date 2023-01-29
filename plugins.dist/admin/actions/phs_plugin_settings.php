@@ -101,13 +101,15 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $module_details['settings'] = [];
 
                 if( !($model_instance = PHS::load_model( $model_name, ($this->_plugin_obj?$this->_plugin_obj->instance_plugin_name():false) ))
-                 || !($settings_arr = $model_instance->validate_settings_structure()) )
+                 || !($settings_arr = $model_instance->validate_settings_structure()) ) {
                     continue;
+                }
 
                 $model_id = $model_instance->instance_id();
 
-                if( !($model_db_details = $model_instance->get_db_details()) )
+                if( !($model_db_details = $model_instance->get_db_details()) ) {
                     $model_db_details = [];
+                }
 
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
@@ -206,10 +208,11 @@ class PHS_Action_Plugin_settings extends PHS_Action
                     return $action_result;
                 }
 
-                if( $module_instance->has_error() )
-                    PHS_Notifications::add_error_notice( $module_instance->get_error_message() );
-                else
-                    PHS_Notifications::add_error_notice( $this->_pt( 'Error saving settings in database. Please try again.' ) );
+                if( $module_instance->has_error() ) {
+                    PHS_Notifications::add_error_notice($module_instance->get_error_message());
+                } else {
+                    PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
+                }
             }
         }
 
@@ -275,24 +278,28 @@ class PHS_Action_Plugin_settings extends PHS_Action
                     {
                         foreach( $db_settings as $s_key => $s_val )
                         {
-                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) )
+                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) ) {
                                 $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                            }
                         }
                     } else
                     {
-                        if( isset( $save_result['{new_settings_fields}'] ) )
-                            unset( $save_result['{new_settings_fields}'] );
+                        if( isset( $save_result['{new_settings_fields}'] ) ) {
+                            unset($save_result['{new_settings_fields}']);
+                        }
 
                         $new_settings_arr[$field_name] = $save_result;
                     }
                 }
             }
 
-            elseif( self::st_has_error() )
-                PHS_Notifications::add_error_notice( self::st_get_error_message() );
+            elseif( self::st_has_error() ) {
+                PHS_Notifications::add_error_notice(self::st_get_error_message());
+            }
 
-            if( self::st_has_warnings() )
-                PHS_Notifications::add_warning_notice( self::st_get_warnings() );
+            if( self::st_has_warnings() ) {
+                PHS_Notifications::add_warning_notice(self::st_get_warnings());
+            }
         }
 
         return $new_settings_arr;

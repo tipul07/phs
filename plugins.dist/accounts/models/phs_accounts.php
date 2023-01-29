@@ -14,30 +14,30 @@ use \phs\libraries\PHS_Utils;
 
 class PHS_Model_Accounts extends PHS_Model
 {
-    const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003, ERR_CHANGE_PASS = 10004, ERR_PASS_CHECK = 10005;
+    public const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003, ERR_CHANGE_PASS = 10004, ERR_PASS_CHECK = 10005;
 
-    const PASSWORDS_ALGO = 'sha256';
+    public const PASSWORDS_ALGO = 'sha256';
 
-    const OBFUSCATED_PASSWORD = '************';
+    public const OBFUSCATED_PASSWORD = '************';
 
-    const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
+    public const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
 
-    const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
+    public const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
 
     // "Hardcoded" minimum password length (if 'min_password_length' is not found in settings)
-    const DEFAULT_MIN_PASSWORD_LENGTH = 8;
+    public const DEFAULT_MIN_PASSWORD_LENGTH = 8;
 
-    const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
-    protected static $STATUSES_ARR = [
+    public const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
+    protected static array $STATUSES_ARR = [
         self::STATUS_INACTIVE => [ 'title' => 'Inactive' ],
         self::STATUS_ACTIVE => [ 'title' => 'Active' ],
         self::STATUS_SUSPENDED => [ 'title' => 'Suspended' ],
         self::STATUS_DELETED => [ 'title' => 'Deleted' ],
     ];
 
-    const LVL_GUEST = 0, LVL_MEMBER = 1,
+    public const LVL_GUEST = 0, LVL_MEMBER = 1,
           LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
-    protected static $LEVELS_ARR = [
+    protected static array $LEVELS_ARR = [
         self::LVL_MEMBER => [ 'title' => 'Member' ],
         self::LVL_OPERATOR => [ 'title' => 'Operator' ],
         self::LVL_ADMIN => [ 'title' => 'Admin' ],
@@ -50,7 +50,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.0';
+        return '1.3.1';
     }
 
     /**
@@ -997,7 +997,7 @@ class PHS_Model_Accounts extends PHS_Model
         if( ($qid = db_query( 'SELECT COUNT(*) AS total_history_records '.
                               ' FROM `'.$uph_table_name.'`'.
                               ' WHERE uid = \''.$account_arr['id'].'\'', $flow_params['db_connection'] ))
-         && ($record_arr = @mysqli_fetch_assoc( $qid ))
+         && ($record_arr = @db_fetch_assoc( $qid, $flow_params['db_connection'] ))
          && ($records_to_delete = $record_arr['total_history_records'] - $history_count + 1) > 0 )
         {
             // delete extra records
@@ -1070,15 +1070,16 @@ class PHS_Model_Accounts extends PHS_Model
                               ' FROM `'.$uph_table_name.'`'.
                               ' WHERE uid = \''.$account_arr['id'].'\' '.
                               ' ORDER BY cdate DESC LIMIT 0, '.$history_count, $flow_params['db_connection'] ))
-         || !@mysqli_num_rows( $qid ) )
+         || !db_num_rows( $qid, $flow_params['db_connection'] ) ) {
             return false;
+        }
 
         $return_arr = [];
         $return_arr['history_count'] = $history_count;
         $return_arr['oldest_password_date_timestamp'] = false;
         $return_arr['matched_history_data'] = false;
 
-        while( ($history_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($history_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             if( empty( $return_arr['oldest_password_date_timestamp'] ) )
                 $return_arr['oldest_password_date_timestamp'] = parse_db_date( $history_arr['cdate'] );
@@ -2495,8 +2496,9 @@ class PHS_Model_Accounts extends PHS_Model
 
         if( !empty( $params['flags'] ) && is_array( $params['flags'] ) )
         {
-            if( empty( $params['db_fields'] ) )
+            if( empty( $params['db_fields'] ) ) {
                 $params['db_fields'] = '';
+            }
 
             foreach( $params['flags'] as $flag )
             {
@@ -2521,10 +2523,12 @@ class PHS_Model_Accounts extends PHS_Model
                             $details_fields = [ 'title', 'fname', 'lname', 'phone', 'company', 'limit_emails', ];
                         } else
                         {
-                            if( isset( $empty_fields['id'] ) )
-                                unset( $empty_fields['id'] );
-                            if( isset( $empty_fields['uid'] ) )
-                                unset( $empty_fields['uid'] );
+                            if( isset( $empty_fields['id'] ) ) {
+                                unset($empty_fields['id']);
+                            }
+                            if( isset( $empty_fields['uid'] ) ) {
+                                unset($empty_fields['uid']);
+                            }
 
                             $details_fields = array_keys( $empty_fields );
                         }
@@ -2540,15 +2544,19 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( empty( $params['one_of_role_unit'] ) || !is_array( $params['one_of_role_unit'] ) )
+        if( empty( $params['one_of_role_unit'] ) || !is_array( $params['one_of_role_unit'] ) ) {
             $params['one_of_role_unit'] = false;
-        if( empty( $params['one_of_role'] ) || !is_array( $params['one_of_role'] ) )
+        }
+        if( empty( $params['one_of_role'] ) || !is_array( $params['one_of_role'] ) ) {
             $params['one_of_role'] = false;
+        }
 
-        if( empty( $params['all_role_units'] ) || !is_array( $params['all_role_units'] ) )
+        if( empty( $params['all_role_units'] ) || !is_array( $params['all_role_units'] ) ) {
             $params['all_role_units'] = false;
-        if( empty( $params['all_roles'] ) || !is_array( $params['all_roles'] ) )
+        }
+        if( empty( $params['all_roles'] ) || !is_array( $params['all_roles'] ) ) {
             $params['all_roles'] = false;
+        }
 
         if( !empty( $params['one_of_role_unit'] )
          || !empty( $params['all_role_units'] )
@@ -2560,22 +2568,22 @@ class PHS_Model_Accounts extends PHS_Model
             if( !($roles_model = PHS::load_model( 'roles' ))
              || !($roles_users_flow = $roles_model->fetch_default_flow_params( [ 'table_name' => 'roles_users' ] ))
              || !($roles_users_table = $roles_model->get_flow_table_name( $roles_users_flow ))
-            )
-                PHS::st_restore_errors( $old_error_arr );
+            ) {
+                PHS::st_restore_errors($old_error_arr);
+            }
 
             else
             {
                 $roles_users_joined = false;
                 if( !empty( $params['one_of_role_unit'] ) && is_array( $params['one_of_role_unit'] ) )
                 {
-                    if( ($one_of_role = $roles_model->get_roles_ids_for_roles_units_list( $params['one_of_role_unit'] ))
-                     && is_array( $one_of_role ) )
+                    if( ($one_of_role = $roles_model->get_roles_ids_for_roles_units_list( $params['one_of_role_unit'] )) )
                     {
-                        if( empty( $params['one_of_role'] ) || !is_array( $params['one_of_role'] ) )
+                        if( empty( $params['one_of_role'] ) || !is_array( $params['one_of_role'] ) ) {
                             $params['one_of_role'] = $one_of_role;
-
-                        else
-                            $params['one_of_role'] = array_merge( $params['one_of_role'], $one_of_role );
+                        } else {
+                            $params['one_of_role'] = array_merge($params['one_of_role'], $one_of_role);
+                        }
                     }
                 }
 
@@ -2681,12 +2689,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !($users_count = @mysqli_num_rows( $qid )) )
+        if( !($users_count = db_num_rows( $qid, $flow_params['db_connection'] )) ) {
             return true;
+        }
 
         PHS_Logger::notice( 'Converting passwords from md5 to sha256 for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
-        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($users_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             if( empty( $users_arr['pass_clear'] )
              || !($pass_clear = PHS_Crypt::quick_decode( $users_arr['pass_clear'] )) )
@@ -2751,12 +2760,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( !($users_count = @mysqli_num_rows( $qid )) )
+        if( !($users_count = db_num_rows( $qid, $flow_params['db_connection'] )) ) {
             return true;
+        }
 
         PHS_Logger::notice( 'Converting passwords salts for '.$users_count.' accounts...', PHS_Logger::TYPE_MAINTENANCE );
 
-        while( ($users_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($users_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
         {
             // Already converted...
             if( empty( $users_arr['pass_salt'] ) ) {

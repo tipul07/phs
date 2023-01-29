@@ -39,7 +39,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts_details $_accounts_details_model */
     private $_accounts_details_model = false;
 
-    private function _load_dependencies()
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -1369,11 +1369,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function export_account_ids_to_array( array $account_ids = [] ): array
     {
-        if( !($qid = $this->_get_accounts_qid( $account_ids )) )
+        if( !($qid = $this->_get_accounts_qid( $account_ids )) ) {
             return [];
+        }
 
+        $db_connection = $this->_accounts_model->get_db_connection( [ 'table_name' => 'users' ] );
         $return_arr = $this->default_export_accounts_wrapper();
-        while( ($db_account_arr = @mysqli_fetch_assoc( $qid )) )
+        while( ($db_account_arr = @db_fetch_assoc( $qid, $db_connection )) )
         {
             if( !($account_arr = $this->populate_export_data_from_account_array( $db_account_arr )) ) {
                 continue;
@@ -1504,47 +1506,43 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     }
 
     /**
-     * @param $account_ids
+     * @param  array  $account_ids
      *
-     * @return false|\mysqli_result
+     * @return null|mixed
      */
-    private function _get_accounts_qid( $account_ids = [] )
+    private function _get_accounts_qid( array $account_ids = [] )
     {
-        if( !$this->_load_dependencies() )
-            return false;
+        if( !$this->_load_dependencies() ) {
+            return null;
+        }
 
         $accounts_model = $this->_accounts_model;
 
-        if( empty( $account_ids ) || !is_array( $account_ids ) )
+        if( empty( $account_ids ) || !is_array( $account_ids ) ) {
             $account_ids = [];
-
-        $new_accounts_ids = [];
-        foreach( $account_ids as $account_id )
-        {
-            $account_id = (int)$account_id;
-            if( empty( $account_id ) )
-                continue;
-
-            $new_accounts_ids[] = $account_id;
+            $new_accounts_ids = [];
+        } else {
+            $new_accounts_ids = self::extract_integers_from_array($account_ids);
         }
 
         if( !($uflow_arr = $accounts_model->fetch_default_flow_params( [ 'table_name' => 'users' ] )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying accounts for export.' ) );
-            return false;
+            return null;
         }
 
         $list_arr = $uflow_arr;
         $list_arr['get_query_id'] = true;
-        if( !empty( $new_accounts_ids ) )
-            $list_arr['fields']['id'] = [ 'check' => 'IN', 'value' => '('.implode( ',', $new_accounts_ids ).')' ];
+        if( !empty( $new_accounts_ids ) ) {
+            $list_arr['fields']['id'] = ['check' => 'IN', 'value' => '('.implode(',', $new_accounts_ids).')'];
+        }
         $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => $accounts_model::STATUS_DELETED ];
         $list_arr['flags'] = [ 'include_account_details' ];
 
         if( !($qid = $accounts_model->get_list( $list_arr )) )
         {
             $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error querying accounts for export.' ) );
-            return false;
+            return null;
         }
 
         return $qid;

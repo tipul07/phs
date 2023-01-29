@@ -190,29 +190,33 @@ $mysql_settings['charset'] = PHS_DB_CHARSET;
 $mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
 // Check if we are in cli mode, or we are in update script...
-if( (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
-     || (defined( 'PHS_INSTALLING_FLOW' ) && constant( 'PHS_INSTALLING_FLOW' ))
-    )
- && defined( 'PHS_MAINTENANCE_DB_USERNAME' )
+if( defined( 'PHS_MAINTENANCE_DB_USERNAME' )
  && ($maintenance_db_user = constant( 'PHS_MAINTENANCE_DB_USERNAME' ))
  // make sure we don't have the placeholder from main.dist.php
- && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}' ) {
+ && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}'
+ && (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
+     || (defined( 'PHS_INSTALLING_FLOW' ) && constant( 'PHS_INSTALLING_FLOW' ))
+    )
+) {
     $mysql_settings['user'] = $maintenance_db_user;
     $mysql_settings['password'] = constant( 'PHS_MAINTENANCE_DB_PASSWORD' ) ?? '';
 }
 
 $mysql_settings['driver_settings'] = [];
-if( defined( 'PHS_DB_DRIVER_SETTINGS' ) )
-    $mysql_settings['driver_settings'] = constant( 'PHS_DB_DRIVER_SETTINGS' );
+if( defined( 'PHS_DB_DRIVER_SETTINGS' ) ) {
+    $mysql_settings['driver_settings'] = constant('PHS_DB_DRIVER_SETTINGS');
+}
 
 if( !empty( $mysql_settings['driver_settings'] ) )
 {
-    if( is_string( $mysql_settings['driver_settings'] ) )
-        $mysql_settings['driver_settings'] = @json_decode( $mysql_settings['driver_settings'], true );
+    if( is_string( $mysql_settings['driver_settings'] ) ) {
+        $mysql_settings['driver_settings'] = @json_decode($mysql_settings['driver_settings'], true);
+    }
 }
 
-if( !is_array( $mysql_settings['driver_settings'] ) )
+if( !is_array( $mysql_settings['driver_settings'] ) ) {
     $mysql_settings['driver_settings'] = [];
+}
 
 define( 'PHS_DB_DEFAULT_CONNECTION', 'db_default' );
 
@@ -255,8 +259,7 @@ if( defined( 'PHS_IN_WEB_UPDATE_SCRIPT' ) && defined( 'PHS_INSTALLING_FLOW' )
 
 //
 // Init database settings
-// We don't create a connection with database server yet, we just instantiate database objects and
-// validate database settings
+// We don't create a connection with database server yet
 //
 include_once( PHS_SYSTEM_DIR.'database_init.php' );
 //
@@ -269,8 +272,9 @@ define( 'PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT!==''?':':'').PHS_S
 define( 'PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW );
 define( 'PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW );
 
-if( !($base_url = PHS::get_base_url()) )
+if( !($base_url = PHS::get_base_url()) ) {
     $base_url = '/';
+}
 
 define( 'PHS_SETUP_WWW', $base_url.'_setup/' );
 define( 'PHS_PLUGINS_WWW', $base_url.'plugins/' );
@@ -295,8 +299,9 @@ include_once( PHS_SYSTEM_DIR.'languages_init.php' );
 if( !($plugins_model = PHS::load_model( 'plugins' )) )
 {
     echo PHS::_t( 'ERROR Instantiating plugins model.' )."\n";
-    if( PHS::st_debugging_mode() )
-        PHS::var_dump( PHS::st_get_error(), [ 'max_level' => 5 ] );
+    if( PHS::st_debugging_mode() ) {
+        PHS::var_dump(PHS::st_get_error(), ['max_level' => 5]);
+    }
     exit;
 }
 
@@ -313,8 +318,9 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
             echo PHS::_t( 'ERROR Connecting to database. Please check your database connection settings.' );
 
             if( PHS::arr_has_error( $plugins_model_err )
-             && PHS::st_debugging_mode() )
-                PHS::var_dump( $plugins_model_err, [ 'max_level' => 5 ] );
+             && PHS::st_debugging_mode() ) {
+                PHS::var_dump($plugins_model_err, ['max_level' => 5]);
+            }
             exit;
         }
 
@@ -324,13 +330,15 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
     if( empty( $active_plugins )
      && !$plugins_model->check_table_exists( [ 'table_name' => 'plugins' ] ) )
     {
-        if( !@is_dir( PHS_SETUP_DIR ) )
+        if( !@is_dir( PHS_SETUP_DIR ) ) {
             echo 'It seems you didn\'t run yet install script.';
+        }
 
         // If we have a main.php script it means platform was setup before
         // Don't redirect to setup script
-        elseif( !@is_file( PHS_PATH.'main.php' ) )
+        elseif( !@is_file( PHS_PATH.'main.php' ) ) {
             echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_update in CLI.';
+        }
 
         else
         {
@@ -342,8 +350,9 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
     }
 } else
 {
-    if( !($active_plugins = $plugins_model->get_all_plugins()) )
+    if( !($active_plugins = $plugins_model->get_all_plugins()) ) {
         $active_plugins = [];
+    }
 
     echo 'Checking plugins module installation... ';
 
@@ -360,22 +369,26 @@ if( !defined( 'PHS_INSTALLING_FLOW' ) || !constant( 'PHS_INSTALLING_FLOW' ) )
 $bootstrap_scripts = [];
 $bootstrap_scripts_numbers = [ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 ];
 // Make sure we have the right order for keys in array
-foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
+foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i ) {
     $bootstrap_scripts[$bootstrap_scripts_number_i] = [];
+}
 
 foreach( $active_plugins as $plugin_name => $plugin_db_arr )
 {
     foreach( $bootstrap_scripts_numbers as $bootstrap_scripts_number_i )
     {
-        if( @file_exists( PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php' ) )
-            $bootstrap_scripts[$bootstrap_scripts_number_i][] = PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php';
+        if( @file_exists( PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php' ) ) {
+            $bootstrap_scripts[$bootstrap_scripts_number_i][] =
+                PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php';
+        }
     }
 }
 
 foreach( $bootstrap_scripts as $bootstrap_scripts_number_i => $bootstrap_scripts_arr )
 {
-    if( empty( $bootstrap_scripts_arr ) || !is_array( $bootstrap_scripts_arr ) )
+    if( empty( $bootstrap_scripts_arr ) || !is_array( $bootstrap_scripts_arr ) ) {
         continue;
+    }
 
     foreach( $bootstrap_scripts_arr as $bootstrap_script )
     {

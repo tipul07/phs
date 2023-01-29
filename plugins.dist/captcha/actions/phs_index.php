@@ -51,7 +51,7 @@ class PHS_Action_Index extends PHS_Action
         }
 
         if( empty( $params['font'] )
-         or !($font_file = $plugin_instance->get_font_full_path( $params['font'] )) )
+         || !($font_file = $plugin_instance->get_font_full_path( $params['font'] )) )
         {
             echo $this->_pt( 'Font couldn\'t be found.' );
             exit;
@@ -60,7 +60,7 @@ class PHS_Action_Index extends PHS_Action
         if( ($cimage_code = PHS_Session::_g( $plugin_instance::SESSION_VAR )) === null )
             $cimage_code = '';
 
-        $library_params = array();
+        $library_params = [];
         $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
         $library_params['init_params'] = array(
             'cnumbers' => $params['characters_count'],

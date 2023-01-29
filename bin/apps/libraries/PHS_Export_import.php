@@ -448,8 +448,9 @@ trait PHS_Export_import
         {
             if( false === ($imported_symlinks_arr = $this->_do_platform_import_action_for_plugin_symlinks( $import_arr['plugins']['symlinks'], $action_json_arr['only_plugins'] )) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error importing symlinks from import file.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_PARAMETERS, self::_t('Error importing symlinks from import file.'));
+                }
                 return false;
             }
         }
@@ -462,8 +463,10 @@ trait PHS_Export_import
         {
             if( false === $this->_do_platform_import_settings_for_plugins( $import_arr['plugins']['settings'], $action_json_arr['crypt_key'], $plugin_names ) )
             {
-                if( !$this->has_error() )
-                    $this->set_error( self::ERR_PARAMETERS, self::_t( 'Error importing plugin settings from import file.' ) );
+                if( !$this->has_error() ) {
+                    $this->set_error(self::ERR_PARAMETERS,
+                        self::_t('Error importing plugin settings from import file.'));
+                }
                 return false;
             }
         }
@@ -481,8 +484,9 @@ trait PHS_Export_import
     {
         $this->reset_error();
 
-        if( empty( $only_plugins ) || !is_array( $only_plugins ) )
+        if( empty( $only_plugins ) || !is_array( $only_plugins ) ) {
             $only_plugins = [];
+        }
 
         if( empty( $symlinks ) || !is_array( $symlinks ) )
         {
@@ -496,8 +500,9 @@ trait PHS_Export_import
         foreach( $symlinks as $plugin_name => $symlink )
         {
             if( !empty( $only_plugins )
-             && in_array( $plugin_name, $only_plugins, true ) )
+             && in_array( $plugin_name, $only_plugins, true ) ) {
                 continue;
+            }
 
             if( ($repo_dir = @dirname( $symlink ))
              && PHS_Maintenance::plugin_is_symlinked_with_repo( $plugin_name, $repo_dir ) )
