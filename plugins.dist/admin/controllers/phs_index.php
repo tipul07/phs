@@ -1,9 +1,8 @@
 <?php
-
 namespace phs\plugins\admin\controllers;
 
-use \phs\PHS;
-use \phs\libraries\PHS_Notifications;
+use phs\PHS;
+use phs\libraries\PHS_Notifications;
 
 class PHS_Controller_Index extends \phs\libraries\PHS_Controller_Admin
 {
@@ -14,24 +13,23 @@ class PHS_Controller_Index extends \phs\libraries\PHS_Controller_Admin
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    protected function _execute_action( $action, $plugin = null, $action_dir = '' )
+    protected function _execute_action($action, $plugin = null, $action_dir = '')
     {
-        $this->is_admin_controller( true );
+        $this->is_admin_controller(true);
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-        {
-            $this->set_error( self::ERR_RUN_ACTION, $this->_pt( 'Error loading accounts model.' ) );
+        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+            $this->set_error(self::ERR_RUN_ACTION, $this->_pt('Error loading accounts model.'));
+
             return false;
         }
 
-        if( !$accounts_model->acc_is_operator( PHS::user_logged_in() ) )
-        {
-            PHS_Notifications::add_warning_notice( $this->_pt( 'You don\'t have enough rights to access this section...' ) );
+        if (!$accounts_model->acc_is_operator(PHS::user_logged_in())) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have enough rights to access this section...'));
 
             return $this->execute_foobar_action();
         }
 
-        return parent::_execute_action( $action, $plugin, $action_dir );
+        return parent::_execute_action($action, $plugin, $action_dir);
     }
 }

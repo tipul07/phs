@@ -1,5 +1,5 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 ?>
 <script id="PHS_RActive_autocomplete_inputs" type="text/html">
 {{ # !hide_component }}
@@ -35,8 +35,8 @@
         {{ / }}
         </div>
         <div class="phs_ractive_autocomplete_status">
-            <?php echo $this->_pt( '%s results', '{{total_items_count}}' )?>
-            <a href="javascript:void(0)" on-click="@.hide_filtered_items()"><?php echo $this->_pt( 'Close' )?></a>
+            <?php echo $this->_pt('%s results', '{{total_items_count}}'); ?>
+            <a href="javascript:void(0)" on-click="@.hide_filtered_items()"><?php echo $this->_pt('Close'); ?></a>
         </div>
         </div>
     {{ / }}

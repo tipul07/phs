@@ -1,8 +1,7 @@
 <?php
-
 namespace phs\libraries;
 
-//! @version 1.33
+// ! @version 1.33
 
 class PHS_Encdec extends PHS_Language
 {
@@ -46,15 +45,21 @@ class PHS_Encdec extends PHS_Language
         'a3f60905c42e9bebb39a671ad5cef5d0',
     ];
 
-    private $internal_keys_count, $internal_keys_len;
-    private $private_key, $encoded_private_key, $encoded_private_key_len;
+    private $internal_keys_count,
+
+    $internal_keys_len;
+
+    private $private_key,
+
+    $encoded_private_key,
+
+    $encoded_private_key_len;
 
     /**
      *  If strings passed to this class are multi-byte strings use base64 encoding to preserve them as multi-byte strings...
      *
-     * @var       $use_base64_encode
+     * @var
      * @since     0.3
-     * @access    private
      */
     private $use_base64_encode;
 
@@ -63,33 +68,33 @@ class PHS_Encdec extends PHS_Language
      * @param bool $use_base64
      * @param false|array $internal_keys
      */
-    public function __construct( $priv_key, $use_base64 = true, $internal_keys = false )
+    public function __construct($priv_key, $use_base64 = true, $internal_keys = false)
     {
         parent::__construct();
 
-        if( !is_string( $priv_key )
-         || $priv_key === '' )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Private key is empty.' ) );
+        if (!is_string($priv_key)
+         || $priv_key === '') {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Private key is empty.'));
+
             return;
         }
 
-        if( $internal_keys !== false && is_array( $internal_keys ) )
-        {
-            if( !$this->set_internal_keys( $internal_keys ) )
-            {
-                $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid internal keys.' ) );
+        if ($internal_keys !== false && is_array($internal_keys)) {
+            if (!$this->set_internal_keys($internal_keys)) {
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid internal keys.'));
+
                 return;
             }
         }
 
         // Force error if no internal keys are provided
-        elseif( $this->_check_internal_keys() === false )
+        elseif ($this->_check_internal_keys() === false) {
             return;
+        }
 
         $this->private_key = $priv_key;
-        $this->encoded_private_key = strtoupper( md5( $priv_key ) ); // upper chars have ord values lower (F = 70)
-        $this->encoded_private_key_len = strlen( $this->encoded_private_key );
+        $this->encoded_private_key = strtoupper(md5($priv_key)); // upper chars have ord values lower (F = 70)
+        $this->encoded_private_key_len = strlen($this->encoded_private_key);
         $this->use_base64_encode = $use_base64;
     }
 
@@ -98,16 +103,183 @@ class PHS_Encdec extends PHS_Language
      *
      * @return bool
      */
-    public function set_internal_keys( $keys_array )
+    public function set_internal_keys($keys_array)
     {
-        if( !is_array( $keys_array ) )
+        if (!is_array($keys_array)) {
             return false;
+        }
 
         $this->internal_keys = $keys_array;
-        $this->internal_keys_count = count( $this->internal_keys );
+        $this->internal_keys_count = count($this->internal_keys);
 
         return $this->_check_internal_keys();
+    }
 
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    public function encrypt($str)
+    {
+        if (!is_scalar($str)
+         || $this->has_error()) {
+            return '';
+        }
+
+        if (!is_string($str)) {
+            $str = (string)$str;
+        }
+
+        if ($this->use_base64_encode !== false
+         && $str !== '') {
+            $str = @base64_encode($str);
+        }
+
+        if (!($len = strlen($str))) {
+            return '';
+        }
+
+        // create 'header' of encryption string
+        $internal_key_index = mt_rand(0, $this->internal_keys_count - 1);
+        $internal_key = strtoupper($this->internal_keys[$internal_key_index]);
+        $encrypted_str = base_convert($internal_key_index, 10, 35);
+
+        $offset = 32;
+        $chars_replace = [];
+        $translation_arr = [];
+        for ($i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++) {
+            // make sure we generate unique pairs...
+            $unique_id = 0;
+            do {
+                $ch_privatei = 0;
+                if (isset($this->encoded_private_key[$privatei])) {
+                    $ch_privatei = ord($this->encoded_private_key[$privatei]);
+                }
+                $ch_internali = 0;
+                if (isset($internal_key[$internali])) {
+                    $ch_internali = ord($internal_key[$internali]);
+                }
+
+                //                  max 94    +  max 70      +        max 70       => max 234
+                $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
+                $repl_str_code = (string)base_convert($repl_str_code, 10, 35);
+                if (strlen($repl_str_code) < 2) {
+                    $repl_str_code = '0'.$repl_str_code;
+                }
+
+                $unique_id++;
+            } while (in_array($repl_str_code, $translation_arr, true));
+
+            $translation_arr[] = $repl_str_code;
+            $chars_replace[] = chr($i);
+
+            if ($privatei === 0) {
+                $privatei = $this->encoded_private_key_len;
+            }
+
+            if ($internali === $this->internal_keys_len - 1) {
+                $internali = -1;
+            }
+        }
+
+        for ($i = 0; $i < $len; $i++) {
+            $pos_ch = (ord($str[$i]) - 32) + $i;
+            if ($pos_ch > 94) {
+                $pos_ch = $pos_ch % 95;
+            }
+
+            $encrypted_str .= $translation_arr[$pos_ch];
+        }
+
+        return strtoupper($encrypted_str);
+    }
+
+    /**
+     * @param string $decstr
+     *
+     * @return string
+     */
+    public function decrypt($decstr)
+    {
+        if ($this->has_error()) {
+            return $decstr;
+        }
+
+        $str = strtolower($decstr);
+        $str_len = strlen($str);
+        if (!$str_len) {
+            return '';
+        }
+
+        // decode 'header' of encryption string
+        $internal_key_index = (int)@base_convert($str[0], 35, 10);
+        if (!isset($this->internal_keys[$internal_key_index])) {
+            return $decstr;
+        }
+        $internal_key = strtoupper($this->internal_keys[$internal_key_index]);
+
+        $offset = 32;
+        $chars_replace = [];
+        $translation_arr = [];
+        for ($i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++) {
+            // make sure we generate unique pairs...
+            $unique_id = 0;
+            do {
+                $ch_privatei = 0;
+                if (isset($this->encoded_private_key[$privatei])) {
+                    $ch_privatei = ord($this->encoded_private_key[$privatei]);
+                }
+                $ch_internali = 0;
+                if (isset($internal_key[$internali])) {
+                    $ch_internali = ord($internal_key[$internali]);
+                }
+
+                //                     max 94 +     max 70   +    max 70       => max 234
+                $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
+                $repl_str_code = (string)base_convert($repl_str_code, 10, 35);
+                if (strlen($repl_str_code) < 2) {
+                    $repl_str_code = '0'.$repl_str_code;
+                }
+
+                $unique_id++;
+            } while (in_array($repl_str_code, $translation_arr, true));
+
+            $translation_arr[] = $repl_str_code;
+            $chars_replace[] = chr($i);
+
+            if ($privatei === 0) {
+                $privatei = $this->encoded_private_key_len;
+            }
+
+            if ($internali === $this->internal_keys_len - 1) {
+                $internali = -1;
+            }
+        }
+
+        $decoded_txt = '';
+        for ($i = 1, $knti = 0; $i < $str_len; $i += 2, $knti++) {
+            $str_check = substr($str, $i, 2);
+            if (($key_found_pos = array_search($str_check, $translation_arr, true)) === false) {
+                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t decode the string.'));
+
+                return $decstr;
+            }
+
+            if (($neg_val = ($key_found_pos - $knti)) < 0) {
+                $key_pos = 95 - (abs($neg_val) % 95);
+            } else {
+                $key_pos = $key_found_pos - $knti;
+            }
+
+            $decoded_txt .= $chars_replace[$key_pos];
+        }
+
+        if ($this->use_base64_encode !== false) {
+            $decoded_txt = @base64_decode($decoded_txt);
+        }
+
+        return $decoded_txt;
     }
 
     /**
@@ -117,188 +289,30 @@ class PHS_Encdec extends PHS_Language
     {
         $this->reset_error();
 
-        if( empty( $this->internal_keys ) || !is_array( $this->internal_keys ) || !isset( $this->internal_keys[0] ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Internal keys array is invalid!' ) );
+        if (empty($this->internal_keys) || !is_array($this->internal_keys) || !isset($this->internal_keys[0])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Internal keys array is invalid!'));
+
             return false;
         }
 
-        $this->internal_keys_count = count( $this->internal_keys );
-        $this->internal_keys_len = strlen( $this->internal_keys[0] );
+        $this->internal_keys_count = count($this->internal_keys);
+        $this->internal_keys_len = strlen($this->internal_keys[0]);
 
-        if( !$this->internal_keys_count || !$this->internal_keys_len
-         || $this->internal_keys_count > 35 )
-        {
-            $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
+        if (!$this->internal_keys_count || !$this->internal_keys_len
+         || $this->internal_keys_count > 35) {
+            $this->set_error(self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.');
+
             return false;
         }
 
-        foreach( $this->internal_keys as $key )
-        {
-            if( strlen( $key ) !== $this->internal_keys_len )
-            {
-                $this->set_error( self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.' );
+        foreach ($this->internal_keys as $key) {
+            if (strlen($key) !== $this->internal_keys_len) {
+                $this->set_error(self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.');
+
                 return false;
             }
         }
 
         return true;
     }
-
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    public function encrypt( $str )
-    {
-        if( !is_scalar( $str )
-         || $this->has_error() )
-            return '';
-
-        if( !is_string( $str ) )
-            $str = (string)$str;
-
-        if( $this->use_base64_encode !== false
-         && $str !== '' )
-            $str = @base64_encode( $str );
-
-        if( !($len = strlen( $str )) )
-            return '';
-
-        // create 'header' of encryption string
-        $internal_key_index = mt_rand( 0, $this->internal_keys_count-1 );
-        $internal_key = strtoupper( $this->internal_keys[$internal_key_index] );
-        $encrypted_str = base_convert( $internal_key_index, 10, 35 );
-
-        $offset = 32;
-        $chars_replace = [];
-        $translation_arr = [];
-        for( $i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++ )
-        {
-            // make sure we generate unique pairs...
-            $unique_id = 0;
-            do
-            {
-                $ch_privatei = 0;
-                if( isset( $this->encoded_private_key[$privatei] ) )
-                    $ch_privatei = ord( $this->encoded_private_key[$privatei] );
-                $ch_internali = 0;
-                if( isset( $internal_key[$internali] ) )
-                    $ch_internali = ord( $internal_key[$internali] );
-
-                //                  max 94    +  max 70      +        max 70       => max 234
-                $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
-                $repl_str_code = (string)base_convert( $repl_str_code, 10, 35 );
-                if( strlen( $repl_str_code ) < 2 )
-                    $repl_str_code = '0'.$repl_str_code;
-
-                $unique_id++;
-            } while( in_array( $repl_str_code, $translation_arr, true ) );
-
-            $translation_arr[] = $repl_str_code;
-            $chars_replace[] = chr( $i );
-
-            if( $privatei === 0 )
-                $privatei = $this->encoded_private_key_len;
-
-            if( $internali === $this->internal_keys_len-1 )
-                $internali = -1;
-        }
-
-        for( $i = 0; $i < $len; $i++ )
-        {
-            $pos_ch = (ord( $str[$i] ) - 32) + $i;
-            if( $pos_ch > 94 )
-                $pos_ch = $pos_ch % 95;
-
-            $encrypted_str .= $translation_arr[$pos_ch];
-        }
-
-        return strtoupper( $encrypted_str );
-    }
-
-    /**
-     * @param string $decstr
-     *
-     * @return string
-     */
-    public function decrypt( $decstr )
-    {
-        if( $this->has_error() )
-            return $decstr;
-
-        $str = strtolower( $decstr );
-        $str_len = strlen( $str );
-        if( !$str_len )
-            return '';
-
-        // decode 'header' of encryption string
-        $internal_key_index = (int)@base_convert( $str[0], 35, 10 );
-        if( !isset( $this->internal_keys[$internal_key_index] ) )
-            return $decstr;
-        $internal_key = strtoupper( $this->internal_keys[$internal_key_index] );
-
-        $offset = 32;
-        $chars_replace = [];
-        $translation_arr = [];
-        for( $i = $offset, $privatei = $this->encoded_private_key_len - 1, $internali = 0; $i <= 126; $i++, $privatei--, $internali++ )
-        {
-            // make sure we generate unique pairs...
-            $unique_id = 0;
-            do
-            {
-                $ch_privatei = 0;
-                if( isset( $this->encoded_private_key[$privatei] ) )
-                    $ch_privatei = ord( $this->encoded_private_key[$privatei] );
-                $ch_internali = 0;
-                if( isset( $internal_key[$internali] ) )
-                    $ch_internali = ord( $internal_key[$internali] );
-
-                //                     max 94 +     max 70   +    max 70       => max 234
-                $repl_str_code = $i - $offset + $ch_privatei + $ch_internali + $unique_id;
-                $repl_str_code = (string)base_convert( $repl_str_code, 10, 35 );
-                if( strlen( $repl_str_code ) < 2 )
-                    $repl_str_code = '0'.$repl_str_code;
-
-                $unique_id++;
-            } while( in_array( $repl_str_code, $translation_arr, true ) );
-
-            $translation_arr[] = $repl_str_code;
-            $chars_replace[] = chr( $i );
-
-            if( $privatei === 0 )
-                $privatei = $this->encoded_private_key_len;
-
-            if( $internali === $this->internal_keys_len-1 )
-                $internali = -1;
-        }
-
-        $decoded_txt = '';
-        for( $i = 1, $knti = 0; $i < $str_len; $i += 2, $knti++ )
-        {
-            $str_check = substr( $str, $i, 2 );
-            if( ($key_found_pos = array_search( $str_check, $translation_arr, true )) === false )
-            {
-                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t decode the string.' ) );
-                return $decstr;
-            }
-
-            if( ($neg_val = ($key_found_pos - $knti)) < 0 )
-            {
-                $key_pos = 95 - (abs( $neg_val ) % 95);
-            } else
-            {
-                $key_pos = $key_found_pos - $knti;
-            }
-
-            $decoded_txt .= $chars_replace[$key_pos];
-        }
-
-        if( $this->use_base64_encode !== false )
-            $decoded_txt = @base64_decode( $decoded_txt );
-
-        return $decoded_txt;
-    }
 }
-

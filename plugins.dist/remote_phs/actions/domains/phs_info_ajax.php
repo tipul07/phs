@@ -1,22 +1,21 @@
 <?php
-
 namespace phs\plugins\remote_phs\actions\domains;
 
-use \phs\PHS;
-use \phs\PHS_bg_jobs;
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_line_params;
-use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_params;
-use \phs\libraries\PHS_Notifications;
-use \phs\libraries\PHS_Roles;
-use \phs\libraries\PHS_Hooks;
+use phs\PHS;
+use phs\PHS_Scope;
+use phs\PHS_bg_jobs;
+use phs\libraries\PHS_Hooks;
+use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Action;
+use phs\libraries\PHS_params;
+use phs\libraries\PHS_line_params;
+use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Info_ajax extends PHS_Action
 {
     public function allowed_scopes()
     {
-        return [ PHS_Scope::SCOPE_AJAX ];
+        return [PHS_Scope::SCOPE_AJAX];
     }
 
     /**
@@ -24,11 +23,10 @@ class PHS_Action_Info_ajax extends PHS_Action
      */
     public function execute()
     {
-        PHS::page_settings( 'page_title', $this->_pt( 'Ping Remote Domain' ) );
+        PHS::page_settings('page_title', $this->_pt('Ping Remote Domain'));
 
-        if( !($current_user = PHS::user_logged_in()) )
-        {
-            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
+        if (!($current_user = PHS::user_logged_in())) {
+            PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             $action_result = self::default_action_result();
 
@@ -39,76 +37,73 @@ class PHS_Action_Info_ajax extends PHS_Action
 
         /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
         /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
-        if( !($remote_plugin = PHS::load_plugin( 'remote_phs' ))
-         || !($domains_model = PHS::load_model( 'phs_remote_domains', 'remote_phs' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Couldn\'t load required resources.' ) );
+        if (!($remote_plugin = PHS::load_plugin('remote_phs'))
+         || !($domains_model = PHS::load_model('phs_remote_domains', 'remote_phs'))) {
+            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load required resources.'));
+
             return self::default_action_result();
         }
 
-        if( !$remote_plugin->can_admin_list_domains( $current_user ) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to ping remote domains.' ) );
+        if (!$remote_plugin->can_admin_list_domains($current_user)) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to ping remote domains.'));
+
             return self::default_action_result();
         }
 
-        $domain_id = PHS_params::_gp( 'domain_id', PHS_params::T_INT );
-        $do_ping = PHS_params::_gp( 'do_ping', PHS_params::T_INT );
+        $domain_id = PHS_params::_gp('domain_id', PHS_params::T_INT);
+        $do_ping = PHS_params::_gp('do_ping', PHS_params::T_INT);
 
-        if( empty( $domain_id )
-         || !($domain_arr = $domains_model->get_details( $domain_id, [ 'table_name' => 'phs_remote_domains' ] ))
-         || $domains_model->is_deleted( $domain_arr ) )
-        {
-            PHS_Notifications::add_warning_notice( $this->_pt( 'Remote domain is not connected.' ) );
+        if (empty($domain_id)
+         || !($domain_arr = $domains_model->get_details($domain_id, ['table_name' => 'phs_remote_domains']))
+         || $domains_model->is_deleted($domain_arr)) {
+            PHS_Notifications::add_warning_notice($this->_pt('Remote domain is not connected.'));
+
             return self::default_action_result();
         }
 
         $ping_result = false;
-        if( !empty( $do_ping ) )
-        {
-            if( !$remote_plugin->can_admin_ping_domains( $current_user ) )
-            {
-                PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to ping remote domains.' ) );
+        if (!empty($do_ping)) {
+            if (!$remote_plugin->can_admin_ping_domains($current_user)) {
+                PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to ping remote domains.'));
+
                 return self::default_action_result();
             }
 
             $ping_result = [
                 'has_error' => false,
                 'error_msg' => false,
-                'timezone' => false,
-                'result' => [],
+                'timezone'  => false,
+                'result'    => [],
             ];
 
             $msg = [
-                'route' => [ 'p' => 'remote_phs', 'c' => 'remote', 'a' => 'ping', 'ad' => 'remote' ]
+                'route' => ['p' => 'remote_phs', 'c' => 'remote', 'a' => 'ping', 'ad' => 'remote'],
             ];
 
-            if( !($response_arr = $domains_model->send_request_to_domain( $domain_arr, $msg ))
-             || !is_array( $response_arr ) )
-            {
+            if (!($response_arr = $domains_model->send_request_to_domain($domain_arr, $msg))
+             || !is_array($response_arr)) {
                 // Communication error...
-                $error_msg = $this->_pt( 'Error sending ping request to remote domain.' ).' ';
-                if( !$domains_model->has_error() )
-                    $error_msg .= $this->_pt( 'Unknown error.' );
-                else
+                $error_msg = $this->_pt('Error sending ping request to remote domain.').' ';
+                if (!$domains_model->has_error()) {
+                    $error_msg .= $this->_pt('Unknown error.');
+                } else {
                     $error_msg .= $domains_model->get_simple_error_message();
+                }
 
                 $ping_result['has_error'] = true;
                 $ping_result['error_msg'] = $error_msg;
-            } else
-            {
+            } else {
                 // Logical error in remote action
-                $ping_result['has_error'] = (!empty( $response_arr['has_error'] ));
+                $ping_result['has_error'] = (!empty($response_arr['has_error']));
 
-                if( !empty( $response_arr['has_error'] ) )
-                {
-                    $ping_result['error_msg'] = $this->_pt( 'Error received from remote action: %s',
-                                                                (isset( $response_arr['error_code'] )?'['.$response_arr['error_code'].'] ':'').
-                                                                (isset( $response_arr['error_msg'] )?$response_arr['error_msg']:$this->_pt( 'N/A' )) );
-                } elseif( !empty( $response_arr['json_arr'] ) && is_array( $response_arr['json_arr'] ) )
-                {
-                    if( isset( $response_arr['json_arr']['timezone'] ) )
+                if (!empty($response_arr['has_error'])) {
+                    $ping_result['error_msg'] = $this->_pt('Error received from remote action: %s',
+                        (isset($response_arr['error_code']) ? '['.$response_arr['error_code'].'] ' : '')
+                        .($response_arr['error_msg'] ?? $this->_pt('N/A')));
+                } elseif (!empty($response_arr['json_arr']) && is_array($response_arr['json_arr'])) {
+                    if (isset($response_arr['json_arr']['timezone'])) {
                         $ping_result['timezone'] = (int)$response_arr['json_arr']['timezone'];
+                    }
 
                     $ping_result['result'] = $response_arr['json_arr']['response'];
                 }
@@ -118,12 +113,12 @@ class PHS_Action_Info_ajax extends PHS_Action
         $data = [
             'domain_arr' => $domain_arr,
 
-            'do_ping' => $do_ping,
+            'do_ping'     => $do_ping,
             'ping_result' => $ping_result,
 
             'domains_model' => $domains_model,
         ];
 
-        return $this->quick_render_template( 'domains/info', $data );
+        return $this->quick_render_template('domains/info', $data);
     }
 }

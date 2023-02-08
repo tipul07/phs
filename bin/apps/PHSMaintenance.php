@@ -1,622 +1,294 @@
 <?php
-
 namespace phs\cli\apps;
 
-include_once( PHS_CORE_DIR.'phs_cli_plugins_trait.php' );
-include_once( PHS_CLI_APPS_LIBRARIES_DIR.'PHS_Export_import.php' );
+include_once PHS_CORE_DIR.'phs_cli_plugins_trait.php';
+include_once PHS_CLI_APPS_LIBRARIES_DIR.'PHS_Export_import.php';
 
-use \phs\PHS;
-use \phs\PHS_Db;
-use \phs\PHS_Maintenance;
-use \phs\PHS_Cli;
-use \phs\libraries\PHS_Utils;
-use \phs\libraries\PHS_Instantiable;
-use \phs\traits\PHS_Cli_plugins_trait;
-use \phs\cli\apps\libraries\PHS_Export_import;
+use phs\PHS;
+use phs\PHS_Db;
+use phs\PHS_Cli;
+use phs\PHS_Maintenance;
+use phs\libraries\PHS_Utils;
+use phs\libraries\PHS_Instantiable;
+use phs\traits\PHS_Cli_plugins_trait;
+use phs\cli\apps\libraries\PHS_Export_import;
 
 class PHSMaintenance extends PHS_Cli
 {
     use PHS_Cli_plugins_trait, PHS_Export_import;
 
     public const APP_NAME = 'PHSMaintenance',
-          APP_VERSION = '1.1.0',
-          APP_DESCRIPTION = 'Manage framework functionality and plugins.';
+    APP_VERSION = '1.1.0',
+    APP_DESCRIPTION = 'Manage framework functionality and plugins.';
 
-    public function get_app_dir(): string
+    public function get_app_dir() : string
     {
         return __DIR__.'/';
     }
+    //
+    // endregion Environment initialization
+    //
 
-    protected function _get_app_options_definition(): array
+    public function cli_maintenance_output($msg) : void
     {
-        return [];
+        $this->_echo($msg);
     }
 
-    protected function _get_app_commands_definition(): array
-    {
-        return [
-            'phs_setup' => [
-                'description' => 'Setup framework database. This is called first time to setup framework database.',
-                'callback' => null,
-            ],
-            'web_update' => [
-                'description' => 'Provides a framework update URL which can be used to update framework in a browser for one day.',
-                'callback' => [$this, 'cmd_web_update'],
-            ],
-            'update' => [
-                'description' => 'Check plugins database version against script version and update if required.',
-                'callback' => [$this, 'cmd_update'],
-            ],
-            'dry_update' => [
-                'description' => 'Export to SQL statements used to update database structure.',
-                'callback' => [$this, 'cmd_dry_update'],
-            ],
-            'plugins' => [
-                'description' => 'List available plugins',
-                'callback' => [$this, 'cmd_list_plugins'],
-            ],
-            'plugin' => [
-                'description' => 'Plugin management plugin [name] [action]. If no action is provided, display plugin details.',
-                'callback' => [$this, 'cmd_plugin_action'],
-            ],
-            'setup' => [
-                'description' => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
-                'callback' => [$this, 'cmd_setup_action'],
-            ],
-        ];
-    }
-
-    //
-    //region Environment initialization
-    //
-    protected function _init_app(): bool
+    public function cmd_plugin_action() : bool
     {
         $this->reset_error();
 
-        PHS_Maintenance::output_callback( [ $this, 'cli_maintenance_output' ] );
+        if (false === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
+            $this->_echo_error(self::_t('Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message()));
 
-        return true;
-    }
-    //
-    //endregion Environment initialization
-    //
-
-    public function cli_maintenance_output( $msg ): void
-    {
-        $this->_echo( $msg );
-    }
-
-    //
-    //region plugin action
-    //
-    private static function _get_plugin_command_actions(): array
-    {
-        return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'symlink', 'unlink'];
-    }
-
-    private static function _get_plugin_command_actions_with_valid_plugins(): array
-    {
-        return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'unlink'];
-    }
-
-    public function cmd_plugin_action(): bool
-    {
-        $this->reset_error();
-
-        if( false === ($plugins_dirs_arr = $this->get_plugins_as_dirs()) )
-        {
-            $this->_echo_error( self::_t( 'Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message() ) );
             return false;
         }
 
-        if( empty( $plugins_dirs_arr ) )
-        {
-            $this->_echo( self::_t( 'No plugin installed in plugins directory yet.' ) );
+        if (empty($plugins_dirs_arr)) {
+            $this->_echo(self::_t('No plugin installed in plugins directory yet.'));
+
             return false;
         }
 
-        if( !($command_arr = $this->get_app_command())
-         || empty( $command_arr['arguments'] )
-         || !($plugin_name = $this->_get_argument_chained( $command_arr['arguments'] ))
+        if (!($command_arr = $this->get_app_command())
+         || empty($command_arr['arguments'])
+         || !($plugin_name = $this->_get_argument_chained($command_arr['arguments']))
          || (($plugin_action = $this->_get_argument_chained())
-            && in_array( $plugin_action, self::_get_plugin_command_actions_with_valid_plugins(), true )
-            && !in_array( $plugin_name, $plugins_dirs_arr, true )
-            ) )
-        {
-            $this->_echo_error( self::_t( 'Please provide a valid plugin name. Use %s command to view all plugins that are setup.', $this->cli_color( 'plugins', 'green' ) ) );
+            && in_array($plugin_action, self::_get_plugin_command_actions_with_valid_plugins(), true)
+            && !in_array($plugin_name, $plugins_dirs_arr, true)
+         )) {
+            $this->_echo_error(self::_t('Please provide a valid plugin name. Use %s command to view all plugins that are setup.', $this->cli_color('plugins', 'green')));
 
-            $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] plugin [plugin] [action]' );
-            $this->_echo( 'Available actions: '.implode( ', ', self::_get_plugin_command_actions() ).'.' );
-            $this->_echo( 'If no action is provided, plugin details will be displayed.' );
+            $this->_echo('Usage: '.$this->get_app_cli_script().' [options] plugin [plugin] [action]');
+            $this->_echo('Available actions: '.implode(', ', self::_get_plugin_command_actions()).'.');
+            $this->_echo('If no action is provided, plugin details will be displayed.');
+
             return false;
         }
 
-        if( empty( $plugin_action ) ) {
+        if (empty($plugin_action)) {
             $plugin_action = '';
         }
 
-        if( empty( $plugin_action ) )
-        {
-            return $this->_echo_plugin_details( $plugin_name );
+        if (empty($plugin_action)) {
+            return $this->_echo_plugin_details($plugin_name);
         }
 
-        if( !in_array( $plugin_action, self::_get_plugin_command_actions(), true ) )
-        {
-            $this->_echo_error( self::_t( 'Invalid action.' ) );
+        if (!in_array($plugin_action, self::_get_plugin_command_actions(), true)) {
+            $this->_echo_error(self::_t('Invalid action.'));
 
-            $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] plugin [plugin_action]' );
-            $this->_echo( 'Available actions: '.implode( ', ', self::_get_plugin_command_actions() ).'.' );
+            $this->_echo('Usage: '.$this->get_app_cli_script().' [options] plugin [plugin_action]');
+            $this->_echo('Available actions: '.implode(', ', self::_get_plugin_command_actions()).'.');
+
             return false;
         }
 
-        switch( $plugin_action )
-        {
+        switch ($plugin_action) {
             case 'info':
-                return $this->_echo_plugin_details( $plugin_name );
-            break;
+                return $this->_echo_plugin_details($plugin_name);
+                break;
 
             case 'activate':
-                if( !($result_arr = $this->_activate_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_activate_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'ACTIVATED' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('ACTIVATED'), 'green')));
+                break;
 
             case 'inactivate':
-                if( !($result_arr = $this->_inactivate_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_inactivate_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'INACTIVATED' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('INACTIVATED'), 'green')));
+                break;
 
             case 'install':
-                if( !($result_arr = $this->_install_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_install_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'INSTALLED' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('INSTALLED'), 'green')));
+                break;
 
             case 'uninstall':
-                if( !($result_arr = $this->_uninstall_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_uninstall_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'UNINSTALLED' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('UNINSTALLED'), 'green')));
+                break;
 
             case 'symlink':
-                if( !($result_arr = $this->_symlink_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_symlink_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'SYMLINK' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('SYMLINK'), 'green')));
+                break;
 
             case 'unlink':
-                if( !($result_arr = $this->_unlink_plugin( $plugin_name )) )
-                {
-                    if( $this->has_error() ) {
+                if (!($result_arr = $this->_unlink_plugin($plugin_name))) {
+                    if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
 
                     return false;
                 }
 
-                $this->_echo( self::_t( 'Plugin %s %s with success.',
-                                        $this->cli_color( $plugin_name, 'white' ),
-                                        $this->cli_color( self::_t( 'UNLINK' ), 'green' ) ) );
-            break;
+                $this->_echo(self::_t('Plugin %s %s with success.',
+                    $this->cli_color($plugin_name, 'white'),
+                    $this->cli_color(self::_t('UNLINK'), 'green')));
+                break;
         }
 
         return true;
     }
 
-    private function _install_plugin( $plugin_name )
-    {
-        if( !($plugin_obj = PHS::load_plugin( $plugin_name )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error instantiating plugin.' ) );
-            return false;
-        }
-
-        if( $plugin_obj->plugin_is_installed() ) {
-            return true;
-        }
-
-        if( !$plugin_obj->install() )
-        {
-            $error_msg = self::_t( 'Error installing plugin' );
-            if( $plugin_obj->has_error() ) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _uninstall_plugin( $plugin_name )
-    {
-        if( !($plugin_obj = PHS::load_plugin( $plugin_name )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error instantiating plugin.' ) );
-            return false;
-        }
-
-        if( $plugin_obj->plugin_is_installed() ) {
-            return true;
-        }
-
-        if( !$plugin_obj->uninstall() )
-        {
-            $error_msg = self::_t( 'Error uninstalling plugin' );
-            if( $plugin_obj->has_error() ) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _activate_plugin( $plugin_name ): bool
-    {
-        if( !($plugin_obj = PHS::load_plugin( $plugin_name )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error instantiating plugin.' ) );
-            return false;
-        }
-
-        if( !$plugin_obj->activate_plugin() )
-        {
-            $error_msg = self::_t( 'Error inactivating plugin' );
-            if( $plugin_obj->has_error() ) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _inactivate_plugin( $plugin_name ): bool
-    {
-        if( !($plugin_obj = PHS::load_plugin( $plugin_name )) )
-        {
-            $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error instantiating plugin.' ) );
-            return false;
-        }
-
-        if( !$plugin_obj->inactivate_plugin() )
-        {
-            $error_msg = self::_t( 'Error inactivating plugin' );
-            if( $plugin_obj->has_error() ) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _symlink_repository_directory_details( $repo_dir ): void
-    {
-        $this->_echo( self::_t( 'Please not that repository directory should be an absolute path to repository directory or a relative path from plugins directory.' ) );
-        $this->_echo( self::_t( 'Eg. %s should point to repository directory from %s plugins directory.',
-            $this->cli_color( (!empty($repo_dir) ? $repo_dir : 'N/A'), 'white' ),
-            $this->cli_color( PHS_PLUGINS_DIR, 'white' )
-        ) );
-        $this->_echo( self::_t( 'Repository directory %s is invalid.',
-            $this->cli_color( PHS_PLUGINS_DIR.(!empty($repo_dir) ? $repo_dir : 'N/A'), 'white' )
-        ) );
-    }
-
-    private function _symlink_plugin( $plugin_name ): bool
-    {
-        if( !($repo_dir = $this->_get_argument_chained()) ) {
-            $repo_dir = '';
-        }
-
-        // Normally we could call PHS_Maintenance::symlink_plugin_from_repo() directly,
-        // but for a better error handling we call methods separately
-        if( empty( $repo_dir )
-         || !($real_path = PHS_Maintenance::convert_plugin_repo_to_real_path( $repo_dir )) )
-        {
-            $this->_echo_error( self::_t( 'Couldn\'t locate plugin repository directory %s.',
-                $this->cli_color( (!empty($repo_dir) ? $repo_dir : 'N/A'), 'white' )
-            ) );
-
-            $this->_symlink_repository_directory_details( $repo_dir );
-            return false;
-        }
-
-        if( !($plugin_json_arr = PHS_Maintenance::check_plugin_in_repo( $plugin_name, $repo_dir )) )
-        {
-            $this->_echo_error( self::_t( 'Couldn\'t locate plugin %s in repository directory %s (real path %s).',
-                $this->cli_color( $plugin_name, 'white' ),
-                $this->cli_color( $repo_dir, 'white' ),
-                $this->cli_color( $real_path, 'white' )
-            ) );
-
-            $this->_symlink_repository_directory_details( $repo_dir );
-            return false;
-        }
-
-        if( !PHS_Maintenance::symlink_plugin_from_repo( $plugin_name, $repo_dir ) )
-        {
-            $error_msg = self::_t( 'Error creating symlink for plugin' );
-            if( self::st_has_error() ) {
-                $error_msg .= ': '.self::st_get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _unlink_plugin( $plugin_name ): bool
-    {
-        if( !PHS_Maintenance::unlink_plugin( $plugin_name ) )
-        {
-            $error_msg = self::_t( 'Error unlinking the plugin' );
-            if( self::st_has_error() ) {
-                $error_msg .= ': '.self::st_get_simple_error_message();
-            }
-
-            $this->set_error( self::ERR_FUNCTIONALITY, $error_msg );
-            return false;
-        }
-
-        return true;
-    }
-    //
-    //endregion plugin action
-    //
-
-    //
-    //region setup action
-    //
-
-    private function _display_cmd_setup_action_usage(): void
-    {
-        $this->_echo( 'Usage: '.$this->get_app_cli_script().' [options] setup [export|import] {[action_json_file]}' );
-    }
-
-    public function cmd_setup_action(): bool
+    public function cmd_setup_action() : bool
     {
         $this->reset_error();
 
-        if( !($command_arr = $this->get_app_command())
-            || empty( $command_arr['arguments'] )
-            || !($action = $this->_get_argument_chained( $command_arr['arguments'] ))
-            || !in_array( $action, ['import', 'export'], true )
-        )
-        {
-            $this->_echo_error( self::_t( 'Please provide an action for the setup.' ) );
+        if (!($command_arr = $this->get_app_command())
+            || empty($command_arr['arguments'])
+            || !($action = $this->_get_argument_chained($command_arr['arguments']))
+            || !in_array($action, ['import', 'export'], true)
+        ) {
+            $this->_echo_error(self::_t('Please provide an action for the setup.'));
             $this->_display_cmd_setup_action_usage();
+
             return false;
         }
 
-        if( !($action_file = $this->_get_argument_chained()) ) {
+        if (!($action_file = $this->_get_argument_chained())) {
             $action_json_arr = [];
-        }
-
-        elseif( !($action_json_arr = $this->_platform_import_export_decode_action_file( $action_file )) )
-        {
-            $this->_echo_error( self::_t( 'Please provide action JSON file for action %s.',
-                $this->cli_color( $action, 'white' ) ) );
+        } elseif (!($action_json_arr = $this->_platform_import_export_decode_action_file($action_file))) {
+            $this->_echo_error(self::_t('Please provide action JSON file for action %s.',
+                $this->cli_color($action, 'white')));
             $this->_display_cmd_setup_action_usage();
+
             return false;
         }
 
-        $this->_echo( self::_t( 'Running action %s using action file %s...',
-            $this->cli_color( $action, 'white' ),
-            $this->cli_color( ($action_file ?: '-'), 'white' ) )
+        $this->_echo(self::_t('Running action %s using action file %s...',
+            $this->cli_color($action, 'white'),
+            $this->cli_color(($action_file ?: '-'), 'white'))
         );
 
-        if( $action === 'export' ) {
-            return $this->_setup_do_export( $action_json_arr );
+        if ($action === 'export') {
+            return $this->_setup_do_export($action_json_arr);
         }
 
-        if( $action === 'import' ) {
-            return $this->_setup_do_import( $action_json_arr );
+        if ($action === 'import') {
+            return $this->_setup_do_import($action_json_arr);
         }
 
         $this->_display_cmd_setup_action_usage();
-        return false;
-    }
-
-    private function _setup_do_export( $action_json_arr ): bool
-    {
-        if( !$this->_do_platform_export_action_to_file( $action_json_arr ) )
-        {
-            if( !$this->has_error() )
-            {
-                $error_msg = $this->get_simple_error_message();
-                $error_no = $this->get_error_code();
-            } else {
-                $error_msg = self::_t( 'Error exporting data. Please try again.' );
-                $error_no = self::ERR_FUNCTIONALITY;
-            }
-
-            $this->_set_and_echo_error( $error_msg, $error_no );
-            return false;
-        }
-
-        if( null !== ($del_result = $this->_do_platform_delete_action_file( $action_json_arr )) )
-        {
-            if( $del_result ) {
-                $this->_echo($this->cli_color('Action file was deleted with success.', 'yellow'));
-            } else {
-                $this->_echo($this->cli_color('Action file was NOT deleted.', 'red'));
-            }
-        }
-
-        $this->_echo( $this->cli_color( 'DONE', 'green' ) );
-
-        return true;
-    }
-
-    private function _setup_do_import( $action_json_arr ): bool
-    {
-        if( !($action_json_arr = $this->_validate_setup_action_import_json_structure( $action_json_arr )) )
-        {
-            $this->_set_and_echo_error( self::_t( 'Error validating import JSON structure.' ), self::ERR_PARAMETERS, false );
-            return false;
-        }
-
-        if( !$this->_do_platform_import_action( $action_json_arr ) )
-        {
-            if( !$this->has_error() )
-            {
-                $error_msg = $this->get_simple_error_message();
-                $error_no = $this->get_error_code();
-            } else {
-                $error_msg = self::_t( 'Error importing data. Please try again.' );
-                $error_no = self::ERR_FUNCTIONALITY;
-            }
-
-            $this->_set_and_echo_error( $error_msg, $error_no );
-            return false;
-        }
-
-        if( null !== ($del_result = $this->_do_platform_delete_action_file( $action_json_arr )) )
-        {
-            if( $del_result ) {
-                $this->_echo($this->cli_color('Action file was deleted with success.', 'yellow'));
-            } else {
-                $this->_echo($this->cli_color('Action file was NOT deleted.', 'red'));
-            }
-        }
-
-        $this->_echo( $this->cli_color( 'DONE', 'green' ) );
 
         return false;
     }
     //
-    //endregion setup action
+    // endregion setup action
     //
 
-    public function cmd_web_update(): bool
+    public function cmd_web_update() : bool
     {
         $this->reset_error();
 
-        echo self::_t( 'Update URL vailable for %s.', $this->cli_color( PHS_Utils::parse_period( PHS_Maintenance::UPDATE_TOKEN_LIFETIME ), 'green' ) )."\n";
-        echo self::_t( 'NOTE: Provided URL is forced to use HTTPS, if you don\'t have HTTPS enabled, change the link to use HTTP protocol.' )."\n";
+        echo self::_t('Update URL vailable for %s.', $this->cli_color(PHS_Utils::parse_period(PHS_Maintenance::UPDATE_TOKEN_LIFETIME), 'green'))."\n";
+        echo self::_t('NOTE: Provided URL is forced to use HTTPS, if you don\'t have HTTPS enabled, change the link to use HTTP protocol.')."\n";
         echo "\n";
         echo PHS_Maintenance::get_framework_update_url_with_token()."\n";
 
         return true;
     }
 
-    public function cmd_dry_update(): bool
+    public function cmd_dry_update() : bool
     {
-        $this->set_output_colors( false );
+        $this->set_output_colors(false);
 
-        return $this->cmd_update( true );
+        return $this->cmd_update(true);
     }
 
-    public function cmd_update( bool $dry_run = false ): bool
+    public function cmd_update(bool $dry_run = false) : bool
     {
         $this->reset_error();
 
-        if( !defined( 'PHS_INSTALLING_FLOW' ) ) {
+        if (!defined('PHS_INSTALLING_FLOW')) {
             define('PHS_INSTALLING_FLOW', true);
         }
 
-        if( $dry_run ) {
-            PHS_Db::dry_update( true );
-            PHS_Db::dry_update_output( '-- Running dry update on '.PHS_DOMAIN.' ('.date( 'r' ).')' );
+        if ($dry_run) {
+            PHS_Db::dry_update(true);
+            PHS_Db::dry_update_output('-- Running dry update on '.PHS_DOMAIN.' ('.date('r').')');
         }
 
-        $this->_continous_flush( true );
+        $this->_continous_flush(true);
 
-        if( !$dry_run ) {
+        if (!$dry_run) {
             $this->_echo('Installing core plugins, models, etc...');
         }
 
-        if( @file_exists( PHS_SYSTEM_DIR.'install.php' ) )
-        {
-            $system_install_result = include_once( PHS_SYSTEM_DIR . 'install.php' );
+        if (@file_exists(PHS_SYSTEM_DIR.'install.php')) {
+            $system_install_result = include_once PHS_SYSTEM_DIR.'install.php';
 
-            if( $system_install_result !== true )
-            {
-                $this->_echo_error( 'Error while running system install script [CORE INSTALL]:'  );
-                $this->_echo( self::arr_get_simple_error_message( $system_install_result ) );
+            if ($system_install_result !== true) {
+                $this->_echo_error('Error while running system install script [CORE INSTALL]:');
+                $this->_echo(self::arr_get_simple_error_message($system_install_result));
+
                 return true;
             }
         }
 
-        if( !$dry_run ) {
+        if (!$dry_run) {
             $this->_echo($this->cli_color('DONE', 'green'));
 
             $this->_echo('Installing custom plugins, models, etc...');
         }
 
         // Walk thgrough plugins install scripts (if any special install functionality is required)...
-        foreach( array( PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR ) as $bstrap_dir )
-        {
-            if( ($install_scripts = @glob( $bstrap_dir . '*/install.php', GLOB_BRACE ))
-             && is_array( $install_scripts ) )
-            {
-                foreach( $install_scripts as $install_script )
-                {
-                    $install_result = include_once( $install_script );
+        foreach ([PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR] as $bstrap_dir) {
+            if (($install_scripts = @glob($bstrap_dir.'*/install.php', GLOB_BRACE))
+             && is_array($install_scripts)) {
+                foreach ($install_scripts as $install_script) {
+                    $install_result = include_once $install_script;
 
-                    if( $install_result !== null )
-                    {
-                        $install_result = self::validate_error_arr( $install_result );
-                        $this->_echo_error( 'Error while running custom install script ['.$install_script.']:'  );
+                    if ($install_result !== null) {
+                        $install_result = self::validate_error_arr($install_result);
+                        $this->_echo_error('Error while running custom install script ['.$install_script.']:');
 
-                        if( self::arr_has_error( $install_result ) ) {
+                        if (self::arr_has_error($install_result)) {
                             $this->_echo(self::arr_get_simple_error_message($install_result));
                         }
 
@@ -626,56 +298,53 @@ class PHSMaintenance extends PHS_Cli
             }
         }
 
-        if( !$dry_run ) {
+        if (!$dry_run) {
             $this->_echo($this->cli_color('DONE', 'green'));
             $this->_echo('');
         }
 
-        if( !$dry_run
-         && ($debug_data = PHS::platform_debug_data()) )
-        {
-            $this->_echo( 'Update stats:' );
-            $this->_echo( 'DB queries: '.$debug_data['db_queries_count'].', '.
-                          'bootstrap time: '.number_format( $debug_data['bootstrap_time'], 6, '.', '' ).'s, '.
-                          'running time: '.number_format( $debug_data['running_time'], 6, '.', '' ).'s.'
+        if (!$dry_run
+         && ($debug_data = PHS::platform_debug_data())) {
+            $this->_echo('Update stats:');
+            $this->_echo('DB queries: '.$debug_data['db_queries_count'].', '
+                          .'bootstrap time: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '
+                          .'running time: '.number_format($debug_data['running_time'], 6, '.', '').'s.'
             );
         }
 
-        if( $dry_run ) {
-            PHS_Db::dry_update( true );
-            PHS_Db::dry_update_output( '-- Finished dry update on '.PHS_DOMAIN.' ('.date( 'r' ).')' );
+        if ($dry_run) {
+            PHS_Db::dry_update(true);
+            PHS_Db::dry_update_output('-- Finished dry update on '.PHS_DOMAIN.' ('.date('r').')');
         }
 
         return true;
     }
 
-    public function cmd_list_plugins(): bool
+    public function cmd_list_plugins() : bool
     {
         $this->reset_error();
 
-        if( false === ($plugins_dirs_arr = $this->get_plugins_as_dirs()) )
-        {
-            $this->_echo_error( self::_t( 'Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message() ) );
+        if (false === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
+            $this->_echo_error(self::_t('Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message()));
+
             return false;
         }
 
-        if( empty( $plugins_dirs_arr ) )
-        {
-            $this->_echo( self::_t( 'No plugin installed in plugin directory yet.' ) );
+        if (empty($plugins_dirs_arr)) {
+            $this->_echo(self::_t('No plugin installed in plugin directory yet.'));
+
             return false;
         }
 
-        $this->_echo( self::_t( 'Found %s plugin directories...', count( $plugins_dirs_arr ) ) );
-        foreach( $plugins_dirs_arr as $plugin_name )
-        {
-            if( !($plugin_info = $this->_gather_plugin_info( $plugin_name )) ) {
+        $this->_echo(self::_t('Found %s plugin directories...', count($plugins_dirs_arr)));
+        foreach ($plugins_dirs_arr as $plugin_name) {
+            if (!($plugin_info = $this->_gather_plugin_info($plugin_name))) {
                 $plugin_info = self::_get_default_plugin_info_definition();
             }
 
             $extra_info = '';
-            if( !empty( $plugin_info ) )
-            {
-                if( !empty( $plugin_info['is_installed'] ) ) {
+            if (!empty($plugin_info)) {
+                if (!empty($plugin_info['is_installed'])) {
                     $extra_info .= '['.$this->cli_color(self::_t('Installed'), 'green').']';
                 } else {
                     $extra_info .= '['.$this->cli_color(self::_t('NOT INSTALLED'), 'red').']';
@@ -683,9 +352,8 @@ class PHSMaintenance extends PHS_Cli
 
                 $extra_info .= ' ';
 
-                if( !empty( $plugin_info['is_installed'] ) )
-                {
-                    if( !empty( $plugin_info['is_active'] ) ) {
+                if (!empty($plugin_info['is_installed'])) {
+                    if (!empty($plugin_info['is_active'])) {
                         $extra_info .= '['.$this->cli_color(self::_t('Active'), 'green').']';
                     } else {
                         $extra_info .= '['.$this->cli_color(self::_t('NOT ACTIVE'), 'red').']';
@@ -694,33 +362,342 @@ class PHSMaintenance extends PHS_Cli
                     $extra_info .= ' ';
                 }
 
-                if( !empty( $plugin_info['name'] ) ) {
+                if (!empty($plugin_info['name'])) {
                     $extra_info .= $plugin_info['name'];
                 }
-                if( !empty( $plugin_info['version'] ) ) {
+                if (!empty($plugin_info['version'])) {
                     $extra_info .= ($extra_info !== '' ? ' ' : '').'(v'.$plugin_info['version'].')';
                 }
-                if( !empty( $plugin_info['models_count'] ) ) {
+                if (!empty($plugin_info['models_count'])) {
                     $extra_info .= ($extra_info !== '' ? ', ' : '').$plugin_info['models_count'].' models';
                 }
             }
 
-            $this->_echo( ' - '.$this->cli_color( $plugin_name, 'yellow' ).($extra_info!==''?': ':'').$extra_info );
+            $this->_echo(' - '.$this->cli_color($plugin_name, 'yellow').($extra_info !== '' ? ': ' : '').$extra_info);
         }
 
-        $this->_echo( $this->cli_color( 'DONE', 'green' ) );
+        $this->_echo($this->cli_color('DONE', 'green'));
 
         return true;
     }
 
-    private function _set_and_echo_error( $error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true ): void
+    protected function _get_app_options_definition() : array
     {
-        if( $force_set || !$this->has_error() ) {
+        return [];
+    }
+
+    protected function _get_app_commands_definition() : array
+    {
+        return [
+            'phs_setup' => [
+                'description' => 'Setup framework database. This is called first time to setup framework database.',
+                'callback'    => null,
+            ],
+            'web_update' => [
+                'description' => 'Provides a framework update URL which can be used to update framework in a browser for one day.',
+                'callback'    => [$this, 'cmd_web_update'],
+            ],
+            'update' => [
+                'description' => 'Check plugins database version against script version and update if required.',
+                'callback'    => [$this, 'cmd_update'],
+            ],
+            'dry_update' => [
+                'description' => 'Export to SQL statements used to update database structure.',
+                'callback'    => [$this, 'cmd_dry_update'],
+            ],
+            'plugins' => [
+                'description' => 'List available plugins',
+                'callback'    => [$this, 'cmd_list_plugins'],
+            ],
+            'plugin' => [
+                'description' => 'Plugin management plugin [name] [action]. If no action is provided, display plugin details.',
+                'callback'    => [$this, 'cmd_plugin_action'],
+            ],
+            'setup' => [
+                'description' => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
+                'callback'    => [$this, 'cmd_setup_action'],
+            ],
+        ];
+    }
+
+    //
+    // region Environment initialization
+    //
+    protected function _init_app() : bool
+    {
+        $this->reset_error();
+
+        PHS_Maintenance::output_callback([$this, 'cli_maintenance_output']);
+
+        return true;
+    }
+
+    private function _install_plugin($plugin_name)
+    {
+        if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
+
+            return false;
+        }
+
+        if ($plugin_obj->plugin_is_installed()) {
+            return true;
+        }
+
+        if (!$plugin_obj->install()) {
+            $error_msg = self::_t('Error installing plugin');
+            if ($plugin_obj->has_error()) {
+                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _uninstall_plugin($plugin_name)
+    {
+        if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
+
+            return false;
+        }
+
+        if ($plugin_obj->plugin_is_installed()) {
+            return true;
+        }
+
+        if (!$plugin_obj->uninstall()) {
+            $error_msg = self::_t('Error uninstalling plugin');
+            if ($plugin_obj->has_error()) {
+                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _activate_plugin($plugin_name) : bool
+    {
+        if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
+
+            return false;
+        }
+
+        if (!$plugin_obj->activate_plugin()) {
+            $error_msg = self::_t('Error inactivating plugin');
+            if ($plugin_obj->has_error()) {
+                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _inactivate_plugin($plugin_name) : bool
+    {
+        if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
+
+            return false;
+        }
+
+        if (!$plugin_obj->inactivate_plugin()) {
+            $error_msg = self::_t('Error inactivating plugin');
+            if ($plugin_obj->has_error()) {
+                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _symlink_repository_directory_details($repo_dir) : void
+    {
+        $this->_echo(self::_t('Please not that repository directory should be an absolute path to repository directory or a relative path from plugins directory.'));
+        $this->_echo(self::_t('Eg. %s should point to repository directory from %s plugins directory.',
+            $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white'),
+            $this->cli_color(PHS_PLUGINS_DIR, 'white')
+        ));
+        $this->_echo(self::_t('Repository directory %s is invalid.',
+            $this->cli_color(PHS_PLUGINS_DIR.(!empty($repo_dir) ? $repo_dir : 'N/A'), 'white')
+        ));
+    }
+
+    private function _symlink_plugin($plugin_name) : bool
+    {
+        if (!($repo_dir = $this->_get_argument_chained())) {
+            $repo_dir = '';
+        }
+
+        // Normally we could call PHS_Maintenance::symlink_plugin_from_repo() directly,
+        // but for a better error handling we call methods separately
+        if (empty($repo_dir)
+         || !($real_path = PHS_Maintenance::convert_plugin_repo_to_real_path($repo_dir))) {
+            $this->_echo_error(self::_t('Couldn\'t locate plugin repository directory %s.',
+                $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white')
+            ));
+
+            $this->_symlink_repository_directory_details($repo_dir);
+
+            return false;
+        }
+
+        if (!($plugin_json_arr = PHS_Maintenance::check_plugin_in_repo($plugin_name, $repo_dir))) {
+            $this->_echo_error(self::_t('Couldn\'t locate plugin %s in repository directory %s (real path %s).',
+                $this->cli_color($plugin_name, 'white'),
+                $this->cli_color($repo_dir, 'white'),
+                $this->cli_color($real_path, 'white')
+            ));
+
+            $this->_symlink_repository_directory_details($repo_dir);
+
+            return false;
+        }
+
+        if (!PHS_Maintenance::symlink_plugin_from_repo($plugin_name, $repo_dir)) {
+            $error_msg = self::_t('Error creating symlink for plugin');
+            if (self::st_has_error()) {
+                $error_msg .= ': '.self::st_get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _unlink_plugin($plugin_name) : bool
+    {
+        if (!PHS_Maintenance::unlink_plugin($plugin_name)) {
+            $error_msg = self::_t('Error unlinking the plugin');
+            if (self::st_has_error()) {
+                $error_msg .= ': '.self::st_get_simple_error_message();
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+    //
+    // endregion plugin action
+    //
+
+    //
+    // region setup action
+    //
+
+    private function _display_cmd_setup_action_usage() : void
+    {
+        $this->_echo('Usage: '.$this->get_app_cli_script().' [options] setup [export|import] {[action_json_file]}');
+    }
+
+    private function _setup_do_export($action_json_arr) : bool
+    {
+        if (!$this->_do_platform_export_action_to_file($action_json_arr)) {
+            if (!$this->has_error()) {
+                $error_msg = $this->get_simple_error_message();
+                $error_no = $this->get_error_code();
+            } else {
+                $error_msg = self::_t('Error exporting data. Please try again.');
+                $error_no = self::ERR_FUNCTIONALITY;
+            }
+
+            $this->_set_and_echo_error($error_msg, $error_no);
+
+            return false;
+        }
+
+        if (null !== ($del_result = $this->_do_platform_delete_action_file($action_json_arr))) {
+            if ($del_result) {
+                $this->_echo($this->cli_color('Action file was deleted with success.', 'yellow'));
+            } else {
+                $this->_echo($this->cli_color('Action file was NOT deleted.', 'red'));
+            }
+        }
+
+        $this->_echo($this->cli_color('DONE', 'green'));
+
+        return true;
+    }
+
+    private function _setup_do_import($action_json_arr) : bool
+    {
+        if (!($action_json_arr = $this->_validate_setup_action_import_json_structure($action_json_arr))) {
+            $this->_set_and_echo_error(self::_t('Error validating import JSON structure.'), self::ERR_PARAMETERS, false);
+
+            return false;
+        }
+
+        if (!$this->_do_platform_import_action($action_json_arr)) {
+            if (!$this->has_error()) {
+                $error_msg = $this->get_simple_error_message();
+                $error_no = $this->get_error_code();
+            } else {
+                $error_msg = self::_t('Error importing data. Please try again.');
+                $error_no = self::ERR_FUNCTIONALITY;
+            }
+
+            $this->_set_and_echo_error($error_msg, $error_no);
+
+            return false;
+        }
+
+        if (null !== ($del_result = $this->_do_platform_delete_action_file($action_json_arr))) {
+            if ($del_result) {
+                $this->_echo($this->cli_color('Action file was deleted with success.', 'yellow'));
+            } else {
+                $this->_echo($this->cli_color('Action file was NOT deleted.', 'red'));
+            }
+        }
+
+        $this->_echo($this->cli_color('DONE', 'green'));
+
+        return false;
+    }
+
+    private function _set_and_echo_error($error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true) : void
+    {
+        if ($force_set || !$this->has_error()) {
             $this->set_error($error_code, $error_msg);
         } else {
             $error_msg = $this->get_simple_error_message();
         }
 
-        $this->_echo_error( $error_msg );
+        $this->_echo_error($error_msg);
+    }
+
+    //
+    // region plugin action
+    //
+    private static function _get_plugin_command_actions() : array
+    {
+        return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'symlink', 'unlink'];
+    }
+
+    private static function _get_plugin_command_actions_with_valid_plugins() : array
+    {
+        return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'unlink'];
     }
 }

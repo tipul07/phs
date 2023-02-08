@@ -1,14 +1,19 @@
 <?php
 
-    // This is included after ractive_base.js.php file (where PHS_RActive var is defined)
-    // This is not intended to be included as separate resource
-    if( !defined( 'PHS_PATH' ) )
-        exit;
+// This is included after ractive_base.js.php file (where PHS_RActive var is defined)
+
+// This is not intended to be included as separate resource
+
+if (!defined('PHS_PATH')) {
+    exit;
+}
+
 ?>
 
 // Append template and target used by notifications class to document DOM body
 var PHS_RActive_notifications_template = `<?php
-echo @file_get_contents( __DIR__.'/../phs_ractive_notifications.php' );
+echo @file_get_contents(__DIR__.'/../phs_ractive_notifications.php');
+
 ?>`;
 
 var PHS_RActive_notifications = PHS_RActive_notifications || PHS_RActive.extend({

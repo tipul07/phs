@@ -31,6 +31,21 @@ Options -Indexes
     {{HTACCESS_PHP_VALUES_AND_FLAGS}}
 
 </IfModule>
+# PHP 8
+<IfModule mod_php.c>
+
+    # adjust php values and flags (if required)
+    # examples to be used
+    # php_value memory_limit 32M
+    # php_value max_execution_time 30
+    # php_flag zlib.output_compression on
+
+    # recommended
+    # php_flag session.auto_start off
+
+    {{HTACCESS_PHP_VALUES_AND_FLAGS}}
+
+</IfModule>
 
 #+-----------------------------------------------------------
 #| disable POST processing to not break multiple image upload
@@ -110,7 +125,7 @@ Options -Indexes
 
 #+--------------------------------------------------------
 #| Deny access to sensitive scripts
-<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
+<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|php-cs-fixer.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
     <IfVersion < 2.4>
         order allow,deny
         deny from all

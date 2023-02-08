@@ -1,15 +1,16 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 
-    use \phs\libraries\PHS_Language;
+use phs\libraries\PHS_Language;
+
 ?>
 <script type="text/javascript">
 function phs_refresh_input_skins()
 {
-    $('input:checkbox[rel="skin_chck_big"]').checkbox({cls:'jqcheckbox-big', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-    $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-    $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
-    $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url( 'images/empty.png' )?>'});
+    $('input:checkbox[rel="skin_chck_big"]').checkbox({cls:'jqcheckbox-big', empty:'<?php echo $this->get_resource_url('images/empty.png'); ?>'});
+    $('input:checkbox[rel="skin_chck_small"]').checkbox({cls:'jqcheckbox-small', empty:'<?php echo $this->get_resource_url('images/empty.png'); ?>'});
+    $('input:checkbox[rel="skin_checkbox"]').checkbox({cls:'jqcheckbox-checkbox', empty:'<?php echo $this->get_resource_url('images/empty.png'); ?>'});
+    $('input:radio[rel="skin_radio"]').checkbox({cls:'jqcheckbox-radio', empty:'<?php echo $this->get_resource_url('images/empty.png'); ?>'});
 
     $(".chosen-select").chosen( { disable_search_threshold: 7, search_contains: true } );
     $(".chosen-select-nosearch").chosen( { disable_search: true } );
@@ -43,7 +44,7 @@ $(document).ready(function(){
 
     phs_refresh_input_skins();
 
-    $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language()?>"] );
+    $.datepicker.setDefaults( $.datepicker.regional["<?php echo PHS_Language::get_current_language(); ?>"] );
 
     phs_refresh_dismissible_functionality();
 

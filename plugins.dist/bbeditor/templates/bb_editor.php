@@ -1,17 +1,19 @@
 <?php
 
-use \phs\PHS;
-use \phs\PHS_Ajax;
+use phs\PHS;
+use phs\PHS_Ajax;
 
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 
-    /** @var \phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */
-    if( !($bb_code_obj = $this->view_var( 'bb_code_obj' ))
-     || !($theme_arr = $bb_code_obj->get_current_theme()) )
-        return $this->_pt( 'Couldn\'t initialize BB code editor.' );
+/** @var \phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */
+if (!($bb_code_obj = $this->view_var('bb_code_obj'))
+ || !($theme_arr = $bb_code_obj->get_current_theme())) {
+    return $this->_pt('Couldn\'t initialize BB code editor.');
+}
 
-    if( !($bb_editor_attributes = $this->view_var( 'bb_editor_attributes' )) )
-        $bb_editor_attributes = [];
+if (!($bb_editor_attributes = $this->view_var('bb_editor_attributes'))) {
+    $bb_editor_attributes = [];
+}
 ?>
 <style>
 .phs_bb_editor { width: 100%; }
@@ -25,89 +27,85 @@ use \phs\PHS_Ajax;
 <div class="phs_bb_editor">
 <?php
     $phs_bb_editor_templates = [];
-    if( !empty( $theme_arr ) && is_array( $theme_arr ) )
-    {
-        ?><div class="phs_bb_editor_controls"><?php
-        // render buttons
-        foreach( $theme_arr as $shortcode_code )
-        {
-            if( $shortcode_code === $bb_code_obj::THEME_CONTROL_SEP )
-            {
-                ?><div class="phs_editor_control_separator"></div><?php
-                continue;
-            }
-
-            if( !($shortcode_arr = $bb_code_obj->valid_shortcode( $shortcode_code )) )
-            {
-                ?><div class="phs_editor_control_command phs_editor_control_err"
-                       title="<?php echo $this->_pt( 'Shortcode [%s] not defined', $shortcode_code )?>"
-                ><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div><?php
-                continue;
-            }
-
-            if( !empty( $shortcode_arr['editor_button_callback'] ) )
-            {
-                if( empty( $shortcode_arr['editor_button_callback_params'] ) )
-                    $shortcode_arr['editor_button_callback_params'] = [];
-
-                $callback_params = $shortcode_arr['editor_button_callback_params'];
-
-                $callback_params['shortcode_definition'] = $shortcode_arr;
-                $callback_params['editor_obj'] = $bb_code_obj;
-
-                if( !is_callable( $shortcode_arr['editor_button_callback'] )
-                 || !($shortcode_details = @call_user_func( $shortcode_arr['editor_button_callback'], $callback_params ))
-                 || !is_array( $shortcode_details ) )
-                {
-                    ?><div class="phs_editor_control_command phs_editor_control_err"
-                           title="<?php echo $this->_pt( 'Invalid callback for shortcode [%s]', $shortcode_code )?>"
-                    ><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div><?php
-                    continue;
-                }
-
-                if( !empty( $shortcode_details['editor_button'] ) )
-                    echo $shortcode_details['editor_button'];
-
-                if( !empty( $shortcode_details['templates'] ) && is_array( $shortcode_details['templates'] ) )
-                {
-                    foreach( $shortcode_details['templates'] as $template_code => $template_str )
-                    {
-                        $phs_bb_editor_templates[$template_code] = $template_str;
-                    }
-                }
-
-                continue;
-            }
-
-            if( !empty( $shortcode_arr['template'] ) )
-                $phs_bb_editor_templates[$shortcode_code] = $shortcode_arr['template'];
-
-            if( !empty( $shortcode_arr['js_click_function'] ) )
-                $js_click_function = $bb_code_obj->bb_editor_replace_vars( $shortcode_arr['js_click_function'] );
-            else
-                $js_click_function = 'phs_bb_editor.insert_text( \''.$bb_editor_attributes['id'].'\', \''.$shortcode_code.'\' )';
-
-            ?><div class="phs_editor_control_command"
-                   title="<?php echo $shortcode_arr['title']?>"
-                   onclick="<?php echo $js_click_function?>"><?php echo $shortcode_arr['editor_button']?></div><?php
+if (!empty($theme_arr) && is_array($theme_arr)) {
+    ?><div class="phs_bb_editor_controls"><?php
+    // render buttons
+    foreach ($theme_arr as $shortcode_code) {
+        if ($shortcode_code === $bb_code_obj::THEME_CONTROL_SEP) {
+            ?><div class="phs_editor_control_separator"></div><?php
+            continue;
         }
-        ?></div><?php
+
+        if (!($shortcode_arr = $bb_code_obj->valid_shortcode($shortcode_code))) {
+            ?><div class="phs_editor_control_command phs_editor_control_err"
+                       title="<?php echo $this->_pt('Shortcode [%s] not defined', $shortcode_code); ?>"
+                ><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div><?php
+            continue;
+        }
+
+        if (!empty($shortcode_arr['editor_button_callback'])) {
+            if (empty($shortcode_arr['editor_button_callback_params'])) {
+                $shortcode_arr['editor_button_callback_params'] = [];
+            }
+
+            $callback_params = $shortcode_arr['editor_button_callback_params'];
+
+            $callback_params['shortcode_definition'] = $shortcode_arr;
+            $callback_params['editor_obj'] = $bb_code_obj;
+
+            if (!is_callable($shortcode_arr['editor_button_callback'])
+             || !($shortcode_details = @call_user_func($shortcode_arr['editor_button_callback'], $callback_params))
+             || !is_array($shortcode_details)) {
+                ?><div class="phs_editor_control_command phs_editor_control_err"
+                           title="<?php echo $this->_pt('Invalid callback for shortcode [%s]', $shortcode_code); ?>"
+                    ><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div><?php
+                continue;
+            }
+
+            if (!empty($shortcode_details['editor_button'])) {
+                echo $shortcode_details['editor_button'];
+            }
+
+            if (!empty($shortcode_details['templates']) && is_array($shortcode_details['templates'])) {
+                foreach ($shortcode_details['templates'] as $template_code => $template_str) {
+                    $phs_bb_editor_templates[$template_code] = $template_str;
+                }
+            }
+
+            continue;
+        }
+
+        if (!empty($shortcode_arr['template'])) {
+            $phs_bb_editor_templates[$shortcode_code] = $shortcode_arr['template'];
+        }
+
+        if (!empty($shortcode_arr['js_click_function'])) {
+            $js_click_function = $bb_code_obj->bb_editor_replace_vars($shortcode_arr['js_click_function']);
+        } else {
+            $js_click_function = 'phs_bb_editor.insert_text( \''.$bb_editor_attributes['id'].'\', \''.$shortcode_code.'\' )';
+        }
+
+        ?><div class="phs_editor_control_command"
+                   title="<?php echo $shortcode_arr['title']; ?>"
+                   onclick="<?php echo $js_click_function; ?>"><?php echo $shortcode_arr['editor_button']; ?></div><?php
     }
+    ?></div><?php
+}
 ?>
-<textarea id="<?php echo $bb_editor_attributes['id']?>"
-          name="<?php echo $bb_editor_attributes['name']?>"
-          class="<?php echo $bb_editor_attributes['class']?>"
-          placeholder="<?php echo form_str( $bb_editor_attributes['placeholder'] )?>"
-          style="<?php echo $bb_editor_attributes['style']?>"><?php echo textarea_str( $this->view_var( 'bb_text' ) )?></textarea>
+<textarea id="<?php echo $bb_editor_attributes['id']; ?>"
+          name="<?php echo $bb_editor_attributes['name']; ?>"
+          class="<?php echo $bb_editor_attributes['class']; ?>"
+          placeholder="<?php echo form_str($bb_editor_attributes['placeholder']); ?>"
+          style="<?php echo $bb_editor_attributes['style']; ?>"><?php echo textarea_str($this->view_var('bb_text')); ?></textarea>
 </div>
 <div class="clearfix"></div>
 <script type="text/javascript">
 var phs_bb_editor_settings = phs_bb_editor_settings || {};
 
 $(document).ready(function(){
-    phs_bb_editor_settings['<?php echo $bb_editor_attributes['id']?>'] = {
-        input_obj: $('#<?php echo $bb_editor_attributes['id']?>'),
-        templates: <?php echo @json_encode( $phs_bb_editor_templates )?>
+    phs_bb_editor_settings['<?php echo $bb_editor_attributes['id']; ?>'] = {
+        input_obj: $('#<?php echo $bb_editor_attributes['id']; ?>'),
+        templates: <?php echo @json_encode($phs_bb_editor_templates); ?>
     };
 });
 
@@ -164,9 +162,9 @@ var phs_bb_editor = phs_bb_editor || {
             suffix: "phs_bbeditor_document",
             resizable: true,
 
-            title: "<?php echo $this->_pte( 'Document preview' )?>",
+            title: "<?php echo $this->_pte('Document preview'); ?>",
             method: "POST",
-            url: "<?php echo PHS_Ajax::url( [ 'p' => 'bbeditor', 'a' => 'bb_editor_preview' ] )?>",
+            url: "<?php echo PHS_Ajax::url(['p' => 'bbeditor', 'a' => 'bb_editor_preview']); ?>",
             url_data: { body: document.getElementById( editor_id ).value }
         });
     }

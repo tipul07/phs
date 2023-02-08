@@ -1,6 +1,5 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
-
+/** @var \phs\system\core\views\PHS_View $this */
 ?>
 <script type="text/javascript">
 function phs_lock_accounts_autocomplete( text_id )

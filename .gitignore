@@ -4,9 +4,11 @@
 /main.php
 /php_errors.log
 /.htaccess
+.php-cs-fixer.cache
 
 # Languages backup files
 /languages/*.dist/*_bk*.csv
 
 composer.phar
+php-cs-fixer.phar
 test.php

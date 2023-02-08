@@ -1,13 +1,14 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 
-    use \phs\PHS;
-    use \phs\libraries\PHS_Action;
-    use \phs\libraries\PHS_Language;
-    use \phs\libraries\PHS_Hooks;
-    use \phs\libraries\PHS_Notifications;
-    use \phs\libraries\PHS_Roles;
-    use \phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\PHS;
+use phs\libraries\PHS_Hooks;
+use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Language;
+use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+
 ?>
 <script type="text/javascript">
 function open_messages_summary_menu_pane()

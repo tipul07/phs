@@ -1,11 +1,9 @@
 <?php
-
 namespace phs\traits;
 
 /**
  * Add status management methods for models which implement a status static array
  * @static $STATUSES_ARR
- * @package phs\libraries
  */
 trait PHS_Model_Trait_statuses
 {
@@ -14,21 +12,22 @@ trait PHS_Model_Trait_statuses
      *
      * @return array
      */
-    public function get_statuses( $lang = false ): array
+    public function get_statuses($lang = false) : array
     {
         static $statuses_arr = [];
 
-        if( empty( static::$STATUSES_ARR ) ) {
+        if (empty(static::$STATUSES_ARR)) {
             return [];
         }
 
-        if( $lang === false
-         && !empty( $statuses_arr ) )
+        if ($lang === false
+         && !empty($statuses_arr)) {
             return $statuses_arr;
+        }
 
-        $result_arr = $this->translate_array_keys( self::$STATUSES_ARR, [ 'title' ], $lang );
+        $result_arr = $this->translate_array_keys(self::$STATUSES_ARR, ['title'], $lang);
 
-        if( $lang === false ) {
+        if ($lang === false) {
             $statuses_arr = $result_arr;
         }
 
@@ -40,21 +39,19 @@ trait PHS_Model_Trait_statuses
      *
      * @return array
      */
-    public function get_statuses_as_key_val( $lang = false ): array
+    public function get_statuses_as_key_val($lang = false) : array
     {
         static $statuses_key_val_arr = null;
 
-        if( $lang === false
-         && $statuses_key_val_arr !== null ) {
+        if ($lang === false
+         && $statuses_key_val_arr !== null) {
             return $statuses_key_val_arr;
         }
 
         $key_val_arr = [];
-        if( ($statuses = $this->get_statuses( $lang )) )
-        {
-            foreach( $statuses as $key => $val )
-            {
-                if( !is_array( $val ) ) {
+        if (($statuses = $this->get_statuses($lang))) {
+            foreach ($statuses as $key => $val) {
+                if (!is_array($val)) {
                     continue;
                 }
 
@@ -62,7 +59,7 @@ trait PHS_Model_Trait_statuses
             }
         }
 
-        if( $lang === false ) {
+        if ($lang === false) {
             $statuses_key_val_arr = $key_val_arr;
         }
 
@@ -75,11 +72,11 @@ trait PHS_Model_Trait_statuses
      *
      * @return false|array
      */
-    public function valid_status( $status, $lang = false )
+    public function valid_status($status, $lang = false)
     {
-        $all_statuses = $this->get_statuses( $lang );
-        if( empty( $status )
-         || !isset( $all_statuses[$status] ) ) {
+        $all_statuses = $this->get_statuses($lang);
+        if (empty($status)
+         || !isset($all_statuses[$status])) {
             return false;
         }
 

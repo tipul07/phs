@@ -9,8 +9,9 @@ define( 'PHS_SITEBUILD_VERSION', '{{PHS_SITEBUILD_VERSION}}' ); // Default: 1.0.
 
 @date_default_timezone_set( '{{PHS_DEFAULT_TIMEZONE}}' ); // Default: Europe/London
 
-if( @function_exists( 'mb_internal_encoding' ) )
-    @mb_internal_encoding( '{{PHS_MB_INTERNAL_ENCODING}}' ); // UTF-8
+if( @function_exists( 'mb_internal_encoding' ) ) {
+    @mb_internal_encoding('{{PHS_MB_INTERNAL_ENCODING}}'); // UTF-8
+}
 
 // Platform full absolute path (eg. /var/www/html/phs/) - ending with /
 define( 'PHS_PATH', '{{PHS_PATH}}' );
@@ -105,10 +106,11 @@ define( 'PHS_FRAMEWORK_ASSETS_DIR', {{PHS_FRAMEWORK_ASSETS_DIR}} ); // Default: 
 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
 // You can setup a cascade of themes after boostrap.php is included (scroll down)
-if( !defined( 'PHS_DEFAULT_THEME' ) )
-    define( 'PHS_DEFAULT_THEME', '{{PHS_DEFAULT_THEME}}' ); // Default: default
-if( !defined( 'PHS_THEME' ) )
-    define( 'PHS_THEME', '{{PHS_THEME}}' );
+if( !defined( 'PHS_DEFAULT_THEME' ) ) {
+    define('PHS_DEFAULT_THEME', '{{PHS_DEFAULT_THEME}}'); // Default: default}
+if( !defined( 'PHS_THEME' ) ) {
+    define('PHS_THEME', '{{PHS_THEME}}');
+}
 
 // Default crypting keys...
 define( 'PHS_DEFAULT_CRYPT_KEY', '{{PHS_CRYPT_KEY}}' );

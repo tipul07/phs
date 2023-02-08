@@ -1,44 +1,45 @@
 <?php
 
-    @header( 'Content-type: text/javascript' );
+@header('Content-type: text/javascript');
 
-    $check_main_dir = dirname( __DIR__, 3 );
-    if( !@file_exists( $check_main_dir.'/main.php' ) )
-    {
-        $check_main_dir = dirname( $_SERVER['SCRIPT_FILENAME'], 4 );
-        if( !@file_exists( $check_main_dir.'/main.php' ) )
-        {
-            ?>
+$check_main_dir = dirname(__DIR__, 3);
+
+if (!@file_exists($check_main_dir.'/main.php')) {
+    $check_main_dir = dirname($_SERVER['SCRIPT_FILENAME'], 4);
+    if (!@file_exists($check_main_dir.'/main.php')) {
+        ?>
             alert( "Failed initializing Ractive.js library. Please contact support." );
             <?php
-            exit;
-        }
-    }
-
-    define( 'PHS_PREVENT_SESSION', true );
-    include( $check_main_dir.'/main.php' );
-
-    use \phs\PHS;
-    use \phs\PHS_Ajax;
-
-    if( !($view_obj = PHS::spawn_view_in_context(
-        [ 'a' => 'index' ], 'index' )) )
-    {
-        ?>
-        alert( "Failed initializing Ractive.js library. Error obtaining view instance. Please contact support." );
-        <?php
         exit;
     }
+}
 
-    if( !($empty_img_url = $view_obj->get_resource_url( 'images/empty.png' )) )
-        $empty_img_url = '';
+define('PHS_PREVENT_SESSION', true);
+
+include $check_main_dir.'/main.php';
+
+use phs\PHS;
+use phs\PHS_Ajax;
+
+if (!($view_obj = PHS::spawn_view_in_context(
+    ['a' => 'index'], 'index'))) {
+    ?>
+        alert( "Failed initializing Ractive.js library. Error obtaining view instance. Please contact support." );
+        <?php
+    exit;
+}
+
+if (!($empty_img_url = $view_obj->get_resource_url('images/empty.png'))) {
+    $empty_img_url = '';
+}
+
 ?>
 //var PHS_RActive_AJAX_requests_count = 0;
 //var PHS_RActive_AJAX_max_requests = 30;
 //var PHS_RActive_AJAX_calls_handler = false;
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
-    debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
+    debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
     submit_protections_count: 0,
 
     //onconstruct: function() {
@@ -118,7 +119,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             };
         },
         skin_checkbox: function( node ) {
-            $(node).checkbox({cls:'jqcheckbox-checkbox', empty: '<?php echo $empty_img_url?>'});
+            $(node).checkbox({cls:'jqcheckbox-checkbox', empty: '<?php echo $empty_img_url; ?>'});
             return {
                 teardown: function() {
                     // Nothing to do on teardown
@@ -126,7 +127,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             };
         },
         skin_radio: function( node ) {
-            $(node).checkbox({cls:'jqcheckbox-radio', empty: '<?php echo $empty_img_url?>'});
+            $(node).checkbox({cls:'jqcheckbox-radio', empty: '<?php echo $empty_img_url; ?>'});
             return {
                 teardown: function() {
                     // Nothing to do on teardown
@@ -280,7 +281,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
 
         var ajax_params = $.extend( {}, default_ajax_params, ajax_opts );
 
-        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
+        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(false, false, ['raw_route' => '" + route + "']); ?>", ajax_params );
     },
 
     read_html: function ( route, data, success, failure, ajax_opts ) {
@@ -303,7 +304,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
 
         var ajax_params = $.extend( {}, default_ajax_params, ajax_opts );
 
-        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( false, false, [ 'raw_route' => '" + route + "' ] )?>", ajax_params );
+        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(false, false, ['raw_route' => '" + route + "']); ?>", ajax_params );
     }
 });
 

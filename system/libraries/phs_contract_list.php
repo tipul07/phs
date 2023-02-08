@@ -17,7 +17,7 @@ abstract class PHS_Contract_list extends PHS_Contract
 
     /**
      * If nodes in list are defined in a contract, return contract instance here
-     * @return \phs\libraries\PHS_Contract|null
+     * @return null|\phs\libraries\PHS_Contract
      */
     public function get_list_node_contract()
     {
@@ -33,27 +33,27 @@ abstract class PHS_Contract_list extends PHS_Contract
     {
         return [
             'total_count' => [
-                'title' => 'Total items count',
+                'title'       => 'Total items count',
                 'description' => 'Total items resulted when we query database with provided filters',
-                'type' => PHS_Params::T_INT,
-                'default' => 0,
-                'key_type' => self::FROM_INSIDE,
+                'type'        => PHS_Params::T_INT,
+                'default'     => 0,
+                'key_type'    => self::FROM_INSIDE,
             ],
             'items_per_page' => [
-                'title' => 'Requested items per page',
+                'title'       => 'Requested items per page',
                 'description' => 'How many items were we requested to put in the list. In case of pagination this is the number of items per page.',
-                'type' => PHS_Params::T_INT,
-                'default' => 0,
-                'key_type' => self::FROM_INSIDE,
+                'type'        => PHS_Params::T_INT,
+                'default'     => 0,
+                'key_type'    => self::FROM_INSIDE,
             ],
             'list' => [
-                'title' => 'Properties list',
-                'description' => 'An array containing properties definition',
-                'recurring_key_type' => PHS_Params::T_INT,
-                'recurring_node' => true,
-                'key_type' => self::FROM_INSIDE,
+                'title'               => 'Properties list',
+                'description'         => 'An array containing properties definition',
+                'recurring_key_type'  => PHS_Params::T_INT,
+                'recurring_node'      => true,
+                'key_type'            => self::FROM_INSIDE,
                 'nodes_from_contract' => $this->get_list_node_contract(),
-                'nodes' => $this->get_contract_data_list_definition(),
+                'nodes'               => $this->get_contract_data_list_definition(),
             ],
         ];
     }

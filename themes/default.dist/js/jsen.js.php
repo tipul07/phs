@@ -1,13 +1,15 @@
 <?php
 
-    define( 'PHS_PREVENT_SESSION', true );
-    include( '../../../main.php' );
+define('PHS_PREVENT_SESSION', true);
 
-    @header( 'Content-type: text/javascript' );
+include '../../../main.php';
 
-    use \phs\PHS;
-    use \phs\PHS_Ajax;
-    use \phs\libraries\PHS_Language;
+@header('Content-type: text/javascript');
+
+use phs\PHS;
+use phs\PHS_Ajax;
+use phs\libraries\PHS_Language;
+
 ?>
 if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 {
@@ -24,12 +26,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
     }
 
     var PHS_JSEN = {
-        debugging_mode: <?php echo (PHS::st_debugging_mode()?'true':'false')?>,
+        debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
 
         version: 1.5,
 
         // Base URL
-        baseUrl : "<?php echo PHS::get_base_url()?>",
+        baseUrl : "<?php echo PHS::get_base_url(); ?>",
 
         default_action_13 : ".def-link",
 
@@ -297,12 +299,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 container_obj = container;
 
             if( !container_obj ) {
-                alert( "<?php echo PHS_Language::_te( 'Couldn\'t obtain jQuery object for autocomplete field.' )?>" );
+                alert( "<?php echo PHS_Language::_te('Couldn\'t obtain jQuery object for autocomplete field.'); ?>" );
                 return false;
             }
 
             if( !options.url ) {
-                PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_te( 'URL not provided for autocomplete field.' )?>" ], "error" );
+                PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_te('URL not provided for autocomplete field.'); ?>" ], "error" );
                 return container_obj.autocomplete();
             }
 
@@ -583,7 +585,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             var options = $.extend( {}, defaults, o );
 
-            var ajax_url = PHS_JSEN.addURLParameter( url, "<?php echo PHS_Ajax::PARAM_FB_KEY?>", (options.full_buffer?1:0) );
+            var ajax_url = PHS_JSEN.addURLParameter( url, "<?php echo PHS_Ajax::PARAM_FB_KEY; ?>", (options.full_buffer?1:0) );
 
             var request_hash = PHS_JSEN.hash_string( ajax_url.toLowerCase() + ":" + options.method.toLowerCase() + ":" + JSON.stringify( options.url_data ).toLowerCase() );
 
@@ -761,12 +763,12 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         change_language: function( language ) {
-            show_submit_protection( "<?php echo PHS_Language::_t( 'Changing language... Please wait.' )?>" );
+            show_submit_protection( "<?php echo PHS_Language::_t('Changing language... Please wait.'); ?>" );
 
             var ajax_params = {
                 cache_response: false,
                 method: 'post',
-                url_data: { "<?php echo PHS_Language::LANG_URL_PARAMETER?>": language },
+                url_data: { "<?php echo PHS_Language::LANG_URL_PARAMETER; ?>": language },
                 data_type: 'json',
 
                 onsuccess: function( response, status, ajax_obj, response_data ) {
@@ -780,11 +782,11 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 onfailed: function( ajax_obj, status, error_exception ) {
                     hide_submit_protection();
 
-                    PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_t( 'Error changing language. Please retry.' )?>" ], "error" );
+                    PHS_JSEN.js_messages( [ "<?php echo PHS_Language::_t('Error changing language. Please retry.'); ?>" ], "error" );
                 }
             };
 
-            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( [ 'a' => 'change_language_ajax' ] )?>", ajax_params );
+            var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['a' => 'change_language_ajax']); ?>", ajax_params );
         },
 
         dialogErrors : function( error_arr ) {
@@ -954,7 +956,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     },
 
                     onfailed: function( ajax_obj, status, error_exception ) {
-                        dialog_obj.html( "<?php echo PHS_Language::_te( 'Error' )?>" );
+                        dialog_obj.html( "<?php echo PHS_Language::_te('Error'); ?>" );
                     }
                 };
 
@@ -1005,7 +1007,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     },
 
                     onfailed: function( ajax_obj, status, error_exception ) {
-                        dialog_obj.html( "<?php echo PHS_Language::_te( 'Error' )?>" );
+                        dialog_obj.html( "<?php echo PHS_Language::_te('Error'); ?>" );
                     }
                 };
 
@@ -1182,7 +1184,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
                             if( dialog_obj ) {
-                                dialog_obj.html( "<?php echo PHS_Language::_te( 'Error ontaining dialogue body. Please try again.' )?>" );
+                                dialog_obj.html( "<?php echo PHS_Language::_te('Error ontaining dialogue body. Please try again.'); ?>" );
                                 dialog_obj.dialog( "open" );
                             }
 
@@ -1307,7 +1309,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 stack       : true,
                 draggable   : true,
                 close_on_escape : false,
-                title       : "<?php echo PHS::_te( 'Please wait...' )?>",
+                title       : "<?php echo PHS::_te('Please wait...'); ?>",
                 parent_tag  : "body",
                 cssclass    : "ui-dialog-no-close ui-dialog-loading"
             }, o );

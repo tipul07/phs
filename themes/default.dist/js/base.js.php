@@ -1,12 +1,13 @@
 <?php
 
-    @header( 'Content-type: text/javascript' );
+@header('Content-type: text/javascript');
 
-    define( 'PHS_PREVENT_SESSION', true );
-    include( '../../../main.php' );
+define('PHS_PREVENT_SESSION', true);
 
-    use \phs\PHS;
-    use \phs\libraries\PHS_Language;
+include '../../../main.php';
+
+use phs\PHS;
+use phs\libraries\PHS_Language;
 
 ?>
 function dialog_from_container( container, o )
@@ -25,7 +26,7 @@ function dialog_from_container( container, o )
 
         PHS_JSEN.createAjaxDialog( options );
     } else
-        alert( '<?php echo PHS_Language::_te( 'Error initializing PHS JS Engine', '\'' );?>' );
+        alert( '<?php echo PHS_Language::_te('Error initializing PHS JS Engine', '\''); ?>' );
 }
 
 function hide_submit_protection()
@@ -43,7 +44,7 @@ function show_submit_protection( msg, extr_msg )
     if( $protection_message_obj )
     {
         if( typeof msg == 'undefined' || !msg )
-            msg = '<?php echo PHS_Language::_te( 'Please wait...', '\'' )?>';
+            msg = '<?php echo PHS_Language::_te('Please wait...', '\''); ?>';
 
         $protection_message_obj.html( msg );
     }
@@ -88,8 +89,8 @@ function dialog_loading( options )
 {
     if( PHS_JSEN )
     {
-        var o = $.extend( { suffix: '', title: '<?php echo PHS_Language::_te( 'Please wait...', '\'' )?>', parent_tag: 'body',
-            message: '<?php echo PHS_Language::_te( 'Loading', '\'' )?>', width: 320, height: 130 }, options );
+        var o = $.extend( { suffix: '', title: '<?php echo PHS_Language::_te('Please wait...', '\''); ?>', parent_tag: 'body',
+            message: '<?php echo PHS_Language::_te('Loading', '\''); ?>', width: 320, height: 130 }, options );
 
         PHS_JSEN.createLoadingDialog( o );
     }

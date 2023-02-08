@@ -1,10 +1,9 @@
 <?php
-
 namespace phs\tests\phs\contexts;
 
-use \phs\PHS;
-use \phs\PHS_Cli;
-use \phs\PHS_Scope;
+use phs\PHS;
+use phs\PHS_Cli;
+use phs\PHS_Scope;
 use PHPUnit\Framework\Assert;
 use Behat\Behat\Tester\Exception\PendingException;
 
@@ -16,9 +15,9 @@ class PHSCommonContext extends PHSAbstractContext
      * @param string $arg1
      * @return bool
      */
-    public function currentPHSScopeIsSetTo( $arg1 )
+    public function currentPHSScopeIsSetTo($arg1)
     {
-        return (PHS_Scope::current_scope()===$arg1);
+        return PHS_Scope::current_scope() === $arg1;
     }
 
     /**
@@ -28,7 +27,7 @@ class PHSCommonContext extends PHSAbstractContext
      */
     public function scriptIsRunningInCLIMode()
     {
-        return (PHS_Cli::running_in_cli()?true:false);
+        return PHS_Cli::running_in_cli() ? true : false;
     }
 
     /**
@@ -47,17 +46,18 @@ class PHSCommonContext extends PHSAbstractContext
      * @param string $file_name
      * @param string $dir
      */
-    public function aFileExistsIn( $file_name, $dir = '' )
+    public function aFileExistsIn($file_name, $dir = '')
     {
-        Assert::assertNotEmpty( $file_name, 'No file provided' );
+        Assert::assertNotEmpty($file_name, 'No file provided');
 
-        if( empty( $dir ) )
+        if (empty($dir)) {
             $dir = '';
+        }
 
-        $dir = rtrim( PHS_PATH.ltrim( str_replace( '..', '', $dir ), '/\\' ), '/\\' );
-        $file_name = ltrim( str_replace( '..', '', $file_name ), '/\\' );
+        $dir = rtrim(PHS_PATH.ltrim(str_replace('..', '', $dir), '/\\'), '/\\');
+        $file_name = ltrim(str_replace('..', '', $file_name), '/\\');
 
-        Assert::assertFileExists( $dir.'/'.$file_name, 'File doesn\'t exist.' );
+        Assert::assertFileExists($dir.'/'.$file_name, 'File doesn\'t exist.');
     }
 
     /**
@@ -66,21 +66,21 @@ class PHSCommonContext extends PHSAbstractContext
      * @param string $link
      * @param string $target
      */
-    public function aSymlinkExistsTo( $link, $target )
+    public function aSymlinkExistsTo($link, $target)
     {
-        Assert::assertNotEmpty( $link, 'Please provide symlink' );
-        Assert::assertNotEmpty( $target, 'Please provide symlink target' );
+        Assert::assertNotEmpty($link, 'Please provide symlink');
+        Assert::assertNotEmpty($target, 'Please provide symlink target');
 
-        $dir = rtrim( PHS_PATH, '/\\' );
-        $link = ltrim( str_replace( '..', '', $link ), '/\\' );
+        $dir = rtrim(PHS_PATH, '/\\');
+        $link = ltrim(str_replace('..', '', $link), '/\\');
 
         $link_file = $dir.'/'.$link;
         $target_file = $dir.'/'.$target;
 
-        Assert::assertFileExists( $link_file, 'Symlink doesn\'t exist.' );
-        Assert::assertFileExists( $target_file, 'Target doesn\'t exist.' );
+        Assert::assertFileExists($link_file, 'Symlink doesn\'t exist.');
+        Assert::assertFileExists($target_file, 'Target doesn\'t exist.');
 
-        Assert::assertTrue( @is_link( $link_file ), 'Not a symlink' );
+        Assert::assertTrue(@is_link($link_file), 'Not a symlink');
     }
 
     /**
@@ -91,44 +91,43 @@ class PHSCommonContext extends PHSAbstractContext
      *
      * @return bool
      */
-    public function aDirectoryExistsIn( $dir, $location )
+    public function aDirectoryExistsIn($dir, $location)
     {
-        Assert::assertNotEmpty( $dir, 'Please provide directory name' );
-        Assert::assertNotEmpty( $location, 'Please provide directory location' );
+        Assert::assertNotEmpty($dir, 'Please provide directory name');
+        Assert::assertNotEmpty($location, 'Please provide directory location');
 
-        $root = rtrim( PHS_PATH, '/\\' );
-        $location = $root.'/'.trim( $location, '/\\' );
+        $root = rtrim(PHS_PATH, '/\\');
+        $location = $root.'/'.trim($location, '/\\');
 
-        Assert::assertFileExists( $location, 'Location doesn\'t exist.' );
-        Assert::assertTrue( @is_dir( $location ), 'Location is not a directory' );
+        Assert::assertFileExists($location, 'Location doesn\'t exist.');
+        Assert::assertTrue(@is_dir($location), 'Location is not a directory');
 
-        if( $dir !== '*' )
-        {
-            Assert::assertFileExists( $location.'/'.$dir, 'Location doesn\'t exist.' );
-            Assert::assertTrue( @is_dir( $location.'/'.$dir ), 'Location is not a directory' );
+        if ($dir !== '*') {
+            Assert::assertFileExists($location.'/'.$dir, 'Location doesn\'t exist.');
+            Assert::assertTrue(@is_dir($location.'/'.$dir), 'Location is not a directory');
 
             return true;
         }
 
-        if( !($fil = @opendir( $location )) )
-            \PHPUnit\Framework\throwException( new \Exception( 'Cannot open '.$location.' for reading.' ) );
+        if (!($fil = @opendir($location))) {
+            \PHPUnit\Framework\throwException(new \Exception('Cannot open '.$location.' for reading.'));
+        }
 
         $a_directory_found = false;
-        while( false !== ($entry = @readdir( $fil )) )
-        {
-            if( $entry === '.' or $entry === '..' )
+        while (false !== ($entry = @readdir($fil))) {
+            if ($entry === '.' || $entry === '..') {
                 continue;
+            }
 
-            if( @is_dir( $location.'/'.$entry ) )
-            {
+            if (@is_dir($location.'/'.$entry)) {
                 $a_directory_found = true;
                 break;
             }
         }
 
-        @closedir( $fil );
+        @closedir($fil);
 
-        Assert::assertTrue( $a_directory_found, 'Directory not found.' );
+        Assert::assertTrue($a_directory_found, 'Directory not found.');
 
         return $a_directory_found;
     }

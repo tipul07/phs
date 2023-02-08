@@ -1,21 +1,21 @@
 <?php
 
-    @header( 'Content-type: text/javascript' );
+@header('Content-type: text/javascript');
 
-    $check_main_dir = dirname( __DIR__, 4 );
-    if( !@file_exists( $check_main_dir.'/main.php' ) )
-    {
-        $check_main_dir = dirname( $_SERVER['SCRIPT_FILENAME'], 5 );
-        if( !@file_exists( $check_main_dir.'/main.php' ) )
-        {
-            ?>
+$check_main_dir = dirname(__DIR__, 4);
+
+if (!@file_exists($check_main_dir.'/main.php')) {
+    $check_main_dir = dirname($_SERVER['SCRIPT_FILENAME'], 5);
+    if (!@file_exists($check_main_dir.'/main.php')) {
+        ?>
             alert( "Failed initializing autocomplete for Ractive.js library. Please contact support." );
             <?php
-            exit;
-        }
+        exit;
     }
+}
 
-    include( $check_main_dir.'/main.php' );
+include $check_main_dir.'/main.php';
+
 ?>
 var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
 
