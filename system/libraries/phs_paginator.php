@@ -2003,7 +2003,7 @@ class PHS_Paginator extends PHS_Registry
         $this->_query_id = false;
     }
 
-    private function extract_action_from_request(): bool
+    private function extract_action_from_request() : bool
     {
         $this->_action = $this->default_action_params();
 
@@ -2153,7 +2153,7 @@ class PHS_Paginator extends PHS_Registry
         && is_array($pagination_params)) {
             if (!empty($pagination_params['page_var_name'])) {
                 // Reset page number if filters were submitted...
-                if( PHS_Params::_p( $flow_params_arr['form_prefix'].'filters_submit' ) ) {
+                if (PHS_Params::_p($flow_params_arr['form_prefix'].'filters_submit')) {
                     $page = 0;
                 } else {
                     $page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['page_var_name'],
@@ -2296,7 +2296,7 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
-    public static function default_bulk_actions_fields(): array
+    public static function default_bulk_actions_fields() : array
     {
         return [
             'display_in_top'    => true,

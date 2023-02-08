@@ -31,14 +31,14 @@ $can_manage_logs = (!empty($view_rights['admin']['manage_logs']));
         if ($can_manage_domains) {
             ?>
             <li><a href="<?php echo PHS::url([
-            'a' => 'add', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
+                'a' => 'add', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
             ]); ?>"><?php echo $this->_pt('Add Remote Domain'); ?></a>
             </li>
             <?php
         }
         ?>
         <li><a href="<?php echo PHS::url([
-        'a' => 'list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
+            'a' => 'list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
         ]); ?>"><?php echo $this->_pt('List Remote Domains'); ?></a>
         </li>
         <?php
@@ -46,7 +46,7 @@ $can_manage_logs = (!empty($view_rights['admin']['manage_logs']));
     if ($can_list_logs || $can_manage_logs) {
         ?>
         <li><a href="<?php echo PHS::url([
-        'a' => 'logs_list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
+            'a' => 'logs_list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
         ]); ?>"><?php echo $this->_pt('List Logs'); ?></a>
         </li>
         <?php
