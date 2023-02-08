@@ -13,7 +13,7 @@ use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.5';
+    return '1.1.8.6';
 }
 
 function phs_init_before_bootstrap() : bool
