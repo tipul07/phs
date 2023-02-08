@@ -107,7 +107,9 @@ define( 'PHS_FRAMEWORK_ASSETS_DIR', {{PHS_FRAMEWORK_ASSETS_DIR}} ); // Default: 
 // Default theme... (this is the fallback theme where template files are. Change this only if you know what you are doing!!!)
 // You can setup a cascade of themes after boostrap.php is included (scroll down)
 if( !defined( 'PHS_DEFAULT_THEME' ) ) {
-    define('PHS_DEFAULT_THEME', '{{PHS_DEFAULT_THEME}}'); // Default: default}
+    // Default: default
+    define('PHS_DEFAULT_THEME', '{{PHS_DEFAULT_THEME}}');
+}
 if( !defined( 'PHS_THEME' ) ) {
     define('PHS_THEME', '{{PHS_THEME}}');
 }
