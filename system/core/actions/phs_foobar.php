@@ -1,8 +1,7 @@
 <?php
-
 namespace phs\system\core\actions;
 
-use \phs\libraries\PHS_Action;
+use phs\libraries\PHS_Action;
 
 class PHS_Action_Foobar extends PHS_Action
 {

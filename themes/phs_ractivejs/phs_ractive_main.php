@@ -12,7 +12,7 @@
 <?php
     // We include this file so that developers will not have to care about this component
     // This component is considered "built-in"
-    include_once( 'js/ractive_notifications.js.php' );
+    include_once 'js/ractive_notifications.js.php';
 ?>
 
 var PHS_RActive_Main_app = PHS_RActive_Main_app || new PHS_RActive({

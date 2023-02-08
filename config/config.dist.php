@@ -1,41 +1,61 @@
 <?php
 
-    if( !defined( 'PHS_VERSION' ) )
-        exit;
+if (!defined('PHS_VERSION')) {
+    exit;
+}
 
 // Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
-define( 'PHS_SITE_NAME', 'PoweredByPHS.com' );
+
+define('PHS_SITE_NAME', 'PoweredByPHS.com');
 
 // Where should Contact Us send emails (this email(s) might be shown to users) this can contain comma separated emails
-define( 'PHS_CONTACT_EMAIL', 'contact@email.com' );
+
+define('PHS_CONTACT_EMAIL', 'contact@email.com');
 
 // domain to set session cookie (could be .example.com serving all subdomains)
-define( 'PHS_COOKIE_DOMAIN', '.domain.com' );
+
+define('PHS_COOKIE_DOMAIN', '.domain.com');
+
 // Domain name only (eg. www.example.com)
-define( 'PHS_DOMAIN', 'domain.only.com' );
+
+define('PHS_DOMAIN', 'domain.only.com');
+
 // If diffrent than "normal" domain (eg. secure.example.com)
-define( 'PHS_SSL_DOMAIN', PHS_DOMAIN );
+
+define('PHS_SSL_DOMAIN', PHS_DOMAIN);
+
 // port if site is accessible with a port other than 80. If default port used (80) leave empty
-define( 'PHS_PORT', 'site port' );
+
+define('PHS_PORT', 'site port');
+
 // https port if site is accessible with a port other than 443. If default port used (443) leave empty
-define( 'PHS_SSL_PORT', 'https site port' );
+
+define('PHS_SSL_PORT', 'https site port');
 // if root URL is accessible with a path appended to domain name. Leave empty if domain points to root of platform
-define( 'PHS_DOMAIN_PATH', '/site/path/' ); // ending in /
+
+define('PHS_DOMAIN_PATH', '/site/path/'); // ending in /
 
 // Sets uploads dir for current domain configuratrion (if you want to use domain specific location uncomment this line, otherwise PHS_FRAMEWORK_LOGS_DIR in main.php will be used)
+
 // define( 'PHS_UPLOADS_DIR', PHS_PATH.'_uploads/' );
 
 // Domain logging dir... (if you want to use domain specific location uncomment this line, otherwise PHS_FRAMEWORK_LOGS_DIR in main.php will be used)
+
 // define( 'PHS_LOGS_DIR', PHS_SYSTEM_DIR.'logs/' );
 
 // What theme should domain use (don't define anything if default theme should be used)
-define( 'PHS_THEME', PHS_DEFAULT_THEME );
+
+define('PHS_THEME', PHS_DEFAULT_THEME);
 
 // Required only if you want to have different crypting parameters
+
 // !!! BUT ONLY IF DOMAIN USES IT'S OWN DATABASE !!!
-define( 'PHS_CRYPT_KEY', '@#&*(PHS_cryptencodingKeY!#@)^-=[]{};,./<>?' );
+
+define('PHS_CRYPT_KEY', '@#&*(PHS_cryptencodingKeY!#@)^-=[]{};,./<>?');
+
 global $PHS_CRYPT_INTERNAL_KEYS_ARR;
-$PHS_CRYPT_INTERNAL_KEYS_ARR = array(
+
+$PHS_CRYPT_INTERNAL_KEYS_ARR = [
     '234547ce55318ee6eee60ea83d73ec5e',
     'c9f2d14d7a0cd0bd2a3d683f50eb1aee',
     'e812e40b98bbaf5c365399ef34dccfd1',
@@ -70,53 +90,85 @@ $PHS_CRYPT_INTERNAL_KEYS_ARR = array(
     '646daa56be6b13eacfb3c23054d3bef9',
     '9a8cab9fefcc0668f5bb788b02ed5534',
     'de7f73a3212ecd82783cef5676f35323',
-);
+];
 
 // Put a string here which will be the name of database connection used
+
 // Define as many dabatase connections here
-define( 'PHS_DB_CONNECTION', PHS_DB_DEFAULT_CONNECTION );
+
+define('PHS_DB_CONNECTION', PHS_DB_DEFAULT_CONNECTION);
 
 // Session settings (if not default ones)
-define( 'PHS_SESSION_DIR', PHS_DEFAULT_SESSION_DIR );
-define( 'PHS_SESSION_NAME', PHS_DEFAULT_SESSION_NAME );
+
+define('PHS_SESSION_DIR', PHS_DEFAULT_SESSION_DIR);
+
+define('PHS_SESSION_NAME', PHS_DEFAULT_SESSION_NAME);
+
 // 0 to close session when browser closes... This is session lifetime, not how long user will be logged in
+
 // We can save in session language or other details that should be available for a longer period
-define( 'PHS_SESSION_COOKIE_LIFETIME', PHS_DEFAULT_SESSION_COOKIE_LIFETIME );
-define( 'PHS_SESSION_COOKIE_PATH', '/'.trim( PHS_DEFAULT_DOMAIN_PATH, '/' ) );
+
+define('PHS_SESSION_COOKIE_LIFETIME', PHS_DEFAULT_SESSION_COOKIE_LIFETIME);
+
+define('PHS_SESSION_COOKIE_PATH', '/'.trim(PHS_DEFAULT_DOMAIN_PATH, '/'));
+
 // SameSite session cookie settings (can be None, Lax or Strict)
-define( 'PHS_SESSION_SAMESITE', PHS_DEFAULT_SESSION_SAMESITE );
+
+define('PHS_SESSION_SAMESITE', PHS_DEFAULT_SESSION_SAMESITE);
+
 // Session starts automatically if it is required a variable.
+
 // If system gets to the point to start displaying something and this constant is set to true, session will be started before displaying
+
 // It is important to start the session before sending headers, as it cannot be started once headers were sent to browser
-define( 'PHS_SESSION_AUTOSTART', false );
+
+define('PHS_SESSION_AUTOSTART', false);
 
 // Define domain specific languages (if required)
 
 // Controlling database library behaviour (if different than default one)
+
 // if( !defined( 'PHS_DB_SILENT_ERRORS' ) )
 //     define( 'PHS_DB_SILENT_ERRORS', false );
+
 // if( !defined( 'PHS_DB_DIE_ON_ERROR' ) )
 //     define( 'PHS_DB_DIE_ON_ERROR', true );
+
 // if( !defined( 'PHS_DB_CLOSE_AFTER_QUERY' ) )
 //     define( 'PHS_DB_CLOSE_AFTER_QUERY', true );
 
 // Define domain specific database settings (if required)
+
 // $mysql_settings = array();
+
 // $mysql_settings['driver'] = 'mysqli';
+
 // $mysql_settings['host'] = '';
+
 // $mysql_settings['user'] = '';
+
 // $mysql_settings['password'] = '';
+
 // $mysql_settings['database'] = '';
+
 // $mysql_settings['prefix'] = '';
+
 // $mysql_settings['port'] = '';
+
 // $mysql_settings['timezone'] = date( 'P' );
+
 // $mysql_settings['charset'] = 'UTF8';
+
 // $mysql_settings['driver_settings'] = array( 'sql_mode' => '-ONLY_FULL_GROUP_BY' );
 //
+
 // define( 'PHS_DB_CONNECTION', 'db_domain_default' );
 //
+
 // if( !PHS_Db::add_db_connection( PHS_DB_DOMAIN_CONNECTION, $mysql_settings ) )
+
 // {
 //    PHS_Db::st_throw_error();
 //    exit;
+
 // }

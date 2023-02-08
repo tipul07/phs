@@ -1,35 +1,33 @@
 <?php
-
 namespace phs\plugins\admin\actions;
 
-use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_Params;
-use \phs\libraries\PHS_Plugin;
-use \phs\libraries\PHS_Action;
-use \phs\libraries\PHS_Notifications;
-use \phs\libraries\PHS_Instantiable;
-use \phs\libraries\PHS_Roles;
+use phs\PHS;
+use phs\PHS_Scope;
+use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Instantiable;
+use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {
-    const ERR_PLUGIN = 1;
+    public const ERR_PLUGIN = 1;
 
-    /** @var bool|\phs\libraries\PHS_Plugin $_plugin_obj */
+    /** @var bool|\phs\libraries\PHS_Plugin */
     private $_plugin_obj = false;
 
     public function allowed_scopes()
     {
-        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
+        return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
     public function execute()
     {
-        PHS::page_settings( 'page_title', $this->_pt( 'Plugin Settings' ) );
+        PHS::page_settings('page_title', $this->_pt('Plugin Settings'));
 
-        if( !($current_user = PHS::user_logged_in()) )
-        {
-            PHS_Notifications::add_warning_notice( $this->_pt( 'You should login first...' ) );
+        if (!($current_user = PHS::user_logged_in())) {
+            PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             $action_result = self::default_action_result();
 
@@ -40,74 +38,71 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($admin_plugin = PHS::load_plugin( 'admin' ))
-         || !($accounts_model = PHS::load_model( 'accounts', 'accounts' )) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'Error loading required resources.' ) );
+        if (!($admin_plugin = PHS::load_plugin('admin'))
+         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
             return self::default_action_result();
         }
 
-        if( !$admin_plugin->can_admin_list_plugins( $current_user ) )
-        {
-            PHS_Notifications::add_error_notice( $this->_pt( 'You don\'t have rights to list plugins.' ) );
+        if (!$admin_plugin->can_admin_list_plugins($current_user)) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list plugins.'));
+
             return self::default_action_result();
         }
 
-        $pid = PHS_Params::_gp( 'pid', PHS_Params::T_ASIS );
-        $back_page = PHS_Params::_gp( 'back_page', PHS_Params::T_ASIS );
+        $pid = PHS_Params::_gp('pid', PHS_Params::T_ASIS);
+        $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
-        if( $pid !== PHS_Instantiable::CORE_PLUGIN
-         && (!($instance_details = PHS_Instantiable::valid_instance_id( $pid ))
-                 || empty( $instance_details['instance_type'] )
+        if ($pid !== PHS_Instantiable::CORE_PLUGIN
+         && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
+                 || empty($instance_details['instance_type'])
                  || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-                 || !($this->_plugin_obj = PHS::load_plugin( $instance_details['plugin_name'] ))
-            ) )
-        {
+                 || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
+         )) {
             $action_result = self::default_action_result();
 
-            $args = [ 'unknown_plugin' => 1 ];
+            $args = ['unknown_plugin' => 1];
 
-            if( empty( $back_page ) )
-                $back_page = PHS::url( [ 'p' => 'admin', 'a' => 'plugins_list' ] );
-            else
-                $back_page = from_safe_url( $back_page );
+            if (empty($back_page)) {
+                $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+            } else {
+                $back_page = from_safe_url($back_page);
+            }
 
-            $back_page = add_url_params( $back_page, $args );
+            $back_page = add_url_params($back_page, $args);
 
             $action_result['redirect_to_url'] = $back_page;
 
             return $action_result;
         }
 
-        if( PHS_Params::_g( 'changes_saved', PHS_Params::T_INT ) )
-            PHS_Notifications::add_success_notice( $this->_pt( 'Settings saved in database.' ) );
+        if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
+            PHS_Notifications::add_success_notice($this->_pt('Settings saved in database.'));
+        }
 
-        if( $pid === PHS_Instantiable::CORE_PLUGIN )
-        {
+        if ($pid === PHS_Instantiable::CORE_PLUGIN) {
             $this->_plugin_obj = false;
             $plugin_models_arr = PHS::get_core_models();
-        } else
-        {
+        } else {
             $plugin_models_arr = $this->_plugin_obj->get_models();
         }
 
         $modules_with_settings = [];
-        if( !empty( $plugin_models_arr ) && is_array( $plugin_models_arr ) )
-        {
-            foreach( $plugin_models_arr as $model_name )
-            {
+        if (!empty($plugin_models_arr) && is_array($plugin_models_arr)) {
+            foreach ($plugin_models_arr as $model_name) {
                 $module_details = [];
                 $module_details['instance'] = false;
                 $module_details['settings'] = [];
 
-                if( !($model_instance = PHS::load_model( $model_name, ($this->_plugin_obj?$this->_plugin_obj->instance_plugin_name():false) ))
-                 || !($settings_arr = $model_instance->validate_settings_structure()) ) {
+                if (!($model_instance = PHS::load_model($model_name, ($this->_plugin_obj ? $this->_plugin_obj->instance_plugin_name() : false)))
+                 || !($settings_arr = $model_instance->validate_settings_structure())) {
                     continue;
                 }
 
                 $model_id = $model_instance->instance_id();
 
-                if( !($model_db_details = $model_instance->get_db_details()) ) {
+                if (!($model_db_details = $model_instance->get_db_details())) {
                     $model_db_details = [];
                 }
 
@@ -115,23 +110,23 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
                 $modules_with_settings[$model_id]['default_settings'] = $model_instance->get_default_settings();
                 $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
-                $modules_with_settings[$model_id]['db_version'] = (!empty( $model_db_details['version'] )?$model_db_details['version']:'0.0.0');
+                $modules_with_settings[$model_id]['db_version'] = (!empty($model_db_details['version']) ? $model_db_details['version'] : '0.0.0');
                 $modules_with_settings[$model_id]['script_version'] = $model_instance->get_model_version();
             }
         }
 
         $data = [
-            'back_page' => $back_page,
-            'form_data' => [],
+            'back_page'             => $back_page,
+            'form_data'             => [],
             'modules_with_settings' => $modules_with_settings,
-            'settings_fields' => [],
-            'db_settings' => [],
-            'plugin_obj' => $this->_plugin_obj,
+            'settings_fields'       => [],
+            'db_settings'           => [],
+            'plugin_obj'            => $this->_plugin_obj,
         ];
 
-        $foobar = PHS_Params::_p( 'foobar', PHS_Params::T_INT );
-        $selected_module = PHS_Params::_gp( 'selected_module', PHS_Params::T_NOHTML );
-        $do_submit = PHS_Params::_gp( 'do_submit', PHS_Params::T_NOHTML );
+        $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
+        $selected_module = PHS_Params::_gp('selected_module', PHS_Params::T_NOHTML);
+        $do_submit = PHS_Params::_gp('do_submit', PHS_Params::T_NOHTML);
 
         $form_data = [];
         $form_data['selected_module'] = $selected_module;
@@ -144,71 +139,72 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $db_settings = [];
         $db_version = '0.0.0';
         $script_version = '0.0.0';
-        if( !empty( $form_data['selected_module'] )
-         && !empty( $modules_with_settings[$form_data['selected_module']] ) )
-        {
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['instance'] ) )
+        if (!empty($form_data['selected_module'])
+         && !empty($modules_with_settings[$form_data['selected_module']])) {
+            if (!empty($modules_with_settings[$form_data['selected_module']]['instance'])) {
                 $module_instance = $modules_with_settings[$form_data['selected_module']]['instance'];
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['settings'] ) )
+            }
+            if (!empty($modules_with_settings[$form_data['selected_module']]['settings'])) {
                 $settings_fields = $modules_with_settings[$form_data['selected_module']]['settings'];
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['default_settings'] ) )
+            }
+            if (!empty($modules_with_settings[$form_data['selected_module']]['default_settings'])) {
                 $default_settings = $modules_with_settings[$form_data['selected_module']]['default_settings'];
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['db_settings'] ) )
+            }
+            if (!empty($modules_with_settings[$form_data['selected_module']]['db_settings'])) {
                 $db_settings = $modules_with_settings[$form_data['selected_module']]['db_settings'];
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['db_version'] ) )
+            }
+            if (!empty($modules_with_settings[$form_data['selected_module']]['db_version'])) {
                 $db_version = $modules_with_settings[$form_data['selected_module']]['db_version'];
-            if( !empty( $modules_with_settings[$form_data['selected_module']]['script_version'] ) )
+            }
+            if (!empty($modules_with_settings[$form_data['selected_module']]['script_version'])) {
                 $script_version = $modules_with_settings[$form_data['selected_module']]['script_version'];
-        } else
-        {
+            }
+        } else {
             $form_data['selected_module'] = '';
             $module_instance = $this->_plugin_obj;
 
-            if( $this->_plugin_obj )
-            {
-                if( !($plugin_db_details = $this->_plugin_obj->get_db_details()) )
+            if ($this->_plugin_obj) {
+                if (!($plugin_db_details = $this->_plugin_obj->get_db_details())) {
                     $plugin_db_details = [];
+                }
 
                 $settings_fields = $this->_plugin_obj->validate_settings_structure();
                 $default_settings = $this->_plugin_obj->get_default_settings();
                 $db_settings = $this->_plugin_obj->get_db_settings();
-                $db_version = (!empty( $plugin_db_details['version'] )?$plugin_db_details['version']:'0.0.0');
+                $db_version = (!empty($plugin_db_details['version']) ? $plugin_db_details['version'] : '0.0.0');
                 $script_version = $this->_plugin_obj->get_plugin_version();
             }
         }
 
-        $new_settings_arr = $this->_extract_settings_fields_from_submit( $settings_fields, $default_settings, $db_settings, $foobar, $form_data );
+        $new_settings_arr = $this->_extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $foobar, $form_data);
 
-        if( !empty( $do_submit ) )
-        {
-            $new_settings_arr = self::validate_array( $new_settings_arr, $db_settings );
+        if (!empty($do_submit)) {
+            $new_settings_arr = self::validate_array($new_settings_arr, $db_settings);
 
             $callback_params = PHS_Plugin::st_default_custom_save_params();
             $callback_params['plugin_obj'] = $this->_plugin_obj;
             $callback_params['module_instance'] = $module_instance;
             $callback_params['form_data'] = $form_data;
 
-            $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit( $settings_fields, $callback_params, $new_settings_arr, $db_settings );
+            $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit($settings_fields, $callback_params, $new_settings_arr, $db_settings);
 
-            if( !PHS_Notifications::have_notifications_errors() )
-            {
-                if( ($new_db_settings = $module_instance->save_db_settings( $new_settings_arr )) )
-                {
+            if (!PHS_Notifications::have_notifications_errors()) {
+                if (($new_db_settings = $module_instance->save_db_settings($new_settings_arr))) {
                     $action_result = self::default_action_result();
 
                     $args = [
-                        'changes_saved' => 1,
-                        'pid' => $pid,
+                        'changes_saved'   => 1,
+                        'pid'             => $pid,
                         'selected_module' => $selected_module,
-                        'back_page' => $back_page,
+                        'back_page'       => $back_page,
                     ];
 
-                    $action_result['redirect_to_url'] = PHS::url( [ 'p' => 'admin', 'a' => 'plugin_settings' ], $args );
+                    $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], $args);
 
                     return $action_result;
                 }
 
-                if( $module_instance->has_error() ) {
+                if ($module_instance->has_error()) {
                     PHS_Notifications::add_error_notice($module_instance->get_error_message());
                 } else {
                     PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
@@ -224,37 +220,38 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $data['db_version'] = $db_version;
         $data['script_version'] = $script_version;
 
-        return $this->quick_render_template( 'plugin_settings', $data );
+        return $this->quick_render_template('plugin_settings', $data);
     }
 
-    private function _extract_custom_save_settings_fields_from_submit( $settings_fields, $init_callback_params, $new_settings_arr, $db_settings )
+    private function _extract_custom_save_settings_fields_from_submit($settings_fields, $init_callback_params, $new_settings_arr, $db_settings)
     {
         $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
-        foreach( $settings_fields as $field_name => $field_details )
-        {
-            if( !empty( $field_details['ignore_field_value'] ) )
+        foreach ($settings_fields as $field_name => $field_details) {
+            if (!empty($field_details['ignore_field_value'])) {
                 continue;
+            }
 
-            if( PHS_Plugin::settings_field_is_group( $field_details ) )
-            {
-                if( null !== ($group_settings = $this->_extract_custom_save_settings_fields_from_submit(
+            if (PHS_Plugin::settings_field_is_group($field_details)) {
+                if (null !== ($group_settings = $this->_extract_custom_save_settings_fields_from_submit(
                     $field_details['group_fields'],
                     $init_callback_params,
                     $new_settings_arr,
-                    $db_settings )) )
-                    $new_settings_arr = self::merge_array_assoc( $new_settings_arr, $group_settings );
+                    $db_settings))) {
+                    $new_settings_arr = self::merge_array_assoc($new_settings_arr, $group_settings);
+                }
 
                 continue;
             }
 
-            if( empty( $field_details['custom_save'] )
-             || !@is_callable( $field_details['custom_save'] ) )
+            if (empty($field_details['custom_save'])
+             || !@is_callable($field_details['custom_save'])) {
                 continue;
+            }
 
             $callback_params = $init_callback_params;
             $callback_params['field_name'] = $field_name;
             $callback_params['field_details'] = $field_details;
-            $callback_params['field_value'] = (isset( $new_settings_arr[$field_name] )?$new_settings_arr[$field_name]:null);
+            $callback_params['field_value'] = ($new_settings_arr[$field_name] ?? null);
 
             // make sure static error is reset
             self::st_reset_error();
@@ -266,38 +263,30 @@ class PHS_Action_Plugin_settings extends PHS_Action
              * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
              * can be provided
              */
-            if( ($save_result = @call_user_func( $field_details['custom_save'], $callback_params )) !== null )
-            {
-                if( !is_array( $save_result ) )
+            if (($save_result = @call_user_func($field_details['custom_save'], $callback_params)) !== null) {
+                if (!is_array($save_result)) {
                     $new_settings_arr[$field_name] = $save_result;
-
-                else
-                {
-                    $save_result = self::merge_array_assoc( $save_result, $default_custom_save_callback_result );
-                    if( !empty( $save_result['{new_settings_fields}'] ) && is_array( $save_result['{new_settings_fields}'] ) )
-                    {
-                        foreach( $db_settings as $s_key => $s_val )
-                        {
-                            if( array_key_exists( $s_key, $save_result['{new_settings_fields}'] ) ) {
+                } else {
+                    $save_result = self::merge_array_assoc($save_result, $default_custom_save_callback_result);
+                    if (!empty($save_result['{new_settings_fields}']) && is_array($save_result['{new_settings_fields}'])) {
+                        foreach ($db_settings as $s_key => $s_val) {
+                            if (array_key_exists($s_key, $save_result['{new_settings_fields}'])) {
                                 $new_settings_arr[$s_key] = $save_result['{new_settings_fields}'][$s_key];
                             }
                         }
-                    } else
-                    {
-                        if( isset( $save_result['{new_settings_fields}'] ) ) {
+                    } else {
+                        if (isset($save_result['{new_settings_fields}'])) {
                             unset($save_result['{new_settings_fields}']);
                         }
 
                         $new_settings_arr[$field_name] = $save_result;
                     }
                 }
-            }
-
-            elseif( self::st_has_error() ) {
+            } elseif (self::st_has_error()) {
                 PHS_Notifications::add_error_notice(self::st_get_error_message());
             }
 
-            if( self::st_has_warnings() ) {
+            if (self::st_has_warnings()) {
                 PHS_Notifications::add_warning_notice(self::st_get_warnings());
             }
         }
@@ -305,24 +294,25 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_settings_fields_from_submit( $settings_fields, $default_settings, $db_settings, $is_post, &$form_data )
+    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data)
     {
         $new_settings_arr = [];
-        foreach( $settings_fields as $field_name => $field_details )
-        {
-            if( !empty( $field_details['ignore_field_value'] ) )
+        foreach ($settings_fields as $field_name => $field_details) {
+            if (!empty($field_details['ignore_field_value'])) {
                 continue;
+            }
 
-            if( PHS_Plugin::settings_field_is_group( $field_details ) )
-            {
-                if( null !== ($group_settings = $this->_extract_settings_fields_from_submit( $field_details['group_fields'], $default_settings, $db_settings, $is_post, $form_data )) )
-                    $new_settings_arr = self::merge_array_assoc( $new_settings_arr, $group_settings );
+            if (PHS_Plugin::settings_field_is_group($field_details)) {
+                if (null !== ($group_settings = $this->_extract_settings_fields_from_submit($field_details['group_fields'], $default_settings, $db_settings, $is_post, $form_data))) {
+                    $new_settings_arr = self::merge_array_assoc($new_settings_arr, $group_settings);
+                }
 
                 continue;
             }
 
-            if( null === ($field_value = $this->_extract_field_value_from_submit( $field_name, $field_details, $default_settings, $db_settings, $is_post, $form_data )) )
+            if (null === ($field_value = $this->_extract_field_value_from_submit($field_name, $field_details, $default_settings, $db_settings, $is_post, $form_data))) {
                 continue;
+            }
 
             $new_settings_arr[$field_name] = $field_value;
         }
@@ -330,54 +320,58 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_field_value_from_submit( $field_name, $field_details, $default_settings, $db_settings, $is_post, &$form_data )
+    private function _extract_field_value_from_submit($field_name, $field_details, $default_settings, $db_settings, $is_post, &$form_data)
     {
         $field_value = null;
 
-        if( empty( $field_details['editable'] ) )
-        {
+        if (empty($field_details['editable'])) {
             // Check if default values have changed (upgrading plugin might change default value)
-            if( isset( $default_settings[$field_name] ) && isset( $db_settings[$field_name] )
-             && $default_settings[$field_name] !== $db_settings[$field_name] )
+            if (isset($default_settings[$field_name]) && isset($db_settings[$field_name])
+             && $default_settings[$field_name] !== $db_settings[$field_name]) {
                 $field_value = $default_settings[$field_name];
+            }
 
             // if we have something in database use that value
-            elseif( isset( $db_settings[$field_name] ) )
+            elseif (isset($db_settings[$field_name])) {
                 $field_value = $db_settings[$field_name];
+            }
 
             // This is a new non-editable value, save default value to db
-            elseif( isset( $default_settings[$field_name] ) )
+            elseif (isset($default_settings[$field_name])) {
                 $field_value = $default_settings[$field_name];
+            }
 
             return $field_value;
         }
 
-        $form_data[$field_name] = PHS_Params::_gp( $field_name, $field_details['type'], $field_details['extra_type'] );
+        $form_data[$field_name] = PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
 
-        if( !empty( $is_post )
-         && (int)$field_details['type'] === PHS_Params::T_BOOL )
-            $form_data[$field_name] = (!empty( $form_data[$field_name] ));
+        if (!empty($is_post)
+         && (int)$field_details['type'] === PHS_Params::T_BOOL) {
+            $form_data[$field_name] = (!empty($form_data[$field_name]));
+        }
 
-        if( !empty( $field_details['custom_save'] ) )
+        if (!empty($field_details['custom_save'])) {
             return null;
+        }
 
-        switch( $field_details['input_type'] )
-        {
+        switch ($field_details['input_type']) {
             default:
             case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
             case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
                 $field_value = $form_data[$field_name];
-            break;
+                break;
 
             case PHS_Plugin::INPUT_TYPE_TEMPLATE:
-            break;
+                break;
 
             case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
-                if( empty( $default_settings[$field_name] ) )
+                if (empty($default_settings[$field_name])) {
                     $field_value = $form_data[$field_name];
-                else
-                    $field_value = self::validate_array_to_new_array( $form_data[$field_name], $default_settings[$field_name] );
-            break;
+                } else {
+                    $field_value = self::validate_array_to_new_array($form_data[$field_name], $default_settings[$field_name]);
+                }
+                break;
         }
 
         return $field_value;

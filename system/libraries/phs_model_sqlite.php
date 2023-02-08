@@ -1,72 +1,70 @@
 <?php
-
 namespace phs\libraries;
 
-use \phs\PHS;
-use \phs\PHS_Db;
+use phs\PHS;
+use phs\PHS_Db;
 use phs\PHS_Maintenance;
 
 abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 {
     public const FTYPE_UNKNOWN = 0,
-          FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
-          FTYPE_DATE = 10, FTYPE_DATETIME = 11, FTYPE_TIMESTAMP = 12,
-          FTYPE_CHAR = 13, FTYPE_VARCHAR = 14, FTYPE_TEXT = 15, FTYPE_MEDIUMTEXT = 16, FTYPE_LONGTEXT = 17,
-          FTYPE_BINARY = 18, FTYPE_VARBINARY = 19,
-          FTYPE_TINYBLOB = 20, FTYPE_MEDIUMBLOB = 21, FTYPE_BLOB = 22, FTYPE_LONGBLOB = 23,
-          FTYPE_ENUM = 24;
+    FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
+    FTYPE_DATE = 10, FTYPE_DATETIME = 11, FTYPE_TIMESTAMP = 12,
+    FTYPE_CHAR = 13, FTYPE_VARCHAR = 14, FTYPE_TEXT = 15, FTYPE_MEDIUMTEXT = 16, FTYPE_LONGTEXT = 17,
+    FTYPE_BINARY = 18, FTYPE_VARBINARY = 19,
+    FTYPE_TINYBLOB = 20, FTYPE_MEDIUMBLOB = 21, FTYPE_BLOB = 22, FTYPE_LONGBLOB = 23,
+    FTYPE_ENUM = 24;
+
+    public const RECORD_NEW_INSERT_KEY = '{new_in_db}';
 
     private static array $FTYPE_ARR = [
         self::FTYPE_TINYINT => [
-            'title' => 'tinyint', 'default_length' => 4, 'default_value' => 0,
-            'max_value' => [ 'signed' => '127', 'unsigned' => '255' ],
-            'min_value' => [ 'signed' => '-128', 'unsigned' => '0' ],
+            'title'     => 'tinyint', 'default_length' => 4, 'default_value' => 0,
+            'max_value' => ['signed' => '127', 'unsigned' => '255'],
+            'min_value' => ['signed' => '-128', 'unsigned' => '0'],
         ],
         self::FTYPE_SMALLINT => [
-            'title' => 'smallint', 'default_length' => 6, 'default_value' => 0,
-            'max_value' => [ 'signed' => '32767', 'unsigned' => '65535' ],
-            'min_value' => [ 'signed' => '-32768', 'unsigned' => '0' ],
+            'title'     => 'smallint', 'default_length' => 6, 'default_value' => 0,
+            'max_value' => ['signed' => '32767', 'unsigned' => '65535'],
+            'min_value' => ['signed' => '-32768', 'unsigned' => '0'],
         ],
         self::FTYPE_MEDIUMINT => [
-            'title' => 'mediumint', 'default_length' => 9, 'default_value' => 0,
-            'max_value' => [ 'signed' => '8388607', 'unsigned' => '16777215' ],
-            'min_value' => [ 'signed' => '-8388608', 'unsigned' => '0' ],
+            'title'     => 'mediumint', 'default_length' => 9, 'default_value' => 0,
+            'max_value' => ['signed' => '8388607', 'unsigned' => '16777215'],
+            'min_value' => ['signed' => '-8388608', 'unsigned' => '0'],
         ],
         self::FTYPE_INT => [
-            'title' => 'int', 'default_length' => 11, 'default_value' => 0,
-            'max_value' => [ 'signed' => '2147483647', 'unsigned' => '4294967295' ],
-            'min_value' => [ 'signed' => '-2147483648', 'unsigned' => '0' ],
+            'title'     => 'int', 'default_length' => 11, 'default_value' => 0,
+            'max_value' => ['signed' => '2147483647', 'unsigned' => '4294967295'],
+            'min_value' => ['signed' => '-2147483648', 'unsigned' => '0'],
         ],
         self::FTYPE_BIGINT => [
-            'title' => 'bigint', 'default_length' => 20, 'default_value' => 0,
-            'max_value' => [ 'signed' => '9223372036854775807', 'unsigned' => '18446744073709551615' ],
-            'min_value' => [ 'signed' => '-9223372036854775808', 'unsigned' => '0' ],
+            'title'     => 'bigint', 'default_length' => 20, 'default_value' => 0,
+            'max_value' => ['signed' => '9223372036854775807', 'unsigned' => '18446744073709551615'],
+            'min_value' => ['signed' => '-9223372036854775808', 'unsigned' => '0'],
         ],
-        self::FTYPE_DECIMAL => [ 'title' => 'decimal', 'default_length' => '5,2', 'default_value' => 0.0, ],
-        self::FTYPE_FLOAT => [ 'title' => 'float', 'default_length' => '5,2', 'default_value' => 0.0, ],
-        self::FTYPE_DOUBLE => [ 'title' => 'double', 'default_length' => '5,2', 'default_value' => 0.0, ],
+        self::FTYPE_DECIMAL => ['title' => 'decimal', 'default_length' => '5,2', 'default_value' => 0.0, ],
+        self::FTYPE_FLOAT   => ['title' => 'float', 'default_length' => '5,2', 'default_value' => 0.0, ],
+        self::FTYPE_DOUBLE  => ['title' => 'double', 'default_length' => '5,2', 'default_value' => 0.0, ],
 
-        self::FTYPE_DATE => [ 'title' => 'date', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_DATETIME => [ 'title' => 'datetime', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_TIMESTAMP => [ 'title' => 'timestamp', 'default_length' => 0, 'default_value' => 0, 'nullable' => true, ],
+        self::FTYPE_DATE      => ['title' => 'date', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_DATETIME  => ['title' => 'datetime', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_TIMESTAMP => ['title' => 'timestamp', 'default_length' => 0, 'default_value' => 0, 'nullable' => true, ],
 
-        self::FTYPE_CHAR => [ 'title' => 'char', 'default_length' => 255, 'default_value' => '', 'max_bytes' => 255, 'nullable' => true, ],
-        self::FTYPE_VARCHAR => [ 'title' => 'varchar', 'default_length' => 255, 'default_value' => '', 'max_bytes' => 255, 'nullable' => true, ],
-        self::FTYPE_TEXT => [ 'title' => 'text', 'default_length' => null, 'default_value' => null, 'max_bytes' => 65535, 'nullable' => true, ],
-        self::FTYPE_MEDIUMTEXT => [ 'title' => 'mediumtext', 'default_length' => null, 'default_value' => null, 'max_bytes' => 16777215, 'nullable' => true, ],
-        self::FTYPE_LONGTEXT => [ 'title' => 'longtext', 'default_length' => null, 'default_value' => null, 'max_bytes' => 4294967295, 'nullable' => true, ],
+        self::FTYPE_CHAR       => ['title' => 'char', 'default_length' => 255, 'default_value' => '', 'max_bytes' => 255, 'nullable' => true, ],
+        self::FTYPE_VARCHAR    => ['title' => 'varchar', 'default_length' => 255, 'default_value' => '', 'max_bytes' => 255, 'nullable' => true, ],
+        self::FTYPE_TEXT       => ['title' => 'text', 'default_length' => null, 'default_value' => null, 'max_bytes' => 65535, 'nullable' => true, ],
+        self::FTYPE_MEDIUMTEXT => ['title' => 'mediumtext', 'default_length' => null, 'default_value' => null, 'max_bytes' => 16777215, 'nullable' => true, ],
+        self::FTYPE_LONGTEXT   => ['title' => 'longtext', 'default_length' => null, 'default_value' => null, 'max_bytes' => 4294967295, 'nullable' => true, ],
 
-        self::FTYPE_BINARY => [ 'title' => 'binary', 'default_length' => 255, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_VARBINARY => [ 'title' => 'varbinary', 'default_length' => 255, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_BINARY    => ['title' => 'binary', 'default_length' => 255, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_VARBINARY => ['title' => 'varbinary', 'default_length' => 255, 'default_value' => null, 'nullable' => true, ],
 
-        self::FTYPE_TINYBLOB => [ 'title' => 'tinyblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_MEDIUMBLOB => [ 'title' => 'mediumblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_BLOB => [ 'title' => 'blob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-        self::FTYPE_LONGBLOB => [ 'title' => 'longblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
-
-        self::FTYPE_ENUM => [ 'title' => 'enum', 'default_length' => '', 'default_value' => null, 'nullable' => true, ], ];
-
-    public const RECORD_NEW_INSERT_KEY = '{new_in_db}';
+        self::FTYPE_TINYBLOB   => ['title' => 'tinyblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_MEDIUMBLOB => ['title' => 'mediumblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_BLOB       => ['title' => 'blob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_LONGBLOB   => ['title' => 'longblob', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
+        self::FTYPE_ENUM       => ['title' => 'enum', 'default_length' => '', 'default_value' => null, 'nullable' => true, ], ];
 
     //
     //  region Abstract model specific methods
@@ -74,7 +72,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_model_driver(): string
+    public function get_model_driver() : string
     {
         return PHS_Db::DB_DRIVER_MYSQLI;
     }
@@ -92,7 +90,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * (override the method if not `id`)
      */
-    public function get_primary_key( $params = false ): string
+    public function get_primary_key($params = false) : string
     {
         return 'id';
     }
@@ -100,9 +98,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      * @return int|string
-     * Default primary key an INT, override this method if otherwise
+     *                    Default primary key an INT, override this method if otherwise
      */
-    public function prepare_primary_key( $id, $params = false )
+    public function prepare_primary_key($id, $params = false)
     {
         return (int)$id;
     }
@@ -110,7 +108,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_field_types(): array
+    public function get_field_types() : array
     {
         return self::$FTYPE_ARR;
     }
@@ -118,11 +116,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function valid_field_type( $type )
+    public function valid_field_type($type)
     {
-        if( empty( $type )
+        if (empty($type)
          || !($fields_arr = $this->get_field_types())
-         || empty( $fields_arr[$type] ) || !is_array( $fields_arr[$type] ) ) {
+         || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
             return false;
         }
 
@@ -130,22 +128,1005 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     }
 
     /**
-     * @inheritdoc
+     * Parses flow parameters if anything special should be done for listing records query and returns modified parameters array
+     *
+     * @param array|bool $params Parameters in the flow
+     *
+     * @return array Flow parameters array
      */
-    protected function _get_details_for_model( $id, $params = false )
+    public function get_list_prepare_params($params = false)
     {
-        if( !($params = $this->fetch_default_flow_params( $params )) ) {
+        return $params;
+    }
+
+    /**
+     * Parses flow parameters if anything special should be done for count query and returns modified parameters array
+     *
+     * @param array|bool $params Parameters in the flow
+     *
+     * @return array Flow parameters array
+     */
+    public function get_count_prepare_params($params = false)
+    {
+        return $params;
+    }
+
+    public function check_extra_index_exists($index_name, $flow_params = false, bool $force = false)
+    {
+        $this->reset_error();
+
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
+
             return false;
         }
 
-        if( empty( $params['details'] ) ) {
+        if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
+         || !is_array($table_definition)) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
+            }
+
+            return false;
+        }
+
+        if (empty($table_definition[self::EXTRA_INDEXES_KEY])
+         || !array_key_exists($index_name, $table_definition[self::EXTRA_INDEXES_KEY])) {
+            return false;
+        }
+
+        return $table_definition[self::EXTRA_INDEXES_KEY][$index_name];
+    }
+
+    /**
+     * @param string $field
+     * @param bool|array $params
+     *
+     * @return null|array|bool|mixed
+     */
+    public function table_field_details(string $field, $params = false)
+    {
+        $this->reset_error();
+
+        $table = false;
+        if (strpos($field, '.') !== false) {
+            [$table, $field] = explode('.', $field, 2);
+        }
+
+        if (empty($params) || !is_array($params)) {
+            $params = [];
+        }
+
+        if ($table !== false) {
+            $params['table_name'] = $table;
+        }
+
+        if (!($params = $this->fetch_default_flow_params($params))) {
+            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
+
+            return false;
+        }
+
+        if (!($table_fields = $this->get_definition($params))
+         || !is_array($table_fields)) {
+            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
+
+            return false;
+        }
+
+        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
+            return null;
+        }
+
+        return $table_fields[$field];
+    }
+
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $flow_params
+     * @param bool|array $params
+     *
+     * @return bool
+     */
+    final public function alter_table_add_column($field_name, $field_details, $flow_params = false, $params = false) : bool
+    {
+        $this->reset_error();
+
+        $field_details = self::validate_array($field_details, self::_default_field_arr());
+
+        if (empty($field_name)
+         || empty($field_details)
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($field_details = $this->_validate_field($field_details))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition($field_name, $field_details))
+         || empty($mysql_field_arr['field_str'])
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            PHS_Logger::error('Invalid column definition ['.(!empty($field_name) ? $field_name : '???').'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Invalid column definition [%s].', (!empty($field_name) ? $field_name : '???')));
+
+            return false;
+        }
+
+        if ($this->check_column_exists($field_name, $flow_params)) {
+            PHS_Logger::error('Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Column [%s] already exists.', $field_name));
+
+            return false;
+        }
+
+        if (empty($params) || !is_array($params)) {
+            $params = [];
+        }
+
+        if (empty($params['after_column']) || strtolower(trim($params['after_column'])) === '`first`') {
+            $params['after_column'] = ' FIRST';
+        } else {
+            if (!$this->check_column_exists($params['after_column'], $flow_params)) {
+                PHS_Logger::error('Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE);
+
+                $this->set_error(self::ERR_ALTER, self::_t('Column [%s] in alter table statement doesn\'t exist.', $params['after_column']));
+
+                return false;
+            }
+
+            $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        if (!db_query('ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection)) {
+            PHS_Logger::error('Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to add column [%s].', $field_name));
+
+            return false;
+        }
+
+        // We change cache on the fly...
+        self::cached_db_set_column_definition($field_name, $field_details, $flow_table_name, $my_driver);
+
+        if (!empty($mysql_field_arr['keys_str'])
+         && !db_query('ALTER TABLE `'.$flow_table_name.'` ADD '.$mysql_field_arr['keys_str'], $db_connection)) {
+            PHS_Logger::error('Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to add indexes for [%s].', $field_name));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $old_field
+     * @param bool|array $flow_params
+     * @param bool|array $params
+     *
+     * @return bool
+     */
+    final public function alter_table_change_column($field_name, $field_details, $old_field = false, $flow_params = false, $params = false) : bool
+    {
+        $this->reset_error();
+
+        $field_details = self::validate_array($field_details, self::_default_field_arr());
+
+        if (empty($field_name)
+         || empty($field_details)
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())
+         || !($field_details = $this->_validate_field($field_details))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition($field_name, $field_details))
+         || empty($mysql_field_arr['field_str'])) {
+            PHS_Logger::error('Invalid column definition ['.(!empty($field_name) ? $field_name : '???').'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Invalid column definition [%s].', (!empty($field_name) ? $field_name : '???')));
+
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        $old_field_name = false;
+        $old_field_details = false;
+        if (!empty($old_field) && is_array($old_field)
+         && !empty($old_field['name'])
+         && !empty($old_field['definition']) && is_array($old_field['definition'])
+         && ($old_field_details = $this->_validate_field($old_field['definition']))) {
+            $old_field_name = $old_field['name'];
+        }
+
+        if (empty($old_field_name)) {
+            $db_old_field_name = $field_name;
+        } else {
+            $db_old_field_name = $old_field_name;
+        }
+
+        if (empty($params) || !is_array($params)) {
+            $params = [];
+        }
+
+        $params['alter_indexes'] = (!isset($params['alter_indexes']) || !empty($params['alter_indexes']));
+
+        if (empty($params['after_column'])) {
+            $params['after_column'] = '';
+        } elseif (strtolower(trim($params['after_column'])) === '`first`') {
+            $params['after_column'] = ' FIRST';
+        } else {
+            if (!$this->check_column_exists($params['after_column'], $flow_params)) {
+                PHS_Logger::error('Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE);
+
+                $this->set_error(self::ERR_ALTER, self::_t('Column [%s] in alter table (change) statement doesn\'t exist in table structure.', $params['after_column']));
+
+                return false;
+            }
+
+            $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
+        }
+
+        $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
+        if (!db_query($sql, $db_connection)) {
+            PHS_Logger::error('Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to change column [%s].', $field_name));
+
+            return false;
+        }
+
+        if ($field_name !== $db_old_field_name) {
+            // We change cache on the fly...
+            self::cached_db_remove_column($db_old_field_name, $flow_table_name, $my_driver);
+            self::cached_db_set_column_definition($field_name, $field_details, $flow_table_name, $my_driver);
+        }
+
+        if (!empty($params['alter_indexes'])
+         && !empty($old_field_name)
+         && !empty($old_field_details) && is_array($old_field_details)
+         && empty($old_field_details['primary']) && !empty($old_field_details['index'])
+         && !db_query('ALTER TABLE `'.$flow_table_name.'` DROP KEY `'.$old_field_name.'`', $db_connection)) {
+            PHS_Logger::error('Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table (change) to drop OLD index for [%s].', $old_field_name));
+
+            return false;
+        }
+
+        if (!empty($params['alter_indexes'])
+         && !empty($mysql_field_arr['keys_str'])
+         && !db_query('ALTER TABLE `'.$flow_table_name.'` ADD '.$mysql_field_arr['keys_str'], $db_connection)) {
+            PHS_Logger::error('Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table (change) to add indexes for [%s].', $field_name));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    final public function alter_table_drop_column($field_name, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($field_name)
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid parameters sent to drop column method.'));
+
+            return false;
+        }
+
+        if (!$this->check_column_exists($field_name, $flow_params)) {
+            return true;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        if (!db_query('ALTER TABLE `'.$flow_table_name.'` DROP COLUMN `'.$field_name.'`', $db_connection)) {
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to drop column [%s].', $field_name));
+
+            return false;
+        }
+
+        // We change cache on the fly...
+        self::cached_db_remove_column($field_name, $flow_table_name, $my_driver);
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    final public function alter_table_drop_column_index($field_name, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($field_name)
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid parameters sent to drop column method.'));
+
+            return false;
+        }
+
+        if (!$this->check_column_index_exists($field_name, $flow_params)) {
+            return true;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        if (!db_query('DROP INDEX `'.$field_name.'` ON `'.$flow_table_name.'`', $db_connection)) {
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to drop index on [%s].', $field_name));
+
+            return false;
+        }
+
+        // We change cache on the fly...
+        self::cached_db_drop_column_index($field_name, $flow_table_name, $my_driver);
+
+        return true;
+    }
+
+    /**
+     * @param string $field_name
+     * @param array $field_details
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    final public function alter_table_add_column_index($field_name, $field_details, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        $field_details = self::validate_array($field_details, self::_default_field_arr());
+
+        if (empty($field_name)
+         || empty($field_details)
+         || $field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())
+         || !($field_details = $this->_validate_field($field_details))
+         || !($mysql_field_arr = $this->_get_mysql_field_definition($field_name, $field_details))
+         || empty($mysql_field_arr['keys_str'])) {
+            PHS_Logger::error('Invalid column definition ['.(!empty($field_name) ? $field_name : '???').'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Invalid column definition [%s].', (!empty($field_name) ? $field_name : '???')));
+
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        if (!db_query('ALTER TABLE `'.$flow_table_name.'` ADD '.$mysql_field_arr['keys_str'], $db_connection)) {
+            PHS_Logger::error('Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_ALTER, self::_t('Error altering table to add index for column [%s].', $field_name));
+
+            return false;
+        }
+
+        // We change cache on the fly...
+        self::cached_db_add_column_index($field_name, $flow_table_name, $my_driver);
+
+        return true;
+    }
+
+    /**
+     * @param array $indexes_array
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    public function create_table_extra_indexes_from_array($indexes_array, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($indexes_array) || !is_array($indexes_array)) {
+            return true;
+        }
+
+        foreach ($indexes_array as $index_name => $index_arr) {
+            if (empty($index_arr) || !is_array($index_arr)) {
+                continue;
+            }
+
+            if (!$this->_create_table_extra_index($index_name, $index_arr, $flow_params)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $index_name
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    public function drop_table_index(string $index_name, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($index_name)
+         || !($model_id = $this->instance_id())
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || empty($flow_params['table_name'])
+         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+            PHS_Logger::error('Error dropping index for model ['.(!empty($model_id) ? $model_id : 'N/A').']. Bad parameters sent to method.', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error dropping index for model %s.', (!empty($model_id) ? $model_id : 'N/A')));
+
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        if (!db_query('ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection)) {
+            PHS_Logger::error('Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error dropping index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id()));
+
+            return false;
+        }
+
+        return true;
+    }
+    //
+    // endregion Database structure methods
+    //
+
+    //
+    //  region CRUD functionality
+    //
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
+    public function insert($params)
+    {
+        $this->reset_error();
+
+        if (!($params = $this->fetch_default_flow_params($params))
+         || !isset($params['fields']) || !is_array($params['fields'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Failed validating flow parameters.'));
+
+            return false;
+        }
+
+        $params['action'] = 'insert';
+
+        if ((
+            @method_exists($this, 'get_insert_prepare_params_'.$params['table_name'])
+            && !($params = @call_user_func([$this, 'get_insert_prepare_params_'.$params['table_name']], $params))
+        )
+
+        || (
+            !@method_exists($this, 'get_insert_prepare_params_'.$params['table_name'])
+            && !($params = $this->get_insert_prepare_params($params))
+        )
+        ) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_INSERT, self::_t('Couldn\'t parse parameters for database insert.'));
+            }
+
+            return false;
+        }
+
+        if (!($validation_arr = $this->validate_data_for_fields($params))
+         || empty($validation_arr['data_arr'])) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_INSERT, self::_t('Error validating parameters.'));
+            }
+
+            return false;
+        }
+
+        $insert_arr = $validation_arr['data_arr'];
+        $db_connection = $this->get_db_connection($params);
+
+        if (!($sql = db_quick_insert($this->get_flow_table_name($params), $insert_arr, $db_connection))
+         || !($item_id = db_query_insert($sql, $db_connection))) {
+            if (@method_exists($this, 'insert_failed_'.$params['table_name'])) {
+                @$this->{'insert_failed_'.$params['table_name']}($insert_arr, $params);
+            } else {
+                $this->insert_failed($insert_arr, $params);
+            }
+
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
+            }
+
+            return false;
+        }
+
+        if (!empty($validation_arr['has_raw_fields'])) {
+            // there are raw fields, so we query for existing data in table...
+            if (!($db_insert_arr = $this->get_details($item_id, $params))) {
+                if (!$this->has_error()) {
+                    $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
+                }
+
+                return false;
+            }
+        } else {
+            $db_insert_arr = $this->get_empty_data($params);
+            foreach ($insert_arr as $key => $val) {
+                $db_insert_arr[$key] = $val;
+            }
+        }
+
+        $insert_arr = $db_insert_arr;
+
+        $insert_arr[$params['table_index']] = $item_id;
+
+        // Mark record as just added to database...
+        $insert_arr[self::RECORD_NEW_INSERT_KEY] = true;
+
+        $insert_after_exists = @method_exists($this, 'insert_after_'.$params['table_name']);
+
+        if ((
+            $insert_after_exists
+            && !($new_insert_arr = @$this->{'insert_after_'.$params['table_name']}($insert_arr, $params))
+        )
+
+        || (
+            !$insert_after_exists
+            && !($new_insert_arr = $this->insert_after($insert_arr, $params))
+        )
+        ) {
+            $error_arr = $this->get_error();
+
+            $this->hard_delete($insert_arr);
+
+            if (self::arr_has_error($error_arr)) {
+                $this->copy_error_from_array($error_arr);
+            } elseif (!$this->has_error()) {
+                $this->set_error(self::ERR_INSERT, self::_t('Failed actions after database insert.'));
+            }
+
+            return false;
+        }
+
+        $insert_arr = $new_insert_arr;
+
+        $hook_params = PHS_Hooks::default_model_insert_data_hook_args();
+        $hook_params['fields_arr'] = $validation_arr['data_arr'];
+        $hook_params['table_name'] = $params['table_name'];
+        $hook_params['new_db_record'] = $insert_arr;
+
+        // Table level trigger
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_INSERT_DATA.'_'.$params['table_name'], $hook_params);
+
+        // Generic level trigger
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_INSERT_DATA, $hook_params);
+
+        return $insert_arr;
+    }
+
+    /**
+     * @param array $record_arr
+     *
+     * @return bool
+     */
+    public function record_is_new($record_arr) : bool
+    {
+        return !(empty($record_arr) || !is_array($record_arr)
+         || empty($record_arr[self::RECORD_NEW_INSERT_KEY]));
+    }
+
+    /**
+     * @param int|array $existing_data
+     * @param array $params
+     *
+     * @return array|bool
+     */
+    public function edit($existing_data, $params)
+    {
+        $this->reset_error();
+
+        if (!($params = $this->fetch_default_flow_params($params))
+         || !isset($params['fields']) || !is_array($params['fields'])) {
+            $this->set_error(self::ERR_EDIT, self::_t('Failed validating flow parameters.'));
+
+            return false;
+        }
+
+        if (!($existing_arr = $this->data_to_array($existing_data, $params))
+         || !array_key_exists($params['table_index'], $existing_arr)) {
+            $this->set_error(self::ERR_EDIT, self::_t('Existing record not found in database.'));
+
+            return false;
+        }
+
+        $params['action'] = 'edit';
+
+        $original_record_arr = $existing_arr;
+
+        // If this was a new record in db, it is not anymore...
+        if (isset($existing_arr[self::RECORD_NEW_INSERT_KEY])) {
+            unset($existing_arr[self::RECORD_NEW_INSERT_KEY]);
+        }
+
+        $edit_prepare_params_exists = @method_exists($this, 'get_edit_prepare_params_'.$params['table_name']);
+
+        if ((
+            $edit_prepare_params_exists
+            && !($params = @$this->{'get_edit_prepare_params_'.$params['table_name']}($existing_arr, $params))
+        )
+
+        || (
+            !$edit_prepare_params_exists
+            && !($params = $this->get_edit_prepare_params($existing_arr, $params))
+        )
+        ) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_EDIT, self::_t('Couldn\'t parse parameters for database edit.'));
+            }
+
+            return false;
+        }
+
+        if (!($validation_arr = $this->validate_data_for_fields($params))
+         || !isset($validation_arr['data_arr']) || !is_array($validation_arr['data_arr'])) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_EDIT, self::_t('Error validating parameters.'));
+            }
+
+            return false;
+        }
+
+        $full_table_name = $this->get_flow_table_name($params);
+        $db_connection = $this->get_db_connection($params);
+
+        $new_existing_arr = $existing_arr;
+
+        $edit_arr = $validation_arr['data_arr'];
+        if (!empty($edit_arr)
+         && (!($sql = db_quick_edit($full_table_name, $edit_arr, $db_connection))
+                || !db_query($sql.' WHERE `'.$full_table_name.'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $db_connection)
+         )) {
+            if (@method_exists($this, 'edit_failed_'.$params['table_name'])) {
+                @$this->{'edit_failed_'.$params['table_name']}($existing_arr, $edit_arr, $params);
+            } else {
+                $this->edit_failed($existing_arr, $edit_arr, $params);
+            }
+
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_EDIT, self::_t('Failed saving information to database.'));
+            }
+
+            return false;
+        }
+
+        $edit_after_exists = @method_exists($this, 'edit_after_'.$params['table_name']);
+
+        if ((
+            $edit_after_exists
+            && !($new_existing_arr = @$this->{'edit_after_'.$params['table_name']}($existing_arr, $edit_arr, $params))
+        )
+
+        || (
+            !$edit_after_exists
+            && !($new_existing_arr = $this->edit_after($existing_arr, $edit_arr, $params))
+        )
+        ) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_EDIT, self::_t('Failed actions after database edit.'));
+            }
+
+            return false;
+        }
+
+        $existing_arr = $new_existing_arr;
+
+        if (!empty($edit_arr)) {
+            if (!empty($validation_arr['has_raw_fields'])) {
+                // there are raw fields, so we query for existing data in table...
+                if (!($db_existing_arr = $this->get_details($existing_arr['id'], $params))) {
+                    if (!$this->has_error()) {
+                        $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
+                    }
+
+                    return false;
+                }
+
+                // Overwrite only fields from table structure (as there might be other keys in array not related to table structure)
+                foreach ($db_existing_arr as $key => $val) {
+                    $existing_arr[$key] = $val;
+                }
+            } else {
+                foreach ($edit_arr as $key => $val) {
+                    $existing_arr[$key] = $val;
+                }
+            }
+        }
+
+        $hook_params = PHS_Hooks::default_model_edit_data_hook_args();
+        $hook_params['fields_arr'] = $validation_arr['data_arr'];
+        $hook_params['table_name'] = $params['table_name'];
+        $hook_params['new_db_record'] = $existing_arr;
+        $hook_params['old_db_record'] = $original_record_arr;
+
+        // Table level trigger
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_EDIT_DATA.'_'.$params['table_name'], $hook_params);
+
+        // Generic level trigger
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_EDIT_DATA, $hook_params);
+
+        return $existing_arr;
+    }
+
+    /**
+     * Checks if $constrain_arr conditional fields find a record in database. If they return a record, method will edit that record and if none found, method will add new record
+     * with provided fields in $params
+     *
+     * @param array $constrain_arr Conditional db fields
+     * @param array $params Parameters in the flow
+     *
+     * @return bool
+     */
+    public function insert_or_edit($constrain_arr, $params)
+    {
+        $this->reset_error();
+
+        if (!($params = $this->fetch_default_flow_params($params))
+         || !isset($params['fields']) || !is_array($params['fields'])) {
+            $this->set_error(self::ERR_EDIT, self::_t('Failed validating flow parameters.'));
+
+            return false;
+        }
+
+        $check_params = $params;
+        $check_params['result_type'] = 'single';
+        $check_params['details'] = '*';
+        if (!($existing_arr = $this->get_details_fields($constrain_arr, $params))) {
+            return $this->insert($params);
+        }
+
+        if (!array_key_exists($params['table_index'], $existing_arr)) {
+            $this->set_error(self::ERR_EDIT, self::_t('Record doesn\'t have table index as key in result.'));
+
+            return false;
+        }
+
+        if (!($new_edit_arr = $this->insert_or_edit_editing($existing_arr, $constrain_arr, $params))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_INSERT, self::_t('Failed actions before database edit.'));
+            }
+
+            return false;
+        }
+
+        return $this->edit($existing_arr, $params);
+    }
+
+    /**
+     * @param array $params
+     *
+     * @return array|bool
+     */
+    public function get_query_fields($params)
+    {
+        if (empty($params) || !is_array($params)
+         || empty($params['fields']) || !is_array($params['fields'])
+         || !($new_params = $this->fetch_default_flow_params($params))) {
+            return $params;
+        }
+
+        $params = $new_params;
+
+        $db_connection = $this->get_db_connection($params);
+        $full_table_name = $this->get_flow_table_name($params);
+
+        if (empty($params['extra_sql'])) {
+            $params['extra_sql'] = '';
+        }
+
+        // Params used for {linkage} parameter (recurring)...
+        if (empty($params['recurring_level'])) {
+            $params['recurring_level'] = 0;
+        }
+
+        $linkage_func = 'AND';
+        if (!empty($params['fields']['{linkage_func}'])
+         && in_array(strtolower($params['fields']['{linkage_func}']), self::linkage_db_functions(), true)) {
+            $linkage_func = strtoupper($params['fields']['{linkage_func}']);
+        }
+
+        if (isset($params['fields']['{linkage_func}'])) {
+            unset($params['fields']['{linkage_func}']);
+        }
+
+        $query_field_value_params = [];
+        $query_field_value_params['db_connection'] = $db_connection;
+        $query_field_value_params['linkage_func'] = $linkage_func;
+
+        foreach ($params['fields'] as $field_name => $field_val) {
+            $field_name = trim($field_name);
+            if (empty($field_name) && $field_name !== '0') {
+                continue;
+            }
+
+            if ($field_name === '{linkage}') {
+                if (empty($field_val) || !is_array($field_val)
+                 || empty($field_val['fields']) || !is_array($field_val['fields'])) {
+                    continue;
+                }
+
+                $recurring_params = $params;
+                $recurring_params['fields'] = $field_val['fields'];
+                $recurring_params['extra_sql'] = '';
+                $recurring_params['recurring_level']++;
+
+                if (($recurring_result = $this->get_query_fields($recurring_params))
+                 && is_array($recurring_result) && !empty($recurring_result['extra_sql'])) {
+                    $params['extra_sql'] .= (!empty($params['extra_sql']) ? ' '.$linkage_func.' ' : '').' ('.$recurring_result['extra_sql'].') ';
+                }
+
+                continue;
+            }
+
+            // Handle field name
+            if (!is_numeric($field_name)
+             && strpos($field_name, '.') === false) {
+                $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
+            }
+
+            // Handle field value
+            if (($field_val_query = $this->_get_query_field_value($field_name, $field_val, $query_field_value_params))) {
+                $params['extra_sql'] .= (!empty($params['extra_sql']) ? ' '.$linkage_func.' ' : '').$field_val_query;
+            }
+        }
+
+        return $params;
+    }
+
+    /**
+     * @param bool|array $params
+     *
+     * @return array|int
+     */
+    public function get_count($params = false)
+    {
+        $this->reset_error();
+
+        if (!($params = $this->fetch_default_flow_params($params))
+         || !($params = self::validate_array($params, self::get_count_default_params()))
+         || ($params = $this->get_count_list_common_params($params)) === false
+         || ($params = $this->get_count_prepare_params($params)) === false
+         || ($params = $this->get_query_fields($params)) === false) {
+            return 0;
+        }
+
+        if (empty($params['extra_sql'])) {
+            $params['extra_sql'] = '';
+        }
+        if (empty($params['join_sql'])) {
+            $params['join_sql'] = '';
+        }
+
+        $params['return_query_string'] = !empty($params['return_query_string']);
+
+        $db_connection = $this->get_db_connection($params);
+
+        $distinct_str = '';
+        if ($params['count_field'] !== '*') {
+            $distinct_str = 'DISTINCT ';
+        }
+
+        $sql = 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '
+               .' FROM `'.$this->get_flow_table_name($params).'` '
+               .$params['join_sql']
+               .(!empty($params['extra_sql']) ? ' WHERE '.$params['extra_sql'] : '')
+               .(!empty($params['group_by']) ? ' GROUP BY '.$params['group_by'] : '')
+               .(!empty($params['having_sql']) ? ' HAVING '.$params['having_sql'] : '');
+
+        if (!empty($params['return_query_string'])) {
+            $return_arr = [];
+            $return_arr['query'] = $sql;
+            $return_arr['params'] = $params;
+
+            return $return_arr;
+        }
+
+        $ret = 0;
+        if (($qid = db_query($sql, $db_connection))
+         && ($result = db_fetch_assoc($qid, $db_connection))) {
+            $ret = $result['total_enregs'];
+        }
+
+        return $ret;
+    }
+
+    /**
+     * @param bool|array $params
+     *
+     * @return array|bool|\mysqli_result
+     */
+    public function get_list($params = false)
+    {
+        $this->reset_error();
+
+        if (!($common_arr = $this->get_list_common($params))
+         || !is_array($common_arr)
+         || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
+            return false;
+        }
+
+        if (!empty($params['return_query_string'])) {
+            return $common_arr;
+        }
+
+        if (!empty($params['get_query_id'])) {
+            return $common_arr['qid'];
+        }
+
+        if (isset($common_arr['params'])) {
+            $params = $common_arr['params'];
+        }
+
+        $db_connection = $this->get_db_connection($params);
+
+        $ret_arr = [];
+        while (($item_arr = db_fetch_assoc($common_arr['qid'], $db_connection))) {
+            $key = $params['table_index'];
+            if (isset($item_arr[$params['arr_index_field']])) {
+                $key = $params['arr_index_field'];
+            }
+
+            $ret_arr[$item_arr[$key]] = $item_arr;
+        }
+
+        return $ret_arr;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function _get_details_for_model($id, $params = false)
+    {
+        if (!($params = $this->fetch_default_flow_params($params))) {
+            return false;
+        }
+
+        if (empty($params['details'])) {
             $params['details'] = '*';
         }
 
-        if( empty( $id )
-         || !($qid = db_query( 'SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name( $params ).'` '.
-                               ' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection'] ))
-         || !($item_arr = $qid->fetchArray( SQLITE3_ASSOC )) ) {
+        if (empty($id)
+         || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
+                               .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
+         || !($item_arr = $qid->fetchArray(SQLITE3_ASSOC))) {
             return false;
         }
 
@@ -155,30 +1136,29 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model( $constrain_arr, $params = false )
+    protected function _get_details_fields_for_model($constrain_arr, $params = false)
     {
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || !($common_arr = $this->get_details_common( $constrain_arr, $params ))
-         || !is_array( $common_arr )
-         || (empty( $params['return_query_string'] ) && empty( $common_arr['qid'] )) ) {
+        if (!($params = $this->fetch_default_flow_params($params))
+         || !($common_arr = $this->get_details_common($constrain_arr, $params))
+         || !is_array($common_arr)
+         || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
             return false;
         }
 
-        if( !empty( $params['return_query_string'] ) ) {
+        if (!empty($params['return_query_string'])) {
             return $common_arr;
         }
 
-        if( !empty( $common_arr['params'] ) ) {
+        if (!empty($common_arr['params'])) {
             $params = $common_arr['params'];
         }
 
-        if( $params['result_type'] === 'single' ) {
-            return ($common_arr['qid'])->fetchArray( SQLITE3_ASSOC );
+        if ($params['result_type'] === 'single') {
+            return $common_arr['qid']->fetchArray(SQLITE3_ASSOC);
         }
 
         $item_arr = [];
-        while( ($row_arr = ($common_arr['qid'])->fetchArray( SQLITE3_ASSOC )) )
-        {
+        while (($row_arr = ($common_arr['qid'])->fetchArray(SQLITE3_ASSOC))) {
             $item_arr[$row_arr[$params['result_key']]] = $row_arr;
         }
 
@@ -188,21 +1168,21 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model( $flow_params = false, bool $force = false ): bool
+    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
+
             return false;
         }
 
-        $this->_extract_db_structure( $flow_params, $force );
+        $this->_extract_db_structure($flow_params, $force);
 
-        return (bool)self::get_cached_db_table_structure( $flow_table_name, $my_driver );
+        return (bool)self::get_cached_db_table_structure($flow_table_name, $my_driver);
     }
 
     /**
@@ -210,42 +1190,42 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _install_table_for_model( $flow_params ): bool
+    protected function _install_table_for_model($flow_params) : bool
     {
         $this->reset_error();
 
-        if( !($model_id = $this->instance_id()) ) {
+        if (!($model_id = $this->instance_id())) {
             return false;
         }
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || empty( $flow_params['table_name'] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
-        {
-            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+        if (empty($this->_definition) || !is_array($this->_definition)
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || empty($flow_params['table_name'])
+         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+            PHS_Logger::error('Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE);
 
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Setup for model [%s] is invalid.', $model_id));
+
             return false;
         }
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::notice( 'Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice('Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-        if( empty( $this->_definition[$table_name] ) )
-        {
-            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        if (empty($this->_definition[$table_name])) {
+            PHS_Logger::error('Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Model table [%s] not defined in model [%s].', $table_name, $model_id));
+
             return false;
         }
 
         $table_definition = $this->_definition[$table_name];
 
-        $db_connection = $this->get_db_connection( $flow_params );
+        $db_connection = $this->get_db_connection($flow_params);
 
-        if( empty( $table_definition[self::T_DETAILS_KEY] ) ) {
+        if (empty($table_definition[self::T_DETAILS_KEY])) {
             $table_details = $this->_default_table_details_arr();
         } else {
             $table_details = $table_definition[self::T_DETAILS_KEY];
@@ -254,36 +1234,35 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         $sql = 'CREATE TABLE IF NOT EXISTS `'.$full_table_name.'` ( '."\n";
         $all_fields_str = '';
         $keys_str = '';
-        foreach( $table_definition as $field_name => $field_details )
-        {
-            if( !($field_definition = $this->_get_mysql_field_definition( $field_name, $field_details ))
-             || !is_array( $field_definition ) || empty( $field_definition['field_str'] ) ) {
+        foreach ($table_definition as $field_name => $field_details) {
+            if (!($field_definition = $this->_get_mysql_field_definition($field_name, $field_details))
+             || !is_array($field_definition) || empty($field_definition['field_str'])) {
                 continue;
             }
 
-            $all_fields_str .= ($all_fields_str!==''?', '."\n":'').$field_definition['field_str'];
+            $all_fields_str .= ($all_fields_str !== '' ? ', '."\n" : '').$field_definition['field_str'];
 
-            if( !empty( $field_definition['keys_str'] ) ) {
+            if (!empty($field_definition['keys_str'])) {
                 $keys_str .= ($keys_str !== '' ? ',' : '').$field_definition['keys_str'];
             }
         }
 
-        $sql .= $all_fields_str.
-                (!empty( $keys_str )?', '."\n".$keys_str."\n":'').
-                ') ENGINE='.$table_details['engine'].
-                ' DEFAULT CHARSET='.$table_details['charset'].
-                (!empty( $table_details['collate'] )?' COLLATE '.$table_details['collate']:'').
-                (!empty( $table_details['comment'] )?' COMMENT=\''.self::safe_escape( $table_details['comment'] ).'\'':'').';';
+        $sql .= $all_fields_str
+                .(!empty($keys_str) ? ', '."\n".$keys_str."\n" : '')
+                .') ENGINE='.$table_details['engine']
+                .' DEFAULT CHARSET='.$table_details['charset']
+                .(!empty($table_details['collate']) ? ' COLLATE '.$table_details['collate'] : '')
+                .(!empty($table_details['comment']) ? ' COMMENT=\''.self::safe_escape($table_details['comment']).'\'' : '').';';
 
-        if( !db_query( $sql, $db_connection ) )
-        {
-            PHS_Logger::error( 'Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        if (!db_query($sql, $db_connection)) {
+            PHS_Logger::error('Error generating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error generating table %s for model %s.', $full_table_name, $this->instance_id() ) );
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error generating table %s for model %s.', $full_table_name, $this->instance_id()));
+
             return false;
         }
 
-        if( !$this->_create_table_extra_indexes( $flow_params ) ) {
+        if (!$this->_create_table_extra_indexes($flow_params)) {
             return false;
         }
 
@@ -291,29 +1270,28 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         // Do not recache table as we are done with it...
         // $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::notice( 'DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice('DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
         return true;
     }
 
-    protected function get_previous_field_from_table_definition( $field, $definition ): ?array
+    protected function get_previous_field_from_table_definition($field, $definition) : ?array
     {
-        if( empty( $field )
-         || empty( $definition ) || !is_array( $definition )
-         || !isset( $definition[$field] ) ) {
+        if (empty($field)
+         || empty($definition) || !is_array($definition)
+         || !isset($definition[$field])) {
             return null;
         }
 
         $prev_field = '';
         $prev_field_arr = null;
-        foreach( $definition as $key => $val )
-        {
-            if( $key === self::T_DETAILS_KEY
-             || $key === self::EXTRA_INDEXES_KEY ) {
+        foreach ($definition as $key => $val) {
+            if ($key === self::T_DETAILS_KEY
+             || $key === self::EXTRA_INDEXES_KEY) {
                 continue;
             }
 
-            if( $key === $field ) {
+            if ($key === $field) {
                 break;
             }
 
@@ -322,7 +1300,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         return [
-            'field' => $prev_field,
+            'field'      => $prev_field,
             'definition' => $prev_field_arr,
         ];
     }
@@ -332,43 +1310,43 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model( $flow_params ): bool
+    protected function _update_table_for_model($flow_params) : bool
     {
         $this->reset_error();
 
-        if( !($model_id = $this->instance_id()) ) {
+        if (!($model_id = $this->instance_id())) {
             return false;
         }
 
-        if( empty( $this->_definition )
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || empty( $flow_params['table_name'] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
-        {
-            PHS_Logger::error( 'Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE );
+        if (empty($this->_definition)
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || empty($flow_params['table_name'])
+         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+            PHS_Logger::error('Setup for model ['.$model_id.'] is invalid.', PHS_Logger::TYPE_MAINTENANCE);
 
-            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Setup for model [%s] is invalid.', $model_id ) );
+            $this->set_error(self::ERR_UPDATE_TABLE, self::_t('Setup for model [%s] is invalid.', $model_id));
+
             return false;
         }
 
-        if( !$this->check_table_exists( $flow_params ) ) {
+        if (!$this->check_table_exists($flow_params)) {
             return $this->install_table($flow_params);
         }
 
         $table_name = $flow_params['table_name'];
 
-        PHS_Logger::notice( 'Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice('Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-        if( empty( $this->_definition[$table_name] ) )
-        {
-            PHS_Logger::error( 'Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        if (empty($this->_definition[$table_name])) {
+            PHS_Logger::error('Model table ['.$table_name.'] not defined in model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Model table [%s] not defined in model [%s].', $table_name, $model_id ) );
+            $this->set_error(self::ERR_UPDATE_TABLE, self::_t('Model table [%s] not defined in model [%s].', $table_name, $model_id));
+
             return false;
         }
 
         $table_definition = $this->_definition[$table_name];
-        $db_table_definition = $this->get_table_columns_as_definition( $flow_params );
+        $db_table_definition = $this->get_table_columns_as_definition($flow_params);
 
         $field_position_changes = [];
 
@@ -377,43 +1355,40 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
         // No need to check for changes if table is new...
         $prev_script_field = '';
-        foreach( $table_definition as $field_name => $field_definition )
-        {
-            if( $field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY ) {
+        foreach ($table_definition as $field_name => $field_definition) {
+            if ($field_name === self::T_DETAILS_KEY
+             || $field_name === self::EXTRA_INDEXES_KEY) {
                 continue;
             }
 
-            if( !empty( $db_table_definition ) )
-            {
-                //region Position change
+            if (!empty($db_table_definition)) {
+                // region Position change
                 // check field position changes... We actually check fields position relative to previous field
-                if( ($db_prev = $this->get_previous_field_from_table_definition( $field_name, $db_table_definition ))
-                 && !empty( $db_prev['field'] )
-                 && $db_prev['field'] !== $prev_script_field ) {
+                if (($db_prev = $this->get_previous_field_from_table_definition($field_name, $db_table_definition))
+                 && !empty($db_prev['field'])
+                 && $db_prev['field'] !== $prev_script_field) {
                     // Field position changed...
                     $field_position_changes[$field_name] = true;
                 }
                 $prev_script_field = $field_name;
-                //endregion Position change
+                // endregion Position change
 
-                //region Field naming change
+                // region Field naming change
                 // Check field naming change...
-                if( !empty( $field_definition['old_names'] )
-                 && is_array( $field_definition['old_names'] ) ) {
-                    foreach( $field_definition['old_names'] as $old_field_name )
-                    {
-                        if( !empty( $found_old_field_names_arr[$old_field_name] ) )
-                        {
-                            PHS_Logger::error( 'Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+                if (!empty($field_definition['old_names'])
+                 && is_array($field_definition['old_names'])) {
+                    foreach ($field_definition['old_names'] as $old_field_name) {
+                        if (!empty($found_old_field_names_arr[$old_field_name])) {
+                            PHS_Logger::error('Old field name '.$old_field_name.' found twice in same table model table ['.$table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                            $this->set_error( self::ERR_UPDATE_TABLE,
-                                self::_t( 'Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id ) );
+                            $this->set_error(self::ERR_UPDATE_TABLE,
+                                self::_t('Old field name %s found twice in same table model table %s, model %s.', $old_field_name, $table_name, $model_id));
+
                             return false;
                         }
 
                         // Check if in current table structure we have this old name...
-                        if( empty( $db_table_definition[$old_field_name] ) ) {
+                        if (empty($db_table_definition[$old_field_name])) {
                             continue;
                         }
 
@@ -421,71 +1396,68 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                         $old_field_names_arr[$field_name] = $old_field_name;
                     }
                 }
-                //endregion Field naming change
+                // endregion Field naming change
             }
         }
 
-        $db_connection = $this->get_db_connection( $flow_params );
+        $db_connection = $this->get_db_connection($flow_params);
 
-        //region Table details
-        if( empty( $table_definition[self::T_DETAILS_KEY] ) ) {
+        // region Table details
+        if (empty($table_definition[self::T_DETAILS_KEY])) {
             $table_details = $this->_default_table_details_arr();
         } else {
             $table_details = $table_definition[self::T_DETAILS_KEY];
         }
 
-        if( empty( $db_table_details[self::T_DETAILS_KEY] ) ) {
+        if (empty($db_table_details[self::T_DETAILS_KEY])) {
             $db_table_details = $this->_default_table_details_arr();
         } else {
             $db_table_details = $table_definition[self::T_DETAILS_KEY];
         }
 
-        if( ($changed_values = $this->_table_details_changed( $db_table_details, $table_details )) )
-        {
+        if (($changed_values = $this->_table_details_changed($db_table_details, $table_details))) {
             $sql = 'ALTER TABLE `'.$full_table_name.'`';
-            if( !empty( $changed_values['engine'] ) ) {
+            if (!empty($changed_values['engine'])) {
                 $sql .= ' ENGINE='.$changed_values['engine'];
             }
 
-            if( !empty( $changed_values['charset'] ) || !empty( $changed_values['collate'] ) )
-            {
+            if (!empty($changed_values['charset']) || !empty($changed_values['collate'])) {
                 $sql .= ' DEFAULT CHARSET=';
-                if( !empty( $changed_values['charset'] ) ) {
+                if (!empty($changed_values['charset'])) {
                     $sql .= $changed_values['charset'];
                 } else {
                     $sql .= $table_details['charset'];
                 }
 
                 $sql .= ' COLLATE ';
-                if( !empty( $changed_values['collate'] ) ) {
+                if (!empty($changed_values['collate'])) {
                     $sql .= $changed_values['collate'];
                 } else {
                     $sql .= $table_details['collate'];
                 }
             }
 
-            if( !empty( $changed_values['comment'] ) ) {
+            if (!empty($changed_values['comment'])) {
                 $sql .= ' COMMENT=\''.self::safe_escape($table_details['comment']).'\'';
             }
 
             // ALTER TABLE `table_name` ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci COMMENT "New comment"
-            if( !db_query( $sql, $db_connection ) )
-            {
-                PHS_Logger::error( 'Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+            if (!db_query($sql, $db_connection)) {
+                PHS_Logger::error('Error updating table properties ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error updating table properties %s for model %s.', $table_name, $this->instance_id() ) );
+                $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error updating table properties %s for model %s.', $table_name, $this->instance_id()));
+
                 return false;
             }
         }
-        //endregion Table details
+        // endregion Table details
 
         $after_field = '`first`';
         $fields_found_in_old_structure = [];
         // First we add or remove missing fields
-        foreach( $table_definition as $field_name => $field_definition )
-        {
-            if( $field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY ) {
+        foreach ($table_definition as $field_name => $field_definition) {
+            if ($field_name === self::T_DETAILS_KEY
+             || $field_name === self::EXTRA_INDEXES_KEY) {
                 continue;
             }
 
@@ -494,13 +1466,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
             $after_field = $field_name;
 
-            //region Field doesn't exists
-            if( empty( $db_table_definition[$field_name] ) )
-            {
+            // region Field doesn't exists
+            if (empty($db_table_definition[$field_name])) {
                 // Field doesn't exist in db structure...
                 // Check if we must rename it...
-                if( !empty( $old_field_names_arr[$field_name] ) )
-                {
+                if (!empty($old_field_names_arr[$field_name])) {
                     $fields_found_in_old_structure[$old_field_names_arr[$field_name]] = true;
 
                     // Yep we rename it...
@@ -508,13 +1478,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                     $old_field['name'] = $old_field_names_arr[$field_name];
                     $old_field['definition'] = $db_table_definition[$old_field_names_arr[$field_name]];
 
-                    if( !$this->alter_table_change_column( $field_name, $field_definition, $old_field, $flow_params, $field_extra_params ) )
-                    {
-                        if( !$this->has_error() )
-                        {
-                            PHS_Logger::error( 'Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                    if (!$this->alter_table_change_column($field_name, $field_definition, $old_field, $flow_params, $field_extra_params)) {
+                        if (!$this->has_error()) {
+                            PHS_Logger::error('Error changing column '.$old_field_names_arr[$field_name].', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
 
-                            $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error changing column %s, table %s, model %s.', $old_field_names_arr[$field_name], $full_table_name, $model_id ) );
+                            $this->set_error(self::ERR_UPDATE_TABLE, self::_t('Error changing column %s, table %s, model %s.', $old_field_names_arr[$field_name], $full_table_name, $model_id));
                         }
 
                         return false;
@@ -524,13 +1492,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                 }
 
                 // Didn't find old fields to rename... Just add it...
-                if( !$this->alter_table_add_column( $field_name, $field_definition, $flow_params, $field_extra_params ) )
-                {
-                    if( !$this->has_error() )
-                    {
-                        PHS_Logger::error( 'Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+                if (!$this->alter_table_add_column($field_name, $field_definition, $flow_params, $field_extra_params)) {
+                    if (!$this->has_error()) {
+                        PHS_Logger::error('Error adding column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
 
-                        $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error adding column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                        $this->set_error(self::ERR_UPDATE_TABLE, self::_t('Error adding column %s, table %s, model %s.', $field_name, $full_table_name, $model_id));
                     }
 
                     return false;
@@ -538,18 +1504,17 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
                 continue;
             }
-            //endregion Field doesn't exists
+            // endregion Field doesn't exists
 
             $fields_found_in_old_structure[$field_name] = true;
 
             // Check if index settings changed...
-            if( ($field_definition['index'] xor $db_table_definition[$field_name]['index'])
+            if (($field_definition['index'] xor $db_table_definition[$field_name]['index'])
              // Column had index on it before
-             && !empty( $db_table_definition[$field_name]['index'] )
-             && !$this->alter_table_drop_column_index( $field_name, $flow_params ) )
-            {
-                PHS_Logger::error( 'Error removing index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
-                if( !$this->has_error() ) {
+             && !empty($db_table_definition[$field_name]['index'])
+             && !$this->alter_table_drop_column_index($field_name, $flow_params)) {
+                PHS_Logger::error('Error removing index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
+                if (!$this->has_error()) {
                     $this->set_error(self::ERR_UPDATE_TABLE,
                         self::_t('Error removing index on column %s, table %s, model %s.', $field_name,
                             $full_table_name, $model_id));
@@ -562,12 +1527,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             $alter_params['alter_indexes'] = false;
 
             // In case we change only position or field changes (NOT THE INDEX)
-            if( (!empty( $field_position_changes[$field_name] )
-                 || $this->_field_definition_changed( $field_definition, $db_table_definition[$field_name] ))
-             && !$this->alter_table_change_column( $field_name, $field_definition, false, $flow_params, $alter_params ) )
-            {
-                if( !$this->has_error() ) {
-                    PHS_Logger::error( 'Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+            if ((!empty($field_position_changes[$field_name])
+                 || $this->_field_definition_changed($field_definition, $db_table_definition[$field_name]))
+             && !$this->alter_table_change_column($field_name, $field_definition, false, $flow_params, $alter_params)) {
+                if (!$this->has_error()) {
+                    PHS_Logger::error('Error updating column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
                     $this->set_error(self::ERR_UPDATE_TABLE,
                         self::_t('Error updating column %s, table %s, model %s.', $field_name, $full_table_name,
                             $model_id));
@@ -577,13 +1541,12 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             }
 
             // Check if index settings changed...
-            if( ($field_definition['index'] xor $db_table_definition[$field_name]['index'])
+            if (($field_definition['index'] xor $db_table_definition[$field_name]['index'])
              // Column has index on it now
-             && !empty( $field_definition['index'] )
-             && !$this->alter_table_add_column_index( $field_name, $field_definition, $flow_params ) )
-            {
-                PHS_Logger::error( 'Error adding index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
-                if( !$this->has_error() ) {
+             && !empty($field_definition['index'])
+             && !$this->alter_table_add_column_index($field_name, $field_definition, $flow_params)) {
+                PHS_Logger::error('Error adding index on column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
+                if (!$this->has_error()) {
                     $this->set_error(self::ERR_UPDATE_TABLE,
                         self::_t('Error adding index on column %s, table %s, model %s.', $field_name, $full_table_name,
                             $model_id));
@@ -594,21 +1557,18 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         // Delete fields which we didn't find in new structure
-        foreach( $db_table_definition as $field_name => $junk )
-        {
-            if( $field_name === self::T_DETAILS_KEY
+        foreach ($db_table_definition as $field_name => $junk) {
+            if ($field_name === self::T_DETAILS_KEY
              || $field_name === self::EXTRA_INDEXES_KEY
-             || !empty( $fields_found_in_old_structure[$field_name] ) ) {
+             || !empty($fields_found_in_old_structure[$field_name])) {
                 continue;
             }
 
-            if( !$this->alter_table_drop_column( $field_name, $flow_params ) )
-            {
-                if( !$this->has_error() )
-                {
-                    PHS_Logger::error( 'Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE );
+            if (!$this->alter_table_drop_column($field_name, $flow_params)) {
+                if (!$this->has_error()) {
+                    PHS_Logger::error('Error dropping column '.$field_name.', table '.$full_table_name.', model '.$model_id.'.', PHS_Logger::TYPE_MAINTENANCE);
 
-                    $this->set_error( self::ERR_UPDATE_TABLE, self::_t( 'Error dropping column %s, table %s, model %s.', $field_name, $full_table_name, $model_id ) );
+                    $this->set_error(self::ERR_UPDATE_TABLE, self::_t('Error dropping column %s, table %s, model %s.', $field_name, $full_table_name, $model_id));
                 }
 
                 return false;
@@ -616,54 +1576,47 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         // Check extra indexes...
-        if( !empty( $table_definition[self::EXTRA_INDEXES_KEY] )
-         || !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
-        {
-            if( !empty( $table_definition[self::EXTRA_INDEXES_KEY] )
-             && empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
-            {
+        if (!empty($table_definition[self::EXTRA_INDEXES_KEY])
+         || !empty($db_table_definition[self::EXTRA_INDEXES_KEY])) {
+            if (!empty($table_definition[self::EXTRA_INDEXES_KEY])
+             && empty($db_table_definition[self::EXTRA_INDEXES_KEY])) {
                 // new extra indexes
-                if( !$this->_create_table_extra_indexes( $flow_params ) ) {
+                if (!$this->_create_table_extra_indexes($flow_params)) {
                     return false;
                 }
-            } elseif( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
-                   && !empty( $db_table_definition[self::EXTRA_INDEXES_KEY] ) )
-            {
+            } elseif (empty($table_definition[self::EXTRA_INDEXES_KEY])
+                   && !empty($db_table_definition[self::EXTRA_INDEXES_KEY])) {
                 // delete existing extra indexes
-                if( !$this->drop_table_indexes_from_array( $db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params ) ) {
+                if (!$this->drop_table_indexes_from_array($db_table_definition[self::EXTRA_INDEXES_KEY], $flow_params)) {
                     return false;
                 }
-            } else
-            {
+            } else {
                 // do the diff on extra indexes...
                 $current_indexes = [];
-                foreach( $db_table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
-                {
-                    if( empty( $index_arr['fields'] ) || !is_array( $index_arr['fields'] ) ) {
+                foreach ($db_table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr) {
+                    if (empty($index_arr['fields']) || !is_array($index_arr['fields'])) {
                         $index_arr['fields'] = [];
                     }
 
-                    if( array_key_exists( $index_name, $table_definition[self::EXTRA_INDEXES_KEY] )
-                     && !empty( $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
-                     && is_array( $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] )
+                    if (array_key_exists($index_name, $table_definition[self::EXTRA_INDEXES_KEY])
+                     && !empty($table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'])
+                     && is_array($table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'])
                      && !($index_arr['unique'] xor $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['unique'])
-                     && self::arrays_have_same_values( $index_arr['fields'], $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'] ) )
-                    {
+                     && self::arrays_have_same_values($index_arr['fields'], $table_definition[self::EXTRA_INDEXES_KEY][$index_name]['fields'])) {
                         $current_indexes[$index_name] = true;
                         continue;
                     }
 
-                    $this->drop_table_index( $index_name, $flow_params );
+                    $this->drop_table_index($index_name, $flow_params);
                 }
 
                 // add new extra indexes after we did the diff with existing ones...
-                foreach( $table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
-                {
-                    if( !empty( $current_indexes[$index_name] ) ) {
+                foreach ($table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr) {
+                    if (!empty($current_indexes[$index_name])) {
                         continue;
                     }
 
-                    if( !$this->_create_table_extra_index( $index_name, $index_arr, $flow_params ) ) {
+                    if (!$this->_create_table_extra_index($index_name, $index_arr, $flow_params)) {
                         return false;
                     }
                 }
@@ -674,7 +1627,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         // Do not recache the table as we are done with it
         // $this->get_table_columns_as_definition( $flow_params, true );
 
-        PHS_Logger::notice( 'DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
+        PHS_Logger::notice('DONE Updating table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
         return true;
     }
@@ -684,28 +1637,28 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_missing_table_for_model( $flow_params ): bool
+    protected function _update_missing_table_for_model($flow_params) : bool
     {
-        return $this->_install_table_for_model( $flow_params );
+        return $this->_install_table_for_model($flow_params);
     }
 
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model( $flow_params ): bool
+    protected function _uninstall_table_for_model($flow_params) : bool
     {
         $this->reset_error();
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($db_connection = $this->get_db_connection( $flow_params ))
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) ) {
+        if (empty($this->_definition) || !is_array($this->_definition)
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($db_connection = $this->get_db_connection($flow_params))
+         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
             return true;
         }
 
-        if( !db_query( 'DROP TABLE IF EXISTS `'.$full_table_name.'`;', $db_connection ) )
-        {
-            $this->set_error( self::ERR_UNINSTALL_TABLE, self::_t( 'Error dropping table %s.', $full_table_name ) );
+        if (!db_query('DROP TABLE IF EXISTS `'.$full_table_name.'`;', $db_connection)) {
+            $this->set_error(self::ERR_UNINSTALL_TABLE, self::_t('Error dropping table %s.', $full_table_name));
+
             return false;
         }
 
@@ -715,176 +1668,45 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database( $flow_params = false, $force = false )
+    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($flow_table_name = $this->get_flow_table_name($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
+
             return false;
         }
 
-        if( !$this->_get_table_columns_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force )
-         || !$this->_get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force ) ) {
+        if (!$this->_get_table_columns_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)
+         || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
             return false;
         }
 
-        return self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-    }
-
-    private function _get_table_columns_definition_for_model_from_database(
-        $flow_params,
-        $my_driver,
-        $flow_table_name,
-        $force = false ): bool
-    {
-        if( !($qid = db_query( 'SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
-        {
-            $this->set_error( self::ERR_READ_DB_STRUCTURE,
-                self::_t( 'Error reading structure of table %s.', $flow_table_name ) );
-            return false;
-        }
-
-        $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-        while( ($field_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-        {
-            if( !is_array( $field_arr )
-             || empty( $field_arr['Field'] ) ) {
-                continue;
-            }
-
-            $structure_arr[$field_arr['Field']] = $this->_parse_mysql_field_result( $field_arr );
-        }
-
-        self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
-
-        return true;
-    }
-
-    private function _get_table_indexes_definition_for_model_from_database( $flow_params, $my_driver, $flow_table_name, $force = false )
-    {
-        if( ($qid = db_query( 'SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection'] )) )
-        {
-            $this->set_error( self::ERR_READ_DB_STRUCTURE,
-                self::_t( 'Error reading indexes of table %s.', $flow_table_name ) );
-            return false;
-        }
-
-        $structure_arr = self::get_cached_db_table_structure( $flow_table_name, $my_driver );
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-        {
-            if( !is_array( $index_arr )
-             || empty( $index_arr['Key_name'] )
-             || empty( $index_arr['Column_name'] ) ) {
-                continue;
-            }
-
-            if( strtoupper( $index_arr['Key_name'] ) === 'PRIMARY' )
-            {
-                // make sure we have primary column set
-                if( !empty( $structure_arr[$index_arr['Column_name']] ) ) {
-                    $structure_arr[$index_arr['Column_name']]['primary'] = true;
-                }
-
-                continue;
-            }
-
-            if( !empty( $structure_arr[$index_arr['Key_name']] ) )
-            {
-                // We have this field defined in the table... Make sure it has index set
-                $structure_arr[$index_arr['Key_name']]['index'] = true;
-                continue;
-            }
-
-            // this field is not defined in the table, so it is an extra index...
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
-            }
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] = [];
-            }
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] = [];
-            }
-
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'][] = $index_arr['Column_name'];
-
-            if( empty( $index_arr['Non_unique'] ) ) {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = true;
-            } else {
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = false;
-            }
-        }
-
-        self::add_cached_db_table_structure( $structure_arr, $flow_table_name, $my_driver );
-
-        /**
-        if( !($qid = db_query( 'SELECT * FROM information_schema.statistics '.
-                              ' WHERE '.
-                              ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
-                              ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
-        {
-        }
-
-        while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
-        {
-            if( !is_array( $index_arr )
-             || empty( $index_arr['INDEX_NAME'] )
-             || empty( $index_arr['COLUMN_NAME'] ) )
-                continue;
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
-
-            if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
-             || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
-
-            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
-
-            if( empty( $index_arr['NON_UNIQUE'] ) )
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
-            else
-                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
-        }
-        /**/
-
-        return true;
+        return self::get_cached_db_table_structure($flow_table_name, $my_driver);
     }
 
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model( $existing_data, $params = false )
+    protected function _hard_delete_for_model($existing_data, $params = false) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if( empty( $existing_data ) || !is_array( $existing_data )
-         || !($params = $this->fetch_default_flow_params( $params ))
-         || empty( $params['table_index'] )
-         || !isset( $existing_data[$params['table_index']] ) ) {
+        if (empty($existing_data) || !is_array($existing_data)
+         || !($params = $this->fetch_default_flow_params($params))
+         || empty($params['table_index'])
+         || !isset($existing_data[$params['table_index']])) {
             return false;
         }
 
-        $db_connection = $this->get_db_connection( $params['db_connection'] );
+        $db_connection = $this->get_db_connection($params['db_connection']);
 
-        if( !db_query( 'DELETE FROM `'.$this->get_flow_table_name( $params ).'` '.
-                      ' WHERE `'.$params['table_index'].'` = \''.db_escape( $existing_data[$params['table_index']], $db_connection ).'\'', $db_connection ) ) {
+        if (!db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` '
+                      .' WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'', $db_connection)) {
             return false;
         }
 
@@ -893,10 +1715,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         $hook_params['db_record'] = $existing_data;
 
         // Table level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_HARD_DELETE_DATA.'_'.$params['table_name'], $hook_params );
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_HARD_DELETE_DATA.'_'.$params['table_name'], $hook_params);
 
         // Generic level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_HARD_DELETE_DATA, $hook_params );
+        PHS::trigger_hooks(PHS_Hooks::H_MODEL_HARD_DELETE_DATA, $hook_params);
 
         return true;
     }
@@ -904,10 +1726,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_details_arr(): array
+    protected function _default_table_details_arr() : array
     {
         return [
-            'engine' => 'InnoDB',
+            'engine'  => 'InnoDB',
             'charset' => 'utf8mb4',
             'collate' => 'utf8mb4_general_ci',
             'comment' => '',
@@ -917,7 +1739,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_extra_index_arr(): array
+    protected function _default_table_extra_index_arr() : array
     {
         return [
             'unique' => false,
@@ -928,17 +1750,16 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field( $field_arr )
+    protected function _validate_field($field_arr)
     {
-        if( empty( $field_arr ) || !is_array( $field_arr ) ) {
+        if (empty($field_arr) || !is_array($field_arr)) {
             $field_arr = [];
         }
 
         $def_values = self::_default_field_arr();
         $new_field_arr = [];
-        foreach( $def_values as $key => $val )
-        {
-            if( !array_key_exists( $key, $field_arr ) ) {
+        foreach ($def_values as $key => $val) {
+            if (!array_key_exists($key, $field_arr)) {
                 $new_field_arr[$key] = $val;
             } else {
                 $new_field_arr[$key] = $field_arr[$key];
@@ -947,36 +1768,36 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
         $field_arr = $new_field_arr;
 
-        if( empty( $field_arr['type'] )
-         || !($field_details = $this->valid_field_type( $field_arr['type'] )) ) {
+        if (empty($field_arr['type'])
+         || !($field_details = $this->valid_field_type($field_arr['type']))) {
             return false;
         }
 
-        if( $field_details['default_length'] === null
-         && isset( $field_arr['length'] ) ) {
+        if ($field_details['default_length'] === null
+         && isset($field_arr['length'])) {
             $field_arr['length'] = null;
         }
 
-        if( isset( $field_details['nullable'] ) ) {
+        if (isset($field_details['nullable'])) {
             $field_arr['nullable'] = (!empty($field_details['nullable']));
         }
 
-        if( !isset( $field_arr['length'] )
-         && isset( $field_details['default_length'] ) ) {
+        if (!isset($field_arr['length'])
+         && isset($field_details['default_length'])) {
             $field_arr['length'] = $field_details['default_length'];
         }
 
-        if( $field_arr['default'] === null
-         && isset( $field_details['default_value'] ) ) {
+        if ($field_arr['default'] === null
+         && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
-        if( empty( $field_arr['raw_default'] )
-         && !empty( $field_details['raw_default'] ) ) {
+        if (empty($field_arr['raw_default'])
+         && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
-        if( !empty( $field_arr['primary'] ) ) {
+        if (!empty($field_arr['primary'])) {
             $field_arr['editable'] = false;
             $field_arr['default'] = null;
         }
@@ -995,41 +1816,35 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return string|int|float
      */
-    protected function _validate_against_boundries( $field_val, $field_details, $mysql_type )
+    protected function _validate_against_boundries($field_val, $field_details, $mysql_type)
     {
         // Check upper boundry
-        if( !empty( $mysql_type['max_value'] )
-         && is_array( $mysql_type['max_value'] ) )
-        {
-            if( !empty( $field_details['unsigned'] ) )
-            {
-                if( !empty( $mysql_type['max_value']['unsigned'] )
-                 && 1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['max_value']['unsigned'] ) ) {
+        if (!empty($mysql_type['max_value'])
+         && is_array($mysql_type['max_value'])) {
+            if (!empty($field_details['unsigned'])) {
+                if (!empty($mysql_type['max_value']['unsigned'])
+                 && 1 === PHS_Utils::numeric_string_compare($field_val, $mysql_type['max_value']['unsigned'])) {
                     return $mysql_type['max_value']['unsigned'];
                 }
-            } else
-            {
-                if( !empty( $mysql_type['max_value']['signed'] )
-                 && 1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['max_value']['signed'] ) ) {
+            } else {
+                if (!empty($mysql_type['max_value']['signed'])
+                 && 1 === PHS_Utils::numeric_string_compare($field_val, $mysql_type['max_value']['signed'])) {
                     return $mysql_type['max_value']['signed'];
                 }
             }
         }
 
         // Check lower boundry
-        if( !empty( $mysql_type['min_value'] )
-         && is_array( $mysql_type['min_value'] ) )
-        {
-            if( !empty( $field_details['unsigned'] ) )
-            {
-                if( !empty( $mysql_type['min_value']['unsigned'] )
-                 && -1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['min_value']['unsigned'] ) ) {
+        if (!empty($mysql_type['min_value'])
+         && is_array($mysql_type['min_value'])) {
+            if (!empty($field_details['unsigned'])) {
+                if (!empty($mysql_type['min_value']['unsigned'])
+                 && -1 === PHS_Utils::numeric_string_compare($field_val, $mysql_type['min_value']['unsigned'])) {
                     return $mysql_type['min_value']['unsigned'];
                 }
-            } else
-            {
-                if( !empty( $mysql_type['min_value']['signed'] )
-                 && -1 === PHS_Utils::numeric_string_compare( $field_val, $mysql_type['min_value']['signed'] ) ) {
+            } else {
+                if (!empty($mysql_type['min_value']['signed'])
+                 && -1 === PHS_Utils::numeric_string_compare($field_val, $mysql_type['min_value']['signed'])) {
                     return $mysql_type['min_value']['signed'];
                 }
             }
@@ -1041,72 +1856,69 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value( $value, $field_name, $field_details, $params = false )
+    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
     {
         $this->reset_error();
 
-        if( empty( $params ) || !is_array( $params ) ) {
+        if (empty($params) || !is_array($params)) {
             $params = [];
         }
 
-        if( empty( $field_name ) ) {
+        if (empty($field_name)) {
             $field_name = self::_t('N/A');
         }
 
-        if( !($field_details = $this->_validate_field( $field_details ))
-         || empty( $field_details['type'] )
-         || !($mysql_type = $this->valid_field_type( $field_details['type'] )) )
-        {
-            self::st_set_error( self::ERR_MODEL_FIELDS, self::_t( 'Couldn\'t validate field %s.', $field_name ) );
+        if (!($field_details = $this->_validate_field($field_details))
+         || empty($field_details['type'])
+         || !($mysql_type = $this->valid_field_type($field_details['type']))) {
+            self::st_set_error(self::ERR_MODEL_FIELDS, self::_t('Couldn\'t validate field %s.', $field_name));
+
             return false;
         }
 
         $phs_params_arr = [];
         $phs_params_arr['trim_before'] = true;
 
-        switch( $field_details['type'] )
-        {
+        switch ($field_details['type']) {
             case self::FTYPE_TINYINT:
             case self::FTYPE_SMALLINT:
             case self::FTYPE_MEDIUMINT:
             case self::FTYPE_INT:
-                if( !($value = PHS_Params::set_type( $value, PHS_Params::T_INT, $phs_params_arr )) ) {
+                if (!($value = PHS_Params::set_type($value, PHS_Params::T_INT, $phs_params_arr))) {
                     $value = 0;
-                }
-
-                elseif( PHS_Db::check_db_fields_boundaries() ) {
+                } elseif (PHS_Db::check_db_fields_boundaries()) {
                     $value = $this->_validate_against_boundries($value, $field_details, $mysql_type);
                 }
-            break;
+                break;
 
             case self::FTYPE_BIGINT:
-                $value = trim( $value );
-                if( @function_exists( 'bcmul' ) ) {
+                $value = trim($value);
+                if (@function_exists('bcmul')) {
                     $value = @bcmul($value, 1, 0);
                 }
 
-                if( empty( $value ) ) {
+                if (empty($value)) {
                     $value = 0;
-                } elseif( PHS_Db::check_db_fields_boundaries() ) {
+                } elseif (PHS_Db::check_db_fields_boundaries()) {
                     $value = $this->_validate_against_boundries($value, $field_details, $mysql_type);
                 }
-            break;
+                break;
 
             case self::FTYPE_DATE:
-                if( empty_db_date( $value ) ) {
+                if (empty_db_date($value)) {
                     $value = null;
                 } else {
                     $value = @date(self::DATE_DB, parse_db_date($value));
                 }
-            break;
+                break;
 
             case self::FTYPE_DATETIME:
-                if( empty_db_date( $value ) ) {
+                if (empty_db_date($value)) {
                     $value = null;
                 } else {
                     $value = @date(self::DATETIME_DB, parse_db_date($value));
                 }
-            break;
+                break;
 
             case self::FTYPE_DECIMAL:
             case self::FTYPE_FLOAT:
@@ -1117,16 +1929,13 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                 // If D is omitted, the default is 0. If M is omitted, the default is 10.
                 $m_val = 10;
                 $d_val = 0;
-                if( !empty( $field_details['length'] ) )
-                {
-                    if( is_string( $field_details['length'] )
-                     && false !== strpos( $field_details['length'], ',' )
-                     && ($length_arr = explode( ',', $field_details['length'], 2 )) )
-                    {
-                        $m_val = (!empty( $length_arr[0] )?(int)trim( $length_arr[0] ):10);
-                        $d_val = (!empty( $length_arr[1] )?(int)trim( $length_arr[1] ):0);
-                    } else
-                    {
+                if (!empty($field_details['length'])) {
+                    if (is_string($field_details['length'])
+                     && false !== strpos($field_details['length'], ',')
+                     && ($length_arr = explode(',', $field_details['length'], 2))) {
+                        $m_val = (!empty($length_arr[0]) ? (int)trim($length_arr[0]) : 10);
+                        $d_val = (!empty($length_arr[1]) ? (int)trim($length_arr[1]) : 0);
+                    } else {
                         // consider we are given only M part
                         $m_val = (int)$field_details['length'];
                     }
@@ -1134,19 +1943,18 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
                 $phs_params_arr['digits'] = $d_val;
 
-                if( null === ($value = PHS_Params::set_type( $value, PHS_Params::T_FLOAT, $phs_params_arr )) ) {
+                if (null === ($value = PHS_Params::set_type($value, PHS_Params::T_FLOAT, $phs_params_arr))) {
                     $value = 0;
                 }
 
                 // resolve the m part (if too big)
                 // this should be really validated in model if you don't want errors...
-                elseif( false !== strpos( $value, '.' )
-                     && ($digits_value_arr = explode( '.', $value, 2 ))
-                     && strlen( $digits_value_arr[0] ) > $m_val - $d_val )
-                {
-                    $value = substr( $digits_value_arr[0], 0, $m_val - $d_val ).(isset( $digits_value_arr[1] )?'.'.$digits_value_arr[1]:'');
+                elseif (false !== strpos($value, '.')
+                     && ($digits_value_arr = explode('.', $value, 2))
+                     && strlen($digits_value_arr[0]) > $m_val - $d_val) {
+                    $value = substr($digits_value_arr[0], 0, $m_val - $d_val).(isset($digits_value_arr[1]) ? '.'.$digits_value_arr[1] : '');
                 }
-            break;
+                break;
 
             case self::FTYPE_CHAR:
             case self::FTYPE_VARCHAR:
@@ -1154,55 +1962,52 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             case self::FTYPE_MEDIUMTEXT:
             case self::FTYPE_LONGTEXT:
 
-                if( !empty( $mysql_type['max_bytes'] )
-                 && (empty( $field_details['length'] )
-                        || 0 <= PHS_Utils::numeric_string_compare( $field_details['length'], $mysql_type['max_bytes'] )
-                    ) ) {
+                if (!empty($mysql_type['max_bytes'])
+                 && (empty($field_details['length'])
+                        || 0 <= PHS_Utils::numeric_string_compare($field_details['length'], $mysql_type['max_bytes'])
+                 )) {
                     $max_bytes = $mysql_type['max_bytes'];
                 } else {
                     $max_bytes = $field_details['length'];
                 }
 
-                if( !is_string( $value ) ) {
-                    $value = (string) $value;
+                if (!is_string($value)) {
+                    $value = (string)$value;
                 }
 
-                if( strlen( $value ) > $max_bytes ) {
+                if (strlen($value) > $max_bytes) {
                     $value = substr($value, 0, $max_bytes);
                 }
-            break;
+                break;
 
             case self::FTYPE_ENUM:
 
                 $values_arr = [];
-                if( !empty( $field_details['length'] )
-                 && is_string( $field_details['length'] ) )
-                {
-                    $values_arr = explode( ',', $field_details['length'] );
-                    $trim_value = trim( $value );
-                    $lower_value = strtolower( $trim_value );
+                if (!empty($field_details['length'])
+                 && is_string($field_details['length'])) {
+                    $values_arr = explode(',', $field_details['length']);
+                    $trim_value = trim($value);
+                    $lower_value = strtolower($trim_value);
                     $value_valid = false;
-                    foreach( $values_arr as $possible_value )
-                    {
-                        $trim_possible_value = trim( $value );
-                        $lower_possible_value = strtolower( $trim_value );
+                    foreach ($values_arr as $possible_value) {
+                        $trim_possible_value = trim($value);
+                        $lower_possible_value = strtolower($trim_value);
 
-                        if( $value === $possible_value
+                        if ($value === $possible_value
                          || $trim_value === $trim_possible_value
-                         || $lower_value === $lower_possible_value )
-                        {
+                         || $lower_value === $lower_possible_value) {
                             $value_valid = true;
                             break;
                         }
                     }
 
-                    if( empty( $value_valid ) )
-                    {
-                        self::st_set_error( self::ERR_MODEL_FIELDS, self::_t( 'Field %s is not in enum scope.', $field_name ) );
+                    if (empty($value_valid)) {
+                        self::st_set_error(self::ERR_MODEL_FIELDS, self::_t('Field %s is not in enum scope.', $field_name));
+
                         return false;
                     }
                 }
-            break;
+                break;
         }
 
         return $value;
@@ -1223,7 +2028,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array|bool Flow parameters array
      */
-    protected function get_insert_prepare_params( $params )
+    protected function get_insert_prepare_params($params)
     {
         return $params;
     }
@@ -1238,7 +2043,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array|bool Flow parameters array
      */
-    protected function get_edit_prepare_params( $existing_data, $params )
+    protected function get_edit_prepare_params($existing_data, $params)
     {
         return $params;
     }
@@ -1247,7 +2052,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      * @param array $insert_arr Data array which should be added to database
      * @param array $params Flow parameters
      */
-    protected function insert_failed( $insert_arr, $params )
+    protected function insert_failed($insert_arr, $params)
     {
     }
 
@@ -1258,7 +2063,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      * @param array $edit_arr Data array which should be saved in database (only fields that change)
      * @param array $params Flow parameters
      */
-    protected function edit_failed( $existing_data, $edit_arr, $params )
+    protected function edit_failed($existing_data, $edit_arr, $params)
     {
     }
 
@@ -1271,9 +2076,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      * @param array $params Flow parameters
      *
      * @return array|bool Returns data array added in database (with changes, if required) or false if record should be deleted from database.
-     * Deleted record will be hard-deleted
+     *                    Deleted record will be hard-deleted
      */
-    protected function insert_after( $insert_arr, $params )
+    protected function insert_after($insert_arr, $params)
     {
         return $insert_arr;
     }
@@ -1287,9 +2092,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      * @param array $params Flow parameters
      *
      * @return array|bool Returns data array added in database (with changes, if required) or false if functionality failed.
-     * Saved information will not be rolled back.
+     *                    Saved information will not be rolled back.
      */
-    protected function edit_after( $existing_data, $edit_arr, $params )
+    protected function edit_after($existing_data, $edit_arr, $params)
     {
         return $existing_data;
     }
@@ -1304,31 +2109,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array Returns modified parameters (if required)
      */
-    protected function insert_or_edit_editing( $existing_arr, $constrain_arr, $params )
-    {
-        return $params;
-    }
-
-    /**
-     * Parses flow parameters if anything special should be done for listing records query and returns modified parameters array
-     *
-     * @param array|bool $params Parameters in the flow
-     *
-     * @return array Flow parameters array
-     */
-    public function get_list_prepare_params( $params = false )
-    {
-        return $params;
-    }
-
-    /**
-     * Parses flow parameters if anything special should be done for count query and returns modified parameters array
-     *
-     * @param array|bool $params Parameters in the flow
-     *
-     * @return array Flow parameters array
-     */
-    public function get_count_prepare_params( $params = false )
+    protected function insert_or_edit_editing($existing_arr, $constrain_arr, $params)
     {
         return $params;
     }
@@ -1340,443 +2121,72 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array Flow parameters array
      */
-    protected function get_count_list_common_params( $params = false )
+    protected function get_count_list_common_params($params = false)
     {
         return $params;
     }
-    //
-    //  endregion Methods that will be overridden in child classes
-    //
 
-    //
-    // region Database structure methods
-    //
-    /**
-     * @param false|array $flow_params
-     * @param  bool  $force
-     *
-     * @return bool
-     */
-    private function _extract_db_structure( $flow_params = false, bool $force = false ): bool
+    protected function validate_data_for_fields(array $params)
     {
         $this->reset_error();
 
-        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
+        if (!($table_fields = $this->get_definition($params))
+         || !is_array($table_fields)) {
+            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
+
             return false;
         }
 
-        if( !empty( $force )
-         && PHS_Maintenance::db_structure_is_locked() ) {
-            $force = false;
-        }
-
-        if( empty( $force )
-         && self::get_cached_db_tables_structure_for_driver( $my_driver ) ) {
-            return true;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-        db_supress_errors( $db_connection );
-
-        $default_table_details = $this->_default_table_details_arr();
-        if( ($qid = db_query( 'SHOW TABLE STATUS', $db_connection ))
-         && $qid->numColumns() )
-        {
-            while( ($result_arr = $qid->fetch_assoc()) )
-            {
-                if( empty( $result_arr['Name'] ) ) {
-                    continue;
-                }
-
-                $table_details = $default_table_details;
-                if( !empty( $result_arr['Engine'] ) ) {
-                    $table_details['engine'] = $result_arr['Engine'];
-                }
-                if( !empty( $result_arr['Comment'] ) ) {
-                    $table_details['comment'] = $result_arr['Comment'];
-                }
-                if( !empty( $result_arr['Collation'] ) )
-                {
-                    $table_details['collate'] = $result_arr['Collation'];
-                    if( ($collate_parts = explode( '_', $table_details['collate'] )) ) {
-                        $table_details['charset'] = $collate_parts[0];
-                    }
-                }
-
-                $structure_arr = self::get_cached_db_table_structure( $result_arr['Name'], $my_driver );
-                $structure_arr[self::T_DETAILS_KEY] = $table_details;
-
-                self::add_cached_db_table_structure( $structure_arr, $result_arr['Name'], $my_driver );
-            }
-        }
-
-        return true;
-    }
-
-    private static function _default_mysql_table_field_fields(): array
-    {
-        return [
-            'Field' => '',
-            'Type' => '',
-            'Collation' => '',
-            'Null' => '',
-            'Key' => '',
-            'Default' => '',
-            'Extra' => '',
-            'Privileges' => '',
-            'Comment' => '',
-        ];
-    }
-
-    private function _get_type_from_mysql_field_type( $type )
-    {
-        $type = trim( $type );
-        if( empty( $type ) ) {
-            return false;
-        }
-
-        $return_arr = [];
-        $return_arr['type'] = self::FTYPE_UNKNOWN;
-        $return_arr['length'] = null;
-        $return_arr['unsigned'] = false;
-
-        $mysql_type = '';
-        $mysql_length = '';
-        //if( !preg_match( '@([a-z]+)([\(\s*[0-9,\s]+\s*\)]*)@i', $type, $matches ) )
-        if( !preg_match( '@([a-z]+)([\([0-9,\s]+\)]?)*(.*)@i', $type, $matches ) )
-            $mysql_type = $type;
-
-        else
-        {
-            if( !empty( $matches[1] ) )
-                $mysql_type = strtolower( trim( $matches[1] ) );
-
-            if( !empty( $matches[2] ) )
-                $mysql_length = trim( $matches[2], ' ()' );
-
-            if( !empty( $matches[3] ) )
-            {
-                $type_extras_str = trim( $matches[3] );
-                if( ($type_extras_arr = explode( strtolower( str_replace( '  ', ' ', $type_extras_str ) ), ' ' )) )
-                {
-                    if( in_array( 'unsigned', $type_extras_arr, true ) )
-                        $return_arr['unsigned'] = true;
-                }
-            }
-        }
-
-        if( !empty( $mysql_type )
-         && ($field_types = $this->get_field_types())
-         && is_array( $field_types ) )
-        {
-            $mysql_type = strtolower( trim( $mysql_type ) );
-            foreach( $field_types as $field_type => $field_arr )
-            {
-                if( empty( $field_arr['title'] ) )
-                    continue;
-
-                if( $field_arr['title'] === $mysql_type )
-                {
-                    $return_arr['type'] = $field_type;
-                    break;
-                }
-            }
-        }
-
-        if( !($field_arr = $this->valid_field_type( $return_arr['type'] )) )
-            return $return_arr;
-
-        if( !empty( $mysql_length ) )
-        {
-            $length_arr = [];
-            if( ($parts_arr = explode( ',', $mysql_length ))
-             && is_array( $parts_arr ) )
-            {
-                foreach( $parts_arr as $part )
-                {
-                    $part = trim( $part );
-                    if( $part === '' )
-                        continue;
-
-                    $length_arr[] = $part;
-                }
-            }
-
-            $return_arr['length'] = implode( ',', $length_arr );
-        }
-
-        return $return_arr;
-    }
-
-    private function _parse_mysql_field_result( $field_arr ): array
-    {
-        $field_arr = self::validate_array( $field_arr, self::_default_mysql_table_field_fields() );
-        $model_field_arr = self::_default_field_arr();
-
-        if( !($model_field_type = $this->_get_type_from_mysql_field_type( $field_arr['Type'] )) )
-            $model_field_arr['type'] = self::FTYPE_UNKNOWN;
-        else
-        {
-            $model_field_arr['type'] = $model_field_type['type'];
-            $model_field_arr['length'] = $model_field_type['length'];
-            $model_field_arr['unsigned'] = (!empty( $model_field_type['unsigned'] ));
-        }
-
-        $model_field_arr['nullable'] = (!empty( $field_arr['Null'] ) && strtolower( $field_arr['Null'] ) === 'yes');
-        $model_field_arr['primary'] = (!empty( $field_arr['Key'] ) && strtolower( $field_arr['Key'] ) === 'pri');
-        $model_field_arr['auto_increment'] = (!empty( $field_arr['Extra'] ) && strtolower( $field_arr['Extra'] ) === 'auto_increment');
-        $model_field_arr['index'] = (!empty( $field_arr['Key'] ) && strtolower( $field_arr['Key'] ) === 'mul');
-        $model_field_arr['default'] = $this->_get_parsed_default( $field_arr['Default'], $model_field_arr['type'] );
-        $model_field_arr['comment'] = (!empty( $field_arr['Comment'] )?$field_arr['Comment']:'');
-
-        return $model_field_arr;
-    }
-
-    public function check_extra_index_exists( $index_name, $flow_params = false, bool $force = false )
-    {
-        $this->reset_error();
-
-        if( !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params )) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        if( !($table_definition = $this->get_table_columns_as_definition( $flow_params, $force ))
-         || !is_array( $table_definition ) )
-        {
-            if( !$this->has_error() )
-                $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Couldn\'t get definition for table %s.', $flow_table_name ) );
-            return false;
-        }
-
-        if( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
-         || !array_key_exists( $index_name, $table_definition[self::EXTRA_INDEXES_KEY] ) )
-            return false;
-
-        return $table_definition[self::EXTRA_INDEXES_KEY][$index_name];
-    }
-
-    private static function _default_field_arr()
-    {
-        // if 'default_value' is set in field definition that value will be used for 'default' key
-        return [
-            'type' => self::FTYPE_UNKNOWN,
-            'editable' => true,
-            'length' => null,
-            'unsigned' => false,
-            'primary' => false,
-            'auto_increment' => false,
-            'index' => false,
-            'default' => null,
-            'raw_default' => null,
-            'nullable' => false,
-            'comment' => '',
-            // in case we renamed the field from something else we add old name here...
-            // we add all old names here so in case we update structure from an old version it would still recognise field names
-            // update will check if current database structures field names in this array and if any match will rename old field with current definition
-            // eg. old_names = array( 'old_field1', 'old_field2' ) =>
-            //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
-            'old_names' => [],
-        ];
-    }
-
-    /**
-     * @param array $field1_arr
-     * @param array $field2_arr
-     *
-     * @return bool
-     */
-    private function _field_definition_changed( $field1_arr, $field2_arr )
-    {
-        $default_fields_arr = self::_default_field_arr();
-        if( !($field1_arr = self::validate_array( $field1_arr, $default_fields_arr ))
-         || !($field2_arr = self::validate_array( $field2_arr, $default_fields_arr )) )
-            return true;
-
-        return (
-            (int) $field1_arr['type'] !== (int) $field2_arr['type']
-            || (bool) $field1_arr['nullable'] !== (bool) $field2_arr['nullable']
-            || (bool) $field1_arr['unsigned'] !== (bool) $field2_arr['unsigned']
-            || (bool) $field1_arr['auto_increment'] !== (bool) $field2_arr['auto_increment']
-            || $this->_get_parsed_default( $field1_arr['default'], $field1_arr['type'] )
-               !== $this->_get_parsed_default($field2_arr['default'], $field2_arr['type'] )
-            || trim( $field1_arr['comment'] ) !== trim( $field2_arr['comment'] )
-            // for lengths with comma
-            || (!empty( $field1_arr['length'] ) && !empty( $field2_arr['length'] )
-                && str_replace(' ', '', trim( $field1_arr['length'] ) )
-                   !== str_replace(' ', '', trim( $field2_arr['length'] ) )
-               ) );
-    }
-
-    /**
-     * @param array $field1_arr
-     * @param array $field2_arr
-     *
-     * @return bool
-     */
-    private function _field_indexes_changed( $field1_arr, $field2_arr )
-    {
-        $default_fields_arr = self::_default_field_arr();
-        if( !($field1_arr = self::validate_array( $field1_arr, $default_fields_arr ))
-         || !($field2_arr = self::validate_array( $field2_arr, $default_fields_arr )) )
-            return true;
-
-        return (
-            (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
-            || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary']
-        );
-    }
-
-    private function _get_parsed_default( $default_val, $type )
-    {
-        if( $default_val === null )
-            return null;
-
-        switch( $type )
-        {
-            case self::FTYPE_TINYINT:
-            case self::FTYPE_SMALLINT:
-            case self::FTYPE_MEDIUMINT:
-            case self::FTYPE_INT:
-            case self::FTYPE_BIGINT:
-            case self::FTYPE_TIMESTAMP:
-                return (int)$default_val;
-
-            case self::FTYPE_DECIMAL:
-            case self::FTYPE_FLOAT:
-            case self::FTYPE_DOUBLE:
-                return (float)$default_val;
-
-            default:
-                return (string)$default_val;
-        }
-    }
-
-    private function _table_details_changed( $details1_arr, $details2_arr )
-    {
-        $default_table_details = $this->_default_table_details_arr();
-
-        if( !($details1_arr = self::validate_array( $details1_arr, $default_table_details ))
-         || !($details2_arr = self::validate_array( $details2_arr, $default_table_details )) )
-            return array_keys( $default_table_details );
-
-        $keys_changed = [];
-        if( strtolower( trim( $details1_arr['engine'] ) ) !== strtolower( trim( $details2_arr['engine'] ) ) )
-            $keys_changed['engine'] = $details2_arr['engine'];
-        if( strtolower( trim( $details1_arr['charset'] ) ) !== strtolower( trim( $details2_arr['charset'] ) ) )
-            $keys_changed['charset'] = $details2_arr['charset'];
-        if( strtolower( trim( $details1_arr['collate'] ) ) !== strtolower( trim( $details2_arr['collate'] ) ) )
-            $keys_changed['collate'] = $details2_arr['collate'];
-        if( trim( $details1_arr['comment'] ) !== trim( $details2_arr['comment'] ) )
-            $keys_changed['comment'] = $details2_arr['comment'];
-
-        return (!empty( $keys_changed )?$keys_changed:false);
-    }
-
-    /**
-     * @param  string  $field
-     * @param bool|array $params
-     *
-     * @return array|bool|mixed|null
-     */
-    public function table_field_details( string $field, $params = false )
-    {
-        $this->reset_error();
-
-        $table = false;
-        if( strpos( $field, '.' ) !== false )
-            [ $table, $field ] = explode( '.', $field, 2 );
-
-        if( empty( $params ) || !is_array( $params ) )
-            $params = [];
-
-        if( $table !== false )
-            $params['table_name'] = $table;
-
-        if( !($params = $this->fetch_default_flow_params( $params )) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        if( !($table_fields = $this->get_definition( $params ))
-         || !is_array( $table_fields ) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Invalid table definition.' ) );
-            return false;
-        }
-
-        if( empty( $table_fields[$field] ) || !is_array( $table_fields[$field] ) )
-            return null;
-
-        return $table_fields[$field];
-    }
-
-    protected function validate_data_for_fields( array $params )
-    {
-        $this->reset_error();
-
-        if( !($table_fields = $this->get_definition( $params ))
-         || !is_array( $table_fields ) )
-        {
-            $this->set_error( self::ERR_MODEL_FIELDS, self::_t( 'Invalid table definition.' ) );
-            return false;
-        }
-
-        if( empty( $params['action'] )
-         || !in_array( $params['action'], [ 'insert', 'edit' ] ) )
+        if (empty($params['action'])
+         || !in_array($params['action'], ['insert', 'edit'])) {
             $params['action'] = 'insert';
+        }
 
         $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
         $hook_params['driver'] = $this->get_model_driver();
         $hook_params['flow_params'] = $params;
         $hook_params['table_fields'] = $table_fields;
 
-        if( ($trigger_result = PHS::trigger_hooks( PHS_Hooks::H_MODEL_VALIDATE_DATA_FIELDS, $hook_params ))
-         && is_array( $trigger_result ) )
-        {
-            if( !empty( $trigger_result['flow_params'] ) && is_array( $trigger_result['flow_params'] ) )
-                $params = self::merge_array_assoc( $params, $trigger_result['flow_params'] );
-            if( !empty( $trigger_result['table_fields'] ) && is_array( $trigger_result['table_fields'] ) )
-                $table_fields = self::merge_array_assoc( $table_fields, $trigger_result['table_fields'] );
+        if (($trigger_result = PHS::trigger_hooks(PHS_Hooks::H_MODEL_VALIDATE_DATA_FIELDS, $hook_params))
+         && is_array($trigger_result)) {
+            if (!empty($trigger_result['flow_params']) && is_array($trigger_result['flow_params'])) {
+                $params = self::merge_array_assoc($params, $trigger_result['flow_params']);
+            }
+            if (!empty($trigger_result['table_fields']) && is_array($trigger_result['table_fields'])) {
+                $table_fields = self::merge_array_assoc($table_fields, $trigger_result['table_fields']);
+            }
         }
 
         $validated_fields = [];
         $data_arr = [];
         $has_raw_fields = false;
-        foreach( $table_fields as $field_name => $field_details )
-        {
-            if( empty( $field_details['editable'] )
-             && $params['action'] === 'edit' )
+        foreach ($table_fields as $field_name => $field_details) {
+            if (empty($field_details['editable'])
+             && $params['action'] === 'edit') {
                 continue;
+            }
 
-            if( array_key_exists( $field_name, $params['fields'] ) )
-            {
+            if (array_key_exists($field_name, $params['fields'])) {
                 // we can pass raw values (see quick_edit or quick_insert)
-                if( !is_array( $params['fields'][$field_name] ) )
-                    $field_value = $this->_validate_field_value( $params['fields'][$field_name], $field_name, $field_details );
-
-                else
-                {
+                if (!is_array($params['fields'][$field_name])) {
+                    $field_value = $this->_validate_field_value($params['fields'][$field_name], $field_name, $field_details);
+                } else {
                     $has_raw_fields = true;
                     $field_value = $params['fields'][$field_name];
 
-                    if( empty( $params['fields'][$field_name]['raw_field'] )
-                     && array_key_exists( 'value', $params['fields'][$field_name] ) )
-                        $field_value['value'] = $this->_validate_field_value( $params['fields'][$field_name]['value'], $field_name, $field_details );
+                    if (empty($params['fields'][$field_name]['raw_field'])
+                     && array_key_exists('value', $params['fields'][$field_name])) {
+                        $field_value['value'] = $this->_validate_field_value($params['fields'][$field_name]['value'], $field_name, $field_details);
+                    }
                 }
 
                 $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
-            } elseif( isset( $field_details['default'] )
-                   && $params['action'] === 'insert' )
+            } elseif (isset($field_details['default'])
+                   && $params['action'] === 'insert') {
                 // When editing records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
+            }
         }
 
         $return_arr = [];
@@ -1788,434 +2198,33 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     }
 
     /**
-     * Returns an array containing mysql and keys string statement for a table field named $field_name and a structure provided in $field_arr
-     *
-     * @param string $field_name Name of mysql field
-     * @param array $field_details Field details array
-     *
-     * @return bool|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
-     */
-    private function _get_mysql_field_definition( $field_name, $field_details )
-    {
-        $field_details = self::validate_array( $field_details, self::_default_field_arr() );
-
-        if( $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || empty( $field_details )
-         || !($field_details = $this->_validate_field( $field_details ))
-         || !($type_details = $this->valid_field_type( $field_details['type'] ))
-         ) {
-            return false;
-        }
-
-        $field_str = '';
-        $keys_str = '';
-
-        $field_details['type'] = (int)$field_details['type'];
-
-        if( !empty( $field_details['primary'] ) ) {
-            $keys_str = ' PRIMARY KEY (`'.$field_name.'`)';
-        }
-        elseif( !empty( $field_details['index'] ) )
-            $keys_str = ' KEY `'.$field_name.'` (`'.$field_name.'`)';
-
-        $field_str .= '`'.$field_name.'` '.$type_details['title'];
-        if( $field_details['length'] !== null
-         && $field_details['length'] !== false
-         && (!in_array( $field_details['type'], [ self::FTYPE_DATE, self::FTYPE_DATETIME ], true )
-                || $field_details['length'] !== 0
-            ) )
-            $field_str .= '('.$field_details['length'].')';
-
-        if( !empty( $field_details['unsigned'] ) )
-            $field_str .= ' UNSIGNED';
-
-        if( !empty( $field_details['nullable'] ) )
-            $field_str .= ' NULL';
-        else
-            $field_str .= ' NOT NULL';
-
-        if( !empty( $field_details['auto_increment'] ) )
-            $field_str .= ' AUTO_INCREMENT';
-
-        if( empty( $field_details['primary'] )
-         && $field_details['type'] !== self::FTYPE_DATE )
-        {
-            if( !empty( $field_details['raw_default'] ) )
-                $default_value = $field_details['raw_default'];
-            elseif( $field_details['default'] === null )
-                $default_value = 'NULL';
-            elseif( $field_details['default'] === '' )
-                $default_value = '\'\'';
-            else
-                $default_value = '\''.self::safe_escape( $field_details['default'] ).'\'';
-
-            $field_str .= ' DEFAULT '.$default_value;
-        }
-
-        if( !empty( $field_details['comment'] ) )
-            $field_str .= ' COMMENT \''.self::safe_escape( $field_details['comment'] ).'\'';
-
-        return [
-            'field_str' => $field_str,
-            'keys_str' => $keys_str,
-        ];
-    }
-
-    /**
-     * @param string $field_name
-     * @param array $field_details
-     * @param bool|array $flow_params
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    final public function alter_table_add_column( $field_name, $field_details, $flow_params = false, $params = false ): bool
-    {
-        $this->reset_error();
-
-        $field_details = self::validate_array( $field_details, self::_default_field_arr() );
-
-        if( empty( $field_name )
-         || empty( $field_details )
-         || $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($field_details = $this->_validate_field( $field_details ))
-         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
-         || empty( $mysql_field_arr['field_str'] )
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
-            return false;
-        }
-
-        if( $this->check_column_exists( $field_name, $flow_params ) )
-        {
-            PHS_Logger::error( 'Column ['.$field_name.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] already exists.', $field_name ) );
-            return false;
-        }
-
-        if( empty( $params ) || !is_array( $params ) ) {
-            $params = [];
-        }
-
-        if( empty( $params['after_column'] ) || strtolower( trim( $params['after_column'] ) ) === '`first`' ) {
-            $params['after_column'] = ' FIRST';
-        }
-
-        else
-        {
-            if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
-            {
-                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table statement doesn\'t exist.', PHS_Logger::TYPE_MAINTENANCE );
-
-                $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table statement doesn\'t exist.', $params['after_column'] ) );
-                return false;
-            }
-
-            $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` ADD COLUMN '.$mysql_field_arr['field_str'].$params['after_column'], $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table to add column ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add column [%s].', $field_name ) );
-            return false;
-        }
-
-        // We change cache on the fly...
-        self::cached_db_set_column_definition( $field_name, $field_details, $flow_table_name, $my_driver );
-
-        if( !empty( $mysql_field_arr['keys_str'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add indexes for [%s].', $field_name ) );
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $field_name
-     * @param array $field_details
-     * @param bool|array $old_field
-     * @param bool|array $flow_params
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    final public function alter_table_change_column( $field_name, $field_details, $old_field = false, $flow_params = false, $params = false ): bool
-    {
-        $this->reset_error();
-
-        $field_details = self::validate_array( $field_details, self::_default_field_arr() );
-
-        if( empty( $field_name )
-         || empty( $field_details )
-         || $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver())
-         || !($field_details = $this->_validate_field( $field_details ))
-         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
-         || empty( $mysql_field_arr['field_str'] ) )
-        {
-            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
-            return false;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        $old_field_name = false;
-        $old_field_details = false;
-        if( !empty( $old_field ) && is_array( $old_field )
-         && !empty( $old_field['name'] )
-         && !empty( $old_field['definition'] ) && is_array( $old_field['definition'] )
-         && ($old_field_details = $this->_validate_field( $old_field['definition'] )) ) {
-            $old_field_name = $old_field['name'];
-        }
-
-        if( empty( $old_field_name ) ) {
-            $db_old_field_name = $field_name;
-        } else {
-            $db_old_field_name = $old_field_name;
-        }
-
-        if( empty( $params ) || !is_array( $params ) ) {
-            $params = [];
-        }
-
-        $params['alter_indexes'] = (!isset( $params['alter_indexes'] ) || !empty( $params['alter_indexes'] ));
-
-        if( empty( $params['after_column'] ) ) {
-            $params['after_column'] = '';
-        }
-
-        elseif( strtolower( trim( $params['after_column'] ) ) === '`first`' ) {
-            $params['after_column'] = ' FIRST';
-        }
-
-        else
-        {
-            if( !$this->check_column_exists( $params['after_column'], $flow_params ) )
-            {
-                PHS_Logger::error( 'Column ['.$params['after_column'].'] in alter table (change) statement doesn\'t exist in table structure.', PHS_Logger::TYPE_MAINTENANCE );
-
-                $this->set_error( self::ERR_ALTER, self::_t( 'Column [%s] in alter table (change) statement doesn\'t exist in table structure.', $params['after_column'] ) );
-                return false;
-            }
-
-            $params['after_column'] = ' AFTER `'.$params['after_column'].'`';
-        }
-
-        $sql = 'ALTER TABLE `'.$flow_table_name.'` CHANGE `'.$db_old_field_name.'` '.$mysql_field_arr['field_str'].$params['after_column'];
-        if( !db_query( $sql, $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table to change column ['.$field_name.']: ('.$sql.')', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to change column [%s].', $field_name ) );
-            return false;
-        }
-
-        if( $field_name !== $db_old_field_name ) {
-            // We change cache on the fly...
-            self::cached_db_remove_column( $db_old_field_name, $flow_table_name, $my_driver );
-            self::cached_db_set_column_definition( $field_name, $field_details, $flow_table_name, $my_driver );
-        }
-
-        if( !empty( $params['alter_indexes'] )
-         && !empty( $old_field_name )
-         && !empty( $old_field_details ) && is_array( $old_field_details )
-         && empty( $old_field_details['primary'] ) && !empty( $old_field_details['index'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` DROP KEY `'.$old_field_name.'`', $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table (change) to drop OLD index for ['.$old_field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to drop OLD index for [%s].', $old_field_name ) );
-            return false;
-        }
-
-        if( !empty( $params['alter_indexes'] )
-         && !empty( $mysql_field_arr['keys_str'] )
-         && !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table (change) to add indexes for ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table (change) to add indexes for [%s].', $field_name ) );
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $field_name
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    final public function alter_table_drop_column( $field_name, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        if( empty( $field_name )
-         || $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
-            return false;
-        }
-
-        if( !$this->check_column_exists( $field_name, $flow_params ) ) {
-            return true;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        if( !db_query( 'ALTER TABLE `'.$flow_table_name.'` DROP COLUMN `'.$field_name.'`', $db_connection ) )
-        {
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop column [%s].', $field_name ) );
-            return false;
-        }
-
-        // We change cache on the fly...
-        self::cached_db_remove_column( $field_name, $flow_table_name, $my_driver );
-
-        return true;
-    }
-
-    /**
-     * @param string $field_name
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    final public function alter_table_drop_column_index( $field_name, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        if( empty( $field_name )
-         || $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver()) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, self::_t( 'Invalid parameters sent to drop column method.' ) );
-            return false;
-        }
-
-        if( !$this->check_column_index_exists( $field_name, $flow_params ) ) {
-            return true;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        if( !db_query( 'DROP INDEX `'.$field_name.'` ON `'.$flow_table_name.'`', $db_connection ) )
-        {
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to drop index on [%s].', $field_name ) );
-            return false;
-        }
-
-        // We change cache on the fly...
-        self::cached_db_drop_column_index( $field_name, $flow_table_name, $my_driver );
-
-        return true;
-    }
-
-    /**
-     * @param string $field_name
-     * @param array $field_details
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    final public function alter_table_add_column_index( $field_name, $field_details, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        $field_details = self::validate_array( $field_details, self::_default_field_arr() );
-
-        if( empty( $field_name )
-         || empty( $field_details )
-         || $field_name === self::T_DETAILS_KEY
-         || $field_name === self::EXTRA_INDEXES_KEY
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($flow_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($my_driver = $this->get_model_driver())
-         || !($field_details = $this->_validate_field( $field_details ))
-         || !($mysql_field_arr = $this->_get_mysql_field_definition( $field_name, $field_details ))
-         || empty( $mysql_field_arr['keys_str'] ) )
-        {
-            PHS_Logger::error( 'Invalid column definition ['.(!empty( $field_name )?$field_name:'???').'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Invalid column definition [%s].', (!empty( $field_name )?$field_name:'???') ) );
-            return false;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        if( !db_query( 'ALTER TABLE `' . $flow_table_name . '` ADD ' . $mysql_field_arr['keys_str'], $db_connection ) )
-        {
-            PHS_Logger::error( 'Error altering table to add index for column field ['.$field_name.'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_ALTER, self::_t( 'Error altering table to add index for column [%s].', $field_name ) );
-            return false;
-        }
-
-        // We change cache on the fly...
-        self::cached_db_add_column_index( $field_name, $flow_table_name, $my_driver );
-
-        return true;
-    }
-
-    /**
      * @param array $flow_params
      *
      * @return bool
      */
-    protected function _create_table_extra_indexes( $flow_params ): bool
+    protected function _create_table_extra_indexes($flow_params) : bool
     {
         $this->reset_error();
 
-        if( empty( $this->_definition ) || !is_array( $this->_definition )
+        if (empty($this->_definition) || !is_array($this->_definition)
          || !($model_id = $this->instance_id())
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || empty( $flow_params['table_name'] )
-         || empty( $this->_definition[$flow_params['table_name']] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) ) {
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || empty($flow_params['table_name'])
+         || empty($this->_definition[$flow_params['table_name']])
+         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
             return false;
         }
 
         $table_definition = $this->_definition[$flow_params['table_name']];
 
-        if( empty( $table_definition[self::EXTRA_INDEXES_KEY] )
-         || !is_array( $table_definition[self::EXTRA_INDEXES_KEY] )
-         || !($database_name = $this->get_db_database( $flow_params )) ) {
+        if (empty($table_definition[self::EXTRA_INDEXES_KEY])
+         || !is_array($table_definition[self::EXTRA_INDEXES_KEY])
+         || !($database_name = $this->get_db_database($flow_params))) {
             return true;
         }
 
-        foreach( $table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr )
-        {
-            if( !$this->_create_table_extra_index( $index_name, $index_arr, $flow_params ) ) {
+        foreach ($table_definition[self::EXTRA_INDEXES_KEY] as $index_name => $index_arr) {
+            if (!$this->_create_table_extra_index($index_name, $index_arr, $flow_params)) {
                 return false;
             }
         }
@@ -2229,510 +2238,25 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    public function create_table_extra_indexes_from_array( $indexes_array, $flow_params = false ): bool
+    protected function drop_table_indexes_from_array($indexes_array, $flow_params = false) : bool
     {
         $this->reset_error();
 
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
+        if (empty($indexes_array) || !is_array($indexes_array)) {
             return true;
         }
 
-        foreach( $indexes_array as $index_name => $index_arr )
-        {
-            if( empty( $index_arr ) || !is_array( $index_arr ) ) {
-                continue;
-            }
-
-            if( !$this->_create_table_extra_index( $index_name, $index_arr, $flow_params ) ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param  string  $index_name
-     * @param  array  $index_arr
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    private function _create_table_extra_index( string $index_name, array $index_arr, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        if( empty( $index_name )
-         || empty( $index_arr )
-         || !($model_id = $this->instance_id())
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || !($index_arr = $this->_validate_table_extra_index( $index_arr ))
-         || empty( $index_arr['fields'] ) || !is_array( $index_arr['fields'] )
-         || empty( $flow_params['table_name'] )
-         || empty( $this->_definition[$flow_params['table_name']] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params ))
-         || !($database_name = $this->get_db_database( $flow_params )) )
-        {
-            PHS_Logger::error( 'Error creating extra index bad parameters sent to method for model ['.(!empty( $model_id )?$model_id:'N/A').'].', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
-            return false;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        $fields_str = '';
-        foreach( $index_arr['fields'] as $field_name )
-        {
-            $fields_str .= ($fields_str!==''?',':'').'`'.$field_name.'`';
-        }
-
-        if( ($qid = db_query( 'SELECT DISTINCT index_name '.
-                               ' FROM information_schema.statistics '.
-                               ' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '.
-                               ' AND index_name LIKE \''.$index_name.'\'', $db_connection ))
-         && $qid->numColumns() )
-        {
-            PHS_Logger::error( 'Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Extra index %s for table %s for model %s already exists.', $index_name, $full_table_name, $this->instance_id() ) );
-            return false;
-        }
-
-        if( !db_query( 'CREATE '.(!empty( $index_arr['unique'] )?'UNIQUE':'').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection ) )
-        {
-            PHS_Logger::error( 'Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array $indexes_array
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    protected function drop_table_indexes_from_array( $indexes_array, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        if( empty( $indexes_array ) || !is_array( $indexes_array ) ) {
-            return true;
-        }
-
-        foreach( $indexes_array as $index_name => $index_arr )
-        {
+        foreach ($indexes_array as $index_name => $index_arr) {
             // if( empty( $index_arr ) || !is_array( $index_arr ) ) {
             //     continue;
             // }
 
-            if( !$this->drop_table_index( $index_name, $flow_params ) ) {
+            if (!$this->drop_table_index($index_name, $flow_params)) {
                 return false;
             }
         }
 
         return true;
-    }
-
-    /**
-     * @param  string  $index_name
-     * @param bool|array $flow_params
-     *
-     * @return bool
-     */
-    public function drop_table_index( string $index_name, $flow_params = false ): bool
-    {
-        $this->reset_error();
-
-        if( empty( $index_name )
-         || !($model_id = $this->instance_id())
-         || !($flow_params = $this->fetch_default_flow_params( $flow_params ))
-         || empty( $flow_params['table_name'] )
-         || !($full_table_name = $this->get_flow_table_name( $flow_params )) )
-        {
-            PHS_Logger::error( 'Error dropping index for model ['.(!empty( $model_id )?$model_id:'N/A').']. Bad parameters sent to method.', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index for model %s.', (!empty( $model_id )?$model_id:'N/A') ) );
-            return false;
-        }
-
-        $db_connection = $this->get_db_connection( $flow_params );
-
-        if( !db_query( 'ALTER TABLE `'.$full_table_name.'` DROP INDEX `'.$index_name.'`', $db_connection ) )
-        {
-            PHS_Logger::error( 'Error dropping index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE );
-
-            $this->set_error( self::ERR_TABLE_GENERATE, self::_t( 'Error dropping index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id() ) );
-            return false;
-        }
-
-        return true;
-    }
-    //
-    // endregion Database structure methods
-    //
-
-    //
-    //  region CRUD functionality
-    //
-    /**
-     * @param array $params
-     *
-     * @return array|bool
-     */
-    public function insert( $params )
-    {
-        $this->reset_error();
-
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || !isset( $params['fields'] ) || !is_array( $params['fields'] ) )
-        {
-            $this->set_error( self::ERR_INSERT, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        $params['action'] = 'insert';
-
-        if( (
-                @method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] )
-                &&
-                !($params = @call_user_func( [ $this, 'get_insert_prepare_params_' . $params['table_name'] ], $params ))
-            )
-
-            ||
-
-            (
-                !@method_exists( $this, 'get_insert_prepare_params_'.$params['table_name'] )
-                &&
-                !($params = $this->get_insert_prepare_params( $params ))
-            )
-        )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_INSERT, self::_t('Couldn\'t parse parameters for database insert.'));
-            }
-
-            return false;
-        }
-
-        if( !($validation_arr = $this->validate_data_for_fields( $params ))
-         || empty( $validation_arr['data_arr'] ) )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_INSERT, self::_t('Error validating parameters.'));
-            }
-            return false;
-        }
-
-        $insert_arr = $validation_arr['data_arr'];
-        $db_connection = $this->get_db_connection( $params );
-
-        if( !($sql = db_quick_insert( $this->get_flow_table_name( $params ), $insert_arr, $db_connection ))
-         || !($item_id = db_query_insert( $sql, $db_connection )) )
-        {
-            if( @method_exists( $this, 'insert_failed_'.$params['table_name'] ) ) {
-                @$this->{'insert_failed_'.$params['table_name']}($insert_arr, $params);
-            } else {
-                $this->insert_failed($insert_arr, $params);
-            }
-
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-            }
-
-            return false;
-        }
-
-        if( !empty( $validation_arr['has_raw_fields'] ) )
-        {
-            // there are raw fields, so we query for existing data in table...
-            if( !($db_insert_arr = $this->get_details( $item_id, $params )) )
-            {
-                if( !$this->has_error() ) {
-                    $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-                }
-
-                return false;
-            }
-        } else
-        {
-            $db_insert_arr = $this->get_empty_data( $params );
-            foreach( $insert_arr as $key => $val ) {
-                $db_insert_arr[$key] = $val;
-            }
-        }
-
-        $insert_arr = $db_insert_arr;
-
-        $insert_arr[$params['table_index']] = $item_id;
-
-        // Mark record as just added to database...
-        $insert_arr[self::RECORD_NEW_INSERT_KEY] = true;
-
-        $insert_after_exists = @method_exists( $this, 'insert_after_'.$params['table_name'] );
-
-        if( (
-                $insert_after_exists
-                &&
-                !($new_insert_arr = @$this->{'insert_after_'.$params['table_name']}($insert_arr, $params))
-            )
-
-            ||
-
-            (
-                !$insert_after_exists
-                &&
-                !($new_insert_arr = $this->insert_after( $insert_arr, $params ))
-            )
-        )
-        {
-            $error_arr = $this->get_error();
-
-            $this->hard_delete( $insert_arr );
-
-            if( self::arr_has_error( $error_arr ) ) {
-                $this->copy_error_from_array($error_arr);
-            } elseif( !$this->has_error() ) {
-                $this->set_error(self::ERR_INSERT, self::_t('Failed actions after database insert.'));
-            }
-
-            return false;
-        }
-
-        $insert_arr = $new_insert_arr;
-
-        $hook_params = PHS_Hooks::default_model_insert_data_hook_args();
-        $hook_params['fields_arr'] = $validation_arr['data_arr'];
-        $hook_params['table_name'] = $params['table_name'];
-        $hook_params['new_db_record'] = $insert_arr;
-
-        // Table level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_INSERT_DATA.'_'.$params['table_name'], $hook_params );
-
-        // Generic level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_INSERT_DATA, $hook_params );
-
-        return $insert_arr;
-    }
-
-    /**
-     * @param array $record_arr
-     *
-     * @return bool
-     */
-    public function record_is_new( $record_arr ): bool
-    {
-        if( empty( $record_arr ) || !is_array( $record_arr )
-         || empty( $record_arr[self::RECORD_NEW_INSERT_KEY] ) ) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param int|array $existing_data
-     * @param array $params
-     *
-     * @return array|bool
-     */
-    public function edit( $existing_data, $params )
-    {
-        $this->reset_error();
-
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || !isset( $params['fields'] ) || !is_array( $params['fields'] ) )
-        {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        if( !($existing_arr = $this->data_to_array( $existing_data, $params ))
-         || !array_key_exists( $params['table_index'], $existing_arr ) )
-        {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Existing record not found in database.' ) );
-            return false;
-        }
-
-        $params['action'] = 'edit';
-
-        $original_record_arr = $existing_arr;
-
-        // If this was a new record in db, it is not anymore...
-        if( isset( $existing_arr[self::RECORD_NEW_INSERT_KEY] ) ) {
-            unset($existing_arr[self::RECORD_NEW_INSERT_KEY]);
-        }
-
-        $edit_prepare_params_exists = @method_exists( $this, 'get_edit_prepare_params_'.$params['table_name'] );
-
-        if( (
-                $edit_prepare_params_exists
-                &&
-                !($params = @$this->{'get_edit_prepare_params_'.$params['table_name']}($existing_arr, $params))
-            )
-
-            ||
-
-            (
-                !$edit_prepare_params_exists
-                &&
-                !($params = $this->get_edit_prepare_params( $existing_arr, $params ))
-            )
-        )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_EDIT, self::_t('Couldn\'t parse parameters for database edit.'));
-            }
-
-            return false;
-        }
-
-        if( !($validation_arr = $this->validate_data_for_fields( $params ))
-         || !isset( $validation_arr['data_arr'] ) || !is_array( $validation_arr['data_arr'] ) )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_EDIT, self::_t('Error validating parameters.'));
-            }
-            return false;
-        }
-
-        $full_table_name = $this->get_flow_table_name( $params );
-        $db_connection = $this->get_db_connection( $params );
-
-        $new_existing_arr = $existing_arr;
-
-        $edit_arr = $validation_arr['data_arr'];
-        if( !empty( $edit_arr )
-         && (!($sql = db_quick_edit( $full_table_name, $edit_arr, $db_connection ))
-                || !db_query( $sql.' WHERE `'.$full_table_name.'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $db_connection )
-            ) )
-        {
-            if( @method_exists( $this, 'edit_failed_'.$params['table_name'] ) ) {
-                @$this->{'edit_failed_'.$params['table_name']}($existing_arr, $edit_arr, $params);
-            } else {
-                $this->edit_failed($existing_arr, $edit_arr, $params);
-            }
-
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_EDIT, self::_t('Failed saving information to database.'));
-            }
-
-            return false;
-        }
-
-        $edit_after_exists = @method_exists( $this, 'edit_after_'.$params['table_name'] );
-
-        if( (
-                $edit_after_exists
-                &&
-                !($new_existing_arr = @$this->{'edit_after_'.$params['table_name']}($existing_arr, $edit_arr, $params))
-            )
-
-            ||
-
-            (
-                !$edit_after_exists
-                &&
-                !($new_existing_arr = $this->edit_after( $existing_arr, $edit_arr, $params ))
-            )
-        )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_EDIT, self::_t('Failed actions after database edit.'));
-            }
-
-            return false;
-        }
-
-        $existing_arr = $new_existing_arr;
-
-        if( !empty( $edit_arr ) )
-        {
-            if( !empty( $validation_arr['has_raw_fields'] ) )
-            {
-                // there are raw fields, so we query for existing data in table...
-                if( !($db_existing_arr = $this->get_details( $existing_arr['id'], $params )) )
-                {
-                    if( !$this->has_error() ) {
-                        $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-                    }
-
-                    return false;
-                }
-
-                // Overwrite only fields from table structure (as there might be other keys in array not related to table structure)
-                foreach( $db_existing_arr as $key => $val ) {
-                    $existing_arr[$key] = $val;
-                }
-            } else
-            {
-                foreach( $edit_arr as $key => $val ) {
-                    $existing_arr[$key] = $val;
-                }
-            }
-        }
-
-        $hook_params = PHS_Hooks::default_model_edit_data_hook_args();
-        $hook_params['fields_arr'] = $validation_arr['data_arr'];
-        $hook_params['table_name'] = $params['table_name'];
-        $hook_params['new_db_record'] = $existing_arr;
-        $hook_params['old_db_record'] = $original_record_arr;
-
-        // Table level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_EDIT_DATA.'_'.$params['table_name'], $hook_params );
-
-        // Generic level trigger
-        PHS::trigger_hooks( PHS_Hooks::H_MODEL_EDIT_DATA, $hook_params );
-
-        return $existing_arr;
-    }
-
-    /**
-     * Checks if $constrain_arr conditional fields find a record in database. If they return a record, method will edit that record and if none found, method will add new record
-     * with provided fields in $params
-     *
-     * @param array $constrain_arr Conditional db fields
-     * @param array $params Parameters in the flow
-     *
-     * @return bool
-     */
-    public function insert_or_edit( $constrain_arr, $params )
-    {
-        $this->reset_error();
-
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || ! isset($params['fields']) || ! is_array( $params['fields'] ) )
-        {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Failed validating flow parameters.' ) );
-            return false;
-        }
-
-        $check_params = $params;
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-        if( !($existing_arr = $this->get_details_fields( $constrain_arr, $params )) ) {
-            return $this->insert($params);
-        }
-
-        if( !array_key_exists( $params['table_index'], $existing_arr ) )
-        {
-            $this->set_error( self::ERR_EDIT, self::_t( 'Record doesn\'t have table index as key in result.' ) );
-            return false;
-        }
-
-        if( !($new_edit_arr = $this->insert_or_edit_editing( $existing_arr, $constrain_arr, $params )) )
-        {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_INSERT, self::_t('Failed actions before database edit.'));
-            }
-            return false;
-        }
-
-        return $this->edit( $existing_arr, $params );
     }
     //
     //  endregion CRUD functionality
@@ -2747,78 +2271,77 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array|bool
      */
-    protected function get_details_common( $constrain_arr, $params = false )
+    protected function get_details_common($constrain_arr, $params = false)
     {
-        if( !($params = $this->fetch_default_flow_params( $params )) ) {
+        if (!($params = $this->fetch_default_flow_params($params))) {
             return false;
         }
 
-        if( empty( $params['details'] ) ) {
+        if (empty($params['details'])) {
             $params['details'] = '*';
         }
-        if( !isset( $params['result_type'] ) ) {
+        if (!isset($params['result_type'])) {
             $params['result_type'] = 'single';
         }
-        if( !isset( $params['result_key'] ) ) {
+        if (!isset($params['result_key'])) {
             $params['result_key'] = $params['table_index'];
         }
-        if( empty( $params['join_sql'] ) ) {
+        if (empty($params['join_sql'])) {
             $params['join_sql'] = '';
         }
-        if( empty( $params['extra_sql'] ) ) {
+        if (empty($params['extra_sql'])) {
             $params['extra_sql'] = '';
         }
-        if( empty( $params['order_by'] ) ) {
+        if (empty($params['order_by'])) {
             $params['order_by'] = '';
         }
-        if( empty( $params['group_by'] ) ) {
+        if (empty($params['group_by'])) {
             $params['group_by'] = '';
         }
-        if( empty( $params['having_sql'] ) ) {
+        if (empty($params['having_sql'])) {
             $params['having_sql'] = '';
         }
 
-        $params['return_query_string'] = (!empty( $params['return_query_string'] ));
+        $params['return_query_string'] = (!empty($params['return_query_string']));
 
-        $params['offset'] = (empty( $params['offset'] )?0:(int)$params['offset']);
+        $params['offset'] = (empty($params['offset']) ? 0 : (int)$params['offset']);
 
-        if( !isset( $params['limit'] )
-         || $params['result_type'] === 'single' ) {
+        if (!isset($params['limit'])
+         || $params['result_type'] === 'single') {
             $params['limit'] = 1;
-        } else
-        {
+        } else {
             $params['limit'] = (int)$params['limit'];
             $params['result_type'] = 'list';
         }
 
-        if( empty( $constrain_arr ) || !is_array( $constrain_arr ) ) {
+        if (empty($constrain_arr) || !is_array($constrain_arr)) {
             return false;
         }
 
         $params['fields'] = $constrain_arr;
 
-        $db_connection = $this->get_db_connection( $params );
+        $db_connection = $this->get_db_connection($params);
 
-        if( !($params = $this->get_query_fields( $params )) ) {
+        if (!($params = $this->get_query_fields($params))) {
             return false;
         }
 
-        $sql = 'SELECT '.$params['details'].
-               ' FROM '.$this->get_flow_table_name( $params ).
-               $params['join_sql'].
-               ' WHERE '.$params['extra_sql'].
-               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
-               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
-               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-               (isset( $params['limit'] )?' LIMIT '.$params['offset'].', '.$params['limit']:'');
+        $sql = 'SELECT '.$params['details']
+               .' FROM '.$this->get_flow_table_name($params)
+               .$params['join_sql']
+               .' WHERE '.$params['extra_sql']
+               .(!empty($params['group_by']) ? ' GROUP BY '.$params['group_by'] : '')
+               .(!empty($params['having_sql']) ? ' HAVING '.$params['having_sql'] : '')
+               .(!empty($params['order_by']) ? ' ORDER BY '.$params['order_by'] : '')
+               .(isset($params['limit']) ? ' LIMIT '.$params['offset'].', '.$params['limit'] : '');
 
         $qid = false;
         $item_count = 0;
 
-        if( empty( $params['return_query_string'] )
-         && (!($qid = db_query( $sql, $db_connection ))
-                || !($item_count = db_num_rows( $qid, $db_connection ))
-            ) ) {
+        if (empty($params['return_query_string'])
+         && (!($qid = db_query($sql, $db_connection))
+                || !($item_count = db_num_rows($qid, $db_connection))
+         )) {
             return false;
         }
 
@@ -2832,30 +2355,22 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     }
 
     /**
-     * @return array
-     */
-    protected static function linkage_db_functions(): array
-    {
-        return [ 'and', 'or' ];
-    }
-
-    /**
-     * @param  string  $field_name
+     * @param string $field_name
      * @param array|mixed $field_val
      * @param null|array $params
      *
      * @return bool|string
      */
-    protected function _get_query_field_value( string $field_name, $field_val, array $params = null )
+    protected function _get_query_field_value(string $field_name, $field_val, ?array $params = null)
     {
-        if( empty( $params ) || !is_array( $params ) ) {
+        if (empty($params) || !is_array($params)) {
             $params = [];
         }
 
-        if( empty( $params['db_connection'] ) ) {
+        if (empty($params['db_connection'])) {
             $params['db_connection'] = false;
         }
-        if( empty( $params['linkage_func'] ) ) {
+        if (empty($params['linkage_func'])) {
             $params['linkage_func'] = 'AND';
         }
 
@@ -2865,12 +2380,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         $result_str = '';
         // check if we have multiple complex values for current fields
         // This means we have more values set in numeric indexes and linkage_func index (optional) in case we want to change logical linkage function
-        if( is_array( $field_val )
-         && !empty( $field_val[0] ) && is_array( $field_val[0] ) )
-        {
+        if (is_array($field_val)
+         && !empty($field_val[0]) && is_array($field_val[0])) {
             $linkage_func = 'OR';
-            if( !empty( $field_val['linkage_func'] )
-             && in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions(), true ) ) {
+            if (!empty($field_val['linkage_func'])
+             && in_array(strtolower($field_val['linkage_func']), self::linkage_db_functions(), true)) {
                 $linkage_func = strtoupper($field_val['linkage_func']);
             }
 
@@ -2878,92 +2392,85 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             $recurring_params['linkage_func'] = $linkage_func;
 
             $linkage_str = '';
-            foreach( $field_val as $value_index => $value_arr )
-            {
+            foreach ($field_val as $value_index => $value_arr) {
                 // skip non integer indexes
-                if( (string)((int)$value_index) !== (string)$value_index ) {
+                if ((string)((int)$value_index) !== (string)$value_index) {
                     continue;
                 }
 
-                if( ($recurring_result = $this->_get_query_field_value( $field_name, $value_arr, $recurring_params )) ) {
+                if (($recurring_result = $this->_get_query_field_value($field_name, $value_arr, $recurring_params))) {
                     $linkage_str .= (!empty($linkage_str) ? ' '.$linkage_func.' ' : '').' '.$recurring_result;
                 }
             }
 
-            if( !empty( $linkage_str ) ) {
+            if (!empty($linkage_str)) {
                 $result_str = '('.$linkage_str.')';
             }
-        } elseif( !is_array( $field_val ) )
-        {
-            if( $field_val !== false ) {
+        } elseif (!is_array($field_val)) {
+            if ($field_val !== false) {
                 $result_str = ' '.$field_name.' = \''.db_escape($field_val, $db_connection).'\' ';
             }
-        } else
-        {
+        } else {
             // If we don\'t have value key set, it means array passed is an array of values
-            if( !isset( $field_val['value'] )
-             && !isset( $field_val['raw'] )
-             && !isset( $field_val['raw_value'] ) ) {
+            if (!isset($field_val['value'])
+             && !isset($field_val['raw'])
+             && !isset($field_val['raw_value'])) {
                 $field_val = ['value' => $field_val];
             }
 
-            if( !isset( $field_val['raw'] ) ) {
+            if (!isset($field_val['raw'])) {
                 $field_val['raw'] = false;
             }
-            if( empty( $field_val['field'] ) ) {
+            if (empty($field_val['field'])) {
                 $field_val['field'] = $field_name;
             }
-            if( empty( $field_val['check'] ) ) {
+            if (empty($field_val['check'])) {
                 $field_val['check'] = '=';
             }
-            if( !isset( $field_val['value'] ) ) {
+            if (!isset($field_val['value'])) {
                 $field_val['value'] = false;
             }
-            if( !isset( $field_val['raw_value'] ) ) {
+            if (!isset($field_val['raw_value'])) {
                 $field_val['raw_value'] = false;
             }
             // Use linkage function used in current linkage (by default) if more values are provided
-            if( !isset( $field_val['linkage_func'] )
-             || !in_array( strtolower( $field_val['linkage_func'] ), self::linkage_db_functions(), true ) ) {
+            if (!isset($field_val['linkage_func'])
+             || !in_array(strtolower($field_val['linkage_func']), self::linkage_db_functions(), true)) {
                 $field_val['linkage_func'] = false;
             }
 
-            if( !empty( $field_val['raw'] ) ) {
+            if (!empty($field_val['raw'])) {
                 $result_str = $field_val['raw'];
-            }
-
-            elseif( $field_val['value'] !== false || $field_val['raw_value'] !== false )
-            {
+            } elseif ($field_val['value'] !== false || $field_val['raw_value'] !== false) {
                 $check_value = false;
-                $field_val['check'] = trim( $field_val['check'] );
-                if( $field_val['raw_value'] !== false ) {
+                $field_val['check'] = trim($field_val['check']);
+                if ($field_val['raw_value'] !== false) {
                     $check_value = $field_val['raw_value'];
-                } elseif( in_array( strtolower( $field_val['check'] ), [ 'in', 'is', 'between' ] ) ) {
+                } elseif (in_array(strtolower($field_val['check']), ['in', 'is', 'between'])) {
                     $check_value = $field_val['value'];
-                } elseif( !is_array( $field_val['value'] ) ) {
+                } elseif (!is_array($field_val['value'])) {
                     $check_value = '\''.db_escape($field_val['value'], $db_connection).'\'';
                 }
 
-                if( !empty( $check_value ) ) {
+                if (!empty($check_value)) {
                     $result_str = ' '.$field_val['field'].' '.$field_val['check'].' '.$check_value.' ';
-                } elseif( is_array( $field_val['value'] )
-                     && !empty( $field_val['value'] ) )
-                {
+                } elseif (is_array($field_val['value'])
+                     && !empty($field_val['value'])) {
                     // If linkage function is not provided for same field, we assume we should check if field is one of
                     // provided values, so we should use OR in linkage
-                    if( $field_val['linkage_func'] === false ) {
+                    if ($field_val['linkage_func'] === false) {
                         $field_val['linkage_func'] = 'OR';
                     } else {
                         $field_val['linkage_func'] = $linkage_func;
                     }
 
                     $linkage_str = '';
-                    foreach( $field_val['value'] as $field_arr_val ) {
-                        $linkage_str .= (!empty($linkage_str) ? ' '.$field_val['linkage_func'].' ' : '').' '.
-                                        $field_val['field'].' '.$field_val['check'].' \''.db_escape($field_arr_val, $db_connection).'\' ';
+                    foreach ($field_val['value'] as $field_arr_val) {
+                        $linkage_str .= (!empty($linkage_str) ? ' '.$field_val['linkage_func'].' ' : '').' '
+                                        .$field_val['field'].' '.$field_val['check'].' \''.db_escape($field_arr_val, $db_connection).'\' ';
                     }
 
-                    if( !empty( $linkage_str ) ) {
+                    if (!empty($linkage_str)) {
                         $result_str = '('.$linkage_str.')';
                     }
                 }
@@ -2974,258 +2481,71 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     }
 
     /**
-     * @param array $params
-     *
-     * @return array|bool
-     */
-    public function get_query_fields( $params )
-    {
-        if( empty( $params ) || !is_array( $params )
-         || empty( $params['fields'] ) || !is_array( $params['fields'] )
-         || !($new_params = $this->fetch_default_flow_params( $params )) ) {
-            return $params;
-        }
-
-        $params = $new_params;
-
-        $db_connection = $this->get_db_connection( $params );
-        $full_table_name = $this->get_flow_table_name( $params );
-
-        if( empty( $params['extra_sql'] ) ) {
-            $params['extra_sql'] = '';
-        }
-
-        // Params used for {linkage} parameter (recurring)...
-        if( empty( $params['recurring_level'] ) ) {
-            $params['recurring_level'] = 0;
-        }
-
-        $linkage_func = 'AND';
-        if( !empty( $params['fields']['{linkage_func}'] )
-         && in_array( strtolower( $params['fields']['{linkage_func}'] ), self::linkage_db_functions(), true ) ) {
-            $linkage_func = strtoupper($params['fields']['{linkage_func}']);
-        }
-
-        if( isset( $params['fields']['{linkage_func}'] ) ) {
-            unset($params['fields']['{linkage_func}']);
-        }
-
-        $query_field_value_params = [];
-        $query_field_value_params['db_connection'] = $db_connection;
-        $query_field_value_params['linkage_func'] = $linkage_func;
-
-        foreach( $params['fields'] as $field_name => $field_val )
-        {
-            $field_name = trim( $field_name );
-            if( empty( $field_name ) && $field_name !== '0' ) {
-                continue;
-            }
-
-            if( $field_name === '{linkage}' )
-            {
-                if( empty( $field_val ) || !is_array( $field_val )
-                 || empty( $field_val['fields'] ) || !is_array( $field_val['fields'] ) ) {
-                    continue;
-                }
-
-                $recurring_params = $params;
-                $recurring_params['fields'] = $field_val['fields'];
-                $recurring_params['extra_sql'] = '';
-                $recurring_params['recurring_level']++;
-
-                if( ($recurring_result = $this->get_query_fields( $recurring_params ))
-                 && is_array( $recurring_result ) && !empty( $recurring_result['extra_sql'] ) ) {
-                    $params['extra_sql'] .= (!empty( $params['extra_sql'] )?' '.$linkage_func.' ':'').' ('.$recurring_result['extra_sql'].') ';
-                }
-
-                continue;
-            }
-
-            // Handle field name
-            if( !is_numeric( $field_name )
-             && strpos( $field_name, '.' ) === false ) {
-                $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
-            }
-
-            // Handle field value
-            if( ($field_val_query = $this->_get_query_field_value( $field_name, $field_val, $query_field_value_params )) ) {
-                $params['extra_sql'] .= (!empty($params['extra_sql']) ? ' '.$linkage_func.' ' : '').$field_val_query;
-            }
-        }
-
-        return $params;
-    }
-
-    /**
-     * @return array
-     */
-    public static function get_count_default_params(): array
-    {
-        return [
-            'count_field' => '*',
-            'extra_sql' => '',
-            'join_sql' => '',
-            'group_by' => '',
-
-            'db_fields' => '',
-
-            'fields' => [],
-
-            'flags' => [],
-        ];
-    }
-
-    /**
-     * @param bool|array $params
-     *
-     * @return array|int
-     */
-    public function get_count( $params = false )
-    {
-        $this->reset_error();
-
-        if( !($params = $this->fetch_default_flow_params( $params ))
-         || !($params = self::validate_array( $params, self::get_count_default_params() ))
-         || ($params = $this->get_count_list_common_params( $params )) === false
-         || ($params = $this->get_count_prepare_params( $params )) === false
-         || ($params = $this->get_query_fields( $params )) === false ) {
-            return 0;
-        }
-
-        if( empty( $params['extra_sql'] ) ) {
-            $params['extra_sql'] = '';
-        }
-        if( empty( $params['join_sql'] ) ) {
-            $params['join_sql'] = '';
-        }
-
-        $params['return_query_string'] = !empty($params['return_query_string'] );
-
-        $db_connection = $this->get_db_connection( $params );
-
-        $distinct_str = '';
-        if( $params['count_field'] !== '*' ) {
-            $distinct_str = 'DISTINCT ';
-        }
-
-        $sql = 'SELECT COUNT('.$distinct_str.$params['count_field'].') AS total_enregs '.
-               ' FROM `'.$this->get_flow_table_name( $params ).'` '.
-               $params['join_sql'].
-               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
-               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
-               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'');
-
-        if( !empty( $params['return_query_string'] ) )
-        {
-            $return_arr = [];
-            $return_arr['query'] = $sql;
-            $return_arr['params'] = $params;
-
-            return $return_arr;
-        }
-
-        $ret = 0;
-        if( ($qid = db_query( $sql, $db_connection ))
-         && ($result = db_fetch_assoc( $qid, $db_connection )) ) {
-            $ret = $result['total_enregs'];
-        }
-
-        return $ret;
-    }
-
-    /**
-     * @return array
-     */
-    public static function get_list_default_params(): array
-    {
-        return [
-            'get_query_id' => false,
-            // will get populated in get_list_common
-            'arr_index_field' => '',
-
-            'extra_sql' => '',
-            'join_sql' => '',
-            'having_sql' => '',
-            'group_by' => '',
-            'order_by' => '',
-
-            'db_fields' => '',
-
-            'offset' => 0,
-            'enregs_no' => 0,
-
-            'fields' => [],
-
-            'flags' => [],
-        ];
-    }
-
-    /**
      * @param array|bool $params
      *
      * @return array|bool
      */
-    protected function get_list_common( $params = false )
+    protected function get_list_common($params = false)
     {
         $this->reset_error();
 
-        if( !($params = $this->fetch_default_flow_params( $params )) ) {
+        if (!($params = $this->fetch_default_flow_params($params))) {
             return false;
         }
 
         // If we are returning an array of records, and there is no record limit provided, put something by default so we don't kill memory
-        if( !isset( $params['enregs_no'] )
-         && empty( $params['get_query_id'] ) ) {
+        if (!isset($params['enregs_no'])
+         && empty($params['get_query_id'])) {
             $params['enregs_no'] = 10000;
         }
 
-        $params = self::validate_array( $params, self::get_list_default_params() );
+        $params = self::validate_array($params, self::get_list_default_params());
 
-        $db_connection = $this->get_db_connection( $params );
-        if( !($full_table_name = $this->get_flow_table_name( $params )) ) {
+        $db_connection = $this->get_db_connection($params);
+        if (!($full_table_name = $this->get_flow_table_name($params))) {
             return false;
         }
 
-        $params['return_query_string'] = (!empty( $params['return_query_string'] ));
+        $params['return_query_string'] = (!empty($params['return_query_string']));
 
         // Field which will be used as key in result array (be sure is unique)
-        if( empty( $params['arr_index_field'] ) ) {
+        if (empty($params['arr_index_field'])) {
             $params['arr_index_field'] = $params['table_index'];
         }
 
-        if( empty( $params['db_fields'] ) ) {
+        if (empty($params['db_fields'])) {
             $params['db_fields'] = '`'.$full_table_name.'`.*';
         }
-        if( empty( $params['order_by'] ) ) {
+        if (empty($params['order_by'])) {
             $params['order_by'] = '`'.$full_table_name.'`.`'.$params['table_index'].'` DESC';
         }
-        if( empty( $params['group_by'] ) ) {
+        if (empty($params['group_by'])) {
             $params['group_by'] = '`'.$full_table_name.'`.`'.$params['table_index'].'`';
         }
 
-        if( ($params = $this->get_count_list_common_params( $params )) === false
-         || ($params = $this->get_list_prepare_params( $params )) === false
-         || ($params = $this->get_query_fields( $params )) === false ) {
+        if (($params = $this->get_count_list_common_params($params)) === false
+         || ($params = $this->get_list_prepare_params($params)) === false
+         || ($params = $this->get_query_fields($params)) === false) {
             return false;
         }
 
-        $sql = 'SELECT '.$params['db_fields'].' '.
-               ' FROM `'.$full_table_name.'` '.
-               $params['join_sql'].
-               (!empty( $params['extra_sql'] )?' WHERE '.$params['extra_sql']:'').
-               (!empty( $params['group_by'] )?' GROUP BY '.$params['group_by']:'').
-               (!empty( $params['having_sql'] )?' HAVING '.$params['having_sql']:'').
-               (!empty( $params['order_by'] )?' ORDER BY '.$params['order_by']:'').
-               (!empty( $params['enregs_no'] )?' LIMIT '.$params['offset'].', '.$params['enregs_no']:'');
+        $sql = 'SELECT '.$params['db_fields'].' '
+               .' FROM `'.$full_table_name.'` '
+               .$params['join_sql']
+               .(!empty($params['extra_sql']) ? ' WHERE '.$params['extra_sql'] : '')
+               .(!empty($params['group_by']) ? ' GROUP BY '.$params['group_by'] : '')
+               .(!empty($params['having_sql']) ? ' HAVING '.$params['having_sql'] : '')
+               .(!empty($params['order_by']) ? ' ORDER BY '.$params['order_by'] : '')
+               .(!empty($params['enregs_no']) ? ' LIMIT '.$params['offset'].', '.$params['enregs_no'] : '');
 
         $qid = false;
-        if( empty( $params['return_query_string'] )
-         && !($qid = db_query( $sql, $db_connection )) ) {
+        if (empty($params['return_query_string'])
+         && !($qid = db_query($sql, $db_connection))) {
             return false;
         }
 
-        if( empty( $qid )
-         || !($rows_number = db_num_rows( $qid, $db_connection )) ) {
+        if (empty($qid)
+         || !($rows_number = db_num_rows($qid, $db_connection))) {
             $rows_number = 0;
         }
 
@@ -3238,58 +2558,637 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         return $return_arr;
     }
 
-    /**
-     * @param bool|array $params
-     *
-     * @return array|bool|\mysqli_result
-     */
-    public function get_list( $params = false )
+    private function _get_table_columns_definition_for_model_from_database(
+        $flow_params,
+        $my_driver,
+        $flow_table_name,
+        $force = false) : bool
     {
-        $this->reset_error();
+        if (!($qid = db_query('SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
+            $this->set_error(self::ERR_READ_DB_STRUCTURE,
+                self::_t('Error reading structure of table %s.', $flow_table_name));
 
-        if( !($common_arr = $this->get_list_common( $params ))
-         || !is_array( $common_arr )
-         || (empty( $params['return_query_string'] ) && empty( $common_arr['qid'] )) ) {
             return false;
         }
 
-        if( !empty( $params['return_query_string'] ) ) {
-            return $common_arr;
-        }
-
-        if( !empty( $params['get_query_id'] ) ) {
-            return $common_arr['qid'];
-        }
-
-        if( isset( $common_arr['params'] ) ) {
-            $params = $common_arr['params'];
-        }
-
-        $db_connection = $this->get_db_connection( $params );
-
-        $ret_arr = [];
-        while( ($item_arr = db_fetch_assoc( $common_arr['qid'], $db_connection )) )
-        {
-            $key = $params['table_index'];
-            if( isset( $item_arr[$params['arr_index_field']] ) ) {
-                $key = $params['arr_index_field'];
+        $structure_arr = self::get_cached_db_table_structure($flow_table_name, $my_driver);
+        while (($field_arr = db_fetch_assoc($qid, $flow_params['db_connection']))) {
+            if (!is_array($field_arr)
+             || empty($field_arr['Field'])) {
+                continue;
             }
 
-            $ret_arr[$item_arr[$key]] = $item_arr;
+            $structure_arr[$field_arr['Field']] = $this->_parse_mysql_field_result($field_arr);
         }
 
-        return $ret_arr;
+        self::add_cached_db_table_structure($structure_arr, $flow_table_name, $my_driver);
+
+        return true;
+    }
+
+    private function _get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force = false)
+    {
+        if (($qid = db_query('SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
+            $this->set_error(self::ERR_READ_DB_STRUCTURE,
+                self::_t('Error reading indexes of table %s.', $flow_table_name));
+
+            return false;
+        }
+
+        $structure_arr = self::get_cached_db_table_structure($flow_table_name, $my_driver);
+        while (($index_arr = db_fetch_assoc($qid, $flow_params['db_connection']))) {
+            if (!is_array($index_arr)
+             || empty($index_arr['Key_name'])
+             || empty($index_arr['Column_name'])) {
+                continue;
+            }
+
+            if (strtoupper($index_arr['Key_name']) === 'PRIMARY') {
+                // make sure we have primary column set
+                if (!empty($structure_arr[$index_arr['Column_name']])) {
+                    $structure_arr[$index_arr['Column_name']]['primary'] = true;
+                }
+
+                continue;
+            }
+
+            if (!empty($structure_arr[$index_arr['Key_name']])) {
+                // We have this field defined in the table... Make sure it has index set
+                $structure_arr[$index_arr['Key_name']]['index'] = true;
+                continue;
+            }
+
+            // this field is not defined in the table, so it is an extra index...
+
+            if (empty($structure_arr[self::EXTRA_INDEXES_KEY])
+             || !is_array($structure_arr[self::EXTRA_INDEXES_KEY])) {
+                $structure_arr[self::EXTRA_INDEXES_KEY] = [];
+            }
+
+            if (empty($structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']])
+             || !is_array($structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']])) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']] = [];
+            }
+
+            if (empty($structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'])
+             || !is_array($structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'])) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'] = [];
+            }
+
+            $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['fields'][] = $index_arr['Column_name'];
+
+            if (empty($index_arr['Non_unique'])) {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = true;
+            } else {
+                $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['Key_name']]['unique'] = false;
+            }
+        }
+
+        self::add_cached_db_table_structure($structure_arr, $flow_table_name, $my_driver);
+
+        /**
+         * if( !($qid = db_query( 'SELECT * FROM information_schema.statistics '.
+         * ' WHERE '.
+         * ' table_schema = \''.$flow_database_name.'\' AND table_name = \''.$flow_table_name.'\''.
+         * ' AND SEQ_IN_INDEX > 1', $flow_params['db_connection'] )) )
+         * {
+         * }
+         *
+         * while( ($index_arr = db_fetch_assoc( $qid, $flow_params['db_connection'] )) )
+         * {
+         * if( !is_array( $index_arr )
+         * || empty( $index_arr['INDEX_NAME'] )
+         * || empty( $index_arr['COLUMN_NAME'] ) )
+         * continue;
+         *
+         * if( empty( $structure_arr[self::EXTRA_INDEXES_KEY] )
+         * || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY] ) )
+         * $structure_arr[self::EXTRA_INDEXES_KEY] = [];
+         *
+         * if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] )
+         * || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] ) )
+         * $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']] = [];
+         *
+         * if( empty( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] )
+         * || !is_array( $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] ) )
+         * $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'] = [];
+         *
+         * $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['fields'][] = $index_arr['COLUMN_NAME'];
+         *
+         * if( empty( $index_arr['NON_UNIQUE'] ) )
+         * $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = true;
+         * else
+         * $structure_arr[self::EXTRA_INDEXES_KEY][$index_arr['INDEX_NAME']]['unique'] = false;
+         * }
+         * /**/
+
+        return true;
+    }
+    //
+    //  endregion Methods that will be overridden in child classes
+    //
+
+    //
+    // region Database structure methods
+    //
+    /**
+     * @param false|array $flow_params
+     * @param bool $force
+     *
+     * @return bool
+     */
+    private function _extract_db_structure($flow_params = false, bool $force = false) : bool
+    {
+        $this->reset_error();
+
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($my_driver = $this->get_model_driver())) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
+
+            return false;
+        }
+
+        if (!empty($force)
+         && PHS_Maintenance::db_structure_is_locked()) {
+            $force = false;
+        }
+
+        if (empty($force)
+         && self::get_cached_db_tables_structure_for_driver($my_driver)) {
+            return true;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+        db_supress_errors($db_connection);
+
+        $default_table_details = $this->_default_table_details_arr();
+        if (($qid = db_query('SHOW TABLE STATUS', $db_connection))
+         && $qid->numColumns()) {
+            while (($result_arr = $qid->fetch_assoc())) {
+                if (empty($result_arr['Name'])) {
+                    continue;
+                }
+
+                $table_details = $default_table_details;
+                if (!empty($result_arr['Engine'])) {
+                    $table_details['engine'] = $result_arr['Engine'];
+                }
+                if (!empty($result_arr['Comment'])) {
+                    $table_details['comment'] = $result_arr['Comment'];
+                }
+                if (!empty($result_arr['Collation'])) {
+                    $table_details['collate'] = $result_arr['Collation'];
+                    if (($collate_parts = explode('_', $table_details['collate']))) {
+                        $table_details['charset'] = $collate_parts[0];
+                    }
+                }
+
+                $structure_arr = self::get_cached_db_table_structure($result_arr['Name'], $my_driver);
+                $structure_arr[self::T_DETAILS_KEY] = $table_details;
+
+                self::add_cached_db_table_structure($structure_arr, $result_arr['Name'], $my_driver);
+            }
+        }
+
+        return true;
+    }
+
+    private function _get_type_from_mysql_field_type($type)
+    {
+        $type = trim($type);
+        if (empty($type)) {
+            return false;
+        }
+
+        $return_arr = [];
+        $return_arr['type'] = self::FTYPE_UNKNOWN;
+        $return_arr['length'] = null;
+        $return_arr['unsigned'] = false;
+
+        $mysql_type = '';
+        $mysql_length = '';
+        // if( !preg_match( '@([a-z]+)([\(\s*[0-9,\s]+\s*\)]*)@i', $type, $matches ) )
+        if (!preg_match('@([a-z]+)([\([0-9,\s]+\)]?)*(.*)@i', $type, $matches)) {
+            $mysql_type = $type;
+        } else {
+            if (!empty($matches[1])) {
+                $mysql_type = strtolower(trim($matches[1]));
+            }
+
+            if (!empty($matches[2])) {
+                $mysql_length = trim($matches[2], ' ()');
+            }
+
+            if (!empty($matches[3])) {
+                $type_extras_str = trim($matches[3]);
+                if (($type_extras_arr = explode(strtolower(str_replace('  ', ' ', $type_extras_str)), ' '))) {
+                    if (in_array('unsigned', $type_extras_arr, true)) {
+                        $return_arr['unsigned'] = true;
+                    }
+                }
+            }
+        }
+
+        if (!empty($mysql_type)
+         && ($field_types = $this->get_field_types())
+         && is_array($field_types)) {
+            $mysql_type = strtolower(trim($mysql_type));
+            foreach ($field_types as $field_type => $field_arr) {
+                if (empty($field_arr['title'])) {
+                    continue;
+                }
+
+                if ($field_arr['title'] === $mysql_type) {
+                    $return_arr['type'] = $field_type;
+                    break;
+                }
+            }
+        }
+
+        if (!($field_arr = $this->valid_field_type($return_arr['type']))) {
+            return $return_arr;
+        }
+
+        if (!empty($mysql_length)) {
+            $length_arr = [];
+            if (($parts_arr = explode(',', $mysql_length))
+             && is_array($parts_arr)) {
+                foreach ($parts_arr as $part) {
+                    $part = trim($part);
+                    if ($part === '') {
+                        continue;
+                    }
+
+                    $length_arr[] = $part;
+                }
+            }
+
+            $return_arr['length'] = implode(',', $length_arr);
+        }
+
+        return $return_arr;
+    }
+
+    private function _parse_mysql_field_result($field_arr) : array
+    {
+        $field_arr = self::validate_array($field_arr, self::_default_mysql_table_field_fields());
+        $model_field_arr = self::_default_field_arr();
+
+        if (!($model_field_type = $this->_get_type_from_mysql_field_type($field_arr['Type']))) {
+            $model_field_arr['type'] = self::FTYPE_UNKNOWN;
+        } else {
+            $model_field_arr['type'] = $model_field_type['type'];
+            $model_field_arr['length'] = $model_field_type['length'];
+            $model_field_arr['unsigned'] = (!empty($model_field_type['unsigned']));
+        }
+
+        $model_field_arr['nullable'] = (!empty($field_arr['Null']) && strtolower($field_arr['Null']) === 'yes');
+        $model_field_arr['primary'] = (!empty($field_arr['Key']) && strtolower($field_arr['Key']) === 'pri');
+        $model_field_arr['auto_increment'] = (!empty($field_arr['Extra']) && strtolower($field_arr['Extra']) === 'auto_increment');
+        $model_field_arr['index'] = (!empty($field_arr['Key']) && strtolower($field_arr['Key']) === 'mul');
+        $model_field_arr['default'] = $this->_get_parsed_default($field_arr['Default'], $model_field_arr['type']);
+        $model_field_arr['comment'] = (!empty($field_arr['Comment']) ? $field_arr['Comment'] : '');
+
+        return $model_field_arr;
     }
 
     /**
-     * @param  string  $str
-     * @param  string  $char
+     * @param array $field1_arr
+     * @param array $field2_arr
+     *
+     * @return bool
+     */
+    private function _field_definition_changed($field1_arr, $field2_arr)
+    {
+        $default_fields_arr = self::_default_field_arr();
+        if (!($field1_arr = self::validate_array($field1_arr, $default_fields_arr))
+         || !($field2_arr = self::validate_array($field2_arr, $default_fields_arr))) {
+            return true;
+        }
+
+        return
+            (int)$field1_arr['type'] !== (int)$field2_arr['type']
+            || (bool)$field1_arr['nullable'] !== (bool)$field2_arr['nullable']
+            || (bool)$field1_arr['unsigned'] !== (bool)$field2_arr['unsigned']
+            || (bool)$field1_arr['auto_increment'] !== (bool)$field2_arr['auto_increment']
+            || $this->_get_parsed_default($field1_arr['default'], $field1_arr['type'])
+               !== $this->_get_parsed_default($field2_arr['default'], $field2_arr['type'])
+            || trim($field1_arr['comment']) !== trim($field2_arr['comment'])
+            // for lengths with comma
+            || (!empty($field1_arr['length']) && !empty($field2_arr['length'])
+                && str_replace(' ', '', trim($field1_arr['length']))
+                   !== str_replace(' ', '', trim($field2_arr['length']))
+            );
+    }
+
+    /**
+     * @param array $field1_arr
+     * @param array $field2_arr
+     *
+     * @return bool
+     */
+    private function _field_indexes_changed($field1_arr, $field2_arr)
+    {
+        $default_fields_arr = self::_default_field_arr();
+        if (!($field1_arr = self::validate_array($field1_arr, $default_fields_arr))
+         || !($field2_arr = self::validate_array($field2_arr, $default_fields_arr))) {
+            return true;
+        }
+
+        return
+            (bool)$field1_arr['index'] !== (bool)$field2_arr['index']
+            || (bool)$field1_arr['primary'] !== (bool)$field2_arr['primary'];
+    }
+
+    private function _get_parsed_default($default_val, $type)
+    {
+        if ($default_val === null) {
+            return null;
+        }
+
+        switch ($type) {
+            case self::FTYPE_TINYINT:
+            case self::FTYPE_SMALLINT:
+            case self::FTYPE_MEDIUMINT:
+            case self::FTYPE_INT:
+            case self::FTYPE_BIGINT:
+            case self::FTYPE_TIMESTAMP:
+                return (int)$default_val;
+            case self::FTYPE_DECIMAL:
+            case self::FTYPE_FLOAT:
+            case self::FTYPE_DOUBLE:
+                return (float)$default_val;
+            default:
+                return (string)$default_val;
+        }
+    }
+
+    private function _table_details_changed($details1_arr, $details2_arr)
+    {
+        $default_table_details = $this->_default_table_details_arr();
+
+        if (!($details1_arr = self::validate_array($details1_arr, $default_table_details))
+         || !($details2_arr = self::validate_array($details2_arr, $default_table_details))) {
+            return array_keys($default_table_details);
+        }
+
+        $keys_changed = [];
+        if (strtolower(trim($details1_arr['engine'])) !== strtolower(trim($details2_arr['engine']))) {
+            $keys_changed['engine'] = $details2_arr['engine'];
+        }
+        if (strtolower(trim($details1_arr['charset'])) !== strtolower(trim($details2_arr['charset']))) {
+            $keys_changed['charset'] = $details2_arr['charset'];
+        }
+        if (strtolower(trim($details1_arr['collate'])) !== strtolower(trim($details2_arr['collate']))) {
+            $keys_changed['collate'] = $details2_arr['collate'];
+        }
+        if (trim($details1_arr['comment']) !== trim($details2_arr['comment'])) {
+            $keys_changed['comment'] = $details2_arr['comment'];
+        }
+
+        return !empty($keys_changed) ? $keys_changed : false;
+    }
+
+    /**
+     * Returns an array containing mysql and keys string statement for a table field named $field_name and a structure provided in $field_arr
+     *
+     * @param string $field_name Name of mysql field
+     * @param array $field_details Field details array
+     *
+     * @return bool|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
+     */
+    private function _get_mysql_field_definition($field_name, $field_details)
+    {
+        $field_details = self::validate_array($field_details, self::_default_field_arr());
+
+        if ($field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
+         || empty($field_details)
+         || !($field_details = $this->_validate_field($field_details))
+         || !($type_details = $this->valid_field_type($field_details['type']))
+        ) {
+            return false;
+        }
+
+        $field_str = '';
+        $keys_str = '';
+
+        $field_details['type'] = (int)$field_details['type'];
+
+        if (!empty($field_details['primary'])) {
+            $keys_str = ' PRIMARY KEY (`'.$field_name.'`)';
+        } elseif (!empty($field_details['index'])) {
+            $keys_str = ' KEY `'.$field_name.'` (`'.$field_name.'`)';
+        }
+
+        $field_str .= '`'.$field_name.'` '.$type_details['title'];
+        if ($field_details['length'] !== null
+         && $field_details['length'] !== false
+         && (!in_array($field_details['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
+                || $field_details['length'] !== 0
+         )) {
+            $field_str .= '('.$field_details['length'].')';
+        }
+
+        if (!empty($field_details['unsigned'])) {
+            $field_str .= ' UNSIGNED';
+        }
+
+        if (!empty($field_details['nullable'])) {
+            $field_str .= ' NULL';
+        } else {
+            $field_str .= ' NOT NULL';
+        }
+
+        if (!empty($field_details['auto_increment'])) {
+            $field_str .= ' AUTO_INCREMENT';
+        }
+
+        if (empty($field_details['primary'])
+         && $field_details['type'] !== self::FTYPE_DATE) {
+            if (!empty($field_details['raw_default'])) {
+                $default_value = $field_details['raw_default'];
+            } elseif ($field_details['default'] === null) {
+                $default_value = 'NULL';
+            } elseif ($field_details['default'] === '') {
+                $default_value = '\'\'';
+            } else {
+                $default_value = '\''.self::safe_escape($field_details['default']).'\'';
+            }
+
+            $field_str .= ' DEFAULT '.$default_value;
+        }
+
+        if (!empty($field_details['comment'])) {
+            $field_str .= ' COMMENT \''.self::safe_escape($field_details['comment']).'\'';
+        }
+
+        return [
+            'field_str' => $field_str,
+            'keys_str'  => $keys_str,
+        ];
+    }
+
+    /**
+     * @param string $index_name
+     * @param array $index_arr
+     * @param bool|array $flow_params
+     *
+     * @return bool
+     */
+    private function _create_table_extra_index(string $index_name, array $index_arr, $flow_params = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($index_name)
+         || empty($index_arr)
+         || !($model_id = $this->instance_id())
+         || !($flow_params = $this->fetch_default_flow_params($flow_params))
+         || !($index_arr = $this->_validate_table_extra_index($index_arr))
+         || empty($index_arr['fields']) || !is_array($index_arr['fields'])
+         || empty($flow_params['table_name'])
+         || empty($this->_definition[$flow_params['table_name']])
+         || !($full_table_name = $this->get_flow_table_name($flow_params))
+         || !($database_name = $this->get_db_database($flow_params))) {
+            PHS_Logger::error('Error creating extra index bad parameters sent to method for model ['.(!empty($model_id) ? $model_id : 'N/A').'].', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error creating extra index for model %s.', (!empty($model_id) ? $model_id : 'N/A')));
+
+            return false;
+        }
+
+        $db_connection = $this->get_db_connection($flow_params);
+
+        $fields_str = '';
+        foreach ($index_arr['fields'] as $field_name) {
+            $fields_str .= ($fields_str !== '' ? ',' : '').'`'.$field_name.'`';
+        }
+
+        if (($qid = db_query('SELECT DISTINCT index_name '
+                               .' FROM information_schema.statistics '
+                               .' WHERE table_schema = \''.$database_name.'\' AND table_name = \''.$full_table_name.'\' '
+                               .' AND index_name LIKE \''.$index_name.'\'', $db_connection))
+         && $qid->numColumns()) {
+            PHS_Logger::error('Extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.'] already exists.', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Extra index %s for table %s for model %s already exists.', $index_name, $full_table_name, $this->instance_id()));
+
+            return false;
+        }
+
+        if (!db_query('CREATE '.(!empty($index_arr['unique']) ? 'UNIQUE' : '').' INDEX `'.$index_name.'` ON `'.$full_table_name.'` ('.$fields_str.')', $db_connection)) {
+            PHS_Logger::error('Error creating extra index ['.$index_name.'] for table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            $this->set_error(self::ERR_TABLE_GENERATE, self::_t('Error creating extra index %s for table %s for model %s.', $index_name, $full_table_name, $this->instance_id()));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array
+     */
+    public static function get_count_default_params() : array
+    {
+        return [
+            'count_field' => '*',
+            'extra_sql'   => '',
+            'join_sql'    => '',
+            'group_by'    => '',
+
+            'db_fields' => '',
+
+            'fields' => [],
+
+            'flags' => [],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public static function get_list_default_params() : array
+    {
+        return [
+            'get_query_id' => false,
+            // will get populated in get_list_common
+            'arr_index_field' => '',
+
+            'extra_sql'  => '',
+            'join_sql'   => '',
+            'having_sql' => '',
+            'group_by'   => '',
+            'order_by'   => '',
+
+            'db_fields' => '',
+
+            'offset'    => 0,
+            'enregs_no' => 0,
+
+            'fields' => [],
+
+            'flags' => [],
+        ];
+    }
+
+    /**
+     * @param string $str
+     * @param string $char
      *
      * @return string
      */
-    public static function safe_escape( string $str, string $char = '\'' ): string
+    public static function safe_escape(string $str, string $char = '\'') : string
     {
-        return str_replace( $char, '\\'.$char, str_replace( '\\'.$char, $char, $str ) );
+        return str_replace($char, '\\'.$char, str_replace('\\'.$char, $char, $str));
+    }
+
+    /**
+     * @return array
+     */
+    protected static function linkage_db_functions() : array
+    {
+        return ['and', 'or'];
+    }
+
+    private static function _default_mysql_table_field_fields() : array
+    {
+        return [
+            'Field'      => '',
+            'Type'       => '',
+            'Collation'  => '',
+            'Null'       => '',
+            'Key'        => '',
+            'Default'    => '',
+            'Extra'      => '',
+            'Privileges' => '',
+            'Comment'    => '',
+        ];
+    }
+
+    private static function _default_field_arr()
+    {
+        // if 'default_value' is set in field definition that value will be used for 'default' key
+        return [
+            'type'           => self::FTYPE_UNKNOWN,
+            'editable'       => true,
+            'length'         => null,
+            'unsigned'       => false,
+            'primary'        => false,
+            'auto_increment' => false,
+            'index'          => false,
+            'default'        => null,
+            'raw_default'    => null,
+            'nullable'       => false,
+            'comment'        => '',
+            // in case we renamed the field from something else we add old name here...
+            // we add all old names here so in case we update structure from an old version it would still recognise field names
+            // update will check if current database structures field names in this array and if any match will rename old field with current definition
+            // eg. old_names = array( 'old_field1', 'old_field2' ) =>
+            //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
+            'old_names' => [],
+        ];
     }
     //
     //  endregion Querying database functionality

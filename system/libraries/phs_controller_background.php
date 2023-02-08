@@ -1,7 +1,7 @@
 <?php
 namespace phs\libraries;
 
-use \phs\PHS_Scope;
+use phs\PHS_Scope;
 
 abstract class PHS_Controller_Background extends \phs\libraries\PHS_Controller
 {

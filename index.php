@@ -1,21 +1,19 @@
 <?php
 
-    if( !@file_exists( 'main.php' ) )
-    {
-        if( !@is_dir( '_setup' )
-         or !@file_exists( '_setup/guide.php' ) )
-        {
-            echo 'Guide script not found... You will have to manually setup the framework first.';
-            exit;
-        }
-
-        include( '_setup/guide.php' );
-
+if (!@file_exists('main.php')) {
+    if (!@is_dir('_setup')
+     || !@file_exists('_setup/guide.php')) {
+        echo 'Guide script not found... You will have to manually setup the framework first.';
         exit;
     }
 
-    include_once( 'main.php' );
+    include '_setup/guide.php';
 
-    use \phs\PHS;
+    exit;
+}
 
-    PHS::execute_route();
+include_once 'main.php';
+
+use phs\PHS;
+
+PHS::execute_route();

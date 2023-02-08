@@ -1,10 +1,10 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 ?>
 <div style="min-width:700px;max-width:1000px;margin: 0 auto;">
 
     <section class="heading-bordered">
-        <h3><?php echo $this::_t( 'Terms and Conditions' )?></h3>
+        <h3><?php echo $this::_t('Terms and Conditions'); ?></h3>
     </section>
 
     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ut lacinia turpis. Proin feugiat odio tortor, at convallis justo lobortis ut. Maecenas id dolor laoreet, vestibulum nulla quis, egestas odio. Nunc venenatis, velit a scelerisque viverra, dui magna eleifend elit, et pretium elit tellus vestibulum lorem. Nam luctus commodo aliquam. Ut a est eleifend, mollis magna id, sollicitudin massa. Integer consectetur massa at quam eleifend, finibus placerat ipsum convallis. Vivamus gravida vitae ex ut venenatis. Fusce ultrices odio sed cursus porta. Sed a diam eu ante fringilla interdum.</p>

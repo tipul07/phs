@@ -1,8 +1,8 @@
 <?php
 namespace phs\libraries;
 
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_Controller;
+use phs\PHS_Scope;
+use phs\libraries\PHS_Controller;
 
 abstract class PHS_Controller_Index extends PHS_Controller
 {
@@ -13,7 +13,7 @@ abstract class PHS_Controller_Index extends PHS_Controller
      */
     public function allowed_scopes()
     {
-        return [ PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX ];
+        return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
     /**
@@ -23,10 +23,10 @@ abstract class PHS_Controller_Index extends PHS_Controller
      *
      * @return bool|array Returns false on error or an action array on success
      */
-    protected function _execute_action( $action, $plugin, $action_dir = '' )
+    protected function _execute_action($action, $plugin, $action_dir = '')
     {
-        $this->is_admin_controller( false );
+        $this->is_admin_controller(false);
 
-        return parent::_execute_action( $action, $plugin, $action_dir );
+        return parent::_execute_action($action, $plugin, $action_dir);
     }
 }

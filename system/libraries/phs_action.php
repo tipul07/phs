@@ -1,10 +1,10 @@
 <?php
 namespace phs\libraries;
 
-use \phs\PHS;
-use \phs\PHS_Scope;
-use \phs\libraries\PHS_Controller;
-use \phs\system\core\views\PHS_View;
+use phs\PHS;
+use phs\PHS_Scope;
+use phs\libraries\PHS_Controller;
+use phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
@@ -13,31 +13,34 @@ abstract class PHS_Action extends PHS_Instantiable
     public const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
-        ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
-        ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
-        ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
-        ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
-    private static $_action_roles = [];
-    private static $_custom_action_roles = [];
-    private static $_builtin_action_roles = [
-        self::ACT_ROLE_PAGE => [ 'title' => 'Common Page' ],
-        self::ACT_ROLE_LOGIN => [ 'title' => 'Login' ],
-        self::ACT_ROLE_LOGOUT => [ 'title' => 'Logout' ],
-        self::ACT_ROLE_REGISTER => [ 'title' => 'Register' ],
-        self::ACT_ROLE_ACTIVATION => [ 'title' => 'Activation' ],
-        self::ACT_ROLE_CHANGE_PASSWORD => [ 'title' => 'Change Password' ],
-        self::ACT_ROLE_PASSWORD_EXPIRED => [ 'title' => 'Password Expired' ],
-        self::ACT_ROLE_FORGOT_PASSWORD => [ 'title' => 'Forgot Password' ],
-        self::ACT_ROLE_EDIT_PROFILE => [ 'title' => 'Edit Profile' ],
-        self::ACT_ROLE_CHANGE_LANGUAGE => [ 'title' => 'Change Language' ],
-        self::ACT_REMOTE_PHS_CALL => [ 'title' => 'Remote PHS Call' ],
-    ];
+    ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
+    ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
+    ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
+    ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
 
     /** @var PHS_Controller */
-    private $_controller_obj = null;
+    private $_controller_obj;
 
-    /** @var array|null */
-    private $_action_result = null;
+    /** @var null|array */
+    private $_action_result;
+
+    private static $_action_roles = [];
+
+    private static $_custom_action_roles = [];
+
+    private static $_builtin_action_roles = [
+        self::ACT_ROLE_PAGE             => ['title' => 'Common Page'],
+        self::ACT_ROLE_LOGIN            => ['title' => 'Login'],
+        self::ACT_ROLE_LOGOUT           => ['title' => 'Logout'],
+        self::ACT_ROLE_REGISTER         => ['title' => 'Register'],
+        self::ACT_ROLE_ACTIVATION       => ['title' => 'Activation'],
+        self::ACT_ROLE_CHANGE_PASSWORD  => ['title' => 'Change Password'],
+        self::ACT_ROLE_PASSWORD_EXPIRED => ['title' => 'Password Expired'],
+        self::ACT_ROLE_FORGOT_PASSWORD  => ['title' => 'Forgot Password'],
+        self::ACT_ROLE_EDIT_PROFILE     => ['title' => 'Edit Profile'],
+        self::ACT_ROLE_CHANGE_LANGUAGE  => ['title' => 'Change Language'],
+        self::ACT_REMOTE_PHS_CALL       => ['title' => 'Remote PHS Call'],
+    ];
 
     /**
      * @return bool|array Returns an array with action result or false on an error
@@ -60,68 +63,32 @@ abstract class PHS_Action extends PHS_Instantiable
      */
     public function action_roles()
     {
-        return [ self::ACT_ROLE_PAGE ];
-    }
-
-    final public static function default_action_role_definition_array(): array
-    {
-        return [
-            'title' => '',
-        ];
-    }
-
-    /**
-     * Return an array of defined action roles (custom and builtin)
-     * @return array
-     */
-    final public static function get_action_roles(): array
-    {
-        if( !empty( self::$_action_roles ) )
-            return self::$_action_roles;
-
-        self::$_action_roles = self::merge_array_assoc( self::$_custom_action_roles, self::$_builtin_action_roles );
-
-        return self::$_action_roles;
-    }
-
-    /**
-     * Check if $role_key is a defined action role. Return action role definiton if role is defined.
-     *
-     * @param  string $role_key
-     *
-     * @return array|bool
-     */
-    final public static function valid_action_role( string $role_key )
-    {
-        if( !($roles_arr = self::get_action_roles())
-         || empty( $roles_arr[$role_key] ) )
-            return false;
-
-        return $roles_arr[$role_key];
+        return [self::ACT_ROLE_PAGE];
     }
 
     /**
      * Define an action role
      *
-     * @param  string $role_key
-     * @param  array  $role_arr Role definition array
+     * @param string $role_key
+     * @param array $role_arr Role definition array
      *
      * @return array|bool
      */
-    final public function define_action_role( string $role_key, array $role_arr )
+    final public function define_action_role(string $role_key, array $role_arr)
     {
         $this->reset_error();
 
-        if( ($defined_role = self::valid_action_role( $role_key )) )
+        if (($defined_role = self::valid_action_role($role_key))) {
             return $defined_role;
+        }
 
-        if( empty( $role_key ) )
-        {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Role key should be a string.' ) );
+        if (empty($role_key)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role key should be a string.'));
+
             return false;
         }
 
-        $role_arr = self::merge_array_assoc( $role_arr, self::default_action_role_definition_array() );
+        $role_arr = self::merge_array_assoc($role_arr, self::default_action_role_definition_array());
 
         self::$_custom_action_roles[$role_key] = $role_arr;
 
@@ -140,111 +107,74 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return array|bool Return false if provided roles are not for current action or a list of matching action roles
      */
-    final public function action_role_is( $role_check, $params = false )
+    final public function action_role_is($role_check, $params = false)
     {
-        if( !is_array( $role_check ) )
-            $role_check = [ $role_check ];
+        if (!is_array($role_check)) {
+            $role_check = [$role_check];
+        }
 
-        if( !($action_roles = $this->action_roles()) )
-            $action_roles = [ self::ACT_ROLE_PAGE ];
+        if (!($action_roles = $this->action_roles())) {
+            $action_roles = [self::ACT_ROLE_PAGE];
+        }
 
-        if( !is_array( $action_roles ) )
-            $action_roles = [ $action_roles ];
+        if (!is_array($action_roles)) {
+            $action_roles = [$action_roles];
+        }
 
-        if( empty( $params ) || !is_array( $params ) )
+        if (empty($params) || !is_array($params)) {
             $params = [];
+        }
 
         // Action has all provided roles
-        if( empty( $params['all_provided'] ) )
+        if (empty($params['all_provided'])) {
             $params['all_provided'] = false;
-        else
-            $params['all_provided'] = (!empty( $params['all_provided'] ));
+        } else {
+            $params['all_provided'] = (!empty($params['all_provided']));
+        }
 
         $return_arr = [];
-        foreach( $role_check as $role_key )
-        {
-            if( ($role_arr = self::valid_action_role( $role_key ))
-             && in_array( $role_key, $action_roles, true ) )
-            {
+        foreach ($role_check as $role_key) {
+            if (($role_arr = self::valid_action_role($role_key))
+             && in_array($role_key, $action_roles, true)) {
                 $return_arr[$role_key] = $role_arr;
                 continue;
             }
 
             // Role is not for current action
-            if( !empty( $params['all_provided'] ) )
+            if (!empty($params['all_provided'])) {
                 return false;
+            }
         }
 
-        return (empty( $return_arr )?false:$return_arr);
+        return empty($return_arr) ? false : $return_arr;
     }
 
     /**
      * @return string
      */
-    final public function instance_type(): string
+    final public function instance_type() : string
     {
         return self::INSTANCE_TYPE_ACTION;
     }
 
     /**
-     * @param  int  $scope Scope to be checked
+     * @param int $scope Scope to be checked
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed( int $scope )
+    final public function scope_is_allowed(int $scope)
     {
         $this->reset_error();
 
-        if( !PHS_Scope::valid_scope( $scope ) )
-        {
-            $this->set_error( self::ERR_SCOPE, self::_t( 'Invalid scope.' ) );
+        if (!PHS_Scope::valid_scope($scope)) {
+            $this->set_error(self::ERR_SCOPE, self::_t('Invalid scope.'));
+
             return false;
         }
 
-        if( ($allowed_scopes = $this->allowed_scopes())
-         && is_array( $allowed_scopes )
-         && !in_array( $scope, $allowed_scopes, true ) )
-            return false;
-
-        return true;
-    }
-
-    /**
-     * Returns a default array as result of an action execution
-     * @return array
-     */
-    final public static function default_action_result(): array
-    {
-        return [
-            // Action "content"
-            'action_data' => [], // Data which was used when running action
-            'buffer' => '',
-            'ajax_result' => false,
-            'ajax_only_result' => false,
-            'custom_headers' => [], // key - value headers...
-
-            // This is specific to API calls.
-            // When generating response, API class will check this array first, then ajax_result, then will check if we have an api_buffer set
-            'api_json_result_array' => false,
-            'api_buffer' => '', // we don't use buffer as it might contain html returned in web scope
-
-            // In case we activate password expiration, and password expired, set this to true to tell current scope current user password
-            // did expire. Current scope will decide what to do when password is expired. (in agent or background scopes it will not have an impact)
-            'password_expired' => false,
-            // If current action requires a logged in user set this to true.
-            // Logging in is dependent on used scope (on API we should return Unauthenticated header, on web we redirect to login page, etc)
-            'request_login' => false,
-            'redirect_to_url' => '',// any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
-            'page_template' => 'template_main', // if empty, scope template will be used...
-
-            // page related variables
-            'page_settings' => PHS::get_default_page_settings(),
-            // anything that is required as attributes to body tag
-            'page_body_extra_tags' => '',
-
-            // false means use current scope
-            'scope' => false,
-        ];
+        return !(($allowed_scopes = $this->allowed_scopes())
+         && is_array($allowed_scopes)
+         && !in_array($scope, $allowed_scopes, true));
     }
 
     final public function set_action_defaults()
@@ -253,7 +183,7 @@ abstract class PHS_Action extends PHS_Instantiable
     }
 
     /**
-     * @return array|null
+     * @return null|array
      */
     final public function get_action_result()
     {
@@ -266,13 +196,14 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return array
      */
-    final public function set_action_result( $result )
+    final public function set_action_result($result)
     {
-        $this->_action_result = self::validate_array( $result, self::default_action_result() );
+        $this->_action_result = self::validate_array($result, self::default_action_result());
+
         return $this->_action_result;
     }
 
-    final public function quick_render_template( $template, $template_data = false )
+    final public function quick_render_template($template, $template_data = false)
     {
         $this->reset_error();
 
@@ -283,28 +214,29 @@ abstract class PHS_Action extends PHS_Instantiable
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = $template_data;
 
-        if( !($view_obj = PHS_View::init_view( $template, $view_params )) )
-        {
-            if( self::st_has_error() )
+        if (!($view_obj = PHS_View::init_view($template, $view_params))) {
+            if (self::st_has_error()) {
                 $this->copy_static_error();
+            }
 
             return false;
         }
 
         $action_result = self::default_action_result();
 
-        if( ($action_result['buffer'] = $view_obj->render()) === false )
-        {
-            if( $view_obj->has_error() )
-                $this->copy_error( $view_obj );
-            else
-                $this->set_error( self::ERR_RENDER, self::_t( 'Error rendering template [%s].', $view_obj->get_template() ) );
+        if (($action_result['buffer'] = $view_obj->render()) === false) {
+            if ($view_obj->has_error()) {
+                $this->copy_error($view_obj);
+            } else {
+                $this->set_error(self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
+            }
 
             return false;
         }
 
-        if( empty( $action_result['buffer'] ) )
+        if (empty($action_result['buffer'])) {
             $action_result['buffer'] = '';
+        }
 
         $action_result['action_data'] = $view_obj->get_all_view_vars();
 
@@ -312,49 +244,49 @@ abstract class PHS_Action extends PHS_Instantiable
     }
 
     /**
-     * @return array|bool|null
+     * @return null|array|bool
      */
     final public function run_action()
     {
-        PHS::running_action( $this );
+        PHS::running_action($this);
 
         $action_body_classes = '';
-        if( ($route_as_string = PHS::get_route_as_string()) )
-            $action_body_classes .= str_replace( [ '/', '-' ], '_', $route_as_string );
-        if( ($route_as_array = PHS::get_route_details()) )
-        {
+        if (($route_as_string = PHS::get_route_as_string())) {
+            $action_body_classes .= str_replace(['/', '-'], '_', $route_as_string);
+        }
+        if (($route_as_array = PHS::get_route_details())) {
             $route_parts = [];
-            foreach( $route_as_array as $part_type => $part_value )
-            {
-                if( empty( $part_value ) )
+            foreach ($route_as_array as $part_type => $part_value) {
+                if (empty($part_value)) {
                     continue;
+                }
 
                 $route_parts[$part_value] = true;
             }
 
-            $action_body_classes .= ' '.implode( ' ', array_keys( $route_parts ) );
+            $action_body_classes .= ' '.implode(' ', array_keys($route_parts));
         }
 
-        if( !empty( $action_body_classes ) )
-            PHS::page_body_class( $action_body_classes );
+        if (!empty($action_body_classes)) {
+            PHS::page_body_class($action_body_classes);
+        }
 
-        if( !$this->instance_is_core()
+        if (!$this->instance_is_core()
          && (!($plugin_instance = $this->get_plugin_instance())
-                || !$plugin_instance->plugin_active()) )
-        {
-            $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Unknown or not active action.' ) );
+                || !$plugin_instance->plugin_active())) {
+            $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active action.'));
+
             return false;
         }
 
         $this->set_action_defaults();
 
-        if( ($current_scope = PHS_Scope::current_scope())
-         && !$this->scope_is_allowed( $current_scope ) )
-        {
-            if( !($emulated_scope = PHS_Scope::emulated_scope())
-             || !$this->scope_is_allowed( $emulated_scope ) )
-            {
-                $this->set_error( self::ERR_RUN_ACTION, self::_t( 'Action not allowed to run in current scope.' ) );
+        if (($current_scope = PHS_Scope::current_scope())
+         && !$this->scope_is_allowed($current_scope)) {
+            if (!($emulated_scope = PHS_Scope::emulated_scope())
+             || !$this->scope_is_allowed($emulated_scope)) {
+                $this->set_error(self::ERR_RUN_ACTION, self::_t('Action not allowed to run in current scope.'));
+
                 return false;
             }
         }
@@ -363,14 +295,12 @@ abstract class PHS_Action extends PHS_Instantiable
         $hook_args['action_obj'] = $this;
         $hook_args['action_result'] = self::default_action_result();
 
-        if( ($hook_result = PHS::trigger_hooks( PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args )) )
-        {
-            if( !empty( $hook_result['stop_execution'] )
-             && !empty( $hook_result['action_result'] ) )
-            {
-                $action_result = self::validate_array( $hook_result['action_result'], self::default_action_result() );
+        if (($hook_result = PHS::trigger_hooks(PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args))) {
+            if (!empty($hook_result['stop_execution'])
+             && !empty($hook_result['action_result'])) {
+                $action_result = self::validate_array($hook_result['action_result'], self::default_action_result());
 
-                $this->set_action_result( $action_result );
+                $this->set_action_result($action_result);
 
                 return $action_result;
             }
@@ -378,24 +308,22 @@ abstract class PHS_Action extends PHS_Instantiable
 
         self::st_reset_error();
 
-        if( !($action_result = $this->execute()) )
+        if (!($action_result = $this->execute())) {
             return false;
+        }
 
-        $action_result = self::validate_array( $action_result, self::default_action_result() );
+        $action_result = self::validate_array($action_result, self::default_action_result());
 
-        if( ($page_settings = self::validate_array( PHS::page_settings(), PHS::get_default_page_settings() )) )
-        {
-            if( empty( $action_result['page_settings'] ) || !is_array( $action_result['page_settings'] ) )
+        if (($page_settings = self::validate_array(PHS::page_settings(), PHS::get_default_page_settings()))) {
+            if (empty($action_result['page_settings']) || !is_array($action_result['page_settings'])) {
                 $action_result['page_settings'] = $page_settings;
-
-            else
-            {
-                foreach( $page_settings as $key => $val )
-                {
-                    if( !empty( $val )
-                     && (!array_key_exists( $key, $action_result['page_settings'] )
-                            || empty( $action_result['page_settings'][$key] )) )
+            } else {
+                foreach ($page_settings as $key => $val) {
+                    if (!empty($val)
+                     && (!array_key_exists($key, $action_result['page_settings'])
+                            || empty($action_result['page_settings'][$key]))) {
                         $action_result['page_settings'][$key] = $val;
+                    }
                 }
             }
         }
@@ -404,21 +332,22 @@ abstract class PHS_Action extends PHS_Instantiable
         $hook_args['action_obj'] = $this;
         $hook_args['action_result'] = $action_result;
 
-        if( ($hook_args = PHS::trigger_hooks( PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args ))
-         && is_array( $hook_args )
-         && !empty( $hook_args['action_result'] ) )
+        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args))
+         && is_array($hook_args)
+         && !empty($hook_args['action_result'])) {
             $action_result = $hook_args['action_result'];
+        }
 
-        $this->set_action_result( $action_result );
+        $this->set_action_result($action_result);
 
         return $this->get_action_result();
     }
 
-    final public function set_controller( PHS_Controller $controller_obj )
+    final public function set_controller(PHS_Controller $controller_obj)
     {
-        if( !($controller_obj instanceof PHS_Controller) )
-        {
-            self::st_set_error( self::ERR_CONTROLLER_INSTANCE, self::_t( 'Controller doesn\'t appear to be a PHS instance.' ) );
+        if (!($controller_obj instanceof PHS_Controller)) {
+            self::st_set_error(self::ERR_CONTROLLER_INSTANCE, self::_t('Controller doesn\'t appear to be a PHS instance.'));
+
             return false;
         }
 
@@ -434,7 +363,83 @@ abstract class PHS_Action extends PHS_Instantiable
 
     final public function is_admin_controller()
     {
-        return ($this->_controller_obj && $this->_controller_obj->is_admin_controller());
+        return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }
 
+    final public static function default_action_role_definition_array() : array
+    {
+        return [
+            'title' => '',
+        ];
+    }
+
+    /**
+     * Return an array of defined action roles (custom and builtin)
+     * @return array
+     */
+    final public static function get_action_roles() : array
+    {
+        if (!empty(self::$_action_roles)) {
+            return self::$_action_roles;
+        }
+
+        self::$_action_roles = self::merge_array_assoc(self::$_custom_action_roles, self::$_builtin_action_roles);
+
+        return self::$_action_roles;
+    }
+
+    /**
+     * Check if $role_key is a defined action role. Return action role definiton if role is defined.
+     *
+     * @param string $role_key
+     *
+     * @return array|bool
+     */
+    final public static function valid_action_role(string $role_key)
+    {
+        if (!($roles_arr = self::get_action_roles())
+         || empty($roles_arr[$role_key])) {
+            return false;
+        }
+
+        return $roles_arr[$role_key];
+    }
+
+    /**
+     * Returns a default array as result of an action execution
+     * @return array
+     */
+    final public static function default_action_result() : array
+    {
+        return [
+            // Action "content"
+            'action_data'      => [], // Data which was used when running action
+            'buffer'           => '',
+            'ajax_result'      => false,
+            'ajax_only_result' => false,
+            'custom_headers'   => [], // key - value headers...
+
+            // This is specific to API calls.
+            // When generating response, API class will check this array first, then ajax_result, then will check if we have an api_buffer set
+            'api_json_result_array' => false,
+            'api_buffer'            => '', // we don't use buffer as it might contain html returned in web scope
+
+            // In case we activate password expiration, and password expired, set this to true to tell current scope current user password
+            // did expire. Current scope will decide what to do when password is expired. (in agent or background scopes it will not have an impact)
+            'password_expired' => false,
+            // If current action requires a logged-in user set this to true.
+            // Logging in is dependent on used scope (on API we should return Unauthenticated header, on web we redirect to login page, etc)
+            'request_login'   => false,
+            'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
+            'page_template'   => 'template_main', // if empty, scope template will be used...
+
+            // page related variables
+            'page_settings' => PHS::get_default_page_settings(),
+            // anything that is required as attributes to body tag
+            'page_body_extra_tags' => '',
+
+            // false means use current scope
+            'scope' => false,
+        ];
+    }
 }

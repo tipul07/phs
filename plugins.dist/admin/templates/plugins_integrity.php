@@ -1,53 +1,58 @@
 <?php
-    /** @var \phs\system\core\views\PHS_View $this */
+/** @var \phs\system\core\views\PHS_View $this */
 
-    use \phs\PHS;
-    use \phs\PHS_Ajax;
+use phs\PHS;
+use phs\PHS_Ajax;
 
-    if( !($plugin_names_arr = $this->view_var( 'plugin_names_arr' )) )
-        $plugin_names_arr = array();
-    if( !($check_plugin = $this->view_var( 'check_plugin' )) )
-        $check_plugin = '';
-    if( !($PLUGIN_NAME_ALL = $this->view_var( 'PLUGIN_NAME_ALL' )) )
-        $PLUGIN_NAME_ALL = '_all_';
+if (!($plugin_names_arr = $this->view_var('plugin_names_arr'))) {
+    $plugin_names_arr = [];
+}
+if (!($check_plugin = $this->view_var('check_plugin'))) {
+    $check_plugin = '';
+}
+if (!($PLUGIN_NAME_ALL = $this->view_var('PLUGIN_NAME_ALL'))) {
+    $PLUGIN_NAME_ALL = '_all_';
+}
 ?>
 <div style="margin: 0 auto;">
-    <form id="plugins_integrity_form" name="plugins_integrity_form" action="<?php echo PHS::url( array( 'p' => 'admin', 'a' => 'plugins_integrity' ) )?>" method="post">
+    <form id="plugins_integrity_form" name="plugins_integrity_form" action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugins_integrity']); ?>" method="post">
     <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container responsive" style="width: 100%;">
 
         <section class="heading-bordered">
-            <h3><?php echo $this->_pt( 'Plugins\' Integrity' )?></h3>
+            <h3><?php echo $this->_pt('Plugins\' Integrity'); ?></h3>
         </section>
 
         <fieldset class="form-group">
-            <label for="check_plugin"><?php echo $this->_pt( 'Plugin to check' )?></label>
+            <label for="check_plugin"><?php echo $this->_pt('Plugin to check'); ?></label>
             <div class="lineform_line">
             <select name="check_plugin" id="check_plugin" class="chosen-select" style="width:350px;">
-            <option value="<?php echo $PLUGIN_NAME_ALL?>"><?php echo $this->_pt( ' - All plugins - ' )?></option>
+            <option value="<?php echo $PLUGIN_NAME_ALL; ?>"><?php echo $this->_pt(' - All plugins - '); ?></option>
             <?php
             $plugin_found = false;
-            foreach( $plugin_names_arr as $plugin_name )
-            {
-                if( empty( $plugin_name ) )
-                    continue;
+foreach ($plugin_names_arr as $plugin_name) {
+    if (empty($plugin_name)) {
+        continue;
+    }
 
-                if( $check_plugin == $plugin_name )
-                    $plugin_found = true;
+    if ($check_plugin == $plugin_name) {
+        $plugin_found = true;
+    }
 
-                ?><option value="<?php echo $plugin_name?>" <?php echo ($check_plugin==$plugin_name?'selected="selected"':'')?>><?php echo $plugin_name?></option><?php
-            }
+    ?><option value="<?php echo $plugin_name; ?>" <?php echo $check_plugin == $plugin_name ? 'selected="selected"' : ''; ?>><?php echo $plugin_name; ?></option><?php
+}
 
-            if( empty( $plugin_found ) )
-                $check_plugin = '';
-            ?>
+if (empty($plugin_found)) {
+    $check_plugin = '';
+}
+?>
             </select>
-            <input type="button" id="do_submit" name="do_submit" class="btn btn-primary" value="<?php echo $this->_pte( 'Integrity check' )?>" onclick="check_integrity()" />
+            <input type="button" id="do_submit" name="do_submit" class="btn btn-primary" value="<?php echo $this->_pte('Integrity check'); ?>" onclick="check_integrity()" />
             </div>
         </fieldset>
 
-        <div id="integrity_progressbar" style="display:none;"><div class="progress-label" id="integrity_progrss_label"><?php echo $this->_pt( 'Please wait...' )?></div></div>
+        <div id="integrity_progressbar" style="display:none;"><div class="progress-label" id="integrity_progrss_label"><?php echo $this->_pt('Please wait...'); ?></div></div>
 
         <div id="check_container"></div>
 
@@ -56,11 +61,11 @@
 </div>
 <div id="plugin_integrity_header" style="display:none;">
     <section class="heading-bordered">
-        <h3 id="integrity_title"><?php echo $this->_pt( 'Checking plugin integrity...' )?></h3>
+        <h3 id="integrity_title"><?php echo $this->_pt('Checking plugin integrity...'); ?></h3>
     </section>
 </div>
 <script type="text/javascript">
-var all_plugin_names = <?php echo @json_encode( $plugin_names_arr )?>;
+var all_plugin_names = <?php echo @json_encode($plugin_names_arr); ?>;
 var running_all_plugins = false;
 var plugin_index = -1;
 function check_integrity()
@@ -77,15 +82,15 @@ function check_integrity()
     check_container_obj.html( "" );
     do_submit_obj.prop( "disabled", true );
 
-    //show_submit_protection( "<?php echo $this->_pte( 'Sending request to server... Please wait.' )?>" );
+    //show_submit_protection( "<?php echo $this->_pte('Sending request to server... Please wait.'); ?>" );
 
     var plugin_name = check_plugin_obj.val();
-    if( plugin_name != "<?php echo $PLUGIN_NAME_ALL?>" )
+    if( plugin_name != "<?php echo $PLUGIN_NAME_ALL; ?>" )
     {
         plugin_index = -1;
         running_all_plugins = false;
 
-        integrity_title_obj.html( "<?php echo str_replace( '\\" + plugin_name + \\"', '" + plugin_name + "', $this::_e( $this->_pt( 'Checking integrity for plugin %s...', '" + plugin_name + "' ) ) )?>" );
+        integrity_title_obj.html( "<?php echo str_replace('\\" + plugin_name + \\"', '" + plugin_name + "', $this::_e($this->_pt('Checking integrity for plugin %s...', '" + plugin_name + "'))); ?>" );
 
         check_container_obj.html( container_header_obj.html() );
 
@@ -93,13 +98,13 @@ function check_integrity()
         send_server_request( { command: "integrity_check", check_plugin: plugin_name } );
     } else
     {
-        integrity_title_obj.html( "<?php echo $this->_pte( 'Checking integrity for ALL plugins...' )?>" );
+        integrity_title_obj.html( "<?php echo $this->_pte('Checking integrity for ALL plugins...'); ?>" );
 
         plugin_index = 0;
         running_all_plugins = true;
 
         if( typeof all_plugin_names[plugin_index] == "undefined" )
-            check_container_obj.append( "<p><?php echo $this->_pt( 'Didn\'t find a valid value in plugins list to check integrity.' )?></p>" );
+            check_container_obj.append( "<p><?php echo $this->_pt('Didn\'t find a valid value in plugins list to check integrity.'); ?></p>" );
 
         else
         {
@@ -143,17 +148,17 @@ function send_server_request( data )
                     finish_single_request();
             }
 
-            //PHS_JSEN.js_messages( [ "<?php echo $this->_pt( 'Message deleted with success.' )?>" ], "success" );
+            //PHS_JSEN.js_messages( [ "<?php echo $this->_pt('Message deleted with success.'); ?>" ], "success" );
         },
 
         onfailed: function( ajax_obj, status, error_exception ) {
             hide_submit_protection();
 
-            PHS_JSEN.js_messages( [ "<?php echo $this->_pt( 'Error sending request to server. Please retry.' )?>" ], "error" );
+            PHS_JSEN.js_messages( [ "<?php echo $this->_pt('Error sending request to server. Please retry.'); ?>" ], "error" );
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url( array( 'p' => 'admin', 'a' => 'plugins_integrity' ), false, array( 'raw_params' => array( '_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "' ) ) )?>", ajax_params );
+    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'plugins_integrity'], false, ['raw_params' => ['_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "']]); ?>", ajax_params );
 }
 function finish_single_request()
 {
@@ -164,7 +169,7 @@ function finish_single_request()
     if( !check_container_obj || !do_submit_obj )
         return;
 
-    check_container_obj.append( "<p><strong><?php echo $this->_pt( 'DONE' )?></strong></p>" );
+    check_container_obj.append( "<p><strong><?php echo $this->_pt('DONE'); ?></strong></p>" );
 
     do_submit_obj.prop( "disabled", false );
 }
@@ -190,7 +195,7 @@ function continue_integrity_check()
         if( !check_container_obj || !do_submit_obj )
             return;
 
-        check_container_obj.append( "<hr/><p><strong><?php echo $this->_pt( 'DONE' )?></strong></p>" );
+        check_container_obj.append( "<hr/><p><strong><?php echo $this->_pt('DONE'); ?></strong></p>" );
 
         do_submit_obj.prop( "disabled", false );
 
@@ -206,10 +211,10 @@ function init_progress_bar()
 
     progressbar_obj.progressbar({
         value: 0,
-        max: <?php echo count( $plugin_names_arr )?>,
+        max: <?php echo count($plugin_names_arr); ?>,
         change: function() {
             var cur_val = progressbar_obj.progressbar( "value" );
-            var max_val = <?php echo count( $plugin_names_arr )?>;
+            var max_val = <?php echo count($plugin_names_arr); ?>;
 
             if( max_val == 0 )
                 progresslabel_obj.text( "100%" );
@@ -217,7 +222,7 @@ function init_progress_bar()
                 progresslabel_obj.text( (cur_val / max_val * 100).toFixed(2) + "%" );
         },
         complete: function() {
-            progresslabel_obj.text( "<?php echo $this->_pt( 'DONE' )?>!" );
+            progresslabel_obj.text( "<?php echo $this->_pt('DONE'); ?>!" );
         }
     });
 
@@ -243,8 +248,7 @@ function hide_progress_bar()
     progressbar_obj.hide();
 }
 <?php
-if( !empty( $plugin_found ) )
-{
+if (!empty($plugin_found)) {
     ?>
     check_integrity();
     <?php

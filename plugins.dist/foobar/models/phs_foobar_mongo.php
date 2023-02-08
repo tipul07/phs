@@ -1,14 +1,13 @@
 <?php
-
 namespace phs\plugins\foobar\models;
 
-use \phs\libraries\PHS_Model;
+use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Model_Mongo;
-use \phs\libraries\PHS_Params;
 
 class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
 {
-    const ERR_DB_JOB = 10000;
+    public const ERR_DB_JOB = 10000;
 
     /**
      * @return string Returns version of model
@@ -23,13 +22,13 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
      */
     public function get_table_names()
     {
-        return array( 'testcol' );
+        return ['testcol'];
     }
 
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    function get_main_table_name()
+    public function get_main_table_name()
     {
         return 'testcol';
     }
@@ -37,40 +36,41 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
     /**
      * @inheritdoc
      */
-    final public function fields_definition( $params = false )
+    final public function fields_definition($params = false)
     {
         // $params should be flow parameters...
-        if( empty( $params ) or !is_array( $params )
-         or empty( $params['table_name'] ) )
+        if (empty($params) || !is_array($params)
+         || empty($params['table_name'])) {
             return false;
+        }
 
-        $return_arr = array();
-        switch( $params['table_name'] )
-        {
+        $return_arr = [];
+
+        switch ($params['table_name']) {
             case 'testcol':
-                $return_arr = array(
-                    'anint' => array(
-                        'type' => self::FTYPE_INTEGER,
+                $return_arr = [
+                    'anint' => [
+                        'type'    => self::FTYPE_INTEGER,
                         'default' => 0,
-                    ),
-                    'fname' => array(
-                        'type' => self::FTYPE_STRING,
+                    ],
+                    'fname' => [
+                        'type'    => self::FTYPE_STRING,
                         'default' => '',
-                    ),
-                    'lname' => array(
-                        'type' => self::FTYPE_STRING,
+                    ],
+                    'lname' => [
+                        'type'    => self::FTYPE_STRING,
                         'default' => '',
-                    ),
-                    'tstamp' => array(
-                        'type' => self::FTYPE_TIMESTAMP,
+                    ],
+                    'tstamp' => [
+                        'type'    => self::FTYPE_TIMESTAMP,
                         'default' => 0,
-                    ),
-                    'cdate' => array(
+                    ],
+                    'cdate' => [
                         'type' => self::FTYPE_DATE,
-                    ),
-                );
-            break;
-       }
+                    ],
+                ];
+                break;
+        }
 
         return $return_arr;
     }
