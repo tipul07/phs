@@ -220,7 +220,7 @@ foreach ($filters_arr as $filter_details) {
             </div>
             <div class="row">
             <div class="col-xs-12 col-sm-6">
-                <input type="submit" id="submit" name="<?php echo $flow_params_arr['form_prefix']??''?>filters_submit"
+                <input type="submit" id="submit" name="<?php echo $flow_params_arr['form_prefix'] ?? ''; ?>filters_submit"
                        class="btn btn-primary submit-protection ignore_hidden_required"
                        value="<?php echo $this->_pte('Filter'); ?>" />
                 <input type="button" onclick="toggle_filters_inputs_and_text( '<?php echo $filters_form_name; ?>' )" class="btn btn-light"
