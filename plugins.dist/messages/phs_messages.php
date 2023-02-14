@@ -158,7 +158,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $this->reset_error();
 
         if (!($current_user = PHS::user_logged_in())
-         || !PHS_Roles::user_has_role_units($current_user, self::ROLEU_READ_MESSAGE)) {
+         || !can(self::ROLEU_READ_MESSAGE)) {
             return PHS_Hooks::default_messages_summary_hook_args();
         }
 

@@ -37,14 +37,10 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('API Keys List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         return false;
@@ -61,7 +57,7 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_LIST_API_KEYS)) {
+        if (!can(PHS_Roles::ROLEU_LIST_API_KEYS)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list API keys.'));
 
             return false;
@@ -101,7 +97,7 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
             unset($statuses_arr[$apikeys_model::STATUS_DELETED]);
         }
 
-        if (!PHS_Roles::user_has_role_units(PHS::current_user(), PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
+        if (!can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
             $bulk_actions = false;
         } else {
             $bulk_actions = [
@@ -208,7 +204,7 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if (PHS_Roles::user_has_role_units(PHS::current_user(), PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
+        if (can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,

@@ -785,7 +785,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return true;
         }
 
-        return PHS_Roles::user_has_role_units($cuser_arr, array_keys($role_units_arr), ['logical_operation' => 'or']);
+        return can(array_keys($role_units_arr), ['logical_operation' => 'or']);
     }
 
     final public function install_agent_jobs()

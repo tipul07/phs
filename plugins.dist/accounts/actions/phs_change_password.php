@@ -71,11 +71,7 @@ class PHS_Action_Change_password extends PHS_Action
             if (!($confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML))) {
                 PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['request_login'] = true;
-
-                return $action_result;
+                return action_request_login();
             }
 
             if (!($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))

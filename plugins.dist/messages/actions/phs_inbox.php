@@ -53,25 +53,21 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
         $messages_plugin = $this->_messages_plugin;
 
-        if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_READ_MESSAGE)) {
+        if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to read messages.'));
 
             return self::default_action_result();
@@ -109,7 +105,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_READ_MESSAGE)) {
+        if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to read messages.'));
 
             return false;
@@ -123,7 +119,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         $list_arr['fields'] = $list_fields_arr;
         $list_arr['join_sql'] = ' LEFT JOIN `'.$m_table_name.'` ON `'.$mu_table_name.'`.message_id = `'.$m_table_name.'`.id ';
         // !!!! m_id should be first field for $m_table_name records and mu_id should be first field for $mu_table_name table
-        // !!!! these fields tells system when to create new arrays in results for each table !!!!
+        // !!!! these fields tell system when to create new arrays in results for each table !!!!
         $list_arr['db_fields'] = 'MAX(`'.$m_table_name.'`.id) AS m_id, `'.$m_table_name.'`.*, MAX(`'.$m_table_name.'`.cdate) AS m_cdate, '
                                  .' MAX(`'.$mu_table_name.'`.id) AS mu_id, MAX(`'.$mu_table_name.'`.is_new) AS mu_is_new, `'.$mu_table_name.'`.*, COUNT( `'.$mu_table_name.'`.id ) AS m_thread_count ';
         $list_arr['order_by'] = '`'.$m_table_name.'`.sticky ASC, `'.$mu_table_name.'`.cdate DESC';
@@ -149,7 +145,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             PHS_Notifications::add_error_notice($this->_pt('Message thread details not found in database.'));
         }
 
-        if (!PHS_Roles::user_has_role_units(PHS::current_user(), $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+        if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
             $bulk_actions = false;
         } else {
             $bulk_actions = [
@@ -252,7 +248,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             ],
         ];
 
-        if (PHS_Roles::user_has_role_units(PHS::current_user(), $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+        if (can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'mu_id',
                 'type' => PHS_Params::T_INT,
@@ -280,10 +276,8 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $messages_plugin = $this->_messages_plugin;
@@ -306,19 +300,18 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
-                    if ($action['action_result'] == 'success') {
+                    if ($action['action_result'] === 'success') {
                         PHS_Notifications::add_success_notice($this->_pt('Required messages deleted with success.'));
-                    } elseif ($action['action_result'] == 'failed') {
+                    } elseif ($action['action_result'] === 'failed') {
                         PHS_Notifications::add_error_notice($this->_pt('Deleting selected messages failed. Please try again.'));
-                    } elseif ($action['action_result'] == 'failed_some') {
+                    } elseif ($action['action_result'] === 'failed_some') {
                         PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected messages. Messages which failed deletion are still selected. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+                if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
 
                     return false;
@@ -352,7 +345,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -366,19 +359,18 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
             case 'bulk_mark_as_read':
                 if (!empty($action['action_result'])) {
-                    if ($action['action_result'] == 'success') {
+                    if ($action['action_result'] === 'success') {
                         PHS_Notifications::add_success_notice($this->_pt('Required messages marked as read with success.'));
-                    } elseif ($action['action_result'] == 'failed') {
+                    } elseif ($action['action_result'] === 'failed') {
                         PHS_Notifications::add_error_notice($this->_pt('Marking selected messages as read failed. Please try again.'));
-                    } elseif ($action['action_result'] == 'failed_some') {
+                    } elseif ($action['action_result'] === 'failed_some') {
                         PHS_Notifications::add_error_notice($this->_pt('Failed marking as read all selected messages. Failed messages are still selected. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+                if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
 
                     return false;
@@ -412,7 +404,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -426,24 +418,23 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
             case 'do_delete':
                 if (!empty($action['action_result'])) {
-                    if ($action['action_result'] == 'success') {
+                    if ($action['action_result'] === 'success') {
                         PHS_Notifications::add_success_notice($this->_pt('Message deleted with success.'));
-                    } elseif ($action['action_result'] == 'failed') {
+                    } elseif ($action['action_result'] === 'failed') {
                         PHS_Notifications::add_error_notice($this->_pt('Deleting message failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+                if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
 
                     return false;
                 }
 
                 if (!empty($action['action_params'])) {
-                    $action['action_params'] = intval($action['action_params']);
+                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])

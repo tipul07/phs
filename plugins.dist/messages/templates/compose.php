@@ -79,7 +79,7 @@ if ($this->is_admin_controller()) {
 
 $msg_type = false;
 $msg_type_id = false;
-if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
+if (can($messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
     if (!($msg_type = $this->view_var('msg_type'))) {
         $msg_type = false;
     }
@@ -108,7 +108,7 @@ if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_SET_TY
         <div class="clearfix"></div>
 
         <?php
-    if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_ALL_DESTINATIONS)) {
+    if (can($messages_plugin::ROLEU_ALL_DESTINATIONS)) {
         ?>
         <fieldset class="form-group">
             <label for="dest_type"><?php echo $this->_pt('Destination'); ?></label>
@@ -240,7 +240,7 @@ if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_SET_TY
         </fieldset>
 
         <?php
-    if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION)) {
+    if (can($messages_plugin::ROLEU_NO_REPLY_OPTION)) {
         ?>
         <fieldset class="form-group">
             <label for="cannot_reply"><?php echo $this->_pt('Destination cannot reply'); ?></label>

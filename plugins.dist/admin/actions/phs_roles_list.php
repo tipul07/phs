@@ -39,11 +39,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         return false;
@@ -98,7 +94,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             unset($statuses_arr[$roles_model::STATUS_DELETED]);
         }
 
-        if (!PHS_Roles::user_has_role_units(PHS::current_user(), PHS_Roles::ROLEU_MANAGE_ROLES)) {
+        if (!can(PHS_Roles::ROLEU_MANAGE_ROLES)) {
             $bulk_actions = false;
         } else {
             $bulk_actions = [
@@ -187,7 +183,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if (PHS_Roles::user_has_role_units(PHS::current_user(), PHS_Roles::ROLEU_MANAGE_ROLES)) {
+        if (can(PHS_Roles::ROLEU_MANAGE_ROLES)) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,

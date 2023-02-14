@@ -40,14 +40,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('List Users'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         return false;
@@ -574,8 +570,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
+                if (!can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to login as this accounts.'));
 
                     return false;

@@ -51,14 +51,10 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         return false;
@@ -71,7 +67,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Backup Rules List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
             return false;
@@ -79,10 +75,10 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         $backup_plugin = $this->_backup_plugin;
 
-        $can_manage_rules = PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES);
+        $can_manage_rules = can($backup_plugin::ROLEU_MANAGE_RULES);
 
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_LIST_RULES)
-         && !$can_manage_rules) {
+        if (!$can_manage_rules
+         && !can($backup_plugin::ROLEU_LIST_RULES)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup rules.'));
 
             return false;
@@ -306,8 +302,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -366,8 +361,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -426,8 +420,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -484,8 +477,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -520,8 +512,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -556,8 +547,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
 
                     return false;
@@ -709,11 +699,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         $backup_plugin = $this->_backup_plugin;
 
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
-
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+        if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
             return '-';
         }
 
@@ -738,20 +724,23 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         }
         if ($is_inactive) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_activate( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-play-circle-o action-icons"
+            <a href="javascript:void(0)"
+               onclick="phs_backup_rules_list_activate( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-play-circle-o action-icons"
                                                                                                                        title="<?php echo $this->_pt('Activate backup rule'); ?>"></i></a>
             <?php
         }
         if ($is_active) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_inactivate( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-pause-circle-o action-icons"
+            <a href="javascript:void(0)"
+               onclick="phs_backup_rules_list_inactivate( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-pause-circle-o action-icons"
                                                                                                                          title="<?php echo $this->_pt('Inactivate backup rule'); ?>"></i></a>
             <?php
         }
 
         if (!$this->_paginator_model->is_deleted($rule_arr)) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_rules_list_delete( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-times action-icons"
+            <a href="javascript:void(0)"
+               onclick="phs_backup_rules_list_delete( '<?php echo $rule_arr['id']; ?>' )"><i class="fa fa-times action-icons"
                                                                                                                      title="<?php echo $this->_pt('Delete backup rule'); ?>"></i></a>
             <?php
         }

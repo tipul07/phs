@@ -32,7 +32,7 @@ $cuser_arr = PHS::user_logged_in();
 ?>
     <li><a href="<?php echo PHS::url(); ?>"><?php echo $this::_t('Home'); ?></a></li>
     <?php
-if (PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_CONTACT_US)) {
+if (can(PHS_Roles::ROLEU_CONTACT_US)) {
     ?><li><a href="<?php echo PHS::url(['a' => 'contact_us']); ?>"><?php echo $this::_t('Contact Us'); ?></a></li><?php
 }
 ?>

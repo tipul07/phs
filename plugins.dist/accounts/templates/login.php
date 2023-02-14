@@ -81,9 +81,7 @@ if (!($back_page = $this->view_var('back_page'))) {
         <div class="login_form_actions">
             <a class="forgot_pass" href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'forgot']); ?>"><?php echo $this->_pt('Forgot password'); ?></a>
             <?php
-$cuser_arr = PHS::account_structure(PHS::user_logged_in());
-
-if (PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_REGISTER)) {
+if (can(PHS_Roles::ROLEU_REGISTER)) {
     ?>
                 <span class="separator">|</span>
                 <a class="register_acc" href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>"><?php echo $this->_pt('Register an account'); ?></a>

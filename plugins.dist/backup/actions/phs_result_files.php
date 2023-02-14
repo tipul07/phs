@@ -28,14 +28,10 @@ class PHS_Action_Result_files extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Backup Result Files'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
@@ -45,7 +41,7 @@ class PHS_Action_Result_files extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_LIST_BACKUPS)) {
+        if (!can($backup_plugin::ROLEU_LIST_BACKUPS)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list backup result files.'));
 
             return self::default_action_result();
@@ -113,12 +109,12 @@ class PHS_Action_Result_files extends PHS_Action
         }
 
         if (!empty($action)
-        && in_array($action, ['delete'])) {
+        && in_array($action, ['delete'], true)) {
             $action_result = self::default_action_result();
 
             switch ($action) {
                 case 'delete':
-                    if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                    if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
                         PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to delete backup files.'));
                     } elseif (empty($brfid)
                          || !($brf_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results_files']))

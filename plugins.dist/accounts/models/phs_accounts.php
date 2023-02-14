@@ -1068,7 +1068,7 @@ class PHS_Model_Accounts extends PHS_Model
         if (($current_user = PHS::user_logged_in())
          && ($current_session = PHS::current_user_session())
          && !empty($current_session['id'])) {
-            if (!PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
+            if (!can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
                 $this->set_error(self::ERR_LOGIN, $this->_pt('Already logged in.'));
 
                 return false;

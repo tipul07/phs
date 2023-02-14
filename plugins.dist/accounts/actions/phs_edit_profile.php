@@ -78,8 +78,6 @@ class PHS_Action_Edit_profile extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'back_page' => PHS::current_url(),
             ];
@@ -88,9 +86,7 @@ class PHS_Action_Edit_profile extends PHS_Action
                 $args['reason'] = $reason;
             }
 
-            $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'login'], $args);
-
-            return $action_result;
+            return action_redirect(['p' => 'accounts', 'a' => 'login'], $args);
         }
 
         if (!($plugin_settings = $this->get_plugin_settings())) {

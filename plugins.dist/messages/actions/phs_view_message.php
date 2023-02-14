@@ -27,11 +27,7 @@ class PHS_Action_View_message extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
@@ -97,7 +93,7 @@ class PHS_Action_View_message extends PHS_Action
         }
 
         if (!($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user))) {
-            if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_VIEW_ALL_MESSAGES)
+            if (!can($messages_plugin::ROLEU_VIEW_ALL_MESSAGES)
              || !($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 

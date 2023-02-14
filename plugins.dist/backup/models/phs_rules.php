@@ -429,7 +429,7 @@ class PHS_Model_Rules extends PHS_Model
          || !($plugin_obj = PHS::load_plugin('backup'))
          || !($accounts_model = PHS::load_model('accounts', 'accounts'))
          || !($account_arr = $accounts_model->data_to_array($account_data))
-         || !PHS_Roles::user_has_role_units($account_arr, $plugin_obj::ROLEU_MANAGE_RULES)) {
+         || !can($plugin_obj::ROLEU_MANAGE_RULES, null, $account_arr)) {
             return false;
         }
 

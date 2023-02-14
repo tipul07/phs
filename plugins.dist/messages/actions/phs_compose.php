@@ -27,11 +27,7 @@ class PHS_Action_Compose extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
@@ -83,7 +79,7 @@ class PHS_Action_Compose extends PHS_Action
              || empty($reply_user_message['message_id'])) {
                 $reply_message = false;
             } elseif (!($reply_message = $messages_model->full_data_to_array($reply_user_message['message_id'], $current_user))) {
-                if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+                if (!can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
                  || !($reply_message = $messages_model->full_data_to_array($reply_user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                     $reply_message = false;
                 }
@@ -97,7 +93,7 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         if (!empty($reply_message)
-        && !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_REPLY_MESSAGE)
+        && !can($messages_plugin::ROLEU_REPLY_MESSAGE)
         && !$messages_model->can_reply($reply_message, ['account_data' => $current_user])) {
             PHS_Notifications::add_error_notice($this->_pt('Unknown message or you don\'t have rights to reply to this message.'));
 
@@ -114,7 +110,7 @@ class PHS_Action_Compose extends PHS_Action
              || empty($followup_user_message['message_id'])) {
                 $followup_message = false;
             } elseif (!($followup_message = $messages_model->full_data_to_array($followup_user_message['message_id'], $current_user))) {
-                if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+                if (!can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
                  || !($followup_message = $messages_model->full_data_to_array($followup_user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                     $followup_message = false;
                 }
@@ -128,7 +124,7 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         if (!empty($followup_message)
-        && !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE)
+        && !can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE)
         && !$messages_model->can_followup($followup_message, ['account_data' => $current_user])) {
             PHS_Notifications::add_error_notice($this->_pt('Unknown message or you don\'t have rights to follow up this message.'));
 
@@ -137,7 +133,7 @@ class PHS_Action_Compose extends PHS_Action
 
         if (empty($reply_message)
         && empty($followup_message)
-        && !PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+        && !can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to compose messages.'));
 
             return self::default_action_result();
@@ -171,7 +167,7 @@ class PHS_Action_Compose extends PHS_Action
 
         $msg_type = false;
         $msg_type_id = false;
-        if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
+        if (can($messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
             $msg_type = PHS_Params::_gp('msg_type', PHS_Params::T_NOHTML);
             $msg_type_id = PHS_Params::_gp('msg_type_id', PHS_Params::T_INT);
 
@@ -181,11 +177,11 @@ class PHS_Action_Compose extends PHS_Action
             }
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_NO_REPLY_OPTION)) {
+        if (!can($messages_plugin::ROLEU_NO_REPLY_OPTION)) {
             $cannot_reply = 0;
         }
 
-        if (!($can_write_to_all = PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_ALL_DESTINATIONS))) {
+        if (!($can_write_to_all = can($messages_plugin::ROLEU_ALL_DESTINATIONS))) {
             $can_write_to_all = false;
         }
 
@@ -205,20 +201,20 @@ class PHS_Action_Compose extends PHS_Action
 
                     $appending_handlers = '';
                     if (!empty($reply_to_all)
-                    && $reply_message['message']['dest_type'] == $messages_model::DEST_TYPE_HANDLERS
+                    && $reply_message['message']['dest_type'] === $messages_model::DEST_TYPE_HANDLERS
                     && ($handlers_parts = self::extract_strings_from_comma_separated($reply_message['message']['dest_str'], ['trim_parts' => true]))
                     && ($current_user_handler = $messages_model->get_account_message_handler($current_user))) {
                         $current_user_handler_lower = strtolower(trim($current_user_handler));
                         foreach ($handlers_parts as $user_handle) {
-                            if ($current_user_handler_lower == strtolower($user_handle)) {
+                            if ($current_user_handler_lower === strtolower($user_handle)) {
                                 continue;
                             }
 
-                            $appending_handlers .= ($appending_handlers != '' ? ', ' : '').$user_handle;
+                            $appending_handlers .= ($appending_handlers !== '' ? ', ' : '').$user_handle;
                         }
                     }
 
-                    if ($appending_handlers != '') {
+                    if ($appending_handlers !== '') {
                         $dest_type_handlers .= ', '.$appending_handlers;
                     }
                 }
@@ -226,7 +222,7 @@ class PHS_Action_Compose extends PHS_Action
                 $subject = $reply_message['message']['subject'];
 
                 $re_str = $this->_pt('Re: ');
-                if (strtolower(substr($subject, 0, strlen($re_str))) != strtolower($re_str)) {
+                if (stripos($subject, strtolower($re_str)) !== 0) {
                     $subject = $re_str.$subject;
                 }
             }
@@ -265,7 +261,7 @@ class PHS_Action_Compose extends PHS_Action
                 $subject = $followup_message['message']['subject'];
 
                 $re_str = $this->_pt('Re: ');
-                if (strtolower(substr($subject, 0, 4)) != strtolower($re_str)) {
+                if (stripos($subject, strtolower($re_str)) !== 0) {
                     $subject = $re_str.$subject;
                 }
             }
@@ -293,7 +289,7 @@ class PHS_Action_Compose extends PHS_Action
             $message_params['dest_type_role_unit'] = $dest_type_role_unit;
             $message_params['can_reply'] = ($cannot_reply ? 0 : 1);
             if ($msg_type !== false
-            && PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
+            && can($messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
                 $message_params['type'] = $msg_type;
                 $message_params['type_id'] = $msg_type_id;
             }

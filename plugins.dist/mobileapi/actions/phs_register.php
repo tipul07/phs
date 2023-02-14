@@ -39,9 +39,7 @@ class PHS_Action_Register extends PHS_Api_action
                 $this->_pt('Error loading required resources.'));
         }
 
-        $cuser_arr = PHS::account_structure(PHS::user_logged_in());
-
-        if (!PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_REGISTER)) {
+        if (!can(PHS_Roles::ROLEU_REGISTER)) {
             return $this->send_api_error(PHS_Api_base::H_CODE_NOT_IMPLEMENTED, self::ERR_DEPENDENCIES,
                 $this->_pt('Registration is closed for this site.'));
         }

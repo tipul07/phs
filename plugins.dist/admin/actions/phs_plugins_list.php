@@ -39,14 +39,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Plugins List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         return false;
@@ -192,11 +188,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         if (!$this->_admin_plugin->can_admin_list_plugins($current_user)) {

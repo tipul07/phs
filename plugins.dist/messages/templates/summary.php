@@ -3,8 +3,6 @@
 
 use phs\PHS;
 use phs\PHS_Ajax;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
 
 /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
 /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
@@ -31,10 +29,10 @@ $current_user = PHS::current_user();
 $can_reply_messages = false;
 $compose_url = false;
 $compose_route_arr = ['p' => 'messages', 'a' => 'compose'];
-if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+if (can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
     $compose_url = PHS::url($compose_route_arr);
 }
-if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_REPLY_MESSAGE)) {
+if (can($messages_plugin::ROLEU_REPLY_MESSAGE)) {
     $can_reply_messages = true;
 }
 
