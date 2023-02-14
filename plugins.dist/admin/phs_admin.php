@@ -248,15 +248,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_roles($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_MANAGE_ROLES)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_MANAGE_ROLES, null, $user_data);
     }
 
     /**
@@ -266,15 +258,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_roles($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LIST_ROLES)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LIST_ROLES, null, $user_data);
     }
 
     /**
@@ -284,15 +268,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_plugins($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_MANAGE_PLUGINS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_MANAGE_PLUGINS, null, $user_data);
     }
 
     /**
@@ -302,15 +278,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_plugins($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LIST_PLUGINS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LIST_PLUGINS, null, $user_data);
     }
 
     /**
@@ -320,15 +288,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_import_plugins_settings($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
     /**
@@ -338,15 +298,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_export_plugins_settings($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
     /**
@@ -356,15 +308,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_accounts($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_MANAGE_ACCOUNTS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_MANAGE_ACCOUNTS, null, $user_data);
     }
 
     /**
@@ -374,15 +318,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_accounts($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LIST_ACCOUNTS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LIST_ACCOUNTS, null, $user_data);
     }
 
     /**
@@ -392,15 +328,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_login_subaccounts($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT, null, $user_data);
     }
 
     /**
@@ -410,15 +338,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_export_accounts($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_EXPORT_ACCOUNTS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_EXPORT_ACCOUNTS, null, $user_data);
     }
 
     /**
@@ -428,15 +348,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_import_accounts($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_IMPORT_ACCOUNTS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_IMPORT_ACCOUNTS, null, $user_data);
     }
 
     /**
@@ -446,15 +358,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_agent_jobs($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS, null, $user_data);
     }
 
     /**
@@ -464,15 +368,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_agent_jobs($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LIST_AGENT_JOBS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LIST_AGENT_JOBS, null, $user_data);
     }
 
     /**
@@ -482,15 +378,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_api_keys($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $user_data);
     }
 
     /**
@@ -500,15 +388,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_api_keys($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_LIST_API_KEYS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
     }
 
     /**
@@ -518,15 +398,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_view_logs($user_data)
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role_units($user_arr, PHS_Roles::ROLEU_VIEW_LOGS)) {
-            return false;
-        }
-
-        return $user_arr;
+        return can(PHS_Roles::ROLEU_VIEW_LOGS, null, $user_data);
     }
 
     /**
@@ -723,7 +595,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return string
      */
-    public function get_settings_for_plugins_as_json($plugins_arr = [])
+    public function get_settings_for_plugins_as_json($plugins_arr = []): string
     {
         return @json_encode($this->get_settings_for_plugins_as_array($plugins_arr));
     }
@@ -733,7 +605,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return array
      */
-    public function get_settings_for_plugins_as_array($plugins_arr = [])
+    public function get_settings_for_plugins_as_array($plugins_arr = []): array
     {
         $this->reset_error();
 

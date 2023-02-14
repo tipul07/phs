@@ -24,17 +24,15 @@ class PHS_Action_Bb_editor_preview extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         // ! TODO: Add hook to check rights on document preview
+
+        $action_result = self::default_action_result();
 
         /** @var \phs\plugins\bbeditor\PHS_Plugin_Bbeditor $bbeditor_plugin */
         if (!($bbeditor_plugin = $this->get_plugin_instance())) {

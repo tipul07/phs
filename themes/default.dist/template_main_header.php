@@ -53,7 +53,7 @@ if (empty($cuser_arr)) {
         echo $hook_args['buffer'];
     }
 
-    if (PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_REGISTER)) {
+    if (can(PHS_Roles::ROLEU_REGISTER)) {
         ?>
                         <li><a href="<?php echo PHS::url([
                         'p' => 'accounts', 'a' => 'register',

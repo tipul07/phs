@@ -52,7 +52,7 @@ class PHS_Action_Contact_us extends PHS_Action
             $email = $current_user['email'];
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_CONTACT_US)) {
+        if (!can(PHS_Roles::ROLEU_CONTACT_US)) {
             PHS_Notifications::add_error_notice(self::_t('You don\'t have rights to use contact us form.'));
         }
 

@@ -10,7 +10,7 @@ $cuser_arr = PHS::user_logged_in();
 <div id="footer_content">
     <div class="footerlinks clearfix">
         <?php
-        if (PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_CONTACT_US)) {
+        if (can(PHS_Roles::ROLEU_CONTACT_US)) {
             ?><a href="<?php echo PHS::url(['a' => 'contact_us']); ?>" ><?php echo $this::_t('Contact Us'); ?></a> |<?php
         }
 ?>

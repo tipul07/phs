@@ -20,22 +20,18 @@ class PHS_Action_Framework_updates extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
-            self::default_action_result();
+            return self::default_action_result();
         }
 
         if (!$accounts_model->acc_is_developer($current_user)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have enough rights to access this section.'));
-            self::default_action_result();
+            return self::default_action_result();
         }
 
         $data = [

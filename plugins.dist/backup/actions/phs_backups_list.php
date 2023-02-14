@@ -61,20 +61,16 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
         return false;
@@ -95,9 +91,9 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         $backup_plugin = $this->_backup_plugin;
 
-        $can_delete_backups = PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_DELETE_BACKUPS);
+        $can_delete_backups = can($backup_plugin::ROLEU_DELETE_BACKUPS);
 
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_LIST_BACKUPS)
+        if (!can($backup_plugin::ROLEU_LIST_BACKUPS)
         && !$can_delete_backups) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup results.'));
 
@@ -254,10 +250,8 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $backup_plugin = $this->_backup_plugin;
@@ -280,11 +274,11 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
-                    if ($action['action_result'] == 'success') {
+                    if ($action['action_result'] === 'success') {
                         PHS_Notifications::add_success_notice($this->_pt('Required backup results deleted with success.'));
-                    } elseif ($action['action_result'] == 'failed') {
+                    } elseif ($action['action_result'] === 'failed') {
                         PHS_Notifications::add_error_notice($this->_pt('Deleting selected backup results failed. Please try again.'));
-                    } elseif ($action['action_result'] == 'failed_some') {
+                    } elseif ($action['action_result'] === 'failed_some') {
                         PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected backup results. Backup results which failed deletion are still selected. Please try again.'));
                     }
 
@@ -292,7 +286,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 }
 
                 if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                 || !can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
 
                     return false;
@@ -326,7 +320,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -340,24 +334,23 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
             case 'do_delete':
                 if (!empty($action['action_result'])) {
-                    if ($action['action_result'] == 'success') {
+                    if ($action['action_result'] === 'success') {
                         PHS_Notifications::add_success_notice($this->_pt('Backup result deleted with success.'));
-                    } elseif ($action['action_result'] == 'failed') {
+                    } elseif ($action['action_result'] === 'failed') {
                         PHS_Notifications::add_error_notice($this->_pt('Deleting backup result failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
 
                     return false;
                 }
 
                 if (!empty($action['action_params'])) {
-                    $action['action_params'] = intval($action['action_params']);
+                    $action['action_params'] = (int) $action['action_params'];
                 }
 
                 if (empty($action['action_params'])
@@ -495,19 +488,13 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $backup_plugin = $this->_backup_plugin;
 
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
-
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_DELETE_BACKUPS)) {
+        if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
             return '-';
         }
 

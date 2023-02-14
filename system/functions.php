@@ -7,14 +7,70 @@ if (!defined('DATETIME_T_FORMAT')) {
     define('DATETIME_T_FORMAT', 'Y-m-d\TH:i:s');
 }
 
+use phs\PHS;
 use phs\PHS_Db;
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
     return '1.1.8.6';
 }
+
+function action_request_login(): array
+{
+    $action_result = PHS_Action::default_action_result();
+    $action_result['request_login'] = true;
+
+    return $action_result;
+}
+
+//region Helper functions
+/**
+ * @param  array|string  $path
+ * @param  null|array  $args
+ * @param  null|array  $extra
+ *
+ * @return array
+ */
+function action_redirect( $path, array $args = null, array $extra = null ): array
+{
+    $action_result = PHS_Action::default_action_result();
+    if( is_string( $path ) ) {
+        $action_result['redirect_to_url'] = $path;
+    } elseif( is_array( $path ) ) {
+        $action_result['redirect_to_url'] = PHS::url( $path, $args ?? [], $extra ?? [] );
+    }
+
+    return $action_result;
+}
+
+/**
+ * @param string|array $role_units
+ * @param  array|null  $roles_params
+ * @param  null|array|int  $account_structure
+ *
+ * @return bool
+ */
+function can( $role_units, array $roles_params = null, $account_structure = null ): bool
+{
+    static $current_structure = null;
+
+    if( $account_structure === null ) {
+        if( $current_structure === null ) {
+            $current_structure = PHS::account_structure(PHS::user_logged_in());
+        }
+
+        $account_structure = $current_structure;
+    } else {
+        $account_structure = PHS::account_structure($account_structure);
+    }
+
+    return (bool)PHS_Roles::user_has_role_units($account_structure, $role_units, $roles_params );
+}
+//endregion Helper functions
 
 function phs_init_before_bootstrap() : bool
 {

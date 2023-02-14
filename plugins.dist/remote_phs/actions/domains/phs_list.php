@@ -60,23 +60,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
         if (!$this->_remote_plugin->can_admin_list_domains($current_user)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list remote PHS domains.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return self::default_action_result();
         }
 
         return false;
@@ -649,7 +645,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!($current_user = PHS::user_logged_in())
+        if (!PHS::user_logged_in()
          || empty($params['preset_content'])) {
             return '-';
         }
@@ -666,7 +662,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!empty($params['record']['apikey_id'])
-         && PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_API_KEYS)
+         && can(PHS_Roles::ROLEU_MANAGE_API_KEYS)
          && ($edit_apikey_url = PHS::url(['p' => 'admin', 'a' => 'api_key_edit'],
              ['aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url()]))) {
             return '<a href="'.$edit_apikey_url.'">'.$params['preset_content'].'</a>'

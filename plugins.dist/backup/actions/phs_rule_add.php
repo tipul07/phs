@@ -31,11 +31,7 @@ class PHS_Action_Rule_add extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
@@ -45,7 +41,7 @@ class PHS_Action_Rule_add extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, $backup_plugin::ROLEU_MANAGE_RULES)) {
+        if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage backup rules.'));
 
             return self::default_action_result();

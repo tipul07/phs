@@ -31,11 +31,7 @@ class PHS_Action_Import extends PHS_Action
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */

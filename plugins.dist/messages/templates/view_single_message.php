@@ -35,17 +35,17 @@ $current_user = PHS::current_user();
 
 $can_reply_messages = false;
 $can_followup_messages = false;
-if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_REPLY_MESSAGE)) {
+if (can($messages_plugin::ROLEU_REPLY_MESSAGE)) {
     $can_reply_messages = true;
 }
-if (PHS_Roles::user_has_role_units($current_user, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE)) {
+if (can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE)) {
     $can_followup_messages = true;
 }
 
 if (!empty($message_arr['message_user'])
 && !empty($message_arr['message_user']['is_new'])
 && !empty($message_arr['message_user']['user_id'])
-&& $current_user['id'] == $message_arr['message_user']['user_id']) {
+&& (int)$current_user['id'] === (int)$message_arr['message_user']['user_id']) {
     $messages_model->mark_as_read($message_arr['message_user']);
 }
 

@@ -11,8 +11,8 @@ if (!($plugin_obj = $this->parent_plugin())) {
 
 $cuser_arr = PHS::current_user();
 
-$can_read_messages = PHS_Roles::user_has_role_units($cuser_arr, $plugin_obj::ROLEU_READ_MESSAGE);
-$can_write_messages = PHS_Roles::user_has_role_units($cuser_arr, $plugin_obj::ROLEU_WRITE_MESSAGE);
+$can_read_messages = can($plugin_obj::ROLEU_READ_MESSAGE);
+$can_write_messages = can($plugin_obj::ROLEU_WRITE_MESSAGE);
 
 if (!$can_read_messages && !$can_write_messages) {
     return '';

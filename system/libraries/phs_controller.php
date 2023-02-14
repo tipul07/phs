@@ -183,11 +183,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         && !PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = PHS_Action::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $this->execute_foobar_action($action_result);
+            return $this->execute_foobar_action(action_request_login());
         }
 
         if ($this->should_user_have_any_of_defined_role_units()) {

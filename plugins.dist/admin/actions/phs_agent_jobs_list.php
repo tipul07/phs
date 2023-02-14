@@ -7,7 +7,10 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\models\PHS_Model_Agent_jobs;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
 class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
@@ -23,9 +26,9 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
     public function load_depencies()
     {
-        if (!($this->_admin_plugin = PHS::load_plugin('admin'))
-         || !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($this->_paginator_model = PHS::load_model('agent_jobs'))) {
+        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($this->_accounts_model = PHS_Model_Accounts::get_instance())
+         || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -42,25 +45,19 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return true;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
         if (!$this->_admin_plugin->can_admin_list_agent_jobs($current_user)) {
-            $action_result = self::default_action_result();
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
-            $action_result['redirect_to_url'] = PHS::url();
-
-            return $action_result;
+            return self::default_action_result();
         }
 
         return false;
@@ -113,7 +110,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
             $bulk_actions = false;
         } else {
             $bulk_actions = [
@@ -250,7 +247,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if (PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if (can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,
@@ -313,8 +310,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -373,8 +369,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -433,8 +428,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -491,8 +485,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent job.'));
 
                     return false;
@@ -527,8 +520,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -563,8 +555,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -612,8 +603,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
 
                     return false;
@@ -806,17 +796,15 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         if (!($current_user = PHS::current_user())) {
             $current_user = false;
         }
 
-        if (!PHS_Roles::user_has_role_units($current_user, PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
             return '-';
         }
 

@@ -51,24 +51,20 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['request_login'] = true;
-
-            return $action_result;
+            return action_request_login();
         }
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
         if (!$this->_remote_plugin->can_admin_list_logs($current_user)
          && !$this->_remote_plugin->can_admin_manage_logs($current_user)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list remote PHS domains logs.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return self::default_action_result();
         }
 
         return false;

@@ -224,7 +224,7 @@ class PHS_Model_Messages extends PHS_Model
         $messages_plugin = self::$_messages_plugin;
 
         if (!($account_arr = $accounts_model->data_to_array($account_data))
-         || !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_READ_MESSAGE)
+         || !can($messages_plugin::ROLEU_READ_MESSAGE, null, $account_arr)
          || !($mu_table_name = $this->get_flow_table_name($mu_flow_params))
          || !($m_table_name = $this->get_flow_table_name($m_flow_params))) {
             return [];
@@ -579,14 +579,14 @@ class PHS_Model_Messages extends PHS_Model
         $account_arr = false;
         if (!empty($params['account_data'])
          && (!($account_arr = $accounts_model->data_to_array($params['account_data']))
-                || !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_REPLY_MESSAGE)
+                || !can($messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr)
          )) {
             return false;
         }
 
         if (!($full_message_arr = $this->full_data_to_array($record_data, $account_arr))) {
             if (empty($account_arr)
-             || !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+             || !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
              || !($full_message_arr = $this->full_data_to_array($record_data, $account_arr, ['ignore_user_message' => true]))) {
                 $this->reset_error();
 
@@ -603,7 +603,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (!empty($account_arr)
-         && !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+         && !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
          && !$this->account_is_destination($full_message_arr, $account_arr)) {
             $this->reset_error();
 
@@ -642,14 +642,14 @@ class PHS_Model_Messages extends PHS_Model
         $account_arr = false;
         if (!empty($params['account_data'])
          && (!($account_arr = $accounts_model->data_to_array($params['account_data']))
-                || !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE)
+                || !can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr)
          )) {
             return false;
         }
 
         if (!($full_message_arr = $this->full_data_to_array($record_data, $account_arr))) {
             if (empty($account_arr)
-             || !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+             || !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
              || !($full_message_arr = $this->full_data_to_array($record_data, $account_arr, ['ignore_user_message' => true]))) {
                 $this->reset_error();
 
@@ -665,7 +665,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (!empty($account_arr)
-         && !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
+         && !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
          && !$this->account_is_author($full_message_arr, $account_arr)) {
             $this->reset_error();
 
@@ -1396,7 +1396,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (!empty($reply_message)
-         && ((!empty($account_arr) && !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_REPLY_MESSAGE))
+         && ((!empty($account_arr) && !can($messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr))
                 || !$this->can_reply($reply_message, ['account_data' => $account_arr])
          )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown message or you don\'t have rights to reply to this messages.'));
@@ -1405,7 +1405,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (!empty($followup_message)
-         && ((!empty($account_arr) && !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_FOLLOWUP_MESSAGE))
+         && ((!empty($account_arr) && !can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr))
                 || !$this->can_followup($followup_message, ['account_data' => $account_arr])
          )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown message or you don\'t have rights to follow up this messages.'));
@@ -1416,7 +1416,7 @@ class PHS_Model_Messages extends PHS_Model
         if (empty($reply_message)
          && empty($followup_message)
          && !empty($account_arr)
-         && !PHS_Roles::user_has_role_units($account_arr, $messages_plugin::ROLEU_WRITE_MESSAGE)) {
+         && !can($messages_plugin::ROLEU_WRITE_MESSAGE, null, $account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('You don\'t have rights to compose messages.'));
 
             return false;
