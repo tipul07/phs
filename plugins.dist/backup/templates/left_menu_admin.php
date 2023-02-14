@@ -32,7 +32,7 @@ if (!$can_list_rules && !$can_manage_rules && !$can_list_backups && !$can_delete
             }
             ?>
             <li><a href="<?php echo PHS::url([
-            'a' => 'rules_list', 'p' => 'backup',
+                'a' => 'rules_list', 'p' => 'backup',
             ]); ?>"><?php echo $this::_t('List Backup Rules'); ?></a>
             </li>
             <?php

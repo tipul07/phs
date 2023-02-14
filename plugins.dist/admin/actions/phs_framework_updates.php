@@ -26,11 +26,13 @@ class PHS_Action_Framework_updates extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
+
             return self::default_action_result();
         }
 
         if (!$accounts_model->acc_is_developer($current_user)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have enough rights to access this section.'));
+
             return self::default_action_result();
         }
 

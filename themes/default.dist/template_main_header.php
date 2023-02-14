@@ -56,16 +56,16 @@ if (empty($cuser_arr)) {
     if (can(PHS_Roles::ROLEU_REGISTER)) {
         ?>
                         <li><a href="<?php echo PHS::url([
-                        'p' => 'accounts', 'a' => 'register',
-                    ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
+                            'p' => 'accounts', 'a' => 'register',
+                        ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
                         </li>
                         <?php
     }
     ?>
                     <li><a href="<?php echo PHS::url([
-                    'p' => 'accounts',
-                    'a' => 'login',
-                ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
+                        'p' => 'accounts',
+                        'a' => 'login',
+                    ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
                     </li>
                     <?php
 

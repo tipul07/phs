@@ -78,7 +78,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         $can_manage_rules = can($backup_plugin::ROLEU_MANAGE_RULES);
 
         if (!$can_manage_rules
-         && !can($backup_plugin::ROLEU_LIST_RULES) ) {
+         && !can($backup_plugin::ROLEU_LIST_RULES)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup rules.'));
 
             return false;

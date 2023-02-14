@@ -86,7 +86,7 @@ class PHS_Action_Edit_profile extends PHS_Action
                 $args['reason'] = $reason;
             }
 
-            return action_redirect( ['p' => 'accounts', 'a' => 'login'], $args );
+            return action_redirect(['p' => 'accounts', 'a' => 'login'], $args);
         }
 
         if (!($plugin_settings = $this->get_plugin_settings())) {
