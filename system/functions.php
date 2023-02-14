@@ -16,10 +16,10 @@ use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.6';
+    return '1.1.8.7';
 }
 
-function action_request_login(): array
+function action_request_login() : array
 {
     $action_result = PHS_Action::default_action_result();
     $action_result['request_login'] = true;
@@ -27,21 +27,21 @@ function action_request_login(): array
     return $action_result;
 }
 
-//region Helper functions
+// region Helper functions
 /**
- * @param  array|string  $path
- * @param  null|array  $args
- * @param  null|array  $extra
+ * @param array|string $path
+ * @param null|array $args
+ * @param null|array $extra
  *
  * @return array
  */
-function action_redirect( $path, array $args = null, array $extra = null ): array
+function action_redirect($path, ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
-    if( is_string( $path ) ) {
+    if (is_string($path)) {
         $action_result['redirect_to_url'] = $path;
-    } elseif( is_array( $path ) ) {
-        $action_result['redirect_to_url'] = PHS::url( $path, $args ?? [], $extra ?? [] );
+    } elseif (is_array($path)) {
+        $action_result['redirect_to_url'] = PHS::url($path, $args ?? [], $extra ?? []);
     }
 
     return $action_result;
@@ -49,17 +49,17 @@ function action_redirect( $path, array $args = null, array $extra = null ): arra
 
 /**
  * @param string|array $role_units
- * @param  array|null  $roles_params
- * @param  null|array|int  $account_structure
+ * @param null|array $roles_params
+ * @param null|array|int $account_structure
  *
  * @return bool
  */
-function can( $role_units, array $roles_params = null, $account_structure = null ): bool
+function can($role_units, ?array $roles_params = null, $account_structure = null) : bool
 {
     static $current_structure = null;
 
-    if( $account_structure === null ) {
-        if( $current_structure === null ) {
+    if ($account_structure === null) {
+        if ($current_structure === null) {
             $current_structure = PHS::account_structure(PHS::user_logged_in());
         }
 
@@ -68,9 +68,9 @@ function can( $role_units, array $roles_params = null, $account_structure = null
         $account_structure = PHS::account_structure($account_structure);
     }
 
-    return (bool)PHS_Roles::user_has_role_units($account_structure, $role_units, $roles_params );
+    return (bool)PHS_Roles::user_has_role_units($account_structure, $role_units, $roles_params);
 }
-//endregion Helper functions
+// endregion Helper functions
 
 function phs_init_before_bootstrap() : bool
 {

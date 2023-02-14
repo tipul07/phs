@@ -62,7 +62,7 @@ class PHS_Action_Register extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!can( PHS_Roles::ROLEU_REGISTER)) {
+        if (!can(PHS_Roles::ROLEU_REGISTER)) {
             PHS_Notifications::add_error_notice($this->_pt('Registration is closed for this site.'));
 
             return self::default_action_result();

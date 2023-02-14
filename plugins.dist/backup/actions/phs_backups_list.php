@@ -350,7 +350,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 }
 
                 if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int) $action['action_params'];
+                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])

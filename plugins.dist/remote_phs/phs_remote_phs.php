@@ -53,29 +53,29 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         return $user_arr;
     }
 
-    public function can_admin_list_domains($user_data): bool
+    public function can_admin_list_domains($user_data) : bool
     {
-        return can( self::ROLEU_ADM_LIST_DOMAINS, null, $user_data );
+        return can(self::ROLEU_ADM_LIST_DOMAINS, null, $user_data);
     }
 
-    public function can_admin_manage_domains($user_data): bool
+    public function can_admin_manage_domains($user_data) : bool
     {
-        return can( self::ROLEU_ADM_MANAGE_DOMAINS, null, $user_data );
+        return can(self::ROLEU_ADM_MANAGE_DOMAINS, null, $user_data);
     }
 
-    public function can_admin_ping_domains($user_data): bool
+    public function can_admin_ping_domains($user_data) : bool
     {
-        return can( self::ROLEU_ADM_PING_DOMAIN, null, $user_data );
+        return can(self::ROLEU_ADM_PING_DOMAIN, null, $user_data);
     }
 
-    public function can_admin_list_logs($user_data): bool
+    public function can_admin_list_logs($user_data) : bool
     {
-        return can( self::ROLEU_ADM_LIST_LOGS, null, $user_data );
+        return can(self::ROLEU_ADM_LIST_LOGS, null, $user_data);
     }
 
-    public function can_admin_manage_logs($user_data): bool
+    public function can_admin_manage_logs($user_data) : bool
     {
-        return can( self::ROLEU_ADM_MANAGE_LOGS, null, $user_data );
+        return can(self::ROLEU_ADM_MANAGE_LOGS, null, $user_data);
     }
     //
     // endregion is_* and can_* functions
@@ -84,7 +84,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     //
     // region Manage platform rights and roles
     //
-    public function default_user_platform_rights(): array
+    public function default_user_platform_rights() : array
     {
         return [
             'has_any_rights'        => false,

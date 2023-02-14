@@ -595,7 +595,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return string
      */
-    public function get_settings_for_plugins_as_json($plugins_arr = []): string
+    public function get_settings_for_plugins_as_json($plugins_arr = []) : string
     {
         return @json_encode($this->get_settings_for_plugins_as_array($plugins_arr));
     }
@@ -605,7 +605,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return array
      */
-    public function get_settings_for_plugins_as_array($plugins_arr = []): array
+    public function get_settings_for_plugins_as_array($plugins_arr = []) : array
     {
         $this->reset_error();
 
