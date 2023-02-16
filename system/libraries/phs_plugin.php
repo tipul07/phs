@@ -751,7 +751,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $plugin_arr;
     }
 
-    final public function user_has_any_of_defined_role_units()
+    final public function user_has_any_of_defined_role_units() : bool
     {
         if (!($role_definition = $this->get_roles_definition())
          || !is_array($role_definition)) {
