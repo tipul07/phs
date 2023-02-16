@@ -343,7 +343,12 @@ final class PHS extends PHS_Registry
         return $hook_args['session_db_data'];
     }
 
-    public static function account_structure($account_data)
+    /**
+     * @param $account_data
+     *
+     * @return null|array
+     */
+    public static function account_structure($account_data) : ?array
     {
         $hook_args = PHS_Hooks::default_account_structure_hook_args();
         $hook_args['account_data'] = $account_data;
@@ -351,7 +356,7 @@ final class PHS extends PHS_Registry
         if (!($hook_result = PHS_Hooks::trigger_account_structure($hook_args))
          || empty($hook_result['account_structure'])
          || !is_array($hook_result['account_structure'])) {
-            return false;
+            return null;
         }
 
         return $hook_result['account_structure'];

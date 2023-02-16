@@ -44,23 +44,23 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
     if (!empty($cuser_arr)) {
         ?>
         <li><a href="<?php echo PHS::url([
-        'p' => 'accounts',
-        'a' => 'edit_profile',
+            'p' => 'accounts',
+            'a' => 'edit_profile',
         ]); ?>"><?php echo $this::_t('Edit Profile'); ?></a></li>
         <li><a href="<?php echo PHS::url([
-        'p' => 'accounts',
-        'a' => 'change_password',
+            'p' => 'accounts',
+            'a' => 'change_password',
         ]); ?>"><?php echo $this::_t('Change Password'); ?></a></li>
         <li><a href="<?php echo PHS::url([
-        'p' => 'accounts',
-        'a' => 'logout',
+            'p' => 'accounts',
+            'a' => 'logout',
         ]); ?>"><?php echo $this::_t('Logout'); ?></a></li>
         <?php
     } else {
-        if (PHS_Roles::user_has_role_units($cuser_arr, PHS_Roles::ROLEU_REGISTER)) {
+        if (can(PHS_Roles::ROLEU_REGISTER)) {
             ?>
             <li><a href="<?php echo PHS::url([
-            'p' => 'accounts', 'a' => 'register',
+                'p' => 'accounts', 'a' => 'register',
             ]); ?>"><?php echo $this::_t('Register'); ?></a></li>
             <?php
         }
@@ -71,9 +71,9 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             </a>
             <div id="login_popup" class="login_popup">
                 <form id="menu_pane_login_frm" name="menu_pane_login_frm" method="post" action="<?php echo PHS::url([
-                'p' => 'accounts',
-                'a' => 'login',
-            ]); ?>">
+                    'p' => 'accounts',
+                    'a' => 'login',
+                ]); ?>">
                     <div class="menu-pane-form-line form-group">
                         <label for="mt_nick"><?php echo empty($accounts_plugin_settings['no_nickname_only_email']) ? $this::_t('Username') : $this::_t('Email'); ?></label>
                         <input type="text" id="mt_nick" class="form-control" name="nick" required="required" />
@@ -89,9 +89,9 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
                     </div>
                     <div class="menu-pane-form-line form-group" style="width:100%;">
                         <div style="float: left;"><a href="<?php echo PHS::url([
-                        'p' => 'accounts',
-                        'a' => 'forgot',
-                    ]); ?>"><?php echo $this::_t('Forgot Password'); ?></a>
+                            'p' => 'accounts',
+                            'a' => 'forgot',
+                        ]); ?>"><?php echo $this::_t('Forgot Password'); ?></a>
                         </div>
                         <div style="float: right; right: 10px;">
                             <input type="submit" name="do_submit" class="btn btn-primary btn-medium submit-protection ignore_hidden_required" value="<?php echo $this::_t('Login'); ?>" /></div>

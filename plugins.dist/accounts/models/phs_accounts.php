@@ -356,7 +356,8 @@ class PHS_Model_Accounts extends PHS_Model
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         if (empty($user_data)
          || !($admin_plugin = PHS::load_plugin('admin'))
-         || !($user_arr = $admin_plugin->can_admin_manage_accounts($user_data))
+         || !($user_arr = $this->data_to_array($user_data))
+         || !$admin_plugin->can_admin_manage_accounts($user_arr)
          || !($user_to_manage_arr = $this->data_to_array($user_to_manage))
          || ($user_arr['level'] <= $user_to_manage_arr['level']
                 && (int)$user_arr['id'] !== (int)$user_to_manage_arr['id']
