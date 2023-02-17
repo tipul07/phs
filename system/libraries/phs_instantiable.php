@@ -1168,6 +1168,15 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         $class_name = array_pop($class_namespace_path);
+        if( !empty( $class_namespace_path[3] ) ) {
+            $type_and_path = '';
+            for( $i = 3; isset( $class_namespace_path[$i] ); $i++ ) {
+                $type_and_path .= ($type_and_path!==''?'\\':'').$class_namespace_path[$i];
+                unset( $class_namespace_path[$i] );
+            }
+
+            $class_namespace_path[3] = $type_and_path;
+        }
 
         if (empty($class_namespace_path[0])
          || empty($class_namespace_path[1])
@@ -1388,7 +1397,8 @@ abstract class PHS_Instantiable extends PHS_Registry
                  && false !== strpos($type_dir, '\\')
                  && ($type_dir_parts = explode('\\', $type_dir))
                  && is_array($type_dir_parts)
-                 && $dir_pos === array_search(array_pop($type_dir_parts), $allow_subdirs, true)
+                 && ($path_dir = array_shift($type_dir_parts))
+                 && $dir_pos === array_search($path_dir, $allow_subdirs, true)
                 )
             ) {
                 return [
