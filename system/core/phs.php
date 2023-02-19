@@ -2411,7 +2411,7 @@ final class PHS extends PHS_Registry
          && !($action_dir = PHS_Instantiable::safe_escape_instance_subdir($action_dir))) {
             self::st_set_error(self::ERR_LOAD_ACTION,
                 self::_t('Couldn\'t load action %s from plugin %s.',
-                    ($action_dir !== '' ? $action_dir.'/' : '').$action,
+                    $action_dir.'/'.$action,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return false;
@@ -2471,7 +2471,7 @@ final class PHS extends PHS_Registry
          && !($contract_dir = PHS_Instantiable::safe_escape_instance_subdir($contract_dir))) {
             self::st_set_error(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t load contract %s from plugin %s.',
-                    ($contract_dir !== '' ? $contract_dir.'/' : '').$contract,
+                    $contract_dir.'/'.$contract,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return false;
@@ -2531,7 +2531,7 @@ final class PHS extends PHS_Registry
          && !($event_dir = PHS_Instantiable::safe_escape_instance_subdir($event_dir))) {
             self::st_set_error(self::ERR_LOAD_EVENT,
                 self::_t('Couldn\'t load event %s from plugin %s.',
-                    ($event_dir !== '' ? $event_dir.'/' : '').$event,
+                    $event_dir.'/'.$event,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return false;

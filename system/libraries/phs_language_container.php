@@ -842,12 +842,12 @@ class PHS_Language_Container extends PHS_Error
      *
      * @param string $lang
      *
-     * @return bool|array
+     * @return null|array
      */
-    public static function get_defined_language(string $lang)
+    public static function get_defined_language(string $lang) : ?array
     {
         if (!($lang = self::st_valid_language($lang))) {
-            return false;
+            return null;
         }
 
         return self::$DEFINED_LANGUAGES[$lang];

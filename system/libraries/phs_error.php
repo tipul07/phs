@@ -16,11 +16,11 @@ class PHS_Error
 
     // ! Error code as integer
     /** @var int */
-    private int $error_no;
+    private int $error_no = self::ERR_OK;
 
     // ! Contains error message including debugging information
     /** @var string */
-    private string $error_msg;
+    private string $error_msg = '';
 
     // ! Contains only error message
     /** @var string */
@@ -28,7 +28,7 @@ class PHS_Error
 
     // ! Contains a debugging error message
     /** @var string */
-    private string $error_debug_msg;
+    private string $error_debug_msg = '';
 
     // ! Warnings count
     /** @var int */
@@ -144,7 +144,7 @@ class PHS_Error
      *
      * @return array
      */
-    public function change_error_message($error_msg, $error_debug_msg = '') : array
+    public function change_error_message(string $error_msg, string $error_debug_msg = '') : array
     {
         if (empty($error_debug_msg)) {
             $error_debug_msg = $error_msg;

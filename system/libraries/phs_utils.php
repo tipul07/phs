@@ -117,7 +117,8 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return -1;
-            } elseif ($num1_positive) {
+            }
+            if ($num1_positive) {
                 return -1;
             }
 
@@ -143,7 +144,8 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return -1;
-            } elseif ($num1_positive) {
+            }
+            if ($num1_positive) {
                 return -1;
             }
 
@@ -1219,9 +1221,9 @@ class PHS_Utils extends PHS_Language
      * @param bool|array $params {
      *                           cURL parameters
      * @type array userpass {
-     *                           'user' @type string User used in Basic Authentication
-     *                           'pass' @type string Pass used in Basic Authentication
-     *                           } Basic Authentication
+     *             'user' @type string User used in Basic Authentication
+     *             'pass' @type string Pass used in Basic Authentication
+     *             } Basic Authentication
      * @type bool follow_location Should request follow location if redirected
      * @type int timeout Timeout in seconds
      * @type string user_agent User-agent to be used for this request
@@ -1231,7 +1233,7 @@ class PHS_Utils extends PHS_Language
      * @type string[int] header_arr Header lines to be sent in this request
      * @type string[string] post_arr POST to be passed in the request (variable name as key, variable value as value)
      * @type string http_method Method to be sent in this request (eg. GET, POST, PUT, PATCH, DELETE, etc)
-     *                           }
+     *              }
      * @return array|bool {
      *                    'response' @type string
      *                    'http_code' @type int HTTP code returned by request
