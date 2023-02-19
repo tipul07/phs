@@ -33,7 +33,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_UNDEFINED  => ['title' => 'Undefined', 'dir_name' => '', 'phs_loader_method' => ''],
         self::INSTANCE_TYPE_PLUGIN     => ['title' => 'Plugin', 'dir_name' => '', 'phs_loader_method' => 'load_plugin'],
         self::INSTANCE_TYPE_MODEL      => ['title' => 'Model', 'dir_name' => 'models', 'phs_loader_method' => 'load_model'],
-        self::INSTANCE_TYPE_CONTROLLER => ['title' => 'Controller', 'dir_name' => 'controllers', 'phs_loader_method' => 'load_contoller'],
+        self::INSTANCE_TYPE_CONTROLLER => ['title' => 'Controller', 'dir_name' => 'controllers', 'phs_loader_method' => 'load_controller'],
         self::INSTANCE_TYPE_ACTION     => ['title' => 'Action', 'dir_name' => 'actions', 'phs_loader_method' => 'load_action'],
         self::INSTANCE_TYPE_VIEW       => ['title' => 'View', 'dir_name' => 'views', 'phs_loader_method' => 'load_view'],
         self::INSTANCE_TYPE_SCOPE      => ['title' => 'Scope', 'dir_name' => 'scopes', 'phs_loader_method' => 'load_scope'],
@@ -1168,11 +1168,11 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         $class_name = array_pop($class_namespace_path);
-        if( !empty( $class_namespace_path[3] ) ) {
+        if (!empty($class_namespace_path[3])) {
             $type_and_path = '';
-            for( $i = 3; isset( $class_namespace_path[$i] ); $i++ ) {
-                $type_and_path .= ($type_and_path!==''?'\\':'').$class_namespace_path[$i];
-                unset( $class_namespace_path[$i] );
+            for ($i = 3; isset($class_namespace_path[$i]); $i++) {
+                $type_and_path .= ($type_and_path !== '' ? '\\' : '').$class_namespace_path[$i];
+                unset($class_namespace_path[$i]);
             }
 
             $class_namespace_path[3] = $type_and_path;
@@ -1233,7 +1233,7 @@ abstract class PHS_Instantiable extends PHS_Registry
          || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))
          || empty($instance_details['loader_method'])
          || !@method_exists(PHS::class, $instance_details['loader_method'])) {
-            self::st_set_error(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.').'['.$full_class_name.']');
+            self::st_set_error(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.'));
 
             return null;
         }
@@ -1245,7 +1245,8 @@ abstract class PHS_Instantiable extends PHS_Registry
         } elseif ($details['instance_type'] === self::INSTANCE_TYPE_VIEW) {
             $obj = self::$loader_method($instance_details['instance_name'], $details['plugin_name'], $as_singleton);
         } elseif (!empty($instance_details['instance_type_accepts_subdirs'])) {
-            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'], $details['instance_subdir']);
+            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'],
+                str_replace('/', '_', $details['instance_subdir']));
         } else {
             $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name']);
         }

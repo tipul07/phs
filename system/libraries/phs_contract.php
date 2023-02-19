@@ -194,7 +194,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * This will also be changed by _pre and _post method calls
      * @return null|array
      */
-    public function get_processing_data()
+    public function get_processing_data() : ?array
     {
         return $this->_processing_data;
     }

@@ -18,8 +18,8 @@ class PHS_Language extends PHS_Error
 
     public const LANG_LINE_DELIMITER = "\n", LANG_COLUMNS_DELIMITER = ',', LANG_COLUMNS_ENCLOSURE = '"', LANG_ENCLOSURE_ESCAPE = '"';
 
-    /** @var PHS_Language_Container */
-    private static $lang_callable_obj = false;
+    /** @var null|PHS_Language_Container */
+    private static ?PHS_Language_Container $lang_callable_obj = null;
 
     /**
      * @param string $index Language index
@@ -59,7 +59,7 @@ class PHS_Language extends PHS_Error
      *
      * @return PHS_Language_Container
      */
-    public static function language_container()
+    public static function language_container() : ?PHS_Language_Container
     {
         if (empty(self::$lang_callable_obj)) {
             self::$lang_callable_obj = new PHS_Language_Container();
@@ -80,7 +80,7 @@ class PHS_Language extends PHS_Error
      * @param bool $enabled Whether utf8 conversion should be enabled or not
      * @return bool Returns utf8 conversion enabled value currently set
      */
-    public static function set_utf8_conversion($enabled) : bool
+    public static function set_utf8_conversion(bool $enabled) : bool
     {
         return self::language_container()->set_utf8_conversion($enabled);
     }
@@ -88,7 +88,7 @@ class PHS_Language extends PHS_Error
     /**
      * @return bool Returns true if multi-language is enabled or false otherwise
      */
-    public static function get_multi_language_enabled()
+    public static function get_multi_language_enabled() : bool
     {
         return self::language_container()->get_multi_language_enabled();
     }
@@ -116,9 +116,9 @@ class PHS_Language extends PHS_Error
      *
      * @param string $lang
      *
-     * @return bool|array
+     * @return null|array
      */
-    public static function get_defined_language($lang)
+    public static function get_defined_language(string $lang) : ?array
     {
         return self::language_container()->get_defined_language($lang);
     }
