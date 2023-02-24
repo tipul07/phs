@@ -2120,7 +2120,9 @@ class PHS_Model_Accounts extends PHS_Model
 
         $roles_arr = [];
         if (!empty($params['{append_default_roles}'])) {
-            if ($this->acc_is_admin($insert_arr)) {
+            if ($this->acc_is_sadmin($insert_arr)) {
+                $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN, PHS_Roles::ROLE_TENANT_ADMIN];
+            } elseif ($this->acc_is_admin($insert_arr)) {
                 $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN];
             } elseif ($this->acc_is_operator($insert_arr)) {
                 $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR];

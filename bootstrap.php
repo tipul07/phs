@@ -322,18 +322,11 @@ if (!PHS_Db::add_db_connection(PHS_DB_DEFAULT_CONNECTION, $mysql_settings)) {
 // END Default database settings
 //
 
-//
-
-// Request domain settings (if available)
-//
-
+// Check domain settings (if available)
 if (($custom_config_file = PHS::check_custom_config())) {
     include_once $custom_config_file;
 }
-//
-
-// END Request domain settings (if available)
-//
+// END Check domain settings (if available)
 
 PHS::define_constants();
 

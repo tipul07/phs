@@ -86,7 +86,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys'];
+        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'tenants'];
     }
 
     /**
@@ -308,6 +308,14 @@ final class PHS extends PHS_Registry
     public static function is_secured_request() : bool
     {
         return (bool)self::get_data(self::REQUEST_HTTPS);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function is_multi_tenant() : bool
+    {
+        return defined('PHS_MULTI_TENANT') && constant('PHS_MULTI_TENANT');
     }
 
     /**
@@ -626,7 +634,7 @@ final class PHS extends PHS_Registry
         return $themes;
     }
 
-    public static function domain_constants()
+    public static function domain_constants(): array
     {
         return [
             // configuration constants
@@ -637,6 +645,7 @@ final class PHS extends PHS_Registry
             'PHS_PORT'          => 'PHS_DEFAULT_PORT',
             'PHS_SSL_PORT'      => 'PHS_DEFAULT_SSL_PORT',
             'PHS_DOMAIN_PATH'   => 'PHS_DEFAULT_DOMAIN_PATH',
+            'PHS_CONTACT_EMAIL'   => 'PHS_DEFAULT_CONTACT_EMAIL',
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',
 
@@ -653,7 +662,7 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    public static function define_constants()
+    public static function define_constants(): void
     {
         $constants_arr = self::domain_constants();
         foreach ($constants_arr as $domain_constant => $default_constant) {

@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;
 use phs\libraries\PHS_Roles;
@@ -7,11 +7,11 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
-use phs\system\core\models\PHS_Model_Roles;
+use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
-/** @property \phs\system\core\models\PHS_Model_Roles $_paginator_model */
-class PHS_Action_Roles_list extends PHS_Action_Generic_list
+/** @property \phs\system\core\models\PHS_Model_Tenants $_paginator_model */
+class PHS_Action_List extends PHS_Action_Generic_list
 {
     /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
@@ -26,7 +26,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
          || (empty( $this->_accounts_model )
              && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
          || (empty( $this->_paginator_model )
-             && !($this->_paginator_model = PHS_Model_Roles::get_instance()))
+             && !($this->_paginator_model = PHS_Model_Tenants::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
@@ -41,7 +41,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
-        PHS::page_settings('page_title', $this->_pt('Roles List'));
+        PHS::page_settings('page_title', $this->_pt('Tenants List'));
 
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -63,30 +63,31 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_list_roles($current_user)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list roles.'));
+        if (!$this->_admin_plugin->can_admin_list_tenants($current_user)) {
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list tenants.'));
 
             return false;
         }
 
-        $roles_model = $this->_paginator_model;
+        $tenants_model = $this->_paginator_model;
 
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $roles_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $tenants_model::STATUS_DELETED];
 
         $flow_params = [
-            'listing_title'        => $this->_pt('Roles List'),
-            'term_singular'        => $this->_pt('role'),
-            'term_plural'          => $this->_pt('roles'),
+            'listing_title'        => $this->_pt('Tenants List'),
+            'term_singular'        => $this->_pt('tenant'),
+            'term_plural'          => $this->_pt('tenants'),
             'initial_list_arr'     => $list_arr,
-            'after_table_callback' => [$this, 'after_table_callback'],
+            'after_table_callback'   => [$this, 'after_table_callback'],
+            'after_filters_callback' => [$this, 'after_filters_callback'],
         ];
 
-        if (PHS_Params::_g('unknown_role', PHS_Params::T_INT)) {
-            PHS_Notifications::add_error_notice($this->_pt('Invalid role or role was not found in database.'));
+        if (PHS_Params::_g('unknown_tenant', PHS_Params::T_INT)) {
+            PHS_Notifications::add_error_notice($this->_pt('Invalid tenant or tenant was not found in database.'));
         }
-        if (PHS_Params::_g('role_added', PHS_Params::T_INT)) {
-            PHS_Notifications::add_success_notice($this->_pt('Role details saved in database.'));
+        if (PHS_Params::_g('tenant_added', PHS_Params::T_INT)) {
+            PHS_Notifications::add_success_notice($this->_pt('Tenant details saved in database.'));
         }
 
         if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {
@@ -97,8 +98,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
         }
 
-        if (isset($statuses_arr[$roles_model::STATUS_DELETED])) {
-            unset($statuses_arr[$roles_model::STATUS_DELETED]);
+        if (isset($statuses_arr[$tenants_model::STATUS_DELETED])) {
+            unset($statuses_arr[$tenants_model::STATUS_DELETED]);
         }
 
         if (!can(PHS_Roles::ROLEU_MANAGE_ROLES)) {
@@ -108,19 +109,19 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 [
                     'display_name'    => $this->_pt('Inactivate'),
                     'action'          => 'bulk_inactivate',
-                    'js_callback'     => 'phs_roles_list_bulk_inactivate',
+                    'js_callback'     => 'phs_tenants_list_bulk_inactivate',
                     'checkbox_column' => 'id',
                 ],
                 [
                     'display_name'    => $this->_pt('Activate'),
                     'action'          => 'bulk_activate',
-                    'js_callback'     => 'phs_roles_list_bulk_activate',
+                    'js_callback'     => 'phs_tenants_list_bulk_activate',
                     'checkbox_column' => 'id',
                 ],
                 [
                     'display_name'    => $this->_pt('Delete'),
                     'action'          => 'bulk_delete',
-                    'js_callback'     => 'phs_roles_list_bulk_delete',
+                    'js_callback'     => 'phs_tenants_list_bulk_delete',
                     'checkbox_column' => 'id',
                 ],
             ];
@@ -157,12 +158,21 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             [
                 'column_title'     => $this->_pt('Name'),
                 'record_field'     => 'name',
-                'display_callback' => [$this, 'display_role_name'],
+                'display_callback' => [$this, 'display_tenant_name'],
             ],
             [
-                'column_title'        => $this->_pt('Slug'),
-                'record_field'        => 'slug',
+                'column_title'        => $this->_pt('Identifier'),
+                'record_field'        => 'identifier',
                 'extra_records_style' => 'text-align:center;',
+            ],
+            [
+                'column_title'        => $this->_pt('Default'),
+                'record_field'        => 'is_default',
+                'extra_records_style' => 'text-align:center;',
+                'display_key_value' => [
+                    0 => $this->_pt( 'No' ),
+                    1 => $this->_pt( 'Yes' ),
+                ],
             ],
             [
                 'column_title'        => $this->_pt('Status'),
@@ -190,7 +200,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if (can(PHS_Roles::ROLEU_MANAGE_ROLES)) {
+        if (can(PHS_Roles::ROLEU_TENANTS_MANAGE)) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,
@@ -198,7 +208,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'roles_list']);
+        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'tenants']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -218,10 +228,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
@@ -231,8 +239,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return $action_result_params;
         }
 
-        $current_user = PHS::user_logged_in();
-        $can_manage_roles = $this->_admin_plugin->can_admin_manage_roles($current_user);
+        $can_manage_tenants = $this->_admin_plugin->can_admin_manage_tenants();
 
         $action_result_params['action'] = $action['action'];
 
@@ -246,18 +253,18 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles activated with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Required tenants activated with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating selected roles failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Activating selected tenants failed. Please try again.'));
                     } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed activating all selected roles. Roles which failed activation are still selected. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Failed activating all selected tenants. Tenants which failed activation are still selected. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -273,9 +280,9 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->activate_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $tenant_id) {
+                    if (!$this->_paginator_model->act_activate($tenant_id)) {
+                        $remaining_ids_arr[] = $tenant_id;
                     }
                 }
 
@@ -305,18 +312,18 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             case 'bulk_inactivate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles inactivated with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Required tenants inactivated with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating selected roles failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Inactivating selected tenants failed. Please try again.'));
                     } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Failed inactivating all selected tenants. Tenants which failed inactivation are still selected. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -332,9 +339,9 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->inactivate_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $tenant_id) {
+                    if (!$this->_paginator_model->act_inactivate($tenant_id)) {
+                        $remaining_ids_arr[] = $tenant_id;
                     }
                 }
 
@@ -364,18 +371,18 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles deleted with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Required tenants deleted with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting selected roles failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Deleting selected tenants failed. Please try again.'));
                     } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected tenants. Tenants which failed deletion are still selected. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -391,9 +398,9 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->delete_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $tenant_id) {
+                    if (!$this->_paginator_model->act_delete($tenant_id)) {
+                        $remaining_ids_arr[] = $tenant_id;
                     }
                 }
 
@@ -420,19 +427,19 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
                 break;
 
-            case 'activate_role':
+            case 'activate_tenant':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role activated with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Tenant activated with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating role failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Activating tenant failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -442,32 +449,32 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate role. Role not found.'));
+                 || !($tenant_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate tenant. Tenant not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->activate_role($role_arr)) {
+                if (!$this->_paginator_model->act_activate($tenant_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
                 }
                 break;
 
-            case 'inactivate_role':
+            case 'inactivate_tenant':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role inactivated with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Tenant inactivated with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating role failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Inactivating tenant failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -477,32 +484,32 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate role. Role not found.'));
+                 || !($tenant_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate tenant. Tenant not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->inactivate_role($role_arr)) {
+                if (!$this->_paginator_model->act_inactivate($tenant_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
                 }
                 break;
 
-            case 'delete_role':
+            case 'delete_tenant':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role deleted with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Tenant deleted with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting role failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Deleting tenant failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                if (!$can_manage_tenants) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
 
                     return false;
                 }
@@ -512,13 +519,13 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete role. Role not found.'));
+                 || !($tenant_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete tenant. Tenant not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->delete_role($role_arr)) {
+                if (!$this->_paginator_model->act_delete($tenant_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -529,7 +536,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_role_name($params)
+    public function display_tenant_name($params)
     {
         if (empty($params)
          || !is_array($params)
@@ -537,60 +544,71 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return false;
         }
 
-        return '<strong>'.$params['preset_content'].'</strong>'
-               .(!empty($params['record']['description']) ? '<br/><small>'.$params['record']['description'].'</small>' : '');
+        return '<strong>'.$params['preset_content'].'</strong>';
     }
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_manage_roles(PHS::current_user())) {
+        if (!$this->_admin_plugin->can_admin_manage_tenants()) {
             return '-';
         }
 
         if (empty($params)
          || !is_array($params)
          || empty($params['record']) || !is_array($params['record'])
-         || !($role_arr = $this->_paginator_model->data_to_array($params['record']))) {
+         || !($tenant_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return false;
         }
 
-        $is_inactive = $this->_paginator_model->is_inactive($role_arr);
-        $is_active = $this->_paginator_model->is_active($role_arr);
+        $is_inactive = $this->_paginator_model->is_inactive($tenant_arr);
+        $is_active = $this->_paginator_model->is_active($tenant_arr);
 
         ob_start();
         if ($is_inactive || $is_active) {
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'role_edit'],
-                ['rid' => $role_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
-            ><i class="fa fa-pencil-square-o action-icons" title="<?php echo form_str($this->_pt('Edit role')); ?>"></i></a>
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'tenants'],
+                ['tid' => $tenant_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+            ><i class="fa fa-pencil-square-o action-icons" title="<?php echo form_str($this->_pt('Edit tenant')); ?>"></i></a>
             <?php
         }
         if ($is_inactive) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_roles_list_activate_role( '<?php echo $role_arr['id']; ?>' )"
-            ><i class="fa fa-play-circle-o action-icons" title="<?php echo form_str($this->_pt('Activate role')); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_tenants_list_activate_tenant( '<?php echo $tenant_arr['id']; ?>' )"
+            ><i class="fa fa-play-circle-o action-icons" title="<?php echo form_str($this->_pt('Activate tenant')); ?>"></i></a>
             <?php
         }
         if ($is_active) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_roles_list_inactivate_role( '<?php echo $role_arr['id']; ?>' )"
-            ><i class="fa fa-pause-circle-o action-icons" title="<?php echo form_str($this->_pt('Inactivate role')); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_tenants_list_inactivate_tenant( '<?php echo $tenant_arr['id']; ?>' )"
+            ><i class="fa fa-pause-circle-o action-icons" title="<?php echo form_str($this->_pt('Inactivate tenant')); ?>"></i></a>
             <?php
         }
 
-        if (!$this->_paginator_model->is_deleted($role_arr)
-         && !$this->_paginator_model->is_predefined($role_arr)) {
+        if (!$this->_paginator_model->is_deleted($tenant_arr)
+         && !$this->_paginator_model->is_default_tenant($tenant_arr)) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_roles_list_delete_role( '<?php echo $role_arr['id']; ?>' )"
-            ><i class="fa fa-times-circle-o action-icons" title="<?php echo form_str($this->_pt('Delete role')); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_tenants_list_delete_tenant( '<?php echo $tenant_arr['id']; ?>' )"
+            ><i class="fa fa-times-circle-o action-icons" title="<?php echo form_str($this->_pt('Delete tenant')); ?>"></i></a>
             <?php
         }
+
+        return ob_get_clean();
+    }
+
+    public function after_filters_callback($params)
+    {
+        ob_start();
+        ?>
+        <div class="p-1">
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'tenants']); ?>"
+               class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('New Tenant'); ?></a>
+        </div>
+        <div class="clearfix"></div>
+        <?php
 
         return ob_get_clean();
     }
@@ -608,48 +626,48 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_roles_list_activate_role( id )
+        function phs_tenants_list_activate_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to activate this role?', '"'); ?>" ) )
+            if( confirm( "<?php echo self::_e('Are you sure you want to activate this tenant?', '"'); ?>" ) )
             {
                 <?php
                 $url_params = [];
         $url_params['action'] = [
-            'action'        => 'activate_role',
+            'action'        => 'activate_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
             }
         }
-        function phs_roles_list_inactivate_role( id )
+        function phs_tenants_list_inactivate_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this role?', '"'); ?>" ) )
+            if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this tenant?', '"'); ?>" ) )
             {
                 <?php
         $url_params = [];
         $url_params['action'] = [
-            'action'        => 'inactivate_role',
+            'action'        => 'inactivate_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
             }
         }
-        function phs_roles_list_delete_role( id )
+        function phs_tenants_list_delete_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this role?', '"'); ?>" + "\n" +
+            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this tenant?', '"'); ?>" + "\n" +
                          "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
             {
                 <?php
         $url_params = [];
         $url_params['action'] = [
-            'action'        => 'delete_role',
+            'action'        => 'delete_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
             }
         }
 
-        function phs_roles_list_get_checked_ids_count()
+        function phs_tenants_list_get_checked_ids_count()
         {
             const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
             if( !checkboxes_list || !checkboxes_list.length )
@@ -658,17 +676,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return checkboxes_list.length;
         }
 
-        function phs_roles_list_bulk_activate()
+        function phs_tenants_list_bulk_activate()
         {
-            const total_checked = phs_roles_list_get_checked_ids_count();
+            const total_checked = phs_tenants_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select roles you want to activate first.', '"'); ?>" );
+                alert( "<?php echo self::_e('Please select tenants you want to activate first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s roles?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
                 return false;
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
@@ -676,17 +694,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 form_obj.submit();
         }
 
-        function phs_roles_list_bulk_inactivate()
+        function phs_tenants_list_bulk_inactivate()
         {
-            const total_checked = phs_roles_list_get_checked_ids_count();
+            const total_checked = phs_tenants_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select roles you want to inactivate first.', '"'); ?>" );
+                alert( "<?php echo self::_e('Please select tenants you want to inactivate first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s roles?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
                 return false;
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
@@ -694,17 +712,17 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 form_obj.submit();
         }
 
-        function phs_roles_list_bulk_delete()
+        function phs_tenants_list_bulk_delete()
         {
-            const total_checked = phs_roles_list_get_checked_ids_count();
+            const total_checked = phs_tenants_list_get_checked_ids_count();
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select roles you want to delete first.', '"'); ?>" );
+                alert( "<?php echo self::_e('Please select tenants you want to delete first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s roles?', '"'), '" + total_checked + "'); ?>" + "\n" +
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s tenants?', '"'), '" + total_checked + "'); ?>" + "\n" +
                          "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
                 return false;
 
