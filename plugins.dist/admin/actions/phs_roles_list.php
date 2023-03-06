@@ -21,11 +21,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
     public function load_depencies()
     {
-        if ((empty( $this->_admin_plugin )
+        if ((empty($this->_admin_plugin)
              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty( $this->_accounts_model )
+         || (empty($this->_accounts_model)
              && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty( $this->_paginator_model )
+         || (empty($this->_paginator_model)
              && !($this->_paginator_model = PHS_Model_Roles::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));

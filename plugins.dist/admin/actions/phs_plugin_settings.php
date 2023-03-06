@@ -9,6 +9,8 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {
@@ -26,22 +28,20 @@ class PHS_Action_Plugin_settings extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Plugin Settings'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
         }
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_list_plugins($current_user)) {
+        if (!$admin_plugin->can_admin_list_plugins()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list plugins.'));
 
             return self::default_action_result();
@@ -56,8 +56,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
                  || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                  || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
          )) {
-            $action_result = self::default_action_result();
-
             $args = ['unknown_plugin' => 1];
 
             if (empty($back_page)) {
@@ -68,9 +66,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -85,7 +81,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         }
 
         $modules_with_settings = [];
-        if (!empty($plugin_models_arr) && is_array($plugin_models_arr)) {
+        if (!empty($plugin_models_arr)) {
             foreach ($plugin_models_arr as $model_name) {
                 $module_details = [];
                 $module_details['instance'] = false;

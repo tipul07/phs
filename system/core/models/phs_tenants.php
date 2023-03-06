@@ -11,6 +11,8 @@ class PHS_Model_Tenants extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
+    private static ?array $_default_tenant = null;
+
     public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
 
     protected static array $STATUSES_ARR = [
@@ -24,7 +26,7 @@ class PHS_Model_Tenants extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     /**
@@ -138,6 +140,12 @@ class PHS_Model_Tenants extends PHS_Model
             return false;
         }
 
+        if( $this->is_default_tenant( $record_arr ) ) {
+            $this->set_error(self::ERR_DELETE, $this->_pt('Cannot delete default tenant.'));
+
+            return false;
+        }
+
         if ($this->is_deleted($record_arr)) {
             return $record_arr;
         }
@@ -151,7 +159,166 @@ class PHS_Model_Tenants extends PHS_Model
         return $this->edit($record_arr, $edit_params_arr);
     }
 
-    public function can_user_edit($record_data, $account_data)
+    public function act_set_default($record_data)
+    {
+        $this->reset_error();
+
+        if (empty($record_data)
+         || !($record_arr = $this->data_to_array($record_data))) {
+            $this->set_error(self::ERR_DELETE, $this->_pt('Tenant details not found in database.'));
+
+            return false;
+        }
+
+        if( $this->is_default_tenant( $record_arr ) ) {
+            return $record_arr;
+        }
+
+        $edit_arr = [];
+        $edit_arr['is_default'] = 1;
+        if( !$this->is_active( $record_arr ) ) {
+            $edit_arr['status'] = self::STATUS_ACTIVE;
+        }
+
+        $edit_params_arr = [];
+        $edit_params_arr['fields'] = $edit_arr;
+
+        return $this->edit($record_arr, $edit_params_arr);
+    }
+
+    public function get_default_tenant() : ?array
+    {
+        if (!PHS::is_multi_tenant()
+            || (empty( self::$_default_tenant ) && !$this->_get_cached_tenants())) {
+            return null;
+        }
+
+        return self::$_default_tenant;
+    }
+
+    public function get_tenant_by_identifier(string $identifier) : ?array
+    {
+        if (!PHS::is_multi_tenant()
+            || !($all_tenants_arr = $this->_get_cached_tenants_by_identifier())
+            || empty( $all_tenants_arr[$identifier] )) {
+            return null;
+        }
+
+        return $all_tenants_arr[$identifier];
+    }
+
+    public function get_tenant_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
+    {
+        if (empty( $domain )
+            || !($identifier = $domain.'/'.($directory ?? ''))
+            || !PHS::is_multi_tenant()
+            || !($all_tenants_arr = $this->_get_cached_tenants_by_domain_and_directory())
+            || empty( $all_tenants_arr[$identifier] )) {
+            return null;
+        }
+
+        return $all_tenants_arr[$identifier];
+    }
+
+    public function get_tenants_as_key_val() : array
+    {
+        if (!PHS::is_multi_tenant()
+            || !($all_tenants_arr = $this->_get_cached_tenants())) {
+            return [];
+        }
+
+        $return_arr = [];
+        foreach( $all_tenants_arr as $t_id => $t_arr ) {
+            $return_arr[$t_id] = $t_arr['name'];
+        }
+
+        return $return_arr;
+    }
+
+    private function _get_cached_tenants(bool $only_active = false, bool $force = false): ?array
+    {
+        static $all_tenants = null, $active_tenants = null;
+
+        if (empty($force)
+            && $all_tenants !== null) {
+            return ($only_active?$active_tenants:$all_tenants);
+        }
+
+        $list_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']);
+        $list_arr['fields'] = [];
+        $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => self::STATUS_DELETED ];
+
+        $all_tenants = [];
+        $active_tenants = [];
+        if (!($result_list = $this->get_list($list_arr))) {
+            return [];
+        }
+
+        foreach ($result_list as $t_id => $t_arr) {
+            $all_tenants[(int)$t_id] = $t_arr;
+            if( $this->is_active($t_arr)) {
+                $active_tenants[(int)$t_id] = $t_arr;
+            }
+            if( $this->is_default_tenant($t_arr)) {
+                self::$_default_tenant = $t_arr;
+            }
+        }
+
+        return ($only_active?$active_tenants:$all_tenants);
+    }
+
+    private function _get_cached_tenants_by_identifier(bool $only_active = false, bool $force = false): ?array
+    {
+        static $all_tenants_id = null, $active_tenants_id = null;
+
+        if (empty($force)
+            && $all_tenants_id !== null) {
+            return ($only_active?$active_tenants_id:$all_tenants_id);
+        }
+
+        $all_tenants_id = [];
+        $active_tenants_id = [];
+        if (!($result_list = $this->_get_cached_tenants(false, $force))) {
+            return [];
+        }
+
+        foreach ($result_list as $t_arr) {
+            $all_tenants_id[$t_arr['identifier']] = $t_arr;
+            if( $this->is_active($t_arr)) {
+                $active_tenants_id[$t_arr['identifier']] = $t_arr;
+            }
+        }
+
+        return ($only_active?$active_tenants_id:$all_tenants_id);
+    }
+
+    private function _get_cached_tenants_by_domain_and_directory(bool $only_active = false, bool $force = false): ?array
+    {
+        static $all_tenants_dd = null, $active_tenants_dd = null;
+
+        if (empty($force)
+            && $all_tenants_dd !== null) {
+            return ($only_active?$active_tenants_dd:$all_tenants_dd);
+        }
+
+        $all_tenants_dd = [];
+        $active_tenants_dd = [];
+        if (!($result_list = $this->_get_cached_tenants(false, $force))) {
+            return [];
+        }
+
+        foreach ($result_list as $t_arr) {
+            $identifier = $t_arr['domain'].'/'.($t_arr['directory'] ?? '');
+            $all_tenants_dd[$identifier] = $t_arr;
+            if( $this->is_active($t_arr)) {
+                $active_tenants_dd[$identifier] = $t_arr;
+            }
+        }
+
+        return ($only_active?$active_tenants_dd:$all_tenants_dd);
+    }
+
+    public function can_user_edit($record_data, $account_data) : ?array
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
@@ -161,7 +328,7 @@ class PHS_Model_Tenants extends PHS_Model
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($account_data))
          || !can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $account_arr)) {
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -197,7 +364,7 @@ class PHS_Model_Tenants extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'added_by_uid' => [
-                        'type'     => self::FTYPE_INT,
+                        'type' => self::FTYPE_INT,
                     ],
                     'name' => [
                         'type'     => self::FTYPE_VARCHAR,
@@ -206,20 +373,25 @@ class PHS_Model_Tenants extends PHS_Model
                         'default'  => null,
                     ],
                     'domain' => [
-                        'type'     => self::FTYPE_VARCHAR,
-                        'length'   => 255,
-                        'index' => true,
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
+                    ],
+                    'directory' => [
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
                     ],
                     'identifier' => [
-                        'type'     => self::FTYPE_VARCHAR,
-                        'length'   => 36,
-                        'index' => true,
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 36,
+                        'index'  => true,
                     ],
                     'is_default' => [
-                        'type'     => self::FTYPE_TINYINT,
-                        'length'   => 2,
-                        'index' => true,
-                        'default'  => 0,
+                        'type'    => self::FTYPE_TINYINT,
+                        'length'  => 2,
+                        'index'   => true,
+                        'default' => 0,
                     ],
                     'status' => [
                         'type'   => self::FTYPE_TINYINT,
@@ -230,10 +402,10 @@ class PHS_Model_Tenants extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'last_edit' => [
-                        'type'  => self::FTYPE_DATETIME,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'deleted' => [
-                        'type'  => self::FTYPE_DATETIME,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'cdate' => [
                         'type' => self::FTYPE_DATETIME,
@@ -273,19 +445,29 @@ class PHS_Model_Tenants extends PHS_Model
             return false;
         }
 
-        if( $this->get_details_fields( ['domain' => $params['fields']['domain'] ]) ) {
-            $this->set_error(self::ERR_INSERT, $this->_pt( 'There is already a tenant defined for this domain.' ));
+        if (empty($params['fields']['directory'])) {
+            $params['fields']['directory'] = null;
+        }
+
+        if ($this->get_details_fields(
+            [
+                'domain'    => $params['fields']['domain'],
+                'directory' => $params['fields']['directory'],
+            ])
+        ) {
+            $this->set_error(self::ERR_INSERT, $this->_pt('There is already a tenant defined for this domain and directory.'));
+
             return false;
         }
 
         if (empty($params['fields']['identifier'])) {
             $params['fields']['identifier'] = $this->generate_identifier();
-            while($this->get_details_fields( ['identifier' => $params['fields']['identifier'] ])) {
+            while ($this->get_details_fields(['identifier' => $params['fields']['identifier']])) {
                 $params['fields']['identifier'] = $this->generate_identifier();
             }
         }
 
-        $params['fields']['is_default'] = (!empty($params['fields']['is_default'])?1:0);
+        $params['fields']['is_default'] = (!empty($params['fields']['is_default']) ? 1 : 0);
 
         $params['fields']['last_edit'] = date(self::DATETIME_DB);
 
@@ -308,27 +490,35 @@ class PHS_Model_Tenants extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['domain'] )
+        if (isset($params['fields']['directory'])
+         && $params['fields']['directory'] === '') {
+            $params['fields']['directory'] = null;
+        }
+
+        if (!empty($params['fields']['domain'])
          && $this->get_details_fields(
              [
-                 'domain' => $params['fields']['domain'],
-                 'id' => [ 'check' => '!=', 'value' => $existing_data['id'] ]
-             ]) ) {
-            $this->set_error(self::ERR_INSERT, $this->_pt( 'There is already a tenant defined for this domain.' ));
+                 'domain'    => $params['fields']['domain'],
+                 'directory' => $params['fields']['directory'],
+                 'id'        => ['check' => '!=', 'value' => $existing_data['id']],
+             ])) {
+            $this->set_error(self::ERR_INSERT, $this->_pt('There is already a tenant defined for this domain and directory.'));
+
             return false;
         }
 
-        if( !empty( $params['fields']['identifier'] )
+        if (!empty($params['fields']['identifier'])
          && $this->get_details_fields(
              [
                  'identifier' => $params['fields']['identifier'],
-                 'id' => [ 'check' => '!=', 'value' => $existing_data['id'] ]
-             ]) ) {
-            $this->set_error(self::ERR_INSERT, $this->_pt( 'A tenant with same identifier already exists.' ));
+                 'id'         => ['check' => '!=', 'value' => $existing_data['id']],
+             ])) {
+            $this->set_error(self::ERR_INSERT, $this->_pt('A tenant with same identifier already exists.'));
+
             return false;
         }
 
-        if( isset( $params['fields']['is_default'] ) ) {
+        if (isset($params['fields']['is_default'])) {
             $params['fields']['is_default'] = (!empty($params['fields']['is_default']) ? 1 : 0);
         }
 
@@ -358,13 +548,13 @@ class PHS_Model_Tenants extends PHS_Model
 
     protected function insert_after_phs_tenants($insert_arr, $params)
     {
-        if( !empty( $params['fields']['is_default'] )
-         && ($flow_arr = $this->fetch_default_flow_params( [ 'table_name' => 'phs_tenants' ] ))
+        if (!empty($params['fields']['is_default'])
+         && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))
          && ($table_name = $this->get_flow_table_name($flow_arr))
         ) {
             // low level update, so we don't trigger anything in model
-            db_query( 'UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$insert_arr['id'].'\'',
-                $flow_arr['db_connection'] );
+            db_query('UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$insert_arr['id'].'\'',
+                $flow_arr['db_connection']);
         }
 
         return $insert_arr;
@@ -372,14 +562,14 @@ class PHS_Model_Tenants extends PHS_Model
 
     protected function edit_after_phs_tenants($existing_data, $edit_arr, $params)
     {
-        if( !empty( $params['fields']['is_default'] )
-         && empty( $existing_data['is_default'] )
-         && ($flow_arr = $this->fetch_default_flow_params( [ 'table_name' => 'phs_tenants' ] ))
+        if (!empty($params['fields']['is_default'])
+         && empty($existing_data['is_default'])
+         && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))
          && ($table_name = $this->get_flow_table_name($flow_arr))
         ) {
             // low level update, so we don't trigger anything in model
-            db_query( 'UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$existing_data['id'].'\'',
-                $flow_arr['db_connection'] );
+            db_query('UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$existing_data['id'].'\'',
+                $flow_arr['db_connection']);
         }
 
         return $existing_data;

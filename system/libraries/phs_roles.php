@@ -10,7 +10,7 @@ class PHS_Roles extends PHS_Registry
     public const ERR_DEPENDENCIES = 1;
 
     public const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin',
-        ROLE_TENANT_ADMIN = 'phs_tenant_admin';
+    ROLE_TENANT_ADMIN = 'phs_tenant_admin';
 
     public const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
     ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
@@ -95,9 +95,9 @@ class PHS_Roles extends PHS_Registry
     /**
      * @param int|array $account_data
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function get_user_role_units_slugs($account_data): ?array
+    public static function get_user_role_units_slugs($account_data) : ?array
     {
         self::st_reset_error();
 
@@ -106,8 +106,9 @@ class PHS_Roles extends PHS_Registry
         }
 
         if (!($slugs_arr = self::$_role_model->get_user_role_units_slugs($account_data))) {
-            if( self::$_role_model->has_error() ) {
+            if (self::$_role_model->has_error()) {
                 self::st_copy_error(self::$_role_model);
+
                 return null;
             }
 
@@ -122,7 +123,7 @@ class PHS_Roles extends PHS_Registry
      *
      * @return null|array
      */
-    public static function get_role_role_units_slugs($role_data): ?array
+    public static function get_role_role_units_slugs($role_data) : ?array
     {
         self::st_reset_error();
 
@@ -131,8 +132,9 @@ class PHS_Roles extends PHS_Registry
         }
 
         if (!($slugs_arr = self::$_role_model->get_role_role_units_slugs($role_data))) {
-            if( self::$_role_model->has_error() ) {
+            if (self::$_role_model->has_error()) {
                 self::st_copy_error(self::$_role_model);
+
                 return null;
             }
 
@@ -147,7 +149,7 @@ class PHS_Roles extends PHS_Registry
      *
      * @return null|array
      */
-    public static function get_role_units_slugs_from_roles_slugs($roles_slugs): ?array
+    public static function get_role_units_slugs_from_roles_slugs($roles_slugs) : ?array
     {
         self::st_reset_error();
 
@@ -156,8 +158,9 @@ class PHS_Roles extends PHS_Registry
         }
 
         if (!($slugs_arr = self::$_role_model->get_role_units_slugs_from_roles_slugs($roles_slugs))) {
-            if( self::$_role_model->has_error() ) {
+            if (self::$_role_model->has_error()) {
                 self::st_copy_error(self::$_role_model);
+
                 return null;
             }
 
@@ -167,7 +170,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user($account_data, $role_data, $params = false): bool
+    public static function link_roles_to_user($account_data, $role_data, $params = false) : bool
     {
         self::st_reset_error();
 
@@ -184,7 +187,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_roles_from_user($account_data, $role_data): bool
+    public static function unlink_roles_from_user($account_data, $role_data) : bool
     {
         self::st_reset_error();
 
@@ -201,7 +204,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_all_roles_from_user($account_data): bool
+    public static function unlink_all_roles_from_user($account_data) : bool
     {
         self::st_reset_error();
 
@@ -219,11 +222,11 @@ class PHS_Roles extends PHS_Registry
     }
 
     /**
-     * @param  array  $params
+     * @param array $params
      *
      * @return null|array
      */
-    public static function register_role(array $params): ?array
+    public static function register_role(array $params) : ?array
     {
         self::st_reset_error();
 
@@ -328,11 +331,11 @@ class PHS_Roles extends PHS_Registry
     }
 
     /**
-     * @param  array  $params
+     * @param array $params
      *
      * @return null|array
      */
-    public static function register_role_unit(array $params): ?array
+    public static function register_role_unit(array $params) : ?array
     {
         self::st_reset_error();
 
@@ -340,7 +343,7 @@ class PHS_Roles extends PHS_Registry
             return null;
         }
 
-        if (empty($params) ) {
+        if (empty($params)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide valid parameters for this role unit.'));
 
             return null;
@@ -417,7 +420,7 @@ class PHS_Roles extends PHS_Registry
         return $role_unit_arr;
     }
 
-    private static function load_dependencies(): bool
+    private static function load_dependencies() : bool
     {
         self::st_reset_error();
 

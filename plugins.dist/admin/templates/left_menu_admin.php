@@ -54,7 +54,7 @@ if (PHS::is_multi_tenant()
                     ><?php echo $this::_t('List Tenants'); ?></a></li>
                 <?php
             }
-            ?>
+    ?>
         </ul>
     </li><?php
 }

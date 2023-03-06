@@ -262,7 +262,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_roles($user_data = null): bool
+    public function can_admin_manage_roles($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ROLES, null, $user_data);
     }
@@ -272,7 +272,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_roles($user_data = null): bool
+    public function can_admin_list_roles($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_ROLES, null, $user_data);
     }
@@ -282,7 +282,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_plugins($user_data = null): bool
+    public function can_admin_manage_plugins($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_PLUGINS, null, $user_data);
     }
@@ -292,7 +292,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_plugins($user_data = null): bool
+    public function can_admin_list_plugins($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_PLUGINS, null, $user_data);
     }
@@ -302,7 +302,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_import_plugins_settings($user_data = null): bool
+    public function can_admin_import_plugins_settings($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS, null, $user_data);
     }
@@ -312,7 +312,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_export_plugins_settings($user_data = null): bool
+    public function can_admin_export_plugins_settings($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS, null, $user_data);
     }
@@ -322,7 +322,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_accounts($user_data = null): bool
+    public function can_admin_manage_accounts($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ACCOUNTS, null, $user_data);
     }
@@ -332,7 +332,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_accounts($user_data = null): bool
+    public function can_admin_list_accounts($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_ACCOUNTS, null, $user_data);
     }
@@ -342,7 +342,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_login_subaccounts($user_data = null): bool
+    public function can_admin_login_subaccounts($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT, null, $user_data);
     }
@@ -352,7 +352,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_export_accounts($user_data = null): bool
+    public function can_admin_export_accounts($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_ACCOUNTS, null, $user_data);
     }
@@ -362,7 +362,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_import_accounts($user_data = null): bool
+    public function can_admin_import_accounts($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_ACCOUNTS, null, $user_data);
     }
@@ -372,7 +372,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_agent_jobs($user_data = null): bool
+    public function can_admin_manage_agent_jobs($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS, null, $user_data);
     }
@@ -382,7 +382,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_agent_jobs($user_data = null): bool
+    public function can_admin_list_agent_jobs($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_AGENT_JOBS, null, $user_data);
     }
@@ -392,7 +392,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_api_keys($user_data = null): bool
+    public function can_admin_manage_api_keys($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $user_data);
     }
@@ -402,7 +402,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_api_keys($user_data = null): bool
+    public function can_admin_list_api_keys($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
     }
@@ -412,7 +412,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_view_logs($user_data = null): bool
+    public function can_admin_view_logs($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_VIEW_LOGS, null, $user_data);
     }
@@ -422,10 +422,10 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_list_tenants($user_data = null): bool
+    public function can_admin_list_tenants($user_data = null) : bool
     {
-        return (PHS::is_multi_tenant()
-                && can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data));
+        return PHS::is_multi_tenant()
+                && can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data);
     }
 
     /**
@@ -433,18 +433,18 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public function can_admin_manage_tenants($user_data = null): bool
+    public function can_admin_manage_tenants($user_data = null) : bool
     {
-        return (PHS::is_multi_tenant()
-                && can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data));
+        return PHS::is_multi_tenant()
+                && can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
     }
 
     /**
-     * @param  bool  $include_core
+     * @param bool $include_core
      *
-     * @return array<string, array{"plugin_info":array, "instance":\phs\libraries\PHS_Plugin}>|null
+     * @return null|array<string, array{"plugin_info":array, "instance":\phs\libraries\PHS_Plugin}>
      */
-    public function get_plugins_list_as_array(bool $include_core = true): ?array
+    public function get_plugins_list_as_array(bool $include_core = true) : ?array
     {
         $this->reset_error();
 

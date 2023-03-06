@@ -10,6 +10,8 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -51,7 +53,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.3';
+        return '1.3.4';
     }
 
     /**
@@ -237,7 +239,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function needs_after_registration_email($user_data, $params = false)
+    public function needs_after_registration_email($user_data, $params = false): bool
     {
         if (empty($user_data)) {
             return false;
@@ -247,9 +249,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params = [];
         }
 
-        if (empty($params['send_confirmation_email'])) {
-            $params['send_confirmation_email'] = false;
-        }
+        $params['send_confirmation_email'] = (!empty( $params['send_confirmation_email'] ));
 
         if (empty($params['accounts_plugin_settings'])
          || !is_array($params['accounts_plugin_settings'])) {
@@ -258,7 +258,6 @@ class PHS_Model_Accounts extends PHS_Model
 
         if (empty($params['accounts_plugin_settings'])
          && (!($params['accounts_plugin_settings'] = $this->get_plugin_settings())
-                || !is_array($params['accounts_plugin_settings'])
          )) {
             $params['accounts_plugin_settings'] = [];
         }
@@ -1522,7 +1521,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array|bool
      */
-    public function update_user_details($account_data, $user_details_arr)
+    public function update_user_details($account_data, array $user_details_arr)
     {
         $this->reset_error();
 
@@ -1533,7 +1532,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))) {
+        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining account details model instance.'));
 
             return false;
@@ -1708,6 +1707,13 @@ class PHS_Model_Accounts extends PHS_Model
                     'level' => [
                         'type'   => self::FTYPE_TINYINT,
                         'length' => 2,
+                    ],
+                    'is_multitenant' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
+                        'index' => true,
+                        'default' => 1,
+                        'comment' => '1 - all tenants, 0 - check users_tenants',
                     ],
                     'deleted' => [
                         'type'  => self::FTYPE_DATETIME,
@@ -2056,6 +2062,11 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{account_roles}'] = false;
         }
 
+        if (!PHS::is_multi_tenant()
+         || empty($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+            $params['{account_tenants}'] = null;
+        }
+
         if (!isset($params['{append_default_roles}'])) {
             $params['{append_default_roles}'] = true;
         } else {
@@ -2150,6 +2161,12 @@ class PHS_Model_Accounts extends PHS_Model
 
         if (!empty($roles_arr)) {
             PHS_Roles::link_roles_to_user($insert_arr, $roles_arr);
+        }
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
+        if (!empty($params['{account_tenants}'])
+         && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
+            $accounts_tenants_model->link_tenants_to_account($insert_arr, $params['{account_tenants}']);
         }
 
         $registration_email_params = [];
@@ -2385,6 +2402,11 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{users_details}'] = false;
         }
 
+        if (!PHS::is_multi_tenant()
+         || empty($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+            $params['{account_tenants}'] = null;
+        }
+
         if (empty($params['{activate_after_registration}'])) {
             $params['{activate_after_registration}'] = false;
         }
@@ -2394,28 +2416,13 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function edit_after_users($existing_data, $edit_arr, $params)
     {
-        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])) {
-            if (!($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
-                }
-
-                return false;
+        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])
+            && !($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
             }
-        }
 
-        if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
-            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-            if (!($roles_model = PHS::load_model('roles'))
-             || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
-                if ($roles_model->has_error()) {
-                    $this->copy_error($roles_model, self::ERR_EDIT);
-                } else {
-                    $roles_model->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
-                }
-
-                return false;
-            }
+            return false;
         }
 
         if (!empty($params['{password_was_changed}'])) {
@@ -2474,6 +2481,35 @@ class PHS_Model_Accounts extends PHS_Model
              && !empty($params['{accounts_settings}']['announce_pass_change'])) {
                 // send password changed email...
                 PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg'], ['uid' => $existing_data['id']]);
+            }
+        }
+
+        if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
+            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            if (!($roles_model = PHS_Model_Roles::get_instance())
+             || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
+                if ($roles_model->has_error()) {
+                    $this->copy_error($roles_model, self::ERR_EDIT);
+                } else {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
+                }
+
+                return false;
+            }
+        }
+
+        if (PHS::is_multi_tenant()
+         && !empty($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
+            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $account_tenants_model */
+            if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
+             || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_roles' => false])) {
+                if ($account_tenants_model->has_error()) {
+                    $this->copy_error($account_tenants_model, self::ERR_EDIT);
+                } else {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
+                }
+
+                return false;
             }
         }
 

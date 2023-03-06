@@ -21,11 +21,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function load_depencies()
     {
-        if ((empty( $this->_admin_plugin )
+        if ((empty($this->_admin_plugin)
              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty( $this->_accounts_model )
+         || (empty($this->_accounts_model)
              && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty( $this->_paginator_model )
+         || (empty($this->_paginator_model)
              && !($this->_paginator_model = PHS_Model_Tenants::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
@@ -75,10 +75,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $list_arr['fields']['status'] = ['check' => '!=', 'value' => $tenants_model::STATUS_DELETED];
 
         $flow_params = [
-            'listing_title'        => $this->_pt('Tenants List'),
-            'term_singular'        => $this->_pt('tenant'),
-            'term_plural'          => $this->_pt('tenants'),
-            'initial_list_arr'     => $list_arr,
+            'listing_title'          => $this->_pt('Tenants List'),
+            'term_singular'          => $this->_pt('tenant'),
+            'term_plural'            => $this->_pt('tenants'),
+            'initial_list_arr'       => $list_arr,
             'after_table_callback'   => [$this, 'after_table_callback'],
             'after_filters_callback' => [$this, 'after_filters_callback'],
         ];
@@ -138,6 +138,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default'      => '',
             ],
             [
+                'display_name' => $this->_pt('Identifier'),
+                'display_hint' => $this->_pt('All records containing this value'),
+                'var_name'     => 'fidentifier',
+                'record_field' => 'identifier',
+                'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
+                'type'         => PHS_Params::T_NOHTML,
+                'default'      => '',
+            ],
+            [
                 'display_name' => $this->_pt('Status'),
                 'var_name'     => 'fstatus',
                 'record_field' => 'status',
@@ -161,25 +170,44 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'display_callback' => [$this, 'display_tenant_name'],
             ],
             [
+                'column_title'        => $this->_pt('Domain'),
+                'record_field'        => 'domain',
+                'default'             => '',
+                'invalid_value'       => $this->_pt('N/A'),
+                'extra_style'         => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+            ],
+            [
+                'column_title'        => $this->_pt('Directory'),
+                'record_field'        => 'directory',
+                'default'             => '',
+                'invalid_value'       => '-',
+                'extra_style'         => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+            ],
+            [
                 'column_title'        => $this->_pt('Identifier'),
                 'record_field'        => 'identifier',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
             [
                 'column_title'        => $this->_pt('Default'),
                 'record_field'        => 'is_default',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
-                'display_key_value' => [
-                    0 => $this->_pt( 'No' ),
-                    1 => $this->_pt( 'Yes' ),
+                'display_key_value'   => [
+                    0 => $this->_pt('No'),
+                    1 => $this->_pt('Yes'),
                 ],
             ],
             [
-                'column_title'        => $this->_pt('Status'),
-                'record_field'        => 'status',
-                'display_key_value'   => $statuses_arr,
-                'invalid_value'       => $this->_pt('Undefined'),
-                'extra_records_style' => 'text-align:center;',
+                'column_title'          => $this->_pt('Status'),
+                'record_field'          => 'status',
+                'display_key_value'     => $statuses_arr,
+                'invalid_value'         => $this->_pt('Undefined'),
+                'extra_classes'         => 'status_th',
+                'extra_records_classes' => 'status',
             ],
             [
                 'column_title'        => $this->_pt('Created'),

@@ -46,73 +46,73 @@ if (empty($plugin_obj)) {
 
 $current_user = PHS::user_logged_in();
 ?>
-<div>
-    <form id="plugin_settings_form" name="plugin_settings_form" action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], ['pid' => $form_data['pid']]); ?>" method="post">
-        <input type="hidden" name="foobar" value="1" />
-        <?php
-        if (!empty($back_page)) {
-            ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
-        }
-?>
-        <div class="form_container responsive">
-
-            <?php
+<form id="plugin_settings_form" name="plugin_settings_form" method="post"
+      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], ['pid' => $form_data['pid']]); ?>">
+    <input type="hidden" name="foobar" value="1" />
+    <?php
     if (!empty($back_page)) {
-        ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str(from_safe_url($back_page)); ?>"><?php echo $this->_pt('Back'); ?></a><?php
+        ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
     }
 ?>
+    <div class="form_container responsive">
 
-            <section class="heading-bordered">
-                <h3>
-                    <?php echo $plugin_info['name']; ?>
-                    <small>
-                    <?php
-        echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version'];
+        <?php
+if (!empty($back_page)) {
+    ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str(from_safe_url($back_page)); ?>"><?php echo $this->_pt('Back'); ?></a><?php
+}
+?>
+
+        <section class="heading-bordered">
+            <h3>
+                <?php echo $plugin_info['name']; ?>
+                <small>
+                <?php
+    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version'];
 
 if (!empty($plugin_info['models'])
- && is_array($plugin_info['models'])) {
+&& is_array($plugin_info['models'])) {
     echo ' - '.$this->_pt('%s models', count($plugin_info['models']));
 }
 ?>
-                    </small>
-                </h3>
-            </section>
+                </small>
+            </h3>
+        </section>
 
-            <?php
-        if (!empty($plugin_info['description'])) {
-            ?><div class="clearfix"></div>
-                <small style="top:-15px;position:relative;"><?php echo $plugin_info['description']; ?></small>
-                <div class="clearfix"></div><?php
-        }
+        <?php
+    if (!empty($plugin_info['description'])) {
+        ?><div class="clearfix"></div>
+            <small style="top:-15px;position:relative;"><?php echo $plugin_info['description']; ?></small>
+            <div class="clearfix"></div><?php
+    }
 
-        if (!empty($modules_with_settings) && is_array($modules_with_settings)) {
-            ?>
-                <div class="lineform">
-                    <label for="selected_module"><?php echo $this->_pt('Settings for'); ?>: </label>
-                    <select name="selected_module" id="selected_module" class="chosen-select-nosearch" onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
-                    <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
-                    <?php
-                foreach ($modules_with_settings as $model_id => $model_arr) {
-                    if (!is_array($model_arr)
-                     || empty($model_arr['instance'])) {
-                        continue;
-                    }
-
-                    /** @var \phs\libraries\PHS_Model $model_instance */
-                    $model_instance = $model_arr['instance'];
-
-                    ?><option value="<?php echo $model_id; ?>" <?php echo $form_data['selected_module'] == $model_id ? 'selected="selected"' : ''; ?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
-                }
-            ?></select>
-                    <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" style="float:none;" />
-                </div>
-                <div class="clearfix" style="margin-bottom: 15px;"></div>
+    if (!empty($modules_with_settings) && is_array($modules_with_settings)) {
+        ?>
+            <div class="lineform">
+                <label for="selected_module"><?php echo $this->_pt('Settings for'); ?>: </label>
+                <select name="selected_module" id="selected_module" class="chosen-select-nosearch" onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
+                <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
                 <?php
-        }
+            foreach ($modules_with_settings as $model_id => $model_arr) {
+                if (!is_array($model_arr)
+                 || empty($model_arr['instance'])) {
+                    continue;
+                }
+
+                /** @var \phs\libraries\PHS_Model $model_instance */
+                $model_instance = $model_arr['instance'];
+
+                ?><option value="<?php echo $model_id; ?>" <?php echo $form_data['selected_module'] === $model_id ? 'selected="selected"' : ''; ?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
+            }
+        ?></select>
+                <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" style="float:none;" />
+            </div>
+            <div class="clearfix" style="margin-bottom: 15px;"></div>
+            <?php
+    }
 
 ?><small><?php
 
-    echo $this->_pt('Database version').': '.$db_version.', ';
+echo $this->_pt('Database version').': '.$db_version.', ';
 echo $this->_pt('Script version').': '.$script_version;
 
 if (version_compare($db_version, $script_version, '<')) {
@@ -126,19 +126,18 @@ if (empty($settings_fields) || !is_array($settings_fields)) {
 } else {
     phs_display_plugin_settings_all_fields($settings_fields, $form_data, $plugin_settings, $this, $plugin_obj);
     ?>
-
-                <fieldset>
-                    <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required" value="<?php echo $this->_pte('Save settings'); ?>" />
-                    <input type="button" id="cancel" class="btn btn-primary" style="margin-right:10px;" onclick="document.location='<?php echo $this::_e($back_page, '\''); ?>';" value="<?php echo $this->_pte('Cancel'); ?>" />
-                </fieldset>
-                <?php
+    <fieldset>
+        <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
+               value="<?php echo $this->_pte('Save settings'); ?>" />
+        <input type="button" id="cancel" class="btn btn-primary" style="margin-right:10px;"
+               onclick="document.location='<?php echo $this::_e($back_page, '\''); ?>';" value="<?php echo $this->_pte('Cancel'); ?>" />
+    </fieldset>
+    <?php
 }
 ?>
+    </div>
+</form>
 
-        </div>
-    </form>
-</div>
-<div class="clearfix"></div>
 <script type="text/javascript">
 function phs_toggle_settings_group( id )
 {

@@ -24,7 +24,7 @@ PHS_Logger::notice(' --- Started agent bg job...', PHS_Logger::TYPE_AGENT);
 
 $input = '';
 
-if (!empty($_SERVER['argv']) && is_array($_SERVER['argv']) && !empty($_SERVER['argv'][1])) {
+if (!empty($_SERVER['argv'][1])) {
     $input = $_SERVER['argv'][1];
 }
 

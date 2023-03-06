@@ -18,7 +18,7 @@ use phs\PHS;
         <label for="name" class="col-sm-2 col-form-label"><?php echo $this->_pt('Name'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="name" name="name" class="form-control" autocomplete="name"
-                   placeholder="<?php echo form_str($this->_pt('Friendly tenant name'))?>"
+                   placeholder="<?php echo form_str($this->_pt('Friendly tenant name')); ?>"
                    value="<?php echo form_str($this->view_var('name')); ?>" />
             <div id="name_help" class="form-text"><?php echo $this::_t('A friendly name to identify the tenant. This will replace PHS_SITE_NAME constant.'); ?></div>
         </div>
@@ -38,7 +38,7 @@ use phs\PHS;
         <label for="identifier" class="col-sm-2 col-form-label"><?php echo $this->_pt('Identifier'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="identifier" name="identifier" class="form-control" autocomplete="identifier"
-                   placeholder="<?php echo form_str($this->_pt('External tenant identifier'))?>"
+                   placeholder="<?php echo form_str($this->_pt('External tenant identifier')); ?>"
                    value="<?php echo form_str($this->view_var('identifier')); ?>" />
             <div id="identifier_help" class="form-text"><?php echo $this::_t('Used to identify the tenant from requests from outside.'); ?></div>
         </div>
@@ -51,7 +51,7 @@ use phs\PHS;
                    rel="skin_checkbox"
                 <?php echo $this->view_var('is_default') ? 'checked="checked"' : ''; ?>>
             <br/>
-            <small><?php echo $this->_pt( 'If no tenant can be selected from the request, use this tenant as default' )?></small>
+            <small><?php echo $this->_pt('If no tenant can be selected from the request, use this tenant as default'); ?></small>
         </div>
     </div>
 

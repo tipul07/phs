@@ -8,6 +8,7 @@ use phs\PHS_Maintenance;
 use phs\libraries\PHS_Roles;
 use phs\system\core\views\PHS_View;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Agent_jobs;
 
 abstract class PHS_Plugin extends PHS_Has_db_registry
 {
@@ -25,8 +26,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     private $_plugin_details = [];
 
     // Plugin details as defined in JSON file
-    /** @var bool|array */
-    private $_plugin_json_details = false;
+    /** @var null|array */
+    private ?array $_plugin_json_details = null;
 
     // For which languages we already checked plugin language file
     // Languages might be defined by other plugins at bootstrap and current language might change
@@ -788,19 +789,18 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return can(array_keys($role_units_arr), ['logical_operation' => 'or']);
     }
 
-    final public function install_agent_jobs()
+    final public function install_agent_jobs() : bool
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Installing agent jobs...');
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -873,8 +873,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -905,8 +904,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -928,8 +926,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -1444,9 +1441,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * Returns plugin information as described in plugin JSON file (if available) as array or false in case there is no JSON file
      * @return array
      */
-    final public function get_plugin_json_info()
+    final public function get_plugin_json_info() : ?array
     {
-        if ($this->_plugin_json_details !== false) {
+        if ($this->_plugin_json_details !== null) {
             return $this->_plugin_json_details;
         }
 

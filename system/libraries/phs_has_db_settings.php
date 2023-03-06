@@ -2,6 +2,7 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use phs\system\core\models\PHS_Model_Plugins;
 
 abstract class PHS_Has_db_settings extends PHS_Instantiable
 {
@@ -12,7 +13,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     INPUT_TYPE_TEXTAREA = 'textarea';
 
     // Validated settings fields structure array
-    protected $_settings_structure = [];
+    protected array $_settings_structure = [];
 
     // Array with default values for settings (key => val) array
     protected $_default_settings = [];
@@ -49,7 +50,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      * Gathers all keys which should be obfuscated for this instance
      * @return array
      */
-    final public function get_all_settings_keys_to_obfuscate()
+    final public function get_all_settings_keys_to_obfuscate() : array
     {
         $obfuscating_keys = $this->get_settings_keys_to_obfuscate();
 
@@ -66,7 +67,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $obfuscating_keys;
     }
 
-    public function default_custom_save_params()
+    public function default_custom_save_params() : array
     {
         return self::st_default_custom_save_params();
     }
@@ -75,7 +76,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      * Validate settings of this instance
      * @return array
      */
-    public function validate_settings_structure()
+    public function validate_settings_structure() : array
     {
         if (!empty($this->_settings_structure)) {
             return $this->_settings_structure;
@@ -127,8 +128,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_db_details($this->instance_id(), $force))
-         || !is_array($db_details)) {
+         || !($db_details = $this->_plugins_instance->get_plugins_db_details($this->instance_id(), $force))) {
             return null;
         }
 
@@ -199,11 +199,11 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     /**
      * @return bool true on success, false on failure
      */
-    protected function _load_plugins_instance()
+    protected function _load_plugins_instance() : bool
     {
         $this->reset_error();
 
-        if (!$this->_plugins_instance && !($this->_plugins_instance = PHS::load_model('plugins'))) {
+        if (!$this->_plugins_instance && !($this->_plugins_instance = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_PLUGINS_MODEL, self::_t('Error loading required resources.'));
 
             return false;
@@ -212,7 +212,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return true;
     }
 
-    protected function default_settings_field()
+    protected function default_settings_field() : array
     {
         return [
             // Used to know how to render this field in plugin settings
@@ -258,12 +258,13 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     /**
      * @param array $structure_arr
-     * @return array|bool
+     *
+     * @return array
      */
-    protected function _validate_settings_structure_field($structure_arr)
+    protected function _validate_settings_structure_field(array $structure_arr) : array
     {
-        if (empty($structure_arr) || !is_array($structure_arr)) {
-            return false;
+        if (empty($structure_arr)) {
+            return [];
         }
 
         $default_settings_field = $this->default_settings_field();
@@ -303,7 +304,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $default_arr;
     }
 
-    public static function default_custom_renderer_params()
+    public static function default_custom_renderer_params() : array
     {
         return [
             'field_id'      => '',
@@ -319,7 +320,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         ];
     }
 
-    public static function st_default_custom_save_params()
+    public static function st_default_custom_save_params() : array
     {
         return [
             'plugin_obj'      => false,
@@ -337,7 +338,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      * can be provided
      * @return array
      */
-    public static function st_default_custom_save_callback_result()
+    public static function st_default_custom_save_callback_result() : array
     {
         return [
             // fields with values to be saved in instance settings as key/value pairs
@@ -351,9 +352,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return bool
      */
-    public static function settings_field_is_group($settings_field)
+    public static function settings_field_is_group($settings_field) : bool
     {
-        return !empty($settings_field) && is_array($settings_field)
-             && !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
+        return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
     }
 }

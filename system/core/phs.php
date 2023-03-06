@@ -634,7 +634,7 @@ final class PHS extends PHS_Registry
         return $themes;
     }
 
-    public static function domain_constants(): array
+    public static function domain_constants() : array
     {
         return [
             // configuration constants
@@ -645,7 +645,7 @@ final class PHS extends PHS_Registry
             'PHS_PORT'          => 'PHS_DEFAULT_PORT',
             'PHS_SSL_PORT'      => 'PHS_DEFAULT_SSL_PORT',
             'PHS_DOMAIN_PATH'   => 'PHS_DEFAULT_DOMAIN_PATH',
-            'PHS_CONTACT_EMAIL'   => 'PHS_DEFAULT_CONTACT_EMAIL',
+            'PHS_CONTACT_EMAIL' => 'PHS_DEFAULT_CONTACT_EMAIL',
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',
 
@@ -662,7 +662,7 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    public static function define_constants(): void
+    public static function define_constants() : void
     {
         $constants_arr = self::domain_constants();
         foreach ($constants_arr as $domain_constant => $default_constant) {
@@ -2674,6 +2674,9 @@ final class PHS extends PHS_Registry
             case PHS_Instantiable::INSTANCE_TYPE_SCOPE:
                 $class_name = 'PHS_Scope_Index';
                 break;
+            case PHS_Instantiable::INSTANCE_TYPE_EVENT:
+                $class_name = 'PHS_Event_Index';
+                break;
 
             default:
                 self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('Invalid instance type to obtain script files list.'));
@@ -3335,6 +3338,9 @@ final class PHS extends PHS_Registry
                 break;
             case PHS_Instantiable::INSTANCE_TYPE_SCOPE:
                 $class_name = 'PHS_Scope_'.$instance_name;
+                break;
+            case PHS_Instantiable::INSTANCE_TYPE_EVENT:
+                $class_name = 'PHS_Event_'.$instance_name;
                 break;
 
             default:

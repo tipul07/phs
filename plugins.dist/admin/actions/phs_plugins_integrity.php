@@ -113,10 +113,13 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         if (!($models_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_MODEL))) {
             $models_arr = [];
         }
+        if (!($events_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_EVENT))) {
+            $events_arr = [];
+        }
 
-        $return_str = '<hr/><p>'.$this->_pt('Checking plugin %s (%s controllers, %s actions, %s contracts, %s models)...',
+        $return_str = '<hr/><p>'.$this->_pt('Checking plugin %s (%s controllers, %s actions, %s contracts, %s models, %s events)...',
             '<strong>'.$plugin_name.'</strong>',
-            count($controllers_arr), count($actions_arr), count($contracts_arr), count($models_arr)).'</p>';
+            count($controllers_arr), count($actions_arr), count($contracts_arr), count($models_arr), count($events_arr)).'</p>';
 
         $return_str .= '<p>Plugin instance... ';
         if (($action_result = $this->check_plugin_integrity($plugin_name))
@@ -252,6 +255,45 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $return_str .= '</p>';
         }
 
+        if (!empty($events_arr)) {
+            $return_str .= '<p>Checking events:<br/>';
+            foreach ($events_arr as $event_info) {
+                if (empty($event_info['file'])) {
+                    continue;
+                }
+
+                $event_name = $event_info['file'];
+                $event_dir = (!empty($event_info['dir']) ? $event_info['dir'] : '');
+
+                $check_params = [
+                    'event' => $event_name,
+                    'dir'   => $event_dir,
+                ];
+
+                $return_str .= 'Event '.($event_dir ? $event_dir.'/' : '').$event_name.'... ';
+                if (($action_result = $this->check_plugin_integrity($plugin_name, $check_params))
+                && !empty($action_result['ajax_result'])
+                && empty($action_result['ajax_result']['has_error'])) {
+                    if (!empty($action_result['ajax_result']['instance_details'])
+                    && is_array($action_result['ajax_result']['instance_details'])) {
+                        $instance_details = $action_result['ajax_result']['instance_details'];
+
+                        $return_str .= ' '.$instance_details['instance_id'].' ';
+                    }
+
+                    $return_str .= '<span style="color:green">OK</span>';
+                } else {
+                    $return_str .= '<span style="color:red">FAILED ('
+                                       .((!empty($action_result) && !empty($action_result['buffer']))
+                                           ? $action_result['buffer']
+                                           : $this->_pt('N/A')).')</span>';
+                }
+
+                $return_str .= '<br/>';
+            }
+            $return_str .= '</p>';
+        }
+
         if (!empty($models_arr)) {
             $return_str .= '<p>Checking models:<br/>';
             foreach ($models_arr as $model_info) {
@@ -312,6 +354,9 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         if (empty($params['contract'])) {
             $params['contract'] = false;
         }
+        if (empty($params['event'])) {
+            $params['event'] = false;
+        }
         if (empty($params['dir'])) {
             $params['dir'] = false;
         }
@@ -329,6 +374,9 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         }
         if (!empty($params['contract'])) {
             $script_params['co'] = $params['contract'];
+        }
+        if (!empty($params['event'])) {
+            $script_params['e'] = $params['event'];
         }
         if (!empty($params['dir'])) {
             $script_params['dir'] = $params['dir'];

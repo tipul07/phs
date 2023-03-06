@@ -297,7 +297,9 @@ class PHS_Model_Plugins extends PHS_Model
             unset(self::$db_plugins[$instance_id]);
         }
 
-        $new_settings_arr = $this->get_plugins_db_settings($instance_id, null, $obfuscating_keys, true);
+        if( !($new_settings_arr = $this->get_plugins_db_settings($instance_id, null, $obfuscating_keys, true)) ) {
+            $new_settings_arr = [];
+        }
 
         // Trigger plugin settings saved...
         $hook_args = PHS_Hooks::default_plugin_settings_saved_hook_args();
@@ -408,7 +410,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_settings[$instance_id];
     }
 
-    public function save_plugins_db_registry($registry_arr, $instance_id = null)
+    public function save_plugins_db_registry($registry_arr, $instance_id = null) : ?array
     {
         $this->reset_error();
 
@@ -416,14 +418,14 @@ class PHS_Model_Plugins extends PHS_Model
          && !($instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_REGISTRY, self::_t('Unknown instance ID.'));
 
-            return false;
+            return null;
         }
 
         if (!($instance_details = self::valid_instance_id($instance_id))
          || empty($instance_details['plugin_name'])) {
             $this->set_error(self::ERR_REGISTRY, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         $plugin_details = [];
@@ -437,7 +439,7 @@ class PHS_Model_Plugins extends PHS_Model
                 $this->set_error(self::ERR_DB_DETAILS, self::_t('Error saving registry data in database.'));
             }
 
-            return false;
+            return null;
         }
 
         // clean caches...
@@ -451,7 +453,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->get_plugins_db_registry($instance_id, true);
     }
 
-    public function get_plugins_db_registry($instance_id = null, $force = false)
+    public function get_plugins_db_registry($instance_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -459,14 +461,14 @@ class PHS_Model_Plugins extends PHS_Model
          && !self::valid_instance_id($instance_id)) {
             $this->set_error(self::ERR_REGISTRY, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         if ($instance_id === null
          && !($instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_REGISTRY, self::_t('Unknown instance ID.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($force)
@@ -479,7 +481,7 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         if (!($db_details = $this->get_db_registry($instance_id, $force))) {
-            return false;
+            return null;
         }
 
         if (empty($db_details['registry'])) {
@@ -949,9 +951,9 @@ class PHS_Model_Plugins extends PHS_Model
      * @param null|string $instance_id Instance ID to check in database
      * @param bool $force True if we should skip caching
      *
-     * @return array|bool|false Array containing database registry fields of given instance_id (if available)
+     * @return null|array Array containing database registry fields of given instance_id (if available)
      */
-    public function get_db_registry($instance_id = null, $force = false)
+    public function get_db_registry($instance_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -959,14 +961,14 @@ class PHS_Model_Plugins extends PHS_Model
          && !self::valid_instance_id($instance_id)) {
             $this->set_error(self::ERR_INSTANCE, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         if ($instance_id === null
          && !($instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_INSTANCE, self::_t('Unknown instance ID.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($force)
@@ -988,7 +990,7 @@ class PHS_Model_Plugins extends PHS_Model
         if (!($db_details = $this->get_details_fields($check_arr))) {
             db_restore_errors_state($this->get_db_connection());
 
-            return false;
+            return null;
         }
 
         db_restore_errors_state($this->get_db_connection());

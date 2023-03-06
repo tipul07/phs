@@ -6,17 +6,17 @@ use phs\PHS;
 abstract class PHS_Has_db_registry extends PHS_Has_db_settings
 {
     // Database record
-    protected $_db_registry_details = false;
+    protected ?array $_db_registry_details = null;
 
     // Database registry field parsed as array
-    protected $_db_registry = false;
+    protected ?array $_db_registry = null;
 
     /**
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
      * @return array|bool
      */
-    public function get_db_registry_details($force = false)
+    public function get_db_registry_details(bool $force = false)
     {
         if (empty($force)
         && !empty($this->_db_registry_details)) {
@@ -26,7 +26,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         if (!$this->_load_plugins_instance()
          || !($db_details = $this->_plugins_instance->get_db_registry($this->instance_id(), $force))
          || !is_array($db_details)) {
-            return false;
+            return null;
         }
 
         $this->_db_registry_details = $db_details;
@@ -37,17 +37,17 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
     /**
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
-     * @return array|bool Settings saved in database for current instance
+     * @return null|array Settings saved in database for current instance
      */
-    public function get_db_registry($force = false)
+    public function get_db_registry(bool $force = false) : ?array
     {
         if (empty($force)
-        && $this->_db_registry !== false) {
+        && $this->_db_registry !== null) {
             return $this->_db_registry;
         }
 
         if (!$this->_load_plugins_instance()) {
-            return false;
+            return null;
         }
 
         if (!($db_registry = $this->_plugins_instance->get_plugins_db_registry($this->instance_id(), $force))
@@ -60,10 +60,10 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_db_registry;
     }
 
-    public function save_db_registry($registry_arr)
+    public function save_db_registry($registry_arr) : ?array
     {
         if (!$this->_load_plugins_instance()) {
-            return false;
+            return null;
         }
 
         if (!($db_registry = $this->_plugins_instance->save_plugins_db_registry($registry_arr, $this->instance_id()))
@@ -74,7 +74,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         $this->_db_registry = $db_registry;
 
         // invalidate cached data...
-        $this->_db_registry_details = false;
+        $this->_db_registry_details = null;
 
         return $this->_db_registry;
     }

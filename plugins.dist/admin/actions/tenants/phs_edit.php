@@ -123,12 +123,12 @@ class PHS_Action_Edit extends PHS_Action
         }
 
         $data = [
-            'tid'              => $tenant_arr['id'],
-            'back_page'        => $back_page,
-            'name'              => $name,
-            'domain' => $domain,
-            'identifier'            => $identifier,
-            'is_default'          => $is_default,
+            'tid'        => $tenant_arr['id'],
+            'back_page'  => $back_page,
+            'name'       => $name,
+            'domain'     => $domain,
+            'identifier' => $identifier,
+            'is_default' => $is_default,
         ];
 
         return $this->quick_render_template('tenants/edit', $data);

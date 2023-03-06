@@ -59,7 +59,6 @@ class PHS_Action_Add extends PHS_Action
 
         $do_submit = PHS_Params::_p('do_submit');
 
-
         if (!empty($do_submit)) {
             $insert_arr = [];
             $insert_arr['added_by_uid'] = $current_user['id'];
@@ -84,15 +83,15 @@ class PHS_Action_Add extends PHS_Action
             }
         }
 
-        if( empty( $foobar ) ) {
+        if (empty($foobar)) {
             $identifier = $tenants_model->generate_identifier();
         }
 
         $data = [
-            'name'              => $name,
-            'domain' => $domain,
-            'identifier'            => $identifier,
-            'is_default'          => $is_default,
+            'name'       => $name,
+            'domain'     => $domain,
+            'identifier' => $identifier,
+            'is_default' => $is_default,
         ];
 
         return $this->quick_render_template('tenants/add', $data);
