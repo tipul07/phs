@@ -16,7 +16,7 @@ use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.8';
+    return '1.1.8.9';
 }
 
 function action_request_login() : array
