@@ -11,6 +11,7 @@ use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\libraries\PHS_Has_db_settings;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {
@@ -56,6 +57,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
                  || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                  || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
          )) {
+            $action_result = self::default_action_result();
+
             $args = ['unknown_plugin' => 1];
 
             if (empty($back_page)) {
@@ -286,7 +289,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data)
+    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data): array
     {
         $new_settings_arr = [];
         foreach ($settings_fields as $field_name => $field_details) {
@@ -349,15 +352,19 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         switch ($field_details['input_type']) {
             default:
-            case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE:
-            case PHS_Plugin::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
-                $field_value = $form_data[$field_name];
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE:
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                if( isset( $form_data[$field_name] ) ) {
+                    $field_value = $form_data[$field_name];
+                } elseif( isset( $default_settings[$field_name] ) ) {
+                    $field_value = $default_settings[$field_name];
+                }
                 break;
 
-            case PHS_Plugin::INPUT_TYPE_TEMPLATE:
+            case PHS_Has_db_settings::INPUT_TYPE_TEMPLATE:
                 break;
 
-            case PHS_Plugin::INPUT_TYPE_KEY_VAL_ARRAY:
+            case PHS_Has_db_settings::INPUT_TYPE_KEY_VAL_ARRAY:
                 if (empty($default_settings[$field_name])) {
                     $field_value = $form_data[$field_name];
                 } else {
