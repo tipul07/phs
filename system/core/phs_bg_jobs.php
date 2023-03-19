@@ -241,6 +241,13 @@ class PHS_Bg_jobs extends PHS_Registry
 
         PHS_Logger::notice('Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND);
 
+        ob_start();
+        var_dump(PHS::st_debugging_mode());
+        $buf = ob_get_clean();
+
+        PHS_Logger::debug('['.$buf.'] Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
+        PHS_Logger::notice('['.$buf.'] Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
+
         if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
         }
@@ -452,27 +459,27 @@ class PHS_Bg_jobs extends PHS_Registry
 
         self::current_job_data($job_arr);
 
-        if ($bg_jobs_model->job_is_running($job_arr)) {
-            if (null === ($job_stalling = $bg_jobs_model->job_is_stalling($job_arr))) {
-                if ($bg_jobs_model->has_error()) {
-                    self::st_copy_error($bg_jobs_model);
-                }
-
-                return false;
-            }
-
-            if (empty($job_stalling)) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job already running.'));
-
-                return false;
-            }
-
-            if (empty($extra['force_run'])) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job seems to stall. Run not told to force execution.'));
-
-                return false;
-            }
-        }
+        //        if ($bg_jobs_model->job_is_running($job_arr)) {
+        //            if (null === ($job_stalling = $bg_jobs_model->job_is_stalling($job_arr))) {
+        //                if ($bg_jobs_model->has_error()) {
+        //                    self::st_copy_error($bg_jobs_model);
+        //                }
+        //
+        //                return false;
+        //            }
+        //
+        //            if (empty($job_stalling)) {
+        //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job already running.'));
+        //
+        //                return false;
+        //            }
+        //
+        //            if (empty($extra['force_run'])) {
+        //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job seems to stall. Run not told to force execution.'));
+        //
+        //                return false;
+        //            }
+        //        }
 
         if (!($pid = @getmypid())) {
             $pid = -1;

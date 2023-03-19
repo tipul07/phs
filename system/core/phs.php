@@ -3039,6 +3039,14 @@ final class PHS extends PHS_Registry
                     continue;
                 }
 
+                if (!@is_callable($hook_callback['callback'])) {
+                    if (self::st_debugging_mode()) {
+                        PHS_Logger::critical('Hook ['.$hook_name.'] not all callable ('
+                            .@print_r($hook_callback['callback'], true).')', PHS_Logger::TYPE_DEBUG);
+                    }
+                    continue;
+                }
+
                 if (empty($hook_callback['args']) || !is_array($hook_callback['args'])) {
                     $hook_callback['args'] = [];
                 }
@@ -3199,9 +3207,16 @@ final class PHS extends PHS_Registry
                     exit;
                     break;
 
-                case PHS_Scope::SCOPE_AGENT:
                 case PHS_Scope::SCOPE_BACKGROUND:
-                    PHS_Logger::error($error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n".$backtrace_str);
+                case PHS_Scope::SCOPE_AGENT:
+                    if (@class_exists(PHS_Logger::class, false)) {
+                        $error_msg = $error_type.': ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr."\n"
+                            .$backtrace_str;
+
+                        PHS_Logger::error($error_msg,
+                            ($current_scope === PHS_Scope::SCOPE_BACKGROUND ? PHS_Logger::TYPE_BACKGROUND : PHS_Logger::TYPE_AGENT)
+                        );
+                    }
                     break;
             }
         }

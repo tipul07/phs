@@ -30,8 +30,8 @@ class PHS_Logger extends PHS_Registry
     /** @var int Current log level... */
     private static int $_log_level = self::L_DEBUG;
 
-    /** @var int Default log level if not provided... */
-    private static int $_default_log_level = self::L_NOTICE;
+    /** @var null|int Default log level if not provided... */
+    private static ?int $_default_log_level = null;
 
     /** @var bool */
     private static bool $_logging = true;
@@ -203,7 +203,11 @@ class PHS_Logger extends PHS_Registry
     public static function default_log_level(?int $lvl = null) : ?int
     {
         if ($lvl === null) {
-            return self::$_default_log_level;
+            if (self::$_default_log_level !== null) {
+                return self::$_default_log_level;
+            }
+
+            return self::st_debugging_mode() ? self::L_DEBUG : self::L_NOTICE;
         }
 
         if (!self::valid_log_level($lvl)) {
