@@ -287,7 +287,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data): array
+    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data) : array
     {
         $new_settings_arr = [];
         foreach ($settings_fields as $field_name => $field_details) {
@@ -352,9 +352,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
             default:
             case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE:
             case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
-                if( isset( $form_data[$field_name] ) ) {
+                if (isset($form_data[$field_name])) {
                     $field_value = $form_data[$field_name];
-                } elseif( isset( $default_settings[$field_name] ) ) {
+                } elseif (isset($default_settings[$field_name])) {
                     $field_value = $default_settings[$field_name];
                 }
                 break;
