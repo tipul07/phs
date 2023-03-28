@@ -23,6 +23,8 @@ if (empty($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR) || !is_array($PHS_DEFAULT_CRYPT_
 
 phs_init_before_bootstrap();
 
+include_once PHS_LIBRARIES_DIR.'phs_event_interface.php';
+
 include_once PHS_LIBRARIES_DIR.'phs_error.php';
 
 include_once PHS_LIBRARIES_DIR.'phs_language_container.php';
@@ -83,7 +85,6 @@ include_once PHS_LIBRARIES_DIR.'phs_contract.php';
 
 include_once PHS_LIBRARIES_DIR.'phs_contract_list.php';
 
-include_once PHS_LIBRARIES_DIR.'phs_event_interface.php';
 include_once PHS_LIBRARIES_DIR.'phs_event.php';
 
 include_once PHS_LIBRARIES_DIR.'phs_encdec.php';
