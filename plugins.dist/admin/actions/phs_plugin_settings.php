@@ -57,8 +57,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
                  || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                  || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
          )) {
-            $action_result = self::default_action_result();
-
             $args = ['unknown_plugin' => 1];
 
             if (empty($back_page)) {

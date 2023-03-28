@@ -86,7 +86,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'tenants'];
+        return ['tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys'];
     }
 
     /**
@@ -417,9 +417,9 @@ final class PHS extends PHS_Registry
     /**
      * @param string $theme
      *
-     * @return bool|string
+     * @return string
      */
-    public static function valid_theme($theme)
+    public static function valid_theme($theme): string
     {
         self::st_reset_error();
 
@@ -429,9 +429,9 @@ final class PHS extends PHS_Registry
          || !@file_exists(PHS_THEMES_DIR.$theme)
          || !@is_dir(PHS_THEMES_DIR.$theme)
          || !@is_readable(PHS_THEMES_DIR.$theme)) {
-            self::st_set_error(self::ERR_THEME, self::_t('Theme %s doesn\'t exist or directory is not readable.', ($theme ? $theme : 'N/A')));
+            self::st_set_error(self::ERR_THEME, self::_t('Theme %s doesn\'t exist or directory is not readable.', ($theme ?: 'N/A')));
 
-            return false;
+            return '';
         }
 
         return $theme;
@@ -606,14 +606,18 @@ final class PHS extends PHS_Registry
         return $theme;
     }
 
-    public static function get_default_theme()
+    /**
+     * @return null|string
+     */
+    public static function get_default_theme(): ?string
     {
         $theme = self::get_data(self::DEFAULT_THEME);
 
         if (!$theme) {
             if (!self::resolve_theme()
-             || !($theme = self::get_data(self::DEFAULT_THEME))) {
-                return false;
+             || !($theme = self::get_data(self::DEFAULT_THEME))
+             || !is_string($theme) ) {
+                return null;
             }
         }
 
@@ -2153,11 +2157,11 @@ final class PHS extends PHS_Registry
      * Try loading a core library
      *
      * @param string $library Core library file to be loaded
-     * @param bool|array $params Loading parameters
+     * @param null|array $params Loading parameters
      *
-     * @return false|libraries\PHS_Library
+     * @return null|\phs\libraries\PHS_Library
      */
-    public static function load_core_library(string $library, $params = false)
+    public static function load_core_library(string $library, array $params = null): ?PHS_Library
     {
         self::st_reset_error();
 
@@ -2180,7 +2184,7 @@ final class PHS extends PHS_Registry
         if (!($library = PHS_Instantiable::safe_escape_library_name($library))) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['as_singleton'])
@@ -2191,7 +2195,7 @@ final class PHS extends PHS_Registry
         if (!($file_path = self::get_core_library_full_path($library))) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library [%s].', $library));
 
-            return false;
+            return null;
         }
 
         ob_start();
@@ -2201,7 +2205,7 @@ final class PHS extends PHS_Registry
         if (!@class_exists($params['full_class_name'], false)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t instantiate library class for core library [%s].', $library));
 
-            return false;
+            return null;
         }
 
         /** @var \phs\libraries\PHS_Library $library_instance */
@@ -2214,7 +2218,7 @@ final class PHS extends PHS_Registry
         if (!($library_instance instanceof PHS_Library)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] is not a PHS library.', $library));
 
-            return false;
+            return null;
         }
 
         $location_details = $library_instance::get_library_default_location_paths();
@@ -2225,7 +2229,7 @@ final class PHS extends PHS_Registry
         if (!$library_instance->set_library_location_paths($location_details)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] couldn\'t set location paths.', $library));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['as_singleton'])) {
@@ -2237,20 +2241,20 @@ final class PHS extends PHS_Registry
 
     /**
      * @param string $core_library Short library name (eg. ftp, paginator_exporter_csv, etc)
-     * @param bool|array $params Parameters passed to self::load_core_library() method
+     * @param null|array $params Parameters passed to self::load_core_library() method
      *
-     * @return false|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
+     * @return null|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
      */
-    public static function get_core_library_instance(string $core_library, $params = false)
+    public static function get_core_library_instance(string $core_library, array $params = null): ?PHS_Library
     {
         if (empty($core_library)
-         || !($library_name = PHS_Instantiable::safe_escape_library_name($core_library))) {
+         || '' === PHS_Instantiable::safe_escape_library_name($core_library)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             $params = [];
         }
 
@@ -2260,7 +2264,7 @@ final class PHS extends PHS_Registry
         $library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_'.ucfirst($core_library);
 
         if (!($library_obj = self::load_core_library('phs_'.$core_library, $library_params))) {
-            return false;
+            return null;
         }
 
         return $library_obj;
@@ -2272,14 +2276,14 @@ final class PHS extends PHS_Registry
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
      * @param string|bool $plugin Plugin where model is located (false means a core model)
      *
-     * @return false|\phs\libraries\PHS_Model_Mysqli Returns false on error or an instance of loaded model
+     * @return null|\phs\libraries\PHS_Instantiable|\phs\libraries\PHS_Model_Mysqli
      */
     public static function load_model(string $model, $plugin = false)
     {
         if (!($model_name = PHS_Instantiable::safe_escape_class_name($model))) {
             self::st_set_error(self::ERR_LOAD_MODEL, self::_t('Couldn\'t load model %s from plugin %s.', $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Model_'.ucfirst(strtolower($model_name));
@@ -2293,7 +2297,7 @@ final class PHS extends PHS_Registry
                 self::st_set_error(self::ERR_LOAD_MODEL, self::_t('Couldn\'t obtain instance for model %s from plugin %s .', $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
@@ -2306,7 +2310,7 @@ final class PHS extends PHS_Registry
      * @param string|bool $plugin Plugin where view is located (false means a core view)
      * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
-     * @return false|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
+     * @return null|\phs\libraries\PHS_Instantiable|\phs\system\core\views\PHS_View
      */
     public static function load_view($view = false, $plugin = false, bool $as_singleton = true)
     {
@@ -2317,7 +2321,7 @@ final class PHS extends PHS_Registry
          && !($view_class = PHS_Instantiable::safe_escape_class_name($view))) {
             self::st_set_error(self::ERR_LOAD_VIEW, self::_t('Couldn\'t load view %s from plugin %s.', $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         if (!empty($view_class)) {
@@ -2332,17 +2336,15 @@ final class PHS extends PHS_Registry
 
         // Views are not singletons
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
-            if ($plugin === false) {
+            if (empty($plugin)) {
                 if (!self::st_has_error()) {
                     self::st_set_error(self::ERR_LOAD_VIEW,
                         self::_t('Couldn\'t obtain instance for model %s from plugin %s .', $view,
                             PHS_Instantiable::CORE_PLUGIN));
                 }
 
-                return false;
+                return null;
             }
-
-            $plugin = false;
 
             self::st_reset_error();
 
@@ -2354,7 +2356,7 @@ final class PHS extends PHS_Registry
                             PHS_Instantiable::CORE_PLUGIN));
                 }
 
-                return false;
+                return null;
             }
         }
 
@@ -2365,14 +2367,14 @@ final class PHS extends PHS_Registry
      * @param string $controller
      * @param string|bool $plugin
      *
-     * @return false|\phs\libraries\PHS_Controller Returns false on error or an instance of loaded controller
+     * @return null|\phs\libraries\PHS_Controller|\phs\libraries\PHS_Instantiable
      */
     public static function load_controller(string $controller, $plugin = false)
     {
         if (!($controller_name = PHS_Instantiable::safe_escape_class_name($controller))) {
             self::st_set_error(self::ERR_LOAD_CONTROLLER, self::_t('Couldn\'t load controller %s from plugin %s.', $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Controller_'.ucfirst(strtolower($controller_name));
@@ -2386,7 +2388,7 @@ final class PHS extends PHS_Registry
                 self::st_set_error(self::ERR_LOAD_CONTROLLER, self::_t('Couldn\'t obtain instance for controller %s from plugin %s .', $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
@@ -2397,7 +2399,7 @@ final class PHS extends PHS_Registry
      * @param string|bool $plugin
      * @param string $action_dir
      *
-     * @return false|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
+     * @return null|\phs\libraries\PHS_Action|\phs\libraries\PHS_Instantiable
      */
     public static function load_action(string $action, $plugin = false, string $action_dir = '')
     {
@@ -2413,7 +2415,7 @@ final class PHS extends PHS_Registry
                     ($action_dir !== '' ? $action_dir.'/' : '').$action,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         if ('' !== $action_dir
@@ -2423,7 +2425,7 @@ final class PHS extends PHS_Registry
                     $action_dir.'/'.$action,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Action_'.ucfirst(strtolower($action_name));
@@ -2446,7 +2448,7 @@ final class PHS extends PHS_Registry
                         (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
@@ -2457,7 +2459,7 @@ final class PHS extends PHS_Registry
      * @param string|bool $plugin
      * @param string $contract_dir
      *
-     * @return bool|\phs\libraries\PHS_Contract Returns false on error || an instance of loaded contract
+     * @return null|\phs\libraries\PHS_Contract|\phs\libraries\PHS_Instantiable
      */
     public static function load_contract(string $contract, $plugin = false, string $contract_dir = '')
     {
@@ -2473,7 +2475,7 @@ final class PHS extends PHS_Registry
                     ($contract_dir !== '' ? $contract_dir.'/' : '').$contract,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         if ('' !== $contract_dir
@@ -2483,7 +2485,7 @@ final class PHS extends PHS_Registry
                     $contract_dir.'/'.$contract,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Contract_'.ucfirst(strtolower($contract_name));
@@ -2506,7 +2508,7 @@ final class PHS extends PHS_Registry
                         (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
@@ -2517,7 +2519,7 @@ final class PHS extends PHS_Registry
      * @param string|bool $plugin
      * @param string $event_dir
      *
-     * @return bool|\phs\libraries\PHS_Contract Returns false on error || an instance of loaded contract
+     * @return null|\phs\libraries\PHS_Event|\phs\libraries\PHS_Instantiable
      */
     public static function load_event(string $event, $plugin = false, string $event_dir = '')
     {
@@ -2533,7 +2535,7 @@ final class PHS extends PHS_Registry
                     ($event_dir !== '' ? $event_dir.'/' : '').$event,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         if ('' !== $event_dir
@@ -2543,7 +2545,7 @@ final class PHS extends PHS_Registry
                     $event_dir.'/'.$event,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Event_'.ucfirst(strtolower($event_name));
@@ -2567,24 +2569,24 @@ final class PHS extends PHS_Registry
                         (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
     }
 
     /**
-     * @param string $scope
+     * @param  string  $scope
      * @param string|bool $plugin
      *
-     * @return false|\phs\PHS_Scope Returns false on error || an instance of loaded scope
+     * @return null|\phs\PHS_Scope|\phs\libraries\PHS_Instantiable Returns false on error || an instance of loaded scope
      */
-    public static function load_scope($scope, $plugin = false)
+    public static function load_scope(string $scope, $plugin = false)
     {
         if (!($scope_name = PHS_Instantiable::safe_escape_class_name($scope))) {
             self::st_set_error(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t load scope %s from plugin %s.', $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Scope_'.ucfirst(strtolower($scope_name));
@@ -2599,7 +2601,7 @@ final class PHS extends PHS_Registry
                 self::st_set_error(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s .', $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;
@@ -2608,14 +2610,14 @@ final class PHS extends PHS_Registry
     /**
      * @param string $plugin_name Plugin name to be loaded
      *
-     * @return false|\phs\libraries\PHS_Plugin Returns false on error || an instance of loaded plugin
+     * @return null|\phs\libraries\PHS_Plugin|\phs\libraries\PHS_Instantiable Returns false on error || an instance of loaded plugin
      */
     public static function load_plugin($plugin_name)
     {
         if (!is_string($plugin_name)) {
             self::st_set_error(self::ERR_LOAD_PLUGIN, self::_t('Plugin name is not a string.'));
 
-            return false;
+            return null;
         }
 
         if (empty($plugin_name)
@@ -2623,7 +2625,7 @@ final class PHS extends PHS_Registry
          || !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name($plugin_name))) {
             self::st_set_error(self::ERR_LOAD_PLUGIN, self::_t('Couldn\'t load plugin %s.', (empty($plugin_name) ? PHS_Instantiable::CORE_PLUGIN : $plugin_name)));
 
-            return false;
+            return null;
         }
 
         $class_name = 'PHS_Plugin_'.ucfirst(strtolower($plugin_safe_name));
@@ -2633,7 +2635,7 @@ final class PHS extends PHS_Registry
                 self::st_set_error(self::ERR_LOAD_PLUGIN, self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name));
             }
 
-            return false;
+            return null;
         }
 
         return $instance_obj;

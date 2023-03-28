@@ -2063,7 +2063,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!PHS::is_multi_tenant()
-         || empty($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
             $params['{account_tenants}'] = null;
         }
 
@@ -2403,7 +2403,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!PHS::is_multi_tenant()
-         || empty($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
             $params['{account_tenants}'] = null;
         }
 
@@ -2499,10 +2499,10 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (PHS::is_multi_tenant()
-         && !empty($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
+         && isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
             /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $account_tenants_model */
             if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
-             || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_roles' => false])) {
+             || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_tenants' => false])) {
                 if ($account_tenants_model->has_error()) {
                     $this->copy_error($account_tenants_model, self::ERR_EDIT);
                 } else {

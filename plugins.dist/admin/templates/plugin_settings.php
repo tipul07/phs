@@ -10,8 +10,8 @@ if (!($form_data = $this->view_var('form_data'))) {
     $form_data = [];
 }
 
-/** @var \phs\libraries\PHS_Plugin $plugin_obj */
-$plugin_obj = false;
+/** @var null|\phs\libraries\PHS_Plugin $plugin_obj */
+$plugin_obj = null;
 if ((empty($form_data['pid']) || $form_data['pid'] !== PHS_Instantiable::CORE_PLUGIN)
  && !($plugin_obj = $this->view_var('plugin_obj'))) {
     return $this->_pt('Plugin ID is invalid or plugin was not found.');
@@ -104,7 +104,8 @@ if (!empty($plugin_info['models'])
                 ?><option value="<?php echo $model_id; ?>" <?php echo $form_data['selected_module'] === $model_id ? 'selected="selected"' : ''; ?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
             }
         ?></select>
-                <input type="submit" id="select_module" name="select_module" class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" style="float:none;" />
+                <input type="submit" id="select_module" name="select_module"
+                       class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" style="float:none;" />
             </div>
             <div class="clearfix" style="margin-bottom: 15px;"></div>
             <?php
@@ -158,7 +159,7 @@ function phs_toggle_settings_group( id )
  * @param array $form_data
  * @param array $plugin_settings
  * @param \phs\system\core\views\PHS_View $fthis
- * @param \phs\libraries\PHS_Plugin $plugin_obj
+ * @param null|\phs\libraries\PHS_Plugin $plugin_obj
  */
 function phs_display_plugin_settings_all_fields($settings_fields, $form_data, $plugin_settings, $fthis, $plugin_obj)
 {

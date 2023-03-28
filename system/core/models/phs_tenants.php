@@ -207,19 +207,6 @@ class PHS_Model_Tenants extends PHS_Model
         return $all_tenants_arr[$identifier];
     }
 
-    public function get_tenant_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
-    {
-        if (empty( $domain )
-            || !($identifier = $domain.'/'.($directory ?? ''))
-            || !PHS::is_multi_tenant()
-            || !($all_tenants_arr = $this->_get_cached_tenants_by_domain_and_directory())
-            || empty( $all_tenants_arr[$identifier] )) {
-            return null;
-        }
-
-        return $all_tenants_arr[$identifier];
-    }
-
     public function get_tenants_as_key_val() : array
     {
         if (!PHS::is_multi_tenant()
@@ -233,6 +220,16 @@ class PHS_Model_Tenants extends PHS_Model
         }
 
         return $return_arr;
+    }
+
+    public function get_all_tenants() : array
+    {
+        if (!PHS::is_multi_tenant()
+            || !($all_tenants_arr = $this->_get_cached_tenants())) {
+            return [];
+        }
+
+        return $all_tenants_arr;
     }
 
     private function _get_cached_tenants(bool $only_active = false, bool $force = false): ?array
@@ -292,32 +289,6 @@ class PHS_Model_Tenants extends PHS_Model
         return ($only_active?$active_tenants_id:$all_tenants_id);
     }
 
-    private function _get_cached_tenants_by_domain_and_directory(bool $only_active = false, bool $force = false): ?array
-    {
-        static $all_tenants_dd = null, $active_tenants_dd = null;
-
-        if (empty($force)
-            && $all_tenants_dd !== null) {
-            return ($only_active?$active_tenants_dd:$all_tenants_dd);
-        }
-
-        $all_tenants_dd = [];
-        $active_tenants_dd = [];
-        if (!($result_list = $this->_get_cached_tenants(false, $force))) {
-            return [];
-        }
-
-        foreach ($result_list as $t_arr) {
-            $identifier = $t_arr['domain'].'/'.($t_arr['directory'] ?? '');
-            $all_tenants_dd[$identifier] = $t_arr;
-            if( $this->is_active($t_arr)) {
-                $active_tenants_dd[$identifier] = $t_arr;
-            }
-        }
-
-        return ($only_active?$active_tenants_dd:$all_tenants_dd);
-    }
-
     public function can_user_edit($record_data, $account_data) : ?array
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -373,11 +344,6 @@ class PHS_Model_Tenants extends PHS_Model
                         'default'  => null,
                     ],
                     'domain' => [
-                        'type'   => self::FTYPE_VARCHAR,
-                        'length' => 255,
-                        'index'  => true,
-                    ],
-                    'directory' => [
                         'type'   => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'index'  => true,
@@ -445,21 +411,6 @@ class PHS_Model_Tenants extends PHS_Model
             return false;
         }
 
-        if (empty($params['fields']['directory'])) {
-            $params['fields']['directory'] = null;
-        }
-
-        if ($this->get_details_fields(
-            [
-                'domain'    => $params['fields']['domain'],
-                'directory' => $params['fields']['directory'],
-            ])
-        ) {
-            $this->set_error(self::ERR_INSERT, $this->_pt('There is already a tenant defined for this domain and directory.'));
-
-            return false;
-        }
-
         if (empty($params['fields']['identifier'])) {
             $params['fields']['identifier'] = $this->generate_identifier();
             while ($this->get_details_fields(['identifier' => $params['fields']['identifier']])) {
@@ -487,23 +438,6 @@ class PHS_Model_Tenants extends PHS_Model
     protected function get_edit_prepare_params_phs_tenants($existing_data, $params)
     {
         if (empty($params) || !is_array($params)) {
-            return false;
-        }
-
-        if (isset($params['fields']['directory'])
-         && $params['fields']['directory'] === '') {
-            $params['fields']['directory'] = null;
-        }
-
-        if (!empty($params['fields']['domain'])
-         && $this->get_details_fields(
-             [
-                 'domain'    => $params['fields']['domain'],
-                 'directory' => $params['fields']['directory'],
-                 'id'        => ['check' => '!=', 'value' => $existing_data['id']],
-             ])) {
-            $this->set_error(self::ERR_INSERT, $this->_pt('There is already a tenant defined for this domain and directory.'));
-
             return false;
         }
 

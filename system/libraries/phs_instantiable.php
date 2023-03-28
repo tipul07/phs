@@ -1128,13 +1128,13 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @param string|false $name
      *
-     * @return bool|string
+     * @return string
      */
-    public static function safe_escape_plugin_name($name)
+    public static function safe_escape_plugin_name($name): string
     {
         if (empty($name) || !is_string($name)
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
-            return false;
+            return '';
         }
 
         return strtolower($name);
@@ -1143,13 +1143,13 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @param string $name
      *
-     * @return bool|string
+     * @return string
      */
-    public static function safe_escape_theme_name($name)
+    public static function safe_escape_theme_name($name): string
     {
         if (empty($name) || !is_string($name)
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
-            return false;
+            return '';
         }
 
         return strtolower($name);
@@ -1275,16 +1275,16 @@ abstract class PHS_Instantiable extends PHS_Registry
      * @param string $instance_subdir Instance subdir provided as file system path
      * @param bool $singleton
      *
-     * @return bool|mixed|PHS_Instantiable|PHS_Model
+     * @return null|PHS_Instantiable
      */
     final public static function get_instance_for_loads(?string $class_name = null, $plugin_name = false,
-        $instance_type = false, bool $singleton = true, string $instance_subdir = '')
+        $instance_type = false, bool $singleton = true, string $instance_subdir = ''): ?PHS_Instantiable
     {
         self::st_reset_error();
 
         if ($class_name === null) {
             if (!($class_details = self::extract_details_from_full_namespace_name(@get_called_class()))) {
-                return false;
+                return null;
             }
 
             $class_name = $class_details['class_name'];
@@ -1295,7 +1295,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if (!($instance_details = self::get_instance_details($class_name, $plugin_name, $instance_type, $instance_subdir))
          || empty($instance_details['instance_id'])) {
-            return false;
+            return null;
         }
 
         if (!@class_exists($instance_details['instance_full_class'], false)) {
@@ -1310,7 +1310,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                     self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance.'));
                 }
 
-                return false;
+                return null;
             }
 
             ob_start();
@@ -1323,7 +1323,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 self::_t('Class %s not defined in %s file.',
                     $instance_details['instance_full_class'], $instance_details['instance_file_name']));
 
-            return false;
+            return null;
         }
 
         /** @var PHS_Model $instance_obj */
@@ -1342,7 +1342,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                     self::_t('Error instantiating abstract class %s.',
                         $instance_details['instance_full_class']));
 
-                return false;
+                return null;
             }
         } catch (\Exception $e) {
         }
@@ -1353,20 +1353,20 @@ abstract class PHS_Instantiable extends PHS_Registry
                 self::_t('Error instantiating class %s from %s file.',
                     $instance_details['instance_full_class'], $instance_details['instance_file_name']));
 
-            return false;
+            return null;
         }
 
         if (!($instance_obj instanceof self)) {
             self::st_set_error(self::ERR_INSTANCE_CLASS,
                 self::_t('Loaded class doesn\'t appear to be a PHS instance.'));
 
-            return false;
+            return null;
         }
 
         if ($instance_obj->has_error()) {
             self::st_copy_error($instance_obj);
 
-            return false;
+            return null;
         }
 
         if (!empty($singleton)) {

@@ -629,21 +629,21 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param string[] $plugins_arr
+     * @param  string[]  $plugins_arr
      *
      * @return string
      */
-    public function get_settings_for_plugins_as_json($plugins_arr = []) : string
+    public function get_settings_for_plugins_as_json(array $plugins_arr = []) : string
     {
         return @json_encode($this->get_settings_for_plugins_as_array($plugins_arr));
     }
 
     /**
-     * @param string[] $plugins_arr
+     * @param  string[]  $plugins_arr
      *
      * @return array
      */
-    public function get_settings_for_plugins_as_array($plugins_arr = []) : array
+    public function get_settings_for_plugins_as_array(array $plugins_arr = []) : array
     {
         $this->reset_error();
 
@@ -656,7 +656,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
             if ((!empty($plugins_arr)
                  && !in_array($plugin_name, $plugins_arr, true))
              || !($plugin_settings = $this->extract_settings_for_plugin($plugin_name,
-                 (!empty($plugin_details['instance']) ? $plugin_details['instance'] : false)))
+                 (!empty($plugin_details['instance']) ? $plugin_details['instance'] : null)))
             ) {
                 continue;
             }
@@ -669,11 +669,11 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     /**
      * @param string $plugin_name
-     * @param \phs\libraries\PHS_Plugin|false $plugin_instance
+     * @param  null|\phs\libraries\PHS_Plugin  $plugin_instance
      *
      * @return false|array<string, string>
      */
-    public function extract_settings_for_plugin($plugin_name, $plugin_instance = false)
+    public function extract_settings_for_plugin($plugin_name, PHS_Plugin $plugin_instance = null)
     {
         $this->reset_error();
 
@@ -694,7 +694,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         }
 
         if ($is_core) {
-            $plugin_instance = false;
+            $plugin_instance = null;
             $plugin_instance_id = '';
             if (!($models_arr = PHS::get_core_models())) {
                 $models_arr = [];

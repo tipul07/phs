@@ -146,7 +146,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         }
 
         foreach ($insert_ids as $tenant_id) {
-            if (!db_query('INSERT INTO `'.$ut_table.'` SET account_id = \''.$account_arr['id'].'\', tenant_id = \''.$tenant_id.'\'', $db_connection)) {
+            if (!db_query('INSERT INTO `'.$ut_table.'` SET account_id = \''.$account_arr['id'].'\', tenant_id = \''.$tenant_id.'\', cdate = NOW()', $db_connection)) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error linking all tenants to account.'));
 
                 return false;
@@ -177,13 +177,13 @@ class PHS_Model_Accounts_tenants extends PHS_Model
 
         if( $tenants_count > 0 ) {
             if( !empty( $account_arr['is_multitenant'] )
-             || !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
+             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
                 return false;
             }
         } elseif(empty($account_arr['is_multitenant'] )
-             || !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
+             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
             return false;
