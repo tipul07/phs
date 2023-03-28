@@ -4,7 +4,7 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Bg_jobs;
 
-abstract class PHS_Event extends PHS_Instantiable
+abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 {
     public const ERR_LISTEN = 30000, ERR_TRIGGER = 30001, ERR_NOT_UNIQUE = 30002;
 
