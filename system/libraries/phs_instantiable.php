@@ -1237,6 +1237,11 @@ abstract class PHS_Instantiable extends PHS_Registry
             return null;
         }
 
+        if( empty( $instance_details['plugin_is_setup'] ) ) {
+            self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin %s is not setup.', $instance_details['plugin_name'] ?? '-' ));
+            return null;
+        }
+
         $loader_method = $instance_details['loader_method'];
 
         if ($details['instance_type'] === self::INSTANCE_TYPE_PLUGIN) {
@@ -1251,12 +1256,14 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if (empty($obj) || self::st_has_error()) {
-            $error_msg = 'Error loading class ['.$full_class_name.']';
-            if (self::st_has_error()) {
-                $error_msg .= ' ERROR: '.self::st_get_simple_error_message();
-            }
+            if( self::st_debugging_mode() ) {
+                $error_msg = 'Error loading class ['.$full_class_name.']';
+                if (self::st_has_error()) {
+                    $error_msg .= ' ERROR: '.self::st_get_simple_error_message();
+                }
 
-            PHS_Logger::error($error_msg, PHS_Logger::TYPE_DEBUG);
+                PHS_Logger::error($error_msg, PHS_Logger::TYPE_DEBUG);
+            }
 
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_INSTANCE, self::_t('Cannot instantiate provided class.'));

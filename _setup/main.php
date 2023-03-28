@@ -69,6 +69,7 @@ if (!@file_exists(PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php')
 
     exit;
 }
+include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_event_interface.php';
 
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php';
 
