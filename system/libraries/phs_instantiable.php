@@ -961,7 +961,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return self::$instances_details[$instance_id];
         }
 
-        if( $plugin_name !== self::CORE_PLUGIN ) {
+        if( $plugin_name === self::CORE_PLUGIN ) {
             $return_arr['plugin_is_setup'] = true;
         } elseif (!empty($return_arr['plugin_path'])
          && ($noslash_path = rtrim($return_arr['plugin_path'], '/'))

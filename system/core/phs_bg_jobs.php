@@ -241,13 +241,6 @@ class PHS_Bg_jobs extends PHS_Registry
 
         PHS_Logger::notice('Launching job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_BACKGROUND);
 
-        ob_start();
-        var_dump(PHS::st_debugging_mode());
-        $buf = ob_get_clean();
-
-        PHS_Logger::debug('['.$buf.'] Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
-        PHS_Logger::notice('['.$buf.'] Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
-
         if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_BACKGROUND);
         }

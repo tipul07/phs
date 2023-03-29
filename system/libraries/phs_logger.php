@@ -593,7 +593,7 @@ class PHS_Logger extends PHS_Registry
             $log_details = self::$LEVELS_ARR[$log_level];
         }
 
-        if (self::log_level() >= $log_level) {
+        if (self::log_level() > $log_level) {
             return true;
         }
 
