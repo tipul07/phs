@@ -9,6 +9,8 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Line_params;
 use phs\libraries\PHS_Instantiable;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 class PHS_Model_Plugins extends PHS_Model
 {
@@ -301,19 +303,16 @@ class PHS_Model_Plugins extends PHS_Model
             $new_settings_arr = [];
         }
 
-        // Trigger plugin settings saved...
-        $hook_args = PHS_Hooks::default_plugin_settings_saved_hook_args();
-        $hook_args['instance_type'] = $existing_arr['type'];
-        $hook_args['plugin'] = $existing_arr['plugin'];
-        $hook_args['instance_id'] = $instance_id;
-        $hook_args['old_instance_record'] = $existing_arr;
-        $hook_args['new_instance_record'] = $db_details['new_data'];
-        $hook_args['old_settings_arr'] = $old_settings;
-        $hook_args['new_settings_arr'] = $new_settings_arr;
-        $hook_args['obfucate_keys_arr'] = $obfuscating_keys;
-
-        // We just announce the change...
-        PHS::trigger_hooks(PHS_Hooks::H_PLUGIN_SETTINGS_SAVED, $hook_args);
+        PHS_Event_Plugin_settings_saved::trigger([
+            'instance_id' => $instance_id,
+            'instance_type' => $existing_arr['type'],
+            'plugin_name' => $existing_arr['plugin'],
+            'old_instance_record' => $existing_arr,
+            'new_instance_record' => $db_details['new_data'],
+            'old_settings_arr' => $old_settings,
+            'new_settings_arr' => $new_settings_arr,
+            'obfucate_keys_arr' => $obfuscating_keys,
+        ]);
 
         return $new_settings_arr;
     }
@@ -396,15 +395,15 @@ class PHS_Model_Plugins extends PHS_Model
             }
         }
 
-        // Low level hook for plugin settings (allow only keys that are not present in default plugin settings)
-        $hook_args = PHS_Hooks::default_plugin_settings_hook_args();
-        $hook_args['settings_arr'] = self::$plugin_settings[$instance_id];
-        $hook_args['instance_id'] = $instance_id;
-
-        if (($extra_settings_arr = PHS::trigger_hooks(PHS_Hooks::H_PLUGIN_SETTINGS, $hook_args))
-         && is_array($extra_settings_arr) && !empty($extra_settings_arr['settings_arr'])) {
-            self::$plugin_settings[$instance_id]
-                = self::validate_array($extra_settings_arr['settings_arr'], self::$plugin_settings[$instance_id]);
+        // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
+        /** @var PHS_Event_Plugin_settings $event_obj */
+        if( ($event_obj = PHS_Event_Plugin_settings::trigger([
+                'instance_id' => $instance_id,
+                'settings_arr' => self::$plugin_settings[$instance_id],
+            ]))
+            && ($extra_settings_arr = $event_obj->get_output('settings_arr' ))
+        ) {
+            self::$plugin_settings[$instance_id] = self::validate_array($extra_settings_arr, self::$plugin_settings[$instance_id]);
         }
 
         return self::$plugin_settings[$instance_id];

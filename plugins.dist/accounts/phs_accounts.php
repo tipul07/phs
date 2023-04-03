@@ -13,6 +13,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 class PHS_Plugin_Accounts extends PHS_Plugin
 {
@@ -863,30 +864,29 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     }
 
     /**
-     * @param false|array $hook_args
+     * @param PHS_Event_Plugin_settings_saved $event_obj
      *
-     * @return array
+     * @return bool
      */
-    public function trigger_plugin_settings_saved_hook($hook_args = false)
+    public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj): bool
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_plugin_settings_saved_hook_args());
-
         // Check if accounts plugin settings were saved...
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (empty($hook_args['instance_id'])
-         || empty($hook_args['old_settings_arr']['password_decryption_enabled'])
-         || !empty($hook_args['new_settings_arr']['password_decryption_enabled'])
-         || $hook_args['instance_id'] !== $this->instance_id()
+        if (!($input_arr = $event_obj->get_input())
+         || empty($input_arr['instance_id'])
+         || empty($input_arr['old_settings_arr']['password_decryption_enabled'])
+         || !empty($input_arr['new_settings_arr']['password_decryption_enabled'])
+         || $input_arr['instance_id'] !== $this->instance_id()
          || !($accounts_model = PHS::load_model('accounts', 'accounts'))
          || !($flow_arr = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
-            return $hook_args;
+            return false;
         }
 
         db_query('UPDATE `'.$accounts_model->get_flow_table_name($flow_arr).'` SET pass_clear = NULL', $flow_arr['db_connection']);
 
         PHS_Logger::notice('!!! Password decryption disabled!', PHS_Logger::TYPE_MAINTENANCE);
 
-        return $hook_args;
+        return true;
     }
 
     /**

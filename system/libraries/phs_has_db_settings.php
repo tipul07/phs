@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings_obfuscated_keys;
 
 abstract class PHS_Has_db_settings extends PHS_Instantiable
 {
@@ -16,7 +17,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     protected array $_settings_structure = [];
 
     // Array with default values for settings (key => val) array
-    protected $_default_settings = [];
+    protected array $_default_settings = [];
 
     // Database record
     protected array $_db_details = [];
@@ -55,13 +56,14 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $obfuscating_keys = $this->get_settings_keys_to_obfuscate();
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
-        $hook_args = PHS_Hooks::default_plugin_settings_hook_args();
-        $hook_args['instance_id'] = $this->instance_id();
-        $hook_args['obfucate_keys_arr'] = $obfuscating_keys;
-
-        if (($obfuscate_keys_arr = PHS::trigger_hooks(PHS_Hooks::H_PLUGIN_OBFUSCATED_SETTINGS_KEYS, $hook_args))
-         && is_array($obfuscate_keys_arr) && !empty($obfuscate_keys_arr['obfucate_keys_arr'])) {
-            $obfuscating_keys = self::array_merge_unique_values($obfuscate_keys_arr['obfucate_keys_arr'], $obfuscating_keys);
+        /** @var PHS_Event_Plugin_settings_obfuscated_keys $event_obj */
+        if( ($event_obj = PHS_Event_Plugin_settings_obfuscated_keys::trigger([
+            'instance_id' => $this->instance_id(),
+            'obfucate_keys_arr' => $obfuscating_keys,
+            ]))
+            && ($obfucated_keys_arr = $event_obj->get_output('obfucate_keys_arr' ))
+        ) {
+            $obfuscating_keys = self::array_merge_unique_values($obfucated_keys_arr, $obfuscating_keys);
         }
 
         return $obfuscating_keys;
@@ -90,7 +92,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return [];
         }
 
-        if (!($this->_settings_structure = $this->_validate_settings_structure_field($settings_structure_arr))) {
+        if (!($this->_settings_structure = self::_validate_settings_structure_fields($settings_structure_arr))) {
             $this->_settings_structure = [];
         }
 
@@ -110,7 +112,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $this->validate_settings_structure();
         }
 
-        $this->_default_settings = $this->_get_default_settings_for_structure($this->_settings_structure);
+        $this->_default_settings = self::_get_default_settings_for_structure($this->_settings_structure);
 
         return $this->_default_settings;
     }
@@ -212,7 +214,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return true;
     }
 
-    protected function default_settings_field() : array
+    private static function _default_settings_field() : array
     {
         return [
             // Used to know how to render this field in plugin settings
@@ -261,19 +263,19 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array
      */
-    protected function _validate_settings_structure_field(array $structure_arr) : array
+    private static function _validate_settings_structure_fields(array $structure_arr) : array
     {
         if (empty($structure_arr)) {
             return [];
         }
 
-        $default_settings_field = $this->default_settings_field();
+        $default_settings_field = self::_default_settings_field();
         $settings_structure = [];
         foreach ($structure_arr as $key => $settings_field) {
             $settings_field = self::validate_array_recursive($settings_field, $default_settings_field);
 
             if (self::settings_field_is_group($settings_field)) {
-                $settings_field['group_fields'] = $this->_validate_settings_structure_field($settings_field['group_fields']);
+                $settings_field['group_fields'] = self::_validate_settings_structure_fields($settings_field['group_fields']);
             }
 
             $settings_structure[$key] = $settings_field;
@@ -282,12 +284,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $settings_structure;
     }
 
-    private function _get_default_settings_for_structure($structure_arr) : array
+    private static function _get_default_settings_for_structure($structure_arr) : array
     {
         $default_arr = [];
         foreach ($structure_arr as $field_name => $field_arr) {
             if (self::settings_field_is_group($field_arr)) {
-                if (($group_default = $this->_get_default_settings_for_structure($field_arr['group_fields']))) {
+                if (($group_default = self::_get_default_settings_for_structure($field_arr['group_fields']))) {
                     $default_arr = self::merge_array_assoc($default_arr, $group_default);
                 }
 

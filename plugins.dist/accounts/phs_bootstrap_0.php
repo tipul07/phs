@@ -6,6 +6,7 @@ use phs\PHS_Api_base;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
 if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())
@@ -72,10 +73,7 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())
     );
 
     // Check if new plugin settings say that we should turn password encryption/decryption off
-    PHS::register_hook(
-        PHS_Hooks::H_PLUGIN_SETTINGS_SAVED,
-        [$accounts_plugin, 'trigger_plugin_settings_saved_hook'],
-        PHS_Hooks::default_plugin_settings_saved_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
-    );
+    PHS_Event_Plugin_settings_saved::listen([
+        $accounts_plugin, 'listen_plugin_settings_saved'
+    ]);
 }

@@ -25,9 +25,7 @@ class PHS_Hooks extends PHS_Registry
     H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
 
     // Plugins hooks
-    H_PLUGIN_SETTINGS = 'phs_plugin_settings', H_PLUGIN_OBFUSCATED_SETTINGS_KEYS = 'phs_plugin_obfuscated_settings_keys',
     H_PLUGIN_REGISTRY = 'phs_plugin_registry',
-    H_PLUGIN_SETTINGS_SAVED = 'phs_plugin_settings_saved',
 
     // Logging hooks
     H_LOG = 'phs_logger',
@@ -369,47 +367,6 @@ class PHS_Hooks extends PHS_Registry
     }
     //
     // endregion Action execution hooks
-    //
-
-    //
-    // region Plugin hooks
-    //
-    public static function default_plugin_settings_hook_args() : array
-    {
-        return self::hook_args_definition([
-            // Instance id for which we have these settings values
-            'instance_id' => '',
-            // Current settings (if required)
-            'settings_arr' => [],
-            // Array with keys which should be obfuscated in settings array
-            'obfucate_keys_arr' => [],
-        ]);
-    }
-
-    public static function default_plugin_settings_saved_hook_args() : array
-    {
-        return self::hook_args_definition([
-            // Instance type for which we have these settings values
-            // PHS_Instantiable::INSTANCE_TYPE_*
-            'instance_type' => '',
-            // In which plugin is this instance_type
-            'plugin' => '',
-            // Instance id for which we have these settings values
-            'instance_id' => '',
-            // Old record in plugins table (can be plugin, model
-            'old_instance_record' => false,
-            // New settings saved in database (not obfuscated)
-            'new_instance_record' => false,
-            // OLD settings (not obfuscated)
-            'old_settings_arr' => [],
-            // New settings saved in database (not obfuscated)
-            'new_settings_arr' => [],
-            // Array with keys which should be obfuscated in settings array
-            'obfucate_keys_arr' => [],
-        ]);
-    }
-    //
-    // endregion Plugin hooks
     //
 
     //

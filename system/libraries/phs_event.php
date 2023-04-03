@@ -85,6 +85,14 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             $options['priority'] = (int)$options['priority'];
         }
 
+        if (!empty($options['in_background'])
+         && !$this->supports_background_listeners()) {
+            $this->set_error(self::ERR_LISTEN,
+                self::_t('Event doesn\'t support background listeners.'));
+
+            return false;
+        }
+
         if (empty($callback)
          || !($callback_details = $this->_get_callback_details($callback))) {
             if (!$this->has_error()) {
@@ -325,6 +333,15 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
         $this->output[$key] = $val;
 
+        return true;
+    }
+
+    /**
+     * Override this method if event should not accept background listeners
+     * @return bool
+     */
+    public function supports_background_listeners() : bool
+    {
         return true;
     }
 
