@@ -7,7 +7,7 @@ interface PHS_Event_interface
      * Listen for event triggers
      *
      * @param callable|array $callback
-     * @param  array  $options
+     * @param array $options
      *
      * @return null|static
      */
@@ -18,7 +18,7 @@ interface PHS_Event_interface
      * Listener should be a method in a PHS_Instantiable class
      *
      * @param callable|array $callback
-     * @param  array  $options
+     * @param array $options
      *
      * @return null|static
      */
@@ -27,9 +27,9 @@ interface PHS_Event_interface
     /**
      * Trigger the event.
      *
-     * @param  array  $input
-     * @param  array  $params
-     * @param  string  $event_prefix
+     * @param array $input
+     * @param array $params
+     * @param string $event_prefix
      *
      * @return null|static
      */

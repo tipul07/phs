@@ -9,14 +9,13 @@ if (!defined('DATETIME_T_FORMAT')) {
 
 use phs\PHS;
 use phs\PHS_Db;
-use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.12';
+    return '1.1.8.13';
 }
 
 function action_request_login() : array
@@ -265,7 +264,7 @@ function request_ip() : string
 }
 
 //
-//region Database related functions
+// region Database related functions
 //
 function db_supress_errors($connection = false)
 {
@@ -471,7 +470,7 @@ function db_affected_rows($connection = false)
     return $db_instance->affected_rows();
 }
 
-function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false): string
+function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false) : string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -480,7 +479,7 @@ function db_quick_insert($table_name, $insert_arr, $connection = false, $params 
     return $db_instance->quick_insert($table_name, $insert_arr, $connection, $params);
 }
 
-function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false): string
+function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false) : string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -579,12 +578,12 @@ function db_dump($dump_params, $connection = false)
     return $dump_result;
 }
 //
-//endregion Database related functions
+// endregion Database related functions
 //
 
-function form_str($str): string
+function form_str($str) : string
 {
-    if(!is_scalar( $str ) || (string)$str === '' ) {
+    if (!is_scalar($str) || (string)$str === '') {
         return '';
     }
 
@@ -593,7 +592,7 @@ function form_str($str): string
 
 function textarea_str($str) : string
 {
-    if(!is_scalar( $str ) || (string)$str === '' ) {
+    if (!is_scalar($str) || (string)$str === '') {
         return '';
     }
 
@@ -884,7 +883,7 @@ function empty_db_date($date) : bool
  *
  * @return null|false|string
  */
-function validate_db_date($date, string $format = null)
+function validate_db_date($date, ?string $format = null)
 {
     if (empty_db_date($date)) {
         return null;
@@ -904,7 +903,7 @@ function validate_db_date($date, string $format = null)
  */
 function prepare_data($str) : string
 {
-    if(!is_scalar( $str ) || (string)$str === '' ) {
+    if (!is_scalar($str) || (string)$str === '') {
         return '';
     }
 
@@ -918,7 +917,7 @@ function prepare_data($str) : string
  */
 function safe_url($url) : string
 {
-    if(!is_scalar( $url ) || (string)$url === '' ) {
+    if (!is_scalar($url) || (string)$url === '') {
         return '';
     }
 
@@ -932,7 +931,7 @@ function safe_url($url) : string
  */
 function from_safe_url($url) : string
 {
-    if(!is_scalar( $url ) || (string)$url === '') {
+    if (!is_scalar($url) || (string)$url === '') {
         return '';
     }
 
@@ -947,7 +946,7 @@ function from_safe_url($url) : string
  *
  * @return string
  */
-function array_to_query_string($arr, $params = false): string
+function array_to_query_string($arr, $params = false) : string
 {
     if (empty($params) || !is_array($params)) {
         $params = [];
@@ -1000,7 +999,7 @@ function array_to_query_string($arr, $params = false): string
  */
 function add_url_params($str, $params) : string
 {
-    if(!is_scalar( $str ) || (string)$str === '') {
+    if (!is_scalar($str) || (string)$str === '') {
         $str = '';
     }
 
@@ -1033,9 +1032,9 @@ function add_url_params($str, $params) : string
  *
  * @return string
  */
-function exclude_params($str, $params): string
+function exclude_params($str, $params) : string
 {
-    if(!is_scalar( $str ) || (string)$str === '') {
+    if (!is_scalar($str) || (string)$str === '') {
         return '';
     }
 
