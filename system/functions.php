@@ -9,14 +9,13 @@ if (!defined('DATETIME_T_FORMAT')) {
 
 use phs\PHS;
 use phs\PHS_Db;
-use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.12';
+    return '1.1.8.13';
 }
 
 function action_request_login() : array
