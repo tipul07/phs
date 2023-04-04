@@ -1,16 +1,16 @@
 <?php
 namespace phs;
 
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Utils;
-use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Event;
+use phs\libraries\PHS_Hooks;
+use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
-use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Contract;
+use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Controller;
 use phs\libraries\PHS_Instantiable;
 use phs\system\core\views\PHS_View;
@@ -2065,7 +2065,7 @@ final class PHS extends PHS_Registry
         return $view_obj;
     }
 
-    public static function platform_debug_data(): array
+    public static function platform_debug_data() : array
     {
         $now_secs = microtime(true);
         if (!($start_secs = self::get_data(self::PHS_START_TIME))) {
@@ -2153,7 +2153,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Library
      */
-    public static function load_core_library(string $library, $params = false): ?PHS_Library
+    public static function load_core_library(string $library, $params = false) : ?PHS_Library
     {
         self::st_reset_error();
 
@@ -2237,7 +2237,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
      */
-    public static function get_core_library_instance(string $core_library, $params = false): ?PHS_Library
+    public static function get_core_library_instance(string $core_library, $params = false) : ?PHS_Library
     {
         self::st_reset_error();
 
@@ -2272,7 +2272,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Model Returns false on error or an instance of loaded model
      */
-    public static function load_model(string $model, $plugin = false): ?PHS_Model
+    public static function load_model(string $model, $plugin = false) : ?PHS_Model
     {
         self::st_reset_error();
 
@@ -2310,7 +2310,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\system\core\views\PHS_View Returns false on error or an instance of loaded view
      */
-    public static function load_view($view = false, $plugin = false, bool $as_singleton = true): ?PHS_View
+    public static function load_view($view = false, $plugin = false, bool $as_singleton = true) : ?PHS_View
     {
         self::st_reset_error();
 
@@ -2339,7 +2339,7 @@ final class PHS extends PHS_Registry
                 if (!self::st_has_error()) {
                     self::st_set_error(self::ERR_LOAD_VIEW,
                         self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
-                            (empty($plugin)?PHS_Instantiable::CORE_PLUGIN:$plugin)));
+                            (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
                 }
 
                 return null;
@@ -2368,14 +2368,14 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Controller Returns false on error or an instance of loaded controller
      */
-    public static function load_controller(string $controller, $plugin = false): ?PHS_Controller
+    public static function load_controller(string $controller, $plugin = false) : ?PHS_Controller
     {
         self::st_reset_error();
 
         if (!($controller_name = PHS_Instantiable::safe_escape_class_name($controller))) {
             self::st_set_error(self::ERR_LOAD_CONTROLLER,
                 self::_t('Couldn\'t load controller %s from plugin %s.',
-                $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                    $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2390,7 +2390,7 @@ final class PHS extends PHS_Registry
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_LOAD_CONTROLLER,
                     self::_t('Couldn\'t obtain instance for controller %s from plugin %s.',
-                    $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                        $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
             }
 
             return null;
@@ -2406,7 +2406,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Action Returns false on error or an instance of loaded action
      */
-    public static function load_action(string $action, $plugin = false, string $action_dir = ''): ?PHS_Action
+    public static function load_action(string $action, $plugin = false, string $action_dir = '') : ?PHS_Action
     {
         self::st_reset_error();
 
@@ -2468,7 +2468,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Contract Returns false on error || an instance of loaded contract
      */
-    public static function load_contract(string $contract, $plugin = false, string $contract_dir = ''): ?PHS_Contract
+    public static function load_contract(string $contract, $plugin = false, string $contract_dir = '') : ?PHS_Contract
     {
         self::st_reset_error();
 
@@ -2530,7 +2530,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Event Returns false on error or an instance of loaded event
      */
-    public static function load_event(string $event, $plugin = false, string $event_dir = ''): ?PHS_Event
+    public static function load_event(string $event, $plugin = false, string $event_dir = '') : ?PHS_Event
     {
         self::st_reset_error();
 
@@ -2592,7 +2592,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\PHS_Scope Returns false on error || an instance of loaded scope
      */
-    public static function load_scope($scope, $plugin = false): ?PHS_Scope
+    public static function load_scope($scope, $plugin = false) : ?PHS_Scope
     {
         self::st_reset_error();
 
@@ -2627,7 +2627,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Plugin Returns false on error || an instance of loaded plugin
      */
-    public static function load_plugin($plugin_name): ?PHS_Plugin
+    public static function load_plugin($plugin_name) : ?PHS_Plugin
     {
         self::st_reset_error();
 
@@ -2667,9 +2667,9 @@ final class PHS extends PHS_Registry
      * @param bool|string $plugin Core plugin if false || plugin name as string
      * @param string $instance_type What script files should we check PHS_Instantiable::INSTANCE_TYPE_*
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function get_plugin_scripts_from_dir($plugin = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN): ?array
+    public static function get_plugin_scripts_from_dir($plugin = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN) : ?array
     {
         self::st_reset_error();
 
@@ -2785,7 +2785,7 @@ final class PHS extends PHS_Registry
         return $resulting_instance_names;
     }
 
-    final public static function default_instance_json_fields(): array
+    final public static function default_instance_json_fields() : array
     {
         return [
             'data_from_json' => false, // tells if data is populated from JSON
@@ -2807,11 +2807,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param  string  $json_file_full_path
+     * @param string $json_file_full_path
      *
      * @return array
      */
-    public static function read_plugin_json_details(string $json_file_full_path): array
+    public static function read_plugin_json_details(string $json_file_full_path) : array
     {
         // Plugin might not have even directory created meaning no script files
         if (!@file_exists($json_file_full_path)

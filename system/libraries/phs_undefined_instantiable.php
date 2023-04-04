@@ -20,20 +20,20 @@ class PHS_Undefined_instantiable extends PHS_Instantiable implements PHS_Event_i
         return null;
     }
 
-    //region Event methods
-    public static function listen($callback, array $options = []): ?self
+    // region Event methods
+    public static function listen($callback, array $options = []) : ?self
     {
         return null;
     }
 
-    public static function listen_in_background($callback, array $options = []): ?self
+    public static function listen_in_background($callback, array $options = []) : ?self
     {
         return null;
     }
 
-    public static function trigger(array $input = [], array $params = [], string $event_prefix = ''): ?self
+    public static function trigger(array $input = [], array $params = [], string $event_prefix = '') : ?self
     {
         return null;
     }
-    //endregion Event methods
+    // endregion Event methods
 }

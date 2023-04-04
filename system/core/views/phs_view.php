@@ -967,7 +967,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|\phs\system\core\views\PHS_View
      */
-    public static function init_view($template, array $params = null): ?PHS_View
+    public static function init_view($template, ?array $params = null) : ?self
     {
         if (empty($params) || !is_array($params)) {
             $params = [];
