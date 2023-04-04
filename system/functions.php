@@ -584,7 +584,7 @@ function db_dump($dump_params, $connection = false)
 
 function form_str($str): string
 {
-    if( empty( $str ) ) {
+    if(!is_scalar( $str ) || (string)$str === '' ) {
         return '';
     }
 
@@ -593,7 +593,7 @@ function form_str($str): string
 
 function textarea_str($str) : string
 {
-    if( empty( $str ) ) {
+    if(!is_scalar( $str ) || (string)$str === '' ) {
         return '';
     }
 
@@ -602,10 +602,6 @@ function textarea_str($str) : string
 
 function make_sure_is_filename(string $str) : string
 {
-    if( empty( $str ) ) {
-        return '';
-    }
-
     return str_replace(
         ['..', '/', '\\', '~', '<', '>', '|', '`', '*', '&', ],
         ['.', '', '', '', '', '', '', '', '', '', ],
@@ -908,7 +904,7 @@ function validate_db_date($date, string $format = null)
  */
 function prepare_data($str) : string
 {
-    if( empty( $str ) || !is_string( $str ) ) {
+    if(!is_scalar( $str ) || (string)$str === '' ) {
         return '';
     }
 
@@ -922,7 +918,7 @@ function prepare_data($str) : string
  */
 function safe_url($url) : string
 {
-    if( empty( $url ) || !is_string( $url ) ) {
+    if(!is_scalar( $url ) || (string)$url === '' ) {
         return '';
     }
 
@@ -936,7 +932,7 @@ function safe_url($url) : string
  */
 function from_safe_url($url) : string
 {
-    if( empty( $url ) || !is_string( $url ) ) {
+    if(!is_scalar( $url ) || (string)$url === '') {
         return '';
     }
 
@@ -1004,7 +1000,7 @@ function array_to_query_string($arr, $params = false): string
  */
 function add_url_params($str, $params) : string
 {
-    if (empty($str) || !is_string($str)) {
+    if(!is_scalar( $str ) || (string)$str === '') {
         $str = '';
     }
 
@@ -1039,7 +1035,7 @@ function add_url_params($str, $params) : string
  */
 function exclude_params($str, $params): string
 {
-    if (empty($str) || !is_string($str)) {
+    if(!is_scalar( $str ) || (string)$str === '') {
         return '';
     }
 
