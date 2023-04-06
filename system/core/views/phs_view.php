@@ -963,11 +963,11 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * @param string|array $template
-     * @param false|array $params
+     * @param null|array $params
      *
-     * @return bool|false|\phs\system\core\views\PHS_View
+     * @return null|\phs\system\core\views\PHS_View
      */
-    public static function init_view($template, $params = false)
+    public static function init_view($template, ?array $params = null) : ?self
     {
         if (empty($params) || !is_array($params)) {
             $params = [];
@@ -1005,7 +1005,7 @@ class PHS_View extends PHS_Instantiable
                 self::st_set_error(self::ERR_INIT_VIEW, self::_t('Error instantiating view class.'));
             }
 
-            return false;
+            return null;
         }
 
         if (!$view_obj->set_action($params['action_obj'])
@@ -1020,7 +1020,7 @@ class PHS_View extends PHS_Instantiable
                 self::st_set_error(self::ERR_INIT_VIEW, self::_t('Error setting up view instance.'));
             }
 
-            return false;
+            return null;
         }
 
         if (!empty($params['template_data'])) {

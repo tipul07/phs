@@ -961,7 +961,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             return self::$instances_details[$instance_id];
         }
 
-        if( $plugin_name === self::CORE_PLUGIN ) {
+        if ($plugin_name === self::CORE_PLUGIN) {
             $return_arr['plugin_is_setup'] = true;
         } elseif (!empty($return_arr['plugin_path'])
          && ($noslash_path = rtrim($return_arr['plugin_path'], '/'))
@@ -1239,8 +1239,9 @@ abstract class PHS_Instantiable extends PHS_Registry
             return null;
         }
 
-        if( empty( $instance_details['plugin_is_setup'] ) ) {
-            self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin %s is not setup.', $instance_details['plugin_name'] ?? '-' ));
+        if (empty($instance_details['plugin_is_setup'])) {
+            self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin %s is not setup.', $instance_details['plugin_name'] ?? '-'));
+
             return null;
         }
 
@@ -1258,7 +1259,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if (empty($obj) || self::st_has_error()) {
-            if( self::st_debugging_mode() ) {
+            if (self::st_debugging_mode()) {
                 $error_msg = 'Error loading class ['.$full_class_name.']';
                 if (self::st_has_error()) {
                     $error_msg .= ' ERROR: '.self::st_get_simple_error_message();
@@ -1325,14 +1326,18 @@ abstract class PHS_Instantiable extends PHS_Registry
             ob_start();
             include_once $instance_file_path;
             ob_end_clean();
-        }
 
-        if (!@class_exists($instance_details['instance_full_class'], false)) {
-            self::st_set_error(self::ERR_INSTANCE_CLASS,
-                self::_t('Class %s not defined in %s file.',
-                    $instance_details['instance_full_class'], $instance_details['instance_file_name']));
+            if (!@class_exists($instance_details['instance_full_class'], false)) {
+                if (PHS::st_debugging_mode()) {
+                    self::st_set_error(self::ERR_INSTANCE_CLASS,
+                        self::_t('Class %s not defined in %s file.', $instance_details['instance_full_class'],
+                            $instance_details['instance_file_name']));
+                } else {
+                    self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance after loading file.'));
+                }
 
-            return null;
+                return null;
+            }
         }
 
         /** @var PHS_Model $instance_obj */
@@ -1361,6 +1366,13 @@ abstract class PHS_Instantiable extends PHS_Registry
             self::st_set_error(self::ERR_INSTANCE_CLASS,
                 self::_t('Error instantiating class %s from %s file.',
                     $instance_details['instance_full_class'], $instance_details['instance_file_name']));
+
+            return null;
+        }
+
+        if (($instance_obj instanceof PHS_Undefined_instantiable)) {
+            self::st_set_error(self::ERR_INSTANCE_CLASS,
+                self::_t('Cannot instantiate provided class.'));
 
             return null;
         }

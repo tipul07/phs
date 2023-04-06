@@ -9,14 +9,13 @@ if (!defined('DATETIME_T_FORMAT')) {
 
 use phs\PHS;
 use phs\PHS_Db;
-use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.8.11';
+    return '1.1.8.13';
 }
 
 function action_request_login() : array
@@ -265,9 +264,8 @@ function request_ip() : string
 }
 
 //
-// Database related functions
+// region Database related functions
 //
-
 function db_supress_errors($connection = false)
 {
     if (!($db_instance = PHS_Db::db($connection))) {
@@ -472,7 +470,7 @@ function db_affected_rows($connection = false)
     return $db_instance->affected_rows();
 }
 
-function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false)
+function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false) : string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -481,7 +479,7 @@ function db_quick_insert($table_name, $insert_arr, $connection = false, $params 
     return $db_instance->quick_insert($table_name, $insert_arr, $connection, $params);
 }
 
-function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false)
+function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false) : string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -490,10 +488,16 @@ function db_quick_edit($table_name, $edit_arr, $connection = false, $params = fa
     return $db_instance->quick_edit($table_name, $edit_arr, $connection, $params);
 }
 
+/**
+ * @param $fields
+ * @param $connection
+ *
+ * @return string|string[]
+ */
 function db_escape($fields, $connection = false)
 {
     if (!($db_instance = PHS_Db::db($connection))) {
-        return false;
+        return '';
     }
 
     return $db_instance->escape($fields, $connection);
@@ -574,16 +578,24 @@ function db_dump($dump_params, $connection = false)
     return $dump_result;
 }
 //
-// END Database related functions
+// endregion Database related functions
 //
 
-function form_str($str)
+function form_str($str) : string
 {
+    if (!is_scalar($str) || (string)$str === '') {
+        return '';
+    }
+
     return str_replace('"', '&quot;', $str);
 }
 
 function textarea_str($str) : string
 {
+    if (!is_scalar($str) || (string)$str === '') {
+        return '';
+    }
+
     return str_replace(['<', '>'], ['&lt;', '&gt;'], $str);
 }
 
@@ -596,7 +608,7 @@ function make_sure_is_filename(string $str) : string
 }
 
 /**
- * @param string $str
+ * @param string|mixed $str
  * @param bool|array $params
  *
  * @return int
@@ -756,7 +768,7 @@ function parse_t_date($date, $params = false)
 }
 
 /**
- * @param string $date
+ * @param string|mixed $date
  * @param bool|array $params
  *
  * @return array|bool
@@ -856,7 +868,7 @@ function parse_db_date($date, $params = false) : int
 }
 
 /**
- * @param string $date
+ * @param string|mixed $date
  *
  * @return bool
  */
@@ -866,12 +878,12 @@ function empty_db_date($date) : bool
 }
 
 /**
- * @param string $date
- * @param bool|string $format
+ * @param string|mixed $date
+ * @param null|string $format
  *
  * @return null|false|string
  */
-function validate_db_date($date, $format = false)
+function validate_db_date($date, ?string $format = null)
 {
     if (empty_db_date($date)) {
         return null;
@@ -885,44 +897,56 @@ function validate_db_date($date, $format = false)
 }
 
 /**
- * @param string $str
+ * @param mixed $str
  *
  * @return string
  */
-function prepare_data(string $str) : string
+function prepare_data($str) : string
 {
+    if (!is_scalar($str) || (string)$str === '') {
+        return '';
+    }
+
     return str_replace('\'', '\\\'', str_replace('\\\'', '\'', $str));
 }
 
 /**
- * @param string $url
+ * @param mixed $url
  *
  * @return string
  */
-function safe_url(string $url) : string
+function safe_url($url) : string
 {
+    if (!is_scalar($url) || (string)$url === '') {
+        return '';
+    }
+
     return str_replace(['?', '&', '#'], ['%3F', '%26', '%23'], $url);
 }
 
 /**
- * @param string $url
+ * @param mixed $url
  *
  * @return string
  */
-function from_safe_url(string $url) : string
+function from_safe_url($url) : string
 {
+    if (!is_scalar($url) || (string)$url === '') {
+        return '';
+    }
+
     return str_replace(['%3F', '%26', '%23'], ['?', '&', '#'], $url);
 }
 
 /**
  * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
  *
- * @param array $arr
+ * @param array|mixed $arr
  * @param bool|array $params
  *
  * @return string
  */
-function array_to_query_string($arr, $params = false)
+function array_to_query_string($arr, $params = false) : string
 {
     if (empty($params) || !is_array($params)) {
         $params = [];
@@ -968,13 +992,17 @@ function array_to_query_string($arr, $params = false)
 }
 
 /**
- * @param string $str
- * @param array $params
+ * @param string|mixed $str
+ * @param array|mixed $params
  *
  * @return string
  */
 function add_url_params($str, $params) : string
 {
+    if (!is_scalar($str) || (string)$str === '') {
+        $str = '';
+    }
+
     if (empty($params) || !is_array($params)) {
         return $str;
     }
@@ -999,13 +1027,17 @@ function add_url_params($str, $params) : string
 }
 
 /**
- * @param string $str
- * @param array $params
+ * @param mixed|string $str
+ * @param mixed|array $params
  *
  * @return string
  */
-function exclude_params($str, $params)
+function exclude_params($str, $params) : string
 {
+    if (!is_scalar($str) || (string)$str === '') {
+        return '';
+    }
+
     if (empty($params) || !is_array($params)) {
         return $str;
     }
