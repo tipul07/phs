@@ -100,18 +100,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $account_tenant_ids = [];
         $all_tenants_arr = [];
         $ut_table_name = 'users_tenants';
-        if( $platform_is_multitenant ) {
-            if( !($account_tenant_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id'])) ) {
+        if ($platform_is_multitenant) {
+            if (!($account_tenant_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id']))) {
                 $account_tenant_ids = [];
             }
-            if( !($all_tenants_arr = $this->_tenants_model->get_tenants_as_key_val()) ) {
+            if (!($all_tenants_arr = $this->_tenants_model->get_tenants_as_key_val())) {
                 $all_tenants_arr = [];
             }
 
-            if( !empty( $account_tenant_ids ) ) {
+            if (!empty($account_tenant_ids)) {
                 $new_all_tenants_arr = [];
-                foreach( $account_tenant_ids as $t_id ) {
-                    if( empty( $all_tenants_arr[$t_id] ) ) {
+                foreach ($account_tenant_ids as $t_id) {
+                    if (empty($all_tenants_arr[$t_id])) {
                         continue;
                     }
                     $new_all_tenants_arr[$t_id] = $all_tenants_arr[$t_id];
@@ -120,8 +120,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 $all_tenants_arr = $new_all_tenants_arr;
             }
 
-            if( !($ut_flow = $this->_account_tenants_model->fetch_default_flow_params(['table_name' => 'users_tenants' ]))
-             || !($ut_table_name = $this->_account_tenants_model->get_flow_table_name($ut_flow)) ) {
+            if (!($ut_flow = $this->_account_tenants_model->fetch_default_flow_params(['table_name' => 'users_tenants']))
+             || !($ut_table_name = $this->_account_tenants_model->get_flow_table_name($ut_flow))) {
                 $ut_table_name = 'users_tenants';
             }
         }
@@ -132,18 +132,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $accounts_model = $this->_paginator_model;
 
-        if( !($u_flow = $accounts_model->fetch_default_flow_params(['table_name' => 'users' ]))
-            || !($u_table_name = $accounts_model->get_flow_table_name($u_flow)) ) {
+        if (!($u_flow = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))
+            || !($u_table_name = $accounts_model->get_flow_table_name($u_flow))) {
             $u_table_name = 'users';
         }
 
         $list_arr = [];
         $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
-        if( $platform_is_multitenant
-         && !empty( $account_tenant_ids )) {
-            $list_arr['fields'][] = ['raw' => '(`'.$u_table_name.'`.is_multitenant = 1 OR '.
-                                              'EXISTS (SELECT 1 FROM `'.$ut_table_name.'` WHERE `'.$ut_table_name.'`.account_id = `'.$u_table_name.'`.id '.
-                                              ' AND `'.$ut_table_name.'`.tenant_id IN ('.implode(',', $account_tenant_ids).')))'];
+        if ($platform_is_multitenant
+         && !empty($account_tenant_ids)) {
+            $list_arr['fields'][] = ['raw' => '(`'.$u_table_name.'`.is_multitenant = 1 OR '
+                                              .'EXISTS (SELECT 1 FROM `'.$ut_table_name.'` WHERE `'.$ut_table_name.'`.account_id = `'.$u_table_name.'`.id '
+                                              .' AND `'.$ut_table_name.'`.tenant_id IN ('.implode(',', $account_tenant_ids).')))', ];
         }
 
         $list_arr['flags'] = ['include_account_details'];
@@ -267,7 +267,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $platform_is_multitenant ) {
+        if ($platform_is_multitenant) {
             $filters_arr[] = [
                 'display_name'        => $this->_pt('Tenant'),
                 'var_name'            => 'ftenant',
@@ -275,10 +275,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default'             => 0,
                 'values_arr'          => $all_tenants_filter,
                 'extra_records_style' => 'vertical-align:middle;',
-                'raw_query'           => '(`'.$u_table_name.'`.is_multitenant = 1 OR '.
-                                         ' EXISTS (SELECT 1 FROM `'.$ut_table_name.'` '
-                                         .' WHERE `'.$ut_table_name.'`.account_id = `'.$u_table_name.'`.id AND `'.$ut_table_name.'`.tenant_id = \'%s\' LIMIT 0, 1)'.
-                                         ')',
+                'raw_query'           => '(`'.$u_table_name.'`.is_multitenant = 1 OR '
+                                         .' EXISTS (SELECT 1 FROM `'.$ut_table_name.'` '
+                                         .' WHERE `'.$ut_table_name.'`.account_id = `'.$u_table_name.'`.id AND `'.$ut_table_name.'`.tenant_id = \'%s\' LIMIT 0, 1)'
+                                         .')',
             ];
         }
 
@@ -303,19 +303,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'column_title'        => $this->_pt('Email'),
                 'record_field'        => 'email',
                 'invalid_value'       => $this->_pt('N/A'),
-                'extra_style' => 'text-align:center;',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
         ];
 
-        if( $platform_is_multitenant ) {
+        if ($platform_is_multitenant) {
             $columns_arr = array_merge($columns_arr, [
                 [
-                    'column_title'     => $this->_pt('Tenants'),
-                    'record_field'     => 'status',
+                    'column_title'        => $this->_pt('Tenants'),
+                    'record_field'        => 'status',
                     'sortable'            => false,
-                    'display_callback' => [$this, 'display_tenants'],
-                    'extra_style' => 'text-align:center;',
+                    'display_callback'    => [$this, 'display_tenants'],
+                    'extra_style'         => 'text-align:center;',
                     'extra_records_style' => 'text-align:center;',
                 ],
             ]);
@@ -327,14 +327,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'record_field'        => 'status',
                 'display_key_value'   => $users_statuses,
                 'invalid_value'       => $this->_pt('Undefined'),
-                'extra_style' => 'text-align:center;',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
             [
                 'column_title'        => $this->_pt('Level'),
                 'record_field'        => 'level',
                 'display_key_value'   => $users_levels,
-                'extra_style' => 'text-align:center;',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
             [
@@ -875,24 +875,24 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if( !empty( $params['record']['is_multitenant'] ) ) {
-            return $this->_pt( 'ALL' );
+        if (!empty($params['record']['is_multitenant'])) {
+            return $this->_pt('ALL');
         }
 
-        if( !($tenants_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array( $params['record']['id'] )) ) {
-            return $this->_pt( 'ALL' );
+        if (!($tenants_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array($params['record']['id']))) {
+            return $this->_pt('ALL');
         }
 
         $result_str = '';
-        foreach( $tenants_ids as $t_id ) {
-            if( empty( $this->_tenants_list_arr[$t_id] ) ) {
+        foreach ($tenants_ids as $t_id) {
+            if (empty($this->_tenants_list_arr[$t_id])) {
                 continue;
             }
 
-            $result_str .= ($result_str!==''?', ':'').$this->_tenants_list_arr[$t_id];
+            $result_str .= ($result_str !== '' ? ', ' : '').$this->_tenants_list_arr[$t_id];
         }
 
-        return ($result_str!==''?$result_str:$this->_pt( 'ALL' ));
+        return $result_str !== '' ? $result_str : $this->_pt('ALL');
     }
 
     public function display_actions($params)

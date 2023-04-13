@@ -868,7 +868,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return bool
      */
-    public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj): bool
+    public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj) : bool
     {
         // Check if accounts plugin settings were saved...
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */

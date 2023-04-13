@@ -74,7 +74,7 @@ class PHS_Action_Add extends PHS_Action
         }
 
         $all_tenants_arr = [];
-        if($is_multi_tenant
+        if ($is_multi_tenant
         && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
             $all_tenants_arr = [];
         }
@@ -92,7 +92,7 @@ class PHS_Action_Add extends PHS_Action
         if (!($account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]))) {
             $account_roles_slugs = [];
         }
-        if( !($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT])) ) {
+        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
             $account_tenants = [];
         }
 
@@ -158,10 +158,10 @@ class PHS_Action_Add extends PHS_Action
             'min_password_length'      => $accounts_plugin_settings['min_password_length'],
             'password_regexp'          => $accounts_plugin_settings['password_regexp'],
 
-            'roles_by_slug' => $roles_by_slug,
+            'roles_by_slug'   => $roles_by_slug,
             'all_tenants_arr' => $all_tenants_arr,
 
-            'tenants_model'   => $tenants_model,
+            'tenants_model' => $tenants_model,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
         ];

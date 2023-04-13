@@ -80,6 +80,7 @@ class PHS_Action_Edit extends PHS_Action
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $name = PHS_Params::_p('name', PHS_Params::T_NOHTML);
         $domain = PHS_Params::_p('domain', PHS_Params::T_NOHTML);
+        $directory = PHS_Params::_p('directory', PHS_Params::T_NOHTML);
         $identifier = PHS_Params::_p('identifier', PHS_Params::T_NOHTML);
         $is_default = PHS_Params::_p('is_default', PHS_Params::T_NUMERIC_BOOL);
 
@@ -88,6 +89,7 @@ class PHS_Action_Edit extends PHS_Action
         if (empty($foobar)) {
             $name = $tenant_arr['name'];
             $domain = $tenant_arr['domain'];
+            $directory = $tenant_arr['directory'];
             $identifier = $tenant_arr['identifier'];
             $is_default = (!empty($tenant_arr['is_default']) ? 1 : 0);
         }
@@ -96,6 +98,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr = [];
             $edit_arr['name'] = $name;
             $edit_arr['domain'] = $domain;
+            $edit_arr['directory'] = $directory;
             $edit_arr['identifier'] = $identifier;
             $edit_arr['is_default'] = $is_default;
 
@@ -127,6 +130,7 @@ class PHS_Action_Edit extends PHS_Action
             'back_page'  => $back_page,
             'name'       => $name,
             'domain'     => $domain,
+            'directory'  => $directory,
             'identifier' => $identifier,
             'is_default' => $is_default,
         ];

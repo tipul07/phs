@@ -299,19 +299,19 @@ class PHS_Model_Plugins extends PHS_Model
             unset(self::$db_plugins[$instance_id]);
         }
 
-        if( !($new_settings_arr = $this->get_plugins_db_settings($instance_id, null, $obfuscating_keys, true)) ) {
+        if (!($new_settings_arr = $this->get_plugins_db_settings($instance_id, null, $obfuscating_keys, true))) {
             $new_settings_arr = [];
         }
 
         PHS_Event_Plugin_settings_saved::trigger([
-            'instance_id' => $instance_id,
-            'instance_type' => $existing_arr['type'],
-            'plugin_name' => $existing_arr['plugin'],
+            'instance_id'         => $instance_id,
+            'instance_type'       => $existing_arr['type'],
+            'plugin_name'         => $existing_arr['plugin'],
             'old_instance_record' => $existing_arr,
             'new_instance_record' => $db_details['new_data'],
-            'old_settings_arr' => $old_settings,
-            'new_settings_arr' => $new_settings_arr,
-            'obfucate_keys_arr' => $obfuscating_keys,
+            'old_settings_arr'    => $old_settings,
+            'new_settings_arr'    => $new_settings_arr,
+            'obfucate_keys_arr'   => $obfuscating_keys,
         ]);
 
         return $new_settings_arr;
@@ -397,11 +397,11 @@ class PHS_Model_Plugins extends PHS_Model
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
         /** @var PHS_Event_Plugin_settings $event_obj */
-        if( ($event_obj = PHS_Event_Plugin_settings::trigger([
-                'instance_id' => $instance_id,
-                'settings_arr' => self::$plugin_settings[$instance_id],
-            ]))
-            && ($extra_settings_arr = $event_obj->get_output('settings_arr' ))
+        if (($event_obj = PHS_Event_Plugin_settings::trigger([
+            'instance_id'  => $instance_id,
+            'settings_arr' => self::$plugin_settings[$instance_id],
+        ]))
+            && ($extra_settings_arr = $event_obj->get_output('settings_arr'))
         ) {
             self::$plugin_settings[$instance_id] = self::validate_array($extra_settings_arr, self::$plugin_settings[$instance_id]);
         }

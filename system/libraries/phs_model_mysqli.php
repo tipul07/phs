@@ -2439,7 +2439,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $result_str = '('.$linkage_str.')';
             }
         } elseif (!is_array($field_val)) {
-            if ($field_val !== false) {
+            if ($field_val === null) {
+                $result_str = ' '.$field_name.' IS NULL ';
+            } elseif ($field_val !== false) {
                 $result_str = ' '.$field_name.' = \''.db_escape($field_val, $db_connection).'\' ';
             }
         } else {

@@ -45,11 +45,11 @@ class PHS_Model_Accounts_tenants extends PHS_Model
          || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tenants']))
          || !($table_name = $this->get_flow_table_name($flow_arr['table_name']))
          || !($qid = db_query('SELECT COUNT(*) AS total_tenants FROM `'.$table_name.'` WHERE account_id = \''.$account_id.'\'', $flow_arr['db_connection']))
-         || !($total_arr = db_fetch_assoc($qid, $flow_arr['db_connection'])) ) {
+         || !($total_arr = db_fetch_assoc($qid, $flow_arr['db_connection']))) {
             return null;
         }
 
-        return (empty( $total_arr['total_tenants'] )?0:(int)$total_arr['total_tenants']);
+        return empty($total_arr['total_tenants']) ? 0 : (int)$total_arr['total_tenants'];
     }
 
     /**
@@ -169,21 +169,21 @@ class PHS_Model_Accounts_tenants extends PHS_Model
             }
         }
 
-        if( null === ($tenants_count = $this->get_account_tenants_count( $account_arr['id'] )) ) {
+        if (null === ($tenants_count = $this->get_account_tenants_count($account_arr['id']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining tenants count for the account.'));
 
             return false;
         }
 
-        if( $tenants_count > 0 ) {
-            if( !empty( $account_arr['is_multitenant'] )
-             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
+        if ($tenants_count > 0) {
+            if (!empty($account_arr['is_multitenant'])
+             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
                 return false;
             }
-        } elseif(empty($account_arr['is_multitenant'] )
-             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection']) ) {
+        } elseif (empty($account_arr['is_multitenant'])
+             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
             return false;

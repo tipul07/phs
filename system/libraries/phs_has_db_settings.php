@@ -57,11 +57,11 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
         /** @var PHS_Event_Plugin_settings_obfuscated_keys $event_obj */
-        if( ($event_obj = PHS_Event_Plugin_settings_obfuscated_keys::trigger([
-            'instance_id' => $this->instance_id(),
+        if (($event_obj = PHS_Event_Plugin_settings_obfuscated_keys::trigger([
+            'instance_id'       => $this->instance_id(),
             'obfucate_keys_arr' => $obfuscating_keys,
-            ]))
-            && ($obfucated_keys_arr = $event_obj->get_output('obfucate_keys_arr' ))
+        ]))
+            && ($obfucated_keys_arr = $event_obj->get_output('obfucate_keys_arr'))
         ) {
             $obfuscating_keys = self::array_merge_unique_values($obfucated_keys_arr, $obfuscating_keys);
         }
@@ -214,6 +214,59 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return true;
     }
 
+    public static function default_custom_renderer_params() : array
+    {
+        return [
+            'field_id'      => '',
+            'field_name'    => '',
+            'field_details' => false,
+            'field_value'   => null,
+            'form_data'     => [],
+            // Any extra parameters sent from field (if any)
+            'callback_params' => false,
+            'editable'        => true,
+            'preset_content'  => '',
+            'plugin_obj'      => false,
+        ];
+    }
+
+    public static function st_default_custom_save_params() : array
+    {
+        return [
+            'plugin_obj'      => false,
+            'module_instance' => false,
+            'field_name'      => '',
+            'field_details'   => false,
+            'field_value'     => null,
+            'form_data'       => [],
+        ];
+    }
+
+    /**
+     * When there is a field in instance settings which has a custom callback for saving data, it will return
+     * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
+     * can be provided
+     * @return array
+     */
+    public static function st_default_custom_save_callback_result() : array
+    {
+        return [
+            // fields with values to be saved in instance settings as key/value pairs
+            '{new_settings_fields}' => [],
+        ];
+    }
+
+    /**
+     * Tells if settings field definition array is for a group
+     * @param array $settings_field
+     *
+     * @return bool
+     */
+    public static function settings_field_is_group($settings_field) : bool
+    {
+        return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
+    }
+
     private static function _default_settings_field() : array
     {
         return [
@@ -304,58 +357,5 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         return $default_arr;
-    }
-
-    public static function default_custom_renderer_params() : array
-    {
-        return [
-            'field_id'      => '',
-            'field_name'    => '',
-            'field_details' => false,
-            'field_value'   => null,
-            'form_data'     => [],
-            // Any extra parameters sent from field (if any)
-            'callback_params' => false,
-            'editable'        => true,
-            'preset_content'  => '',
-            'plugin_obj'      => false,
-        ];
-    }
-
-    public static function st_default_custom_save_params() : array
-    {
-        return [
-            'plugin_obj'      => false,
-            'module_instance' => false,
-            'field_name'      => '',
-            'field_details'   => false,
-            'field_value'     => null,
-            'form_data'       => [],
-        ];
-    }
-
-    /**
-     * When there is a field in instance settings which has a custom callback for saving data, it will return
-     * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
-     * can be provided
-     * @return array
-     */
-    public static function st_default_custom_save_callback_result() : array
-    {
-        return [
-            // fields with values to be saved in instance settings as key/value pairs
-            '{new_settings_fields}' => [],
-        ];
-    }
-
-    /**
-     * Tells if settings field definition array is for a group
-     * @param array $settings_field
-     *
-     * @return bool
-     */
-    public static function settings_field_is_group($settings_field) : bool
-    {
-        return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
     }
 }

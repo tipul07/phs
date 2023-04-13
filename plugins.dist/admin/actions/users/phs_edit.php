@@ -123,7 +123,7 @@ class PHS_Action_Edit extends PHS_Action
 
         $all_tenants_arr = [];
         $db_account_tenants = [];
-        if( $is_multi_tenant ) {
+        if ($is_multi_tenant) {
             if (!($all_tenants_arr = $tenants_model->get_all_tenants())) {
                 $all_tenants_arr = [];
             }
@@ -152,7 +152,7 @@ class PHS_Action_Edit extends PHS_Action
         $phone = PHS_Params::_p('phone', PHS_Params::T_NOHTML);
         $company = PHS_Params::_p('company', PHS_Params::T_NOHTML);
         $account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
-        if( !($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT])) ) {
+        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
             $account_tenants = [];
         }
 
@@ -224,17 +224,17 @@ class PHS_Action_Edit extends PHS_Action
             'back_page'    => $back_page,
             'account_data' => $account_arr,
 
-            'nick'          => $nick,
-            'pass'          => $pass,
-            'pass2'         => $pass2,
-            'level'         => $level,
-            'email'         => $email,
-            'title'         => $title,
-            'fname'         => $fname,
-            'lname'         => $lname,
-            'phone'         => $phone,
-            'company'       => $company,
-            'account_roles' => $account_roles,
+            'nick'               => $nick,
+            'pass'               => $pass,
+            'pass2'              => $pass2,
+            'level'              => $level,
+            'email'              => $email,
+            'title'              => $title,
+            'fname'              => $fname,
+            'lname'              => $lname,
+            'phone'              => $phone,
+            'company'            => $company,
+            'account_roles'      => $account_roles,
             'db_account_tenants' => $db_account_tenants,
 
             'accounts_plugin_settings' => $accounts_plugin_settings,
@@ -242,10 +242,10 @@ class PHS_Action_Edit extends PHS_Action
             'min_password_length'      => $accounts_plugin_settings['min_password_length'],
             'password_regexp'          => $accounts_plugin_settings['password_regexp'],
 
-            'roles_by_slug' => $roles_by_slug,
+            'roles_by_slug'   => $roles_by_slug,
             'all_tenants_arr' => $all_tenants_arr,
 
-            'tenants_model'   => $tenants_model,
+            'tenants_model' => $tenants_model,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
         ];

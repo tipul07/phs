@@ -35,6 +35,16 @@ use phs\PHS;
     </div>
 
     <div class="form-group row">
+        <label for="directory" class="col-sm-2 col-form-label"><?php echo $this->_pt('Directory'); ?></label>
+        <div class="col-sm-10">
+            <input type="text" id="directory" name="directory" class="form-control" autocomplete="directory"
+                   placeholder="appdir/"
+                   value="<?php echo form_str($this->view_var('directory')); ?>" />
+            <div id="directory_help" class="form-text"><?php echo $this::_t('What directory (if any) is used for this tenant (e.g. appdir/)'); ?></div>
+        </div>
+    </div>
+
+    <div class="form-group row">
         <label for="identifier" class="col-sm-2 col-form-label"><?php echo $this->_pt('Identifier'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="identifier" name="identifier" class="form-control" autocomplete="identifier"

@@ -186,11 +186,13 @@ $rules = [
         'positions' => ['inside', 'outside'],
     ],
     'no_spaces_inside_parenthesis'    => true,
-    'no_trailing_comma_in_list_call'  => true,
+    // Deprecated
+    //'no_trailing_comma_in_list_call'  => true,
     'no_trailing_comma_in_singleline' => [
         'elements' => [], // ['arguments', 'array_destructuring', 'array', 'group_import'],
     ],
-    'no_trailing_comma_in_singleline_array' => false,
+    // Deprecated
+    //'no_trailing_comma_in_singleline_array' => false,
     'no_trailing_whitespace'                => true,
     'no_trailing_whitespace_in_comment'     => true,
     'no_unneeded_control_parentheses'       => [

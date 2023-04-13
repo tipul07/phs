@@ -74,6 +74,6 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())
 
     // Check if new plugin settings say that we should turn password encryption/decryption off
     PHS_Event_Plugin_settings_saved::listen([
-        $accounts_plugin, 'listen_plugin_settings_saved'
+        $accounts_plugin, 'listen_plugin_settings_saved',
     ]);
 }

@@ -147,6 +147,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default'      => '',
             ],
             [
+                'display_name' => $this->_pt('Directory'),
+                'display_hint' => $this->_pt('All records containing this value'),
+                'var_name'     => 'fdirectory',
+                'record_field' => 'directory',
+                'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
+                'type'         => PHS_Params::T_NOHTML,
+                'default'      => '',
+            ],
+            [
                 'display_name' => $this->_pt('Identifier'),
                 'display_hint' => $this->_pt('All records containing this value'),
                 'var_name'     => 'fidentifier',
@@ -181,6 +190,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             [
                 'column_title'        => $this->_pt('Domain'),
                 'record_field'        => 'domain',
+                'default'             => '',
+                'invalid_value'       => $this->_pt('N/A'),
+                'extra_style'         => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+            ],
+            [
+                'column_title'        => $this->_pt('Directory'),
+                'record_field'        => 'directory',
                 'default'             => '',
                 'invalid_value'       => $this->_pt('N/A'),
                 'extra_style'         => 'text-align:center;',

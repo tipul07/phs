@@ -629,7 +629,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param  string[]  $plugins_arr
+     * @param string[] $plugins_arr
      *
      * @return string
      */
@@ -639,7 +639,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param  string[]  $plugins_arr
+     * @param string[] $plugins_arr
      *
      * @return array
      */
@@ -669,11 +669,11 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     /**
      * @param string $plugin_name
-     * @param  null|\phs\libraries\PHS_Plugin  $plugin_instance
+     * @param null|\phs\libraries\PHS_Plugin $plugin_instance
      *
      * @return false|array<string, string>
      */
-    public function extract_settings_for_plugin($plugin_name, PHS_Plugin $plugin_instance = null)
+    public function extract_settings_for_plugin($plugin_name, ?PHS_Plugin $plugin_instance = null)
     {
         $this->reset_error();
 

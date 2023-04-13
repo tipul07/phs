@@ -1132,7 +1132,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return string
      */
-    public static function safe_escape_plugin_name($name): string
+    public static function safe_escape_plugin_name($name) : string
     {
         if (empty($name) || !is_string($name)
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
@@ -1147,7 +1147,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return string
      */
-    public static function safe_escape_theme_name($name): string
+    public static function safe_escape_theme_name($name) : string
     {
         if (empty($name) || !is_string($name)
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
@@ -1288,7 +1288,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      * @return null|PHS_Instantiable
      */
     final public static function get_instance_for_loads(?string $class_name = null, $plugin_name = false,
-        $instance_type = false, bool $singleton = true, string $instance_subdir = ''): ?PHS_Instantiable
+        $instance_type = false, bool $singleton = true, string $instance_subdir = '') : ?self
     {
         self::st_reset_error();
 

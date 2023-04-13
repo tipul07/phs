@@ -54,6 +54,7 @@ class PHS_Action_Add extends PHS_Action
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $name = PHS_Params::_p('name', PHS_Params::T_NOHTML);
         $domain = PHS_Params::_p('domain', PHS_Params::T_NOHTML);
+        $directory = PHS_Params::_p('directory', PHS_Params::T_NOHTML);
         $identifier = PHS_Params::_p('identifier', PHS_Params::T_NOHTML);
         $is_default = PHS_Params::_p('is_default', PHS_Params::T_NUMERIC_BOOL);
 
@@ -64,6 +65,7 @@ class PHS_Action_Add extends PHS_Action
             $insert_arr['added_by_uid'] = $current_user['id'];
             $insert_arr['name'] = $name;
             $insert_arr['domain'] = $domain;
+            $insert_arr['directory'] = $directory;
             $insert_arr['identifier'] = $identifier;
             $insert_arr['is_default'] = $is_default;
 
@@ -90,6 +92,7 @@ class PHS_Action_Add extends PHS_Action
         $data = [
             'name'       => $name,
             'domain'     => $domain,
+            'directory'  => $directory,
             'identifier' => $identifier,
             'is_default' => $is_default,
         ];

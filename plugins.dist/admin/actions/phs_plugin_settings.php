@@ -9,9 +9,9 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
+use phs\libraries\PHS_Has_db_settings;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\libraries\PHS_Has_db_settings;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {

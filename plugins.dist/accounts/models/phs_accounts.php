@@ -239,7 +239,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function needs_after_registration_email($user_data, $params = false): bool
+    public function needs_after_registration_email($user_data, $params = false) : bool
     {
         if (empty($user_data)) {
             return false;
@@ -249,7 +249,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params = [];
         }
 
-        $params['send_confirmation_email'] = (!empty( $params['send_confirmation_email'] ));
+        $params['send_confirmation_email'] = (!empty($params['send_confirmation_email']));
 
         if (empty($params['accounts_plugin_settings'])
          || !is_array($params['accounts_plugin_settings'])) {
@@ -1709,9 +1709,9 @@ class PHS_Model_Accounts extends PHS_Model
                         'length' => 2,
                     ],
                     'is_multitenant' => [
-                        'type'   => self::FTYPE_TINYINT,
-                        'length' => 2,
-                        'index' => true,
+                        'type'    => self::FTYPE_TINYINT,
+                        'length'  => 2,
+                        'index'   => true,
                         'default' => 1,
                         'comment' => '1 - all tenants, 0 - check users_tenants',
                     ],

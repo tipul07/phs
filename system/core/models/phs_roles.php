@@ -809,7 +809,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_from_all_users($role_data): bool
+    public function unlink_role_from_all_users($role_data) : bool
     {
         $this->reset_error();
 

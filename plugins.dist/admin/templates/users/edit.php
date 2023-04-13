@@ -123,8 +123,8 @@ if (!empty($back_page)) {
     </div>
 
     <?php
-    if( $is_multi_tenant ) {
-    ?>
+    if ($is_multi_tenant) {
+        ?>
     <div class="form-group row">
         <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
         <div class="col-sm-10">
@@ -365,8 +365,8 @@ function update_selected_roles()
 update_selected_roles();
 </script>
 <?php
-if( $is_multi_tenant ) {
-?>
+if ($is_multi_tenant) {
+    ?>
 
 <div style="display: none;" id="account_tenants_container">
 
@@ -412,7 +412,7 @@ if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
         $did_autofocus = true;
     }
 }
-?>
+    ?>
     </div>
     <div class="float-right p-2">
         <input type="button" id="do_close_tenant_dialogue" name="do_close_tenant_dialogue" class="btn btn-primary btn-small"

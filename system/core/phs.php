@@ -91,7 +91,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys'];
+        return ['tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys'];
     }
 
     /**
@@ -318,6 +318,14 @@ final class PHS extends PHS_Registry
     /**
      * @return bool
      */
+    public static function is_multi_tenant() : bool
+    {
+        return defined('PHS_MULTI_TENANT') && constant('PHS_MULTI_TENANT');
+    }
+
+    /**
+     * @return bool
+     */
     public static function prevent_session() : bool
     {
         return defined('PHS_PREVENT_SESSION') && constant('PHS_PREVENT_SESSION');
@@ -414,9 +422,9 @@ final class PHS extends PHS_Registry
     /**
      * @param string $theme
      *
-     * @return bool|string
+     * @return string
      */
-    public static function valid_theme($theme)
+    public static function valid_theme($theme) : string
     {
         self::st_reset_error();
 
@@ -426,9 +434,9 @@ final class PHS extends PHS_Registry
          || !@file_exists(PHS_THEMES_DIR.$theme)
          || !@is_dir(PHS_THEMES_DIR.$theme)
          || !@is_readable(PHS_THEMES_DIR.$theme)) {
-            self::st_set_error(self::ERR_THEME, self::_t('Theme %s doesn\'t exist or directory is not readable.', ($theme ? $theme : 'N/A')));
+            self::st_set_error(self::ERR_THEME, self::_t('Theme %s doesn\'t exist or directory is not readable.', ($theme ?: 'N/A')));
 
-            return false;
+            return '';
         }
 
         return $theme;
@@ -603,14 +611,15 @@ final class PHS extends PHS_Registry
         return $theme;
     }
 
-    public static function get_default_theme()
+    public static function get_default_theme() : ?string
     {
         $theme = self::get_data(self::DEFAULT_THEME);
 
         if (!$theme) {
             if (!self::resolve_theme()
-             || !($theme = self::get_data(self::DEFAULT_THEME))) {
-                return false;
+                || !($theme = self::get_data(self::DEFAULT_THEME))
+                || !is_string($theme)) {
+                return null;
             }
         }
 
@@ -631,7 +640,7 @@ final class PHS extends PHS_Registry
         return $themes;
     }
 
-    public static function domain_constants()
+    public static function domain_constants() : array
     {
         return [
             // configuration constants
@@ -642,6 +651,7 @@ final class PHS extends PHS_Registry
             'PHS_PORT'          => 'PHS_DEFAULT_PORT',
             'PHS_SSL_PORT'      => 'PHS_DEFAULT_SSL_PORT',
             'PHS_DOMAIN_PATH'   => 'PHS_DEFAULT_DOMAIN_PATH',
+            'PHS_CONTACT_EMAIL' => 'PHS_DEFAULT_CONTACT_EMAIL',
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',
 
@@ -658,7 +668,7 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    public static function define_constants()
+    public static function define_constants() : void
     {
         $constants_arr = self::domain_constants();
         foreach ($constants_arr as $domain_constant => $default_constant) {
@@ -2153,7 +2163,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|\phs\libraries\PHS_Library
      */
-    public static function load_core_library(string $library, array $params = null): ?PHS_Library
+    public static function load_core_library(string $library, ?array $params = null) : ?PHS_Library
     {
         self::st_reset_error();
 
@@ -2237,7 +2247,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|PHS_Library Helper for self::load_core_library() method call which prepares class name and file name
      */
-    public static function get_core_library_instance(string $core_library, array $params = null): ?PHS_Library
+    public static function get_core_library_instance(string $core_library, ?array $params = null) : ?PHS_Library
     {
         self::st_reset_error();
 
@@ -3376,6 +3386,9 @@ final class PHS extends PHS_Registry
                 break;
             case PHS_Instantiable::INSTANCE_TYPE_SCOPE:
                 $class_name = 'PHS_Scope_'.$instance_name;
+                break;
+            case PHS_Instantiable::INSTANCE_TYPE_EVENT:
+                $class_name = 'PHS_Event_'.$instance_name;
                 break;
 
             default:
