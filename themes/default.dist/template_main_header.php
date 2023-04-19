@@ -8,6 +8,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $cuser_arr = PHS::user_logged_in();
 
@@ -36,63 +37,38 @@ if (!($mail_hook_args = PHS::trigger_hooks(PHS_Hooks::H_MSG_GET_SUMMARY, $summar
                 <li class="main-menu-placeholder"><a href="javascript:void(0)" onclick="open_left_menu_pane()" onfocus="this.blur();" class="fa fa-bars main-menu-icon"></a></li>
 
                 <?php
-                if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU, PHS_Hooks::default_buffer_hook_args()))
-                && is_array($hook_args)
-                && !empty($hook_args['buffer'])) {
-                    echo $hook_args['buffer'];
-                }
+                echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_MAIN_MENU);
 ?>
 
                 <li><a href="<?php echo PHS::url(); ?>" onfocus="this.blur();"><?php echo $this::_t('Home'); ?></a></li>
 
                 <?php
 if (empty($cuser_arr)) {
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT);
 
     if (can(PHS_Roles::ROLEU_REGISTER)) {
         ?>
-                        <li><a href="<?php echo PHS::url([
-                            'p' => 'accounts', 'a' => 'register',
-                        ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
-                        </li>
-                        <?php
+        <li><a href="<?php echo PHS::url([
+            'p' => 'accounts', 'a' => 'register',
+        ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
+        </li>
+        <?php
     }
     ?>
-                    <li><a href="<?php echo PHS::url([
-                        'p' => 'accounts',
-                        'a' => 'login',
-                    ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
-                    </li>
-                    <?php
+    <li><a href="<?php echo PHS::url([
+        'p' => 'accounts',
+        'a' => 'login',
+    ]); ?>" onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
+    </li>
+    <?php
 
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT);
 } else {
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
-
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN);
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN);
 }
 
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU, PHS_Hooks::default_buffer_hook_args()))
-&& is_array($hook_args)
-&& !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_AFTER_MAIN_MENU);
 ?>
             </ul>
         </nav>
