@@ -7,6 +7,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -39,7 +40,7 @@ if (!($mail_hook_args = PHS::trigger_hooks(PHS_Hooks::H_MSG_GET_SUMMARY, $summar
 <head>
 <?php
 
-    echo $this->sub_view('template_admin_head_meta');
+echo $this->sub_view('template_admin_head_meta');
 
 echo $this->sub_view('template_admin_head_css');
 
@@ -154,23 +155,15 @@ function close_menu_panes()
 </script>
 
     <title><?php echo $action_result['page_settings']['page_title']; ?></title>
-    <?php echo $action_result['page_settings']['page_in_header']; ?>
 <?php
-
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_HEAD, PHS_Hooks::default_buffer_hook_args()))
- && !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo $action_result['page_settings']['page_in_header'];
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_HEAD);
 ?>
 </head>
 
 <body<?php echo(($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
 <?php
-
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_START, PHS_Hooks::default_buffer_hook_args()))
- && !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_START);
 
 if (empty($action_result['page_settings']['page_only_buffer'])) {
     ?>
@@ -197,20 +190,8 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 
         <ul>
         <?php
-                if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU,
-                    PHS_Hooks::default_buffer_hook_args()))
-             && !empty($hook_args['buffer'])
-                ) {
-                    echo $hook_args['buffer'];
-                }
-
-                if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
-                    PHS_Hooks::default_buffer_hook_args()))
-             && !empty($hook_args['buffer'])
-                ) {
-                    echo $hook_args['buffer'];
-                }
-
+            echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_LEFT_MENU);
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU);
     ?>
         </ul>
 
@@ -226,15 +207,10 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
         <ul>
             <?php
 
-            if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU,
-                PHS_Hooks::default_buffer_hook_args()))
-                 && !empty($hook_args['buffer'])
-            ) {
-                echo $hook_args['buffer'];
-            }
+        echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_RIGHT_MENU);
 
-            if (!empty($cuser_arr)) {
-                ?>
+    if (!empty($cuser_arr)) {
+        ?>
                     <li><p><?php echo $this::_t('Hello %s', $cuser_arr['nick']); ?></p></li>
 
                     <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'edit_profile']); ?>"
@@ -244,8 +220,8 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                     <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'logout']); ?>"
                         ><?php echo $this::_t('Logout'); ?></a></li>
                     <?php
-            } else {
-                ?>
+    } else {
+        ?>
                     <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>"
                         ><?php echo $this::_t('Register'); ?></a></li>
                     <li>
@@ -282,44 +258,39 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         <div class="clearfix"></div>
                     </li>
                     <?php
-            }
+    }
 
-            if (($defined_languages = PHS_Language::get_defined_languages())
-             && count($defined_languages) > 1) {
-                if (!($current_language = PHS_Language::get_current_language())
-                 || empty($defined_languages[$current_language])) {
-                    $current_language = PHS_Language::get_default_language();
-                }
+    if (($defined_languages = PHS_Language::get_defined_languages())
+     && count($defined_languages) > 1) {
+        if (!($current_language = PHS_Language::get_current_language())
+         || empty($defined_languages[$current_language])) {
+            $current_language = PHS_Language::get_default_language();
+        }
 
-                ?>
+        ?>
                     <li><span><?php echo $this::_t('Choose language'); ?></span>
                         <ul>
                         <?php
-                    foreach ($defined_languages as $lang => $lang_details) {
-                        $language_flag = '';
-                        if (!empty($lang_details['flag_file'])) {
-                            $language_flag
-                                = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
-                        }
+            foreach ($defined_languages as $lang => $lang_details) {
+                $language_flag = '';
+                if (!empty($lang_details['flag_file'])) {
+                    $language_flag
+                        = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
+                }
 
-                        $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
+                $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
-                        ?>
+                ?>
                             <li><a href="<?php echo $language_link; ?>"><?php echo $language_flag.$lang_details['title']; ?></a></li>
                             <?php
-                    }
-                ?>
+            }
+        ?>
                         </ul>
                     </li>
                     <?php
-            }
+    }
 
-            if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU,
-                PHS_Hooks::default_buffer_hook_args()))
-                 && !empty($hook_args['buffer'])
-            ) {
-                echo $hook_args['buffer'];
-            }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_RIGHT_MENU);
     ?>
         </ul>
 
@@ -342,12 +313,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         </li>
 
                         <?php
-                    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU,
-                        PHS_Hooks::default_buffer_hook_args()))
-                         && !empty($hook_args['buffer'])
-                    ) {
-                        echo $hook_args['buffer'];
-                    }
+                        echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_MAIN_MENU);
     ?>
 
                         <li>
@@ -355,23 +321,18 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         </li>
 
                         <?php
-        if (empty($cuser_arr)) {
-            ?>
-                                <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>"
-                                       onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
-                                </li>
-                                <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'login']); ?>"
-                                       onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
-                                </li>
-                                <?php
-        }
+    if (empty($cuser_arr)) {
+        ?>
+                            <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>"
+                                   onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
+                            </li>
+                            <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'login']); ?>"
+                                   onfocus="this.blur();"><?php echo $this::_t('Login'); ?></a>
+                            </li>
+                            <?php
+    }
 
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU,
-            PHS_Hooks::default_buffer_hook_args()))
-                         && !empty($hook_args['buffer'])
-        ) {
-            echo $hook_args['buffer'];
-        }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_MAIN_MENU);
     ?>
                     </ul>
                 </nav>
@@ -379,22 +340,21 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                     <nav>
                         <ul>
                             <?php
-            if (!empty($mail_hook_args['summary_buffer'])) {
-                ?>
-                                    <li class="main-menu-placeholder">
-                                        <a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()"
-                                           onfocus="this.blur();" class="fa fa-envelope main-menu-icon"
-                                        ><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']; ?></span></a>
-                                        <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']; ?></div>
-                                    </li>
-                                    <?php
-            }
+        if (!empty($mail_hook_args['summary_buffer'])) {
+            ?>
+                                <li class="main-menu-placeholder">
+                                    <a href="javascript:void(0)" onclick="open_messages_summary_menu_pane()"
+                                       onfocus="this.blur();" class="fa fa-envelope main-menu-icon"
+                                    ><span id="messages-summary-new-count"><?php echo $mail_hook_args['messages_new']; ?></span></a>
+                                    <div id="messages-summary-container"><?php echo $mail_hook_args['summary_buffer']; ?></div>
+                                </li>
+                                <?php
+        }
     ?>
                             <li class="main-menu-placeholder">
                                 <a href="javascript:void(0)" onclick="open_right_menu_pane()"
                                    onfocus="this.blur();" class="fa fa-user main-menu-icon"></a>
                             </li>
-
                         </ul>
                     </nav>
                 </div>
@@ -406,20 +366,16 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
     <div class="clearfix"></div>
 
     <div id="content"><?php
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_FIRST_CONTENT, PHS_Hooks::default_buffer_hook_args()))
- && !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
-
+        echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_FIRST_CONTENT);
     ?><div id="main_content"><?php
 }
 
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args()))
-         && !empty($hook_args['notifications_buffer'])) {
-            echo $hook_args['notifications_buffer'];
-        }
+if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args()))
+ && !empty($hook_args['notifications_buffer'])) {
+    echo $hook_args['notifications_buffer'];
+}
 
-        echo $action_result['buffer'];
+echo $action_result['buffer'];
 
 if (empty($action_result['page_settings']['page_only_buffer'])) {
     ?></div>

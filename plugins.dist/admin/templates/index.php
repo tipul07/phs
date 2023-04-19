@@ -4,7 +4,7 @@ if (!($current_user = $this->view_var('current_user'))) {
     $current_user = ['nick' => $this->_pt('N/A')];
 }
 ?>
-<div style="max-width:800px;margin: 0 20px;">
+<div style="margin: 0 20px;">
 
     <div class="form_container responsive" style="margin: 20px auto;">
 
