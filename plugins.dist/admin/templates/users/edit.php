@@ -5,10 +5,12 @@ use phs\PHS;
 use phs\libraries\PHS_Utils;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
 /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
 if (!($roles_model = $this->view_var('roles_model'))
- || !($plugins_model = $this->view_var('plugins_model'))
- || !($account_arr = $this->view_var('account_data'))) {
+    || !($accounts_plugin = $this->view_var('accounts_plugin'))
+    || !($plugins_model = $this->view_var('plugins_model'))
+    || !($account_arr = $this->view_var('account_data'))) {
     return $this->_pt('Error loading required resources.');
 }
 
@@ -68,7 +70,7 @@ if (!empty($back_page)) {
         <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="email" name="email" class="form-control" autocomplete="email"
-                <?php echo !empty($accounts_plugin_settings['email_mandatory']) ? 'required="required"' : ''; ?>
+                <?php echo $accounts_plugin->registration_email_mandatory() ? 'required="required"' : ''; ?>
                    value="<?php echo form_str($this->view_var('email')); ?>" />
         </div>
     </div>

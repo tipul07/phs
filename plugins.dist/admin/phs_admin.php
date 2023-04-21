@@ -8,6 +8,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\system\core\models\PHS_Model_Plugins;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
@@ -242,91 +243,91 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_manage_roles($user_data)
+    public function can_admin_manage_roles($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ROLES, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_list_roles($user_data)
+    public function can_admin_list_roles($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_ROLES, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_manage_plugins($user_data)
+    public function can_admin_manage_plugins($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_PLUGINS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_list_plugins($user_data)
+    public function can_admin_list_plugins($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_PLUGINS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_import_plugins_settings($user_data)
+    public function can_admin_import_plugins_settings($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_export_plugins_settings($user_data)
+    public function can_admin_export_plugins_settings($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_manage_accounts($user_data)
+    public function can_admin_manage_accounts($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ACCOUNTS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_list_accounts($user_data)
+    public function can_admin_list_accounts($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_ACCOUNTS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_login_subaccounts($user_data)
+    public function can_admin_login_subaccounts($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT, null, $user_data);
     }
@@ -336,67 +337,67 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return array|bool
      */
-    public function can_admin_export_accounts($user_data)
+    public function can_admin_export_accounts($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_ACCOUNTS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_import_accounts($user_data)
+    public function can_admin_import_accounts($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_ACCOUNTS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_manage_agent_jobs($user_data)
+    public function can_admin_manage_agent_jobs($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_list_agent_jobs($user_data)
+    public function can_admin_list_agent_jobs($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_AGENT_JOBS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_manage_api_keys($user_data)
+    public function can_admin_manage_api_keys($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_list_api_keys($user_data)
+    public function can_admin_list_api_keys($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
     }
 
     /**
-     * @param int|array $user_data
+     * @param int|array|null $user_data
      *
-     * @return array|bool
+     * @return bool
      */
-    public function can_admin_view_logs($user_data)
+    public function can_admin_view_logs($user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_VIEW_LOGS, null, $user_data);
     }
@@ -411,7 +412,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($plugins_model = PHS::load_model('plugins'))) {
+        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error loading required resources.'));
 
             return false;

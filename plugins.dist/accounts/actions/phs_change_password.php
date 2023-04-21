@@ -76,7 +76,7 @@ class PHS_Action_Change_password extends PHS_Action
 
             if (!($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))
              || empty($confirmation_parts['account_data']) || empty($confirmation_parts['reason'])
-             || $confirmation_parts['reason'] != $accounts_plugin::CONF_REASON_FORGOT) {
+             || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_FORGOT) {
                 if ($accounts_plugin->has_error()) {
                     PHS_Notifications::add_error_notice($accounts_plugin->get_error_message());
                 } else {

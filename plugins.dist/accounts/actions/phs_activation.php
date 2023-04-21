@@ -6,6 +6,8 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Activation extends PHS_Action
 {
@@ -35,15 +37,10 @@ class PHS_Action_Activation extends PHS_Action
         PHS::page_settings('page_title', $this->_pt('Account Activation'));
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if (!($accounts_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
-
-            return self::default_action_result();
-        }
-
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -64,7 +61,7 @@ class PHS_Action_Activation extends PHS_Action
         $will_send_email_confirmation = false;
         if (!empty($confirmation_parts['reason'])
         && !empty($confirmation_parts['account_data'])
-        && $confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION
+        && $confirmation_parts['reason'] === $accounts_plugin::CONF_REASON_ACTIVATION
         && $accounts_model->needs_activation($confirmation_parts['account_data'])
         && $accounts_model->needs_confirmation_email($confirmation_parts['account_data'])) {
             $will_send_email_confirmation = true;
@@ -76,8 +73,6 @@ class PHS_Action_Activation extends PHS_Action
         && ($confirmation_result = $accounts_plugin->do_confirmation_reason($confirmation_parts['account_data'], $confirmation_parts['reason']))) {
             PHS_Notifications::add_success_notice($this->_pt('Action Confirmed...'));
 
-            $action_result = self::default_action_result();
-
             $url_params = [];
             $url_params['reason'] = $confirmation_parts['reason'];
             if (!empty($will_send_email_confirmation)) {
@@ -85,15 +80,15 @@ class PHS_Action_Activation extends PHS_Action
             }
 
             if (!empty($confirmation_result['redirect_url'])) {
-                $action_result['redirect_to_url'] = $confirmation_result['redirect_url'];
-            } elseif ($confirmation_parts['reason'] == $accounts_plugin::CONF_REASON_ACTIVATION
+                $redirect_to_url = $confirmation_result['redirect_url'];
+            } elseif ($confirmation_parts['reason'] === $accounts_plugin::CONF_REASON_ACTIVATION
              || !PHS::user_logged_in()) {
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'login'], $url_params);
+                $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'login'], $url_params);
             } else {
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'edit_profile'], $url_params);
+                $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'edit_profile'], $url_params);
             }
 
-            return $action_result;
+            return action_redirect($redirect_to_url);
         }
 
         if ($accounts_plugin->has_error()) {
@@ -101,7 +96,7 @@ class PHS_Action_Activation extends PHS_Action
         }
 
         $data = [
-            'nick'                         => (!empty($confirmation_parts['account_data']) ? $confirmation_parts['account_data']['nick'] : ''),
+            'nick'                         => $confirmation_parts['account_data']['nick'] ?? '',
             'will_send_email_confirmation' => $will_send_email_confirmation,
         ];
 

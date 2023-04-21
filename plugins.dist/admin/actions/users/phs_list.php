@@ -64,7 +64,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_list_accounts($current_user)) {
+        if (!$this->_admin_plugin->can_admin_list_accounts()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to create accounts.'));
 
             return false;
@@ -83,7 +83,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have enough rights to edit the account.'));
         }
 
-        $can_export_accounts = (bool)$this->_admin_plugin->can_admin_export_accounts($current_user);
+        $can_export_accounts = $this->_admin_plugin->can_admin_export_accounts();
 
         $accounts_model = $this->_paginator_model;
 
@@ -327,8 +327,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -387,8 +387,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -447,8 +447,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -507,8 +507,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_export_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_export_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export accounts.'));
 
                     return false;
@@ -544,8 +544,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_export_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_export_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export accounts.'));
 
                     return false;
@@ -613,8 +613,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -651,8 +651,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -687,8 +687,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -723,8 +723,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
 
                     return false;
@@ -786,10 +786,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         if (!($current_user = PHS::user_logged_in())
@@ -799,7 +797,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_manage_accounts($current_user)) {
+        if (!$this->_admin_plugin->can_admin_manage_accounts()) {
             return '-';
         }
 
@@ -808,7 +806,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         ob_start();
 
-        if ($this->_admin_plugin->can_admin_login_subaccounts($current_user)
+        if ($this->_admin_plugin->can_admin_login_subaccounts()
          && $this->_paginator_model->is_active($account_arr)) {
             ?>
             <a href="javascript:void(0)"

@@ -18,14 +18,6 @@ function phs_version() : string
     return '1.1.8.13';
 }
 
-function action_request_login() : array
-{
-    $action_result = PHS_Action::default_action_result();
-    $action_result['request_login'] = true;
-
-    return $action_result;
-}
-
 // region Helper functions
 /**
  * @param array|string $path
@@ -34,6 +26,15 @@ function action_request_login() : array
  *
  * @return array
  */
+
+function action_request_login() : array
+{
+    $action_result = PHS_Action::default_action_result();
+    $action_result['request_login'] = true;
+
+    return $action_result;
+}
+
 function action_redirect($path, ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
