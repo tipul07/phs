@@ -6,6 +6,8 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Logout extends PHS_Action
 {
@@ -32,34 +34,24 @@ class PHS_Action_Logout extends PHS_Action
      */
     public function execute()
     {
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_LOGOUT_ACTION_START, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGOUT, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
         PHS::page_settings('page_title', $this->_pt('Logout'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_success_notice($this->_pt('You logged out from your account...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url();
-
-            return $action_result;
+            return action_redirect();
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if (!($accounts_plugin = $this->get_plugin_instance())) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
 
             return self::default_action_result();
@@ -68,11 +60,7 @@ class PHS_Action_Logout extends PHS_Action
         if ($accounts_plugin->do_logout()) {
             PHS_Notifications::add_success_notice($this->_pt('Successfully logged out...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url();
-
-            return $action_result;
+            return action_redirect();
         }
 
         if ($accounts_plugin->has_error()) {

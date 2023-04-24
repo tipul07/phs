@@ -35,10 +35,20 @@ function action_request_login() : array
     return $action_result;
 }
 
-function action_redirect($path, ?array $args = null, ?array $extra = null) : array
+/**
+ * @param string|array $path
+ * @param  null|array  $args
+ * @param  null|array  $extra
+ *
+ * @return array
+ */
+function action_redirect($path = '', ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
+        if($path === '' ) {
+            $path = PHS::url();
+        }
         $action_result['redirect_to_url'] = $path;
     } elseif (is_array($path)) {
         $action_result['redirect_to_url'] = PHS::url($path, $args ?? [], $extra ?? []);

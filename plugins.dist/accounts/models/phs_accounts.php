@@ -2004,7 +2004,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $now_date = date(self::DATETIME_DB);
 
-        if( !$should_setup_password_at_first_login ) {
+        if( $should_setup_password_at_first_login ) {
             $encoded_pass = null;
             $encoded_clear = null;
         } else {

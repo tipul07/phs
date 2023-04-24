@@ -7,8 +7,13 @@ use phs\PHS_Session;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
+use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
 
 class PHS_Action_Change_password extends PHS_Api_action
 {
@@ -32,17 +37,11 @@ class PHS_Action_Change_password extends PHS_Api_action
                 $this->_pt('API change password should use mobileapi plugin.'));
         }
 
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_CHANGE_PASSWORD_ACTION_START, $hook_args))
-        && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
@@ -53,9 +52,9 @@ class PHS_Action_Change_password extends PHS_Api_action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\plugins\accounts\contracts\PHS_Contract_Account_basic $account_contract */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($account_contract = PHS::load_contract('account_basic', 'accounts'))) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }

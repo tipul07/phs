@@ -747,21 +747,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             case self::CONF_REASON_PASS_SETUP:
                 if (!$accounts_model->must_setup_password($account_arr)) {
-                    $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Password already setup for this account.'));
-
-                    return false;
-                }
-
-                if (!($confirmation_parts = $this->get_confirmation_params($account_arr, self::CONF_REASON_PASS_SETUP, ['link_expire_seconds' => 3600]))
+                    $redirect_args = ['setup_not_required' => 1];
+                } elseif (!($confirmation_parts = $this->get_confirmation_params($account_arr, self::CONF_REASON_PASS_SETUP, ['link_expire_seconds' => 3600]))
                  || empty($confirmation_parts['confirmation_param']) || empty($confirmation_parts['pub_key'])) {
-                    if (!$this->has_error()) {
-                        $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Couldn\'t obtain password setup page parameters. Please try again.'));
-                    }
-
-                    return false;
+                    $redirect_args = ['request_args' => 1];
+                } else {
+                    $redirect_args = [self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param']];
                 }
 
-                $redirect_url = PHS::url(['p' => 'accounts', 'a' => 'setup_password'], [self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param']]);
+                $redirect_url = PHS::url(['p' => 'accounts', 'a' => 'setup_password'], $redirect_args);
                 break;
         }
 
