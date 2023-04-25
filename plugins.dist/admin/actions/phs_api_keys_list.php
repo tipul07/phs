@@ -268,8 +268,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -328,8 +328,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -388,8 +388,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -446,8 +446,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -482,8 +482,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -518,8 +518,8 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !$admin_plugin->can_admin_manage_api_keys($current_user)) {
+                if (!PHS::user_logged_in()
+                 || !$admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
 
                     return false;
@@ -613,13 +613,11 @@ class PHS_Action_Api_keys_list extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_manage_api_keys(PHS::current_user())) {
+        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '-';
         }
 

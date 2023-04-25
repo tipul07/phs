@@ -57,7 +57,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
      */
     public function execute()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -73,7 +73,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$this->_admin_plugin->can_admin_list_accounts($current_user)) {
+        if (!$this->_admin_plugin->can_admin_list_accounts()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list accounts.'));
 
             return self::default_action_result();

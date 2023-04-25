@@ -12,10 +12,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     INPUT_TYPE_TEXTAREA = 'textarea';
 
     // Validated settings fields structure array
-    protected $_settings_structure = [];
+    protected array $_settings_structure = [];
 
     // Array with default values for settings (key => val) array
-    protected $_default_settings = [];
+    protected array $_default_settings = [];
 
     // Database record
     protected array $_db_details = [];

@@ -7,6 +7,11 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\models\PHS_Model_Plugins;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Edit extends PHS_Action
 {
@@ -38,18 +43,18 @@ class PHS_Action_Edit extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($admin_plugin = PHS::load_plugin('admin'))
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+         || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($roles_model = PHS::load_model('roles'))
-         || !($plugins_model = PHS::load_model('plugins'))) {
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($roles_model = PHS_Model_Roles::get_instance())
+         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_manage_accounts($current_user)) {
+        if (!$admin_plugin->can_admin_manage_accounts()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage accounts.'));
 
             return self::default_action_result();
@@ -63,8 +68,6 @@ class PHS_Action_Edit extends PHS_Action
          || $accounts_model->is_deleted($account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
 
-            $action_result = self::default_action_result();
-
             $args = ['unknown_account' => 1];
 
             if (empty($back_page)) {
@@ -75,15 +78,11 @@ class PHS_Action_Edit extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (!$accounts_model->can_manage_account($current_user, $account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
-
-            $action_result = self::default_action_result();
 
             $args = ['cannot_edit_account' => 1];
 
@@ -95,9 +94,7 @@ class PHS_Action_Edit extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (!($roles_by_slug = $roles_model->get_all_roles_by_slug())) {
@@ -170,10 +167,8 @@ class PHS_Action_Edit extends PHS_Action
                 $edit_params_arr['{account_roles}'] = $account_roles_slugs;
                 $edit_params_arr['{send_confirmation_email}'] = true;
 
-                if (($new_account = $accounts_model->edit($account_arr, $edit_params_arr))) {
+                if ($accounts_model->edit($account_arr, $edit_params_arr)) {
                     PHS_Notifications::add_success_notice($this->_pt('Account details saved in database.'));
-
-                    $action_result = self::default_action_result();
 
                     $args = ['uid' => $account_arr['id'], 'changes_saved' => 1];
 
@@ -181,9 +176,7 @@ class PHS_Action_Edit extends PHS_Action
                         $args['back_page'] = $back_page;
                     }
 
-                    $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'], $args);
-
-                    return $action_result;
+                    return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'], $args);
                 }
 
                 if ($accounts_model->has_error()) {
@@ -218,6 +211,7 @@ class PHS_Action_Edit extends PHS_Action
 
             'roles_by_slug' => $roles_by_slug,
 
+            'accounts_plugin'   => $accounts_plugin,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
         ];

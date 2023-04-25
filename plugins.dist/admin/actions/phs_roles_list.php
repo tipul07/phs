@@ -36,7 +36,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Roles List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -50,13 +50,13 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
      */
     public function load_paginator_params()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
             return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_list_roles($current_user)) {
+        if (!$this->_admin_plugin->can_admin_list_roles()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list roles.'));
 
             return false;
@@ -211,10 +211,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
@@ -224,8 +222,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             return $action_result_params;
         }
 
-        $current_user = PHS::user_logged_in();
-        $can_manage_roles = $this->_admin_plugin->can_admin_manage_roles($current_user);
+        $can_manage_roles = $this->_admin_plugin->can_admin_manage_roles();
 
         $action_result_params['action'] = $action['action'];
 
@@ -536,13 +533,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_manage_roles(PHS::current_user())) {
+        if (!$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }
 

@@ -18,14 +18,6 @@ function phs_version() : string
     return '1.1.8.13';
 }
 
-function action_request_login() : array
-{
-    $action_result = PHS_Action::default_action_result();
-    $action_result['request_login'] = true;
-
-    return $action_result;
-}
-
 // region Helper functions
 /**
  * @param array|string $path
@@ -34,10 +26,29 @@ function action_request_login() : array
  *
  * @return array
  */
-function action_redirect($path, ?array $args = null, ?array $extra = null) : array
+
+function action_request_login() : array
+{
+    $action_result = PHS_Action::default_action_result();
+    $action_result['request_login'] = true;
+
+    return $action_result;
+}
+
+/**
+ * @param string|array $path
+ * @param  null|array  $args
+ * @param  null|array  $extra
+ *
+ * @return array
+ */
+function action_redirect($path = '', ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
+        if($path === '' ) {
+            $path = PHS::url();
+        }
         $action_result['redirect_to_url'] = $path;
     } elseif (is_array($path)) {
         $action_result['redirect_to_url'] = PHS::url($path, $args ?? [], $extra ?? []);
@@ -211,6 +222,10 @@ function generate_guid() : string
  */
 function validate_ip(string $ip) : string
 {
+    if( !($ip = trim( $ip )) ) {
+        return '';
+    }
+
     if (@function_exists('filter_var') && defined('FILTER_VALIDATE_IP')) {
         $ret_val = filter_var($ip, FILTER_VALIDATE_IP);
 

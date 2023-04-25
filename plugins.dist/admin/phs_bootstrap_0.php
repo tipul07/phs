@@ -2,6 +2,7 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
+use phs\system\core\events\layout\PHS_Event_Template;
 
 /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
 if (($admin_plugin = PHS::load_plugin('admin'))
@@ -16,11 +17,6 @@ if (($admin_plugin = PHS::load_plugin('admin'))
     if (($settings_arr = $admin_plugin->get_plugin_settings())
      && !empty($settings_arr['default_theme_in_admin'])) {
         // Set "default" as current theme for admin section
-        PHS::register_hook(
-            PHS_Hooks::H_WEB_TEMPLATE_RENDERING,
-            [$admin_plugin, 'trigger_web_template_rendering'],
-            PHS_Hooks::default_page_location_hook_args(),
-            ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
-        );
+        PHS_Event_Template::listen([$admin_plugin, 'listen_web_template_rendering'], PHS_Event_Template::GENERIC);
     }
 }

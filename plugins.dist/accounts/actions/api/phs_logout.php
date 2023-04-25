@@ -12,6 +12,7 @@ use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
 
 class PHS_Action_Logout extends PHS_Api_action
@@ -29,17 +30,11 @@ class PHS_Action_Logout extends PHS_Api_action
      */
     public function execute()
     {
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_LOGOUT_ACTION_START, $hook_args))
-        && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGOUT, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 

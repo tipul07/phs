@@ -56,7 +56,7 @@ if (!($action_result = PHS_Bg_jobs::bg_run_job($job_arr, $run_job_extra))) {
 PHS_Logger::notice(' --- Background script finish', PHS_Logger::TYPE_BACKGROUND);
 
 if (!empty($action_result)) {
-    $action_result = PHS::validate_array($action_result, PHS_Action::default_action_result());
+    $action_result = PHS_Action::validate_action_result($action_result);
     if (!empty($job_arr['return_buffer'])) {
         echo @json_encode($action_result);
     }
