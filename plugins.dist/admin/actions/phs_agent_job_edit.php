@@ -31,7 +31,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Edit Agent Job'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -46,7 +46,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_manage_agent_jobs($current_user)) {
+        if (!$admin_plugin->can_admin_manage_agent_jobs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage agent jobs.'));
 
             return self::default_action_result();

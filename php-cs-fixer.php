@@ -185,17 +185,17 @@ $rules = [
     'no_spaces_around_offset'                     => [
         'positions' => ['inside', 'outside'],
     ],
-    'no_spaces_inside_parenthesis'    => true,
+    'no_spaces_inside_parenthesis' => true,
     // Deprecated
-    //'no_trailing_comma_in_list_call'  => true,
+    // 'no_trailing_comma_in_list_call'  => true,
     'no_trailing_comma_in_singleline' => [
         'elements' => [], // ['arguments', 'array_destructuring', 'array', 'group_import'],
     ],
     // Deprecated
-    //'no_trailing_comma_in_singleline_array' => false,
-    'no_trailing_whitespace'                => true,
-    'no_trailing_whitespace_in_comment'     => true,
-    'no_unneeded_control_parentheses'       => [
+    // 'no_trailing_comma_in_singleline_array' => false,
+    'no_trailing_whitespace'            => true,
+    'no_trailing_whitespace_in_comment' => true,
+    'no_unneeded_control_parentheses'   => [
         'statements' => ['break', 'clone', 'continue', 'echo_print', 'return', 'switch_case', 'yield'],
     ],
     'no_unreachable_default_argument_value'         => true,

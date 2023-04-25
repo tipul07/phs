@@ -8,7 +8,10 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Model_Mysqli;
 use phs\system\core\views\PHS_View;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Plugin_Messages extends PHS_Plugin
 {
@@ -336,8 +339,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))
-         && ($accounts_model = PHS::load_model('accounts', 'accounts'))
+        if (($accounts_details_model = PHS_Model_Accounts_details::get_instance())
+         && ($accounts_model = PHS_Model_Accounts::get_instance())
          && $accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, ['table_name' => 'users_details'])
          && ($user_details_arr = $accounts_model->get_account_details($account_arr))
          && !empty($user_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
@@ -364,7 +367,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())
          || empty($hook_args['account_data'])
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
@@ -396,8 +399,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($accounts_details_model = PHS_Model_Accounts_details::get_instance())
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
@@ -432,8 +435,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
@@ -475,17 +477,14 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $field_arr = self::get_msg_handler_field_definition();
 
             $column_params = ['after_column' => 'id'];
-            if (!($result = $accounts_details_model->alter_table_add_column(self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params))) {
+            if (!$accounts_details_model->alter_table_add_column(self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params)) {
                 $this->set_error(self::ERR_INSTALL, $this->_pt('Error altering user_details table.'));
 
                 return false;
             }
         }
 
-        if (($ad_flow_params = $accounts_details_model->fetch_default_flow_params(['table_name' => 'users_details']))
-         && ($ud_table_name = $accounts_details_model->get_flow_table_name($ad_flow_params))
-         && ($users_flow_params = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))
-         && ($users_table_name = $accounts_model->get_flow_table_name($users_flow_params))) {
+        if (($users_flow_params = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $list_arr = $users_flow_params;
             $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
 
@@ -523,7 +522,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     protected function custom_uninstall()
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))) {
+        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
             $this->set_error(self::ERR_INSTALL, $this->_pt('Error instantiating accounts details model.'));
 
             return false;
@@ -540,11 +539,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    public static function get_msg_handler_field_definition()
+    public static function get_msg_handler_field_definition() : array
     {
         return [
-            'type'     => PHS_Model::FTYPE_VARCHAR,
-            'length'   => '255',
+            'type'     => PHS_Model_Mysqli::FTYPE_VARCHAR,
+            'length'   => 255,
             'index'    => true,
             'nullable' => true,
             'default'  => null,

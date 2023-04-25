@@ -5,11 +5,12 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Session;
 use phs\PHS_Api_base;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
 
 class PHS_Action_Login extends PHS_Api_action
@@ -29,17 +30,11 @@ class PHS_Action_Login extends PHS_Api_action
     {
         $bearer_token_authentication = (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API);
 
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_LOGIN_ACTION_START, $hook_args))
-        && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
+            && !empty($event_result['action_result'])) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
@@ -60,7 +55,7 @@ class PHS_Action_Login extends PHS_Api_action
 
         if (($current_user = PHS::user_logged_in())) {
             // We just trigger functionality for after login, but we ignore action result
-            PHS::trigger_hooks(PHS_Hooks::H_USERS_AFTER_LOGIN, PHS_Hooks::default_page_location_hook_args());
+            PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this);
 
             if (!($account_arr = $accounts_model->populate_account_data_for_account_contract($current_user))
              || !($account_data = $account_contract->parse_data_from_inside_source($account_arr))) {
@@ -132,9 +127,11 @@ class PHS_Action_Login extends PHS_Api_action
             }
         }
 
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_AFTER_LOGIN, PHS_Hooks::default_page_location_hook_args()))
-         && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            return $new_hook_args['action_result'];
+        if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+            && !empty($event_result['action_result'])) {
+            $this->set_action_result($event_result['action_result']);
+
+            return $event_result['action_result'];
         }
 
         if (!($user_payload_arr = $accounts_model->populate_account_data_for_account_contract($account_arr))

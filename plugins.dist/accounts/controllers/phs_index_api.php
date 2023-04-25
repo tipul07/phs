@@ -1,6 +1,8 @@
 <?php
 namespace phs\plugins\accounts\controllers;
 
-class PHS_Controller_Index_api extends \phs\libraries\PHS_Controller_Api
+use phs\libraries\PHS_Controller_Api;
+
+class PHS_Controller_Index_api extends PHS_Controller_Api
 {
 }

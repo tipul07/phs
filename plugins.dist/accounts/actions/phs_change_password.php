@@ -6,8 +6,12 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Change_password extends PHS_Action
 {
@@ -34,19 +38,11 @@ class PHS_Action_Change_password extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_CHANGE_PASSWORD_ACTION_START, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this))
+            && !empty($event_result['action_result'])) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
@@ -54,14 +50,9 @@ class PHS_Action_Change_password extends PHS_Action
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
-
-            return self::default_action_result();
-        }
-
-        if (!($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -76,7 +67,7 @@ class PHS_Action_Change_password extends PHS_Action
 
             if (!($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))
              || empty($confirmation_parts['account_data']) || empty($confirmation_parts['reason'])
-             || $confirmation_parts['reason'] != $accounts_plugin::CONF_REASON_FORGOT) {
+             || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_FORGOT) {
                 if ($accounts_plugin->has_error()) {
                     PHS_Notifications::add_error_notice($accounts_plugin->get_error_message());
                 } else {
@@ -92,11 +83,7 @@ class PHS_Action_Change_password extends PHS_Action
         }
 
         if (empty($accounts_settings['min_password_length'])) {
-            if (!empty($accounts_model)) {
-                $accounts_settings['min_password_length'] = $accounts_model::DEFAULT_MIN_PASSWORD_LENGTH;
-            } else {
-                $accounts_settings['min_password_length'] = 8;
-            }
+            $accounts_settings['min_password_length'] = $accounts_model::DEFAULT_MIN_PASSWORD_LENGTH;
         }
 
         if (!($external_args = PHS_Params::_gp('external_args', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_ASIS]))) {
@@ -106,11 +93,9 @@ class PHS_Action_Change_password extends PHS_Action
         if (PHS_Params::_g('password_expired', PHS_Params::T_INT)) {
             PHS_Notifications::add_warning_notice($this->_pt('Your password expired. For security reasons, please change it.'));
         }
-        if (($password_changed = PHS_Params::_g('password_changed', PHS_Params::T_INT))) {
-            $password_changed = true;
+
+        if (($password_changed = (bool)PHS_Params::_g('password_changed', PHS_Params::T_INT))) {
             PHS_Notifications::add_success_notice($this->_pt('Password changed with success.'));
-        } else {
-            $password_changed = false;
         }
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
@@ -136,32 +121,34 @@ class PHS_Action_Change_password extends PHS_Action
                 $edit_params_arr = [];
                 $edit_params_arr['fields'] = $edit_arr;
 
-                if (($new_account = $accounts_model->edit((!empty($current_user) ? $current_user : $forgot_account_arr), $edit_params_arr))) {
-                    PHS_Notifications::add_success_notice($this->_pt('Password changed with success.'));
+                $change_for_account = (!empty($current_user) ? $current_user : $forgot_account_arr);
 
-                    $action_result = self::default_action_result();
+                if ($accounts_model->edit($change_for_account, $edit_params_arr)) {
+                    PHS_Notifications::add_success_notice($this->_pt('Password changed with success.'));
 
                     $args_arr = $external_args;
                     $args_arr['password_changed'] = 1;
 
                     if (!empty($current_user)) {
-                        $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'change_password'], $args_arr);
+                        $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'change_password'], $args_arr);
                     } else {
                         if (!empty($forgot_account_arr)) {
                             $args_arr['nick'] = $forgot_account_arr['nick'];
                         }
 
-                        $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'login'], $args_arr);
+                        $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'login'], $args_arr);
                     }
 
-                    return $action_result;
+                    return action_redirect($redirect_to_url);
                 }
 
-                if ($accounts_model->has_error()) {
-                    PHS_Notifications::add_error_notice($accounts_model->get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error changing password. Please try again.'));
+                if (PHS::st_debugging_mode()
+                 && $accounts_model->has_error()) {
+                    PHS_Logger::debug('ERROR chaning password for account #'.$change_for_account['id'].': '.$accounts_model->get_error_message(),
+                        PHS_Logger::TYPE_DEBUG);
                 }
+
+                PHS_Notifications::add_error_notice($this->_pt('Error changing password. Please try again.'));
             }
         }
 

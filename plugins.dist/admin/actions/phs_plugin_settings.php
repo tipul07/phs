@@ -84,10 +84,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $modules_with_settings = [];
         if (!empty($plugin_models_arr)) {
             foreach ($plugin_models_arr as $model_name) {
-                $module_details = [];
-                $module_details['instance'] = false;
-                $module_details['settings'] = [];
-
                 if (!($model_instance = PHS::load_model($model_name, ($this->_plugin_obj ? $this->_plugin_obj->instance_plugin_name() : false)))
                  || !($settings_arr = $model_instance->validate_settings_structure())) {
                     continue;

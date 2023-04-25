@@ -8,6 +8,9 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\system\core\models\PHS_Model_Plugins;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
@@ -449,7 +452,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($plugins_model = PHS::load_model('plugins'))) {
+        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error loading required resources.'));
 
             return null;
@@ -761,18 +764,13 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param bool|array $hook_args
+     * @param PHS_Event_Template $event_obj
      *
-     * @return array|bool
+     * @return bool
      */
-    public function trigger_web_template_rendering($hook_args = false)
+    public function listen_web_template_rendering(PHS_Event_Template $event_obj) : bool
     {
-        if (!($hook_args = self::validate_array($hook_args, PHS_Hooks::default_page_location_hook_args()))
-         || empty($hook_args['page_template'])) {
-            return $hook_args;
-        }
-
-        if ($hook_args['page_template'] === 'template_admin'
+        if ($event_obj->get_input('page_template') === 'template_admin'
          && ($current_theme = PHS::get_theme()) !== 'default'
          && ($settings_arr = $this->get_plugin_settings())) {
             PHS::set_theme('default');
@@ -783,15 +781,15 @@ class PHS_Plugin_Admin extends PHS_Plugin
             }
         }
 
-        return $hook_args;
+        return true;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_accounts_model)
-         && !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
+         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

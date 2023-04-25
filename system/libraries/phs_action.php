@@ -407,6 +407,23 @@ abstract class PHS_Action extends PHS_Instantiable
 
     /**
      * Returns a default array as result of an action execution
+     *
+     * @param null|array $action_result
+     *
+     * @return array
+     */
+    final public static function validate_action_result(?array $action_result = null) : array
+    {
+        $default_action_result = self::default_action_result();
+        if (empty($action_result)) {
+            return $default_action_result;
+        }
+
+        return self::validate_array($action_result, $default_action_result);
+    }
+
+    /**
+     * Returns a default array as result of an action execution
      * @return array
      */
     final public static function default_action_result() : array

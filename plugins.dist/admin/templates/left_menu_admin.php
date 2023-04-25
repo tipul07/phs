@@ -12,20 +12,20 @@ if (!($admin_plugin = PHS::load_plugin('admin'))) {
 
 $cuser_arr = PHS::current_user();
 
-$can_list_plugins = $admin_plugin->can_admin_list_plugins($cuser_arr);
-$can_manage_plugins = $admin_plugin->can_admin_manage_plugins($cuser_arr);
-$can_list_agent_jobs = $admin_plugin->can_admin_list_agent_jobs($cuser_arr);
-$can_manage_agent_jobs = $admin_plugin->can_admin_manage_agent_jobs($cuser_arr);
-$can_list_api_keys = $admin_plugin->can_admin_list_api_keys($cuser_arr);
-$can_manage_api_keys = $admin_plugin->can_admin_manage_api_keys($cuser_arr);
-$can_list_roles = $admin_plugin->can_admin_list_roles($cuser_arr);
-$can_manage_roles = $admin_plugin->can_admin_manage_roles($cuser_arr);
-$can_list_accounts = $admin_plugin->can_admin_list_accounts($cuser_arr);
-$can_manage_accounts = $admin_plugin->can_admin_manage_accounts($cuser_arr);
-$can_view_logs = $admin_plugin->can_admin_view_logs($cuser_arr);
-$can_import_accounts = $admin_plugin->can_admin_import_accounts($cuser_arr);
-$can_list_tenants = $admin_plugin->can_admin_list_tenants($cuser_arr);
-$can_manage_tenants = $admin_plugin->can_admin_manage_tenants($cuser_arr);
+$can_list_plugins = $admin_plugin->can_admin_list_plugins();
+$can_manage_plugins = $admin_plugin->can_admin_manage_plugins();
+$can_list_agent_jobs = $admin_plugin->can_admin_list_agent_jobs();
+$can_manage_agent_jobs = $admin_plugin->can_admin_manage_agent_jobs();
+$can_list_api_keys = $admin_plugin->can_admin_list_api_keys();
+$can_manage_api_keys = $admin_plugin->can_admin_manage_api_keys();
+$can_list_roles = $admin_plugin->can_admin_list_roles();
+$can_manage_roles = $admin_plugin->can_admin_manage_roles();
+$can_list_accounts = $admin_plugin->can_admin_list_accounts();
+$can_manage_accounts = $admin_plugin->can_admin_manage_accounts();
+$can_view_logs = $admin_plugin->can_admin_view_logs();
+$can_import_accounts = $admin_plugin->can_admin_import_accounts();
+$can_list_tenants = $admin_plugin->can_admin_list_tenants();
+$can_manage_tenants = $admin_plugin->can_admin_manage_tenants();
 
 if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_api_keys && !$can_manage_api_keys

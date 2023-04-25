@@ -42,7 +42,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution()
     {
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -54,7 +54,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             return self::default_action_result();
         }
 
-        if (!$this->_admin_plugin->can_admin_list_agent_jobs($current_user)) {
+        if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -70,26 +70,22 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Manage Agent Jobs'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
             return false;
         }
 
-        if (!$this->_admin_plugin->can_admin_list_agent_jobs($current_user)) {
+        if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list agent jobs.'));
 
             return false;
         }
 
-        $agent_jobs_model = $this->_paginator_model;
-
-        $list_arr = [];
-
         $flow_params = [
             'term_singular'          => $this->_pt('agent job'),
             'term_plural'            => $this->_pt('agent jobs'),
-            'initial_list_arr'       => $list_arr,
+            'initial_list_arr'       => [],
             'after_table_callback'   => [$this, 'after_table_callback'],
             'after_filters_callback' => [$this, 'after_filters_callback'],
             'listing_title'          => $this->_pt('Agent Jobs'),
@@ -110,7 +106,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
         }
 
-        if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
             $bulk_actions = false;
         } else {
             $bulk_actions = [
@@ -247,7 +243,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if (can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if ($this->_admin_plugin->can_admin_manage_agent_jobs()) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,

@@ -77,8 +77,6 @@ class PHS_Action_Edit extends PHS_Action
          || $accounts_model->is_deleted($account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
 
-            $action_result = self::default_action_result();
-
             $args = ['unknown_account' => 1];
 
             if (empty($back_page)) {
@@ -89,15 +87,11 @@ class PHS_Action_Edit extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (!$accounts_model->can_manage_account($current_user, $account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
-
-            $action_result = self::default_action_result();
 
             $args = ['cannot_edit_account' => 1];
 
@@ -109,9 +103,7 @@ class PHS_Action_Edit extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (!($roles_by_slug = $roles_model->get_all_roles_by_slug())) {
@@ -248,6 +240,7 @@ class PHS_Action_Edit extends PHS_Action
             'tenants_model' => $tenants_model,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('users/edit', $data);

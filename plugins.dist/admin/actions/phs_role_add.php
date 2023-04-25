@@ -28,7 +28,7 @@ class PHS_Action_Role_add extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Add Role'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -45,7 +45,7 @@ class PHS_Action_Role_add extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_manage_roles($current_user)) {
+        if (!$admin_plugin->can_admin_manage_roles()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage roles.'));
 
             return self::default_action_result();
@@ -76,15 +76,10 @@ class PHS_Action_Role_add extends PHS_Action
             $insert_params_arr['{role_units}'] = $ru_slugs;
             $insert_params_arr['{role_units_params}'] = ['append_role_units' => false];
 
-            if (($new_role = $roles_model->insert($insert_params_arr))) {
+            if ($roles_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('Role details saved...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'roles_list'],
-                    ['role_added' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'admin', 'a' => 'roles_list'], ['role_added' => 1]);
             }
 
             if ($roles_model->has_error()) {

@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Action_Index extends PHS_Action
 {
@@ -23,21 +24,16 @@ class PHS_Action_Index extends PHS_Action
         $template = 'index';
         $template_data = [];
 
-        $hook_args = PHS_Hooks::default_page_location_hook_args();
-        $hook_args['page_template'] = $template;
-        $hook_args['page_template_args'] = $template_data;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_PAGE_INDEX, $hook_args))
-         && is_array($new_hook_args)) {
-            if (!empty($new_hook_args['action_result']) && is_array($new_hook_args['action_result'])) {
-                return self::validate_array($new_hook_args['action_result'], PHS_Action::default_action_result());
+        if (($event_result = PHS_Event_Template::template(PHS_Event_Template::INDEX, $template, $template_data))) {
+            if (!empty($event_result['action_result']) && is_array($event_result['action_result'])) {
+                return $event_result['action_result'];
             }
 
-            if (!empty($new_hook_args['new_page_template'])) {
-                $template = $new_hook_args['new_page_template'];
+            if (!empty($event_result['page_template'])) {
+                $template = $event_result['page_template'];
             }
-            if (isset($new_hook_args['new_page_template_args']) && $new_hook_args['new_page_template_args'] !== false) {
-                $template_data = $new_hook_args['new_page_template_args'];
+            if (!empty($event_result['page_template_args'])) {
+                $template_data = $event_result['page_template_args'];
             }
         }
 

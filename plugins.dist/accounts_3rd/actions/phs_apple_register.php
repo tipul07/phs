@@ -10,6 +10,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\events\actions\PHS_Event_Action_after;
 
 class PHS_Action_Apple_register extends PHS_Action
 {
@@ -155,19 +156,14 @@ class PHS_Action_Apple_register extends PHS_Action
                         }
                     }
 
-                    $action_result = self::default_action_result();
+                    if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+                        && !empty($event_result['action_result'])) {
+                        $this->set_action_result($event_result['action_result']);
 
-                    $hook_args = PHS_Hooks::default_page_location_hook_args();
-                    $hook_args['action_result'] = $action_result;
-
-                    if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args))
-                    && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-                        return $new_hook_args['action_result'];
+                        return $event_result['action_result'];
                     }
 
-                    $action_result['redirect_to_url'] = PHS::url();
-
-                    return $action_result;
+                    return action_redirect();
                 }
 
                 $retry_action = true;

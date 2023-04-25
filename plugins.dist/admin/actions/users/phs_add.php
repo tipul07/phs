@@ -3,6 +3,7 @@ namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -128,11 +129,7 @@ class PHS_Action_Add extends PHS_Action
             if ($accounts_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('User account created...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
             }
 
             if ($accounts_model->has_error()) {
@@ -164,6 +161,7 @@ class PHS_Action_Add extends PHS_Action
             'tenants_model' => $tenants_model,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('users/add', $data);
