@@ -952,17 +952,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         // Check if accounts plugin settings were saved...
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['instance_id'])
-         || empty($hook_args['old_settings_arr']['password_decryption_enabled'])
-         || !empty($hook_args['new_settings_arr']['password_decryption_enabled'])
          || $hook_args['instance_id'] !== $this->instance_id()
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($flow_arr = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             return $hook_args;
         }
 
-        db_query('UPDATE `'.$accounts_model->get_flow_table_name($flow_arr).'` SET pass_clear = NULL', $flow_arr['db_connection']);
+        if( !empty($hook_args['old_settings_arr']['password_decryption_enabled'])
+        && empty($hook_args['new_settings_arr']['password_decryption_enabled']) ) {
+            db_query('UPDATE `'.$accounts_model->get_flow_table_name($flow_arr).'` SET pass_clear = NULL',
+                $flow_arr['db_connection']);
 
-        PHS_Logger::notice('!!! Password decryption disabled!', PHS_Logger::TYPE_MAINTENANCE);
+            PHS_Logger::notice('!!! Password decryption disabled!', PHS_Logger::TYPE_MAINTENANCE);
+        } else {
+            PHS_Logger::notice('!!! Password decryption enabled!', PHS_Logger::TYPE_MAINTENANCE);
+        }
 
         return $hook_args;
     }
@@ -1803,7 +1807,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if (!$this->is_password_decryption_enabled()) {
+        if ($this->is_password_decryption_enabled()) {
             $clean_pass = $this->_accounts_model->clean_password($account_arr);
         } else {
             $clean_pass = $this->_accounts_model::OBFUSCATED_PASSWORD;

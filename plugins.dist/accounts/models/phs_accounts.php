@@ -201,7 +201,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         return (!empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && empty($user_arr['lastlog']) && empty_db_date($user_arr['lastlog']));
+                && (!empty($user_arr['lastlog']) || !empty_db_date($user_arr['lastlog'])));
     }
 
     /**

@@ -74,9 +74,9 @@ if (!empty($pass_regexp)) {
 }
 
 echo ' '.
-     $accounts_plugin->should_setup_password_at_first_login() ?
-    $this->_pt('If password field is left empty, user will setup a password at first login.') :
-    $this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.');
+     ($accounts_plugin->should_setup_password_at_first_login() ?
+    $this->_pt('User will setup a password at first login.') :
+    $this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.'));
 ?></div>
         </div>
     </div>

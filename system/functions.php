@@ -222,6 +222,10 @@ function generate_guid() : string
  */
 function validate_ip(string $ip) : string
 {
+    if( !($ip = trim( $ip )) ) {
+        return '';
+    }
+
     if (@function_exists('filter_var') && defined('FILTER_VALIDATE_IP')) {
         $ret_val = filter_var($ip, FILTER_VALIDATE_IP);
 
