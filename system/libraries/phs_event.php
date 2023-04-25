@@ -500,11 +500,11 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             $io_args = [];
         }
 
-        if( ($output_arr = $this->get_output()) ) {
+        if (($output_arr = $this->get_output())) {
             $default_output_arr = $this->_output_parameters();
-            foreach( $output_arr as $o_key => $o_val ) {
-                if( !array_key_exists( $o_key, $default_output_arr )
-                    || $o_val === $default_output_arr[$o_key] ) {
+            foreach ($output_arr as $o_key => $o_val) {
+                if (!array_key_exists($o_key, $default_output_arr)
+                    || $o_val === $default_output_arr[$o_key]) {
                     continue;
                 }
 

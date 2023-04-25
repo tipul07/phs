@@ -28,7 +28,7 @@ if (!($url_extra_args = $this->view_var('url_extra_args'))
 
     <div class="form-group row">
         <div class="col-sm-12 text-center">
-        <?php echo $this->_pt( 'You are setting up a password for account %s.', $this->view_var('nick')); ?>
+        <?php echo $this->_pt('You are setting up a password for account %s.', $this->view_var('nick')); ?>
         </div>
     </div>
 
@@ -43,20 +43,20 @@ echo $this->_pt('Password should be at least %s characters.', $this->view_var('m
 
 $pass_regexp = $this->view_var('password_regexp');
 if (!empty($accounts_settings['password_regexp_explanation'])) {
-echo ' '.$this->_pt($accounts_settings['password_regexp_explanation']);
+    echo ' '.$this->_pt($accounts_settings['password_regexp_explanation']);
 } elseif (!empty($pass_regexp)) {
-echo '<br/>'.$this->_pt('Password should pass regular expresion: ');
+    echo '<br/>'.$this->_pt('Password should pass regular expresion: ');
 
-if (($regexp_parts = explode('/', $pass_regexp))
-&& !empty($regexp_parts[1])) {
-    if (empty($regexp_parts[2])) {
-        $regexp_parts[2] = '';
+    if (($regexp_parts = explode('/', $pass_regexp))
+    && !empty($regexp_parts[1])) {
+        if (empty($regexp_parts[2])) {
+            $regexp_parts[2] = '';
+        }
+
+        ?><a href="https://regex101.com/?regex=<?php echo rawurlencode($regexp_parts[1]); ?>&options=<?php echo $regexp_parts[2]; ?>" title="Click for details" target="_blank"><?php echo $pass_regexp; ?></a><?php
+    } else {
+        echo $this->_pt('Password should pass regular expresion: %s.', $pass_regexp);
     }
-
-    ?><a href="https://regex101.com/?regex=<?php echo rawurlencode($regexp_parts[1]); ?>&options=<?php echo $regexp_parts[2]; ?>" title="Click for details" target="_blank"><?php echo $pass_regexp; ?></a><?php
-} else {
-    echo $this->_pt('Password should pass regular expresion: %s.', $pass_regexp);
-}
 }
 
 ?></small>

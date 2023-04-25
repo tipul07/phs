@@ -41,13 +41,15 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
             return false;
         }
 
-        if( $accounts_model->must_setup_password( $account_arr ) ) {
-            if( !$accounts_plugin->send_account_password_setup( $account_arr ) ) {
+        if ($accounts_model->must_setup_password($account_arr)) {
+            if (!$accounts_plugin->send_account_password_setup($account_arr)) {
                 $this->copy_error($accounts_plugin, self::ERR_SEND_EMAIL);
+
                 return false;
             }
-        } elseif( !$accounts_plugin->send_account_confirmation_email( $account_arr ) ) {
+        } elseif (!$accounts_plugin->send_account_confirmation_email($account_arr)) {
             $this->copy_error($accounts_plugin, self::ERR_SEND_EMAIL);
+
             return false;
         }
 

@@ -1185,8 +1185,8 @@ abstract class PHS_Instantiable extends PHS_Registry
          || $class_namespace_path[0] !== 'phs'
          || !in_array($class_namespace_path[1], ['plugins', 'system'])) {
             self::st_set_error(self::ERR_INSTANCE_CLASS,
-                self::_t('Couldn\'t create instance for classes outside phs namespace.').
-                ' ('.$class_with_namespace.')' );
+                self::_t('Couldn\'t create instance for classes outside phs namespace.')
+                .' ('.$class_with_namespace.')');
 
             return false;
         }

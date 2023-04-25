@@ -415,7 +415,7 @@ class PHS_Bg_jobs extends PHS_Registry
      *
      * @return null|array
      */
-    public static function bg_run_job($job_data, array $extra = null): ?array
+    public static function bg_run_job($job_data, ?array $extra = null) : ?array
     {
         self::st_reset_error();
 

@@ -8,8 +8,8 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Model_Mysqli;
+use phs\system\core\views\PHS_View;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
@@ -539,7 +539,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    public static function get_msg_handler_field_definition(): array
+    public static function get_msg_handler_field_definition() : array
     {
         return [
             'type'     => PHS_Model_Mysqli::FTYPE_VARCHAR,

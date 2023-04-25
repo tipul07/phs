@@ -27,7 +27,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public const PARAM_CONFIRMATION = '_a';
 
     public const CONF_REASON_ACTIVATION = 'activation', CONF_REASON_EMAIL = 'email', CONF_REASON_FORGOT = 'forgot',
-        CONF_REASON_PASS_SETUP = 'pass_setup';
+    CONF_REASON_PASS_SETUP = 'pass_setup';
 
     // After how many seconds from last request should we clean up sessions?
     // !!! should be less than 'session_expire_minutes_normal' config value
@@ -35,17 +35,18 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     // Password is mandatory, generate password if none is provided or ask user to setup a password at first login
     public const PASS_POLICY_MANDATORY = 1, PASS_POLICY_GENERATE = 2, PASS_POLICY_SETUP = 3;
-    protected static array $PASSWORD_POLICY_ARR = [
-        self::PASS_POLICY_MANDATORY  => 'Password is mandatory',
-        self::PASS_POLICY_GENERATE  => 'Generate password',
-        self::PASS_POLICY_SETUP    => 'Setup at fist login',
-    ];
 
     /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts_details */
     private ?PHS_Model_Accounts_details $_accounts_details_model = null;
+
+    protected static array $PASSWORD_POLICY_ARR = [
+        self::PASS_POLICY_MANDATORY => 'Password is mandatory',
+        self::PASS_POLICY_GENERATE  => 'Generate password',
+        self::PASS_POLICY_SETUP     => 'Setup at fist login',
+    ];
 
     private static $_session_key = 'PHS_sess';
 
@@ -104,17 +105,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 'group_fields' => [
                     'password_decryption_enabled' => [
                         'display_name' => $this->_pt('Password decryption enabled'),
-                        'display_hint' => $this->_pt('If NOT ticked, system will not use internal encryption/decryption for passwords, so passwords cannot be decrypted anymore.').
-                                          ' ('.$this->_pt('Accounts will have to setup a password at first login.').')',
-                        'type'         => PHS_Params::T_BOOL,
-                        'default'      => true,
+                        'display_hint' => $this->_pt('If NOT ticked, system will not use internal encryption/decryption for passwords, so passwords cannot be decrypted anymore.')
+                                          .' ('.$this->_pt('Accounts will have to setup a password at first login.').')',
+                        'type'    => PHS_Params::T_BOOL,
+                        'default' => true,
                     ],
                     'registration_password_policy' => [
                         'display_name' => $this->_pt('Password policy (if not provided)'),
                         'display_hint' => $this->_pt('When password is not provided at registration, we can generate one or ask user to setup a password at first login. If <em>Password decryption enabled</em> is NOT ticked, user will be asked to setup a password anyway.'),
                         'type'         => PHS_Params::T_INT,
                         'default'      => self::PASS_POLICY_GENERATE,
-                        'values_arr' => self::$PASSWORD_POLICY_ARR,
+                        'values_arr'   => self::$PASSWORD_POLICY_ARR,
                     ],
                     'min_password_length' => [
                         'display_name' => $this->_pt('Minimum password length'),
@@ -189,7 +190,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    public function is_password_decryption_enabled(): bool
+    public function is_password_decryption_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['password_decryption_enabled']);
     }
@@ -197,48 +198,48 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    public function settings_password_is_mandatory(): bool
+    public function settings_password_is_mandatory() : bool
     {
-        return (($settings_arr = $this->get_plugin_settings())
+        return ($settings_arr = $this->get_plugin_settings())
                 && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_MANDATORY);
+                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_MANDATORY;
     }
 
     /**
      * @return bool
      */
-    public function settings_generate_pass_if_not_present(): bool
+    public function settings_generate_pass_if_not_present() : bool
     {
-        return (($settings_arr = $this->get_plugin_settings())
+        return ($settings_arr = $this->get_plugin_settings())
                 && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_GENERATE);
+                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_GENERATE;
     }
 
     /**
      * @return bool
      */
-    public function settings_setup_pass_at_login_if_not_present(): bool
+    public function settings_setup_pass_at_login_if_not_present() : bool
     {
-        return (($settings_arr = $this->get_plugin_settings())
+        return ($settings_arr = $this->get_plugin_settings())
                 && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_SETUP);
+                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_SETUP;
     }
 
-    public function should_setup_password_at_first_login(): bool
+    public function should_setup_password_at_first_login() : bool
     {
-        return ($this->settings_setup_pass_at_login_if_not_present()
-                || !$this->is_password_decryption_enabled());
+        return $this->settings_setup_pass_at_login_if_not_present()
+                || !$this->is_password_decryption_enabled();
     }
 
-    public function registration_password_mandatory(): bool
+    public function registration_password_mandatory() : bool
     {
-        return (!$this->settings_generate_pass_if_not_present() && !$this->should_setup_password_at_first_login());
+        return !$this->settings_generate_pass_if_not_present() && !$this->should_setup_password_at_first_login();
     }
 
-    public function registration_email_mandatory(): bool
+    public function registration_email_mandatory() : bool
     {
-        return (($settings_arr = $this->get_plugin_settings())
-                && !empty($settings_arr['email_mandatory']));
+        return ($settings_arr = $this->get_plugin_settings())
+                && !empty($settings_arr['email_mandatory']);
     }
 
     /**
@@ -500,7 +501,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return array|false
      */
-    public function get_confirmation_params($account_data, string $reason = null, ?array $params = null)
+    public function get_confirmation_params($account_data, ?string $reason = null, ?array $params = null)
     {
         $this->reset_error();
 
@@ -605,14 +606,14 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function confirmation_reasons(): array
+    public function confirmation_reasons() : array
     {
         // key-value pair of reson name and success message...
         return [
             self::CONF_REASON_ACTIVATION => $this->_pt('Your account is now active.'),
             self::CONF_REASON_EMAIL      => $this->_pt('Your email address is now confirmed.'),
             self::CONF_REASON_FORGOT     => $this->_pt('You can now change your password.'),
-            self::CONF_REASON_PASS_SETUP     => $this->_pt('Setup a password for your account.'),
+            self::CONF_REASON_PASS_SETUP => $this->_pt('Setup a password for your account.'),
         ];
     }
 
@@ -958,8 +959,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $hook_args;
         }
 
-        if( !empty($hook_args['old_settings_arr']['password_decryption_enabled'])
-        && empty($hook_args['new_settings_arr']['password_decryption_enabled']) ) {
+        if (!empty($hook_args['old_settings_arr']['password_decryption_enabled'])
+        && empty($hook_args['new_settings_arr']['password_decryption_enabled'])) {
             db_query('UPDATE `'.$accounts_model->get_flow_table_name($flow_arr).'` SET pass_clear = NULL',
                 $flow_arr['db_connection']);
 
@@ -1514,6 +1515,115 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $dir.self::ACCOUNTS_IMPORT_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
+    /**
+     * @param int|array $account_data
+     *
+     * @return bool
+     */
+    public function send_account_confirmation_email($account_data) : bool
+    {
+        if (empty($account_data)
+         || !$this->_load_dependencies()
+         || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+            }
+
+            return false;
+        }
+
+        if ($this->is_password_decryption_enabled()) {
+            $clean_pass = $this->_accounts_model->clean_password($account_arr);
+        } else {
+            $clean_pass = $this->_accounts_model::OBFUSCATED_PASSWORD;
+        }
+
+        $hook_args = [];
+        $hook_args['template'] = $this->email_template_resource_from_file('confirmation');
+        $hook_args['to'] = $account_arr['email'];
+        $hook_args['to_name'] = $account_arr['nick'];
+        $hook_args['subject'] = $this->_pt('Account Confirmation');
+        $hook_args['email_vars'] = [
+            'nick'            => $account_arr['nick'],
+            'clean_pass'      => $clean_pass,
+            'contact_us_link' => PHS::url(['a' => 'contact_us']),
+            'login_link'      => PHS::url(['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
+        ];
+
+        if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email.'));
+
+            return false;
+        }
+
+        if (empty($hook_results) || !is_array($hook_results)
+            || empty($hook_results['send_result'])) {
+            if (self::st_has_error()) {
+                $this->copy_static_error(self::ERR_FUNCTIONALITY);
+            } else {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int|array $account_data
+     *
+     * @return bool
+     */
+    public function send_account_password_setup($account_data) : bool
+    {
+        if (empty($account_data)
+         || !$this->_load_dependencies()
+         || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+            }
+
+            return false;
+        }
+
+        if (!$this->_accounts_model->must_setup_password($account_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('No need to setup a password for provided account.'));
+
+            return false;
+        }
+
+        $hook_args = [];
+        $hook_args['template'] = $this->email_template_resource_from_file('password_setup');
+        $hook_args['to'] = $account_arr['email'];
+        $hook_args['to_name'] = $account_arr['nick'];
+        $hook_args['subject'] = $this->_pt('Account Password Setup');
+        $hook_args['email_vars'] = [
+            'nick'            => $account_arr['nick'],
+            'contact_us_link' => PHS::url(['a' => 'contact_us']),
+            'setup_link'      => $this->get_confirmation_link($account_arr, self::CONF_REASON_PASS_SETUP),
+        ];
+
+        if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email.'));
+
+            return false;
+        }
+
+        if (empty($hook_results) || !is_array($hook_results)
+            || empty($hook_results['send_result'])) {
+            if (self::st_has_error()) {
+                $this->copy_static_error(self::ERR_FUNCTIONALITY);
+            } else {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
     protected function _extract_account_fields_for_db($account_arr, $db_account_arr, $import_params, $params)
     {
         if (empty($account_arr) || !is_array($account_arr)) {
@@ -1788,111 +1898,5 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         return !empty($export_to)
                 && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);
-    }
-
-    /**
-     * @param int|array $account_data
-     *
-     * @return bool
-     */
-    public function send_account_confirmation_email( $account_data ): bool
-    {
-        if( empty( $account_data )
-         || !$this->_load_dependencies()
-         || !($account_arr = $this->_accounts_model->data_to_array( $account_data )) ) {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
-            }
-
-            return false;
-        }
-
-        if ($this->is_password_decryption_enabled()) {
-            $clean_pass = $this->_accounts_model->clean_password($account_arr);
-        } else {
-            $clean_pass = $this->_accounts_model::OBFUSCATED_PASSWORD;
-        }
-
-        $hook_args = [];
-        $hook_args['template'] = $this->email_template_resource_from_file('confirmation');
-        $hook_args['to'] = $account_arr['email'];
-        $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Account Confirmation');
-        $hook_args['email_vars'] = [
-            'nick'            => $account_arr['nick'],
-            'clean_pass'      => $clean_pass,
-            'contact_us_link' => PHS::url(['a' => 'contact_us']),
-            'login_link'      => PHS::url(['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
-        ];
-
-        if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending confirmation email.' ));
-            return false;
-        }
-
-        if (empty($hook_results) || !is_array($hook_results)
-            || empty($hook_results['send_result'])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_FUNCTIONALITY);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param int|array $account_data
-     *
-     * @return bool
-     */
-    public function send_account_password_setup( $account_data ): bool
-    {
-        if( empty( $account_data )
-         || !$this->_load_dependencies()
-         || !($account_arr = $this->_accounts_model->data_to_array( $account_data )) ) {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
-            }
-
-            return false;
-        }
-
-        if (!$this->_accounts_model->must_setup_password($account_arr)) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'No need to setup a password for provided account.' ) );
-            return false;
-        }
-
-        $hook_args = [];
-        $hook_args['template'] = $this->email_template_resource_from_file('password_setup');
-        $hook_args['to'] = $account_arr['email'];
-        $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Account Password Setup');
-        $hook_args['email_vars'] = [
-            'nick'            => $account_arr['nick'],
-            'contact_us_link' => PHS::url(['a' => 'contact_us']),
-            'setup_link'     => $this->get_confirmation_link($account_arr, self::CONF_REASON_PASS_SETUP),
-        ];
-
-        if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error sending confirmation email.' ));
-            return false;
-        }
-
-        if (empty($hook_results) || !is_array($hook_results)
-            || empty($hook_results['send_result'])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_FUNCTIONALITY);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
-            }
-
-            return false;
-        }
-
-        return true;
     }
 }

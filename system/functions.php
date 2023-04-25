@@ -26,7 +26,6 @@ function phs_version() : string
  *
  * @return array
  */
-
 function action_request_login() : array
 {
     $action_result = PHS_Action::default_action_result();
@@ -37,8 +36,8 @@ function action_request_login() : array
 
 /**
  * @param string|array $path
- * @param  null|array  $args
- * @param  null|array  $extra
+ * @param null|array $args
+ * @param null|array $extra
  *
  * @return array
  */
@@ -46,7 +45,7 @@ function action_redirect($path = '', ?array $args = null, ?array $extra = null) 
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
-        if($path === '' ) {
+        if ($path === '') {
             $path = PHS::url();
         }
         $action_result['redirect_to_url'] = $path;
@@ -222,7 +221,7 @@ function generate_guid() : string
  */
 function validate_ip(string $ip) : string
 {
-    if( !($ip = trim( $ip )) ) {
+    if (!($ip = trim($ip))) {
         return '';
     }
 

@@ -19,8 +19,8 @@ class PHS_Event_Template_details extends PHS_Event
             // Previous action result (if any)
             'action_result' => null,
             // Added only for hook backwards compatibility
-            'page_template' => '',
-            'page_template_args'        => [],
+            'page_template'      => '',
+            'page_template_args' => [],
         ];
     }
 
@@ -28,9 +28,9 @@ class PHS_Event_Template_details extends PHS_Event
     {
         return [
             // Resulting action result (if any)
-            'action_result' => null,
-            'page_template' => '',
-            'page_template_args'        => [],
+            'action_result'      => null,
+            'page_template'      => '',
+            'page_template_args' => [],
         ];
     }
 }
