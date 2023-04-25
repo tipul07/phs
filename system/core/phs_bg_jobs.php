@@ -5,6 +5,7 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Registry;
+use phs\system\core\models\PHS_Model_Bg_jobs;
 
 // ! @version 1.00
 
@@ -410,11 +411,11 @@ class PHS_Bg_jobs extends PHS_Registry
 
     /**
      * @param int|array $job_data
-     * @param false|array $extra
+     * @param null|array $extra
      *
-     * @return null|array|bool
+     * @return null|array
      */
-    public static function bg_run_job($job_data, $extra = false)
+    public static function bg_run_job($job_data, array $extra = null): ?array
     {
         self::st_reset_error();
 
@@ -422,17 +423,13 @@ class PHS_Bg_jobs extends PHS_Registry
             $extra = [];
         }
 
-        if (empty($extra['force_run'])) {
-            $extra['force_run'] = false;
-        } else {
-            $extra['force_run'] = true;
-        }
+        $extra['force_run'] = !empty($extra['force_run']);
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
-            $bg_jobs_model = PHS::load_model('bg_jobs');
+            $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
         }
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
@@ -447,7 +444,7 @@ class PHS_Bg_jobs extends PHS_Registry
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t get background jobs details.'));
             }
 
-            return false;
+            return null;
         }
 
         self::current_job_data($job_arr);
@@ -458,19 +455,19 @@ class PHS_Bg_jobs extends PHS_Registry
         //                    self::st_copy_error($bg_jobs_model);
         //                }
         //
-        //                return false;
+        //                return null;
         //            }
         //
         //            if (empty($job_stalling)) {
         //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job already running.'));
         //
-        //                return false;
+        //                return null;
         //            }
         //
         //            if (empty($extra['force_run'])) {
         //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job seems to stall. Run not told to force execution.'));
         //
-        //                return false;
+        //                return null;
         //            }
         //        }
 
@@ -490,7 +487,7 @@ class PHS_Bg_jobs extends PHS_Registry
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t save background jobs details in database.'));
             }
 
-            return false;
+            return null;
         }
 
         $job_arr = $new_job_arr;
@@ -512,7 +509,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
             self::st_copy_error_from_array($error_arr);
 
-            return false;
+            return null;
         }
 
         $execution_params = [];
@@ -532,7 +529,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
             self::st_copy_error_from_array($error_arr);
 
-            return false;
+            return null;
         }
 
         $bg_jobs_model->hard_delete($job_arr);

@@ -50,7 +50,7 @@ class PHS_Action_Import extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_import_accounts($current_user)) {
+        if (!$admin_plugin->can_admin_import_accounts()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to import accounts.'));
 
             return self::default_action_result();

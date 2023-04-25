@@ -8,6 +8,10 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
+use phs\system\core\events\actions\PHS_Event_Action_after;
 
 class PHS_Action_Login extends PHS_Action
 {
@@ -34,19 +38,11 @@ class PHS_Action_Login extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_LOGIN_ACTION_START, $hook_args))
-        && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
@@ -62,12 +58,12 @@ class PHS_Action_Login extends PHS_Action
 
         $reason = PHS_Params::_g('reason', PHS_Params::T_NOHTML);
 
-        if (($expired_secs = PHS_Params::_g('expired_secs', PHS_Params::T_INT))) {
+        if (PHS_Params::_g('expired_secs', PHS_Params::T_INT)) {
             PHS_Notifications::add_warning_notice($this->_pt('Your session expired. Please login again into your account.'));
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if (!($accounts_plugin = $this->get_plugin_instance())) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
         }
 
@@ -90,21 +86,16 @@ class PHS_Action_Login extends PHS_Action
         if (empty($foobar)
          && PHS::user_logged_in()
          && !PHS_Notifications::have_notifications_errors()) {
-            $hook_args = PHS_Hooks::default_page_location_hook_args();
-            $hook_args['action_result'] = $action_result;
 
-            if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_AFTER_LOGIN, $hook_args))
-            && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-                return $new_hook_args['action_result'];
+            if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
+                && !empty($event_result['action_result']) ) {
+                $this->set_action_result($event_result['action_result']);
+                return $event_result['action_result'];
             }
 
             PHS_Notifications::add_success_notice($this->_pt('Already logged in...'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = (!empty($back_page) ? $back_page : PHS::url());
-
-            return $action_result;
+            return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
         }
 
         if (!($plugin_settings = $this->get_plugin_settings())) {
@@ -126,7 +117,7 @@ class PHS_Action_Login extends PHS_Action
          && !PHS_Notifications::have_notifications_errors()) {
             if (empty($nick) || empty($pass)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide complete mandatory fields.'));
-            } elseif (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+            } elseif (!($accounts_model = PHS_Model_Accounts::get_instance())) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
             } elseif (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
                  || !$accounts_model->check_pass($account_arr, $pass)
@@ -145,18 +136,15 @@ class PHS_Action_Login extends PHS_Action
                         }
                     }
 
-                    if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_AFTER_LOGIN, PHS_Hooks::default_page_location_hook_args()))
-                     && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-                        return $new_hook_args['action_result'];
+                    if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
+                        && !empty($event_result['action_result']) ) {
+                        $this->set_action_result($event_result['action_result']);
+                        return $event_result['action_result'];
                     }
 
                     PHS_Notifications::add_success_notice($this->_pt('Successfully logged in...'));
 
-                    $action_result = self::default_action_result();
-
-                    $action_result['redirect_to_url'] = (!empty($back_page) ? from_safe_url($back_page) : PHS::url());
-
-                    return $action_result;
+                    return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
                 }
 
                 if ($accounts_plugin->has_error()) {

@@ -10,6 +10,7 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Has_db_settings;
+use phs\plugins\admin\PHS_Plugin_Admin;
 
 class PHS_Action_Plugin_settings extends PHS_Action
 {
@@ -27,22 +28,20 @@ class PHS_Action_Plugin_settings extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Plugin Settings'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
         }
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_list_plugins($current_user)) {
+        if (!$admin_plugin->can_admin_list_plugins()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list plugins.'));
 
             return self::default_action_result();

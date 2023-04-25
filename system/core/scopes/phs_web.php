@@ -9,6 +9,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Scope_Web extends PHS_Scope
 {
@@ -75,17 +76,12 @@ class PHS_Scope_Web extends PHS_Scope
             exit;
         }
 
-        $hook_args = PHS_Hooks::default_page_location_hook_args();
-        $hook_args['page_template'] = $action_result['page_template'];
-        $hook_args['page_template_args'] = $action_result['action_data'];
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_WEB_TEMPLATE_RENDERING, $hook_args))
-         && is_array($new_hook_args)) {
-            if (!empty($new_hook_args['new_page_template'])) {
-                $action_result['page_template'] = $new_hook_args['new_page_template'];
+        if( ($event_result = PHS_Event_Template::template(PHS_Event_Template::GENERIC, $action_result['page_template'], $action_result['action_data'] )) ) {
+            if (!empty($event_result['page_template'])) {
+                $action_result['page_template'] = $event_result['page_template'];
             }
-            if (isset($new_hook_args['new_page_template_args']) && $new_hook_args['new_page_template_args'] !== false) {
-                $action_result['action_data'] = $new_hook_args['new_page_template_args'];
+            if (!empty($event_result['page_template_args'])) {
+                $action_result['action_data'] = $event_result['page_template_args'];
             }
         }
 

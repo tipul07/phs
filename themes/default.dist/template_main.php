@@ -17,8 +17,6 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
 }
 
 $cuser_arr = PHS::user_logged_in();
-
-// $action_result = $this::validate_array( $this->view_var( 'action_result' ), PHS_Action::default_action_result() );
 $action_result = $this->get_action_result();
 
 $summary_mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
@@ -88,7 +86,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 <div id="container">
 <?php
 
-        echo $this->sub_view('template_main_left_pane');
+    echo $this->sub_view('template_main_left_pane');
 
     echo $this->sub_view('template_main_right_pane');
 
@@ -122,9 +120,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
     ?></div>
 
 <footer id="footer" class="clearfix"><?php echo $this->sub_view('template_main_footer'); ?></footer>
-
 </div>
-
 </div>
 <?php
 if (false) {

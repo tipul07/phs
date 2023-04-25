@@ -5,9 +5,11 @@ use phs\PHS;
 use phs\libraries\PHS_Utils;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
 /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
 if (!($roles_model = $this->view_var('roles_model'))
- || !($plugins_model = $this->view_var('plugins_model'))) {
+    || !($accounts_plugin = $this->view_var('accounts_plugin'))
+    || !($plugins_model = $this->view_var('plugins_model'))) {
     return $this->_pt('Couldn\'t load roles model.');
 }
 
@@ -48,7 +50,7 @@ $current_user = PHS::user_logged_in();
         <label for="pass" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?></label>
         <div class="col-sm-10">
             <input type="password" id="pass" name="pass" class="form-control" autocomplete="pass"
-                   <?php echo empty($accounts_plugin_settings['generate_pass_if_not_present']) ? 'required="required"' : ''; ?>
+                   <?php echo $accounts_plugin->registration_password_mandatory() ? 'required="required"' : ''; ?>
                    value="<?php echo form_str($this->view_var('pass')); ?>" />
             <div id="password_help" class="form-text"><?php
 
@@ -71,8 +73,10 @@ if (!empty($pass_regexp)) {
     }
 }
 
-echo ' '.$this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.');
-
+echo ' '.
+     ($accounts_plugin->should_setup_password_at_first_login() ?
+    $this->_pt('User will setup a password at first login.') :
+    $this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.'));
 ?></div>
         </div>
     </div>

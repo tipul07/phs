@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Language;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $cuser_arr = PHS::user_logged_in();
 
@@ -20,7 +21,6 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
 ?>
 <div id="menu-right-pane" class="menu-pane clearfix">
     <div class="main-menu-pane-close-button clearfix" style="float: left;"><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
-
     <ul>
     <?php
 
@@ -35,14 +35,10 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
         }
     }
 
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
+    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_RIGHT_MENU);
 
-    if (!empty($cuser_arr)) {
-        ?>
+if (!empty($cuser_arr)) {
+    ?>
         <li><a href="<?php echo PHS::url([
             'p' => 'accounts',
             'a' => 'edit_profile',
@@ -56,15 +52,15 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             'a' => 'logout',
         ]); ?>"><?php echo $this::_t('Logout'); ?></a></li>
         <?php
-    } else {
-        if (can(PHS_Roles::ROLEU_REGISTER)) {
-            ?>
+} else {
+    if (can(PHS_Roles::ROLEU_REGISTER)) {
+        ?>
             <li><a href="<?php echo PHS::url([
                 'p' => 'accounts', 'a' => 'register',
             ]); ?>"><?php echo $this::_t('Register'); ?></a></li>
             <?php
-        }
-        ?>
+    }
+    ?>
         <li>
             <a href="javascript:void(0);" onclick="open_login_menu_pane(this);this.blur();"><?php echo $this::_t('Login'); ?>
                 <div class="fa fa-arrow-up trigger_embedded_login"></div>
@@ -102,16 +98,16 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             <div class="clearfix"></div>
         </li>
         <?php
+}
+
+if (($defined_languages = PHS_Language::get_defined_languages())
+&& count($defined_languages) > 1) {
+    if (!($current_language = PHS_Language::get_current_language())
+     || empty($defined_languages[$current_language])) {
+        $current_language = PHS_Language::get_default_language();
     }
 
-    if (($defined_languages = PHS_Language::get_defined_languages())
-    && count($defined_languages) > 1) {
-        if (!($current_language = PHS_Language::get_current_language())
-         || empty($defined_languages[$current_language])) {
-            $current_language = PHS_Language::get_default_language();
-        }
-
-        ?>
+    ?>
         <li class="phs_lang_container">
             <div class="switch_lang_title">
                 <i class="fa fa-globe" style=""></i>
@@ -119,30 +115,25 @@ if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             </div>
             <ul>
             <?php
-            foreach ($defined_languages as $lang => $lang_details) {
-                $language_flag = '';
-                if (!empty($lang_details['flag_file'])) {
-                    $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
-                }
+        foreach ($defined_languages as $lang => $lang_details) {
+            $language_flag = '';
+            if (!empty($lang_details['flag_file'])) {
+                $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
+            }
 
-                $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
+            $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
-                ?>
+            ?>
                 <li class="phs_language_<?php echo $lang; ?><?php echo $current_language === $lang ? ' phs_language_selected' : ''; ?>"><a href="<?php echo $language_link; ?>"><?php echo $language_flag.$lang_details['title']; ?></a></li>
                 <?php
-            }
-        ?>
+        }
+    ?>
             </ul>
         </li>
         <?php
-    }
+}
 
-    if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_AFTER_RIGHT_MENU, PHS_Hooks::default_buffer_hook_args()))
-    && is_array($hook_args)
-    && !empty($hook_args['buffer'])) {
-        echo $hook_args['buffer'];
-    }
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_AFTER_RIGHT_MENU);
 ?>
     </ul>
-
 </div>

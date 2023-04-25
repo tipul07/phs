@@ -7,6 +7,11 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\models\PHS_Model_Plugins;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Add extends PHS_Action
 {
@@ -38,18 +43,18 @@ class PHS_Action_Add extends PHS_Action
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($admin_plugin = PHS::load_plugin('admin'))
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+         || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($roles_model = PHS::load_model('roles'))
-         || !($plugins_model = PHS::load_model('plugins'))) {
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($roles_model = PHS_Model_Roles::get_instance())
+         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_manage_accounts($current_user)) {
+        if (!$admin_plugin->can_admin_manage_accounts()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage accounts.'));
 
             return self::default_action_result();
@@ -101,14 +106,10 @@ class PHS_Action_Add extends PHS_Action
             $insert_params_arr['{account_roles}'] = $account_roles_slugs;
             $insert_params_arr['{send_confirmation_email}'] = true;
 
-            if (($new_account = $accounts_model->insert($insert_params_arr))) {
+            if ($accounts_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('User account created...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
             }
 
             if ($accounts_model->has_error()) {
@@ -136,6 +137,7 @@ class PHS_Action_Add extends PHS_Action
 
             'roles_by_slug' => $roles_by_slug,
 
+            'accounts_plugin'   => $accounts_plugin,
             'roles_model'   => $roles_model,
             'plugins_model' => $plugins_model,
         ];

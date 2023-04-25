@@ -8,6 +8,10 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
+use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Action_Edit_profile extends PHS_Action
 {
@@ -34,19 +38,11 @@ class PHS_Action_Edit_profile extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_EDIT_PROFILE_ACTION_START, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::EDIT_PROFILE, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
@@ -55,20 +51,10 @@ class PHS_Action_Edit_profile extends PHS_Action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
-
-            return self::default_action_result();
-        }
-
-        if (!($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
-
-            return self::default_action_result();
-        }
-
-        if (!($accounts_details_model = PHS::load_model('accounts_details', $this->instance_plugin_name()))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load account details model.'));
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -182,14 +168,10 @@ class PHS_Action_Edit_profile extends PHS_Action
             $edit_params_arr['fields'] = $edit_arr;
             $edit_params_arr['{users_details}'] = $edit_details_arr;
 
-            if (($new_account = $accounts_model->edit($current_user, $edit_params_arr))) {
+            if ($accounts_model->edit($current_user, $edit_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('Changes saved...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'edit_profile'], ['changes_saved' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'accounts', 'a' => 'edit_profile'], ['changes_saved' => 1]);
             }
 
             if ($accounts_model->has_error()) {

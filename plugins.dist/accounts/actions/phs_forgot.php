@@ -9,6 +9,9 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\captcha\PHS_Plugin_Captcha;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Forgot extends PHS_Action
 {
@@ -30,39 +33,26 @@ class PHS_Action_Forgot extends PHS_Action
      */
     public function execute()
     {
-        $action_result = self::default_action_result();
-
-        $hook_args = PHS_Hooks::default_action_execute_hook_args();
-        $hook_args['action_obj'] = $this;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_FORGOT_PASSWORD_ACTION_START, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['action_result'])) {
-            $action_result = self::validate_array($new_hook_args['action_result'], self::default_action_result());
-
-            if (!empty($new_hook_args['stop_execution'])) {
-                $this->set_action_result($action_result);
-
-                return $action_result;
+        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::FORGOT_PASSWORD, $this ))
+            && !empty($event_result['action_result']) ) {
+            $this->set_action_result($event_result['action_result']);
+            if (!empty($event_result['stop_execution'])) {
+                return $event_result['action_result'];
             }
         }
 
         PHS::page_settings('page_title', $this->_pt('Forgot Password'));
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
         if (PHS::user_logged_in()) {
             PHS_Notifications::add_success_notice($this->_pt('Already logged in...'));
-
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url();
-
-            return $action_result;
+            return action_redirect();
         }
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
@@ -76,8 +66,8 @@ class PHS_Action_Forgot extends PHS_Action
 
         if (!empty($do_submit)) {
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
-            if (!($captcha_plugin = PHS::load_plugin('captcha'))) {
-                PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load captcha plugin.'));
+            if (!($captcha_plugin = PHS_Plugin_Captcha::get_instance())) {
+                PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
             } elseif (($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null
                  && empty($hook_result['check_valid'])) {
                 if (PHS_Error::arr_has_error($hook_result['hook_errors'])) {
@@ -102,11 +92,7 @@ class PHS_Action_Forgot extends PHS_Action
             }
 
             if (!PHS_Notifications::have_notifications_errors()) {
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'forgot'], ['email_sent' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'accounts', 'a' => 'forgot'], ['email_sent' => 1]);
             }
         }
 
