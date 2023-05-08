@@ -1942,13 +1942,13 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        $rendering_params = false;
+        $rendering_params = null;
         if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
             $rendering_params = ['only_string_result' => false];
         }
 
         // in API scope return could be an array to place in response
-        if (($buffer = $view_obj->render(false, false, $rendering_params)) === false) {
+        if (($buffer = $view_obj->render(null, null, $rendering_params)) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

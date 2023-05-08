@@ -89,7 +89,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'activate':
-                if (!($result_arr = $this->_activate_plugin($plugin_name))) {
+                if (!$this->_activate_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -103,7 +103,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'inactivate':
-                if (!($result_arr = $this->_inactivate_plugin($plugin_name))) {
+                if (!$this->_inactivate_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -117,7 +117,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'install':
-                if (!($result_arr = $this->_install_plugin($plugin_name))) {
+                if (!$this->_install_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -131,7 +131,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'uninstall':
-                if (!($result_arr = $this->_uninstall_plugin($plugin_name))) {
+                if (!$this->_uninstall_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -145,7 +145,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'symlink':
-                if (!($result_arr = $this->_symlink_plugin($plugin_name))) {
+                if (!$this->_symlink_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -159,7 +159,7 @@ class PHSMaintenance extends PHS_Cli
                 break;
 
             case 'unlink':
-                if (!($result_arr = $this->_unlink_plugin($plugin_name))) {
+                if (!$this->_unlink_plugin($plugin_name)) {
                     if ($this->has_error()) {
                         $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
                     }
@@ -203,7 +203,7 @@ class PHSMaintenance extends PHS_Cli
 
         $this->_echo(self::_t('Running action %s using action file %s...',
             $this->cli_color($action, 'white'),
-            $this->cli_color(($action_file ?: '-'), 'white'))
+            $this->cli_color(($action_file ?: 'N/A'), 'white'))
         );
 
         if ($action === 'export') {
@@ -416,6 +416,14 @@ class PHSMaintenance extends PHS_Cli
             'setup' => [
                 'description' => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
                 'callback'    => [$this, 'cmd_setup_action'],
+                'options_definition' => [
+                    'no-settings' => [
+                        'long' => 'no-settings',
+                        'short' => 'ns',
+                        'description' => 'Do not import or export settings',
+                        'default' => true,
+                    ],
+                ]
             ],
         ];
     }
@@ -613,10 +621,20 @@ class PHSMaintenance extends PHS_Cli
         $this->_echo('Usage: '.$this->get_app_cli_script().' [options] setup [export|import] {[action_json_file]}');
     }
 
-    private function _setup_do_export($action_json_arr) : bool
+    private function _setup_do_export(?array $action_json_arr) : bool
     {
+        if (!($action_json_arr = $this->_validate_platform_export_action_json_structure($action_json_arr))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Error validating export JSON structure.'));
+
+            return false;
+        }
+
+        if( $this->command_option( 'no-settings' ) ) {
+            $action_json_arr['export_plugin_settings'] = false;
+        }
+
         if (!$this->_do_platform_export_action_to_file($action_json_arr)) {
-            if (!$this->has_error()) {
+            if ($this->has_error()) {
                 $error_msg = $this->get_simple_error_message();
                 $error_no = $this->get_error_code();
             } else {
@@ -637,12 +655,16 @@ class PHSMaintenance extends PHS_Cli
             }
         }
 
+        $this->_echo(self::_t('Exported settings to file %s.',
+            $this->cli_color($action_json_arr['export_full_file'] ?? 'N/A', 'white'))
+        );
+
         $this->_echo($this->cli_color('DONE', 'green'));
 
         return true;
     }
 
-    private function _setup_do_import($action_json_arr) : bool
+    private function _setup_do_import(?array $action_json_arr) : bool
     {
         if (!($action_json_arr = $this->_validate_setup_action_import_json_structure($action_json_arr))) {
             $this->_set_and_echo_error(self::_t('Error validating import JSON structure.'), self::ERR_PARAMETERS, false);

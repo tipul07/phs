@@ -166,7 +166,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_settings;
     }
 
-    public function save_db_settings($settings_arr) : array
+    public function save_db_settings(array $settings_arr) : array
     {
         if (!$this->_load_plugins_instance()
          || !($db_settings = $this->_plugins_instance->save_plugins_db_settings(
@@ -226,15 +226,15 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'callback_params' => false,
             'editable'        => true,
             'preset_content'  => '',
-            'plugin_obj'      => false,
+            'plugin_obj'      => null,
         ];
     }
 
     public static function st_default_custom_save_params() : array
     {
         return [
-            'plugin_obj'      => false,
-            'module_instance' => false,
+            'plugin_obj'      => null,
+            'module_instance' => null,
             'field_name'      => '',
             'field_details'   => false,
             'field_value'     => null,

@@ -14,9 +14,9 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
     /**
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
-     * @return array|bool
+     * @return array|null
      */
-    public function get_db_registry_details(bool $force = false)
+    public function get_db_registry_details(bool $force = false): ?array
     {
         if (empty($force)
         && !empty($this->_db_registry_details)) {
@@ -37,7 +37,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
     /**
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
-     * @return null|array Settings saved in database for current instance
+     * @return null|array Registry saved in database for current instance
      */
     public function get_db_registry(bool $force = false) : ?array
     {
@@ -60,7 +60,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_db_registry;
     }
 
-    public function save_db_registry($registry_arr) : ?array
+    public function save_db_registry(array $registry_arr) : ?array
     {
         if (!$this->_load_plugins_instance()) {
             return null;
@@ -79,9 +79,9 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_db_registry;
     }
 
-    public function update_db_registry($registry_part_arr)
+    public function update_db_registry(array $registry_part_arr)
     {
-        if (empty($registry_part_arr) || !is_array($registry_part_arr)) {
+        if (empty($registry_part_arr)) {
             return false;
         }
 
@@ -93,7 +93,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->save_db_registry([]);
     }
 
-    public function delete_db_registry()
+    public function delete_db_registry(): bool
     {
         $this->reset_error();
 

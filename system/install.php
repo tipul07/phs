@@ -46,8 +46,7 @@ if (($core_models = PHS::get_core_models())) {
     }
 }
 
-if (($plugins_arr = $plugins_model->cache_all_dir_details()) === false
- || !is_array($plugins_arr)) {
+if (($plugins_arr = $plugins_model->cache_all_dir_details()) === null) {
     if (!$plugins_model->has_error()) {
         PHS::st_set_error(-1, PHS::_t('Error obtaining plugins list.'));
     } else {

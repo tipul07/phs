@@ -88,7 +88,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
             return false;
         }
 
-        if (($hook_args['notifications_buffer'] = $view_obj->render()) === false) {
+        if (($hook_args['notifications_buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

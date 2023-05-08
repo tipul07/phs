@@ -224,7 +224,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
         $action_result = self::default_action_result();
 
-        if (($action_result['buffer'] = $view_obj->render()) === false) {
+        if (($action_result['buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

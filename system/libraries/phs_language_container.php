@@ -350,8 +350,7 @@ class PHS_Language_Container extends PHS_Error
         }
 
         // Add cascading themes to language files...
-        if (($themes_arr = PHS::get_cascading_themes())
-         && is_array($themes_arr)) {
+        if (($themes_arr = PHS::get_cascading_themes())) {
             foreach ($themes_arr as $c_theme) {
                 if (!empty($c_theme)
                  && ($theme_language_paths = PHS::get_theme_language_paths($c_theme))

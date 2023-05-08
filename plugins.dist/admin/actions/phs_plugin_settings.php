@@ -17,8 +17,8 @@ class PHS_Action_Plugin_settings extends PHS_Action
 {
     public const ERR_PLUGIN = 1;
 
-    /** @var bool|\phs\libraries\PHS_Plugin */
-    private $_plugin_obj = false;
+    /** @var null|\phs\libraries\PHS_Plugin */
+    private ?PHS_Plugin $_plugin_obj = null;
 
     public function allowed_scopes()
     {
@@ -51,6 +51,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $pid = PHS_Params::_gp('pid', PHS_Params::T_ASIS);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
+        $this->_plugin_obj = null;
         if ($pid !== PHS_Instantiable::CORE_PLUGIN
          && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
                  || empty($instance_details['instance_type'])
@@ -75,7 +76,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
         }
 
         if ($pid === PHS_Instantiable::CORE_PLUGIN) {
-            $this->_plugin_obj = false;
             $plugin_models_arr = PHS::get_core_models();
         } else {
             $plugin_models_arr = $this->_plugin_obj->get_models();
@@ -122,7 +122,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $form_data['do_submit'] = $do_submit;
 
         /** @var \phs\libraries\PHS_Has_db_settings $module_instance */
-        $module_instance = false;
+        $module_instance = null;
         $settings_fields = [];
         $default_settings = [];
         $db_settings = [];
@@ -212,7 +212,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $this->quick_render_template('plugin_settings', $data);
     }
 
-    private function _extract_custom_save_settings_fields_from_submit($settings_fields, $init_callback_params, $new_settings_arr, $db_settings)
+    private function _extract_custom_save_settings_fields_from_submit($settings_fields, array $init_callback_params, array $new_settings_arr, $db_settings): array
     {
         $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
         foreach ($settings_fields as $field_name => $field_details) {
@@ -283,7 +283,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $is_post, &$form_data) : array
+    private function _extract_settings_fields_from_submit(array $settings_fields, array $default_settings, array $db_settings, bool $is_post, array &$form_data) : array
     {
         $new_settings_arr = [];
         foreach ($settings_fields as $field_name => $field_details) {
@@ -309,7 +309,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_field_value_from_submit($field_name, $field_details, $default_settings, $db_settings, $is_post, &$form_data)
+    private function _extract_field_value_from_submit(string $field_name, array $field_details, array $default_settings, array $db_settings, bool $is_post, array &$form_data)
     {
         $field_value = null;
 

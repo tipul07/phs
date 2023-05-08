@@ -495,9 +495,9 @@ class PHS_Plugin_Admin extends PHS_Plugin
      * @param array $encoded_arr
      * @param string $crypting_key
      *
-     * @return false|array
+     * @return null|array
      */
-    public function decode_plugin_settings_from_encoded_array($encoded_arr, $crypting_key)
+    public function decode_plugin_settings_from_encoded_array(array $encoded_arr, string $crypting_key): ?array
     {
         if (!($settings_buf = PHS_Crypt::quick_decode_from_export_array($encoded_arr, $crypting_key))) {
             if (PHS_Crypt::st_has_error()) {
@@ -505,21 +505,28 @@ class PHS_Plugin_Admin extends PHS_Plugin
             } else {
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error decoding settings data.'));
             }
+
+            return null;
         }
 
-        return @json_decode($settings_buf, true);
+        if( !($settings_arr = @json_decode($settings_buf, true))
+         || !is_array( $settings_arr ) ) {
+            return [];
+        }
+
+        return $settings_arr;
     }
 
     /**
      * @param string $crypting_key
      * @param string[] $plugins_arr
-     * @param false|array $export_params
+     * @param null|array $export_params
      *
      * @return bool
      */
-    public function export_plugin_settings($crypting_key, $plugins_arr = [], $export_params = false)
+    public function export_plugin_settings(string $crypting_key, array $plugins_arr = [], array $export_params = null): bool
     {
-        if (empty($export_params) || !is_array($export_params)) {
+        if (empty($export_params)) {
             $export_params = [];
         }
 
@@ -597,12 +604,17 @@ class PHS_Plugin_Admin extends PHS_Plugin
      * @param string $crypting_key
      * @param string[] $plugins_arr
      *
-     * @return false|array
+     * @return null|array
      */
-    public function get_settings_for_plugins_as_encrypted_array($crypting_key, $plugins_arr = [])
+    public function get_settings_for_plugins_as_encrypted_array(string $crypting_key, array $plugins_arr = []): ?array
     {
+        if( empty( $crypting_key ) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error exporting plugin settings. No crypting key provided.'));
+            return null;
+        }
+
         if (!($settings_json = $this->get_settings_for_plugins_as_json($plugins_arr))) {
-            return false;
+            return null;
         }
 
         if (!($result_arr = PHS_Crypt::quick_encode_buffer_for_export_as_array($settings_json, $crypting_key))) {
@@ -611,6 +623,8 @@ class PHS_Plugin_Admin extends PHS_Plugin
             } else {
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encrypting plugin settings.'));
             }
+
+            return null;
         }
 
         return $result_arr;
@@ -620,12 +634,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
      * @param string $crypting_key
      * @param string[] $plugins_arr
      *
-     * @return false|string
+     * @return null|string
      */
-    public function get_settings_for_plugins_as_encrypted_json($crypting_key, $plugins_arr = [])
+    public function get_settings_for_plugins_as_encrypted_json(string $crypting_key, array $plugins_arr = []): ?string
     {
         if (!($settings_json = $this->get_settings_for_plugins_as_json($plugins_arr))) {
-            return false;
+            return null;
         }
 
         return PHS_Crypt::quick_encode_buffer_for_export_as_json($settings_json, $crypting_key);
@@ -638,7 +652,11 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function get_settings_for_plugins_as_json(array $plugins_arr = []) : string
     {
-        return @json_encode($this->get_settings_for_plugins_as_array($plugins_arr));
+        if( !($return_arr = @json_encode($this->get_settings_for_plugins_as_array($plugins_arr))) ) {
+            $return_arr = '';
+        }
+
+        return $return_arr;
     }
 
     /**
@@ -671,29 +689,30 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param string $plugin_name
+     * @param null|string $plugin_name
      * @param null|\phs\libraries\PHS_Plugin $plugin_instance
      *
-     * @return false|array<string, string>
+     * @return null|array
      */
-    public function extract_settings_for_plugin($plugin_name, ?PHS_Plugin $plugin_instance = null)
+    public function extract_settings_for_plugin(?string $plugin_name, ?PHS_Plugin $plugin_instance = null): ?array
     {
         $this->reset_error();
 
-        $is_core = ($plugin_name === '');
-        if (!is_string($plugin_name)
+        $is_core = ($plugin_name === '' || $plugin_name === null);
+        if (
          // Instantiate plugin (if instance is not already provided)
-         || (!$is_core
-             && empty($plugin_instance)
+         (!$is_core
+             && $plugin_instance === null
              && !($plugin_instance = PHS::load_plugin($plugin_name))
          )
          // Instance checks... (keep separate from above statement)
          || (!$is_core
           && !($plugin_instance instanceof PHS_Plugin)
-         )) {
+         )
+        ) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid plugin provided.'));
 
-            return false;
+            return null;
         }
 
         if ($is_core) {
@@ -706,7 +725,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
             if (!($plugin_instance_id = $plugin_instance->instance_id())) {
                 $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t obtain plugin instance id.'));
 
-                return false;
+                return null;
             }
 
             if (!($models_arr = $plugin_instance->get_models())) {
@@ -722,14 +741,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
         }
 
         foreach ($models_arr as $model_name) {
-            if (!($settings = $this->_extract_settings_for_model($model_name, (empty($plugin_name) ? false : $plugin_name)))) {
+            if (!($settings = $this->_extract_settings_for_model($model_name, $plugin_name))) {
                 if (!$this->has_error()) {
                     $this->set_error(self::ERR_FUNCTIONALITY,
                         $this->_pt('Couldn\'t instantiate model %s to extract settings.',
                             (empty($model_name) ? '-' : $model_name)));
                 }
 
-                return false;
+                return null;
             }
 
             // No need to export no settings...
@@ -799,30 +818,23 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param string $model_name
-     * @param false|string $plugin
+     * @param  string  $model_name
+     * @param  null|string  $plugin
      *
-     * @return false|array
+     * @return null|array
      */
-    private function _extract_settings_for_model($model_name, $plugin = false)
+    private function _extract_settings_for_model(string $model_name, string $plugin = null): ?array
     {
         $this->reset_error();
 
-        if ($plugin !== false || !is_string($plugin)) {
-            $this->set_error(self::ERR_PARAMETERS,
-                $this->_pt('Invalid plugin name provided when extracting model settings.'));
-
-            return false;
-        }
-
         if (empty($model_name)
-         || !($model_instance = PHS::load_model($model_name, $plugin))
+         || !($model_instance = PHS::load_model($model_name, $plugin ?: false))
          || !($instance_id = $model_instance->instance_id())) {
             $this->set_error(self::ERR_PARAMETERS,
                 $this->_pt('Couldn\'t initiate model %s to extract settings.',
                     (empty($model_name) ? '-' : $model_name)));
 
-            return false;
+            return null;
         }
 
         if (!($settings_arr = $model_instance->get_db_settings())) {

@@ -37,11 +37,12 @@ final class PHS extends PHS_Registry
     // Generic current page settings (saved as array)
     PHS_PAGE_SETTINGS = 'phs_page_settings';
 
-    public const ROUTE_PARAM = '_route',
-    ROUTE_DEFAULT_CONTROLLER = 'index',
-    ROUTE_DEFAULT_ACTION = 'index';
+    public const ROUTE_PARAM = '_route', ROUTE_DEFAULT_CONTROLLER = 'index', ROUTE_DEFAULT_ACTION = 'index';
 
     public const RUNNING_ACTION = 'r_action', RUNNING_CONTROLLER = 'r_controller';
+
+    // "Hard-coded", Lowest level theme
+    public const BASE_THEME = '_phs_base';
 
     private static bool $inited = false;
 
@@ -420,16 +421,15 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $theme
+     * @param  null|string  $theme
      *
      * @return string
      */
-    public static function valid_theme($theme) : string
+    public static function valid_theme(?string $theme) : string
     {
         self::st_reset_error();
 
         if (empty($theme)
-         || !is_string($theme)
          || !($theme = PHS_Instantiable::safe_escape_theme_name($theme))
          || !@file_exists(PHS_THEMES_DIR.$theme)
          || !@is_dir(PHS_THEMES_DIR.$theme)
@@ -443,32 +443,32 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param false|string $theme
+     * @param null|string $theme
      *
-     * @return false|string[]
+     * @return null|string[]
      */
-    public static function get_theme_language_paths($theme = false)
+    public static function get_theme_language_paths(?string $theme = null): ?array
     {
         self::st_reset_error();
 
-        if ($theme === false) {
+        if ($theme === null) {
             $theme = self::get_theme();
         }
 
         if (!($theme = self::valid_theme($theme))) {
-            return false;
+            return null;
         }
 
         if (!@file_exists(PHS_THEMES_DIR.$theme.'/'.PHS_Instantiable::LANGUAGES_DIR)
          || !@is_dir(PHS_THEMES_DIR.$theme.'/'.PHS_Instantiable::LANGUAGES_DIR)
          || !@is_readable(PHS_THEMES_DIR.$theme)) {
-            return false;
+            return null;
         }
 
         if (!@is_readable(PHS_THEMES_DIR.$theme.'/'.PHS_Instantiable::LANGUAGES_DIR)) {
             self::st_set_error(self::ERR_THEME, self::_t('Theme (%s) languages directory is not readable.', $theme));
 
-            return false;
+            return null;
         }
 
         return [
@@ -477,7 +477,12 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    public static function set_theme($theme)
+    /**
+     * @param  string  $theme
+     *
+     * @return bool
+     */
+    public static function set_theme(string $theme): bool
     {
         if (!($theme = self::valid_theme($theme))) {
             return false;
@@ -493,11 +498,11 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $theme
+     * @param  string  $theme
      *
      * @return bool
      */
-    public static function set_defaut_theme($theme)
+    public static function set_defaut_theme(string $theme): bool
     {
         if (!($theme = self::valid_theme($theme))) {
             return false;
@@ -511,23 +516,19 @@ final class PHS extends PHS_Registry
     /**
      * Set a cascading themes array. You don't have to include default and current themes here.
      * When searching for templates, system will check current theme, then each cascading theme and lastly default theme.
-     * @param array $themes_arr
+     *
+     * @param  array $themes_arr
      *
      * @return bool
      */
-    public static function set_cascading_themes($themes_arr)
+    public static function set_cascading_themes(array $themes_arr): bool
     {
         self::st_reset_error();
 
-        if (!is_array($themes_arr)) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide a themes array.'));
-
-            return false;
-        }
-
         $new_themes = [];
         foreach ($themes_arr as $theme) {
-            if (!self::valid_theme($theme)) {
+            if (!is_string($theme)
+             || !($theme = self::valid_theme($theme))) {
                 return false;
             }
 
@@ -545,13 +546,13 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param string $theme
+     * @param  string  $theme
      *
      * @return bool
      */
-    public static function add_theme_to_cascading_themes($theme)
+    public static function add_theme_to_cascading_themes(string $theme): bool
     {
-        if (!self::valid_theme($theme)) {
+        if (!($theme = self::valid_theme($theme))) {
             return false;
         }
 
@@ -577,34 +578,28 @@ final class PHS extends PHS_Registry
     public static function resolve_theme() : bool
     {
         // First set default, so it doesn't get auto-set in set_theme() method
-        if (defined('PHS_DEFAULT_THEME')
-         && !self::get_data(self::DEFAULT_THEME)) {
-            if (!self::set_defaut_theme(PHS_DEFAULT_THEME)) {
-                return false;
-            }
+        if (defined('PHS_DEFAULT_THEME') && !self::get_data(self::DEFAULT_THEME) && !self::set_defaut_theme(PHS_DEFAULT_THEME)) {
+            return false;
         }
 
-        if (defined('PHS_THEME')
-         && !self::get_data(self::CURRENT_THEME)) {
-            if (!self::set_theme(PHS_THEME)) {
-                return false;
-            }
+        if (defined('PHS_THEME') && !self::get_data(self::CURRENT_THEME) && !self::set_theme(PHS_THEME)) {
+            return false;
         }
 
         return true;
     }
 
     /**
-     * @return false|string
+     * @return string
      */
-    public static function get_theme()
+    public static function get_theme(): string
     {
         $theme = self::get_data(self::CURRENT_THEME);
 
         if (!$theme) {
             if (!self::resolve_theme()
              || !($theme = self::get_data(self::CURRENT_THEME))) {
-                return false;
+                return '';
             }
         }
 
@@ -630,7 +625,7 @@ final class PHS extends PHS_Registry
      * Return an array with cascading themes
      * @return array
      */
-    public static function get_cascading_themes()
+    public static function get_cascading_themes(): array
     {
         if (!($themes = self::get_data(self::CASCADE_THEMES))
          || !is_array($themes)) {
@@ -638,6 +633,35 @@ final class PHS extends PHS_Registry
         }
 
         return $themes;
+    }
+
+    public static function get_all_themes_stack(?string $theme = null): array
+    {
+        $themes_stack = [];
+        if( empty( $theme )
+         || !($theme = self::valid_theme( $theme ))) {
+            $theme = self::get_theme();
+        }
+
+        if( !empty( $theme ) ) {
+            $themes_stack[$theme] = true;
+        }
+
+        if (($themes_arr = self::get_cascading_themes())) {
+            foreach ($themes_arr as $c_theme) {
+                if (!empty($c_theme)) {
+                    $themes_stack[$c_theme] = true;
+                }
+            }
+        }
+
+        if (($default_theme = self::get_default_theme())) {
+            $themes_stack[$default_theme] = true;
+        }
+
+        $themes_stack[self::BASE_THEME] = true;
+
+        return (!empty( $themes_stack )?array_keys($themes_stack):[]);
     }
 
     public static function domain_constants() : array

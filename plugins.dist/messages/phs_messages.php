@@ -244,7 +244,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return false;
         }
 
-        if (($hook_args['summary_buffer'] = $view_obj->render()) === false) {
+        if (($hook_args['summary_buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

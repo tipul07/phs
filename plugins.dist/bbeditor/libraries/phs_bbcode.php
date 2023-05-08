@@ -984,7 +984,7 @@ class Bbcode extends PHS_Library
         return $plugin_obj->quick_render_template_for_buffer('bb_editor', $data);
     }
 
-    private function default_parser_node_definition()
+    private function default_parser_node_definition(): array
     {
         return [
             'text'      => '',

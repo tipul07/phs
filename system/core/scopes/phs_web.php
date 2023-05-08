@@ -151,7 +151,7 @@ class PHS_Scope_Web extends PHS_Scope
 
             $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
 
-            if (($result_buffer = $view_obj->render()) === false) {
+            if (($result_buffer = $view_obj->render()) === null) {
                 if ($view_obj->has_error()) {
                     $error_msg = $view_obj->get_error_message();
                 } else {
