@@ -916,7 +916,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return array Array with parts of parsed URL
      */
-    public static function myparse_url($str)
+    public static function myparse_url(string $str): array
     {
         $ret = [];
         $ret['scheme'] = '';
@@ -961,17 +961,18 @@ class PHS_Utils extends PHS_Language
             }
         }
 
+        $dotpos = strpos($mystr, '.');
+        $slashpos = strpos($mystr, '/');
+
         $path_present = true;
         $host_present = true;
         // host is not present - only the path might be present
-        if ($ret['scheme'] === ''
-         && ($dotpos = strpos($mystr, '.')) === false) {
+        if ($ret['scheme'] === '' && $dotpos === false) {
             $host_present = false;
         }
 
         // no path is present or only a directory name is present
-        if ($ret['scheme'] === ''
-         && ($slashpos = strpos($mystr, '/')) === false) {
+        if ($ret['scheme'] === '' && $slashpos === false) {
             $host_present = true;
             $path_present = false;
         }
