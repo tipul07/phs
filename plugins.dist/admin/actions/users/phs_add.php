@@ -137,9 +137,9 @@ class PHS_Action_Add extends PHS_Action
 
             'roles_by_slug' => $roles_by_slug,
 
-            'accounts_plugin'   => $accounts_plugin,
-            'roles_model'   => $roles_model,
-            'plugins_model' => $plugins_model,
+            'accounts_plugin' => $accounts_plugin,
+            'roles_model'     => $roles_model,
+            'plugins_model'   => $plugins_model,
         ];
 
         return $this->quick_render_template('users/add', $data);

@@ -169,39 +169,39 @@ class PHS_Model_Accounts extends PHS_Model
         return $user_arr;
     }
 
-    public function is_just_registered($user_data): bool
+    public function is_just_registered($user_data) : bool
     {
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && (empty($user_arr['lastlog']) || empty_db_date($user_arr['lastlog'])));
+                && (empty($user_arr['lastlog']) || empty_db_date($user_arr['lastlog']));
     }
 
-    public function must_setup_password($user_data): bool
+    public function must_setup_password($user_data) : bool
     {
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && empty($user_arr['pass']));
+                && empty($user_arr['pass']);
     }
 
-    public function can_obtain_password($user_data): bool
+    public function can_obtain_password($user_data) : bool
     {
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && !empty($user_arr['pass_clear']));
+                && !empty($user_arr['pass_clear']);
     }
 
-    public function is_password_generated($user_data): bool
+    public function is_password_generated($user_data) : bool
     {
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && !empty($user_arr['pass_generated']));
+                && !empty($user_arr['pass_generated']);
     }
 
-    public function has_logged_in($user_data): bool
+    public function has_logged_in($user_data) : bool
     {
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && (!empty($user_arr['lastlog']) || !empty_db_date($user_arr['lastlog'])));
+                && (!empty($user_arr['lastlog']) || !empty_db_date($user_arr['lastlog']));
     }
 
     /**
@@ -251,7 +251,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function needs_after_registration_email($user_data, $params = false): bool
+    public function needs_after_registration_email($user_data, $params = false) : bool
     {
         if (empty($user_data)) {
             return false;
@@ -320,13 +320,13 @@ class PHS_Model_Accounts extends PHS_Model
     public function needs_confirmation_email($user_data)
     {
         // If password was provided by user, or he did already login, no need to send him password confirmation
-        return (!empty($user_data)
+        return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && ($this->must_setup_password( $user_arr )
+                && ($this->must_setup_password($user_arr)
                     || ($this->is_password_generated($user_arr)
                         && $this->can_obtain_password($user_arr)
                         && !$this->has_logged_in($user_arr))
-                ));
+                );
     }
 
     /**
@@ -1395,7 +1395,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function send_confirmation_email($account_data): bool
+    public function send_confirmation_email($account_data) : bool
     {
         $this->reset_error();
 
@@ -1429,9 +1429,9 @@ class PHS_Model_Accounts extends PHS_Model
      * @param int|array $account_data
      * @param bool|array $params
      *
-     * @return array|null
+     * @return null|array
      */
-    public function send_after_registration_email($account_data, $params = false): ?array
+    public function send_after_registration_email($account_data, $params = false) : ?array
     {
         if (empty($params) || !is_array($params)) {
             $params = [];
@@ -1500,11 +1500,11 @@ class PHS_Model_Accounts extends PHS_Model
 
     /**
      * @param int|array $account_data
-     * @param  array  $user_details_arr
+     * @param array $user_details_arr
      *
-     * @return array|null
+     * @return null|array
      */
-    public function update_user_details($account_data, array $user_details_arr): ?array
+    public function update_user_details($account_data, array $user_details_arr) : ?array
     {
         $this->reset_error();
 
@@ -1844,45 +1844,6 @@ class PHS_Model_Accounts extends PHS_Model
          && !$this->_update_to_110_or_higher());
     }
 
-    private function validate_password_rules( string $pass, array $accounts_settings = null ): bool
-    {
-        $this->reset_error();
-
-        if( $accounts_settings === null ) {
-            $accounts_settings = $this->get_plugin_settings();
-        }
-
-        if (!empty($accounts_settings['min_password_length'])
-         && strlen($pass) < $accounts_settings['min_password_length']) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Password should be at least %s characters.',
-                $accounts_settings['min_password_length']));
-
-            return false;
-        }
-
-        if (!empty($accounts_settings['password_regexp'])
-         && !@preg_match($accounts_settings['password_regexp'], $pass)) {
-            if (!empty($accounts_settings['password_regexp_explanation'])) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt($accounts_settings['password_regexp_explanation']));
-            } elseif (($regexp_parts = explode('/', $accounts_settings['password_regexp']))
-                 && !empty($regexp_parts[1])) {
-                if (empty($regexp_parts[2])) {
-                    $regexp_parts[2] = '';
-                }
-
-                $this->set_error(self::ERR_PARAMETERS,
-                    $this->_pt('Password doesn\'t match regular expression %s.',
-                        '<a href="https://regex101.com/?regex='.$regexp_parts[1].'&options='.$regexp_parts[2].'" title="'.$this->_pt('Click for details').'" target="_blank">'.$accounts_settings['password_regexp'].'</a>'));
-            } else {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp']));
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * Called first in insert flow.
      * Parses flow parameters if anything special should be done.
@@ -1972,12 +1933,13 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        if( $should_setup_password_at_first_login ) {
+        if ($should_setup_password_at_first_login) {
             $params['fields']['pass'] = null;
             $params['fields']['pass_generated'] = 0;
         } elseif (!empty($params['fields']['pass'])
             && !$this->validate_password_rules($params['fields']['pass'], $accounts_settings)) {
-            $this->change_error_code( self::ERR_INSERT );
+            $this->change_error_code(self::ERR_INSERT);
+
             return false;
         }
 
@@ -2004,11 +1966,11 @@ class PHS_Model_Accounts extends PHS_Model
 
         $now_date = date(self::DATETIME_DB);
 
-        if( $should_setup_password_at_first_login ) {
+        if ($should_setup_password_at_first_login) {
             $encoded_pass = null;
             $encoded_clear = null;
         } else {
-            if (empty($params['fields']['pass']) ) {
+            if (empty($params['fields']['pass'])) {
                 if (!empty($accounts_settings['min_password_length'])) {
                     $pass_length = $accounts_settings['min_password_length'] + 3;
                 } else {
@@ -2229,7 +2191,8 @@ class PHS_Model_Accounts extends PHS_Model
             }
 
             if (!$this->validate_password_rules($params['fields']['pass'], $accounts_settings)) {
-                $this->change_error_code( self::ERR_EDIT );
+                $this->change_error_code(self::ERR_EDIT);
+
                 return false;
             }
 
@@ -2408,7 +2371,6 @@ class PHS_Model_Accounts extends PHS_Model
         if (!empty($params['{password_was_changed}'])) {
             if (!empty($params['{pass_salt}'])
              && ($salt_flow_params = $this->fetch_default_flow_params(['table_name' => 'users_pass_salts']))) {
-
                 if (!empty($params['{old_pass_salt}'])) {
                     $old_salt_arr = $params['{old_pass_salt}'];
                 } else {
@@ -2452,8 +2414,8 @@ class PHS_Model_Accounts extends PHS_Model
 
                 // save old password to history
                 if (!$this->_add_account_password_to_history($existing_data, $history_params)) {
-                    PHS_Logger::error('Couldn\'t save user #'.$existing_data['id'].' password to history: '.
-                                      $this->get_error_message(), PHS_Logger::TYPE_ERROR);
+                    PHS_Logger::error('Couldn\'t save user #'.$existing_data['id'].' password to history: '
+                                      .$this->get_error_message(), PHS_Logger::TYPE_ERROR);
 
                     $this->reset_error();
                 }
@@ -2646,6 +2608,45 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $params;
+    }
+
+    private function validate_password_rules(string $pass, ?array $accounts_settings = null) : bool
+    {
+        $this->reset_error();
+
+        if ($accounts_settings === null) {
+            $accounts_settings = $this->get_plugin_settings();
+        }
+
+        if (!empty($accounts_settings['min_password_length'])
+         && strlen($pass) < $accounts_settings['min_password_length']) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Password should be at least %s characters.',
+                $accounts_settings['min_password_length']));
+
+            return false;
+        }
+
+        if (!empty($accounts_settings['password_regexp'])
+         && !@preg_match($accounts_settings['password_regexp'], $pass)) {
+            if (!empty($accounts_settings['password_regexp_explanation'])) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt($accounts_settings['password_regexp_explanation']));
+            } elseif (($regexp_parts = explode('/', $accounts_settings['password_regexp']))
+                 && !empty($regexp_parts[1])) {
+                if (empty($regexp_parts[2])) {
+                    $regexp_parts[2] = '';
+                }
+
+                $this->set_error(self::ERR_PARAMETERS,
+                    $this->_pt('Password doesn\'t match regular expression %s.',
+                        '<a href="https://regex101.com/?regex='.$regexp_parts[1].'&options='.$regexp_parts[2].'" title="'.$this->_pt('Click for details').'" target="_blank">'.$accounts_settings['password_regexp'].'</a>'));
+            } else {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Password doesn\'t match regular expression %s.', $accounts_settings['password_regexp']));
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -3069,7 +3070,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return string
      */
-    public static function encode_pass($pass, $salt): string
+    public static function encode_pass($pass, $salt) : string
     {
         $hook_args = PHS_Hooks::default_common_hook_args();
         $hook_args['pass'] = $pass;

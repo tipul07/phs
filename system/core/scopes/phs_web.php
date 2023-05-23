@@ -76,7 +76,7 @@ class PHS_Scope_Web extends PHS_Scope
             exit;
         }
 
-        if( ($event_result = PHS_Event_Template::template(PHS_Event_Template::GENERIC, $action_result['page_template'], $action_result['action_data'] )) ) {
+        if (($event_result = PHS_Event_Template::template(PHS_Event_Template::GENERIC, $action_result['page_template'], $action_result['action_data']))) {
             if (!empty($event_result['page_template'])) {
                 $action_result['page_template'] = $event_result['page_template'];
             }

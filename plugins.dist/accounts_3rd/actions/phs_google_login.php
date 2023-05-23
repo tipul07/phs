@@ -191,9 +191,10 @@ class PHS_Action_Google_login extends PHS_Action
                     }
                 }
 
-                if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
-                    && !empty($event_result['action_result']) ) {
+                if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+                    && !empty($event_result['action_result'])) {
                     $this->set_action_result($event_result['action_result']);
+
                     return $event_result['action_result'];
                 }
 

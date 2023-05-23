@@ -35,8 +35,8 @@ class PHS_Action_Setup_password extends PHS_Action
      */
     public function execute()
     {
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::SETUP_PASSWORD, $this ))
-         && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::SETUP_PASSWORD, $this))
+         && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -48,7 +48,7 @@ class PHS_Action_Setup_password extends PHS_Action
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-            || !($accounts_model = PHS_Model_Accounts::get_instance()) ) {
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
@@ -56,13 +56,13 @@ class PHS_Action_Setup_password extends PHS_Action
 
         if (PHS_Params::_g('setup_not_required', PHS_Params::T_INT)) {
             PHS_Notifications::add_warning_notice(
-                $this->_pt( 'Password setup not required. Go to %s.',
+                $this->_pt('Password setup not required. Go to %s.',
                     sprintf(
                         '<a href="%s">%s</a>',
                         PHS::url(['a' => 'login', 'p' => 'accounts']),
                         $this->_pt('login page')
                     )
-            ));
+                ));
 
             return self::default_action_result();
         }
@@ -135,7 +135,7 @@ class PHS_Action_Setup_password extends PHS_Action
             'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
             'min_password_length'    => $accounts_settings['min_password_length'],
             'password_regexp'        => $accounts_settings['password_regexp'],
-            'password_setup'       => $password_setup,
+            'password_setup'         => $password_setup,
         ];
 
         return $this->quick_render_template('setup_password', $data);

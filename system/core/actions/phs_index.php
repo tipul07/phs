@@ -24,8 +24,8 @@ class PHS_Action_Index extends PHS_Action
         $template = 'index';
         $template_data = [];
 
-        if( ($event_result = PHS_Event_Template::template(PHS_Event_Template::INDEX, $template, $template_data )) ) {
-            if( !empty($event_result['action_result']) && is_array($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Template::template(PHS_Event_Template::INDEX, $template, $template_data))) {
+            if (!empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                 return $event_result['action_result'];
             }
 

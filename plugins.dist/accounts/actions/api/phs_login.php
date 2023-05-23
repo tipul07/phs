@@ -9,8 +9,8 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
 
 class PHS_Action_Login extends PHS_Api_action
@@ -30,8 +30,8 @@ class PHS_Action_Login extends PHS_Api_action
     {
         $bearer_token_authentication = (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API);
 
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -55,7 +55,7 @@ class PHS_Action_Login extends PHS_Api_action
 
         if (($current_user = PHS::user_logged_in())) {
             // We just trigger functionality for after login, but we ignore action result
-            PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this );
+            PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this);
 
             if (!($account_arr = $accounts_model->populate_account_data_for_account_contract($current_user))
              || !($account_data = $account_contract->parse_data_from_inside_source($account_arr))) {
@@ -127,9 +127,10 @@ class PHS_Action_Login extends PHS_Api_action
             }
         }
 
-        if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
+
             return $event_result['action_result'];
         }
 

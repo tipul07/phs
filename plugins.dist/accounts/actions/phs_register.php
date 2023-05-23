@@ -34,8 +34,8 @@ class PHS_Action_Register extends PHS_Action
      */
     public function execute()
     {
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::REGISTER, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::REGISTER, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -72,6 +72,7 @@ class PHS_Action_Register extends PHS_Action
         if (empty($foobar)
          && PHS::user_logged_in()) {
             PHS_Notifications::add_success_notice($this->_pt('Already logged in...'));
+
             return action_redirect();
         }
 
@@ -111,8 +112,8 @@ class PHS_Action_Register extends PHS_Action
             'no_nickname_only_email' => $accounts_settings['no_nickname_only_email'],
         ];
 
-        if( ($event_result = PHS_Event_Template::template(PHS_Event_Template::REGISTER, $template, $template_data )) ) {
-            if( !empty($event_result['action_result']) && is_array($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Template::template(PHS_Event_Template::REGISTER, $template, $template_data))) {
+            if (!empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                 return $event_result['action_result'];
             }
 

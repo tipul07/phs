@@ -6,8 +6,8 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
-use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Logger;
+use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -38,8 +38,8 @@ class PHS_Action_Change_password extends PHS_Action
      */
     public function execute()
     {
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];

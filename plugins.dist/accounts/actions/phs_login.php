@@ -10,8 +10,8 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Login extends PHS_Action
 {
@@ -38,8 +38,8 @@ class PHS_Action_Login extends PHS_Action
      */
     public function execute()
     {
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -86,10 +86,10 @@ class PHS_Action_Login extends PHS_Action
         if (empty($foobar)
          && PHS::user_logged_in()
          && !PHS_Notifications::have_notifications_errors()) {
-
-            if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
-                && !empty($event_result['action_result']) ) {
+            if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+                && !empty($event_result['action_result'])) {
                 $this->set_action_result($event_result['action_result']);
+
                 return $event_result['action_result'];
             }
 
@@ -136,9 +136,10 @@ class PHS_Action_Login extends PHS_Action
                         }
                     }
 
-                    if( ($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this ))
-                        && !empty($event_result['action_result']) ) {
+                    if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
+                        && !empty($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
+
                         return $event_result['action_result'];
                     }
 

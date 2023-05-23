@@ -37,8 +37,8 @@ class PHS_Action_Change_password extends PHS_Api_action
                 $this->_pt('API change password should use mobileapi plugin.'));
         }
 
-        if( ($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this ))
-            && !empty($event_result['action_result']) ) {
+        if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this))
+            && !empty($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
