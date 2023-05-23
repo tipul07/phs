@@ -694,7 +694,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        $smtp_settings = $hook_args['route_settings'];
+        if( !is_array( $hook_args['route_settings'] ) ) {
+            $smtp_settings = [];
+        } else {
+            $smtp_settings = $hook_args['route_settings'];
+        }
+
         if (!empty($smtp_settings['smtp_pass'])
          && false === ($smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode($smtp_settings['smtp_pass']))) {
             $this->set_error(self::ERR_SEND, $this->_pt('Error obtaining SMTP credentials.'));
@@ -736,6 +741,15 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
+            }
+
+            if( ($debugging_log = $smtp_library->debug_log()) ) {
+                $debugging_str = '';
+                foreach( $debugging_log as $cmd_arr ) {
+                    $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
+                }
+
+                PHS_Logger::error('Detailed log:'."\n".$debugging_str, self::LOG_CHANNEL);
             }
         }
 
