@@ -5,6 +5,8 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\events\api\PHS_Event_Api_instance;
+use phs\system\core\events\api\PHS_Event_Api_route_tokens;
 
 // ! @version 1.00
 
@@ -62,15 +64,14 @@ class PHS_Api extends PHS_Api_base
 
         $this->api_flow_value('original_api_route_tokens', $final_api_route_tokens);
 
-        // Let plugins change provided API route tokens
-        $hook_args = PHS_Hooks::default_api_hook_args();
-        $hook_args['api_obj'] = $this;
-        $hook_args['api_route_tokens'] = $final_api_route_tokens;
-
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_API_ROUTE, $hook_args))
-         && is_array($hook_args)
-         && !empty($hook_args['altered_api_route_tokens']) && is_array($hook_args['altered_api_route_tokens'])
-         && !($final_api_route_tokens = self::_validate_tokenized_api_route($hook_args['altered_api_route_tokens']))) {
+        /** @var \phs\system\core\events\api\PHS_Event_Api_route_tokens $event_obj */
+        if(($event_obj = PHS_Event_Api_route_tokens::trigger([
+                'api_instance' => $this, 'route_tokens' => $final_api_route_tokens,
+            ]))
+           && ($route_tokens = $event_obj->get_output('route_tokens'))
+           && is_array($route_tokens)
+           && !($final_api_route_tokens = self::_validate_tokenized_api_route($route_tokens))
+        ) {
             $this->set_error(self::ERR_RUN_ROUTE, self::_t('Invalid API route tokens obtained from plugins.'));
 
             return false;
@@ -84,7 +85,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         $api_route = null;
-        if (($matched_route = self::_get_phs_route_from_api_route($final_api_route_tokens, $this->http_method()))) {
+        if (($matched_route = self::_get_phs_route_from_api_route_tokens($final_api_route_tokens, $this->http_method()))) {
             $phs_route = $matched_route['phs_route'];
             $api_route = $matched_route['api_route'];
         } else {
@@ -297,22 +298,24 @@ class PHS_Api extends PHS_Api_base
         return null;
     }
 
-    final public static function api_factory(?array $init_query_params = null)
+    /**
+     * @param  null|array  $init_query_params
+     *
+     * @return null|\phs\PHS_Api_base
+     */
+    final public static function api_factory(?array $init_query_params = null): ?PHS_Api_base
     {
         self::st_reset_error();
 
         $api_obj = null;
 
-        // Tell plugins we are starting an API request and check if any of them has an API object to offer
-        $hook_args = PHS_Hooks::default_api_hook_args();
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_API_REQUEST_INIT, $hook_args))
-         && is_array($hook_args)
-         && !empty($hook_args['api_obj'])
-         && ($api_obj = $hook_args['api_obj'])
-         && !($api_obj instanceof PHS_Api_base)) {
+        /** @var \phs\system\core\events\api\PHS_Event_Api_instance $event_obj */
+        if( ($event_obj = PHS_Event_Api_instance::trigger())
+            && ($api_obj = $event_obj->get_output('api_instance'))
+            && !($api_obj instanceof PHS_Api_base) ) {
             self::st_set_error(self::ERR_API_INIT, self::_t('Invalid API instance obtained from hook call.'));
 
-            return false;
+            return null;
         }
 
         // If we don't have an instance provided by hook result, instantiate default API class
@@ -320,7 +323,7 @@ class PHS_Api extends PHS_Api_base
          && !($api_obj = new self())) {
             self::st_set_error(self::ERR_API_INIT, self::_t('Error obtaining API instance.'));
 
-            return false;
+            return null;
         }
 
         if (!($api_obj->_init_api_query_params($init_query_params))) {
@@ -330,7 +333,7 @@ class PHS_Api extends PHS_Api_base
                 self::st_set_error(self::ERR_API_INIT, self::_t('Couldn\'t initialize API object.'));
             }
 
-            return false;
+            return null;
         }
 
         self::$_last_api_obj = $api_obj;
@@ -669,7 +672,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return null|array
      */
-    protected static function _get_phs_route_from_api_route(?array $tokenized_api_route = null, string $method = 'get') : ?array
+    protected static function _get_phs_route_from_api_route_tokens(?array $tokenized_api_route = null, string $method = 'get') : ?array
     {
         self::st_reset_error();
 

@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Api_keys extends PHS_Model
 {
@@ -23,7 +24,7 @@ class PHS_Model_Api_keys extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.0.3';
+        return '1.1.0';
     }
 
     /**
@@ -203,18 +204,18 @@ class PHS_Model_Api_keys extends PHS_Model
      *
      * @return array
      */
-    public function get_all_api_keys($only_active = false)
+    public function get_all_api_keys(bool $only_active = false): array
     {
-        static $cached_api_keys = false, $cached_active_api_keys = false;
+        static $cached_api_keys = null, $cached_active_api_keys = null;
 
         $this->reset_error();
 
         if (!$only_active) {
-            if ($cached_api_keys !== false) {
+            if ($cached_api_keys !== null) {
                 return $cached_api_keys;
             }
         } else {
-            if ($cached_active_api_keys !== false) {
+            if ($cached_active_api_keys !== null) {
                 return $cached_active_api_keys;
             }
         }
@@ -303,6 +304,11 @@ class PHS_Model_Api_keys extends PHS_Model
                         'type'  => self::FTYPE_INT,
                         'index' => true,
                     ],
+                    'tenant_id' => [
+                        'type'  => self::FTYPE_INT,
+                        'index' => true,
+                        'comment' => 'API Key tenant (if any)',
+                    ],
                     'title' => [
                         'type'     => self::FTYPE_VARCHAR,
                         'length'   => 255,
@@ -371,10 +377,12 @@ class PHS_Model_Api_keys extends PHS_Model
             $params['fields']['api_secret'] = $this->generate_random_api_secret();
         }
 
-        if (empty($params['fields']['allow_sw'])) {
-            $params['fields']['allow_sw'] = 0;
+        $params['fields']['allow_sw'] = empty($params['fields']['allow_sw'])?0:1;
+
+        if(!empty($params['fields']['tenant_id']) && PHS::is_multi_tenant()) {
+            $params['fields']['tenant_id'] = (int)$params['fields']['tenant_id'];
         } else {
-            $params['fields']['allow_sw'] = 1;
+            $params['fields']['tenant_id'] = 0;
         }
 
         $cdate = date(self::DATETIME_DB);
@@ -411,11 +419,17 @@ class PHS_Model_Api_keys extends PHS_Model
         }
 
         if (array_key_exists('allow_sw', $params['fields'])) {
-            if (!empty($params['fields']['allow_sw'])) {
-                $params['fields']['allow_sw'] = 1;
+            $params['fields']['allow_sw'] = !empty($params['fields']['allow_sw'])?1:0;
+        }
+
+        if( PHS::is_multi_tenant() ) {
+            if( !empty( $params['fields']['tenant_id'] ) ) {
+                $params['fields']['tenant_id'] = (int)$params['fields']['tenant_id'];
             } else {
-                $params['fields']['allow_sw'] = 0;
+                $params['fields']['tenant_id'] = 0;
             }
+        } elseif( array_key_exists('tenant_id', $params['fields'])) {
+            unset( $params['fields']['tenant_id'] );
         }
 
         if (!empty($params['fields']['status'])
@@ -446,7 +460,7 @@ class PHS_Model_Api_keys extends PHS_Model
                     case 'include_account_details':
 
                         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-                        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))
+                        if (!($accounts_model = PHS_Model_Accounts::get_instance())
                          || !($accounts_table = $accounts_model->get_flow_table_name(['table_name' => 'users']))) {
                             continue 2;
                         }

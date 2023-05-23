@@ -136,11 +136,11 @@ if ($can_list_api_keys || $can_manage_api_keys) {
             <?php
             if ($can_manage_api_keys) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'api_key_add', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API key'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API key'); ?></a></li>
                 <?php
             }
     ?>
-            <li><a href="<?php echo PHS::url(['a' => 'api_keys_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List API keys'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('List API keys'); ?></a></li>
         </ul>
     </li>
     <?php

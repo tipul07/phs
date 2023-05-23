@@ -55,9 +55,11 @@ abstract class PHS_Api_base extends PHS_Registry
     /** @var array Instance API flow */
     protected array $my_flow = [];
 
+    /**
+     * Just method name which should be defined in $this when calling
+     * @see \phs\PHS_Api_base::_api_authentication_failed()
+     */
     protected static array $AUTH_METHODS_CALLBACKS = [
-        // Just method name which should be defined in $this when calling
-        // @see PHS_Api_base::_api_authentication_failed()
         self::AUTH_METHOD_BASIC  => ['method' => '_basic_api_authentication_failed', ],
         self::AUTH_METHOD_BEARER => ['method' => '_bearer_api_authentication_failed'],
     ];

@@ -15,6 +15,7 @@ use phs\libraries\PHS_Controller;
 use phs\libraries\PHS_Instantiable;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\events\PHS_Event_Route;
 use phs\libraries\PHS_Undefined_instantiable;
 
 final class PHS extends PHS_Registry
@@ -815,9 +816,9 @@ final class PHS extends PHS_Registry
      * @param bool $use_short_names If we need short names for plugin,
      *                              controller and action in returned keys (eg. p, c, a, ad)
      *
-     * @return bool|array Returns true on success || false on error
+     * @return null|array Returns true on success or null on error
      */
-    public static function parse_route($route = false, bool $use_short_names = false)
+    public static function parse_route($route = false, bool $use_short_names = false): ?array
     {
         self::st_reset_error();
 
@@ -863,7 +864,7 @@ final class PHS extends PHS_Registry
                      || empty($route_parts_tmp[0])) {
                         self::st_set_error(self::ERR_ROUTE, self::_t('Couldn\'t obtain route.'));
 
-                        return false;
+                        return null;
                     }
 
                     $route_parts[0] = $route_parts_tmp[0];
@@ -872,7 +873,7 @@ final class PHS extends PHS_Registry
                 } elseif (!($route_parts = explode('/', $route, 3))) {
                     self::st_set_error(self::ERR_ROUTE, self::_t('Couldn\'t obtain route.'));
 
-                    return false;
+                    return null;
                 }
 
                 $rp_count = count($route_parts);
@@ -912,7 +913,7 @@ final class PHS extends PHS_Registry
         ) {
             self::st_set_error(self::ERR_ROUTE, self::_t('Bad route in request.'));
 
-            return false;
+            return null;
         }
 
         if ($use_short_names) {
@@ -1079,10 +1080,10 @@ final class PHS extends PHS_Registry
      * or
      * {plugin}-[{action_dir}__]{action} Controller will be 'index'
      *
-     * @param string|bool $route If a non empty string, method will try parsing provided route, otherwise exract route from context
+     * @param string|bool $route If a non-empty string, method will try parsing provided route, otherwise exract route from context
      * @return bool Returns true on success || false on error
      */
-    public static function set_route($route = false)
+    public static function set_route($route = false): bool
     {
         self::st_reset_error();
 
@@ -1098,14 +1099,11 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        // Let plugins change API provided route in actual plugin, controller, action route (if required)
-        $hook_args = PHS_Hooks::default_phs_route_hook_args();
-        $hook_args['original_route'] = $route_parts;
-
-        if (($hook_args = self::trigger_hooks(PHS_Hooks::H_API_ROUTE, $hook_args))
-         && is_array($hook_args)
-         && !empty($hook_args['altered_route']) && is_array($hook_args['altered_route'])) {
-            $route_parts = self::parse_route($hook_args['altered_route'], false);
+        /** @var \phs\system\core\events\PHS_Event_Route $event_obj */
+        if( ($event_obj = PHS_Event_Route::trigger( ['route' => $route_parts] ))
+         && ($new_route = $event_obj->get_output('route'))
+         && ($new_route = self::parse_route($new_route, false)) ) {
+            $route_parts = $new_route;
         }
 
         self::set_data(self::ROUTE_PLUGIN, $route_parts['plugin']);
@@ -1150,19 +1148,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default route interpret script (default is index). .php file extension will be added by platform.
      *
-     * @param bool|string $script New interpreter script (default is index). No extension should be provided (.php will be appended)
+     * @param  null|string  $script New interpreter script (default is index). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function interpret_script($script = false)
+    public static function interpret_script(?string $script = null): string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_INTERPRET_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
          || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            return '';
         }
 
         self::$_INTERPRET_SCRIPT = $script;
@@ -1373,7 +1371,7 @@ final class PHS extends PHS_Registry
         return $base_url.self::interpret_script();
     }
 
-    public static function get_interpret_path()
+    public static function get_interpret_path(): string
     {
         return PHS_PATH.self::interpret_script();
     }
@@ -1646,15 +1644,19 @@ final class PHS extends PHS_Registry
         return $route_arr;
     }
 
-    public static function validate_route_from_parts($route_arr, $use_short_names = false)
+    /**
+     * @param  array|false  $route_arr
+     * @param  bool  $use_short_names
+     *
+     * @return array
+     */
+    public static function validate_route_from_parts($route_arr, bool $use_short_names = false): array
     {
         if (empty($route_arr) || !is_array($route_arr)) {
             $route_arr = [];
         }
 
-        if (empty($route_arr['force_https'])) {
-            $route_arr['force_https'] = false;
-        }
+        $route_arr['force_https'] = !empty($route_arr['force_https']);
 
         if ($use_short_names) {
             if (empty($route_arr['p'])) {
@@ -1969,11 +1971,7 @@ final class PHS extends PHS_Registry
             $params = [];
         }
 
-        if (!isset($params['die_on_error'])) {
-            $params['die_on_error'] = true;
-        } else {
-            $params['die_on_error'] = (!empty($params['die_on_error']));
-        }
+        $params['die_on_error'] = (!isset( $params['die_on_error'] ) || !empty( $params['die_on_error'] ));
 
         $action_result = false;
 
