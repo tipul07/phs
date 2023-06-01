@@ -12,7 +12,7 @@ use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
-/** @property false|null|\phs\system\core\models\PHS_Model_Api_keys $_paginator_model */
+/** @property null|false|\phs\system\core\models\PHS_Model_Api_keys $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
     /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
@@ -82,9 +82,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $all_tenants_arr = [];
         $account_tenant_ids = [];
-        if ( $platform_is_multitenant ) {
-            if (!($account_tenant_ids =
-                $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id']))) {
+        if ($platform_is_multitenant) {
+            if (!($account_tenant_ids
+                = $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id']))) {
                 $account_tenant_ids = [];
             }
             if (!($all_tenants_arr = $this->_tenants_model->get_tenants_as_key_val())) {
@@ -115,7 +115,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $list_arr = [];
         $list_arr['fields']['status'] = ['check' => '!=', 'value' => $apikeys_model::STATUS_DELETED];
-        if( !empty( $account_tenant_ids ) ) {
+        if (!empty($account_tenant_ids)) {
             $list_arr['fields']['tenant_id'] = $account_tenant_ids;
         }
         $list_arr['flags'] = ['include_account_details'];
@@ -205,11 +205,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default'             => 0,
                 'values_arr'          => $all_tenants_filter,
                 'extra_records_style' => 'vertical-align:middle;',
-                'raw_query'           => '(`'.$ak_table_name.'`.tenant_id = 0 OR '.
-                                            '(`'.$ak_table_name.'`.tenant_id = \'%s\' '.
-                                            (!empty( $account_tenant_ids )?'AND `'.$ak_table_name.'`.tenant_id IN ('.implode(',', $account_tenant_ids).')':'').
-                                            ')'.
-                                         ')',
+                'raw_query'           => '(`'.$ak_table_name.'`.tenant_id = 0 OR '
+                                            .'(`'.$ak_table_name.'`.tenant_id = \'%s\' '
+                                            .(!empty($account_tenant_ids) ? 'AND `'.$ak_table_name.'`.tenant_id IN ('.implode(',', $account_tenant_ids).')' : '')
+                                            .')'
+                                         .')',
             ];
         }
 
@@ -241,7 +241,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'display_callback'    => [$this, 'display_apikey_account'],
             ],
         ];
-
 
         if ($platform_is_multitenant) {
             $columns_arr = array_merge($columns_arr, [
@@ -338,7 +337,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -706,7 +704,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return $this->_pt('ALL');
         }
 
-        if( empty( $this->_tenants_list_arr[$params['record']['tenant_id']] ) ) {
+        if (empty($this->_tenants_list_arr[$params['record']['tenant_id']])) {
             return $this->_pt('Invalid');
         }
 

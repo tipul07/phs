@@ -11,8 +11,8 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\system\core\models\PHS_Model_Roles;
-use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Model_Accounts extends PHS_Model
 {

@@ -2,7 +2,10 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use phs\PHS_Crypt;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_obfuscated_keys;
 
 abstract class PHS_Has_db_settings extends PHS_Instantiable
@@ -13,20 +16,23 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array',
     INPUT_TYPE_TEXTAREA = 'textarea';
 
-    // Validated settings fields structure array
-    protected array $_settings_structure = [];
-
-    // Array with default values for settings (key => val) array
-    protected array $_default_settings = [];
-
-    // Database record
-    protected array $_db_details = [];
-
-    // Database settings field parsed as array
-    protected array $_db_settings = [];
-
     /** @var bool|\phs\system\core\models\PHS_Model_Plugins */
     protected $_plugins_instance = false;
+
+    // Validated settings fields structure array
+    private array $_settings_structure = [];
+
+    // Array with default values for settings (key => val) array
+    private array $_default_settings = [];
+
+    // Database record
+    private array $_db_details = [];
+
+    // Database settings field parsed as array
+    private array $_db_settings = [];
+
+    // What keys should be obfuscated
+    private ?array $_obfuscating_keys = null;
 
     /**
      * Override this function and return an array with settings fields definition
@@ -53,6 +59,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     final public function get_all_settings_keys_to_obfuscate() : array
     {
+        if ($this->_obfuscating_keys !== null) {
+            return $this->_obfuscating_keys;
+        }
+
         $obfuscating_keys = $this->get_settings_keys_to_obfuscate();
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
@@ -65,6 +75,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         ) {
             $obfuscating_keys = self::array_merge_unique_values($obfucated_keys_arr, $obfuscating_keys);
         }
+
+        $this->_obfuscating_keys = $obfuscating_keys ?? [];
 
         return $obfuscating_keys;
     }
@@ -151,14 +163,27 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return $this->_db_settings;
         }
 
+        $instance_id = $this->instance_id();
+
         if (!$this->_load_plugins_instance()
-         || !($db_settings = $this->_plugins_instance->get_plugins_db_settings(
-             $this->instance_id(),
-             $this->get_default_settings(),
-             $this->get_all_settings_keys_to_obfuscate(),
-             $force))
-         || !is_array($db_settings)) {
+            || !($db_settings = $this->_plugins_instance->get_plugins_db_settings($instance_id, $force))
+            || !($db_settings = $this->_deobfuscate_settings_array($db_settings))) {
             return [];
+        }
+
+        if (($default_settings = $this->get_default_settings())) {
+            $db_settings = self::validate_array($db_settings, $default_settings);
+        }
+
+        // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
+        /** @var PHS_Event_Plugin_settings $event_obj */
+        if (($event_obj = PHS_Event_Plugin_settings::trigger([
+            'instance_id'  => $instance_id,
+            'settings_arr' => $db_settings,
+        ]))
+            && ($extra_settings_arr = $event_obj->get_output('settings_arr'))
+        ) {
+            $db_settings = self::validate_array($extra_settings_arr, $db_settings);
         }
 
         $this->_db_settings = $db_settings;
@@ -166,17 +191,33 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_settings;
     }
 
-    public function save_db_settings(array $settings_arr) : array
+    public function save_db_settings(array $settings_arr) : ?array
     {
+        $this->reset_error();
+
+        $instance_id = $this->instance_id();
+        $old_settings = $this->get_db_settings();
+
         if (!$this->_load_plugins_instance()
-         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings(
-             $this->instance_id(),
-             $settings_arr,
-             $this->get_all_settings_keys_to_obfuscate(),
-             $this->get_default_settings()))
+         || null === ($obfuscated_settings_arr = $this->_obfuscate_settings_array($settings_arr))
+         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr))
          || !is_array($db_settings)) {
-            return [];
+            if (!$this->has_error()
+                && $this->_plugins_instance->has_error()) {
+                $this->copy_error($this->_plugins_instance);
+            }
+
+            return null;
         }
+
+        PHS_Event_Plugin_settings_saved::trigger([
+            'instance_id'       => $instance_id,
+            'instance_type'     => $this->instance_type(),
+            'plugin_name'       => $this->instance_plugin_name(),
+            'old_settings_arr'  => $old_settings,
+            'new_settings_arr'  => $db_settings,
+            'obfucate_keys_arr' => $this->get_all_settings_keys_to_obfuscate(),
+        ]);
 
         $this->_db_settings = $db_settings;
 
@@ -186,13 +227,13 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_settings;
     }
 
-    public function db_record_active()
+    public function db_record_active() : ?array
     {
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
         if (!$this->_load_plugins_instance()
          || !($db_details = $this->get_db_details())
          || !$this->_plugins_instance->active_status($db_details['status'])) {
-            return false;
+            return null;
         }
 
         return $db_details;
@@ -212,6 +253,58 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         return true;
+    }
+
+    private function _obfuscate_settings_array(array $settings_arr) : ?array
+    {
+        $this->reset_error();
+
+        // Obfuscate settings before saving in database...
+        if (($obfuscating_keys = $this->get_all_settings_keys_to_obfuscate())) {
+            foreach ($obfuscating_keys as $ob_key) {
+                if (array_key_exists($ob_key, $settings_arr)
+                    && is_scalar($settings_arr[$ob_key])) {
+                    if (false === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
+                        $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obfuscating plugin settings.'));
+
+                        return null;
+                    }
+
+                    $settings_arr[$ob_key] = $encrypted_data;
+                }
+            }
+        }
+
+        return $settings_arr;
+    }
+
+    private function _deobfuscate_settings_array(?array $settings_arr) : array
+    {
+        if (empty($settings_arr)) {
+            return [];
+        }
+
+        if (($obfuscating_keys = $this->get_all_settings_keys_to_obfuscate())) {
+            foreach ($obfuscating_keys as $ob_key) {
+                if (array_key_exists($ob_key, $settings_arr)
+                    && is_string($settings_arr[$ob_key])) {
+                    // In case we are in install mode and errors will get thrown
+                    try {
+                        if (false === ($settings_arr[$ob_key] = PHS_Crypt::quick_decode($settings_arr[$ob_key]))) {
+                            PHS_Logger::error('[CONFIG ERROR] Error decoding old config value for ['.$this->instance_id().'] '
+                                              .'settings key ['.$ob_key.']', PHS_Logger::TYPE_DEBUG);
+                            $settings_arr[$ob_key] = '';
+                        }
+                    } catch (\Exception $e) {
+                        PHS_Logger::error('[CONFIG ERROR] Error decoding old config value for ['.$this->instance_id().'] '
+                                          .'settings key ['.$ob_key.']: '.$e->getMessage(), PHS_Logger::TYPE_DEBUG);
+                        $settings_arr[$ob_key] = '';
+                    }
+                }
+            }
+        }
+
+        return $settings_arr;
     }
 
     public static function default_custom_renderer_params() : array

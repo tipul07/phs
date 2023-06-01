@@ -61,12 +61,12 @@ $is_multi_tenant = PHS::is_multi_tenant();
                         <?php
                         foreach ($all_tenants_arr as $t_id => $t_arr) {
                             ?>
-                            <option value="<?php echo $t_id?>"
-                                <?php echo (int)$t_id===(int)$this->view_var('tenant_id')?'selected="selected"' : '';?>
-                            ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory'])?'/'.$t_arr['directory']:'').')'?></option>
+                            <option value="<?php echo $t_id; ?>"
+                                <?php echo (int)$t_id === (int)$this->view_var('tenant_id') ? 'selected="selected"' : ''; ?>
+                            ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option>
                             <?php
                         }
-                        ?>
+            ?>
                     </select>
                 </div>
             </div>
@@ -113,7 +113,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 </div>
                 <?php
             }
-            ?>
+?>
             <small class="text-muted"><?php echo $this->_pt('Don\'t tick any method to allow all.'); ?></small>
             </div>
         </div>
@@ -122,8 +122,8 @@ $is_multi_tenant = PHS::is_multi_tenant();
             <label for="denied_methods" class="col-sm-2 col-form-label"><?php echo $this->_pt('Denied HTTP methods'); ?></label>
             <div class="col-sm-10">
             <?php
-            foreach ($api_methods_arr as $api_method) {
-            ?>
+foreach ($api_methods_arr as $api_method) {
+    ?>
                 <div class="form-check form-check-inline">
                     <input type="checkbox" class="form-check-input" id="denied_methods_<?php echo $api_method; ?>"
                            name="denied_methods[]" value="<?php echo form_str($api_method); ?>"
@@ -131,8 +131,8 @@ $is_multi_tenant = PHS::is_multi_tenant();
                     <label class="form-check-label" for="denied_methods_<?php echo $api_method; ?>"><?php echo $api_method; ?></label>
                 </div>
                 <?php
-            }
-            ?>
+}
+?>
             <small class="text-muted"><?php echo $this->_pt('Tick only methods which you want to deny access to.'); ?></small>
             </div>
         </div>

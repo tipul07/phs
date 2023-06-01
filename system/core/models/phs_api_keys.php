@@ -204,7 +204,7 @@ class PHS_Model_Api_keys extends PHS_Model
      *
      * @return array
      */
-    public function get_all_api_keys(bool $only_active = false): array
+    public function get_all_api_keys(bool $only_active = false) : array
     {
         static $cached_api_keys = null, $cached_active_api_keys = null;
 
@@ -305,8 +305,8 @@ class PHS_Model_Api_keys extends PHS_Model
                         'index' => true,
                     ],
                     'tenant_id' => [
-                        'type'  => self::FTYPE_INT,
-                        'index' => true,
+                        'type'    => self::FTYPE_INT,
+                        'index'   => true,
                         'comment' => 'API Key tenant (if any)',
                     ],
                     'title' => [
@@ -377,9 +377,9 @@ class PHS_Model_Api_keys extends PHS_Model
             $params['fields']['api_secret'] = $this->generate_random_api_secret();
         }
 
-        $params['fields']['allow_sw'] = empty($params['fields']['allow_sw'])?0:1;
+        $params['fields']['allow_sw'] = empty($params['fields']['allow_sw']) ? 0 : 1;
 
-        if(!empty($params['fields']['tenant_id']) && PHS::is_multi_tenant()) {
+        if (!empty($params['fields']['tenant_id']) && PHS::is_multi_tenant()) {
             $params['fields']['tenant_id'] = (int)$params['fields']['tenant_id'];
         } else {
             $params['fields']['tenant_id'] = 0;
@@ -419,17 +419,17 @@ class PHS_Model_Api_keys extends PHS_Model
         }
 
         if (array_key_exists('allow_sw', $params['fields'])) {
-            $params['fields']['allow_sw'] = !empty($params['fields']['allow_sw'])?1:0;
+            $params['fields']['allow_sw'] = !empty($params['fields']['allow_sw']) ? 1 : 0;
         }
 
-        if( PHS::is_multi_tenant() ) {
-            if( !empty( $params['fields']['tenant_id'] ) ) {
+        if (PHS::is_multi_tenant()) {
+            if (!empty($params['fields']['tenant_id'])) {
                 $params['fields']['tenant_id'] = (int)$params['fields']['tenant_id'];
             } else {
                 $params['fields']['tenant_id'] = 0;
             }
-        } elseif( array_key_exists('tenant_id', $params['fields'])) {
-            unset( $params['fields']['tenant_id'] );
+        } elseif (array_key_exists('tenant_id', $params['fields'])) {
+            unset($params['fields']['tenant_id']);
         }
 
         if (!empty($params['fields']['status'])

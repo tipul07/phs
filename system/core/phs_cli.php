@@ -103,7 +103,7 @@ abstract class PHS_Cli extends PHS_Registry
 
         $this->_validate_app_commands($this->_get_app_commands_definition());
 
-        if( ($new_cli_arguments = $this->_extract_app_and_command_options($cli_arguments)) ) {
+        if (($new_cli_arguments = $this->_extract_app_and_command_options($cli_arguments))) {
             $cli_arguments = $new_cli_arguments;
         }
 
@@ -231,9 +231,9 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_output_colors;
     }
 
-    public function command_option( string $option )
+    public function command_option(string $option)
     {
-        if( empty( $this->_command['options'][$option]['value'] ) ) {
+        if (empty($this->_command['options'][$option]['value'])) {
             return null;
         }
 
@@ -309,7 +309,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public function cli_option_help(): bool
+    public function cli_option_help() : bool
     {
         if (!$this->cli_option_version()) {
             return false;
@@ -495,7 +495,6 @@ abstract class PHS_Cli extends PHS_Registry
 
         foreach ($argv as $cli_argument) {
             if (!($parsed_option = $this->_extract_option_from_argument($cli_argument))) {
-
                 $new_argv[] = $cli_argument;
 
                 continue;
@@ -532,8 +531,8 @@ abstract class PHS_Cli extends PHS_Registry
 
     protected function _extract_command_options() : void
     {
-        if( !$this->_validate_command_options()
-         || empty( $this->_command_options ) ) {
+        if (!$this->_validate_command_options()
+         || empty($this->_command_options)) {
             return;
         }
 
@@ -541,8 +540,8 @@ abstract class PHS_Cli extends PHS_Registry
 
         $this->_command['options'] = [];
 
-        foreach ($this->_command_options as $parsed_option ) {
-            if ( empty( $parsed_option['option'] ) ) {
+        foreach ($this->_command_options as $parsed_option) {
+            if (empty($parsed_option['option'])) {
                 continue;
             }
 
@@ -923,14 +922,11 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_options_definition;
     }
 
-    /**
-     * @return void
-     */
-    private function _validate_command_options(): bool
+    private function _validate_command_options() : bool
     {
-        if( empty( $this->_command )
-            || empty( $this->_command['options_definition'] )
-            || !is_array( $this->_command['options_definition'] ) ) {
+        if (empty($this->_command)
+            || empty($this->_command['options_definition'])
+            || !is_array($this->_command['options_definition'])) {
             return true;
         }
 
@@ -983,9 +979,9 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @param array $app_commands
      *
-     * @return array|null
+     * @return null|array
      */
-    private function _validate_app_commands(array $app_commands): ?array
+    private function _validate_app_commands(array $app_commands) : ?array
     {
         $this->reset_error();
 

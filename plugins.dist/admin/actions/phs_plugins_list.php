@@ -199,7 +199,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
         $can_export_settings = $this->_admin_plugin->can_admin_export_plugins_settings();
 
-        $this->_paginator_model->cache_all_db_details(true);
+        $this->_paginator_model->get_all_db_details(true);
 
         $flow_params = [
             'listing_title'        => $this->_pt('Plugins List'),

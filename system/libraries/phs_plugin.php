@@ -196,7 +196,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return null|string
      */
-    final public function quick_render_template_for_buffer($template, ?array $template_data = null): ?string
+    final public function quick_render_template_for_buffer($template, ?array $template_data = null) : ?string
     {
         $this->reset_error();
 
@@ -1125,7 +1125,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         $plugin_arr = $db_details['new_data'];
-        $old_plugin_arr = (!empty($db_details['old_data']) ? $db_details['old_data'] : false);
+        $old_plugin_arr = $db_details['old_data'] ?? null;
 
         if (!empty($old_plugin_arr)) {
             // Performs any necessary actions when updating model from old version to new version

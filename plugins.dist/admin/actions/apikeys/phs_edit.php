@@ -200,7 +200,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr = [];
             $edit_arr['added_by_uid'] = $current_user['id'];
             $edit_arr['uid'] = $uid;
-            if( $is_multi_tenant ) {
+            if ($is_multi_tenant) {
                 $edit_arr['tenant_id'] = $tenant_id;
             }
             $edit_arr['title'] = $title;
@@ -237,7 +237,7 @@ class PHS_Action_Edit extends PHS_Action
             'aid'              => $apikey_arr['id'],
             'back_page'        => $back_page,
             'uid'              => $uid,
-            'tenant_id'              => $tenant_id,
+            'tenant_id'        => $tenant_id,
             'autocomplete_uid' => $autocomplete_uid,
             'title'            => $title,
             'api_key'          => $api_key,
@@ -246,7 +246,7 @@ class PHS_Action_Edit extends PHS_Action
             'allowed_methods'  => $allowed_methods,
             'denied_methods'   => $denied_methods,
 
-            'api_methods_arr'           => $api_methods_arr,
+            'api_methods_arr' => $api_methods_arr,
             'all_tenants_arr' => $all_tenants_arr,
 
             'api_obj'                   => $api_obj,

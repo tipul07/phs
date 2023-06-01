@@ -405,7 +405,7 @@ if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
                        value="<?php echo form_str($t_id); ?>"
                        <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> />
                 <label class="form-check-label" for="account_tenants_<?php echo $t_id; ?>">
-                    <?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory'])?'/'.$t_arr['directory']:'').')'; ?>
+                    <?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?>
                 </label>
             </div>
         </div>

@@ -929,7 +929,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         $plugin_arr = $db_details['new_data'];
-        $old_plugin_arr = (!empty($db_details['old_data']) ? $db_details['old_data'] : false);
+        $old_plugin_arr = $db_details['old_data'] ?? null;
 
         // Performs any necessary actions when updating model from old version to new version
         if (!empty($old_plugin_arr)

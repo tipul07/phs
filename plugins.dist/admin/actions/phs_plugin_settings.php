@@ -212,7 +212,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $this->quick_render_template('plugin_settings', $data);
     }
 
-    private function _extract_custom_save_settings_fields_from_submit($settings_fields, array $init_callback_params, array $new_settings_arr, $db_settings): array
+    private function _extract_custom_save_settings_fields_from_submit($settings_fields, array $init_callback_params, array $new_settings_arr, $db_settings) : array
     {
         $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
         foreach ($settings_fields as $field_name => $field_details) {
@@ -283,7 +283,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_settings_fields_from_submit(array $settings_fields, array $default_settings, array $db_settings, bool $is_post, array &$form_data) : array
+    private function _extract_settings_fields_from_submit(array $settings_fields, array $default_settings, array $db_settings, $is_post, array &$form_data) : array
     {
         $new_settings_arr = [];
         foreach ($settings_fields as $field_name => $field_details) {
@@ -309,7 +309,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         return $new_settings_arr;
     }
 
-    private function _extract_field_value_from_submit(string $field_name, array $field_details, array $default_settings, array $db_settings, bool $is_post, array &$form_data)
+    private function _extract_field_value_from_submit(string $field_name, array $field_details, array $default_settings, array $db_settings, $is_post, array &$form_data)
     {
         $field_value = null;
 

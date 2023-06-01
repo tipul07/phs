@@ -18,8 +18,6 @@ class PHS_Event_Plugin_settings_saved extends PHS_Event
             'instance_id' => '', // eg. plugin:accounts:accounts
             'instance_type' => '', // eg. plugin, model
             'plugin_name' => '', // eg. accounts
-            'old_instance_record' => null, // old record from plugins table
-            'new_instance_record' => null, // new record from plugins table
             'old_settings_arr' => [], // previous settings array
             'new_settings_arr' => [], // new settings array
             'obfucate_keys_arr' => [], // keys which were obfuscated

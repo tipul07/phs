@@ -158,9 +158,9 @@ class PHS_Action_Add extends PHS_Action
             'roles_by_slug'   => $roles_by_slug,
             'all_tenants_arr' => $all_tenants_arr,
 
-            'tenants_model' => $tenants_model,
-            'roles_model'   => $roles_model,
-            'plugins_model' => $plugins_model,
+            'tenants_model'   => $tenants_model,
+            'roles_model'     => $roles_model,
+            'plugins_model'   => $plugins_model,
             'accounts_plugin' => $accounts_plugin,
         ];
 

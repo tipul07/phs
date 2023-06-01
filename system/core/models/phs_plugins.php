@@ -10,8 +10,8 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Line_params;
 use phs\libraries\PHS_Instantiable;
 use phs\traits\PHS_Model_Trait_statuses;
-use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_registry;
+use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 class PHS_Model_Plugins extends PHS_Model
@@ -57,7 +57,7 @@ class PHS_Model_Plugins extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.1.0';
+        return '1.2.0';
     }
 
     /**
@@ -76,12 +76,12 @@ class PHS_Model_Plugins extends PHS_Model
         return 'plugins';
     }
 
-    public function active_status(int $status): bool
+    public function active_status(int $status) : bool
     {
         return $this->valid_status($status) && $status === self::STATUS_ACTIVE;
     }
 
-    public function inactive_status(int $status): bool
+    public function inactive_status(int $status) : bool
     {
         return $this->valid_status($status)
          && in_array($status, [self::STATUS_INSTALLED, self::STATUS_INACTIVE], true);
@@ -132,15 +132,13 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
-     * @param  null|string  $instance_id
+     * @param null|string $instance_id
      * @param array|string $settings_arr array or PHS_Line_params string
-     * @param array $obfuscating_keys
-     * @param array $default_settings
      * @param array $update_params
      *
-     * @return bool|mixed
+     * @return null|array
      */
-    public function save_plugins_db_settings(?string $instance_id, $settings_arr, array $obfuscating_keys, array $default_settings = [], array $update_params = [])
+    public function save_plugins_db_settings(?string $instance_id, $settings_arr, array $update_params = []) : ?array
     {
         $this->reset_error();
 
@@ -154,32 +152,28 @@ class PHS_Model_Plugins extends PHS_Model
          && !self::valid_instance_id($instance_id)) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         if ($instance_id === null
          && !($instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Unknown instance ID.'));
 
-            return false;
+            return null;
         }
 
-        if (!($existing_arr = $this->get_plugins_db_details($instance_id))) {
+        if (!$this->get_plugins_db_details($instance_id)) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Plugin is not yet installed.'));
 
-            return false;
+            return null;
         }
 
-        if (!($old_settings = $this->get_plugins_db_settings($instance_id, $default_settings, $obfuscating_keys, true))) {
-            $old_settings = $default_settings;
-        }
-
-        if (is_string($settings_arr)) {
-            $settings_arr = PHS_Line_params::parse_string($settings_arr);
+        if (!($old_settings = $this->get_plugins_db_settings($instance_id, true))) {
+            $old_settings = [];
         }
 
         // Nothing to save...
-        if (empty($settings_arr) || !is_array($settings_arr)) {
+        if (!($settings_arr = $this->_decode_settings_field($settings_arr))) {
             return $old_settings;
         }
 
@@ -188,31 +182,16 @@ class PHS_Model_Plugins extends PHS_Model
             $settings_arr = self::merge_array_assoc($old_settings, $settings_arr);
         }
 
-        if (!empty($obfuscating_keys)) {
-            foreach ($obfuscating_keys as $ob_key) {
-                if (array_key_exists($ob_key, $settings_arr)
-                 && is_scalar($settings_arr[$ob_key])) {
-                    if (false === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
-                        $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obfuscating plugin settings.'));
-
-                        return false;
-                    }
-
-                    $settings_arr[$ob_key] = $encrypted_data;
-                }
-            }
-        }
-
         $plugin_details = [];
         $plugin_details['settings'] = $settings_arr;
 
-        if (!($db_details = $this->_update_db_details($instance_id, $plugin_details, $obfuscating_keys))
+        if (!($db_details = $this->_update_db_details($instance_id, $plugin_details))
          || empty($db_details['new_data'])) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_DB_DETAILS, self::_t('Error saving settings in database.'));
             }
 
-            return false;
+            return null;
         }
 
         // clean caches...
@@ -223,20 +202,9 @@ class PHS_Model_Plugins extends PHS_Model
             unset(self::$db_plugins[$instance_id]);
         }
 
-        if (!($new_settings_arr = $this->get_plugins_db_settings($instance_id, null, $obfuscating_keys, true))) {
+        if (!($new_settings_arr = $this->get_plugins_db_settings($instance_id, true))) {
             $new_settings_arr = [];
         }
-
-        PHS_Event_Plugin_settings_saved::trigger([
-            'instance_id'         => $instance_id,
-            'instance_type'       => $existing_arr['type'],
-            'plugin_name'         => $existing_arr['plugin'],
-            'old_instance_record' => $existing_arr,
-            'new_instance_record' => $db_details['new_data'],
-            'old_settings_arr'    => $old_settings,
-            'new_settings_arr'    => $new_settings_arr,
-            'obfucate_keys_arr'   => $obfuscating_keys,
-        ]);
 
         return $new_settings_arr;
     }
@@ -245,17 +213,13 @@ class PHS_Model_Plugins extends PHS_Model
      * Get settings from database
      *
      * @param null|string $instance_id
-     * @param null|array $default_settings
-     * @param null|array $obfuscating_keys
      * @param bool $force
      *
-     * @return bool|mixed
+     * @return null|array
      */
     public function get_plugins_db_settings(
         ?string $instance_id = null,
-        ?array $default_settings = null,
-        ?array $obfuscating_keys = null,
-        bool $force = false)
+        bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -263,18 +227,14 @@ class PHS_Model_Plugins extends PHS_Model
          && !self::valid_instance_id($instance_id)) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         if ($instance_id === null
          && !($instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Unknown instance ID.'));
 
-            return false;
-        }
-
-        if (empty($obfuscating_keys) || !is_array($obfuscating_keys)) {
-            $obfuscating_keys = [];
+            return null;
         }
 
         if (!empty($force)
@@ -287,47 +247,14 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         if (!($db_details = $this->get_plugins_db_details($instance_id, $force))) {
-            return false;
+            return null;
         }
 
         if (empty($db_details['settings'])) {
-            self::$plugin_settings[$instance_id] = (!empty($default_settings) ? $default_settings : []);
+            self::$plugin_settings[$instance_id] = [];
         } else {
             // parse settings in database...
-            self::$plugin_settings[$instance_id] = PHS_Line_params::parse_string($db_details['settings']);
-
-            if (!empty($obfuscating_keys)) {
-                foreach ($obfuscating_keys as $ob_key) {
-                    if (array_key_exists($ob_key, self::$plugin_settings[$instance_id])
-                     && is_string(self::$plugin_settings[$instance_id][$ob_key])) {
-                        // In case we are in install mode and errors will get thrown
-                        try {
-                            if (false === (self::$plugin_settings[$instance_id][$ob_key] = PHS_Crypt::quick_decode(self::$plugin_settings[$instance_id][$ob_key]))) {
-                                PHS_Logger::error('[CONFIG ERROR] Error decoding old config value for ['.$instance_id.']['.$ob_key.']', PHS_Logger::TYPE_DEBUG);
-                                self::$plugin_settings[$instance_id][$ob_key] = '';
-                            }
-                        } catch (\Exception $e) {
-                        }
-                    }
-                }
-            }
-
-            // Merge database settings with default script settings
-            if (!empty($default_settings)) {
-                self::$plugin_settings[$instance_id]
-                    = self::validate_array(self::$plugin_settings[$instance_id], $default_settings);
-            }
-        }
-
-        // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
-        /** @var PHS_Event_Plugin_settings $event_obj */
-        if (($event_obj = PHS_Event_Plugin_settings::trigger([
-            'instance_id'  => $instance_id,
-            'settings_arr' => self::$plugin_settings[$instance_id],
-        ]))
-            && ($extra_settings_arr = $event_obj->get_output('settings_arr'))
-        ) {
-            self::$plugin_settings[$instance_id] = self::validate_array($extra_settings_arr, self::$plugin_settings[$instance_id]);
+            self::$plugin_settings[$instance_id] = $this->_decode_settings_field($db_details['settings']);
         }
 
         return self::$plugin_settings[$instance_id];
@@ -376,7 +303,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->get_plugins_db_registry($instance_id, true);
     }
 
-    public function get_plugins_db_registry(string $instance_id = null, bool $force = false) : ?array
+    public function get_plugins_db_registry(?string $instance_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -411,16 +338,16 @@ class PHS_Model_Plugins extends PHS_Model
             self::$plugin_registry[$instance_id] = [];
         } else {
             // parse settings in database...
-            self::$plugin_registry[$instance_id] = PHS_Line_params::parse_string($db_details['registry']);
+            self::$plugin_registry[$instance_id] = $this->_decode_registry_field($db_details['registry']);
         }
 
         /** @var \phs\system\core\events\plugins\PHS_Event_Plugin_registry $event_obj */
-        if( ($event_obj = PHS_Event_Plugin_registry::trigger([
-            'instance_id' => $instance_id,
+        if (($event_obj = PHS_Event_Plugin_registry::trigger([
+            'instance_id'  => $instance_id,
             'registry_arr' => self::$plugin_registry[$instance_id],
-            ]))
+        ]))
             && ($new_registry_arr = $event_obj->get_output('registry_arr'))
-            && is_array( $new_registry_arr )
+            && is_array($new_registry_arr)
         ) {
             self::$plugin_registry[$instance_id]
                 = self::validate_array_recursive($new_registry_arr, self::$plugin_registry[$instance_id]);
@@ -447,8 +374,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         $return_arr = [];
         foreach ($dirs_list as $dir_name) {
-            $dir_name = basename($dir_name);
-            if (empty($dir_name)) {
+            if (!($dir_name = basename($dir_name))) {
                 continue;
             }
 
@@ -461,11 +387,11 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * Get plugin names and instances as key value pairs
      *
-     * @param  bool  $force Force plugins recheck
+     * @param bool $force Force plugins recheck
      *
-     * @return array<string, \phs\libraries\PHS_Plugin>|null False on error or array with plugin name as key and plugin instance as value
+     * @return null|array<string, \phs\libraries\PHS_Plugin> False on error or array with plugin name as key and plugin instance as value
      */
-    public function cache_all_dir_details(bool $force = false): ?array
+    public function cache_all_dir_details(bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -489,8 +415,8 @@ class PHS_Model_Plugins extends PHS_Model
 
         /** @var \phs\libraries\PHS_Plugin $plugin_instance */
         foreach ($dirs_list as $dir_name) {
-            $dir_name = basename($dir_name);
-            if (!($plugin_instance = PHS::load_plugin($dir_name))) {
+            if (!($dir_name = basename($dir_name))
+                || !($plugin_instance = PHS::load_plugin($dir_name))) {
                 continue;
             }
 
@@ -500,74 +426,18 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$dir_plugins;
     }
 
-    public function get_all_db_details(bool $force = false): array
+    public function get_all_db_details(bool $force = false) : array
     {
-        $this->cache_all_db_details($force);
+        $this->_cache_all_db_details($force);
 
         return empty(self::$db_plugins) ? [] : self::$db_plugins;
     }
 
-    /**
-     * Cache all plugin records from plugins table...
-     * @param bool $force
-     *
-     * @return bool
-     */
-    public function cache_all_db_details(bool $force = false): bool
+    public function get_all_active_plugin_records(bool $force = false) : array
     {
         $this->reset_error();
 
-        if (!empty($force)
-         && !empty(self::$db_plugins)) {
-            $this->_reset_db_plugin_cache();
-        }
-
-        if (!empty(self::$db_plugins)) {
-            return true;
-        }
-
-        if (!($list_arr = $this->fetch_default_flow_params(['table_name' => 'plugins']))) {
-            $this->set_error(self::ERR_DB_DETAILS, $this->_pt('Error preparing query to obtain plugins records.'));
-
-            return false;
-        }
-
-        $list_arr['order_by'] = 'is_core DESC';
-
-        db_supress_errors($list_arr['db_connection']);
-        if (!($all_db_plugins = $this->get_list($list_arr))) {
-            db_restore_errors_state($list_arr['db_connection']);
-            self::$db_plugins = [];
-            self::$db_plugin_plugins = [];
-            self::$db_plugin_active_plugins = [];
-
-            return true;
-        }
-        db_restore_errors_state($list_arr['db_connection']);
-
-        foreach ($all_db_plugins as $db_id => $db_arr) {
-            if (empty($db_arr['instance_id'])) {
-                continue;
-            }
-
-            self::$db_plugins[$db_arr['instance_id']] = $db_arr;
-        }
-
-        if (!empty(self::$db_plugins)) {
-            self::$db_plugin_plugins = [];
-            $this->get_all_plugins(false);
-            self::$db_plugin_active_plugins = [];
-            $this->get_all_active_plugins(false);
-        }
-
-        return true;
-    }
-
-    public function get_all_active_plugin_records(bool $force = false): array
-    {
-        $this->reset_error();
-
-        if (!$this->cache_all_db_details($force)
+        if (!$this->_cache_all_db_details($force)
          || empty(self::$db_plugins)) {
             return [];
         }
@@ -587,69 +457,20 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * Returns cached array of active plugins from plugins table
      *
-     * @param  bool $force
+     * @param bool $force
      *
      * @return array
      */
-    public function get_all_active_plugins(bool $force = false): array
+    public function get_all_active_plugins(bool $force = false) : array
     {
-        $this->reset_error();
-
-        if ((!empty($force) || empty(self::$db_plugins))
-         && !$this->cache_all_db_details($force)) {
-            self::$db_plugin_active_plugins = [];
-
-            return [];
-        }
-
-        if (!empty(self::$db_plugin_active_plugins)) {
-            if (empty($force)) {
-                return self::$db_plugin_active_plugins;
-            }
-
-            self::$db_plugin_active_plugins = [];
-        }
-
-        foreach (self::$db_plugins as $instance_id => $plugin_arr) {
-            if (!$this->is_active($plugin_arr)
-             || $plugin_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-             || empty($plugin_arr['plugin'])) {
-                continue;
-            }
-
-            self::$db_plugin_active_plugins[$plugin_arr['plugin']] = $plugin_arr;
-        }
+        $this->_redo_db_plugins_records_cache($force);
 
         return self::$db_plugin_active_plugins;
     }
 
-    public function get_all_plugins(bool $force = false): array
+    public function get_all_plugins(bool $force = false) : array
     {
-        $this->reset_error();
-
-        if ((!empty($force) || empty(self::$db_plugins))
-         && !$this->cache_all_db_details($force)) {
-            self::$db_plugin_plugins = [];
-
-            return [];
-        }
-
-        if (!empty(self::$db_plugin_plugins)) {
-            if (empty($force)) {
-                return self::$db_plugin_plugins;
-            }
-
-            self::$db_plugin_plugins = [];
-        }
-
-        foreach (self::$db_plugins as $instance_id => $plugin_arr) {
-            if ($plugin_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-             || empty($plugin_arr['plugin'])) {
-                continue;
-            }
-
-            self::$db_plugin_plugins[$plugin_arr['plugin']] = $plugin_arr;
-        }
+        $this->_redo_db_plugins_records_cache($force);
 
         return self::$db_plugin_plugins;
     }
@@ -673,7 +494,7 @@ class PHS_Model_Plugins extends PHS_Model
         return '';
     }
 
-    public function cache_all_db_registry_details(bool $force = false): bool
+    public function cache_all_db_registry_details(bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -736,7 +557,7 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         // Cache all plugin details at once instead of caching one at a time...
-        $this->cache_all_db_details($force);
+        $this->_cache_all_db_details($force);
 
         if (!empty(self::$db_plugins[$instance_id])) {
             return self::$db_plugins[$instance_id];
@@ -877,7 +698,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array Array containing database registry fields of given instance_id (if available)
      */
-    public function get_db_registry(string $instance_id = null, bool $force = false) : ?array
+    public function get_db_registry(?string $instance_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -937,14 +758,14 @@ class PHS_Model_Plugins extends PHS_Model
         $params['fields'] = $fields_arr;
 
         if (!($existing_arr = $this->get_details_fields($check_arr, $params))) {
-            $existing_arr = false;
+            $existing_arr = null;
             $params['action'] = 'insert';
         } else {
             $params['action'] = 'edit';
         }
 
-        PHS_Logger::notice('Plugins model registry action ['.$params['action'].'] on plugin ['.
-                           $fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE);
+        PHS_Logger::notice('Plugins model registry action ['.$params['action'].'] on plugin ['
+                           .$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE);
 
         if (!($validate_fields = $this->validate_data_for_fields($params))
          || empty($validate_fields['data_arr'])) {
@@ -962,11 +783,11 @@ class PHS_Model_Plugins extends PHS_Model
         if (!empty($new_fields_arr['registry'])) {
             if (!empty($existing_arr['registry'])) {
                 $new_fields_arr['registry']
-                    = self::merge_array_assoc(PHS_Line_params::parse_string($existing_arr['registry']),
-                        PHS_Line_params::parse_string($new_fields_arr['registry']));
+                    = self::merge_array_assoc($this->_decode_registry_field($existing_arr['registry']),
+                        $this->_decode_registry_field($new_fields_arr['registry']));
             }
 
-            $new_fields_arr['registry'] = PHS_Line_params::to_string($new_fields_arr['registry']);
+            $new_fields_arr['registry'] = $this->_encode_registry_field($new_fields_arr['registry']);
 
             $new_fields_arr['last_update'] = $cdate;
 
@@ -989,14 +810,14 @@ class PHS_Model_Plugins extends PHS_Model
                 $this->set_error(self::ERR_DB_DETAILS, self::_t('Couldn\'t save plugin registry to database.'));
             }
 
-            PHS_Logger::error('!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['.
-                              $fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE);
+            PHS_Logger::error('!!! Error in plugins registry model action ['.$params['action'].'] on plugin ['
+                              .$fields_arr['instance_id'].'] ['.$this->get_error_message().']', PHS_Logger::TYPE_MAINTENANCE);
 
             return false;
         }
 
-        PHS_Logger::notice('DONE Plugins registry model action ['.$params['action'].'] on plugin ['.
-                           $fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE);
+        PHS_Logger::notice('DONE Plugins registry model action ['.$params['action'].'] on plugin ['
+                           .$fields_arr['instance_id'].']', PHS_Logger::TYPE_MAINTENANCE);
 
         self::$db_registry[$fields_arr['instance_id']] = $plugin_registry_arr;
 
@@ -1007,7 +828,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    final public function check_install_plugins_db(): bool
+    final public function check_install_plugins_db() : bool
     {
         static $check_result = null;
 
@@ -1075,8 +896,8 @@ class PHS_Model_Plugins extends PHS_Model
                         'index'    => true,
                     ],
                     'plugin_name' => [
-                        'type'     => self::FTYPE_VARCHAR,
-                        'length'   => 255,
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
                     ],
                     'added_by' => [
                         'type'     => self::FTYPE_INT,
@@ -1089,7 +910,7 @@ class PHS_Model_Plugins extends PHS_Model
                         'index'    => true,
                     ],
                     'settings' => [
-                        'type'     => self::FTYPE_LONGTEXT,
+                        'type' => self::FTYPE_LONGTEXT,
                     ],
                     'status' => [
                         'type'   => self::FTYPE_TINYINT,
@@ -1097,12 +918,11 @@ class PHS_Model_Plugins extends PHS_Model
                         'index'  => true,
                     ],
                     'status_date' => [
-                        'type'  => self::FTYPE_DATETIME,
-                        'index' => false,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'version' => [
-                        'type'     => self::FTYPE_VARCHAR,
-                        'length'   => 30,
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 30,
                     ],
                     'cdate' => [
                         'type'     => self::FTYPE_DATETIME,
@@ -1131,7 +951,7 @@ class PHS_Model_Plugins extends PHS_Model
                         'index'    => true,
                     ],
                     'registry' => [
-                        'type'     => self::FTYPE_LONGTEXT,
+                        'type' => self::FTYPE_LONGTEXT,
                     ],
                     'last_update' => [
                         'type' => self::FTYPE_DATETIME,
@@ -1151,12 +971,18 @@ class PHS_Model_Plugins extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'tenant_id' => [
-                        'type'     => self::FTYPE_INT,
-                        'index'    => true,
+                        'type'  => self::FTYPE_INT,
+                        'index' => true,
                     ],
                     'instance_id' => [
                         'type'     => self::FTYPE_VARCHAR,
                         'length'   => 255,
+                        'editable' => false,
+                        'index'    => true,
+                    ],
+                    'type' => [
+                        'type'     => self::FTYPE_VARCHAR,
+                        'length'   => 100,
                         'editable' => false,
                         'index'    => true,
                     ],
@@ -1167,7 +993,15 @@ class PHS_Model_Plugins extends PHS_Model
                         'index'    => true,
                     ],
                     'settings' => [
-                        'type'     => self::FTYPE_LONGTEXT,
+                        'type' => self::FTYPE_LONGTEXT,
+                    ],
+                    'status' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
+                        'index'  => true,
+                    ],
+                    'status_date' => [
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'last_update' => [
                         'type' => self::FTYPE_DATETIME,
@@ -1199,12 +1033,10 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @param string $instance_id
      * @param array $fields_arr
-     * @param bool|array $obfuscating_keys
-     * @param bool|array $update_params
      *
      * @return null|array
      */
-    protected function _update_db_details(string $instance_id, array $fields_arr, $obfuscating_keys = false, $update_params = false) : ?array
+    protected function _update_db_details(string $instance_id, array $fields_arr) : ?array
     {
         if (empty($fields_arr)
          || empty($instance_id)
@@ -1216,7 +1048,7 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         if (!($existing_arr = $this->get_plugins_db_details($instance_id))) {
-            $existing_arr = false;
+            $existing_arr = null;
             $params['action'] = 'insert';
             $fields_arr['instance_id'] = $instance_id;
         } else {
@@ -1239,9 +1071,7 @@ class PHS_Model_Plugins extends PHS_Model
         $new_fields_arr = $validate_fields['data_arr'];
         // Try updating settings...
         if (!empty($new_fields_arr['settings'])) {
-            if (is_array($new_fields_arr['settings'])) {
-                $new_fields_arr['settings'] = PHS_Line_params::to_string($new_fields_arr['settings']);
-            }
+            $new_fields_arr['settings'] = $this->_encode_settings_field($new_fields_arr['settings']);
 
             PHS_Logger::notice('New settings ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE);
         }
@@ -1380,6 +1210,164 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         return $params;
+    }
+
+    /**
+     * Cache all plugin records from plugins table...
+     * @param bool $force
+     *
+     * @return bool
+     */
+    private function _cache_all_db_details(bool $force = false) : bool
+    {
+        $this->reset_error();
+
+        if (!empty($force)
+         && !empty(self::$db_plugins)) {
+            $this->_reset_db_plugin_cache();
+        }
+
+        if (!empty(self::$db_plugins)) {
+            return true;
+        }
+
+        if (!($list_arr = $this->fetch_default_flow_params(['table_name' => 'plugins']))) {
+            $this->set_error(self::ERR_DB_DETAILS, $this->_pt('Error preparing query to obtain plugins records.'));
+
+            return false;
+        }
+
+        $list_arr['order_by'] = 'is_core DESC';
+
+        $this->_reset_db_plugin_cache();
+
+        db_supress_errors($list_arr['db_connection']);
+        if (!($all_db_plugins = $this->get_list($list_arr))) {
+            db_restore_errors_state($list_arr['db_connection']);
+
+            return true;
+        }
+        db_restore_errors_state($list_arr['db_connection']);
+
+        foreach ($all_db_plugins as $db_arr) {
+            if (empty($db_arr['instance_id'])) {
+                continue;
+            }
+
+            self::$db_plugins[$db_arr['instance_id']] = $db_arr;
+        }
+
+        if (!empty(self::$db_plugins)) {
+            $this->_redo_db_plugins_records_cache(false);
+        }
+
+        return true;
+    }
+
+    private function _redo_db_plugins_records_cache(bool $force = false) : bool
+    {
+        if (!empty(self::$db_plugin_plugins)
+            && empty($force)) {
+            return true;
+        }
+
+        self::$db_plugin_plugins = [];
+        self::$db_plugin_active_plugins = [];
+        if ((!empty($force) || empty(self::$db_plugins))
+            && !$this->_cache_all_db_details($force)) {
+            return true;
+        }
+
+        foreach (self::$db_plugins as $plugin_arr) {
+            if ($plugin_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+             || empty($plugin_arr['plugin'])) {
+                continue;
+            }
+
+            self::$db_plugin_plugins[$plugin_arr['plugin']] = $plugin_arr;
+
+            if ($this->is_active($plugin_arr)) {
+                self::$db_plugin_active_plugins[$plugin_arr['plugin']] = $plugin_arr;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array|string $settings
+     *
+     * @return null|string
+     */
+    private function _encode_settings_field($settings) : ?string
+    {
+        if (is_array($settings)) {
+            $settings = PHS_Line_params::to_string($settings);
+        } elseif (is_string($settings)) {
+            $settings = PHS_Line_params::to_string(PHS_Line_params::parse_string($settings));
+        } else {
+            return null;
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @param array|string $settings
+     *
+     * @return array
+     */
+    private function _decode_settings_field($settings) : array
+    {
+        if (is_array($settings)) {
+            return $settings;
+        }
+
+        if (is_string($settings)) {
+            $settings = PHS_Line_params::parse_string($settings);
+        } else {
+            return [];
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @param array|string $registry
+     *
+     * @return null|string
+     */
+    private function _encode_registry_field($registry) : ?string
+    {
+        if (is_array($registry)) {
+            $registry = PHS_Line_params::to_string($registry);
+        } elseif (is_string($registry)) {
+            $registry = PHS_Line_params::to_string(PHS_Line_params::parse_string($registry));
+        } else {
+            return null;
+        }
+
+        return $registry;
+    }
+
+    /**
+     * @param array|string $registry
+     *
+     * @return array
+     */
+    private function _decode_registry_field($registry) : array
+    {
+        if (is_array($registry)) {
+            return $registry;
+        }
+
+        if (is_string($registry)) {
+            $registry = PHS_Line_params::parse_string($registry);
+        } else {
+            return [];
+        }
+
+        return $registry;
     }
 
     private function _reset_plugin_settings_cache() : void

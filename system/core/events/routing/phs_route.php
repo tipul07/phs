@@ -1,18 +1,19 @@
 <?php
-
-namespace phs\system\core\events;
+namespace phs\system\core\events\routing;
 
 use phs\libraries\PHS_Event;
 
 class PHS_Event_Route extends PHS_Event
 {
-    /** @inheritdoc */
+    /**
+     * @inheritdoc
+     */
     public function supports_background_listeners() : bool
     {
         return false;
     }
 
-    protected function _input_parameters(): array
+    protected function _input_parameters() : array
     {
         return [
             'route' => [],
@@ -24,7 +25,7 @@ class PHS_Event_Route extends PHS_Event
      * @see \phs\PHS::validate_route_from_parts()
      * @return array[]
      */
-    protected function _output_parameters(): array
+    protected function _output_parameters() : array
     {
         return [
             'route' => [],

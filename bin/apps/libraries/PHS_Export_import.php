@@ -25,7 +25,7 @@ trait PHS_Export_import
     //
     // region Common for import and export
     //
-    protected function _get_phs_root_path(string $forced_dir = '', bool $slash_ended = true): string
+    protected function _get_phs_root_path(string $forced_dir = '', bool $slash_ended = true) : string
     {
         static $root_path = '';
 
@@ -54,15 +54,15 @@ trait PHS_Export_import
         return $root_path.($slash_ended ? '/' : '');
     }
 
-    protected function _get_phs_uploads_path($forced_dir = '', $slash_ended = true): string
+    protected function _get_phs_uploads_path($forced_dir = '', $slash_ended = true) : string
     {
         return (defined('PHS_UPLOADS_DIR')
-                ? rtrim( PHS_UPLOADS_DIR, '/' )
+                ? rtrim(PHS_UPLOADS_DIR, '/')
                 : $this->_get_phs_root_path($forced_dir, true).'_uploads')
                .($slash_ended ? '/' : '');
     }
 
-    protected function platform_import_export_json_structure(): array
+    protected function platform_import_export_json_structure() : array
     {
         return [
             'version'   => 1,
@@ -81,7 +81,7 @@ trait PHS_Export_import
     //
     // region Export functionality
     //
-    protected function platform_export_json_structure(): array
+    protected function platform_export_json_structure() : array
     {
         return [
             'export' => ['all', 'symlinks', 'plugin_settings', 'themes', 'languages'],
@@ -199,14 +199,14 @@ trait PHS_Export_import
                 $export_plugins_arr['symlinks'] = $repo_links;
             }
 
-            if( $action_json_arr['export_plugin_settings']
+            if ($action_json_arr['export_plugin_settings']
              && null === ($export_plugins_arr['settings']
                 = $admin_plugin->get_settings_for_plugins_as_encrypted_array($action_json_arr['crypt_key'],
-                    ($all_plugins ? [] : $repo_plugins))) ) {
-                if( $admin_plugin->has_error() ) {
-                    $this->copy_error( $admin_plugin, self::ERR_FUNCTIONALITY );
+                    ($all_plugins ? [] : $repo_plugins)))) {
+                if ($admin_plugin->has_error()) {
+                    $this->copy_error($admin_plugin, self::ERR_FUNCTIONALITY);
                 } else {
-                    $this->set_error( self::ERR_FUNCTIONALITY, self::_t( 'Error obtaining plugin settings.' ) );
+                    $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining plugin settings.'));
                 }
 
                 return null;
@@ -308,9 +308,9 @@ trait PHS_Export_import
      * @param array $symlinks
      * @param null|array $only_plugins
      *
-     * @return array|null
+     * @return null|array
      */
-    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, array $only_plugins = null): ?array
+    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, ?array $only_plugins = null) : ?array
     {
         $this->reset_error();
 
@@ -408,9 +408,9 @@ trait PHS_Export_import
      * @param string $json_buf
      * @param string $crypting_key
      *
-     * @return array|null
+     * @return null|array
      */
-    protected function _do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key): ?array
+    protected function _do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key) : ?array
     {
         $this->reset_error();
 
@@ -419,7 +419,7 @@ trait PHS_Export_import
         }
 
         if (!($json_arr = @json_decode($json_buf, true))
-         || !is_array( $json_arr ) ) {
+         || !is_array($json_arr)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Error decoding JSON buffer to array.'));
 
             return null;
@@ -432,9 +432,9 @@ trait PHS_Export_import
      * @param array $json_arr
      * @param string $crypting_key
      *
-     * @return array|null
+     * @return null|array
      */
-    protected function _do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key): ?array
+    protected function _do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key) : ?array
     {
         $this->reset_error();
 
@@ -449,7 +449,7 @@ trait PHS_Export_import
         }
 
         if (!($settings_arr = @json_decode($settings_buf, true))
-         || !is_array( $settings_arr ) ) {
+         || !is_array($settings_arr)) {
             $settings_arr = [];
         }
 
@@ -457,12 +457,12 @@ trait PHS_Export_import
     }
 
     /**
-     * @param  null|array  $json_arr
-     * @param  array  $structure
+     * @param null|array $json_arr
+     * @param array $structure
      *
      * @return null|array
      */
-    private function _validate_import_export_json_structure(?array $json_arr, array $structure): ?array
+    private function _validate_import_export_json_structure(?array $json_arr, array $structure) : ?array
     {
         $this->reset_error();
 
@@ -503,7 +503,7 @@ trait PHS_Export_import
         return $json_arr;
     }
 
-    private function _platform_import_export_decode_action_file($action_file): array
+    private function _platform_import_export_decode_action_file($action_file) : array
     {
         if (!@file_exists($action_file)
          || !@is_readable($action_file)
@@ -519,11 +519,11 @@ trait PHS_Export_import
     }
 
     /**
-     * @param  array  $json_arr
+     * @param array $json_arr
      *
      * @return null|array
      */
-    private function _validate_platform_export_action_json_structure(array $json_arr): ?array
+    private function _validate_platform_export_action_json_structure(array $json_arr) : ?array
     {
         $this->reset_error();
 
@@ -604,7 +604,7 @@ trait PHS_Export_import
     //
     // region Import functionality
     //
-    private function _validate_setup_action_import_json_structure(?array $json_arr): ?array
+    private function _validate_setup_action_import_json_structure(?array $json_arr) : ?array
     {
         $this->reset_error();
 
@@ -655,7 +655,7 @@ trait PHS_Export_import
      *
      * @return bool
      */
-    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr): bool
+    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr) : bool
     {
         $this->reset_error();
 

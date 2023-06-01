@@ -420,20 +420,6 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
     }
 
-    protected function _check_directory_for_email_templates(string $path, string $www, string $language, array &$matching_arr): void
-    {
-        if (!empty( $language )
-            && @file_exists($path.'/'.$language)
-            && @is_dir($path.'/'.$language)) {
-            $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
-        }
-
-        if (@file_exists($path)
-            && @is_dir($path)) {
-            $matching_arr[$path.'/'] = $www.'/';
-        }
-    }
-
     /**
      * @return array
      */
@@ -448,8 +434,8 @@ abstract class PHS_Instantiable extends PHS_Registry
         $themes_stack = PHS::get_all_themes_stack();
 
         $pairs_arr = [];
-        if( $themes_stack ) {
-            foreach( $themes_stack as $theme ) {
+        if ($themes_stack) {
+            foreach ($themes_stack as $theme) {
                 $location = $theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.PHS_EMAILS_DIRS;
                 $this->_check_directory_for_email_templates(
                     PHS_THEMES_DIR.$location,
@@ -466,6 +452,20 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_details() : array
     {
         return $this->instance_details;
+    }
+
+    protected function _check_directory_for_email_templates(string $path, string $www, string $language, array &$matching_arr) : void
+    {
+        if (!empty($language)
+            && @file_exists($path.'/'.$language)
+            && @is_dir($path.'/'.$language)) {
+            $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
+        }
+
+        if (@file_exists($path)
+            && @is_dir($path)) {
+            $matching_arr[$path.'/'] = $www.'/';
+        }
     }
 
     /**
@@ -740,7 +740,6 @@ abstract class PHS_Instantiable extends PHS_Registry
                 self::st_set_error(self::ERR_INSTANCE, self::_t('Unknown instance type.'));
 
                 return false;
-
             case self::INSTANCE_TYPE_MODEL:
 
                 if (stripos($class, 'phs_model_') !== 0) {

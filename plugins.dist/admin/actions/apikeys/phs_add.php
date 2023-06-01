@@ -147,7 +147,7 @@ class PHS_Action_Add extends PHS_Action
             $insert_arr = [];
             $insert_arr['added_by_uid'] = $current_user['id'];
             $insert_arr['uid'] = $uid;
-            if( $is_multi_tenant ) {
+            if ($is_multi_tenant) {
                 $insert_arr['tenant_id'] = $tenant_id;
             }
             $insert_arr['title'] = $title;
@@ -175,7 +175,7 @@ class PHS_Action_Add extends PHS_Action
 
         $data = [
             'uid'              => $uid,
-            'tenant_id'              => $tenant_id,
+            'tenant_id'        => $tenant_id,
             'autocomplete_uid' => $autocomplete_uid,
             'title'            => $title,
             'api_key'          => $api_key,
@@ -184,7 +184,7 @@ class PHS_Action_Add extends PHS_Action
             'allowed_methods'  => $allowed_methods,
             'denied_methods'   => $denied_methods,
 
-            'api_methods_arr'           => $api_methods_arr,
+            'api_methods_arr' => $api_methods_arr,
             'all_tenants_arr' => $all_tenants_arr,
 
             'api_obj'                   => $api_obj,

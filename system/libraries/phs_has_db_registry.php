@@ -14,9 +14,9 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
     /**
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
-     * @return array|null
+     * @return null|array
      */
-    public function get_db_registry_details(bool $force = false): ?array
+    public function get_db_registry_details(bool $force = false) : ?array
     {
         if (empty($force)
         && !empty($this->_db_registry_details)) {
@@ -93,7 +93,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->save_db_registry([]);
     }
 
-    public function delete_db_registry(): bool
+    public function delete_db_registry() : bool
     {
         $this->reset_error();
 

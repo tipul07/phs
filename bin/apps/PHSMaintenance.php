@@ -414,16 +414,16 @@ class PHSMaintenance extends PHS_Cli
                 'callback'    => [$this, 'cmd_plugin_action'],
             ],
             'setup' => [
-                'description' => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
-                'callback'    => [$this, 'cmd_setup_action'],
+                'description'        => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
+                'callback'           => [$this, 'cmd_setup_action'],
                 'options_definition' => [
                     'no-settings' => [
-                        'long' => 'no-settings',
-                        'short' => 'ns',
+                        'long'        => 'no-settings',
+                        'short'       => 'ns',
                         'description' => 'Do not import or export settings',
-                        'default' => true,
+                        'default'     => true,
                     ],
-                ]
+                ],
             ],
         ];
     }
@@ -629,7 +629,7 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if( $this->command_option( 'no-settings' ) ) {
+        if ($this->command_option('no-settings')) {
             $action_json_arr['export_plugin_settings'] = false;
         }
 

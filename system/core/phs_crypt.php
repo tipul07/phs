@@ -123,7 +123,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return false|string
      */
-    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, array $params = null)
+    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, ?array $params = null)
     {
         if (!($json_arr = self::quick_encode_buffer_for_export_as_array($buf, $crypting_key, $params))
          || !($json_buf = @json_encode($json_arr))) {
@@ -140,7 +140,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return null|array
      */
-    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, array $params = null): ?array
+    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, ?array $params = null) : ?array
     {
         self::st_reset_error();
 
@@ -179,13 +179,13 @@ class PHS_Crypt extends PHS_Language
      *
      * @return null|string
      */
-    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, array $params = null): ?string
+    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, ?array $params = null) : ?string
     {
         self::st_reset_error();
 
         if (empty($json_str)
          || !($json_arr = @json_decode($json_str, true))
-         || !is_array( $json_arr ) ) {
+         || !is_array($json_arr)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error encrypting buffer.'));
 
             return null;
@@ -195,13 +195,13 @@ class PHS_Crypt extends PHS_Language
     }
 
     /**
-     * @param  array  $export_arr
-     * @param  string  $crypting_key
+     * @param array $export_arr
+     * @param string $crypting_key
      * @param null|array $params
      *
      * @return null|string
      */
-    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, array $params = null): ?string
+    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, ?array $params = null) : ?string
     {
         self::st_reset_error();
 
@@ -218,7 +218,7 @@ class PHS_Crypt extends PHS_Language
             return null;
         }
 
-        if( empty( $params ) ) {
+        if (empty($params)) {
             $params = [];
         }
 
@@ -241,7 +241,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return string
      */
-    public static function generate_crypt_key(int $len = 128): string
+    public static function generate_crypt_key(int $len = 128) : string
     {
         return self::generate_random_string($len);
     }
@@ -251,7 +251,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return array
      */
-    public static function generate_crypt_internal_keys(): array
+    public static function generate_crypt_internal_keys() : array
     {
         $return_arr = [];
         for ($i = 0; $i < 34; $i++) {
@@ -262,12 +262,12 @@ class PHS_Crypt extends PHS_Language
     }
 
     /**
-     * @param  int  $len
-     * @param  null|array  $params
+     * @param int $len
+     * @param null|array $params
      *
      * @return string
      */
-    public static function generate_random_string(int $len = 128, array $params = null): string
+    public static function generate_random_string(int $len = 128, ?array $params = null) : string
     {
         if (empty($params)) {
             $params = [];

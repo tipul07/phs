@@ -12,7 +12,7 @@ use phs\libraries\PHS_Instantiable;
 class PHS_View extends PHS_Instantiable
 {
     public const ERR_BAD_CONTROLLER = 40000, ERR_BAD_ACTION = 40001, ERR_BAD_TEMPLATE = 40002,
-        ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
+    ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
 
     public const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
@@ -172,7 +172,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function add_extra_theme_dir(string $theme_relative_dir): bool
+    public function add_extra_theme_dir(string $theme_relative_dir) : bool
     {
         if (!($extra_dirs = self::st_add_extra_theme_dir($theme_relative_dir, $this->get_theme()))) {
             return false;
@@ -190,9 +190,9 @@ class PHS_View extends PHS_Instantiable
      *
      * @param string $file
      *
-     * @return array|null
+     * @return null|array
      */
-    public function get_resource_details(string $file): ?array
+    public function get_resource_details(string $file) : ?array
     {
         $this->reset_error();
 
@@ -325,7 +325,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return bool
      */
-    public function set_theme(?string $theme): bool
+    public function set_theme(?string $theme) : bool
     {
         $this->reset_error();
 
@@ -519,7 +519,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|string
      */
-    public function render($template = null, ?string $force_theme = null, ?array $params = null): ?string
+    public function render($template = null, ?string $force_theme = null, ?array $params = null) : ?string
     {
         if ($template !== null
          && !$this->set_template($template)) {
@@ -583,7 +583,7 @@ class PHS_View extends PHS_Instantiable
         $this->_template_file = '';
     }
 
-    protected function _check_directory_for_template(string $path, string $www, string $language, array &$matching_arr): void
+    protected function _check_directory_for_template(string $path, string $www, string $language, array &$matching_arr) : void
     {
         if (@file_exists($path)
             && @is_dir($path)) {
@@ -596,7 +596,7 @@ class PHS_View extends PHS_Instantiable
         }
     }
 
-    protected function _get_template_directories(): array
+    protected function _get_template_directories() : array
     {
         $this->_template_dirs = [];
 
@@ -616,8 +616,8 @@ class PHS_View extends PHS_Instantiable
 
                 $plugin_name = $instance_obj->instance_plugin_name();
 
-                if( $themes_stack ) {
-                    foreach( $themes_stack as $theme ) {
+                if ($themes_stack) {
+                    foreach ($themes_stack as $theme) {
                         $location = $theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name;
                         $this->_check_directory_for_template(
                             PHS_THEMES_DIR.$location,
@@ -666,7 +666,7 @@ class PHS_View extends PHS_Instantiable
 
         if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')
             && $themes_stack) {
-            foreach( $themes_stack as $theme ) {
+            foreach ($themes_stack as $theme) {
                 $this->_check_directory_for_template(
                     PHS_THEMES_DIR.$theme,
                     PHS_THEMES_WWW.$theme,
@@ -741,7 +741,7 @@ class PHS_View extends PHS_Instantiable
         return false;
     }
 
-    private function _get_file_details($file_name): ?array
+    private function _get_file_details($file_name) : ?array
     {
         $this->reset_error();
 
@@ -788,9 +788,9 @@ class PHS_View extends PHS_Instantiable
      * @param string|array $template
      * @param null|array $params
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function validate_template_resource($template, ?array $params = null): ?array
+    public static function validate_template_resource($template, ?array $params = null) : ?array
     {
         self::st_reset_error();
 
@@ -970,9 +970,9 @@ class PHS_View extends PHS_Instantiable
      * @param string $theme_relative_dir
      * @param null|string $theme
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function st_add_extra_theme_dir(string $theme_relative_dir, ?string $theme = null): ?array
+    public static function st_add_extra_theme_dir(string $theme_relative_dir, ?string $theme = null) : ?array
     {
         if ($theme === null) {
             $theme = PHS::get_theme();
@@ -987,7 +987,7 @@ class PHS_View extends PHS_Instantiable
         $extra_dirs = [];
         if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')
          && ($themes_stack = PHS::get_all_themes_stack($theme))) {
-            foreach( $themes_stack as $c_theme ) {
+            foreach ($themes_stack as $c_theme) {
                 if (!empty($c_theme)
                     && @file_exists(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)
                     && @is_dir(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)) {

@@ -65,9 +65,9 @@ class PHS_Api extends PHS_Api_base
         $this->api_flow_value('original_api_route_tokens', $final_api_route_tokens);
 
         /** @var \phs\system\core\events\api\PHS_Event_Api_route_tokens $event_obj */
-        if(($event_obj = PHS_Event_Api_route_tokens::trigger([
-                'api_instance' => $this, 'route_tokens' => $final_api_route_tokens,
-            ]))
+        if (($event_obj = PHS_Event_Api_route_tokens::trigger([
+            'api_instance' => $this, 'route_tokens' => $final_api_route_tokens,
+        ]))
            && ($route_tokens = $event_obj->get_output('route_tokens'))
            && is_array($route_tokens)
            && !($final_api_route_tokens = self::_validate_tokenized_api_route($route_tokens))
@@ -299,20 +299,20 @@ class PHS_Api extends PHS_Api_base
     }
 
     /**
-     * @param  null|array  $init_query_params
+     * @param null|array $init_query_params
      *
      * @return null|\phs\PHS_Api_base
      */
-    final public static function api_factory(?array $init_query_params = null): ?PHS_Api_base
+    final public static function api_factory(?array $init_query_params = null) : ?PHS_Api_base
     {
         self::st_reset_error();
 
         $api_obj = null;
 
         /** @var \phs\system\core\events\api\PHS_Event_Api_instance $event_obj */
-        if( ($event_obj = PHS_Event_Api_instance::trigger())
+        if (($event_obj = PHS_Event_Api_instance::trigger())
             && ($api_obj = $event_obj->get_output('api_instance'))
-            && !($api_obj instanceof PHS_Api_base) ) {
+            && !($api_obj instanceof PHS_Api_base)) {
             self::st_set_error(self::ERR_API_INIT, self::_t('Invalid API instance obtained from hook call.'));
 
             return null;
