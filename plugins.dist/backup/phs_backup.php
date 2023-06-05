@@ -276,7 +276,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 return false;
             }
         } else {
-            if (!($setting_arr = $this->get_db_settings())) {
+            if (!($setting_arr = $this->get_plugin_settings())) {
                 $setting_arr = [];
             }
 

@@ -590,9 +590,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @param string $instance_id
      *
-     * @return false|array
+     * @return null|array
      */
-    public static function valid_instance_id(string $instance_id)
+    public static function valid_instance_id(string $instance_id): ?array
     {
         if (empty($instance_id)
          || @strpos($instance_id, ':') === false
@@ -603,7 +603,7 @@ abstract class PHS_Instantiable extends PHS_Registry
          || ($instance_parts[1] !== self::CORE_PLUGIN && $instance_parts[1] !== self::safe_escape_plugin_name($instance_parts[1]))) {
             self::st_set_error(self::ERR_INSTANCE_ID, self::_t('Invalid instance ID.'));
 
-            return false;
+            return null;
         }
 
         return [

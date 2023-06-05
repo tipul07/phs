@@ -70,8 +70,7 @@ abstract class PHS_Library extends PHS_Registry
             return [];
         }
 
-        if (($plugins_settings = $plugin_obj->get_db_settings()) === false
-         || empty($plugins_settings) || !is_array($plugins_settings)) {
+        if (!($plugins_settings = $plugin_obj->get_db_settings())) {
             $plugins_settings = $plugin_obj->get_default_settings();
         }
 

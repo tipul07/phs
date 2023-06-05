@@ -48,25 +48,22 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return self::default_action_result();
         }
 
-        $pid = PHS_Params::_gp('pid', PHS_Params::T_ASIS);
-        $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
+        $pid = PHS_Params::_gp('pid', PHS_Params::T_NOHTML);
+        $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
-        $this->_plugin_obj = null;
         if ($pid !== PHS_Instantiable::CORE_PLUGIN
-         && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
-                 || empty($instance_details['instance_type'])
-                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-                 || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
+            && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
+                || empty($instance_details['instance_type'])
+                || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
          )) {
-            $args = ['unknown_plugin' => 1];
-
             if (empty($back_page)) {
                 $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
             } else {
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
+            $back_page = add_url_params($back_page, ['unknown_plugin' => 1]);
 
             return action_redirect($back_page);
         }
@@ -99,7 +96,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
                 $modules_with_settings[$model_id]['default_settings'] = $model_instance->get_default_settings();
                 $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
-                $modules_with_settings[$model_id]['db_version'] = (!empty($model_db_details['version']) ? $model_db_details['version'] : '0.0.0');
+                $modules_with_settings[$model_id]['db_version'] = $model_db_details['version'] ?? '0.0.0';
                 $modules_with_settings[$model_id]['script_version'] = $model_instance->get_model_version();
             }
         }

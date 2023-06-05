@@ -142,7 +142,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
         $hook_args = self::validate_array_recursive($hook_args, PHS_Hooks::default_init_email_hook_args());
 
-        if (!($settings_arr = $this->get_db_settings())
+        if (!($settings_arr = $this->get_plugin_settings())
          || empty($settings_arr['template_main'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 

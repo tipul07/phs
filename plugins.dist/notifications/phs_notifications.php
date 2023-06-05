@@ -42,7 +42,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     {
         $this->reset_error();
 
-        if (!($settings_arr = $this->get_db_settings())
+        if (!($settings_arr = $this->get_plugin_settings())
          || empty($settings_arr['template'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 

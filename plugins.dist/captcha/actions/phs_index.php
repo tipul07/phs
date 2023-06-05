@@ -18,7 +18,7 @@ class PHS_Action_Index extends PHS_Action
         /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $plugin_instance */
         if (!($plugin_instance = $this->get_plugin_instance())
          || !$plugin_instance->plugin_active()
-         || !($plugin_settings = $plugin_instance->get_db_settings())) {
+         || !($plugin_settings = $plugin_instance->get_plugin_settings())) {
             echo $this->_pt('Couldn\'t obtain plugin settings.');
             exit;
         }

@@ -14,7 +14,8 @@ class PHS_Model_Tenants extends PHS_Model
     public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
 
     protected static array $STATUSES_ARR = [
-        self::STATUS_ACTIVE  => ['title' => 'Active'], self::STATUS_INACTIVE => ['title' => 'Inactive'],
+        self::STATUS_ACTIVE  => ['title' => 'Active'],
+        self::STATUS_INACTIVE => ['title' => 'Inactive'],
         self::STATUS_DELETED => ['title' => 'Deleted'],
     ];
 
@@ -191,19 +192,20 @@ class PHS_Model_Tenants extends PHS_Model
 
     public function get_tenant_by_identifier(string $identifier) : ?array
     {
-        if (!PHS::is_multi_tenant() || !($all_tenants_arr
-                = $this->_get_cached_tenants_by_identifier()) || empty($all_tenants_arr[$identifier])) {
+        if (!PHS::is_multi_tenant()
+            || !($all_tenants_arr = $this->_get_cached_tenants_by_identifier())
+            || empty($all_tenants_arr[$identifier])) {
             return null;
         }
 
         return $all_tenants_arr[$identifier];
     }
 
-    public function get_tenant_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
+    public function get_tenants_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
     {
         if (empty($domain)
-            || !($dd_identifier = self::prepare_tenant_domain_and_directory($domain, $directory))
             || !PHS::is_multi_tenant()
+            || !($dd_identifier = self::prepare_tenant_domain_and_directory($domain, $directory))
             || !($all_tenants_arr = $this->_get_cached_tenants_by_domain_and_directory())
             || empty($all_tenants_arr[$dd_identifier])) {
             return null;
@@ -562,11 +564,11 @@ class PHS_Model_Tenants extends PHS_Model
             return [];
         }
 
-        foreach ($result_list as $t_arr) {
+        foreach ($result_list as $t_id => $t_arr) {
             $identifier_dd = self::prepare_tenant_domain_and_directory($t_arr['domain'], $t_arr['directory'] ?? '');
-            $all_tenants_dd[$identifier_dd] = $t_arr;
+            $all_tenants_dd[$identifier_dd][$t_id] = $t_arr;
             if ($this->is_active($t_arr)) {
-                $active_tenants_dd[$identifier_dd] = $t_arr;
+                $active_tenants_dd[$identifier_dd][$t_id] = $t_arr;
             }
         }
 

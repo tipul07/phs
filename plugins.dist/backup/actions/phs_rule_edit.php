@@ -177,7 +177,7 @@ class PHS_Action_Rule_edit extends PHS_Action
             }
         }
 
-        if (!($plugin_settings = $backup_plugin->get_db_settings())
+        if (!($plugin_settings = $backup_plugin->get_plugin_settings())
          || empty($plugin_settings['location'])) {
             $plocation = '';
         } else {
