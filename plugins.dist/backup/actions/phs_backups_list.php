@@ -440,7 +440,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             $display_dir = $dir3.'/'.$dir2.'/'.$dir1;
         }
 
-        return '<span title="'.self::_e($params['record']['run_dir']).'" class="no-title-skinning">'.$display_dir.'</span>'
+        return '<span title="'.self::_e($params['record']['run_dir'] ?? '').'" class="no-title-skinning">'.$display_dir.'</span>'
                .' - '
                .'<span title="'.self::_e($this->_pt('%s bytes', number_format($params['record']['size']))).'">'.format_filesize($params['record']['size']).'</span>'
             .(empty($location_stats_arr) ? ''
