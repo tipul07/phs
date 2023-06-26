@@ -4,10 +4,10 @@ use phs\PHS;
 use phs\PHS_Api;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 
 /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_phs_plugin */
-if (($remote_phs_plugin = PHS::load_plugin('remote_phs'))
- && $remote_phs_plugin->plugin_active()) {
+if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
     PHS::register_hook(
         PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
         [$remote_phs_plugin, 'trigger_after_left_menu_admin'],
@@ -15,8 +15,7 @@ if (($remote_phs_plugin = PHS::load_plugin('remote_phs'))
         ['chained_hook' => true, 'stop_chain' => false, 'priority' => 1000, ]
     );
 
-    if (($settings_arr = $remote_phs_plugin->get_plugin_settings())
-     && !empty($settings_arr['enable_remotes'])) {
+    if ($remote_phs_plugin->is_remote_enabled()) {
         PHS_Api::register_api_route([
             ['exact_match' => 'phs_remote', ],
             ['exact_match' => 'ping', ],

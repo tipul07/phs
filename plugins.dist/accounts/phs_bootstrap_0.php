@@ -9,8 +9,7 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())
- && $accounts_plugin->plugin_active()) {
+if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Logger::define_channel($accounts_plugin::LOG_IMPORT);
 
     if (!PHS::prevent_session()) {

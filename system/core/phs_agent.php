@@ -317,12 +317,12 @@ class PHS_Agent extends PHS_Registry
         return $available_plugins_arr;
     }
 
-    public static function get_agent_available_controllers($plugin = false)
+    public static function get_agent_available_controllers(?string $plugin = null): array
     {
         self::st_reset_error();
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($controller_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))
@@ -345,12 +345,12 @@ class PHS_Agent extends PHS_Registry
         return $available_controllers;
     }
 
-    public static function get_agent_available_actions($plugin = false)
+    public static function get_agent_available_actions(?string $plugin = null)
     {
         self::st_reset_error();
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($action_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION))

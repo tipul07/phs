@@ -2286,11 +2286,11 @@ final class PHS extends PHS_Registry
      * Returns an instance of a model. If model is part of a plugin $plugin will contain name of that plugin.
      *
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
-     * @param string|bool $plugin Plugin where model is located (false means a core model)
+     * @param string|null $plugin Plugin where model is located (false means a core model)
      *
      * @return null|\phs\libraries\PHS_Instantiable|\phs\libraries\PHS_Model_Mysqli
      */
-    public static function load_model(string $model, $plugin = false) : ?PHS_Model
+    public static function load_model(string $model, ?string $plugin = null) : ?PHS_Model
     {
         self::st_reset_error();
 
@@ -2304,7 +2304,7 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Model_'.ucfirst(strtolower($model_name));
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL))) {
@@ -2684,12 +2684,12 @@ final class PHS extends PHS_Registry
      * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
      * This only returns file names, does no check if class is instantiable...
      *
-     * @param bool|string $plugin Core plugin if false || plugin name as string
+     * @param null|string $plugin Core plugin if false || plugin name as string
      * @param string $instance_type What script files should we check PHS_Instantiable::INSTANCE_TYPE_*
      *
      * @return null|array
      */
-    public static function get_plugin_scripts_from_dir($plugin = false, $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN) : ?array
+    public static function get_plugin_scripts_from_dir(?string $plugin = null, string $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN) : ?array
     {
         self::st_reset_error();
 
@@ -2726,8 +2726,8 @@ final class PHS extends PHS_Registry
                 break;
         }
 
-        if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+        if (empty($plugin) || $plugin === PHS_Instantiable::CORE_PLUGIN) {
+            $plugin = null;
 
             if ($instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN) {
                 self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('There is no CORE plugin.'));
@@ -2872,7 +2872,7 @@ final class PHS extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function get_model_json_info($plugin_name, $model_name)
+    public static function get_model_json_info(string $plugin_name, string $model_name)
     {
         return self::_get_instance_json_details($plugin_name, $model_name, PHS_Instantiable::INSTANCE_TYPE_MODEL);
     }
@@ -2883,7 +2883,7 @@ final class PHS extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function get_controller_json_info($plugin_name, $controller_name)
+    public static function get_controller_json_info(string $plugin_name, string $controller_name)
     {
         return self::_get_instance_json_details($plugin_name, $controller_name, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER);
     }
@@ -2894,7 +2894,7 @@ final class PHS extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function get_action_json_info($plugin_name, $action_name)
+    public static function get_action_json_info(string $plugin_name, string $action_name)
     {
         return self::_get_instance_json_details($plugin_name, $action_name, PHS_Instantiable::INSTANCE_TYPE_ACTION);
     }
@@ -2905,7 +2905,7 @@ final class PHS extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function get_contract_json_info($plugin_name, $contract_name)
+    public static function get_contract_json_info(string $plugin_name, string $contract_name)
     {
         return self::_get_instance_json_details($plugin_name, $contract_name, PHS_Instantiable::INSTANCE_TYPE_CONTRACT);
     }
@@ -2916,18 +2916,18 @@ final class PHS extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function get_view_json_info($plugin_name, $view_name)
+    public static function get_view_json_info(string $plugin_name, string $view_name)
     {
         return self::_get_instance_json_details($plugin_name, $view_name, PHS_Instantiable::INSTANCE_TYPE_VIEW);
     }
 
     /**
-     * @param string $plugin_name
-     * @param string $scope_name
+     * @param  string  $plugin_name
+     * @param  string  $scope_name
      *
      * @return array|bool
      */
-    public static function get_scope_json_info($plugin_name, $scope_name)
+    public static function get_scope_json_info(string $plugin_name, string $scope_name)
     {
         return self::_get_instance_json_details($plugin_name, $scope_name, PHS_Instantiable::INSTANCE_TYPE_SCOPE);
     }
@@ -3069,11 +3069,7 @@ final class PHS extends PHS_Registry
             $params = [];
         }
 
-        if (empty($params['stop_on_first_error'])) {
-            $params['stop_on_first_error'] = false;
-        } else {
-            $params['stop_on_first_error'] = true;
-        }
+        $params['stop_on_first_error'] = !empty( $params['stop_on_first_error'] );
 
         if (empty($hook_args) || !is_array($hook_args)) {
             $hook_args = PHS_Hooks::default_common_hook_args();
@@ -3088,7 +3084,13 @@ final class PHS extends PHS_Registry
 
             foreach ($hooks_array as $hook_callback) {
                 if (empty($hook_callback) || !is_array($hook_callback)
-                 || empty($hook_callback['callback'])) {
+                 || empty($hook_callback['callback'])
+                 || (is_array( $hook_callback['callback'] )
+                     && ($instance_obj = $hook_callback['callback'][0] ?? null)
+                     && $instance_obj instanceof PHS_Instantiable
+                     && ($plugin_obj = $instance_obj->get_plugin_instance())
+                     && !$plugin_obj->plugin_active())
+                ) {
                     continue;
                 }
 
@@ -3350,24 +3352,19 @@ final class PHS extends PHS_Registry
      * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
      * This only returns file names, does no check if class is instantiable...
      *
-     * @param string|bool $plugin Plugin name
-     * @param string|bool $instance_name Model, controller, action, view || scope name
+     * @param string|null $plugin Plugin name
+     * @param string|null $instance_name Model, controller, action, view or scope name
      * @param string $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
      * @param string $instance_subdir If instance allows subdirs, provide which subdir is that
      *
      * @return array|bool
      */
-    private static function _get_instance_json_details($plugin = false, $instance_name = false,
+    private static function _get_instance_json_details(?string $plugin = null, ?string $instance_name = null,
         string $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN, string $instance_subdir = '')
     {
         self::st_reset_error();
 
-        if ($plugin === false) {
-            $plugin = PHS_Instantiable::CORE_PLUGIN;
-        }
-
-        if ($instance_name === false
-         || !is_string($instance_name)) {
+        if (empty($instance_name)) {
             $instance_name = 'Index';
         } else {
             $instance_name = ucfirst(strtolower($instance_name));
@@ -3403,11 +3400,10 @@ final class PHS extends PHS_Registry
                 self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('Invalid instance type to get JSON info.'));
 
                 return false;
-                break;
         }
 
-        if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+        if (empty($plugin) || $plugin === PHS_Instantiable::CORE_PLUGIN) {
+            $plugin = null;
 
             if ($instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN) {
                 self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('There is no CORE plugin.'));

@@ -88,7 +88,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
                 $model_id = $model_instance->instance_id();
 
-                if (!($model_db_details = $model_instance->get_db_details())) {
+                if (!($model_db_details = $model_instance->get_main_db_details())) {
                     $model_db_details = [];
                 }
 
@@ -150,7 +150,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             $module_instance = $this->_plugin_obj;
 
             if ($this->_plugin_obj) {
-                if (!($plugin_db_details = $this->_plugin_obj->get_db_details())) {
+                if (!($plugin_db_details = $this->_plugin_obj->get_main_db_details())) {
                     $plugin_db_details = [];
                 }
 

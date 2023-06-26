@@ -2,6 +2,7 @@
 namespace phs\traits;
 
 use phs\PHS;
+use phs\system\core\models\PHS_Model_Plugins;
 
 /**
  * Adds plugin functionality for CLI apps
@@ -11,8 +12,8 @@ use phs\PHS;
  */
 trait PHS_Cli_plugins_trait
 {
-    /** @var \phs\system\core\models\PHS_Model_Plugins */
-    protected $_plugins_model = false;
+    /** @var null|\phs\system\core\models\PHS_Model_Plugins */
+    protected ?PHS_Model_Plugins $_plugins_model = null;
 
     public function get_plugins_as_dirs()
     {
@@ -34,7 +35,7 @@ trait PHS_Cli_plugins_trait
         return $plugins_arr;
     }
 
-    protected function _gather_plugin_info($plugin_name) : array
+    protected function _gather_plugin_info(string $plugin_name) : array
     {
         $plugin_info = self::_get_default_plugin_info_definition();
 
@@ -42,17 +43,10 @@ trait PHS_Cli_plugins_trait
 
         // If plugin has a JOSN available, try getting as much data from it
         if (($json_arr = PHS::get_plugin_json_info($plugin_name))) {
-            if (!empty($json_arr['name'])) {
-                $plugin_info['name'] = $json_arr['name'];
-            }
-            if (!empty($json_arr['version'])) {
-                $plugin_info['version'] = $json_arr['version'];
-            }
-            if (!empty($json_arr['vendor_id'])) {
-                $plugin_info['vendor_id'] = $json_arr['vendor_id'];
-            }
-            if (!empty($json_arr['vendor_name'])) {
-                $plugin_info['vendor_name'] = $json_arr['vendor_name'];
+            foreach( ['name', 'version', 'vendor_id', 'vendor_name'] as $field ) {
+                if (!empty($json_arr[$field])) {
+                    $plugin_info[$field] = $json_arr[$field];
+                }
             }
             if (!empty($json_arr['agent_jobs']) && is_array($json_arr['agent_jobs'])) {
                 $plugin_info['agent_jobs'] = $json_arr['agent_jobs'];
@@ -77,12 +71,9 @@ trait PHS_Cli_plugins_trait
         }
 
         if (($instance_info = $plugin_obj->get_plugin_info())) {
-            $plugin_info['is_core'] = $instance_info['is_core'];
-            $plugin_info['is_distribution'] = $instance_info['is_distribution'];
-            $plugin_info['is_installed'] = $instance_info['is_installed'];
-            $plugin_info['is_active'] = $instance_info['is_active'];
-            $plugin_info['is_upgradable'] = $instance_info['is_upgradable'];
-            $plugin_info['db_version'] = $instance_info['db_version'];
+            foreach( ['is_core', 'is_distribution', 'is_installed', 'is_active', 'is_upgradable', 'db_version'] as $field ) {
+                $plugin_info[$field] = $instance_info[$field];
+            }
         }
 
         // Get model details...
@@ -127,14 +118,14 @@ trait PHS_Cli_plugins_trait
 
     /**
      * @param string $plugin_name
-     * @param bool|array $plugin_info
+     * @param null|array $plugin_info
      *
      * @return bool
      */
-    protected function _echo_plugin_details($plugin_name, $plugin_info = false)
+    protected function _echo_plugin_details(string $plugin_name, ?array $plugin_info = null): bool
     {
-        if (($plugin_info === false && !($plugin_info = $this->_gather_plugin_info($plugin_name)))
-         || !is_array($plugin_info)) {
+        if (empty( $plugin_info )
+            && !($plugin_info = $this->_gather_plugin_info($plugin_name))) {
             $this->_echo_error(self::_t('Error obtaining plugin details for plugin %s.', $this->cli_color($plugin_name, 'red')));
 
             return false;
@@ -186,20 +177,20 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected function _get_plugins_model()
+    protected function _get_plugins_model(): ?PHS_Model_Plugins
     {
         if (empty($this->_plugins_model)
          && !$this->_load_plugins_model()) {
-            return false;
+            return null;
         }
 
         return $this->_plugins_model;
     }
 
-    private function _load_plugins_model()
+    private function _load_plugins_model(): bool
     {
         if (empty($this->_plugins_model)
-         && !($this->_plugins_model = PHS::load_model('plugins'))) {
+         && !($this->_plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugins model.'));
 
             return false;
@@ -208,7 +199,7 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected static function _get_default_model_info_definition()
+    protected static function _get_default_model_info_definition(): array
     {
         return [
             'name'       => '',
@@ -219,7 +210,7 @@ trait PHS_Cli_plugins_trait
         ];
     }
 
-    protected static function _get_default_plugin_info_definition()
+    protected static function _get_default_plugin_info_definition(): array
     {
         return [
             'is_core'         => false,

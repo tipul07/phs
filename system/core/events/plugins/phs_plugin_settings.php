@@ -15,6 +15,7 @@ class PHS_Event_Plugin_settings extends PHS_Event
     protected function _input_parameters(): array
     {
         return [
+            'tenant_id' => 0,
             'instance_id' => '',
             'settings_arr' => [],
         ];

@@ -593,7 +593,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _unlink_plugin($plugin_name) : bool
+    private function _unlink_plugin(string $plugin_name) : bool
     {
         if (!PHS_Maintenance::unlink_plugin($plugin_name)) {
             $error_msg = self::_t('Error unlinking the plugin');

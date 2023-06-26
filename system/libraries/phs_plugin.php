@@ -455,14 +455,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function plugin_active() : bool
     {
-        return (bool)$this->db_record_active();
+        return $this->db_record_active();
     }
 
     public function check_installation()
     {
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Checking installation...');
 
-        if (!($db_details = $this->get_db_details())) {
+        if (!($db_details = $this->get_main_db_details())) {
             $this->reset_error();
 
             return $this->install();
@@ -1102,15 +1102,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if (($plugin_info = $this->get_plugin_info())
-         && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
-        }
+        // if (($plugin_info = $this->get_plugin_info())
+        //  && !empty($plugin_info['name'])) {
+        //     $plugin_name = $plugin_info['name'];
+        // } else {
+        //     $plugin_name = $this->instance_plugin_name();
+        // }
 
         if (!($db_details = $this->_plugins_instance->install_record($this_instance_id,
-            $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
+            $this->instance_plugin_name(), $this->instance_plugin_name(), $this->instance_type(), $this->instance_is_core(),
             $this->get_default_settings(), $this->get_plugin_version()))
          || empty($db_details['new_data'])) {
             if ($this->_plugins_instance->has_error()) {
@@ -1371,7 +1371,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     return false;
                 }
 
-                if (!($model_details = $model_obj->get_db_details(true))
+                if (!($model_details = $model_obj->get_main_db_details(true))
                  || empty($model_details['version'])) {
                     $old_model_version = '0.0.0';
                 } else {
@@ -1418,16 +1418,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if (($plugin_info = $this->get_plugin_info())
-         && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
-        }
+        // if (($plugin_info = $this->get_plugin_info())
+        //  && !empty($plugin_info['name'])) {
+        //     $plugin_name = $plugin_info['name'];
+        // } else {
+        //     $plugin_name = $this->instance_plugin_name();
+        // }
 
         if (!$is_dry_update
          && (!($db_details = $this->_plugins_instance->update_record(
-             $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_plugin_version()))
+             $this_instance_id, $this->instance_plugin_name(), $this->instance_is_core(), $this->get_plugin_version()))
              || empty($db_details['new_data']))
         ) {
             if ($this->_plugins_instance->has_error()) {
@@ -1471,16 +1471,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @return array|bool
+     * @return array|null
      */
-    final public function get_plugin_info()
+    final public function get_plugin_info(): ?array
     {
         if (!empty($this->_plugin_details)) {
             return $this->_plugin_details;
         }
 
         if (!$this->_load_plugins_instance()) {
-            return false;
+            return null;
         }
 
         $plugin_details = self::validate_array($this->get_plugin_details(), self::default_plugin_details_fields());
@@ -1499,7 +1499,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['script_version'] = $this->get_plugin_version();
         $plugin_details['models'] = $this->get_models();
 
-        if (($db_details = $this->get_db_details())) {
+        if (($db_details = $this->get_main_db_details())) {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
             $plugin_details['is_active'] = (bool)$this->_plugins_instance->is_active($db_details);
@@ -1510,8 +1510,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $plugin_details['is_always_active'] = in_array($plugin_details['plugin_name'], PHS::get_always_active_plugins(), true);
         $plugin_details['is_distribution'] = in_array($plugin_details['plugin_name'], PHS::get_distribution_plugins(), true);
-
-        $plugin_details['settings_arr'] = $this->get_plugin_settings();
 
         $this->_plugin_details = $plugin_details;
 
@@ -1665,7 +1663,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'data_from_json'   => false,
             'db_details'       => false,
             'models'           => [],
-            'settings_arr'     => [],
             // Tells if plugin has any dependencies (key is plugin name and value is min version required)
             'requires'   => [],
             'agent_jobs' => [],

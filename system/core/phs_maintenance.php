@@ -266,7 +266,7 @@ final class PHS_Maintenance extends PHS_Registry
         return !empty($instance_details['plugin_is_setup']);
     }
 
-    public static function plugin_is_symlinked($plugin) : bool
+    public static function plugin_is_symlinked(string $plugin) : bool
     {
         return !empty($plugin)
                 && ($instance_details = PHS_Instantiable::get_instance_details('PHS_Plugin_'.ucfirst(strtolower($plugin)),
@@ -274,7 +274,7 @@ final class PHS_Maintenance extends PHS_Registry
                 && !empty($instance_details['plugin_is_setup']);
     }
 
-    public static function unlink_plugin($plugin) : bool
+    public static function unlink_plugin(string $plugin) : bool
     {
         self::st_reset_error();
 

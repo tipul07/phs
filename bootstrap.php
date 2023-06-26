@@ -409,11 +409,18 @@ if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
     exit;
 }
 
+$all_plugins = [];
+
 //
 // Check if we are in install flow...
 //
 if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
-    if (!($active_plugins = $plugins_model->get_all_active_plugins())) {
+    if ((PHS::is_multi_tenant() && !($all_plugins = $plugins_model->get_all_plugins()))
+        || (!PHS::is_multi_tenant() && !($all_plugins = $plugins_model->get_all_active_plugins()))) {
+        $all_plugins = [];
+    }
+
+    if (empty($all_plugins)) {
         $plugins_model_err = $plugins_model->get_error();
         if (!$plugins_model->test_db_connection()) {
             echo PHS::_t('ERROR Connecting to database. Please check your database connection settings.');
@@ -425,29 +432,26 @@ if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
             exit;
         }
 
-        $active_plugins = [];
-    }
+        if (!$plugins_model->check_table_exists(['table_name' => 'plugins'])) {
+            if (!@is_dir(PHS_SETUP_DIR)) {
+                echo 'It seems you didn\'t run yet install script.';
+            }
 
-    if (empty($active_plugins)
-     && !$plugins_model->check_table_exists(['table_name' => 'plugins'])) {
-        if (!@is_dir(PHS_SETUP_DIR)) {
-            echo 'It seems you didn\'t run yet install script.';
+            // If we have a main.php script it means platform was setup before
+            // Don't redirect to setup script
+            elseif (!@is_file(PHS_PATH.'main.php')) {
+                echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_setup in CLI.';
+            } else {
+                @header('Location: '.PHS_SETUP_WWW);
+                echo 'You should run ./bin/phs phs_setup in CLI to setup database.';
+            }
+
+            exit;
         }
-
-        // If we have a main.php script it means platform was setup before
-        // Don't redirect to setup script
-        elseif (!@is_file(PHS_PATH.'main.php')) {
-            echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_setup in CLI.';
-        } else {
-            @header('Location: '.PHS_SETUP_WWW);
-            echo 'You should run ./bin/phs phs_setup in CLI to setup database.';
-        }
-
-        exit;
     }
 } else {
-    if (!($active_plugins = $plugins_model->get_all_plugins())) {
-        $active_plugins = [];
+    if (!($all_plugins = $plugins_model->get_all_plugins())) {
+        $all_plugins = [];
     }
 
     echo 'Checking plugins module installation... ';
@@ -471,7 +475,7 @@ foreach ($bootstrap_scripts_numbers as $bootstrap_scripts_number_i) {
     $bootstrap_scripts[$bootstrap_scripts_number_i] = [];
 }
 
-foreach ($active_plugins as $plugin_name => $plugin_db_arr) {
+foreach ($all_plugins as $plugin_name => $plugin_db_arr) {
     foreach ($bootstrap_scripts_numbers as $bootstrap_scripts_number_i) {
         if (@file_exists(PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php')) {
             $bootstrap_scripts[$bootstrap_scripts_number_i][]

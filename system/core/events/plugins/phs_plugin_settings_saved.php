@@ -15,6 +15,7 @@ class PHS_Event_Plugin_settings_saved extends PHS_Event
     protected function _input_parameters(): array
     {
         return [
+            'tenant_id' => 0, // for which tenant we save the details
             'instance_id' => '', // eg. plugin:accounts:accounts
             'instance_type' => '', // eg. plugin, model
             'plugin_name' => '', // eg. accounts

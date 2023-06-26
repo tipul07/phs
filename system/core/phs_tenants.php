@@ -118,11 +118,19 @@ final class PHS_Tenants extends PHS_Registry
 
     public static function get_current_tenant_record(): ?array
     {
+        if( !PHS::is_multi_tenant() ) {
+            return null;
+        }
+
         return self::$_current_tenant ?? null;
     }
 
     public static function get_current_tenant_id(): int
     {
+        if( !PHS::is_multi_tenant() ) {
+            return 0;
+        }
+
         return (int)(self::$_current_tenant['id'] ?? 0);
     }
 

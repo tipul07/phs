@@ -445,9 +445,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * @param null|array $flow_params Flow parameters
      * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
-     * @return bool|array Returns column structure as array or false if we couldn't obtain column structure from flow table
+     * @return null|array Returns column structure as array or false if we couldn't obtain column structure from flow table
      */
-    public function check_column_exists(string $field, ?array $flow_params = null, bool $force = false)
+    public function check_column_exists(string $field, ?array $flow_params = null, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -455,7 +455,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
          || !($flow_table_name = $this->get_flow_table_name($flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
@@ -464,14 +464,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
             }
 
-            return false;
+            return null;
         }
 
-        if (!array_key_exists($field, $table_definition)) {
-            return false;
-        }
-
-        return $table_definition[$field];
+        return $table_definition[$field] ?? null;
     }
 
     /**
@@ -481,9 +477,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * @param bool|array $flow_params Flow parameters
      * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
-     * @return bool|array Returns column structure as array or false if we couldn't obtain column structure from flow table
+     * @return null|array Returns column structure as array or false if we couldn't obtain column structure from flow table
      */
-    public function check_column_index_exists($field, $flow_params = false, $force = false)
+    public function check_column_index_exists(string $field, $flow_params = false, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -491,7 +487,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
          || !($flow_table_name = $this->get_flow_table_name($flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
@@ -501,13 +497,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                     self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
             }
 
-            return false;
+            return null;
         }
 
         if (empty($table_definition[$field])
-         || !is_array($table_definition[$field])
          || empty($table_definition[$field]['index'])) {
-            return false;
+            return null;
         }
 
         return $table_definition[$field];
@@ -516,13 +511,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Check if provided index is defined in table structure
      *
-     * @param string $index_name Index to be found
+     * @param  string  $index_name Index to be found
      * @param bool|array $flow_params Flow parameters
      * @param bool $force
      *
-     * @return bool|mixed
+     * @return null|array
      */
-    public function check_extra_index_exists($index_name, $flow_params = false, bool $force = false)
+    public function check_extra_index_exists(string $index_name, $flow_params = false, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -530,7 +525,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
          || !($flow_table_name = $this->get_flow_table_name($flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
@@ -540,12 +535,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                     self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
             }
 
-            return false;
+            return null;
         }
 
         if (empty($table_definition[self::EXTRA_INDEXES_KEY])
          || !array_key_exists($index_name, $table_definition[self::EXTRA_INDEXES_KEY])) {
-            return false;
+            return null;
         }
 
         return $table_definition[self::EXTRA_INDEXES_KEY][$index_name];
@@ -564,7 +559,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if (!($db_details = $this->_plugins_instance->get_plugins_db_details($this->instance_id()))) {
+        if (!($db_details = $this->_plugins_instance->get_plugins_main_db_details($this->instance_id()))) {
             $this->reset_error();
 
             return $this->install();

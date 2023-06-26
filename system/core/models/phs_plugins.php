@@ -3,6 +3,7 @@ namespace phs\system\core\models;
 
 use phs\PHS;
 use phs\PHS_Crypt;
+use phs\PHS_Tenants;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Model;
@@ -39,8 +40,14 @@ class PHS_Model_Plugins extends PHS_Model
     // Cached database plugin records which are ACTIVE plugins in framework
     private static array $db_plugin_active_plugins = [];
 
+    // Cached database plugin records which are ACTIVE plugins for specific tenant
+    private static array $db_plugin_active_tenant_plugins = [];
+
     // Cached database plugin records which are plugins in framework
     private static array $db_plugin_plugins = [];
+
+    // Cached database plugin records which are plugins for specific tenant
+    private static array $db_plugin_tenant_plugins = [];
 
     // Cached database registry rows
     private static array $db_registry = [];
@@ -51,6 +58,9 @@ class PHS_Model_Plugins extends PHS_Model
     // Cached plugin settings
     private static array $plugin_settings = [];
 
+    // Cached plugin tenant settings
+    private static array $plugin_tenant_settings = [];
+
     // Cached plugin registry
     private static array $plugin_registry = [];
 
@@ -59,7 +69,7 @@ class PHS_Model_Plugins extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.2.0';
+        return '1.2.1';
     }
 
     /**
@@ -80,13 +90,12 @@ class PHS_Model_Plugins extends PHS_Model
 
     public function active_status(int $status) : bool
     {
-        return $this->valid_status($status) && $status === self::STATUS_ACTIVE;
+        return $status === self::STATUS_ACTIVE;
     }
 
     public function inactive_status(int $status) : bool
     {
-        return $this->valid_status($status)
-         && in_array($status, [self::STATUS_INSTALLED, self::STATUS_INACTIVE], true);
+        return in_array($status, [self::STATUS_INSTALLED, self::STATUS_INACTIVE], true);
     }
 
     public function is_active($plugin_data)
@@ -158,13 +167,13 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        if (!$this->get_plugins_db_details($instance_id)) {
+        if (!$this->get_plugins_main_db_details($instance_id)) {
             $this->set_error(self::ERR_SETTINGS, self::_t('Plugin is not yet installed.'));
 
             return null;
         }
 
-        if (!($old_settings = $this->get_plugins_db_settings($instance_id, true))) {
+        if (!($old_settings = $this->get_plugins_db_settings($instance_id, $tenant_id, true))) {
             $old_settings = [];
         }
 
@@ -198,11 +207,48 @@ class PHS_Model_Plugins extends PHS_Model
             unset(self::$db_plugins[$instance_id]);
         }
 
-        if (!($new_settings_arr = $this->get_plugins_db_settings($instance_id, true))) {
+        if (!($new_settings_arr = $this->get_plugins_db_settings($instance_id, $tenant_id, true))) {
             $new_settings_arr = [];
         }
 
         return $new_settings_arr;
+    }
+
+    /**
+     * Get settings from database
+     *
+     * @param  null|string  $instance_id
+     * @param  int  $tenant_id
+     * @param  bool  $force
+     *
+     * @return null|array
+     */
+    public function get_plugins_db_settings(
+        ?string $instance_id = null,
+        int $tenant_id = 0,
+        bool $force = false) : array
+    {
+        $this->reset_error();
+
+        if( $tenant_id === null ) {
+            if( PHS::is_multi_tenant() ) {
+                $tenant_id = PHS_Tenants::get_current_tenant_id();
+            } else {
+                $tenant_id = 0;
+            }
+        }
+
+        if( !($main_settings = $this->_get_plugins_main_db_settings( $instance_id, $force )) ) {
+            $main_settings = [];
+        }
+
+        if( empty( $tenant_id )
+         || !PHS::is_multi_tenant()
+         || !($tenant_settings = $this->_get_plugins_tenant_db_settings( $instance_id, $tenant_id, $force )) ) {
+            return $main_settings;
+        }
+
+        return self::validate_array($main_settings, $tenant_settings);
     }
 
     /**
@@ -213,25 +259,11 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array
      */
-    public function get_plugins_db_settings(
-        ?string $instance_id = null,
+    private function _get_plugins_main_db_settings(
+        string $instance_id,
         bool $force = false) : ?array
     {
         $this->reset_error();
-
-        if ($instance_id !== null
-         && !self::valid_instance_id($instance_id)) {
-            $this->set_error(self::ERR_SETTINGS, self::_t('Invalid instance ID.'));
-
-            return null;
-        }
-
-        if ($instance_id === null
-         && !($instance_id = $this->instance_id())) {
-            $this->set_error(self::ERR_SETTINGS, self::_t('Unknown instance ID.'));
-
-            return null;
-        }
 
         if (!empty($force)
          && isset(self::$plugin_settings[$instance_id])) {
@@ -242,7 +274,7 @@ class PHS_Model_Plugins extends PHS_Model
             return self::$plugin_settings[$instance_id];
         }
 
-        if (!($db_details = $this->get_plugins_db_details($instance_id, $force))) {
+        if (!($db_details = $this->get_plugins_main_db_details($instance_id, $force))) {
             return null;
         }
 
@@ -256,20 +288,56 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_settings[$instance_id];
     }
 
+    /**
+     * Get settings from database
+     *
+     * @param string $instance_id
+     * @param int $tenant_id
+     * @param bool $force
+     *
+     * @return null|array
+     */
+    private function _get_plugins_tenant_db_settings(
+        string $instance_id,
+        int $tenant_id,
+        bool $force = false) : ?array
+    {
+        $this->reset_error();
+
+        if( !PHS::is_multi_tenant() ) {
+            return null;
+        }
+
+        if (!empty($force)
+         && isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
+            unset(self::$plugin_tenant_settings[$tenant_id][$instance_id]);
+        }
+
+        if (isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
+            return self::$plugin_tenant_settings[$tenant_id][$instance_id];
+        }
+
+        if (!($db_details = $this->get_plugins_tenant_db_details($instance_id, $tenant_id, $force))) {
+            return null;
+        }
+
+        if (empty($db_details['settings'])) {
+            self::$plugin_tenant_settings[$tenant_id][$instance_id] = [];
+        } else {
+            // parse settings in database...
+            self::$plugin_tenant_settings[$tenant_id][$instance_id] = $this->_decode_settings_field($db_details['settings']);
+        }
+
+        return self::$plugin_tenant_settings[$tenant_id][$instance_id];
+    }
+
     public function save_plugins_db_registry($registry_arr, $instance_id = null) : ?array
     {
         $this->reset_error();
 
-        if ($instance_id === null
-         && !($instance_id = $this->instance_id())) {
-            $this->set_error(self::ERR_REGISTRY, self::_t('Unknown instance ID.'));
-
-            return null;
-        }
-
-        if (!($instance_details = self::valid_instance_id($instance_id))
-         || empty($instance_details['plugin_name'])) {
-            $this->set_error(self::ERR_REGISTRY, self::_t('Invalid instance ID.'));
+        $instance_id = $instance_id ?? $this->instance_id();
+        if (!($instance_details = self::valid_instance_id($instance_id))) {
+            $this->set_error(self::ERR_SETTINGS, self::_t('Invalid instance ID.'));
 
             return null;
         }
@@ -303,16 +371,9 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        if ($instance_id !== null
-         && !self::valid_instance_id($instance_id)) {
-            $this->set_error(self::ERR_REGISTRY, self::_t('Invalid instance ID.'));
-
-            return null;
-        }
-
-        if ($instance_id === null
-         && !($instance_id = $this->instance_id())) {
-            $this->set_error(self::ERR_REGISTRY, self::_t('Unknown instance ID.'));
+        $instance_id = $instance_id ?? $this->instance_id();
+        if (!self::valid_instance_id($instance_id)) {
+            $this->set_error(self::ERR_SETTINGS, self::_t('Invalid instance ID.'));
 
             return null;
         }
@@ -594,7 +655,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array Array containing database fields of given instance_id (if available)
      */
-    public function get_plugins_db_details(?string $instance_id = null, bool $force = false) : ?array
+    public function get_plugins_main_db_details(?string $instance_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -640,9 +701,29 @@ class PHS_Model_Plugins extends PHS_Model
         return $db_details;
     }
 
-    private function _get_plugins_tenant_db_details(?string $instance_id = null, bool $force = false)
+    public function get_plugins_tenant_db_details(?string $instance_id = null, int $tenant_id, bool $force = false): ?array
     {
+        $this->reset_error();
 
+        if( !PHS::is_multi_tenant() ) {
+            return null;
+        }
+
+        $instance_id = $instance_id ?? $this->instance_id();
+        if (!self::valid_instance_id($instance_id)) {
+            $this->set_error(self::ERR_INSTANCE, self::_t('Invalid instance ID.'));
+
+            return null;
+        }
+
+        // Cache all plugin details at once instead of caching one at a time...
+        $this->_cache_all_db_details($force);
+
+        if (!empty(self::$db_tenant_plugins[$tenant_id][$instance_id])) {
+            return self::$db_tenant_plugins[$tenant_id][$instance_id];
+        }
+
+        return null;
     }
 
     /**
@@ -966,6 +1047,9 @@ class PHS_Model_Plugins extends PHS_Model
                     'status_date' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
+                    'last_update' => [
+                        'type' => self::FTYPE_DATETIME,
+                    ],
                     'version' => [
                         'type'   => self::FTYPE_VARCHAR,
                         'length' => 30,
@@ -1082,7 +1166,20 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array
      */
-    protected function _update_db_details(string $instance_id, array $fields_arr) : ?array
+    protected function _update_db_details(string $instance_id, array $fields_arr, int $tenant_id = 0) : ?array
+    {
+        if( $tenant_id === 0 ) {
+            return $this->_update_db_main_details($instance_id, $fields_arr);
+        }
+    }
+
+    /**
+     * @param string $instance_id
+     * @param array $fields_arr
+     *
+     * @return null|array
+     */
+    private function _update_db_main_details(string $instance_id, array $fields_arr) : ?array
     {
         if (empty($fields_arr)
          || empty($instance_id)
@@ -1093,7 +1190,7 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        if (!($existing_arr = $this->get_plugins_db_details($instance_id))) {
+        if (!($existing_arr = $this->_get_plugins_main_db_details($instance_id))) {
             $existing_arr = null;
             $params['action'] = 'insert';
             $fields_arr['instance_id'] = $instance_id;
@@ -1197,7 +1294,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         $now_date = date(self::DATETIME_DB);
 
-        $params['fields']['status_date'] = $now_date;
+        $params['fields']['last_update'] = $params['fields']['status_date'] = $now_date;
 
         if (empty($params['fields']['cdate']) || empty_db_date($params['fields']['cdate'])) {
             $params['fields']['cdate'] = $now_date;
@@ -1239,10 +1336,110 @@ class PHS_Model_Plugins extends PHS_Model
 
         $now_date = date(self::DATETIME_DB);
 
+        $params['fields']['last_update'] = $now_date;
+
         if (isset($params['fields']['plugin_name'])
          && empty($params['fields']['plugin_name'])) {
+            $params['fields']['plugin_name'] = null;
+        }
+
+        if (isset($params['fields']['status'])
+         && empty($params['fields']['status_date'])) {
+            $params['fields']['status_date'] = $now_date;
+        } elseif (!empty($params['fields']['status_date'])) {
+            $params['fields']['status_date'] = date(self::DATETIME_DB, parse_db_date($params['fields']['status_date']));
+        }
+
+        if (!empty($params['fields']['cdate'])) {
+            $params['fields']['cdate'] = date(self::DATETIME_DB, parse_db_date($params['fields']['cdate']));
+        }
+
+        return $params;
+    }
+
+    protected function get_insert_prepare_params_plugins_tenants($params)
+    {
+        if (empty($params) || !is_array($params)) {
+            return false;
+        }
+
+        if (empty($params['fields']['status'])) {
+            $params['fields']['status'] = self::STATUS_INSTALLED;
+        }
+
+        if (!$this->valid_status($params['fields']['status'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid tenant plugin status.'));
+
+            return false;
+        }
+
+        if (empty($params['fields']['instance_id'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a tenant plugin id.'));
+
+            return false;
+        }
+
+        $check_params = $params;
+        $check_params['result_type'] = 'single';
+
+        $check_arr = [];
+        $check_arr['instance_id'] = $params['fields']['instance_id'];
+
+        if ($this->get_details_fields($check_arr, $check_params)) {
+            $this->set_error(self::ERR_INSERT, self::_t('There is already a tenant plugin with this id in database.'));
+
+            return false;
+        }
+
+        if (empty($params['fields']['plugin_name'])) {
             $params['fields']['plugin_name'] = '';
         }
+
+        $now_date = date(self::DATETIME_DB);
+
+        $params['fields']['last_update'] = $params['fields']['status_date'] = $now_date;
+
+        if (empty($params['fields']['cdate']) || empty_db_date($params['fields']['cdate'])) {
+            $params['fields']['cdate'] = $now_date;
+        } else {
+            $params['fields']['cdate'] = date(self::DATETIME_DB, parse_db_date($params['fields']['cdate']));
+        }
+
+        return $params;
+    }
+
+    protected function get_edit_prepare_params_plugins_tenants($existing_arr, $params)
+    {
+        if (empty($existing_arr) || !is_array($existing_arr)
+         || empty($params) || !is_array($params)) {
+            return false;
+        }
+
+        if (isset($params['fields']['status'])
+         && !$this->valid_status($params['fields']['status'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid tenant plugin status.'));
+
+            return false;
+        }
+
+        if (!empty($params['fields']['instance_id'])) {
+            $check_params = $params;
+            $check_params['result_type'] = 'single';
+
+            $check_arr = [];
+            $check_arr['instance_id'] = $params['fields']['instance_id'];
+            $check_arr['id'] = ['check' => '!=', 'value' => $existing_arr['id']];
+
+            if ($this->get_details_fields($check_arr, $check_params)) {
+                $this->set_error(self::ERR_INSERT, self::_t('There is already a tenant plugin with this id in database.'));
+
+                return false;
+            }
+        }
+
+        $now_date = date(self::DATETIME_DB);
+
+        $params['fields']['last_update'] = $now_date;
 
         if (isset($params['fields']['status'])
          && empty($params['fields']['status_date'])) {
@@ -1310,7 +1507,7 @@ class PHS_Model_Plugins extends PHS_Model
      */
     private function _cache_all_db_details(bool $force = false) : bool
     {
-        if( !$this->_cache_default_db_details( $force )
+        if( !$this->_cache_default_main_db_details( $force )
                 || (PHS::is_multi_tenant() && !$this->_cache_tenants_db_details( $force )) ) {
             $this->_reset_all_plugin_cache();
             return false;
@@ -1373,6 +1570,61 @@ class PHS_Model_Plugins extends PHS_Model
      * @return bool
      */
     private function _cache_default_db_details(bool $force = false) : bool
+    {
+        $this->reset_error();
+
+        if (empty($force)
+            && !empty(self::$db_plugins)) {
+            return true;
+        }
+
+        $this->_reset_db_plugin_cache();
+
+        if (!($list_arr = $this->fetch_default_flow_params(['table_name' => 'plugins']))) {
+            $this->set_error(self::ERR_DB_DETAILS, $this->_pt('Error preparing query to obtain plugins records.'));
+
+            return false;
+        }
+
+        $list_arr['order_by'] = 'is_core DESC';
+
+        db_supress_errors($list_arr['db_connection']);
+        if (!($all_db_plugins = $this->get_list($list_arr))) {
+            db_restore_errors_state($list_arr['db_connection']);
+
+            return true;
+        }
+        db_restore_errors_state($list_arr['db_connection']);
+
+        foreach ($all_db_plugins as $db_arr) {
+            if (empty($db_arr['instance_id'])) {
+                continue;
+            }
+
+            self::$db_plugins[$db_arr['instance_id']] = $db_arr;
+
+            if ($db_arr['type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                || empty($db_arr['plugin'])) {
+                continue;
+            }
+
+            self::$db_plugin_plugins[$db_arr['plugin']] = $db_arr;
+
+            if ($this->is_active($db_arr)) {
+                self::$db_plugin_active_plugins[$db_arr['plugin']] = $db_arr;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Cache all plugin records from plugins table (non-tenant details)...
+     * @param bool $force
+     *
+     * @return bool
+     */
+    private function _cache_default_main_db_details(bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1512,6 +1764,8 @@ class PHS_Model_Plugins extends PHS_Model
     private function _reset_tenants_db_plugin_cache() : void
     {
         self::$db_tenant_plugins = [];
+        self::$db_plugin_tenant_plugins = [];
+        self::$db_plugin_active_tenant_plugins = [];
     }
 
     private function _reset_all_plugin_cache() : void

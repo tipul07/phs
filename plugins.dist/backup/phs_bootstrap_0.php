@@ -3,10 +3,10 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\backup\PHS_Plugin_Backup;
 
 /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-if (($backup_plugin = PHS::load_plugin('backup'))
- && $backup_plugin->plugin_active()) {
+if (($backup_plugin = PHS_Plugin_Backup::get_instance())) {
     PHS_Logger::define_channel($backup_plugin::LOG_CHANNEL);
 
     PHS::register_hook(

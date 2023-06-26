@@ -78,6 +78,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
         ];
     }
 
+    public function use_default_theme_in_admin(): bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty( $settings_arr['default_theme_in_admin']);
+    }
+
+    public function use_current_theme_as_default_in_admin(): bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty( $settings_arr['current_theme_as_default_in_admin']);
+    }
+
     /**
      * @inheritdoc
      */

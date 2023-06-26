@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Crypt;
+use phs\PHS_Tenants;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
@@ -25,8 +26,11 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     // Array with default values for settings (key => val) array
     private array $_default_settings = [];
 
-    // Database record
+    // Database "main" record
     private array $_db_details = [];
+
+    // Database tenant record
+    private array $_db_tenant_details = [];
 
     // Database settings field parsed as array
     private array $_db_settings = [];
@@ -134,7 +138,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_db_details(bool $force = false) : ?array
+    public function get_main_db_details(bool $force = false) : ?array
     {
         if (empty($force)
          && !empty($this->_db_details)) {
@@ -142,7 +146,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_db_details($this->instance_id(), $force))) {
+         || !($db_details = $this->_plugins_instance->get_plugins_main_db_details($this->instance_id(), $force))) {
             return null;
         }
 
@@ -152,21 +156,113 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
+     * @param  null|int  $tenant_id
+     * @param  bool  $force  Forces reading details from database (ignoring cached value)
+     *
+     * @return null|array
+     */
+    public function get_tenant_db_details(?int $tenant_id = null, bool $force = false) : ?array
+    {
+        if( !PHS::is_multi_tenant() ) {
+            return null;
+        }
+
+        if( $tenant_id === null
+         && !($tenant_id = PHS_Tenants::get_current_tenant_id()) ) {
+            $tenant_id = 0;
+        }
+
+        if (empty($force)
+         && !empty($this->_db_tenant_details[$tenant_id])) {
+            return $this->_db_tenant_details[$tenant_id];
+        }
+
+        if (!$this->_load_plugins_instance()
+         || !($db_details = $this->_plugins_instance->get_plugins_tenant_db_details($this->instance_id(), $tenant_id, $force))) {
+            return null;
+        }
+
+        $this->_db_tenant_details[$tenant_id] = $db_details;
+
+        return $this->_db_tenant_details[$tenant_id];
+    }
+
+    /**
+     * @param  null|int  $tenant_id
+     * @param  bool  $force  Forces reading details from database (ignoring cached value)
+     *
+     * @return null|array
+     */
+    public function get_merged_db_details(?int $tenant_id = null, bool $force = false) : ?array
+    {
+        $this->reset_error();
+
+        if (!($main_db_details = $this->get_main_db_details($force))) {
+            return null;
+        }
+
+        $main_db_details = self::_db_details_fields_prepare_for_merge($main_db_details);
+        if( !PHS::is_multi_tenant() ) {
+            return $main_db_details;
+        }
+
+        if( $tenant_id === null
+         && !($tenant_id = PHS_Tenants::get_current_tenant_id()) ) {
+            $tenant_id = 0;
+        }
+
+        // We don't force this call (if $force is true) as cache was already rebuild when calling get_main_db_details()
+        if (!($tenant_db_details = $this->get_tenant_db_details($tenant_id))) {
+            return $main_db_details;
+        }
+
+        return self::validate_array($main_db_details, self::_db_details_fields_prepare_for_merge($tenant_db_details));
+    }
+
+    private static function _db_details_fields_prepare_for_merge(array $db_details): array
+    {
+        $fields_arr = self::_get_merged_db_details_fields();
+        $return_arr = [];
+        foreach( $fields_arr as $key => $def_val ) {
+            $return_arr[$key] = $db_details[$key] ?? $def_val;
+        }
+
+        return $return_arr;
+    }
+
+    private static function _get_merged_db_details_fields(): array
+    {
+        return ['tenant_id' => 0, 'instance_id' => '', 'type' => '', 'plugin' => '', 'settings' => null, 'status' => 0, 'status_date' => null,
+                'last_update' => null, 'cdate' => null,
+                // "main" values
+                'is_core' => false, 'version' => null];
+    }
+
+    /**
+     * @param null|int $tenant_id We can force to get settings for a specific tenant
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
      * @return array Settings saved in database for current instance
      */
-    public function get_db_settings(bool $force = false) : array
+    public function get_db_settings(?int $tenant_id = null, bool $force = false) : array
     {
+        if( $tenant_id === null ) {
+            if( PHS::is_multi_tenant() ) {
+                $tenant_id = PHS_Tenants::get_current_tenant_id();
+            } else {
+                $tenant_id = 0;
+            }
+        }
+
         if (empty($force)
-         && !empty($this->_db_settings)) {
-            return $this->_db_settings;
+         && !empty($this->_db_settings[$tenant_id])) {
+            return $this->_db_settings[$tenant_id];
         }
 
         $instance_id = $this->instance_id();
 
         if (!$this->_load_plugins_instance()
-            || !($db_settings = $this->_plugins_instance->get_plugins_db_settings($instance_id, $force))
+            || !($db_settings = $this->_plugins_instance->get_plugins_db_settings($instance_id, $tenant_id, $force))
             || !($db_settings = $this->_deobfuscate_settings_array($db_settings))) {
             return [];
         }
@@ -178,6 +274,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
         /** @var PHS_Event_Plugin_settings $event_obj */
         if (($event_obj = PHS_Event_Plugin_settings::trigger([
+            'tenant_id'  => $tenant_id,
             'instance_id'  => $instance_id,
             'settings_arr' => $db_settings,
         ]))
@@ -186,21 +283,35 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $db_settings = self::validate_array($extra_settings_arr, $db_settings);
         }
 
-        $this->_db_settings = $db_settings;
+        $this->_db_settings[$tenant_id] = $db_settings;
 
-        return $this->_db_settings;
+        return $this->_db_settings[$tenant_id];
     }
 
-    public function save_db_settings(array $settings_arr) : ?array
+    /**
+     * @param  array  $settings_arr Settings to be saved
+     * @param  null|int  $tenant_id For which tenant are we saving the settings (if any)
+     *
+     * @return null|array
+     */
+    public function save_db_settings(array $settings_arr, ?int $tenant_id = null) : ?array
     {
         $this->reset_error();
 
+        if( $tenant_id === null ) {
+            if( PHS::is_multi_tenant() ) {
+                $tenant_id = PHS_Tenants::get_current_tenant_id();
+            } else {
+                $tenant_id = 0;
+            }
+        }
+
         $instance_id = $this->instance_id();
-        $old_settings = $this->get_db_settings();
+        $old_settings = $this->get_db_settings($tenant_id);
 
         if (!$this->_load_plugins_instance()
          || null === ($obfuscated_settings_arr = $this->_obfuscate_settings_array($settings_arr))
-         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr))
+         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr, $tenant_id))
          || !is_array($db_settings)) {
             if (!$this->has_error()
                 && $this->_plugins_instance->has_error()) {
@@ -211,6 +322,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         PHS_Event_Plugin_settings_saved::trigger([
+            'tenant_id'         => $tenant_id,
             'instance_id'       => $instance_id,
             'instance_type'     => $this->instance_type(),
             'plugin_name'       => $this->instance_plugin_name(),
@@ -219,24 +331,21 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'obfucate_keys_arr' => $this->get_all_settings_keys_to_obfuscate(),
         ]);
 
-        $this->_db_settings = $db_settings;
+        $this->_db_settings[$tenant_id] = $db_settings;
 
         // invalidate cached data...
         $this->_db_details = [];
 
-        return $this->_db_settings;
+        return $this->_db_settings[$tenant_id];
     }
 
-    public function db_record_active() : ?array
+    public function db_record_active() : bool
     {
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        if (!$this->_load_plugins_instance()
-         || !($db_details = $this->get_db_details())
-         || !$this->_plugins_instance->active_status($db_details['status'])) {
-            return null;
-        }
-
-        return $db_details;
+        return ($this->_load_plugins_instance()
+                && ($db_details = $this->get_merged_db_details())
+                && isset($db_details['status'])
+                && $this->_plugins_instance->active_status($db_details['status']));
     }
 
     /**

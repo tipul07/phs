@@ -3,10 +3,10 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\sendgrid\PHS_Plugin_Sendgrid;
 
 /** @var \phs\plugins\sendgrid\PHS_Plugin_Sendgrid $sendgrid_plugin */
-if (($sendgrid_plugin = PHS::load_plugin('sendgrid'))
- && $sendgrid_plugin->plugin_active()) {
+if (($sendgrid_plugin = PHS_Plugin_Sendgrid::get_instance())) {
     PHS_Logger::define_channel($sendgrid_plugin::LOG_CHANNEL);
 
     PHS::register_hook(
