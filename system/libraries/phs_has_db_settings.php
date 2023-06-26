@@ -138,7 +138,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_main_db_details(bool $force = false) : ?array
+    public function get_db_main_details(bool $force = false) : ?array
     {
         if (empty($force)
          && !empty($this->_db_details)) {
@@ -146,7 +146,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_main_db_details($this->instance_id(), $force))) {
+         || !($db_details = $this->_plugins_instance->get_plugins_db_main_details($this->instance_id(), $force))) {
             return null;
         }
 
@@ -161,14 +161,15 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_tenant_db_details(?int $tenant_id = null, bool $force = false) : ?array
+    public function get_db_tenant_details(?int $tenant_id = null, bool $force = false) : ?array
     {
         if( !PHS::is_multi_tenant() ) {
             return null;
         }
 
-        if( $tenant_id === null
-         && !($tenant_id = PHS_Tenants::get_current_tenant_id()) ) {
+        if( !PHS::is_multi_tenant()
+         || ($tenant_id === null
+             && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
             $tenant_id = 0;
         }
 
@@ -178,7 +179,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_tenant_db_details($this->instance_id(), $tenant_id, $force))) {
+         || !($db_details = $this->_plugins_instance->get_plugins_db_tenant_details($this->instance_id(), $tenant_id, $force))) {
             return null;
         }
 
@@ -197,26 +198,27 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if (!($main_db_details = $this->get_main_db_details($force))) {
+        if (!($db_main_details = $this->get_db_main_details($force))) {
             return null;
         }
 
-        $main_db_details = self::_db_details_fields_prepare_for_merge($main_db_details);
+        $db_main_details = self::_db_details_fields_prepare_for_merge($db_main_details);
         if( !PHS::is_multi_tenant() ) {
-            return $main_db_details;
+            return $db_main_details;
         }
 
-        if( $tenant_id === null
-         && !($tenant_id = PHS_Tenants::get_current_tenant_id()) ) {
+        if( !PHS::is_multi_tenant()
+            || ($tenant_id === null
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
             $tenant_id = 0;
         }
 
-        // We don't force this call (if $force is true) as cache was already rebuild when calling get_main_db_details()
-        if (!($tenant_db_details = $this->get_tenant_db_details($tenant_id))) {
-            return $main_db_details;
+        // We don't force this call (if $force is true) as cache was already rebuild when calling get_db_main_details()
+        if (!($db_tenant_details = $this->get_db_tenant_details($tenant_id))) {
+            return $db_main_details;
         }
 
-        return self::validate_array($main_db_details, self::_db_details_fields_prepare_for_merge($tenant_db_details));
+        return self::validate_array($db_main_details, self::_db_details_fields_prepare_for_merge($db_tenant_details));
     }
 
     private static function _db_details_fields_prepare_for_merge(array $db_details): array
@@ -246,12 +248,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public function get_db_settings(?int $tenant_id = null, bool $force = false) : array
     {
-        if( $tenant_id === null ) {
-            if( PHS::is_multi_tenant() ) {
-                $tenant_id = PHS_Tenants::get_current_tenant_id();
-            } else {
-                $tenant_id = 0;
-            }
+        if( !PHS::is_multi_tenant()
+            || ($tenant_id === null
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+            $tenant_id = 0;
         }
 
         if (empty($force)
@@ -298,12 +298,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if( $tenant_id === null ) {
-            if( PHS::is_multi_tenant() ) {
-                $tenant_id = PHS_Tenants::get_current_tenant_id();
-            } else {
-                $tenant_id = 0;
-            }
+        if( !PHS::is_multi_tenant()
+            || ($tenant_id === null
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+            $tenant_id = 0;
         }
 
         $instance_id = $this->instance_id();

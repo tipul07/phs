@@ -151,7 +151,7 @@ class PHS_Model_Api_keys extends PHS_Model
         if (empty($record_data) || empty($account_data)
          || !($apikey_arr = $this->data_to_array($record_data))
          || $this->is_deleted($apikey_arr)
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($account_data))
          || !can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $account_arr)) {
             return false;

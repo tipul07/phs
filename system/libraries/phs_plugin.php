@@ -462,7 +462,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Checking installation...');
 
-        if (!($db_details = $this->get_main_db_details())) {
+        if (!($db_details = $this->get_db_main_details())) {
             $this->reset_error();
 
             return $this->install();
@@ -1371,7 +1371,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     return false;
                 }
 
-                if (!($model_details = $model_obj->get_main_db_details(true))
+                if (!($model_details = $model_obj->get_db_main_details(true))
                  || empty($model_details['version'])) {
                     $old_model_version = '0.0.0';
                 } else {
@@ -1499,7 +1499,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['script_version'] = $this->get_plugin_version();
         $plugin_details['models'] = $this->get_models();
 
-        if (($db_details = $this->get_main_db_details())) {
+        if (($db_details = $this->get_db_main_details())) {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
             $plugin_details['is_active'] = (bool)$this->_plugins_instance->is_active($db_details);

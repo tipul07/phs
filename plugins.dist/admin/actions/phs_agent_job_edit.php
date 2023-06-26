@@ -11,6 +11,8 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Agent_jobs;
 
 class PHS_Action_Agent_job_edit extends PHS_Action
 {
@@ -39,8 +41,8 @@ class PHS_Action_Agent_job_edit extends PHS_Action
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
-         || !($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Framework_updates extends PHS_Action
 {
@@ -24,7 +25,7 @@ class PHS_Action_Framework_updates extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
 
             return self::default_action_result();

@@ -81,14 +81,14 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $modules_with_settings = [];
         if (!empty($plugin_models_arr)) {
             foreach ($plugin_models_arr as $model_name) {
-                if (!($model_instance = PHS::load_model($model_name, ($this->_plugin_obj ? $this->_plugin_obj->instance_plugin_name() : false)))
+                if (!($model_instance = PHS::load_model($model_name, ($this->_plugin_obj ? $this->_plugin_obj->instance_plugin_name() : null)))
                  || !($settings_arr = $model_instance->validate_settings_structure())) {
                     continue;
                 }
 
                 $model_id = $model_instance->instance_id();
 
-                if (!($model_db_details = $model_instance->get_main_db_details())) {
+                if (!($model_db_details = $model_instance->get_db_main_details())) {
                     $model_db_details = [];
                 }
 
@@ -150,7 +150,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             $module_instance = $this->_plugin_obj;
 
             if ($this->_plugin_obj) {
-                if (!($plugin_db_details = $this->_plugin_obj->get_main_db_details())) {
+                if (!($plugin_db_details = $this->_plugin_obj->get_db_main_details())) {
                     $plugin_db_details = [];
                 }
 

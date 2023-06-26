@@ -559,7 +559,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if (!($db_details = $this->_plugins_instance->get_plugins_main_db_details($this->instance_id()))) {
+        if (!($db_details = $this->_plugins_instance->get_plugins_db_main_details($this->instance_id()))) {
             $this->reset_error();
 
             return $this->install();

@@ -10,6 +10,8 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Plugins;
 
 class PHS_Action_Plugins_integrity extends PHS_Action
 {
@@ -32,8 +34,8 @@ class PHS_Action_Plugins_integrity extends PHS_Action
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_instance */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
-         || !($plugins_instance = PHS::load_model('plugins'))) {
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($plugins_instance = PHS_Model_Plugins::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load plugins model.'));
 
             return self::default_action_result();

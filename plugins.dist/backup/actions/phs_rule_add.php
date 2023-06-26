@@ -8,6 +8,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\backup\models\PHS_Model_Rules;
 
 class PHS_Action_Rule_add extends PHS_Action
 {
@@ -55,7 +56,7 @@ class PHS_Action_Rule_add extends PHS_Action
         }
 
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))) {
+        if (!($rules_model = PHS_Model_Rules::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup rules model.'));
 
             return self::default_action_result();

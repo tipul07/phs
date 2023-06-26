@@ -5,6 +5,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Instantiable;
+use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Agent_jobs;
 
 // ! @version 1.00
@@ -27,7 +28,7 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -130,7 +131,7 @@ class PHS_Agent extends PHS_Registry
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
         }
 
         if (empty($job_data)
@@ -186,7 +187,7 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -231,7 +232,7 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -279,7 +280,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($plugins_model = PHS::load_model('plugins'))) {
+        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             self::st_set_error(self::ERR_AVAILABLE_ACTIONS, self::_t('Couldn\'t load plugins model.'));
 
             return false;
@@ -407,7 +408,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -451,7 +452,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         if (empty($agent_jobs_model)
-        && !($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        && !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -493,7 +494,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -778,7 +779,7 @@ class PHS_Agent extends PHS_Registry
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
         }
 
         if (empty($agent_jobs_model)
@@ -830,7 +831,7 @@ class PHS_Agent extends PHS_Registry
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
         }
 
         if (empty($job_data)

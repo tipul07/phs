@@ -839,7 +839,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         $this->reset_error();
 
         if (empty($model_name)
-         || !($model_instance = PHS::load_model($model_name, $plugin ?: false))
+         || !($model_instance = PHS::load_model($model_name, $plugin ?: null))
          || !($instance_id = $model_instance->instance_id())) {
             $this->set_error(self::ERR_PARAMETERS,
                 $this->_pt('Couldn\'t initiate model %s to extract settings.',

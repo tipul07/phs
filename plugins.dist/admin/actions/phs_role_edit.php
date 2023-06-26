@@ -6,6 +6,9 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\system\core\models\PHS_Model_Plugins;
 
 class PHS_Action_Role_edit extends PHS_Action
 {
@@ -35,9 +38,9 @@ class PHS_Action_Role_edit extends PHS_Action
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
-         || !($roles_model = PHS::load_model('roles'))
-         || !($plugins_model = PHS::load_model('plugins'))) {
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($roles_model = PHS_Model_Roles::get_instance())
+         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

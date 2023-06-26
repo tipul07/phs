@@ -11,6 +11,7 @@ use phs\PHS_Session;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Language;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $hook_args = PHS_Hooks::default_language_definition_hook_args();
 $hook_args['languages_arr'] = PHS_Language::get_defined_languages();
@@ -46,7 +47,7 @@ if (($url_lang = PHS_Params::_gp(PHS_Language::LANG_URL_PARAMETER))
 // Checking current user's selected language only for session scopes
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (!PHS::prevent_session()
- && ($accounts_model = PHS::load_model('accounts', 'accounts'))
+ && ($accounts_model = PHS_Model_Accounts::get_instance())
  && ($current_user = PHS::user_logged_in())) {
     if (!($account_language = $accounts_model->get_account_language($current_user))) {
         $account_language = false;

@@ -2,15 +2,15 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Language;
 use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $cuser_arr = PHS::user_logged_in();
 
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
     $accounts_model = false;
 } else {
     if (!($accounts_plugin_settings = $accounts_model->get_plugin_settings())) {
