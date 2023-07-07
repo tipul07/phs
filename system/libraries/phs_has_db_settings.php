@@ -253,6 +253,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'group_fields' => false,
             // Should group fold/unfold when displayed in settings interface?
             'group_foldable' => true,
+
+            // Do not render this field (will be managed by a custom save option)
+            'skip_rendering' => false,
         ];
     }
 

@@ -10,6 +10,7 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
 if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())
  && $accounts_plugin->plugin_active()) {
+    PHS_Logger::define_channel($accounts_plugin::LOG_LOGINS);
     PHS_Logger::define_channel($accounts_plugin::LOG_IMPORT);
 
     if (!PHS::prevent_session()) {

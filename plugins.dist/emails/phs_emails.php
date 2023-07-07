@@ -203,7 +203,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
                     .'<br/>'."\n"
                     .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
                     .'<br/>'."\n"
-                    .'Best wishes,<br/>'."\n"
+                    .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
+                    .'<br/>'."\n"
                     .PHS_SITE_NAME.' team<br/>'."\n";
 
                 if (!($hook_results = PHS_Hooks::trigger_email($hook_args))
@@ -694,7 +695,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if( !is_array( $hook_args['route_settings'] ) ) {
+        if (!is_array($hook_args['route_settings'])) {
             $smtp_settings = [];
         } else {
             $smtp_settings = $hook_args['route_settings'];
@@ -743,9 +744,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 $this->set_error(self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
             }
 
-            if( ($debugging_log = $smtp_library->debug_log()) ) {
+            if (($debugging_log = $smtp_library->debug_log())) {
                 $debugging_str = '';
-                foreach( $debugging_log as $cmd_arr ) {
+                foreach ($debugging_log as $cmd_arr) {
                     $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
                 }
 

@@ -916,7 +916,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return array Array with parts of parsed URL
      */
-    public static function myparse_url(string $str): array
+    public static function myparse_url(string $str) : array
     {
         $ret = [];
         $ret['scheme'] = '';

@@ -32,7 +32,8 @@ foreach ($email_routes as $route_name => $route_arr) {
 
         <div style="margin-bottom:10px;">
             <label for="routes_<?php echo $route_safe_name; ?>_smtp_user" style="width:150px !important;"><?php echo $this->_pt('Username'); ?></label>
-            <input type="text" class="form-control" style="width:250px;" autocomplete="off"
+            <input type="text" class="form-control" style="width:250px;"
+                   autocomplete="routes_<?php echo $route_safe_name; ?>_smtp_user"
                    name="routes[<?php echo $route_name; ?>][smtp_user]"
                    id="routes_<?php echo $route_safe_name; ?>_smtp_user"
                    value="<?php echo form_str($route_arr['smtp_user']); ?>" />
@@ -40,10 +41,11 @@ foreach ($email_routes as $route_name => $route_arr) {
 
         <div style="margin-bottom:10px;">
             <label for="routes_<?php echo $route_safe_name; ?>_smtp_pass" style="width:150px !important;"><?php echo $this->_pt('Password'); ?></label>
-            <input type="password" class="form-control" style="width:250px;" autocomplete="off"
+            <input type="password" class="form-control" style="width:250px;"
+                   autocomplete="routes_<?php echo $route_safe_name; ?>_smtp_pass"
                    name="routes[<?php echo $route_name; ?>][smtp_pass]"
                    id="routes_<?php echo $route_safe_name; ?>_smtp_pass"
-                   value="<?php echo (empty( $route_arr['smtp_pass'] )?'':(!empty($emails_plugin) ? $emails_plugin::UNCHANGED_SMTP_PASS : '**********')); ?>" />
+                   value="<?php echo empty($route_arr['smtp_pass']) ? '' : (!empty($emails_plugin) ? $emails_plugin::UNCHANGED_SMTP_PASS : '**********'); ?>" />
         </div>
 
         <div style="margin-bottom:10px;">
