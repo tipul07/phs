@@ -58,11 +58,11 @@ class PHS_Smtp extends PHS_Library
 
     private array $debug_log = [];
 
-    private static array $AUTHENTICATION_METHODS_ARR =
-        [self::AUTH_AUTO_DETECT, self::AUTH_CRAM_SHA1, self::AUTH_CRAM_MD5, self::AUTH_LOGIN, self::AUTH_PLAIN];
+    private static array $AUTHENTICATION_METHODS_ARR
+        = [self::AUTH_AUTO_DETECT, self::AUTH_CRAM_SHA1, self::AUTH_CRAM_MD5, self::AUTH_LOGIN, self::AUTH_PLAIN];
 
-    private static array $ENCRYPTIONS_ARR =
-        [self::ENCRYPTION_NONE, self::ENCRYPTION_SSL, self::ENCRYPTION_TLS];
+    private static array $ENCRYPTIONS_ARR
+        = [self::ENCRYPTION_NONE, self::ENCRYPTION_SSL, self::ENCRYPTION_TLS];
 
     /**
      * @param false|array $params
@@ -80,41 +80,41 @@ class PHS_Smtp extends PHS_Library
         $this->reset_error();
     }
 
-    public function get_authentication_methods(): array
+    public function get_authentication_methods() : array
     {
         return self::$AUTHENTICATION_METHODS_ARR;
     }
 
-    public function valid_authentication($method): bool
+    public function valid_authentication($method) : bool
     {
         $method = strtoupper(trim($method));
 
         return in_array($method, self::$AUTHENTICATION_METHODS_ARR, true);
     }
 
-    public function get_encryption_types(): array
+    public function get_encryption_types() : array
     {
         return self::$ENCRYPTIONS_ARR;
     }
 
-    public function valid_encryption($item): bool
+    public function valid_encryption($item) : bool
     {
         $item = strtolower(trim($item));
 
         return in_array($item, self::$ENCRYPTIONS_ARR, true);
     }
 
-    public function debug_log(): array
+    public function debug_log() : array
     {
         return $this->debug_log;
     }
 
     /**
-     * @param array|null $params
+     * @param null|array $params
      *
-     * @return array|null
+     * @return null|array
      */
-    public function settings(?array $params = null): ?array
+    public function settings(?array $params = null) : ?array
     {
         if ($params === null) {
             return $this->smtp_settings;
@@ -138,11 +138,11 @@ class PHS_Smtp extends PHS_Library
     }
 
     /**
-     * @param array|null $params
+     * @param null|array $params
      *
-     * @return array|null
+     * @return null|array
      */
-    public function email_details(?array $params = null): ?array
+    public function email_details(?array $params = null) : ?array
     {
         if ($params === null) {
             return $this->email_settings;
@@ -165,11 +165,11 @@ class PHS_Smtp extends PHS_Library
     }
 
     /**
-     * @param array|null $params
+     * @param null|array $params
      *
      * @return bool
      */
-    public function send(?array $params = null): bool
+    public function send(?array $params = null) : bool
     {
         $this->reset_error();
 
@@ -336,12 +336,12 @@ class PHS_Smtp extends PHS_Library
         return true;
     }
 
-    public function is_connected(): bool
+    public function is_connected() : bool
     {
         return !empty($this->fd);
     }
 
-    protected function _read(): string
+    protected function _read() : string
     {
         if (!$this->is_connected()) {
             return '';
@@ -358,7 +358,7 @@ class PHS_Smtp extends PHS_Library
         return trim($response);
     }
 
-    protected function _write($cmd): bool
+    protected function _write($cmd) : bool
     {
         if (!$this->is_connected()) {
             return false;
@@ -367,21 +367,21 @@ class PHS_Smtp extends PHS_Library
         return (bool)@fwrite($this->fd, $cmd.self::EOL);
     }
 
-    protected function _add_debug_log( $cmd, $response ): void
+    protected function _add_debug_log($cmd, $response) : void
     {
         $this->debug_log[] = [
-            'cmd' => $cmd,
+            'cmd'      => $cmd,
             'response' => $response,
         ];
     }
 
     /**
      * @param string $cmd
-     * @param string|null $expected
+     * @param null|string $expected
      *
      * @return null|string
      */
-    protected function _exec(string $cmd, ?string $expected = null): ?string
+    protected function _exec(string $cmd, ?string $expected = null) : ?string
     {
         if (!$this->_write($cmd)) {
             return null;
@@ -391,24 +391,24 @@ class PHS_Smtp extends PHS_Library
 
         if ($expected !== null
             && (!$response || !preg_match('/^'.$expected.'/S', $response))) {
-            $this->_add_debug_log( $cmd, 'Expected ['.$expected.'], got ['.($response ?? 'N/A').']' );
+            $this->_add_debug_log($cmd, 'Expected ['.$expected.'], got ['.($response ?? 'N/A').']');
             $this->set_error(self::ERR_NOT_EXPECTED, 'Expected ['.$expected.'], got ['.($response ?? 'N/A').']');
 
             return null;
         }
 
-        $this->_add_debug_log( $cmd, $response );
+        $this->_add_debug_log($cmd, $response);
 
         return $response;
     }
 
     /**
      * @param string $response
-     * @param array|null $smtp_settings
+     * @param null|array $smtp_settings
      *
      * @return bool
      */
-    protected function _authenticate(string $response, ?array $smtp_settings = null): bool
+    protected function _authenticate(string $response, ?array $smtp_settings = null) : bool
     {
         if (!$this->is_connected()) {
             return false;
@@ -451,7 +451,7 @@ class PHS_Smtp extends PHS_Library
                 if (null === $this->_exec(
                     base64_encode($smtp_settings['smtp_user'].' '.hash_hmac($short_auth_string, base64_decode(preg_replace('/^334 /', '', trim($auth_request))), $smtp_settings['smtp_pass'])),
                     235
-                    )) {
+                )) {
                     return false;
                 }
                 break;
@@ -488,7 +488,6 @@ class PHS_Smtp extends PHS_Library
                 }
 
                 return $auth_success;
-
             default:
                 return false;
         }
@@ -496,7 +495,7 @@ class PHS_Smtp extends PHS_Library
         return true;
     }
 
-    protected function _connect(): bool
+    protected function _connect() : bool
     {
         if ($this->is_connected()) {
             return true;
@@ -529,7 +528,7 @@ class PHS_Smtp extends PHS_Library
 
         $response = trim($this->_read());
 
-        $this->_add_debug_log( '', $response );
+        $this->_add_debug_log('', $response);
 
         $this->helo_word = ((stripos($response, 'ESMTP') !== false) ? 'EHLO' : 'HELO');
         if (!($response = $this->_exec($this->helo_word.' '.$smtp_settings['localhost'], '250'))) {
@@ -563,11 +562,11 @@ class PHS_Smtp extends PHS_Library
         return $this->_authenticate($response);
     }
 
-    private function _disconnect(): void
+    private function _disconnect() : void
     {
         if ($this->is_connected()) {
             $this->_exec('QUIT');
-            if( $this->fd ) {
+            if ($this->fd) {
                 @fclose($this->fd);
             }
             $this->fd = 0;

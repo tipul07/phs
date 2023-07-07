@@ -45,7 +45,7 @@ foreach ($email_routes as $route_name => $route_arr) {
                    autocomplete="routes_<?php echo $route_safe_name; ?>_smtp_pass"
                    name="routes[<?php echo $route_name; ?>][smtp_pass]"
                    id="routes_<?php echo $route_safe_name; ?>_smtp_pass"
-                   value="<?php echo (empty( $route_arr['smtp_pass'] )?'':(!empty($emails_plugin) ? $emails_plugin::UNCHANGED_SMTP_PASS : '**********')); ?>" />
+                   value="<?php echo empty($route_arr['smtp_pass']) ? '' : (!empty($emails_plugin) ? $emails_plugin::UNCHANGED_SMTP_PASS : '**********'); ?>" />
         </div>
 
         <div style="margin-bottom:10px;">

@@ -377,9 +377,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( $this->should_log_account_logins() ) {
-            PHS_Logger::notice('LOGOUT Account #'.($db_details['user_db_data']['id'] ?? 0).': '.
-                               ($db_details['user_db_data']['nick'] ?? '??').', IP '.(request_ip() ?? '-'),
+        if ($this->should_log_account_logins()) {
+            PHS_Logger::notice('LOGOUT Account #'.($db_details['user_db_data']['id'] ?? 0).': '
+                               .($db_details['user_db_data']['nick'] ?? '??').', IP '.(request_ip() ?? '-'),
                 self::LOG_LOGINS);
         }
 
@@ -510,9 +510,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if( $this->should_log_account_logins() ) {
-            PHS_Logger::notice('LOGIN Account #'.$account_arr['id'].': '.
-                               $account_arr['nick'].', IP '.(request_ip() ?? '-'),
+        if ($this->should_log_account_logins()) {
+            PHS_Logger::notice('LOGIN Account #'.$account_arr['id'].': '
+                               .$account_arr['nick'].', IP '.(request_ip() ?? '-'),
                 self::LOG_LOGINS);
         }
 
