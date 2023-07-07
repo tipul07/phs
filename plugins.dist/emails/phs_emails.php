@@ -203,7 +203,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
                     .'<br/>'."\n"
                     .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
                     .'<br/>'."\n"
-                    .'Best wishes,<br/>'."\n"
+                    .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'                    .'Best wishes,<br/>'."\n"
+                    .'<br/>'."\n"
                     .PHS_SITE_NAME.' team<br/>'."\n";
 
                 if (!($hook_results = PHS_Hooks::trigger_email($hook_args))

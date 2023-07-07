@@ -18,7 +18,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 {
     public const ERR_LOGOUT = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002, ERR_TOKEN = 40003;
 
-    public const LOG_IMPORT = 'phs_accounts_import.log';
+    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_LOGINS = 'phs_logins.log';
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
@@ -62,6 +62,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 'group_fields' => [
                     'email_mandatory' => [
                         'display_name' => $this->_pt('Email mandatory at registration'),
+                        'display_hint' => $this->_pt('Should users provide emails when registering?'),
                         'type'         => PHS_Params::T_BOOL,
                         'default'      => true,
                     ],
@@ -182,9 +183,23 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'type'         => PHS_Params::T_INT,
                         'default'      => 60, // 1 hour
                     ],
+                    'log_account_logins' => [
+                        'display_name' => $this->_pt('Log account logins'),
+                        'display_hint' => $this->_pt('Should system log account logins? Used for audit reports.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function should_log_account_logins() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_logins']);
     }
 
     /**
@@ -362,6 +377,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
+        if( $this->should_log_account_logins() ) {
+            PHS_Logger::notice('LOGOUT Account #'.($db_details['user_db_data']['id'] ?? 0).': '.
+                               ($db_details['user_db_data']['nick'] ?? '??').', IP '.(request_ip() ?? '-'),
+                self::LOG_LOGINS);
+        }
+
         return true;
     }
 
@@ -487,6 +508,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $this->set_error(self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
 
             return false;
+        }
+
+        if( $this->should_log_account_logins() ) {
+            PHS_Logger::notice('LOGIN Account #'.$account_arr['id'].': '.
+                               $account_arr['nick'].', IP '.(request_ip() ?? '-'),
+                self::LOG_LOGINS);
         }
 
         PHS::user_logged_in(true);
