@@ -157,8 +157,8 @@ if ($current_scope == PHS_Scope::SCOPE_AJAX) {
             ?>
                     <tr>
                         <td style="text-align: center;"><?php echo $knti; ?></td>
-                        <td><div style="white-space: nowrap;overflow: hidden;" title="<?php echo self::_e($file_arr['file']); ?>" class="no-title-skinning"><?php echo $file_arr['file']; ?></div></td>
-                        <td><div style="text-align: center;" title="<?php echo self::_e($this->_pt('%s bytes', number_format($file_arr['size']))); ?>"><?php echo format_filesize($file_arr['size']); ?></div></td>
+                        <td><div style="white-space: nowrap;overflow: hidden;" title="<?php echo $this::_e($file_arr['file'] ?? ''); ?>" class="no-title-skinning"><?php echo $file_arr['file']; ?></div></td>
+                        <td><div style="text-align: center;" title="<?php echo $this::_e($this->_pt('%s bytes', number_format($file_arr['size']))); ?>"><?php echo format_filesize($file_arr['size']); ?></div></td>
                         <td>
                             <a href="<?php echo PHS::url(['p' => 'backup', 'a' => 'd'], ['brfid' => $file_arr['id']]); ?>" onfocus="this.blur()"><i class="fa fa-download action-icons" title="<?php echo $this->_pt('Download result file'); ?>"></i></a>
                             <a href="javascript:void(0)" onfocus="this.blur()" onclick="result_file_delete_result_file( '<?php echo $file_arr['id']; ?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete result file'); ?>"></i></a>
@@ -170,7 +170,7 @@ if ($current_scope == PHS_Scope::SCOPE_AJAX) {
         ?>
                 <tr>
                     <td colspan="2" style="text-align: right;padding:5px;"><strong><?php echo $this->_pt('TOTAL'); ?></strong></td>
-                    <td><div style="text-align: center;" title="<?php echo self::_e($this->_pt('%s bytes', number_format($result_arr['size']))); ?>"><strong><?php echo format_filesize($result_arr['size']); ?></strong></div></td>
+                    <td><div style="text-align: center;" title="<?php echo $this::_e($this->_pt('%s bytes', number_format($result_arr['size']))); ?>"><strong><?php echo format_filesize($result_arr['size']); ?></strong></div></td>
                     <td>&nbsp;</td>
                 </tr>
             </tbody>
@@ -231,7 +231,7 @@ function result_file_delete_result_file( id )
                 new_data.redirect_to_url = '';
 
             <?php
-if (PHS_Scope::current_scope() == PHS_Scope::SCOPE_AJAX) {
+if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_AJAX) {
     ?>
                 if( !we_have_error_messages
                  && new_data.redirect_to_url.length )
@@ -240,7 +240,7 @@ if (PHS_Scope::current_scope() == PHS_Scope::SCOPE_AJAX) {
                     PHS_JSEN.reloadAjaxDialog({
                         suffix: "backup_result_files_",
                         url: new_data.redirect_to_url,
-                        url_data: { result_id: <?php echo $result_arr['id']; ?>, back_page: "<?php echo $this->_e($back_page); ?>" }
+                        url_data: { result_id: <?php echo $result_arr['id']; ?>, back_page: "<?php echo $this::_e($back_page); ?>" }
                     });
 
                     // Foobar response so PHS_JSEN will not parse results (we must reload modal)

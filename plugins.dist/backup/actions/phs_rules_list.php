@@ -650,10 +650,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             $extra_str = ' <i class="fa fa-exclamation-circle status_rejected" title="'.$this->_pt('This location is not a directory. Backups will not be saved here! Please fix this by editing the rule or fixing directory.').'"></i>';
         }
 
-        return '<span title="'.self::_e($location_arr['full_path']).'" class="no-title-skinning">'.$location_arr['location_path'].'</span>'.$extra_str
-            .(empty($location_stats_arr) ? ''
-                : '<br/>'.$this->_pt('Total: %s, Free: %s', format_filesize($location_stats_arr['total_space']), format_filesize($location_stats_arr['free_space']))
-            );
+        return '<span title="'.self::_e($location_arr['full_path'] ?? '').'" class="no-title-skinning">'.($location_arr['location_path'] ?? '-').'</span>'
+               .$extra_str
+               .(empty($location_stats_arr) ? ''
+                : '<br/>'.$this->_pt('Total: %s, Free: %s', format_filesize($location_stats_arr['total_space'] ?? 0), format_filesize($location_stats_arr['free_space'] ?? 0))
+               );
     }
 
     public function display_backup_rule_what($params)

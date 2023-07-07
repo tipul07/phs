@@ -211,6 +211,10 @@ function phs_display_plugin_settings_all_fields($settings_fields, $form_data, $p
  */
 function phs_display_plugin_settings_field($field_name, $field_details, $form_data, $plugin_settings, $fthis, $plugin_obj)
 {
+    if (!empty($field_details['skip_rendering'])) {
+        return;
+    }
+
     if (!empty($field_details['display_placeholder'])) {
         $field_placeholder = $field_details['display_placeholder'];
     } else {
