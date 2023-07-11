@@ -18,7 +18,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 {
     public const ERR_LOGOUT = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002, ERR_TOKEN = 40003;
 
-    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_LOGINS = 'phs_logins.log';
+    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_SECURITY = 'phs_security.log';
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
@@ -183,9 +183,33 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'type'         => PHS_Params::T_INT,
                         'default'      => 60, // 1 hour
                     ],
+                ],
+            ],
+            'security_group' => [
+                'display_name' => $this->_pt('Account Security Settings'),
+                'display_hint' => $this->_pt('Settings related to account security audit policies.'),
+                'group_fields' => [
+                    'log_account_creation' => [
+                        'display_name' => $this->_pt('Log account creation'),
+                        'display_hint' => $this->_pt('Should system log account creation?'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
                     'log_account_logins' => [
                         'display_name' => $this->_pt('Log account logins'),
-                        'display_hint' => $this->_pt('Should system log account logins? Used for audit reports.'),
+                        'display_hint' => $this->_pt('Should system log account logins?'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'log_password_changes' => [
+                        'display_name' => $this->_pt('Log password changes'),
+                        'display_hint' => $this->_pt('Should system log account password changes?'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'log_roles_changes' => [
+                        'display_name' => $this->_pt('Log roles changes'),
+                        'display_hint' => $this->_pt('Should system log account roles changes?'),
                         'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
@@ -197,9 +221,33 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
+    public function should_log_account_creation() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_creation']);
+    }
+
+    /**
+     * @return bool
+     */
     public function should_log_account_logins() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_logins']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function should_log_password_changes() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_password_changes']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function should_log_roles_changes() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_roles_changes']);
     }
 
     /**
@@ -379,8 +427,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         if ($this->should_log_account_logins()) {
             PHS_Logger::notice('LOGOUT Account #'.($db_details['user_db_data']['id'] ?? 0).': '
-                               .($db_details['user_db_data']['nick'] ?? '??').', IP '.(request_ip() ?? '-'),
-                self::LOG_LOGINS);
+                               .($db_details['user_db_data']['nick'] ?? '??').'.',
+                self::LOG_SECURITY);
         }
 
         return true;
@@ -511,9 +559,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if ($this->should_log_account_logins()) {
-            PHS_Logger::notice('LOGIN Account #'.$account_arr['id'].': '
-                               .$account_arr['nick'].', IP '.(request_ip() ?? '-'),
-                self::LOG_LOGINS);
+            PHS_Logger::notice('LOGIN Account #'.$account_arr['id'].': '.$account_arr['nick'].'.',
+                self::LOG_SECURITY);
         }
 
         PHS::user_logged_in(true);
