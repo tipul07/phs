@@ -899,7 +899,7 @@ class PHS_Model_Roles extends PHS_Model
             $insert_ids = [];
             $delete_ids = [];
             foreach ($role_ids_arr as $role_id) {
-                if (!in_array($role_id, $existing_ids)) {
+                if (!in_array($role_id, $existing_ids, true)) {
                     $insert_ids[] = $role_id;
                 }
             }
@@ -914,7 +914,7 @@ class PHS_Model_Roles extends PHS_Model
 
             if (empty($params['append_roles'])) {
                 foreach ($existing_ids as $role_id) {
-                    if (!in_array($role_id, $role_ids_arr)) {
+                    if (!in_array($role_id, $role_ids_arr, true)) {
                         $delete_ids[] = $role_id;
                     }
                 }

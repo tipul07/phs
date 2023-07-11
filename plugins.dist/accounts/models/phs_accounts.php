@@ -1174,14 +1174,23 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->edit($account_arr, $edit_params);
     }
 
-    public function activate_account_after_registration($account_data, $params = false)
+    public function activate_account_after_registration($account_data): ?array
     {
+        $this->reset_error();
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
+
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))
          || !$this->needs_activation($account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
-            return false;
+            return null;
         }
 
         $edit_arr = [];
@@ -1191,7 +1200,17 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params['{activate_after_registration}'] = true;
         $edit_params['fields'] = $edit_arr;
 
-        return $this->edit($account_arr, $edit_params);
+        if( !($result = $this->edit($account_arr, $edit_params)) ) {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+            return null;
+        }
+
+        if( $accounts_plugin->should_log_account_creation() ) {
+            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated after registration.',
+                $accounts_plugin::LOG_SECURITY);
+        }
+
+        return $result;
     }
 
     /**
@@ -1203,6 +1222,13 @@ class PHS_Model_Accounts extends PHS_Model
     public function activate_account($account_data, $params = false)
     {
         $this->reset_error();
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
 
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))) {
@@ -1234,7 +1260,17 @@ class PHS_Model_Accounts extends PHS_Model
 
         $edit_params['fields'] = $edit_arr;
 
-        return $this->edit($account_arr, $edit_params);
+        if( !($result = $this->edit($account_arr, $edit_params)) ) {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+            return null;
+        }
+
+        if( $accounts_plugin->should_log_account_creation() ) {
+            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated.',
+                $accounts_plugin::LOG_SECURITY);
+        }
+
+        return $result;
     }
 
     /**
@@ -1243,15 +1279,22 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array|bool|mixed
      */
-    public function inactivate_account($account_data, $params = false)
+    public function inactivate_account($account_data, $params = false): ?array
     {
         $this->reset_error();
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
 
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params) || !is_array($params)) {
@@ -1274,7 +1317,17 @@ class PHS_Model_Accounts extends PHS_Model
 
         $edit_params['fields'] = $edit_arr;
 
-        return $this->edit($account_arr, $edit_params);
+        if( !($result = $this->edit($account_arr, $edit_params)) ) {
+            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+            return null;
+        }
+
+        if( $accounts_plugin->should_log_account_creation() ) {
+            PHS_Logger::notice('INACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was inactivated.',
+                $accounts_plugin::LOG_SECURITY);
+        }
+
+        return $result;
     }
 
     /**
@@ -1283,13 +1336,22 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array|bool|mixed
      */
-    public function delete_account($account_data, $params = false)
+    public function delete_account($account_data, $params = false): ?array
     {
+        $this->reset_error();
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
+
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_deleted($account_arr)) {
@@ -1327,12 +1389,17 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params['fields'] = $edit_arr;
 
         if (!($new_account_arr = $this->edit($account_arr, $edit_params))) {
-            return false;
+            return null;
         }
 
         // Send account as not deleted to roles un-linking method
         if (!empty($params['unlink_roles'])) {
             PHS_Roles::unlink_all_roles_from_user($account_arr);
+        }
+
+        if( $accounts_plugin->should_log_account_creation() ) {
+            PHS_Logger::notice('DELETE Account #'.$account_arr['id'].': '.$account_arr['nick'].' was deleted.',
+                $accounts_plugin::LOG_SECURITY);
         }
 
         $account_arr = $new_account_arr;
@@ -2075,9 +2142,11 @@ class PHS_Model_Accounts extends PHS_Model
         $insert_arr['{users_details}'] = false;
         $insert_arr['{pass_salt}'] = false;
 
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining account details model instance.'));
+        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())
+            || !($accounts_plugin = $this->get_plugin_instance()) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -2167,6 +2236,18 @@ class PHS_Model_Accounts extends PHS_Model
 
                 return false;
             }
+        }
+
+        if( $accounts_plugin->should_log_account_creation() ) {
+            PHS_Logger::notice('CREATION Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was created.',
+                $accounts_plugin::LOG_SECURITY);
+        }
+
+        if( !empty( $roles_arr )
+         && $accounts_plugin->should_log_roles_changes() ) {
+            PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was assigned roles: '.
+                               implode( ', ', $roles_arr ).'.',
+                $accounts_plugin::LOG_SECURITY);
         }
 
         $hook_args = PHS_Hooks::default_user_account_hook_args();
@@ -2371,13 +2452,19 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function edit_after_users($existing_data, $edit_arr, $params)
     {
-        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])
-            && !($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
-            }
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
+        if( !($plugin_obj = PHS_Plugin_Accounts::get_instance()) ) {
+            $plugin_obj = null;
+        }
 
-            return false;
+        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])) {
+            if (!($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
+                if (!$this->has_error()) {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
+                }
+
+                return false;
+            }
         }
 
         if (!empty($params['{password_was_changed}'])) {
@@ -2438,6 +2525,11 @@ class PHS_Model_Accounts extends PHS_Model
                     PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'pass_changed_email_bg', 'c' => 'index_bg'], ['uid' => $existing_data['id']]);
                 }
             }
+
+            if( $plugin_obj->should_log_password_changes() ) {
+                PHS_Logger::notice('PASSWORD Account #'.$existing_data['id'].': '.$existing_data['nick'].' password changed.',
+                    $plugin_obj::LOG_SECURITY);
+            }
         }
 
         if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
@@ -2451,6 +2543,12 @@ class PHS_Model_Accounts extends PHS_Model
                 }
 
                 return false;
+            }
+
+            if( $plugin_obj->should_log_roles_changes() ) {
+                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '.
+                                   implode( ', ', $params['{account_roles}'] ).'.',
+                    $plugin_obj::LOG_SECURITY);
             }
         }
 
@@ -2478,10 +2576,9 @@ class PHS_Model_Accounts extends PHS_Model
         $structure_hook_args = PHS_Hooks::default_account_structure_hook_args();
         $structure_hook_args['account_data'] = $existing_data['id'];
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
-        if (($plugin_obj = PHS_Plugin_Accounts::get_instance())
-         && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
-         && !empty($account_structure['account_structure'])) {
+        if ($plugin_obj !== null
+            && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
+            && !empty($account_structure['account_structure'])) {
             $existing_data = $account_structure['account_structure'];
         }
 
