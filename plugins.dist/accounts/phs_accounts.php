@@ -49,7 +49,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         self::PASS_POLICY_SETUP     => 'Setup at fist login',
     ];
 
-    private static $_session_key = 'PHS_sess';
+    private static string $_session_key = 'PHS_sess';
 
     /**
      * @inheritdoc
@@ -216,7 +216,39 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     ],
                 ],
             ],
+            'lockout_group' => [
+                'display_name' => $this->_pt('Account Lockout Settings'),
+                'display_hint' => $this->_pt('Settings related to account lockout policy.'),
+                'group_fields' => [
+                    'lockout_enabled' => [
+                        'display_name' => $this->_pt('Account lockout enabled?'),
+                        'display_hint' => $this->_pt('Is account lockout enabled on this platform'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'lockout_failed_count' => [
+                        'display_name' => $this->_pt('Lockout after failed logins'),
+                        'display_hint' => $this->_pt('After how many failed logins should system lockout the account'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 5,
+                    ],
+                    'lockout_period_minutes' => [
+                        'display_name' => $this->_pt('Lockout interval (minutes)'),
+                        'display_hint' => $this->_pt('How many minutes should platform lock the account'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 15,
+                    ],
+                ],
+            ],
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function lockout_is_enabled() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['lockout_enabled']);
     }
 
     /**
@@ -1049,9 +1081,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function get_guest_roles_and_role_units()
+    public function get_guest_roles_and_role_units(): array
     {
-        static $resulting_roles = false;
+        static $resulting_roles = null;
 
         if (!empty($resulting_roles)) {
             return $resulting_roles;
@@ -1082,11 +1114,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     /**
      * @param string $json_file
-     * @param false|array $params
+     * @param null|array $params
      *
      * @return false|array
      */
-    public function import_accounts_from_json_file($json_file, $params = false)
+    public function import_accounts_from_json_file(string $json_file, array $params = null)
     {
         $this->reset_error();
 
@@ -1112,11 +1144,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     /**
      * @param array $json_arr
-     * @param false|array $params
+     * @param null|array $params
      *
      * @return false|array
      */
-    public function import_accounts_from_json_array($json_arr, $params = false)
+    public function import_accounts_from_json_array(array $json_arr, array $params = null)
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -1132,7 +1164,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        if (empty($json_arr) || !is_array($json_arr)
+        if (empty($json_arr)
          || empty($json_arr['accounts']) || !is_array($json_arr['accounts'])) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Accounts import data is invalid.'));
 
@@ -1889,16 +1921,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return null;
         }
 
-        $accounts_model = $this->_accounts_model;
-
-        if (empty($account_ids) || !is_array($account_ids)) {
-            $account_ids = [];
-            $new_accounts_ids = [];
-        } else {
-            $new_accounts_ids = self::extract_integers_from_array($account_ids);
+        if (!empty($account_ids)) {
+            $account_ids = self::extract_integers_from_array($account_ids);
         }
 
-        if (!($uflow_arr = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
+        if (!($uflow_arr = $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error querying accounts for export.'));
 
             return null;
@@ -1906,13 +1933,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $list_arr = $uflow_arr;
         $list_arr['get_query_id'] = true;
-        if (!empty($new_accounts_ids)) {
-            $list_arr['fields']['id'] = ['check' => 'IN', 'value' => '('.implode(',', $new_accounts_ids).')'];
+        if (!empty($account_ids)) {
+            $list_arr['fields']['id'] = ['check' => 'IN', 'value' => '('.implode(',', $account_ids).')'];
         }
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_accounts_model::STATUS_DELETED];
         $list_arr['flags'] = ['include_account_details'];
 
-        if (!($qid = $accounts_model->get_list($list_arr))) {
+        if (!($qid = $this->_accounts_model->get_list($list_arr))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error querying accounts for export.'));
 
             return null;
@@ -1924,7 +1951,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    private function _create_required_directories()
+    private function _create_required_directories(): bool
     {
         $this->reset_error();
 
@@ -1953,14 +1980,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return string
      */
-    public static function session_key($key = null)
+    public static function session_key(?string $key = null): string
     {
         if ($key === null) {
             return self::$_session_key;
-        }
-
-        if (!is_string($key)) {
-            return false;
         }
 
         self::$_session_key = $key;

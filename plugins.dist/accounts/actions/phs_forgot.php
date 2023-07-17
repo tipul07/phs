@@ -78,6 +78,8 @@ class PHS_Action_Forgot extends PHS_Action
                 }
             } elseif (!($account_arr = $accounts_model->get_details_fields(['email' => $email, 'status' => $accounts_model::STATUS_ACTIVE]))) {
                 PHS_Notifications::add_error_notice($this->_pt('Invalid account.'));
+            } elseif ($accounts_model->is_locked($account_arr)) {
+                PHS_Notifications::add_error_notice($this->_pt('Account locked temporarily because of too many login attempts.'));
             } else {
                 if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg'], ['uid' => $account_arr['id']])) {
                     if (self::st_has_error()) {

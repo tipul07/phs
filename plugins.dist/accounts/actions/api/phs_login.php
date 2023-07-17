@@ -80,8 +80,26 @@ class PHS_Action_Login extends PHS_Api_action
         } // hardcoded block
 
         if (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
-         || !$accounts_model->check_pass($account_arr, $pass)
          || !$accounts_model->is_active($account_arr)) {
+            return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, $accounts_model::ERR_LOGIN,
+                $this->_pt('Bad user or password.'));
+        }
+
+        if ($accounts_model->is_locked($account_arr)) {
+            return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, $accounts_model::ERR_LOGIN,
+                $this->_pt('Account locked temporarily because of too many login attempts.'));
+        }
+
+        if (!$accounts_model->check_pass($account_arr, $pass)) {
+            if( ($new_account = $accounts_model->manage_failed_password($account_arr)) ) {
+                $account_arr = $new_account;
+
+                if ($accounts_model->is_locked($account_arr)) {
+                    return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, $accounts_model::ERR_LOGIN,
+                        $this->_pt('Account locked temporarily because of too many login attempts.'));
+                }
+            }
+
             return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, $accounts_model::ERR_LOGIN,
                 $this->_pt('Bad user or password.'));
         }

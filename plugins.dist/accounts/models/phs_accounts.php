@@ -54,7 +54,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.4';
+        return '1.3.6';
     }
 
     /**
@@ -178,6 +178,14 @@ class PHS_Model_Accounts extends PHS_Model
                 && (empty($user_arr['lastlog']) || empty_db_date($user_arr['lastlog']));
     }
 
+    public function is_locked($user_data) : bool
+    {
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && !empty($user_arr['locked_date'])
+               && parse_db_date($user_arr['locked_date']) > time();
+    }
+
     public function must_setup_password($user_data) : bool
     {
         return !empty($user_data)
@@ -204,6 +212,67 @@ class PHS_Model_Accounts extends PHS_Model
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
                 && (!empty($user_arr['lastlog']) || !empty_db_date($user_arr['lastlog']));
+    }
+
+    /**
+     * Password check already failed at login step, so we only manage what to do when password failed in login flow
+     * (api or front-end)
+     * @param int|array $account_data
+     *
+     * @return null|array
+     */
+    public function manage_failed_password( $account_data ): ?array
+    {
+        $this->reset_error();
+
+        if( !($account_arr = $this->data_to_array( $account_data ))
+         || $this->is_deleted( $account_arr ) ) {
+            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+            return null;
+        }
+
+        // Check account lockout policy..
+        if( ($new_account = $this->_check_lockout_policy( $account_arr )) ) {
+            $account_arr = $new_account;
+        }
+
+        return $account_arr;
+    }
+
+    private function _check_lockout_policy( array $account_arr ): ?array
+    {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( $this->is_locked( $account_arr )
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users' ]))
+            || !($users_table = $this->get_flow_table_name($flow_arr))
+            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($settings_arr = $accounts_plugin->get_plugin_settings())
+            || !$accounts_plugin->lockout_is_enabled() ) {
+            return null;
+        }
+
+        $lockout_failed_count = $settings_arr['lockout_failed_count'] ?? 5;
+        $account_failed_count = $account_arr['failed_logins'] ?? 0;
+
+        $extra_sql = '';
+        if( $account_failed_count + 1 >= $lockout_failed_count ) {
+            $lockout_period_minutes = $settings_arr['lockout_period_minutes'] ?? 15;
+
+            $locked_date = date( self::DATETIME_DB, (time() + $lockout_period_minutes * 60) );
+
+            $extra_sql = ', locked_date = \''.$locked_date.'\'';
+            $account_arr['locked_date'] = $locked_date;
+        }
+
+        // Low level query, so we don't trigger other actions...
+        db_query( 'UPDATE `'.$users_table.'` SET failed_logins = failed_logins + 1'.
+                  $extra_sql.
+                  ' WHERE id = \''.$account_arr['id'].'\'',
+            $flow_arr['db_connection'] );
+
+        $account_arr['failed_logins'] = $account_failed_count + 1;
+
+        return $account_arr;
     }
 
     /**
@@ -519,7 +588,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array
      */
-    final public function get_statuses($lang = false)
+    final public function get_statuses($lang = false): array
     {
         static $statuses_arr = [];
 
@@ -625,7 +694,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function raw_check_pass($acc_pass, $acc_salt, $pass)
+    public function raw_check_pass($acc_pass, $acc_salt, $pass): bool
     {
         return !(empty($acc_pass) || empty($acc_salt)
          || empty($pass)
@@ -637,12 +706,12 @@ class PHS_Model_Accounts extends PHS_Model
      * @param int|array $account_data
      * @param string $pass
      *
-     * @return array|bool
+     * @return array|null
      */
-    public function check_pass($account_data, $pass)
+    public function check_pass($account_data, $pass): ?array
     {
         if (!($account_arr = $this->data_to_array($account_data))) {
-            return false;
+            return null;
         }
 
         $pass_salt = '';
@@ -655,7 +724,7 @@ class PHS_Model_Accounts extends PHS_Model
              || !isset($account_salt_arr['pass_salt'])
              || !$this->raw_check_pass($account_arr['pass'], $account_salt_arr['pass_salt'], $pass)
          )) {
-            return false;
+            return null;
         }
 
         return $account_arr;
@@ -1135,6 +1204,8 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr = [];
         $edit_arr['lastlog'] = $cdate;
         $edit_arr['lastip'] = $host;
+        $edit_arr['failed_logins'] = 0;
+        $edit_arr['locked_date'] = null;
 
         $edit_params = [];
         $edit_params['fields'] = $edit_arr;
@@ -1154,6 +1225,8 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function email_verified($account_data, $params = false)
     {
+        $this->reset_error();
+
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
@@ -1172,6 +1245,38 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params['fields'] = $edit_arr;
 
         return $this->edit($account_arr, $edit_params);
+    }
+
+    /**
+     * @param int|array $account_data
+     *
+     * @return array|null
+     */
+    public function reset_account_locking($account_data): ?array
+    {
+        $this->reset_error();
+
+        if (empty($account_data)
+         || !($account_arr = $this->data_to_array($account_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
+
+            return null;
+        }
+
+        $edit_arr = [];
+        $edit_arr['failed_logins'] = 0;
+        $edit_arr['locked_date'] = null;
+
+        $edit_params = [];
+        $edit_params['fields'] = $edit_arr;
+
+        if( !($account_arr = $this->edit($account_arr, $edit_params)) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error resetting account locking.'));
+
+            return null;
+        }
+
+        return $account_arr;
     }
 
     public function activate_account_after_registration($account_data): ?array
@@ -1767,6 +1872,14 @@ class PHS_Model_Accounts extends PHS_Model
                         'default' => 1,
                         'comment' => '1 - all tenants, 0 - check users_tenants',
                     ],
+                    'failed_logins' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'default' => 0,
+                    ],
+                    'locked_date' => [
+                        'type'  => self::FTYPE_DATETIME,
+                        'default' => null,
+                    ],
                     'deleted' => [
                         'type'  => self::FTYPE_DATETIME,
                         'index' => true,
@@ -2104,11 +2217,6 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{account_roles}'] = false;
         }
 
-        if (!PHS::is_multi_tenant()
-         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
-            $params['{account_tenants}'] = null;
-        }
-
         if (!isset($params['{append_default_roles}'])) {
             $params['{append_default_roles}'] = true;
         } else {
@@ -2176,9 +2284,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         $roles_arr = [];
         if (!empty($params['{append_default_roles}'])) {
-            if ($this->acc_is_sadmin($insert_arr)) {
-                $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN, PHS_Roles::ROLE_TENANT_ADMIN];
-            } elseif ($this->acc_is_admin($insert_arr)) {
+            if ($this->acc_is_admin($insert_arr)) {
                 $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR, PHS_Roles::ROLE_ADMIN];
             } elseif ($this->acc_is_operator($insert_arr)) {
                 $roles_arr = [PHS_Roles::ROLE_MEMBER, PHS_Roles::ROLE_OPERATOR];
@@ -2206,12 +2312,6 @@ class PHS_Model_Accounts extends PHS_Model
 
         if (!empty($roles_arr)) {
             PHS_Roles::link_roles_to_user($insert_arr, $roles_arr);
-        }
-
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
-        if (!empty($params['{account_tenants}'])
-         && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
-            $accounts_tenants_model->link_tenants_to_account($insert_arr, $params['{account_tenants}']);
         }
 
         $registration_email_params = [];
@@ -2438,11 +2538,6 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{users_details}'] = false;
         }
 
-        if (!PHS::is_multi_tenant()
-         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
-            $params['{account_tenants}'] = null;
-        }
-
         if (empty($params['{activate_after_registration}'])) {
             $params['{activate_after_registration}'] = false;
         }
@@ -2464,6 +2559,26 @@ class PHS_Model_Accounts extends PHS_Model
                 }
 
                 return false;
+            }
+        }
+
+        if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
+            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            if (!($roles_model = PHS_Model_Roles::get_instance())
+             || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
+                if ($roles_model->has_error()) {
+                    $this->copy_error($roles_model, self::ERR_EDIT);
+                } else {
+                    $roles_model->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
+                }
+
+                return false;
+            }
+
+            if( $plugin_obj->should_log_roles_changes() ) {
+                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '.
+                                   implode( ', ', $params['{account_roles}'] ).'.',
+                    $plugin_obj::LOG_SECURITY);
             }
         }
 
@@ -2529,41 +2644,6 @@ class PHS_Model_Accounts extends PHS_Model
             if( $plugin_obj->should_log_password_changes() ) {
                 PHS_Logger::notice('PASSWORD Account #'.$existing_data['id'].': '.$existing_data['nick'].' password changed.',
                     $plugin_obj::LOG_SECURITY);
-            }
-        }
-
-        if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
-            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-            if (!($roles_model = PHS_Model_Roles::get_instance())
-             || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
-                if ($roles_model->has_error()) {
-                    $this->copy_error($roles_model, self::ERR_EDIT);
-                } else {
-                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
-                }
-
-                return false;
-            }
-
-            if( $plugin_obj->should_log_roles_changes() ) {
-                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '.
-                                   implode( ', ', $params['{account_roles}'] ).'.',
-                    $plugin_obj::LOG_SECURITY);
-            }
-        }
-
-        if (PHS::is_multi_tenant()
-         && isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
-            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $account_tenants_model */
-            if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
-             || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_tenants' => false])) {
-                if ($account_tenants_model->has_error()) {
-                    $this->copy_error($account_tenants_model, self::ERR_EDIT);
-                } else {
-                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
-                }
-
-                return false;
             }
         }
 
