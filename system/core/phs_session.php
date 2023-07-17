@@ -25,7 +25,7 @@ final class PHS_Session extends PHS_Registry
         self::init();
     }
 
-    public static function init(): bool
+    public static function init() : bool
     {
         if (PHS::prevent_session()) {
             return true;
@@ -145,7 +145,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return array
      */
-    public static function validate_cookie_params(?array $options_arr = null): array
+    public static function validate_cookie_params(?array $options_arr = null) : array
     {
         if (empty($options_arr) || !is_array($options_arr)) {
             $options_arr = [];
@@ -211,13 +211,13 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param  string  $name
-     * @param  string  $val
+     * @param string $name
+     * @param string $val
      * @param null|array $params
      *
      * @return bool
      */
-    public static function set_cookie(string $name, string $val, ?array $params = null): bool
+    public static function set_cookie(string $name, string $val, ?array $params = null) : bool
     {
         self::st_reset_error();
 
@@ -241,7 +241,7 @@ final class PHS_Session extends PHS_Registry
 
         $params = self::validate_cookie_params($params);
 
-        $params['alter_globals'] = (!isset( $params['alter_globals'] ) || !empty( $params['alter_globals'] ));
+        $params['alter_globals'] = (!isset($params['alter_globals']) || !empty($params['alter_globals']));
         $params['expire_secs'] = (int)($params['expire_secs'] ?? 0);
 
         if ($params['expire_secs'] < 0) {
@@ -276,12 +276,12 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param  string  $name
+     * @param string $name
      * @param bool|array $params
      *
      * @return bool
      */
-    public static function delete_cookie(string $name, $params = false): bool
+    public static function delete_cookie(string $name, $params = false) : bool
     {
         self::st_reset_error();
 
@@ -305,7 +305,7 @@ final class PHS_Session extends PHS_Registry
 
         $params = self::validate_cookie_params($params);
 
-        $params['alter_globals'] = (!isset( $params['alter_globals'] ) || !empty( $params['alter_globals'] ));
+        $params['alter_globals'] = (!isset($params['alter_globals']) || !empty($params['alter_globals']));
 
         $time_expire = time() - 90000;
 
@@ -339,11 +339,11 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param  string  $name
+     * @param string $name
      *
      * @return null|string
      */
-    public static function get_cookie(string $name): ?string
+    public static function get_cookie(string $name) : ?string
     {
         return $_COOKIE[$name] ?? null;
     }
@@ -351,7 +351,7 @@ final class PHS_Session extends PHS_Registry
     /**
      * @return bool
      */
-    public static function start(): bool
+    public static function start() : bool
     {
         if (PHS::prevent_session()) {
             return false;
@@ -418,7 +418,7 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
-    public static function safe_session_id($id): ?string
+    public static function safe_session_id($id) : ?string
     {
         if (empty($id) || !is_string($id)
          || !preg_match('/^[-,a-zA-Z0-9]{1,128}$/', $id)) {
@@ -433,7 +433,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return array
      */
-    public static function get_session_id_dir_as_array($id): array
+    public static function get_session_id_dir_as_array($id) : array
     {
         if (empty($id) || !is_string($id)
          || !self::safe_session_id($id)
@@ -454,7 +454,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return string
      */
-    public static function get_session_id_dir($id): string
+    public static function get_session_id_dir($id) : string
     {
         if (empty($id) || !is_string($id)
          || !self::safe_session_id($id)) {
@@ -631,7 +631,7 @@ final class PHS_Session extends PHS_Registry
             return true;
         }
 
-        return (bool) self::sessions_gc($maxlifetime);
+        return (bool)self::sessions_gc($maxlifetime);
     }
 
     /**
@@ -711,12 +711,12 @@ final class PHS_Session extends PHS_Registry
         return $return_arr;
     }
 
-    public static function is_started(): bool
+    public static function is_started() : bool
     {
-        return (bool) self::get_data(self::SESS_STARTED);
+        return (bool)self::get_data(self::SESS_STARTED);
     }
 
-    private static function reset_registry(): void
+    private static function reset_registry() : void
     {
         self::set_data(self::SESS_DIR, '');
         self::set_data(self::SESS_NAME, 'PHS_SESS');

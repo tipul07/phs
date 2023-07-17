@@ -43,7 +43,7 @@ trait PHS_Cli_plugins_trait
 
         // If plugin has a JOSN available, try getting as much data from it
         if (($json_arr = PHS::get_plugin_json_info($plugin_name))) {
-            foreach( ['name', 'version', 'vendor_id', 'vendor_name'] as $field ) {
+            foreach (['name', 'version', 'vendor_id', 'vendor_name'] as $field) {
                 if (!empty($json_arr[$field])) {
                     $plugin_info[$field] = $json_arr[$field];
                 }
@@ -71,7 +71,7 @@ trait PHS_Cli_plugins_trait
         }
 
         if (($instance_info = $plugin_obj->get_plugin_info())) {
-            foreach( ['is_core', 'is_distribution', 'is_installed', 'is_active', 'is_upgradable', 'db_version'] as $field ) {
+            foreach (['is_core', 'is_distribution', 'is_installed', 'is_active', 'is_upgradable', 'db_version'] as $field) {
                 $plugin_info[$field] = $instance_info[$field];
             }
         }
@@ -122,9 +122,9 @@ trait PHS_Cli_plugins_trait
      *
      * @return bool
      */
-    protected function _echo_plugin_details(string $plugin_name, ?array $plugin_info = null): bool
+    protected function _echo_plugin_details(string $plugin_name, ?array $plugin_info = null) : bool
     {
-        if (empty( $plugin_info )
+        if (empty($plugin_info)
             && !($plugin_info = $this->_gather_plugin_info($plugin_name))) {
             $this->_echo_error(self::_t('Error obtaining plugin details for plugin %s.', $this->cli_color($plugin_name, 'red')));
 
@@ -177,7 +177,7 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected function _get_plugins_model(): ?PHS_Model_Plugins
+    protected function _get_plugins_model() : ?PHS_Model_Plugins
     {
         if (empty($this->_plugins_model)
          && !$this->_load_plugins_model()) {
@@ -187,7 +187,7 @@ trait PHS_Cli_plugins_trait
         return $this->_plugins_model;
     }
 
-    private function _load_plugins_model(): bool
+    private function _load_plugins_model() : bool
     {
         if (empty($this->_plugins_model)
          && !($this->_plugins_model = PHS_Model_Plugins::get_instance())) {
@@ -199,7 +199,7 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected static function _get_default_model_info_definition(): array
+    protected static function _get_default_model_info_definition() : array
     {
         return [
             'name'       => '',
@@ -210,7 +210,7 @@ trait PHS_Cli_plugins_trait
         ];
     }
 
-    protected static function _get_default_plugin_info_definition(): array
+    protected static function _get_default_plugin_info_definition() : array
     {
         return [
             'is_core'         => false,

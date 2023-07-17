@@ -96,7 +96,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 $knti++;
 
                 if ($offset > $knti - 1
-                 || $on_page_records >= $records_per_page ) {
+                 || $on_page_records >= $records_per_page) {
                     continue;
                 }
 
@@ -151,7 +151,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             $plugins_statuses = self::merge_array_assoc([0 => $this->_pt(' - Choose - '), -1 => $this->_pt('Not Installed')], $plugins_statuses);
         }
 
-        if($is_multi_tenant
+        if ($is_multi_tenant
            && !($this->_tenants_key_val_arr = $this->_tenants_model->get_tenants_as_key_val())) {
             $this->_tenants_key_val_arr = [];
         }
@@ -204,7 +204,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $is_multi_tenant ) {
+        if ($is_multi_tenant) {
             $filters_arr = array_merge($filters_arr, [
                 [
                     'display_name' => $this->_pt('Tenant'),
@@ -245,7 +245,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $is_multi_tenant ) {
+        if ($is_multi_tenant) {
             $columns_arr = array_merge($columns_arr, [
                 [
                     'column_title'        => $this->_pt('Tenant'),
@@ -254,7 +254,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     'extra_style'         => 'vertical-align: middle;text-align:center;',
                     'extra_records_style' => 'vertical-align: middle;text-align:center;',
                     'sortable'            => false,
-                ]
+                ],
             ]);
         }
 
@@ -761,11 +761,11 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         if (empty($params['record']['tenants']) || !is_array($params['record']['tenants'])) {
-            return '<strong>'.$this->_pt( 'All' ).'</strong>';
+            return '<strong>'.$this->_pt('All').'</strong>';
         }
 
-        return implode( ', ', array_merge( ['<strong>'.$this->_pt( 'All' ).'</strong>'], array_filter(array_map(function (int $tenant_id) {
-            if( !empty( $this->_tenants_key_val_arr[$tenant_id] ) ) {
+        return implode(', ', array_merge(['<strong>'.$this->_pt('All').'</strong>'], array_filter(array_map(function(int $tenant_id) {
+            if (!empty($this->_tenants_key_val_arr[$tenant_id])) {
                 return $this->_tenants_key_val_arr[$tenant_id];
             }
 
@@ -1068,7 +1068,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    private function _check_record_for_current_scope($record_arr, $scope_arr): bool
+    private function _check_record_for_current_scope($record_arr, $scope_arr) : bool
     {
         return (empty($scope_arr['fstatus'])
                  || (int)$record_arr['status'] === (int)$scope_arr['fstatus'])

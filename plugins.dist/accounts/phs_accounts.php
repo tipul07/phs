@@ -1081,7 +1081,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function get_guest_roles_and_role_units(): array
+    public function get_guest_roles_and_role_units() : array
     {
         static $resulting_roles = null;
 
@@ -1118,7 +1118,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_file(string $json_file, array $params = null)
+    public function import_accounts_from_json_file(string $json_file, ?array $params = null)
     {
         $this->reset_error();
 
@@ -1148,7 +1148,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_array(array $json_arr, array $params = null)
+    public function import_accounts_from_json_array(array $json_arr, ?array $params = null)
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -1951,7 +1951,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    private function _create_required_directories(): bool
+    private function _create_required_directories() : bool
     {
         $this->reset_error();
 
@@ -1980,7 +1980,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return string
      */
-    public static function session_key(?string $key = null): string
+    public static function session_key(?string $key = null) : string
     {
         if ($key === null) {
             return self::$_session_key;

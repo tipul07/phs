@@ -91,7 +91,7 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         if (!$accounts_model->check_pass($account_arr, $pass)) {
-            if( ($new_account = $accounts_model->manage_failed_password($account_arr)) ) {
+            if (($new_account = $accounts_model->manage_failed_password($account_arr))) {
                 $account_arr = $new_account;
 
                 if ($accounts_model->is_locked($account_arr)) {

@@ -447,7 +447,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return null|array Returns column structure as array or false if we couldn't obtain column structure from flow table
      */
-    public function check_column_exists(string $field, ?array $flow_params = null, bool $force = false): ?array
+    public function check_column_exists(string $field, ?array $flow_params = null, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -479,7 +479,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return null|array Returns column structure as array or false if we couldn't obtain column structure from flow table
      */
-    public function check_column_index_exists(string $field, $flow_params = false, bool $force = false): ?array
+    public function check_column_index_exists(string $field, $flow_params = false, bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -511,13 +511,13 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Check if provided index is defined in table structure
      *
-     * @param  string  $index_name Index to be found
+     * @param string $index_name Index to be found
      * @param bool|array $flow_params Flow parameters
      * @param bool $force
      *
      * @return null|array
      */
-    public function check_extra_index_exists(string $index_name, $flow_params = false, bool $force = false): ?array
+    public function check_extra_index_exists(string $index_name, $flow_params = false, bool $force = false) : ?array
     {
         $this->reset_error();
 

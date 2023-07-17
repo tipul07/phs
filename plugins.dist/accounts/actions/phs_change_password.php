@@ -148,13 +148,13 @@ class PHS_Action_Change_password extends PHS_Action
                         PHS_Logger::TYPE_DEBUG);
                 }
 
-                if( $accounts_model->has_error() ) {
+                if ($accounts_model->has_error()) {
                     $error_msg = $accounts_model->get_simple_error_message();
                 } else {
                     $error_msg = $this->_pt('Error changing password. Please try again.');
                 }
 
-                PHS_Notifications::add_error_notice( $error_msg );
+                PHS_Notifications::add_error_notice($error_msg);
             }
         }
 

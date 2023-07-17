@@ -56,7 +56,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 || empty($instance_details['instance_type'])
                 || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                 || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
-         )) {
+            )) {
             if (empty($back_page)) {
                 $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
             } else {

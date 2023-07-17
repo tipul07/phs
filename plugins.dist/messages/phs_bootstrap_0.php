@@ -3,8 +3,8 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Model;
-use phs\plugins\messages\PHS_Plugin_Messages;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\messages\PHS_Plugin_Messages;
 
 /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
 if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {

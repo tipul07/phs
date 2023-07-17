@@ -1468,9 +1468,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @return array|null
+     * @return null|array
      */
-    final public function get_plugin_info(): ?array
+    final public function get_plugin_info() : ?array
     {
         if (!empty($this->_plugin_details)) {
             return $this->_plugin_details;

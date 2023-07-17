@@ -586,7 +586,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
                 return null;
             }
 
-            if( !($plugin_obj = $listener_obj->get_plugin_instance())
+            if (!($plugin_obj = $listener_obj->get_plugin_instance())
                 || !$plugin_obj->plugin_active()) {
                 return null;
             }
@@ -604,7 +604,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
                 return null;
             }
 
-            if( !($plugin_obj = $listener_obj->get_plugin_instance())
+            if (!($plugin_obj = $listener_obj->get_plugin_instance())
                 || !$plugin_obj->plugin_active()) {
                 return null;
             }
@@ -645,7 +645,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return null;
         }
 
-        if( !($plugin_obj = $listener_obj->get_plugin_instance())
+        if (!($plugin_obj = $listener_obj->get_plugin_instance())
             || !$plugin_obj->plugin_active()) {
             return null;
         }

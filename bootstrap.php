@@ -396,7 +396,7 @@ include_once PHS_SYSTEM_DIR.'session_init.php';
 include_once PHS_SYSTEM_DIR.'languages_init.php';
 
 // Init tenants (if required)
-if( PHS::is_multi_tenant() ) {
+if (PHS::is_multi_tenant()) {
     include_once PHS_SYSTEM_DIR.'tenants_init.php';
 }
 

@@ -14,9 +14,9 @@ class PHS_Model_Tenants extends PHS_Model
     public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
 
     protected static array $STATUSES_ARR = [
-        self::STATUS_ACTIVE  => ['title' => 'Active'],
+        self::STATUS_ACTIVE   => ['title' => 'Active'],
         self::STATUS_INACTIVE => ['title' => 'Inactive'],
-        self::STATUS_DELETED => ['title' => 'Deleted'],
+        self::STATUS_DELETED  => ['title' => 'Deleted'],
     ];
 
     private static ?array $_default_tenant = null;

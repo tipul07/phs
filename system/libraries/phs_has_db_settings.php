@@ -156,20 +156,20 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param  null|int  $tenant_id
-     * @param  bool  $force  Forces reading details from database (ignoring cached value)
+     * @param null|int $tenant_id
+     * @param bool $force Forces reading details from database (ignoring cached value)
      *
      * @return null|array
      */
     public function get_db_tenant_details(?int $tenant_id = null, bool $force = false) : ?array
     {
-        if( !PHS::is_multi_tenant() ) {
+        if (!PHS::is_multi_tenant()) {
             return null;
         }
 
-        if( !PHS::is_multi_tenant()
+        if (!PHS::is_multi_tenant()
          || ($tenant_id === null
-             && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+             && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
         }
 
@@ -189,8 +189,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param  null|int  $tenant_id
-     * @param  bool  $force  Forces reading details from database (ignoring cached value)
+     * @param null|int $tenant_id
+     * @param bool $force Forces reading details from database (ignoring cached value)
      *
      * @return null|array
      */
@@ -203,13 +203,13 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         $db_main_details = self::_db_details_fields_prepare_for_merge($db_main_details);
-        if( !PHS::is_multi_tenant() ) {
+        if (!PHS::is_multi_tenant()) {
             return $db_main_details;
         }
 
-        if( !PHS::is_multi_tenant()
+        if (!PHS::is_multi_tenant()
             || ($tenant_id === null
-                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
         }
 
@@ -221,25 +221,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return self::validate_array($db_main_details, self::_db_details_fields_prepare_for_merge($db_tenant_details));
     }
 
-    private static function _db_details_fields_prepare_for_merge(array $db_details): array
-    {
-        $fields_arr = self::_get_merged_db_details_fields();
-        $return_arr = [];
-        foreach( $fields_arr as $key => $def_val ) {
-            $return_arr[$key] = $db_details[$key] ?? $def_val;
-        }
-
-        return $return_arr;
-    }
-
-    private static function _get_merged_db_details_fields(): array
-    {
-        return ['tenant_id' => 0, 'instance_id' => '', 'type' => '', 'plugin' => '', 'settings' => null, 'status' => 0, 'status_date' => null,
-                'last_update' => null, 'cdate' => null,
-                // "main" values
-                'is_core' => false, 'version' => null];
-    }
-
     /**
      * @param null|int $tenant_id We can force to get settings for a specific tenant
      * @param bool $force Forces reading details from database (ignoring cached value)
@@ -248,9 +229,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public function get_db_settings(?int $tenant_id = null, bool $force = false) : array
     {
-        if( !PHS::is_multi_tenant()
+        if (!PHS::is_multi_tenant()
             || ($tenant_id === null
-                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
         }
 
@@ -274,7 +255,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
         /** @var PHS_Event_Plugin_settings $event_obj */
         if (($event_obj = PHS_Event_Plugin_settings::trigger([
-            'tenant_id'  => $tenant_id,
+            'tenant_id'    => $tenant_id,
             'instance_id'  => $instance_id,
             'settings_arr' => $db_settings,
         ]))
@@ -289,8 +270,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param  array  $settings_arr Settings to be saved
-     * @param  null|int  $tenant_id For which tenant are we saving the settings (if any)
+     * @param array $settings_arr Settings to be saved
+     * @param null|int $tenant_id For which tenant are we saving the settings (if any)
      *
      * @return null|array
      */
@@ -298,9 +279,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if( !PHS::is_multi_tenant()
+        if (!PHS::is_multi_tenant()
             || ($tenant_id === null
-                && !($tenant_id = PHS_Tenants::get_current_tenant_id())) ) {
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
         }
 
@@ -340,10 +321,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public function db_record_active() : bool
     {
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
-        return ($this->_load_plugins_instance()
+        return $this->_load_plugins_instance()
                 && ($db_details = $this->get_merged_db_details())
                 && isset($db_details['status'])
-                && $this->_plugins_instance->active_status($db_details['status']));
+                && $this->_plugins_instance->active_status($db_details['status']);
     }
 
     /**
@@ -465,6 +446,25 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public static function settings_field_is_group($settings_field) : bool
     {
         return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
+    }
+
+    private static function _db_details_fields_prepare_for_merge(array $db_details) : array
+    {
+        $fields_arr = self::_get_merged_db_details_fields();
+        $return_arr = [];
+        foreach ($fields_arr as $key => $def_val) {
+            $return_arr[$key] = $db_details[$key] ?? $def_val;
+        }
+
+        return $return_arr;
+    }
+
+    private static function _get_merged_db_details_fields() : array
+    {
+        return ['tenant_id' => 0, 'instance_id' => '', 'type' => '', 'plugin' => '', 'settings' => null, 'status' => 0, 'status_date' => null,
+            'last_update'   => null, 'cdate' => null,
+            // "main" values
+            'is_core' => false, 'version' => null, ];
     }
 
     private static function _default_settings_field() : array

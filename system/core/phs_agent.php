@@ -318,7 +318,7 @@ class PHS_Agent extends PHS_Registry
         return $available_plugins_arr;
     }
 
-    public static function get_agent_available_controllers(?string $plugin = null): array
+    public static function get_agent_available_controllers(?string $plugin = null) : array
     {
         self::st_reset_error();
 

@@ -592,7 +592,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|array
      */
-    public static function valid_instance_id(string $instance_id): ?array
+    public static function valid_instance_id(string $instance_id) : ?array
     {
         if (empty($instance_id)
          || @strpos($instance_id, ':') === false
@@ -646,7 +646,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|array Returns array with details about a class in core or plugin
      */
-    public static function get_instance_details(string $class, ?string $plugin_name = null, string $instance_type = '', string $instance_subdir = ''): ?array
+    public static function get_instance_details(string $class, ?string $plugin_name = null, string $instance_type = '', string $instance_subdir = '') : ?array
     {
         self::st_reset_error();
 

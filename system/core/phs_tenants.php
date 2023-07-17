@@ -1,5 +1,4 @@
 <?php
-
 namespace phs;
 
 use phs\libraries\PHS_Utils;
@@ -24,27 +23,27 @@ final class PHS_Tenants extends PHS_Registry
         self::init();
     }
 
-    public static function init(): bool
+    public static function init() : bool
     {
-        if( !PHS::is_multi_tenant()
-         || self::get_current_tenant_record() ) {
+        if (!PHS::is_multi_tenant()
+         || self::get_current_tenant_record()) {
             return true;
         }
 
-        if( !self::_load_dependencies() ) {
+        if (!self::_load_dependencies()) {
             return false;
         }
 
-        if( ($tenant_id = self::_get_tenant_identifier()) ) {
+        if (($tenant_id = self::_get_tenant_identifier())) {
             if (!($tenant_arr = self::$_tenants_model->get_tenant_by_identifier($tenant_id))) {
                 self::st_set_error(self::ERR_RESOURCES, self::_t('Provided tenant not found.'));
 
                 return false;
             }
 
-            if( !self::set_current_tenant( $tenant_arr ) ) {
-                if( !self::st_has_error() ) {
-                    self::st_set_error( self::ERR_RESOURCES, self::_t( 'Invalid tenant provided.' ) );
+            if (!self::set_current_tenant($tenant_arr)) {
+                if (!self::st_has_error()) {
+                    self::st_set_error(self::ERR_RESOURCES, self::_t('Invalid tenant provided.'));
                 }
 
                 return false;
@@ -53,39 +52,39 @@ final class PHS_Tenants extends PHS_Registry
 
         if (
             (($tenant_arr = self::_guess_tenant_from_domain_and_path())
-             ||
-             ($tenant_arr = self::$_tenants_model->get_default_tenant()))
-         && self::set_current_tenant( $tenant_arr ) ) {
+             || ($tenant_arr = self::$_tenants_model->get_default_tenant()))
+         && self::set_current_tenant($tenant_arr)) {
             return true;
         }
 
-        PHS_Logger::notice( 'No default tenant defined.', PHS_Logger::TYPE_DEBUG );
+        PHS_Logger::notice('No default tenant defined.', PHS_Logger::TYPE_DEBUG);
+
         return self::st_has_error();
     }
 
-    public static function set_current_tenant( $tenant_data ): bool
+    public static function set_current_tenant($tenant_data) : bool
     {
-        if( !self::_load_dependencies() ) {
+        if (!self::_load_dependencies()) {
             return false;
         }
 
-        if( !PHS::is_multi_tenant() ) {
+        if (!PHS::is_multi_tenant()) {
             return true;
         }
 
-        if( !($tenant_arr = self::$_tenants_model->data_to_array( $tenant_data, [ 'table_name' => 'phs_tenants' ] ))
-         || !self::$_tenants_model->is_active( $tenant_arr ) ) {
+        if (!($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))
+         || !self::$_tenants_model->is_active($tenant_arr)) {
+            PHS_Logger::debug('Tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] cannot be set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
+            self::st_set_error(self::ERR_RESOURCES, self::_t('Provided tenant not found.'));
 
-            PHS_Logger::debug( 'Tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] cannot be set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG );
-            self::st_set_error( self::ERR_RESOURCES, self::_t( 'Provided tenant not found.' ) );
             return false;
         }
 
-        PHS_Logger::debug( 'Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG );
+        PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
         self::$_current_tenant = $tenant_arr;
 
         // Make sure further requests use cookies...
-        if( in_array( PHS_Scope::current_scope(), [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX], true ) ) {
+        if (in_array(PHS_Scope::current_scope(), [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX], true)) {
             PHS_Session::set_cookie(self::REQUEST_TENANT_IDENTIFIER, $tenant_arr['identifier'],
                 ['expire_secs' => self::COOKIE_LIFETIME]);
         }
@@ -93,21 +92,39 @@ final class PHS_Tenants extends PHS_Registry
         return true;
     }
 
-    private static function get_requested_script(): string
+    public static function get_current_tenant_record() : ?array
+    {
+        if (!PHS::is_multi_tenant()) {
+            return null;
+        }
+
+        return self::$_current_tenant ?? null;
+    }
+
+    public static function get_current_tenant_id() : int
+    {
+        if (!PHS::is_multi_tenant()) {
+            return 0;
+        }
+
+        return (int)(self::$_current_tenant['id'] ?? 0);
+    }
+
+    private static function get_requested_script() : string
     {
         static $script_name = null;
 
-        if( $script_name !== null ) {
+        if ($script_name !== null) {
             return $script_name;
         }
 
-        if( !empty( $_SERVER['SCRIPT_NAME'] )
-         && ($script_name = basename( $_SERVER['SCRIPT_NAME'] )) ) {
+        if (!empty($_SERVER['SCRIPT_NAME'])
+         && ($script_name = basename($_SERVER['SCRIPT_NAME']))) {
             return $script_name;
         }
 
-        if( !empty( $_SERVER['SCRIPT_FILENAME'] )
-         && ($script_name = basename( $_SERVER['SCRIPT_FILENAME'] )) ) {
+        if (!empty($_SERVER['SCRIPT_FILENAME'])
+         && ($script_name = basename($_SERVER['SCRIPT_FILENAME']))) {
             return $script_name;
         }
 
@@ -116,122 +133,105 @@ final class PHS_Tenants extends PHS_Registry
         return $script_name;
     }
 
-    public static function get_current_tenant_record(): ?array
-    {
-        if( !PHS::is_multi_tenant() ) {
-            return null;
-        }
-
-        return self::$_current_tenant ?? null;
-    }
-
-    public static function get_current_tenant_id(): int
-    {
-        if( !PHS::is_multi_tenant() ) {
-            return 0;
-        }
-
-        return (int)(self::$_current_tenant['id'] ?? 0);
-    }
-
-    private static function _guess_tenant_from_domain_and_path(): ?array
+    private static function _guess_tenant_from_domain_and_path() : ?array
     {
         $directory = self::_get_request_directory();
-        if( !empty( $_SERVER['SERVER_NAME'] )
-         && ($tenant_arr = self::_check_tenant_with_domain_and_directory( $_SERVER['SERVER_NAME'], $directory )) ) {
+        if (!empty($_SERVER['SERVER_NAME'])
+         && ($tenant_arr = self::_check_tenant_with_domain_and_directory($_SERVER['SERVER_NAME'], $directory))) {
             return $tenant_arr;
         }
 
-        if( !empty( $_SERVER['SERVER_ADDR'] )
-         && ($tenant_arr = self::_check_tenant_with_domain_and_directory( $_SERVER['SERVER_ADDR'], $directory )) ) {
+        if (!empty($_SERVER['SERVER_ADDR'])
+         && ($tenant_arr = self::_check_tenant_with_domain_and_directory($_SERVER['SERVER_ADDR'], $directory))) {
             return $tenant_arr;
         }
 
         return null;
     }
 
-    private static function _check_tenant_with_domain_and_directory( string $domain, string $directory ): ?array
+    private static function _check_tenant_with_domain_and_directory(string $domain, string $directory) : ?array
     {
-        if( !empty( $domain )
-         && ($tenants_arr = self::$_tenants_model->get_tenants_by_domain_and_directory( $domain, $directory ))
-         && count( $tenants_arr ) === 1
-         && ($tenants_arr = array_values( $tenants_arr ))
-         && !empty( $tenants_arr[0]['id'] ) ) {
+        if (!empty($domain)
+         && ($tenants_arr = self::$_tenants_model->get_tenants_by_domain_and_directory($domain, $directory))
+         && count($tenants_arr) === 1
+         && ($tenants_arr = array_values($tenants_arr))
+         && !empty($tenants_arr[0]['id'])) {
             return $tenants_arr[0];
         }
 
         return null;
     }
 
-    private static function _get_request_directory(): string
+    private static function _get_request_directory() : string
     {
-        if( empty( $_SERVER['REQUEST_URI'] )
-            || !($path_url = PHS_Utils::myparse_url( $_SERVER['REQUEST_URI'] ))
-            || empty( $path_url['path'] )
-            || ($path = trim( $path_url['path'], '/' ))
-            || $path === 'index.php' ) {
+        if (empty($_SERVER['REQUEST_URI'])
+            || !($path_url = PHS_Utils::myparse_url($_SERVER['REQUEST_URI']))
+            || empty($path_url['path'])
+            || ($path = trim($path_url['path'], '/'))
+            || $path === 'index.php') {
             return '';
         }
 
-        if( substr( $path, -9 ) === 'index.php' ) {
-            $path = substr( $path, 0, -9 );
+        if (substr($path, -9) === 'index.php') {
+            $path = substr($path, 0, -9);
         }
 
-        if( ($path = trim( $path, '/' )) === '' ) {
+        if (($path = trim($path, '/')) === '') {
             return '';
         }
 
         return $path;
     }
 
-    private static function _get_tenant_identifier_from_headers(): ?string
+    private static function _get_tenant_identifier_from_headers() : ?string
     {
         $tenant_identifier = null;
-        if( !empty($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER]) ) {
-            $tenant_identifier = trim( $_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER] );
-            PHS_Logger::debug( 'Tenant identifier ['.$tenant_identifier.'] from header HTTP_'.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG );
-        } elseif( !empty($_SERVER[self::HEADER_TENANT_IDENTIFIER]) ) {
-            $tenant_identifier = trim( $_SERVER[self::HEADER_TENANT_IDENTIFIER] );
-            PHS_Logger::debug( 'Tenant identifier ['.$tenant_identifier.'] from header '.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG );
+        if (!empty($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER])) {
+            $tenant_identifier = trim($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER]);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from header HTTP_'.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+        } elseif (!empty($_SERVER[self::HEADER_TENANT_IDENTIFIER])) {
+            $tenant_identifier = trim($_SERVER[self::HEADER_TENANT_IDENTIFIER]);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from header '.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
         }
 
         return $tenant_identifier;
     }
 
-    private static function _get_tenant_identifier_from_request(): ?string
+    private static function _get_tenant_identifier_from_request() : ?string
     {
         $tenant_identifier = null;
-        if( !empty($_POST[self::REQUEST_TENANT_IDENTIFIER]) ) {
-            $tenant_identifier = trim( $_POST[self::REQUEST_TENANT_IDENTIFIER] );
-            PHS_Logger::debug( 'Tenant identifier ['.$tenant_identifier.'] from POST '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG );
-        } elseif( !empty($_GET[self::REQUEST_TENANT_IDENTIFIER]) ) {
-            $tenant_identifier = trim( $_GET[self::REQUEST_TENANT_IDENTIFIER] );
-            PHS_Logger::debug( 'Tenant identifier ['.$tenant_identifier.'] from GET '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG );
-        } elseif( !empty($_COOKIE[self::REQUEST_TENANT_IDENTIFIER]) ) {
-            $tenant_identifier = trim( $_COOKIE[self::REQUEST_TENANT_IDENTIFIER] );
-            PHS_Logger::debug( 'Tenant identifier ['.$tenant_identifier.'] from COOKIE '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG );
+        if (!empty($_POST[self::REQUEST_TENANT_IDENTIFIER])) {
+            $tenant_identifier = trim($_POST[self::REQUEST_TENANT_IDENTIFIER]);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from POST '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+        } elseif (!empty($_GET[self::REQUEST_TENANT_IDENTIFIER])) {
+            $tenant_identifier = trim($_GET[self::REQUEST_TENANT_IDENTIFIER]);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from GET '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+        } elseif (!empty($_COOKIE[self::REQUEST_TENANT_IDENTIFIER])) {
+            $tenant_identifier = trim($_COOKIE[self::REQUEST_TENANT_IDENTIFIER]);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from COOKIE '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
         }
 
         return $tenant_identifier;
     }
 
-    private static function _get_tenant_identifier(): ?string
+    private static function _get_tenant_identifier() : ?string
     {
-        if( ($tenant_id = self::_get_tenant_identifier_from_headers())
-         || ($tenant_id = self::_get_tenant_identifier_from_request()) ) {
+        if (($tenant_id = self::_get_tenant_identifier_from_headers())
+         || ($tenant_id = self::_get_tenant_identifier_from_request())) {
             return $tenant_id;
         }
 
         return null;
     }
 
-    private static function _load_dependencies(): bool
+    private static function _load_dependencies() : bool
     {
         self::st_reset_error();
 
-        if( empty( self::$_tenants_model )
-            && !(self::$_tenants_model = PHS_Model_Tenants::get_instance()) ) {
-            self::st_set_error( self::ERR_DEPENDENCIES, self::_t( 'Error loading required resources.' ) );
+        if (empty(self::$_tenants_model)
+            && !(self::$_tenants_model = PHS_Model_Tenants::get_instance())) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
             return false;
         }
 

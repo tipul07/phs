@@ -5,8 +5,8 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
-use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */

@@ -159,7 +159,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed(int $scope): bool
+    final public function scope_is_allowed(int $scope) : bool
     {
         $this->reset_error();
 
@@ -174,7 +174,7 @@ abstract class PHS_Action extends PHS_Instantiable
          && !in_array($scope, $allowed_scopes, true));
     }
 
-    final public function set_action_defaults(): void
+    final public function set_action_defaults() : void
     {
         $this->_action_result = self::default_action_result();
     }
@@ -340,19 +340,19 @@ abstract class PHS_Action extends PHS_Instantiable
         return $this->get_action_result();
     }
 
-    final public function set_controller(PHS_Controller $controller_obj): bool
+    final public function set_controller(PHS_Controller $controller_obj) : bool
     {
         $this->_controller_obj = $controller_obj;
 
         return true;
     }
 
-    final public function get_controller(): ?PHS_Controller
+    final public function get_controller() : ?PHS_Controller
     {
         return $this->_controller_obj;
     }
 
-    final public function is_admin_controller(): bool
+    final public function is_admin_controller() : bool
     {
         return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }

@@ -2286,7 +2286,7 @@ final class PHS extends PHS_Registry
      * Returns an instance of a model. If model is part of a plugin $plugin will contain name of that plugin.
      *
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
-     * @param string|null $plugin Plugin where model is located (false means a core model)
+     * @param null|string $plugin Plugin where model is located (false means a core model)
      *
      * @return null|\phs\libraries\PHS_Instantiable|\phs\libraries\PHS_Model_Mysqli
      */
@@ -2922,8 +2922,8 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param  string  $plugin_name
-     * @param  string  $scope_name
+     * @param string $plugin_name
+     * @param string $scope_name
      *
      * @return array|bool
      */
@@ -3069,7 +3069,7 @@ final class PHS extends PHS_Registry
             $params = [];
         }
 
-        $params['stop_on_first_error'] = !empty( $params['stop_on_first_error'] );
+        $params['stop_on_first_error'] = !empty($params['stop_on_first_error']);
 
         if (empty($hook_args) || !is_array($hook_args)) {
             $hook_args = PHS_Hooks::default_common_hook_args();
@@ -3085,7 +3085,7 @@ final class PHS extends PHS_Registry
             foreach ($hooks_array as $hook_callback) {
                 if (empty($hook_callback) || !is_array($hook_callback)
                  || empty($hook_callback['callback'])
-                 || (is_array( $hook_callback['callback'] )
+                 || (is_array($hook_callback['callback'])
                      && ($instance_obj = $hook_callback['callback'][0] ?? null)
                      && $instance_obj instanceof PHS_Instantiable
                      && ($plugin_obj = $instance_obj->get_plugin_instance())
@@ -3352,8 +3352,8 @@ final class PHS extends PHS_Registry
      * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
      * This only returns file names, does no check if class is instantiable...
      *
-     * @param string|null $plugin Plugin name
-     * @param string|null $instance_name Model, controller, action, view or scope name
+     * @param null|string $plugin Plugin name
+     * @param null|string $instance_name Model, controller, action, view or scope name
      * @param string $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
      * @param string $instance_subdir If instance allows subdirs, provide which subdir is that
      *

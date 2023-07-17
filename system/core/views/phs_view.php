@@ -59,7 +59,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_action($action_obj): bool
+    public function set_action($action_obj) : bool
     {
         $this->reset_error();
 
@@ -75,7 +75,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_parent_view($view_obj): bool
+    public function set_parent_view($view_obj) : bool
     {
         $this->reset_error();
 
@@ -91,7 +91,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    final public function is_admin_controller(): bool
+    final public function is_admin_controller() : bool
     {
         return $this->_controller && $this->_controller->is_admin_controller();
     }
@@ -123,7 +123,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return array If current view has an action associated, return it's action result
      */
-    public function get_action_result(): array
+    public function get_action_result() : array
     {
         $default_action_result = PHS_Action::default_action_result();
         /** @var \phs\libraries\PHS_Action $action */
@@ -154,7 +154,7 @@ class PHS_View extends PHS_Instantiable
         return $this->_template_file;
     }
 
-    public function add_extra_template_dir($dir_path, $dir_www): bool
+    public function add_extra_template_dir($dir_path, $dir_www) : bool
     {
         if (empty($dir_path)) {
             return false;
@@ -999,7 +999,7 @@ class PHS_View extends PHS_Instantiable
         return $extra_dirs;
     }
 
-    public static function safe_escape_template($template): string
+    public static function safe_escape_template($template) : string
     {
         if (empty($template) || !is_string($template)
          || preg_match('@[^a-zA-Z0-9_\-\./]@', $template)) {
