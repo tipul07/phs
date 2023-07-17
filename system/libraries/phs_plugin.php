@@ -15,9 +15,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006,
     ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
 
-    public const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
-    SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
-
     public const LIBRARIES_DIR = 'libraries';
 
     private $_libraries_instances = [];

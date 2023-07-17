@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\system\core\actions\PHS_Action_Foobar;
 
 abstract class PHS_Controller extends PHS_Instantiable
 {
@@ -129,11 +130,11 @@ abstract class PHS_Controller extends PHS_Instantiable
     }
 
     /**
-     * @param array|bool $action_result stop execution from controller level using a standard action, just to have nice display...
+     * @param array|null $action_result stop execution from controller level using a standard action, just to have nice display...
      *
      * @return bool|array Returns an action result array which was generated from controller...
      */
-    public function execute_foobar_action($action_result = false)
+    public function execute_foobar_action(?array $action_result = null)
     {
         PHS::running_controller($this);
 
@@ -148,7 +149,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         self::st_reset_error();
 
         /** @var \phs\system\core\actions\PHS_Action_Foobar $foobar_action_obj */
-        if (!($foobar_action_obj = PHS::load_action('foobar'))) {
+        if (!($foobar_action_obj = PHS_Action_Foobar::get_instance())) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } else {
@@ -158,7 +159,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             return false;
         }
 
-        if ($action_result === false) {
+        if ($action_result === null) {
             $action_result = PHS_Action::default_action_result();
         }
 

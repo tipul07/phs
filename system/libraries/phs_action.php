@@ -3,14 +3,11 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Controller;
 use phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
     public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
-
-    public const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
 
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
     ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
@@ -18,8 +15,8 @@ abstract class PHS_Action extends PHS_Instantiable
     ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
     ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
 
-    /** @var PHS_Controller */
-    private $_controller_obj;
+    /** @var null|PHS_Controller */
+    private ?PHS_Controller $_controller_obj = null;
 
     /** @var null|array */
     private $_action_result;
@@ -28,7 +25,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
     private static $_custom_action_roles = [];
 
-    private static $_builtin_action_roles = [
+    private static array $_builtin_action_roles = [
         self::ACT_ROLE_PAGE             => ['title' => 'Common Page'],
         self::ACT_ROLE_LOGIN            => ['title' => 'Login'],
         self::ACT_ROLE_LOGOUT           => ['title' => 'Logout'],
@@ -162,7 +159,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed(int $scope)
+    final public function scope_is_allowed(int $scope): bool
     {
         $this->reset_error();
 
@@ -177,7 +174,7 @@ abstract class PHS_Action extends PHS_Instantiable
          && !in_array($scope, $allowed_scopes, true));
     }
 
-    final public function set_action_defaults()
+    final public function set_action_defaults(): void
     {
         $this->_action_result = self::default_action_result();
     }
@@ -343,25 +340,19 @@ abstract class PHS_Action extends PHS_Instantiable
         return $this->get_action_result();
     }
 
-    final public function set_controller(PHS_Controller $controller_obj)
+    final public function set_controller(PHS_Controller $controller_obj): bool
     {
-        if (!($controller_obj instanceof PHS_Controller)) {
-            self::st_set_error(self::ERR_CONTROLLER_INSTANCE, self::_t('Controller doesn\'t appear to be a PHS instance.'));
-
-            return false;
-        }
-
         $this->_controller_obj = $controller_obj;
 
         return true;
     }
 
-    final public function get_controller()
+    final public function get_controller(): ?PHS_Controller
     {
         return $this->_controller_obj;
     }
 
-    final public function is_admin_controller()
+    final public function is_admin_controller(): bool
     {
         return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }

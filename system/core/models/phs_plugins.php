@@ -778,7 +778,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array
      */
-    public function get_plugins_db_tenant_details(?string $instance_id = null, int $tenant_id, bool $force = false): ?array
+    public function get_plugins_db_tenant_details(?string $instance_id = null, int $tenant_id = 0, bool $force = false): ?array
     {
         $this->reset_error();
 
