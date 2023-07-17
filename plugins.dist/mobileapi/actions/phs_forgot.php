@@ -7,6 +7,9 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Api_action;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Forgot extends PHS_Api_action
 {
@@ -28,9 +31,9 @@ class PHS_Action_Forgot extends PHS_Api_action
         /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($online_model = PHS::load_model('api_online', 'mobileapi'))
-         || !($mobile_plugin = PHS::load_plugin('mobileapi'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        if (!($online_model = PHS_Model_Api_online::get_instance())
+         || !($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
@@ -46,20 +49,19 @@ class PHS_Action_Forgot extends PHS_Api_action
             return $this->send_api_success(
                 ['email_queued' => true],
                 PHS_Api_base::H_CODE_OK,
-                false,
+                null,
                 ['only_response_data_node' => true]
             );
         }
 
-        if (!PHS_Bg_jobs::run(['p' => 'accounts', 'c' => 'index_bg', 'a' => 'forgot_password_bg'], ['uid' => $account_arr['id']])) {
-            if (self::st_has_error()) {
-                $error_msg = self::st_get_simple_error_message();
-            } else {
-                $error_msg = $this->_pt('Error sending forgot password email. Please try again.');
-            }
+        if ($accounts_model->is_locked($account_arr)) {
+            return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, $accounts_model::ERR_LOGIN,
+                $this->_pt('Account locked temporarily because of too many login attempts.'));
+        }
 
-            return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
-                $error_msg);
+        if (!PHS_Bg_jobs::run(['p' => 'accounts', 'c' => 'index_bg', 'a' => 'forgot_password_bg'], ['uid' => $account_arr['id']])) {
+            return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, $accounts_model::ERR_LOGIN,
+                $this->_pt('Error sending forgot password email. Please try again.'));
         }
 
         return $this->send_api_success(['email_queued' => true]);
