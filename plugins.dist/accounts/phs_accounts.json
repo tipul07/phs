@@ -3,8 +3,8 @@
     "vendor_name": "PHS",
     "name": "Accounts Management",
     "description": "Handles all functionality related to user accounts.",
-    "version": "1.5.3",
+    "version": "1.5.4",
     "update_url": "",
-    "models": [ "accounts", "accounts_details" ],
+    "models": [ "accounts", "accounts_details", "accounts_tfa" ],
     "requires": []
 }
