@@ -4,6 +4,7 @@ namespace phs\plugins\accounts\models;
 use phs\PHS_Crypt;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
 
 class PHS_Model_Accounts_tfa extends PHS_Model
 {
@@ -17,6 +18,8 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     private const PADDING_CHAR = '=';
 
     private const CODE_LENGTH = 6;
+    private const TFA_PERIOD = 30;
+    private const TFA_ALGO = 'SHA1';
 
     /**
      * @return string Returns version of model
@@ -180,6 +183,55 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         }
 
         return $result;
+    }
+
+    public function get_tfa_otp_url( $account_data ): ?string
+    {
+        $this->reset_error();
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
+            return null;
+        }
+
+        if( !($tfa_check = $this->get_tfa_data_for_account( $account_data )) ) {
+            return null;
+        }
+
+        $existing_tfa = $tfa_check['tfa_data'] ?? null;
+        $account_arr = $tfa_check['account_data'] ?? null;
+
+        if( empty( $account_arr['id'] )
+         || empty( $existing_tfa['id'] ) ) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt( 'Account doesn\'t have two factor authentication enabled.' ) );
+            return null;
+        }
+
+        if( !($secret_str = $this->get_secret( $existing_tfa )) ) {
+            if( !$this->has_error() ) {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error obtaining two factor authentication details.'));
+            }
+            return null;
+        }
+
+        if( !($settings_arr = $accounts_plugin->get_plugin_settings()) ) {
+            $settings_arr = [];
+        }
+
+        $issuer = $settings_arr['2fa_issuer_name'] ?? PHS_SITE_NAME;
+
+        return 'otpauth://totp/'.
+               rawurlencode($issuer).
+               ':'.
+               rawurlencode($account_arr['nick']).
+               '?secret='.$secret_str.
+               '&issuer='.rawurlencode($issuer).
+               '&algorithm='.rawurlencode(self::TFA_ALGO).
+               '&digits='.self::CODE_LENGTH.
+               '&period='.self::TFA_PERIOD;
     }
 
     /**

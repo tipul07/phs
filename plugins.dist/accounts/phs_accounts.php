@@ -279,6 +279,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'type'         => PHS_Params::T_INT,
                         'default'      => 48,
                     ],
+                    '2fa_issuer_name' => [
+                        'display_name' => $this->_pt('2FA Issuer'),
+                        'display_hint' => $this->_pt('How should this platform appear in Google Authenticator as name'),
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => PHS_SITE_NAME,
+                    ],
                 ],
             ],
         ];
