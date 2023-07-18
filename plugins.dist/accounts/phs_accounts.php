@@ -22,6 +22,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
+    public const TFA_POLICY_OFF = 0, TFA_POLICY_OPTIONAL = 1, TFA_POLICY_ENFORCED = 2;
+
     public const ACCOUNTS_IMPORT_DIR = 'phs_accounts';
 
     public const PARAM_CONFIRMATION = '_a';
@@ -48,6 +50,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         self::PASS_POLICY_SETUP     => 'Setup at fist login',
     ];
 
+    protected static array $TFA_POLICY_ARR = [
+        self::TFA_POLICY_OFF => 'Off',
+        self::TFA_POLICY_OPTIONAL => 'Optional',
+        self::TFA_POLICY_ENFORCED => 'Enforced',
+    ];
+
     private static string $_session_key = 'PHS_sess';
 
     /**
@@ -55,6 +63,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_settings_structure()
     {
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        $accounts_levels_arr = [];
+        if( ($accounts_model = PHS_Model_Accounts::get_instance()) ) {
+            $accounts_levels_arr = $accounts_model->get_levels_as_key_val();
+        }
+
         return [
             'account_registration_group' => [
                 'display_name' => $this->_pt('Account Registration Settings'),
@@ -236,6 +250,28 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'display_hint' => $this->_pt('How many minutes should platform lock the account'),
                         'type'         => PHS_Params::T_INT,
                         'default'      => 15,
+                    ],
+                ],
+            ],
+            'two_factor_auth_group' => [
+                'display_name' => $this->_pt('Two Factor Authentication Settings'),
+                'display_hint' => $this->_pt('Settings related to two factor authentication feature.'),
+                'group_fields' => [
+                    '2fa_policy' => [
+                        'display_name' => $this->_pt('Account 2FA policy'),
+                        'display_hint' => $this->_pt('What 2FA policy should be applied on this platform'),
+                        'type'         => PHS_Params::T_INT,
+                        'values_arr'   => self::$TFA_POLICY_ARR,
+                        'default'      => self::TFA_POLICY_OFF,
+                    ],
+                    '2fa_policy_account_level' => [
+                        'display_name' => $this->_pt('2FA account levels'),
+                        'display_hint' => $this->_pt('Which account levels should follow selected 2FA policy. If no account level is selected, all will follow the policy.'),
+                        'input_type'   => self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT,
+                        'type'         => PHS_Params::T_ARRAY,
+                        'extra_type'   => ['type' => PHS_Params::T_INT],
+                        'values_arr'   => $accounts_levels_arr,
+                        'default'      => [],
                     ],
                 ],
             ],
