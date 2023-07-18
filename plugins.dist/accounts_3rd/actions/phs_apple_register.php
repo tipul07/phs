@@ -140,9 +140,6 @@ class PHS_Action_Apple_register extends PHS_Action
                 if (empty($plugin_settings['session_expire_minutes_normal'])) {
                     $plugin_settings['session_expire_minutes_normal'] = 0;
                 } // till browser closes
-                if (empty($plugin_settings['block_after_expiration'])) {
-                    $plugin_settings['block_after_expiration'] = 0;
-                } // hardcoded block
 
                 $login_params = [];
                 $login_params['expire_mins'] = $plugin_settings['session_expire_minutes_normal'];

@@ -273,9 +273,45 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'values_arr'   => $accounts_levels_arr,
                         'default'      => [],
                     ],
+                    '2fa_remember_interval' => [
+                        'display_name' => $this->_pt('Remember 2FA verification (hours)'),
+                        'display_hint' => $this->_pt('"Remember 2FA verification" option. How many hours should 2FA not be required on current device. 0 means forever'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 48,
+                    ],
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_off() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OFF;
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_optional() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OPTIONAL;
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_enforced() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_ENFORCED;
     }
 
     /**

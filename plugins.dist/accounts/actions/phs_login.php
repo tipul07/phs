@@ -108,9 +108,6 @@ class PHS_Action_Login extends PHS_Action
         if (empty($plugin_settings['session_expire_minutes_normal'])) {
             $plugin_settings['session_expire_minutes_normal'] = 0;
         } // till browser closes
-        if (empty($plugin_settings['block_after_expiration'])) {
-            $plugin_settings['block_after_expiration'] = 0;
-        } // hardcoded block
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (!empty($do_submit)

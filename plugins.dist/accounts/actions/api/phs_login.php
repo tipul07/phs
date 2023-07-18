@@ -75,9 +75,6 @@ class PHS_Action_Login extends PHS_Api_action
         if (empty($plugin_settings['session_expire_minutes_normal'])) {
             $plugin_settings['session_expire_minutes_normal'] = 0;
         } // till browser closes
-        if (empty($plugin_settings['block_after_expiration'])) {
-            $plugin_settings['block_after_expiration'] = 0;
-        } // hardcoded block
 
         if (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
          || !$accounts_model->is_active($account_arr)) {

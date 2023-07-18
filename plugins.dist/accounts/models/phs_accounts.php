@@ -778,11 +778,10 @@ class PHS_Model_Accounts extends PHS_Model
 
     /**
      * @param int|array $account_data
-     * @param bool|array $params
      *
      * @return array
      */
-    public function is_password_expired($account_data, $params = false)
+    public function is_password_expired($account_data): array
     {
         $return_arr = PHS_Hooks::default_password_expiration_data();
 
@@ -790,7 +789,6 @@ class PHS_Model_Accounts extends PHS_Model
          || !($account_arr = $this->data_to_array($account_data))
          || $this->is_deleted($account_arr)
          || !($settings_arr = $this->get_plugin_settings())
-         || !is_array($settings_arr)
          || empty($settings_arr['expire_passwords_days'])
          || ($expire_days = (int)$settings_arr['expire_passwords_days']) <= 0) {
             return $return_arr;
@@ -799,11 +797,7 @@ class PHS_Model_Accounts extends PHS_Model
         $now_time = time();
 
         // block_after_expiration in hours
-        if (empty($settings_arr['block_after_expiration'])) {
-            $settings_arr['block_after_expiration'] = 0;
-        } else {
-            $settings_arr['block_after_expiration'] = (int)$settings_arr['block_after_expiration'];
-        }
+        $settings_arr['block_after_expiration'] = (int)($settings_arr['block_after_expiration'] ?? 0);
 
         $block_after_seconds = -1;
         if ($settings_arr['block_after_expiration'] !== -1) {
