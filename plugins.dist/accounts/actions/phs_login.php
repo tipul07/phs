@@ -120,10 +120,17 @@ class PHS_Action_Login extends PHS_Action
             } elseif (!($accounts_model = PHS_Model_Accounts::get_instance())) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
             } elseif (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
-                 || !$accounts_model->check_pass($account_arr, $pass)
                  || !$accounts_model->is_active($account_arr)) {
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
-            } else {
+            } elseif (!$accounts_model->is_locked($account_arr)
+                      && !$accounts_model->check_pass($account_arr, $pass)) {
+
+                if( ($new_account = $accounts_model->manage_failed_password($account_arr)) ) {
+                    $account_arr = $new_account;
+                }
+
+                PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
+            } elseif (!$accounts_model->is_locked($account_arr) ) {
                 $login_params = [];
                 $login_params['expire_mins'] = (!empty($do_remember) ? $plugin_settings['session_expire_minutes_remember'] : $plugin_settings['session_expire_minutes_normal']);
 
@@ -149,10 +156,15 @@ class PHS_Action_Login extends PHS_Action
                 }
 
                 if ($accounts_plugin->has_error()) {
-                    PHS_Notifications::add_error_notice($accounts_plugin->get_error_message());
+                    PHS_Notifications::add_error_notice($accounts_plugin->get_simple_error_message());
                 } else {
                     PHS_Notifications::add_error_notice($this->_pt('Error logging in... Please try again.'));
                 }
+            }
+
+            if (!empty($account_arr)
+                && $accounts_model->is_locked($account_arr)) {
+                PHS_Notifications::add_error_notice($this->_pt('Account locked temporarily because of too many login attempts.'));
             }
         }
 

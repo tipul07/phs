@@ -4,26 +4,30 @@ namespace phs\plugins\admin\actions\users;
 use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Paginator;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\plugins\accounts\models\PHS_Model_Accounts $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
-    /** @var \phs\plugins\admin\PHS_Plugin_Admin */
-    private $_admin_plugin = false;
+    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    /** @var \phs\plugins\accounts\PHS_Plugin_Accounts */
-    private $_accounts_plugin = false;
+    /** @var null|\phs\plugins\accounts\PHS_Plugin_Accounts */
+    private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
     public function load_depencies()
     {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS::load_model('accounts', 'accounts')))
-         || (!$this->_admin_plugin && !($this->_admin_plugin = PHS::load_plugin('admin')))
-         || (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS::load_plugin('accounts')))
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance()))
+         || (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+         || (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
@@ -84,11 +88,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         $can_export_accounts = $this->_admin_plugin->can_admin_export_accounts();
+        $account_lockout_enabled = $this->_accounts_plugin->lockout_is_enabled();
 
-        $accounts_model = $this->_paginator_model;
+        if( !($flow_arr = $this->_paginator_model->fetch_default_flow_params( ['table_name' => 'users'] )) ) {
+            $flow_arr = [];
+        }
 
-        $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+        if( !($users_table = $this->_paginator_model->get_flow_table_name()) ) {
+            $users_table = 'users';
+        }
+
+        $list_arr = $flow_arr;
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
         $list_arr['flags'] = ['include_account_details'];
 
         $flow_params = [
@@ -113,8 +124,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $users_statuses = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_statuses);
         }
 
-        if (isset($users_statuses[$accounts_model::STATUS_DELETED])) {
-            unset($users_statuses[$accounts_model::STATUS_DELETED]);
+        if (isset($users_statuses[$this->_paginator_model::STATUS_DELETED])) {
+            unset($users_statuses[$this->_paginator_model::STATUS_DELETED]);
         }
 
         $bulk_actions = [
@@ -138,6 +149,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
+        if( $account_lockout_enabled ) {
+            $bulk_actions[] = [
+                'display_name'    => $this->_pt('Reset account locking'),
+                'action'          => 'bulk_reset_account_locking',
+                'js_callback'     => 'phs_users_list_bulk_reset_account_locking',
+                'checkbox_column' => 'id',
+            ];
+        }
         if ($can_export_accounts) {
             $bulk_actions[] = [
                 'display_name'    => $this->_pt('Export selected'),
@@ -152,6 +171,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'checkbox_column' => 'id',
             ];
         }
+
+        $lock_options_arr = [
+            -1 => $this->_pt(' - Choose - '),
+            0  => $this->_pt('Has login attempts'),
+            1  => $this->_pt('IS or WAS locked'),
+            2  => $this->_pt('IS locked'),
+        ];
 
         $filters_arr = [
             [
@@ -186,6 +212,33 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'default'             => '',
                 'extra_records_style' => 'vertical-align:middle;',
             ],
+        ];
+
+        if( $account_lockout_enabled ) {
+            $filters_arr = array_merge( $filters_arr, [
+                [
+                    'display_name'  => $this->_pt('Account lockout'),
+                    'display_hint'  => $this->_pt('Select only accounts with specific account lockout conditions'),
+                    'var_name'      => 'fis_paid',
+                    'switch_filter' => [
+                        0 => [
+                            'raw_query' => '`'.$users_table.'`.failed_logins > 0',
+                        ],
+                        1 => [
+                            'raw_query' => '`'.$users_table.'`.locked_date IS NOT NULL',
+                        ],
+                        2 => [
+                            'raw_query' => '`'.$users_table.'`.locked_date IS NOT NULL AND `'.$users_table.'`.locked_date > NOW()',
+                        ],
+                    ],
+                    'type'       => PHS_Params::T_INT,
+                    'default'    => -1,
+                    'values_arr' => $lock_options_arr,
+                ],
+            ]);
+        }
+
+        $filters_arr = array_merge( $filters_arr, [
             [
                 'display_name'        => $this->_pt('Level'),
                 'var_name'            => 'flevel',
@@ -204,7 +257,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'values_arr'          => $users_statuses,
                 'extra_records_style' => 'vertical-align:middle;',
             ],
-        ];
+        ]);
 
         $columns_arr = [
             [
@@ -227,6 +280,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'column_title'        => $this->_pt('Email'),
                 'record_field'        => 'email',
                 'invalid_value'       => $this->_pt('N/A'),
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
             [
@@ -234,14 +288,32 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'record_field'        => 'status',
                 'display_key_value'   => $users_statuses,
                 'invalid_value'       => $this->_pt('Undefined'),
-                'extra_records_style' => 'text-align:center;',
+                //'extra_records_style' => 'text-align:center;',
             ],
             [
                 'column_title'        => $this->_pt('Level'),
                 'record_field'        => 'level',
                 'display_key_value'   => $users_levels,
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
             ],
+        ];
+
+        if( $account_lockout_enabled ) {
+            $columns_arr = array_merge($columns_arr, [
+                [
+                    'column_title'        => $this->_pt('Locked?'),
+                    'record_field'        => 'failed_logins',
+                    'display_callback'    => [$this, 'display_locked'],
+                    'invalid_value'       => $this->_pt('No'),
+                    'date_format'         => 'd-m-Y H:i',
+                    'extra_style'         => 'text-align:center;width:130px;',
+                    'extra_records_style' => 'text-align:center;',
+                ],
+            ]);
+        }
+
+        $columns_arr = array_merge($columns_arr, [
             [
                 'column_title'        => $this->_pt('Last Login'),
                 'record_field'        => 'lastlog',
@@ -268,7 +340,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'extra_records_style' => 'text-align:right;',
                 'sortable'            => false,
             ],
-        ];
+        ]);
 
         $return_arr = $this->default_paginator_params();
         $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users']);
@@ -312,6 +384,66 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
+                break;
+
+            case 'bulk_reset_account_locking':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Reseted account locking for required accounts with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Resetting account locking for selected accounts failed. Please try again.'));
+                    } elseif ($action['action_result'] === 'failed_some') {
+                        PHS_Notifications::add_error_notice($this->_pt('Failed resetting account locking for all selected accounts. Accounts for which action failed are still selected. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!PHS::user_logged_in()
+                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
+
+                    return false;
+                }
+
+                if (!($scope_arr = $this->_paginator->get_scope())
+                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+                 || empty($scope_arr[$scope_key])
+                 || !is_array($scope_arr[$scope_key])
+                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))) {
+                    return true;
+                }
+
+                $remaining_ids_arr = [];
+                foreach ($scope_arr[$scope_key] as $account_id) {
+                    if (!$this->_paginator_model->reset_account_locking($account_id)) {
+                        $remaining_ids_arr[] = $account_id;
+                    }
+                }
+
+                if (isset($scope_arr[$scope_all_key])) {
+                    unset($scope_arr[$scope_all_key]);
+                }
+
+                if (empty($remaining_ids_arr)) {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset($scope_arr[$scope_key]);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                } else {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
+                        $action_result_params['action_result'] = 'failed_some';
+                    } else {
+                        $action_result_params['action_result'] = 'failed';
+                    }
+
+                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                }
                 break;
 
             case 'bulk_activate':
@@ -602,6 +734,43 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
                 break;
 
+            case 'reset_account_locking':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Account locking reset with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Resetting account locking failed. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!empty($action['action_params'])) {
+                    $action['action_params'] = (int)$action['action_params'];
+                }
+
+                if (empty($action['action_params'])
+                    || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot reset account locking. Account not found.'));
+
+                    return false;
+                }
+
+                if (!($current_user = PHS::user_logged_in())
+                 || !$this->_admin_plugin->can_admin_manage_accounts()
+                 || !$this->_paginator_model->can_manage_account($current_user, $account_arr)) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage this account.'));
+
+                    return false;
+                }
+
+                if (!$this->_paginator_model->reset_account_locking($account_arr)) {
+                    $action_result_params['action_result'] = 'failed';
+                } else {
+                    $action_result_params['action_result'] = 'success';
+                }
+                break;
+
             case 'resend_registration_email':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -784,6 +953,46 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_str.$name_str;
     }
 
+    public function display_locked($params)
+    {
+        if (empty($params)
+            || !is_array($params)
+            || empty($params['record']) || !is_array($params['record'])
+            || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
+            return false;
+        }
+
+        $paginator_obj = $this->_paginator;
+
+        $pretty_params = [];
+        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
+        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+
+        $cell_str = (empty($account_arr['locked_date'])?$this->_pt('No'):
+            ($this->_paginator_model->is_locked($account_arr)?
+                '<span class="text-danger font-weight-bold">'.$this->_pt('YES').'</span>':$this->_pt('No')).'<br/> '.
+            $this->_paginator->pretty_date_independent($account_arr['locked_date'], $pretty_params));
+
+        if (empty($params['record']['failed_logins'])) {
+            $params['record']['failed_logins'] = 0;
+        }
+
+        if (!empty($params['request_render_type'])) {
+            switch ($params['request_render_type']) {
+                case $paginator_obj::CELL_RENDER_JSON:
+                case $paginator_obj::CELL_RENDER_TEXT:
+                    $cell_str = strip_tags($cell_str ).' ('.$params['record']['failed_logins'].')';
+                break;
+
+                case $paginator_obj::CELL_RENDER_HTML:
+                    $cell_str .= '<br/>'.$this->_pt( '%s failures', $params['record']['failed_logins'] );
+                break;
+            }
+        }
+
+        return $cell_str;
+    }
+
     public function display_actions($params)
     {
         if (empty($this->_paginator_model) && !$this->load_depencies()) {
@@ -803,11 +1012,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $is_inactive = $this->_paginator_model->is_inactive($account_arr);
         $is_active = $this->_paginator_model->is_active($account_arr);
+        $can_manage_account = $this->_paginator_model->can_manage_account($current_user, $account_arr);
 
         ob_start();
 
-        if ($this->_admin_plugin->can_admin_login_subaccounts()
-         && $this->_paginator_model->is_active($account_arr)) {
+        if ($is_active
+            && $this->_admin_plugin->can_admin_login_subaccounts() ) {
             ?>
             <a href="javascript:void(0)"
                onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']; ?>' )"
@@ -815,13 +1025,22 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        if (($is_inactive || $is_active)
-         && $this->_paginator_model->can_manage_account($current_user, $account_arr)) {
-            ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
-                ['uid' => $account_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
-            ><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit account'); ?>"></i></a>
-            <?php
+        if ($can_manage_account ) {
+            if($is_inactive || $is_active) {
+                ?>
+                <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
+                    ['uid' => $account_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+                ><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit account'); ?>"></i></a>
+                <?php
+            }
+
+            if( $this->_accounts_plugin->lockout_is_enabled() ) {
+                ?>
+                <a href="javascript:void(0)"
+                    onclick="phs_users_list_reset_account_locking( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-unlock action-icons" title="<?php echo $this->_pt('Reset account locking'); ?>"></i></a>
+                <?php
+            }
         }
 
         if ($this->_paginator_model->needs_after_registration_email($account_arr)) {
@@ -849,9 +1068,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!$this->_paginator_model->is_deleted($account_arr)) {
             ?>
+            <br/>
             <a href="javascript:void(0)"
                onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
+            ><i class="fa fa-times-circle-o action-icons" style="color:red;" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
             <?php
         }
 
@@ -879,6 +1099,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 $url_params = [];
         $url_params['action'] = [
             'action'        => 'sublogin_account',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
+        }
+        function phs_users_list_reset_account_locking( id )
+        {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) )
+            {
+                <?php
+        $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'reset_account_locking',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
@@ -995,6 +1228,24 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
             if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to DELETE %s accounts?', '"'), '" + total_checked + "'); ?>" + "\n" +
                          "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                return false;
+
+            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj )
+                form_obj.submit();
+        }
+
+        function phs_users_list_bulk_reset_account_locking()
+        {
+            var total_checked = phs_users_list_get_checked_ids_count();
+
+            if( !total_checked )
+            {
+                alert( "<?php echo $this->_pte('Please select accounts you want to reset locking for first.', '"'); ?>" );
+                return false;
+            }
+
+            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to reset locking for %s accounts?', '"'), '" + total_checked + "'); ?>" ) )
                 return false;
 
             var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");

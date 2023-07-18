@@ -15,14 +15,11 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
 class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 {
-    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model;
+    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var \phs\plugins\admin\PHS_Plugin_Admin */
-    private $_admin_plugin;
-
-    /** @var array */
-    private $_cuser_details_arr = [];
+    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     public function load_depencies()
     {

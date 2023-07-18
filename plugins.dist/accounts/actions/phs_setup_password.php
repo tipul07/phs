@@ -79,6 +79,10 @@ class PHS_Action_Setup_password extends PHS_Action
 
         $account_arr = $confirmation_parts['account_data'];
 
+        if( $accounts_model->is_locked($account_arr) ) {
+            PHS_Notifications::add_error_notice($this->_pt('Account locked temporarily because of too many login attempts.'));
+        }
+
         if (!($accounts_settings = $accounts_plugin->get_plugin_settings())) {
             $accounts_settings = [];
         }

@@ -28,7 +28,8 @@ class PHS_Action_Forgot_password_bg extends PHS_Action
          || !($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))
          || !($account_arr = $accounts_model->get_details($params['uid']))
          || empty($account_arr['email'])
-         || !$accounts_model->is_active($account_arr)) {
+         || !$accounts_model->is_active($account_arr)
+         || $accounts_model->is_locked($account_arr)) {
             $this->set_error(self::ERR_UNKNOWN_ACCOUNT, $this->_pt('Cannot send forgot password email to this account.'));
 
             return false;
