@@ -10,13 +10,12 @@ abstract class PHS_Action extends PHS_Instantiable
 {
     public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
 
-    public const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
-
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
     ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
     ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
     ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
-    ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
+    ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
+    ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify';
 
     /** @var PHS_Controller */
     private $_controller_obj;
@@ -24,11 +23,11 @@ abstract class PHS_Action extends PHS_Instantiable
     /** @var null|array */
     private $_action_result;
 
-    private static $_action_roles = [];
+    private static array $_action_roles = [];
 
-    private static $_custom_action_roles = [];
+    private static array $_custom_action_roles = [];
 
-    private static $_builtin_action_roles = [
+    private static array $_builtin_action_roles = [
         self::ACT_ROLE_PAGE             => ['title' => 'Common Page'],
         self::ACT_ROLE_LOGIN            => ['title' => 'Login'],
         self::ACT_ROLE_LOGOUT           => ['title' => 'Logout'],
@@ -39,7 +38,9 @@ abstract class PHS_Action extends PHS_Instantiable
         self::ACT_ROLE_FORGOT_PASSWORD  => ['title' => 'Forgot Password'],
         self::ACT_ROLE_EDIT_PROFILE     => ['title' => 'Edit Profile'],
         self::ACT_ROLE_CHANGE_LANGUAGE  => ['title' => 'Change Language'],
-        self::ACT_REMOTE_PHS_CALL       => ['title' => 'Remote PHS Call'],
+        self::ACT_ROLE_REMOTE_PHS_CALL  => ['title' => 'Remote PHS Call'],
+        self::ACT_ROLE_TFA_SETUP        => ['title' => 'Setup Two Factor Authentication'],
+        self::ACT_ROLE_TFA_VERIFY       => ['title' => 'Verify Two Factor Authentication'],
     ];
 
     /**
@@ -177,7 +178,7 @@ abstract class PHS_Action extends PHS_Instantiable
          && !in_array($scope, $allowed_scopes, true));
     }
 
-    final public function set_action_defaults()
+    final public function set_action_defaults() : void
     {
         $this->_action_result = self::default_action_result();
     }
@@ -264,7 +265,7 @@ abstract class PHS_Action extends PHS_Instantiable
                 $route_parts[$part_value] = true;
             }
 
-            $action_body_classes .= ' '.implode(' ', array_keys($route_parts));
+            $action_body_classes .= ($action_body_classes !== '' ? ' ' : '').implode(' ', array_keys($route_parts));
         }
 
         if (!empty($action_body_classes)) {

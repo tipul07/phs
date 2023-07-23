@@ -1,13 +1,29 @@
 <?php
 namespace phs\plugins\accounts\models;
 
+use phs\PHS;
 use phs\PHS_Crypt;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 
 class PHS_Model_Accounts_tfa extends PHS_Model
 {
+    private const PADDING_CHAR = '=';
+
+    private const CODE_LENGTH = 6;
+
+    private const TFA_PERIOD = 30;
+
+    private const TFA_ALGO = 'SHA1';
+
+    /** @var null|\phs\plugins\accounts\PHS_Plugin_Accounts */
+    private ?PHS_Plugin_Accounts $_accounts_plugin = null;
+
+    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    private ?PHS_Model_Accounts $_accounts_model = null;
+
     private static array $SECRET_CHARS_ARR = [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
         'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -15,18 +31,12 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         'Y', 'Z', '2', '3', '4', '5', '6', '7',
     ];
 
-    private const PADDING_CHAR = '=';
-
-    private const CODE_LENGTH = 6;
-    private const TFA_PERIOD = 30;
-    private const TFA_ALGO = 'SHA1';
-
     /**
      * @return string Returns version of model
      */
     public function get_model_version()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -45,31 +55,32 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return 'users_tfa';
     }
 
-    public function get_code_length(): int
+    public function get_code_length() : int
     {
         return self::CODE_LENGTH;
     }
 
-    public function generate_secret(int $length = 16): ?string
+    public function generate_secret(int $length = 16) : ?string
     {
         $this->reset_error();
 
         // 80 to 640 bits
         if ($length < 16 || $length > 128) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Two factor authentication secret length is not valid.' ) );
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Two factor authentication secret length is not valid.'));
+
             return null;
         }
 
         try {
-            $random_arr = random_bytes( $length );
-        } catch( \Exception $e ) {
+            $random_arr = random_bytes($length);
+        } catch (\Exception $e) {
             $random_arr = [];
-            for( $i = 0; $i < $length; $i++ ) {
+            for ($i = 0; $i < $length; $i++) {
                 $random_arr[] = mt_rand(0, 255);
             }
         }
 
-        $chars_len = count( self::$SECRET_CHARS_ARR );
+        $chars_len = count(self::$SECRET_CHARS_ARR);
         $secret = '';
         for ($i = 0; $i < $length; $i++) {
             $secret .= self::$SECRET_CHARS_ARR[ord($random_arr[$i]) % $chars_len];
@@ -78,160 +89,254 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $secret;
     }
 
-    public function generate_recovery_codes( int $codes_no = 8, int $secret_length = 16 ): array
+    public function generate_recovery_codes(int $codes_no = 8, int $secret_length = 16) : array
     {
         $result_arr = [];
-        for( $i = 0; $i < $codes_no; $i++ ) {
+        for ($i = 0; $i < $codes_no; $i++) {
             $result_arr[] = $this->generate_secret($secret_length);
         }
 
         return $result_arr;
     }
 
-    public function get_tfa_data_for_account( $account_data ): ?array
+    public function get_tfa_for_current_account(bool $force = false) : ?array
     {
-        $this->reset_error();
+        static $tfa_arr = null;
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if( !($accounts_model = PHS_Model_Accounts::get_instance()) ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
+        if (empty($force)
+            && $tfa_arr !== null) {
+            return $tfa_arr;
+        }
+
+        // If user is not logged in yet, do not cache the result
+        if (!($account_arr = PHS::current_user())
+            || null === ($tfa_data = $this->get_tfa_data_for_account($account_arr))) {
+            return [];
+        }
+
+        $tfa_arr = $tfa_data['tfa_data'] ?? [];
+
+        return $tfa_arr;
+    }
+
+    public function get_tfa_data_for_account($account_data) : ?array
+    {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if( !($account_arr = $accounts_model->data_to_array( $account_data ))
-            || $accounts_model->is_deleted( $account_arr ) ) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+        if (!($account_arr = $this->_accounts_model->data_to_array($account_data))
+            || $this->_accounts_model->is_deleted($account_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+
             return null;
         }
 
-        if( !($tfa_arr = $this->get_details_fields( [ 'account_id' => $account_arr['id'] ])) ) {
+        if (!($tfa_arr = $this->get_details_fields(['uid' => $account_arr['id']]))) {
             $tfa_arr = null;
         }
 
         return [
             'account_data' => $account_arr,
-            'tfa_data' => $tfa_arr,
+            'tfa_data'     => $tfa_arr,
         ];
     }
 
     /**
      * @param int|array $account_data
-     * @param  array  $tfa_data
+     * @param array $tfa_data
      *
      * @return null|array
      */
-    public function update_tfa_for_account( $account_data, array $tfa_data ): ?array
+    public function install_tfa_for_account($account_data) : ?array
     {
-        if( !($tfa_check = $this->get_tfa_data_for_account( $account_data )) ) {
+        if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
             return null;
         }
 
-        $existing_tfa = $tfa_check['tfa_data'] ?? null;
+        if (!empty($tfa_check['tfa_data'])) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Two factor authentication installation not required for provided account.'));
+
+            return null;
+        }
+
         $account_arr = $tfa_check['account_data'] ?? null;
 
-        if( empty( $account_arr['id'] ) ) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+        if (empty($account_arr['id'])) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+
             return null;
         }
 
         $flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tfa']);
         $fields_arr = [];
+        $fields_arr['uid'] = $account_arr['id'];
 
-        if( !empty( $tfa_data['secret'] ) ) {
-            if( !is_string( $tfa_data['secret'] ) ) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt( 'Invalid secret for two factor authentication.' ) );
+        $flow_arr['fields'] = $fields_arr;
+
+        if (!($result = $this->insert($flow_arr))) {
+            if (self::st_debugging_mode()) {
+                PHS_Logger::debug('Error installing 2FA data for account #'.$account_arr['id'].': '.$this->get_error_message(),
+                    PHS_Logger::TYPE_DEBUG);
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this->_pt('Error installing two factor authentication data for provided account.'));
+
+            return null;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int|array $account_data
+     * @param array $tfa_data
+     *
+     * @return null|array
+     */
+    public function update_tfa_for_account($account_data, array $tfa_data) : ?array
+    {
+        if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
+            return null;
+        }
+
+        if (empty($tfa_check['tfa_data'])
+            || empty($tfa_check['account_data'])) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Account doesn\'t have two factor authentication installed.'));
+
+            return null;
+        }
+
+        $existing_tfa = $tfa_check['tfa_data'];
+        $account_arr = $tfa_check['account_data'];
+
+        $flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tfa']);
+        $fields_arr = [];
+
+        if (!empty($tfa_data['secret'])) {
+            if (!is_string($tfa_data['secret'])) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid secret for two factor authentication.'));
+
                 return null;
             }
 
             $fields_arr['secret'] = $tfa_data['secret'];
         }
 
-        if( !empty( $tfa_data['recovery'] ) ) {
-            if( !is_array( $tfa_data['recovery'] ) ) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt( 'Invalid recovery data for two factor authentication.' ) );
+        if (!empty($tfa_data['recovery'])) {
+            if (!is_array($tfa_data['recovery'])) {
+                $this->set_error(self::ERR_PARAMETERS,
+                    $this->_pt('Invalid recovery data for two factor authentication.'));
+
                 return null;
             }
 
             $fields_arr['recovery'] = $tfa_data['recovery'];
         }
 
-        if( empty( $existing_tfa ) ) {
-            $fields_arr['uid'] = $account_arr['id'];
+        if (empty($fields_arr)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Nothing to update for two factor authentication for provided account.'));
 
-            $flow_arr['fields'] = $fields_arr;
-
-            if( !($result = $this->insert( $flow_arr )) ) {
-                if( self::st_debugging_mode() ) {
-                    PHS_Logger::debug('Error saving 2FA data for account #'.$account_arr['id'].': '.$this->get_error_message(),
-                        PHS_Logger::TYPE_DEBUG );
-                }
-            }
-        } else {
-            $flow_arr['fields'] = $fields_arr;
-
-            if( !($result = $this->edit( $existing_tfa, $flow_arr )) ) {
-                if( self::st_debugging_mode() ) {
-                    PHS_Logger::debug('Error chaning 2FA data for account #'.$account_arr['id'].': '.$this->get_error_message(),
-                        PHS_Logger::TYPE_DEBUG );
-                }
-            }
+            return null;
         }
 
-        if( empty( $result ) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error saving two factor authentication data in database.' ) );
+        $flow_arr['fields'] = $fields_arr;
+
+        if (!($result = $this->edit($existing_tfa, $flow_arr))) {
+            if (self::st_debugging_mode()) {
+                PHS_Logger::debug('Error updating 2FA data for account #'.$account_arr['id'].': '.$this->get_error_message(),
+                    PHS_Logger::TYPE_DEBUG);
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this->_pt('Error saving two factor authentication data for provided account.'));
+
             return null;
         }
 
         return $result;
     }
 
-    public function get_tfa_otp_url( $account_data ): ?string
+    public function get_qr_code_url_for_tfa_setup($account_data, ?array $params = null) : ?array
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
-            $this->set_error( self::ERR_DEPENDENCIES, $this->_pt( 'Error loading required resources.' ) );
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if( !($tfa_check = $this->get_tfa_data_for_account( $account_data )) ) {
+        $params ??= [];
+
+        $params['link_expiration_seconds'] ??= 60;
+
+        /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
+        if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
             return null;
         }
 
-        $existing_tfa = $tfa_check['tfa_data'] ?? null;
-        $account_arr = $tfa_check['account_data'] ?? null;
+        if (!($account_arr = $this->_accounts_model->data_to_array($account_data))
+            || $this->_accounts_model->is_deleted($account_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
-        if( empty( $account_arr['id'] )
-         || empty( $existing_tfa['id'] ) ) {
-            $this->set_error(self::ERR_PARAMETERS,
-                $this->_pt( 'Account doesn\'t have two factor authentication enabled.' ) );
             return null;
         }
 
-        if( !($secret_str = $this->get_secret( $existing_tfa )) ) {
-            if( !$this->has_error() ) {
-                $this->set_error(self::ERR_FUNCTIONALITY,
-                    $this->_pt('Error obtaining two factor authentication details.'));
+        if (!($tfa_check = $this->get_tfa_data_for_account($account_arr))) {
+            if ($this->has_error()
+                || !($tfa_arr = $this->install_tfa_for_account($account_arr))) {
+                return null;
             }
+        } else {
+            $tfa_arr = $tfa_check['tfa_data'];
+        }
+
+        if (!($tfa_url = $this->_get_tfa_otp_url($account_arr))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_PARAMETERS,
+                    $this->_pt('Error obtaining two factor authentication setup URL.'));
+            }
+
             return null;
         }
 
-        if( !($settings_arr = $accounts_plugin->get_plugin_settings()) ) {
-            $settings_arr = [];
+        $link_params = [];
+        $link_params['link_expiration_seconds'] = $params['link_expiration_seconds'];
+        $link_params['for_account_id'] = $account_arr['id'];
+        // Image expiration, doesn't affect QR code functionality
+        $link_params['expiration_hours'] = 24;
+
+        if (!($setup_url = $libs_plugin->generate_qr_code_img_url($tfa_url, $link_params))) {
+            if ($libs_plugin->has_error()) {
+                $this->copy_error($libs_plugin, self::ERR_FUNCTIONALITY);
+            } else {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error generating two factor authentication setup link.'));
+            }
+
+            return null;
         }
 
-        $issuer = $settings_arr['2fa_issuer_name'] ?? PHS_SITE_NAME;
+        PHS_Logger::notice('[SETUP] Generated TFA setup URL for account #'.$account_arr['id'],
+            $this->_accounts_plugin::LOG_TFA);
 
-        return 'otpauth://totp/'.
-               rawurlencode($issuer).
-               ':'.
-               rawurlencode($account_arr['nick']).
-               '?secret='.$secret_str.
-               '&issuer='.rawurlencode($issuer).
-               '&algorithm='.rawurlencode(self::TFA_ALGO).
-               '&digits='.self::CODE_LENGTH.
-               '&period='.self::TFA_PERIOD;
+        return $setup_url;
+    }
+
+    /**
+     * @param int|array $tfa_data
+     *
+     * @return null|bool
+     */
+    public function setup_completed($tfa_data) : bool
+    {
+        return ($tfa_arr = $this->data_to_array($tfa_data))
+               && !empty($tfa_arr['setup']);
     }
 
     /**
@@ -239,20 +344,22 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    public function get_secret( $tfa_data ): ?string
+    public function get_secret($tfa_data) : ?string
     {
         $this->reset_error();
 
-        if( !($tfa_arr = $this->data_to_array( $tfa_data )) ) {
-            $this->set_error( self::ERR_PARAMETERS,
-                $this->_pt( 'Two factor authentication data not found in database.' ) );
+        if (!($tfa_arr = $this->data_to_array($tfa_data))) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Two factor authentication data not found in database.'));
+
             return null;
         }
 
-        if( empty( $tfa_arr['secret'] )
-            || !($result = PHS_Crypt::quick_decode( $tfa_arr['secret'] )) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY,
-                $this->_pt( 'Error obtaining two factor authentication secret.' ) );
+        if (empty($tfa_arr['secret'])
+            || !($result = PHS_Crypt::quick_decode($tfa_arr['secret']))) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this->_pt('Error obtaining two factor authentication secret.'));
+
             return null;
         }
 
@@ -264,54 +371,38 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function get_recovery_codes( $tfa_data ): ?array
+    public function get_recovery_codes($tfa_data) : ?array
     {
         $this->reset_error();
 
-        if( !($tfa_arr = $this->data_to_array( $tfa_data )) ) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Two factor authentication data not found in database.' ) );
+        if (!($tfa_arr = $this->data_to_array($tfa_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Two factor authentication data not found in database.'));
+
             return null;
         }
 
-        if( empty( $tfa_arr['recovery'] )
-            || !($result = $this->decode_recovery_field( $tfa_arr['recovery'] )) ) {
+        if (empty($tfa_arr['recovery'])
+            || !($result = $this->decode_recovery_field($tfa_arr['recovery']))) {
             return [];
         }
 
         return $result;
     }
 
-    public function decode_recovery_field( string $recovery ): ?array
+    public function decode_recovery_field(string $recovery) : ?array
     {
         $this->reset_error();
 
-        if( empty( $recovery )
-            || !($decrypted_recovery = PHS_Crypt::quick_decode( $recovery ))
-            || !($recovery_codes = @json_decode( $decrypted_recovery, true ))
-            || !is_array( $recovery_codes ) ) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error decoding recovery data.' ) );
+        if (empty($recovery)
+            || !($decrypted_recovery = PHS_Crypt::quick_decode($recovery))
+            || !($recovery_codes = @json_decode($decrypted_recovery, true))
+            || !is_array($recovery_codes)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error decoding recovery data.'));
+
             return null;
         }
 
         return $recovery_codes;
-    }
-
-    /**
-     * @param array $recovery_arr
-     *
-     * @return null|string
-     */
-    private function _encode_recovery_codes( array $recovery_arr ): ?string
-    {
-        $this->reset_error();
-
-        if( !($recovery_str = @json_encode( $recovery_arr ))
-            || !($encrypted_recovery = PHS_Crypt::quick_encode( $recovery_str )) ) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error encoding recovery data.' ) );
-            return null;
-        }
-
-        return $encrypted_recovery;
     }
 
     /**
@@ -336,21 +427,25 @@ class PHS_Model_Accounts_tfa extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'uid' => [
-                        'type'     => self::FTYPE_INT,
-                        'index'    => true,
+                        'type'  => self::FTYPE_INT,
+                        'index' => true,
                     ],
                     'secret' => [
-                        'type'     => self::FTYPE_VARCHAR,
-                        'length'   => 255,
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
                     ],
                     'recovery' => [
-                        'type'     => self::FTYPE_TEXT,
+                        'type' => self::FTYPE_TEXT,
+                    ],
+                    'setup' => [
+                        'type'    => self::FTYPE_DATETIME,
+                        'comment' => 'When TFA setup finished',
                     ],
                     'last_update' => [
-                        'type'     => self::FTYPE_DATETIME,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'cdate' => [
-                        'type'     => self::FTYPE_DATETIME,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                 ];
                 break;
@@ -380,20 +475,21 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         }
 
         if (empty($params['fields']['recovery'])
-            || !is_array($params['fields']['recovery']) ) {
+            || !is_array($params['fields']['recovery'])) {
             $params['fields']['recovery'] = $this->generate_recovery_codes();
         }
 
-        if( !($params['fields']['recovery'] = $this->_encode_recovery_codes( $params['fields']['recovery'] )) ) {
-            if( !$this->has_error() ) {
-                $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error encoding recovery data.' ) );
+        if (!($params['fields']['recovery'] = $this->_encode_recovery_codes($params['fields']['recovery']))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error encoding recovery data.'));
             }
 
             return false;
         }
 
-        if( !($params['fields']['secret'] = PHS_Crypt::quick_encode( $params['fields']['secret'] )) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error encoding secret key.' ) );
+        if (!($params['fields']['secret'] = PHS_Crypt::quick_encode($params['fields']['secret']))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encoding secret key.'));
+
             return false;
         }
 
@@ -420,23 +516,108 @@ class PHS_Model_Accounts_tfa extends PHS_Model
             return false;
         }
 
-        if( !empty( $params['fields']['secret'] )
-            && (!is_string( $params['fields']['secret'] )
-                || !($params['fields']['secret'] = PHS_Crypt::quick_encode( $params['fields']['secret'] ))) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error encoding secret key.' ) );
+        if (!empty($params['fields']['secret'])
+            && (!is_string($params['fields']['secret'])
+                || !($params['fields']['secret'] = PHS_Crypt::quick_encode($params['fields']['secret'])))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encoding secret key.'));
+
             return false;
         }
 
         if (!empty($params['fields']['recovery'])
             && (!is_array($params['fields']['recovery'])
-                || !($params['fields']['recovery'] = $this->_encode_recovery_codes( $params['fields']['recovery'] )))
+                || !($params['fields']['recovery'] = $this->_encode_recovery_codes($params['fields']['recovery'])))
         ) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Error encoding recovery data.' ) );
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error encoding recovery data.'));
+
             return false;
         }
 
         $params['fields']['last_update'] = date(self::DATETIME_DB);
 
         return $params;
+    }
+
+    private function _load_dependencies() : bool
+    {
+        if ((empty($this->_accounts_plugin)
+             && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
+            || (empty($this->_accounts_model)
+                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _get_tfa_otp_url($account_data) : ?string
+    {
+        $this->reset_error();
+
+        if (!$this->_load_dependencies()) {
+            return null;
+        }
+
+        if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
+            return null;
+        }
+
+        $existing_tfa = $tfa_check['tfa_data'] ?? null;
+        $account_arr = $tfa_check['account_data'] ?? null;
+
+        if (empty($account_arr['id'])
+         || empty($existing_tfa['id'])) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Account doesn\'t have two factor authentication enabled.'));
+
+            return null;
+        }
+
+        if (!($secret_str = $this->get_secret($existing_tfa))) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error obtaining two factor authentication details.'));
+            }
+
+            return null;
+        }
+
+        if (!($settings_arr = $this->_accounts_plugin->get_plugin_settings())) {
+            $settings_arr = [];
+        }
+
+        $issuer = $settings_arr['2fa_issuer_name'] ?? PHS_SITE_NAME;
+
+        return 'otpauth://totp/'
+               .rawurlencode($issuer)
+               .':'
+               .rawurlencode($account_arr['nick'])
+               .'?secret='.$secret_str
+               .'&issuer='.rawurlencode($issuer)
+               .'&algorithm='.rawurlencode(self::TFA_ALGO)
+               .'&digits='.self::CODE_LENGTH
+               .'&period='.self::TFA_PERIOD;
+    }
+
+    /**
+     * @param array $recovery_arr
+     *
+     * @return null|string
+     */
+    private function _encode_recovery_codes(array $recovery_arr) : ?string
+    {
+        $this->reset_error();
+
+        if (!($recovery_str = @json_encode($recovery_arr))
+            || !($encrypted_recovery = PHS_Crypt::quick_encode($recovery_str))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error encoding recovery data.'));
+
+            return null;
+        }
+
+        return $encrypted_recovery;
     }
 }

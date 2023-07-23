@@ -9,7 +9,9 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\events\layout\PHS_Event_Template;
+use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 
 class PHS_Scope_Web extends PHS_Scope
 {
@@ -31,11 +33,22 @@ class PHS_Scope_Web extends PHS_Scope
 
         $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
 
-        if (($expiration_arr = PHS::current_user_password_expiration())
-         && !empty($expiration_arr['is_expired'])) {
-            if ($action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
-                $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED,
-            ])) {
+        // TFA preceeeds password expiration...
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if ($this->_should_redirect_to_tfa_flow()
+            && (empty($action_obj)
+                || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
+        ) {
+            if ($this->_should_setup_tfa_for_account()) {
+                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'setup', 'ad' => 'tfa']);
+            } else {
+                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa']);
+            }
+        } elseif (($expiration_arr = $this->_password_expired_for_current_account())) {
+            if (!empty($action_obj)
+                && $action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
+                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED, ])
+            ) {
                 $in_special_page = true;
             } else {
                 $in_special_page = false;
@@ -176,5 +189,34 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         return true;
+    }
+
+    private function _password_expired_for_current_account() : ?array
+    {
+        if (!($expiration_arr = PHS::current_user_password_expiration())
+            || empty($expiration_arr['is_expired'])) {
+            return null;
+        }
+
+        return $expiration_arr;
+    }
+
+    private function _should_redirect_to_tfa_flow() : bool
+    {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+               && $accounts_plugin->tfa_policy_is_enforced()
+               && ($online_arr = PHS::current_user_session())
+               && (empty($online_arr['tfa_expiration'])
+                   || parse_db_date($online_arr['tfa_expiration']) < time());
+    }
+
+    private function _should_setup_tfa_for_account() : bool
+    {
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
+               && PHS::current_user()
+               && (!($tfa_arr = $tfa_model->get_tfa_for_current_account())
+                   || !$tfa_model->setup_completed($tfa_arr));
     }
 }

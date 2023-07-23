@@ -14,7 +14,7 @@ abstract class PHS_Controller extends PHS_Instantiable
 
     // ! Tells if running controller should choose admin template if Scope should display a layout
     /** @var bool */
-    private $_is_admin_controller = false;
+    private bool $_is_admin_controller = false;
 
     /**
      * @return string
@@ -43,7 +43,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         return [];
     }
 
-    final public function is_admin_controller($is_admin = null)
+    final public function is_admin_controller($is_admin = null) : bool
     {
         if ($is_admin === null) {
             return $this->_is_admin_controller;
@@ -69,15 +69,15 @@ abstract class PHS_Controller extends PHS_Instantiable
             return false;
         }
 
-        return !(($allowed_scopes = $this->allowed_scopes())
-         && !in_array($scope, $allowed_scopes, true));
+        return !($allowed_scopes = $this->allowed_scopes())
+               || in_array($scope, $allowed_scopes, true);
     }
 
     /**
      * Overwrite this method to tell controller to redirect user to login page if not logged in
      * @return bool
      */
-    public function should_request_have_logged_in_user()
+    public function should_request_have_logged_in_user() : bool
     {
         return false;
     }
@@ -87,7 +87,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      * If this method returns true, an user checked test is also made
      * @return bool
      */
-    public function should_user_have_any_of_defined_role_units()
+    public function should_user_have_any_of_defined_role_units() : bool
     {
         return false;
     }
@@ -230,9 +230,8 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         // If page template is still "front-end" and controller told us it is an admin controller change page template
         // with default admin template
-        if ($this->is_admin_controller()
-        && is_array($action_result)
-        && !empty($action_result['page_template']) && $action_result['page_template'] === 'template_main') {
+        if (!empty($action_result['page_template']) && $action_result['page_template'] === 'template_main'
+            && $this->is_admin_controller()) {
             $action_result['page_template'] = 'template_admin';
         }
 

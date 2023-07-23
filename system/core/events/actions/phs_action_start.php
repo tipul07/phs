@@ -7,13 +7,10 @@ use phs\libraries\PHS_Action;
 class PHS_Event_Action_start extends PHS_Event_Action
 {
     public const
-        LOGIN = 'phs_accounts_login',
-    LOGOUT = 'phs_accounts_logout',
-    EDIT_PROFILE = 'phs_accounts_edit_profile',
-    CHANGE_PASSWORD = 'phs_accounts_change_password',
-    FORGOT_PASSWORD = 'phs_accounts_forgot_password',
-    REGISTER = 'phs_accounts_register',
-    SETUP_PASSWORD = 'phs_accounts_setup_password';
+        LOGIN = 'phs_accounts_login', LOGOUT = 'phs_accounts_logout', EDIT_PROFILE = 'phs_accounts_edit_profile',
+    CHANGE_PASSWORD = 'phs_accounts_change_password', FORGOT_PASSWORD = 'phs_accounts_forgot_password',
+    REGISTER = 'phs_accounts_register', SETUP_PASSWORD = 'phs_accounts_setup_password',
+    TFA_SETUP = 'phs_accounts_tfa_setup', TFA_CHECK = 'phs_accounts_tfa_check';
 
     protected const OLD_HOOKS = [
         self::LOGIN           => [PHS_Hooks::H_USERS_LOGIN_ACTION_START],

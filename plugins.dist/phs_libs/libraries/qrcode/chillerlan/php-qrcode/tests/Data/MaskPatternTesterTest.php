@@ -1,0 +1,42 @@
+<?php
+/**
+ * Class MaskPatternTesterTest
+ *
+ * @filesource   MaskPatternTesterTest.php
+ * @created      24.11.2017
+ * @author       Smiley <smiley@chillerlan.net>
+ * @copyright    2017 Smiley
+ * @license      MIT
+ */
+namespace chillerlan\QRCodeTest\Data;
+
+use PHPUnit\Framework\TestCase;
+use chillerlan\QRCode\Data\Byte;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Data\MaskPatternTester;
+
+/**
+ * MaskPatternTester coverage test
+ */
+final class MaskPatternTesterTest extends TestCase
+{
+    /**
+     * Tests getting the best mask pattern
+     */
+    public function test_maskpattern() : void
+    {
+        $dataInterface = new Byte(new QROptions(['version' => 10]), 'test');
+
+        $this::assertSame(3, (new MaskPatternTester($dataInterface))->getBestMaskPattern());
+    }
+
+    /**
+     * Tests getting the penalty value for a given mask pattern
+     */
+    public function test_maskpattern_id() : void
+    {
+        $dataInterface = new Byte(new QROptions(['version' => 10]), 'test');
+
+        $this::assertSame(4243, (new MaskPatternTester($dataInterface))->testPattern(3));
+    }
+}

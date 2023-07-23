@@ -18,7 +18,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 {
     public const ERR_LOGOUT = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002, ERR_TOKEN = 40003;
 
-    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_SECURITY = 'phs_security.log';
+    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_SECURITY = 'phs_security.log', LOG_TFA = 'phs_accounts_tfa.log';
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
@@ -51,7 +51,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     ];
 
     protected static array $TFA_POLICY_ARR = [
-        self::TFA_POLICY_OFF => 'Off',
+        self::TFA_POLICY_OFF      => 'Off',
         self::TFA_POLICY_OPTIONAL => 'Optional',
         self::TFA_POLICY_ENFORCED => 'Enforced',
     ];
@@ -65,7 +65,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         $accounts_levels_arr = [];
-        if( ($accounts_model = PHS_Model_Accounts::get_instance()) ) {
+        if (($accounts_model = PHS_Model_Accounts::get_instance())) {
             $accounts_levels_arr = $accounts_model->get_levels_as_key_val();
         }
 
@@ -273,9 +273,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'values_arr'   => $accounts_levels_arr,
                         'default'      => [],
                     ],
-                    '2fa_remember_interval' => [
-                        'display_name' => $this->_pt('Remember 2FA verification (hours)'),
-                        'display_hint' => $this->_pt('"Remember 2FA verification" option. How many hours should 2FA not be required on current device. 0 means forever'),
+                    '2fa_session_length' => [
+                        'display_name' => $this->_pt('2FA session length (hours)'),
+                        'display_hint' => $this->_pt('How many hours should 2FA not be required on current session. 0 means forever'),
                         'type'         => PHS_Params::T_INT,
                         'default'      => 48,
                     ],
@@ -1159,7 +1159,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function get_guest_roles_and_role_units(): array
+    public function get_guest_roles_and_role_units() : array
     {
         static $resulting_roles = null;
 
@@ -1196,7 +1196,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_file(string $json_file, array $params = null)
+    public function import_accounts_from_json_file(string $json_file, ?array $params = null)
     {
         $this->reset_error();
 
@@ -1226,7 +1226,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_array(array $json_arr, array $params = null)
+    public function import_accounts_from_json_array(array $json_arr, ?array $params = null)
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -2029,7 +2029,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    private function _create_required_directories(): bool
+    private function _create_required_directories() : bool
     {
         $this->reset_error();
 
@@ -2058,7 +2058,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return string
      */
-    public static function session_key(?string $key = null): string
+    public static function session_key(?string $key = null) : string
     {
         if ($key === null) {
             return self::$_session_key;
