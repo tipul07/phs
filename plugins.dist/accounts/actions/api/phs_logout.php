@@ -31,7 +31,7 @@ class PHS_Action_Logout extends PHS_Api_action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGOUT, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];

@@ -206,6 +206,10 @@ class PHS_Scope_Web extends PHS_Scope
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
                && $accounts_plugin->tfa_policy_is_enforced()
+               && ($current_user = PHS::current_user())
+               && ($settings_arr = $accounts_plugin->get_plugin_settings())
+               && (empty($settings_arr['2fa_policy_account_level'])
+                   || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))
                && ($online_arr = PHS::current_user_session())
                && (empty($online_arr['tfa_expiration'])
                    || parse_db_date($online_arr['tfa_expiration']) < time());

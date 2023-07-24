@@ -4,89 +4,86 @@
  *
  * @filesource   QRImageTest.php
  * @created      24.12.2017
+ * @package      chillerlan\QRCodeTest\Output
  * @author       Smiley <smiley@chillerlan.net>
  * @copyright    2017 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\QRCodeTest\Output;
 
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
-use chillerlan\QRCode\Output\QRImage;
-use chillerlan\QRCode\Output\QROutputInterface;
+use chillerlan\QRCode\{QRCode, QROptions};
+use chillerlan\QRCode\Output\{QROutputInterface, QRImage};
 
 /**
  * Tests the QRImage output module
  */
-class QRImageTest extends QROutputTestAbstract
-{
-    /**
-     * @inheritDoc
-     * @internal
-     */
-    public function types() : array
-    {
-        return [
-            'png' => [QRCode::OUTPUT_IMAGE_PNG],
-            'gif' => [QRCode::OUTPUT_IMAGE_GIF],
-            'jpg' => [QRCode::OUTPUT_IMAGE_JPG],
-        ];
-    }
+class QRImageTest extends QROutputTestAbstract{
 
-    /**
-     * @inheritDoc
-     */
-    public function test_set_module_values() : void
-    {
-        $this->options->moduleValues = [
-            // data
-            1024 => [0, 0, 0],
-            4    => [255, 255, 255],
-        ];
+	/**
+	 * @inheritDoc
+	 * @internal
+	 */
+	public function setUp():void{
 
-        $this->outputInterface = $this->getOutputInterface($this->options);
-        $this->outputInterface->dump();
+		if(!extension_loaded('gd')){
+			$this->markTestSkipped('ext-gd not loaded');
+			return;
+		}
 
-        $this::assertTrue(true); // tricking the code coverage
-    }
+		parent::setUp();
+	}
 
-    /**
-     * @phan-suppress PhanUndeclaredClassReference
-     */
-    public function test_output_get_resource() : void
-    {
-        $this->options->returnResource = true;
-        $this->outputInterface = $this->getOutputInterface($this->options);
+	/**
+	 * @inheritDoc
+	 * @internal
+	 */
+	protected function getOutputInterface(QROptions $options):QROutputInterface{
+		return new QRImage($options, $this->matrix);
+	}
 
-        $actual = $this->outputInterface->dump();
+	/**
+	 * @inheritDoc
+	 * @internal
+	 */
+	public function types():array{
+		return [
+			'png' => [QRCode::OUTPUT_IMAGE_PNG],
+			'gif' => [QRCode::OUTPUT_IMAGE_GIF],
+			'jpg' => [QRCode::OUTPUT_IMAGE_JPG],
+		];
+	}
 
-        /** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
-        \PHP_MAJOR_VERSION >= 8
-            ? $this::assertInstanceOf(\GdImage::class, $actual)
-            : $this::assertIsResource($actual);
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function testSetModuleValues():void{
 
-    /**
-     * @inheritDoc
-     * @internal
-     */
-    protected function getOutputInterface(QROptions $options) : QROutputInterface
-    {
-        return new QRImage($options, $this->matrix);
-    }
+		$this->options->moduleValues = [
+			// data
+			1024 => [0, 0, 0],
+			4    => [255, 255, 255],
+		];
 
-    /**
-     * @inheritDoc
-     * @internal
-     */
-    public function setUp() : void
-    {
-        if (!extension_loaded('gd')) {
-            $this->markTestSkipped('ext-gd not loaded');
+		$this->outputInterface = $this->getOutputInterface($this->options);
+		$this->outputInterface->dump();
 
-            return;
-        }
+		$this::assertTrue(true); // tricking the code coverage
+	}
 
-        parent::setUp();
-    }
+	/**
+	 * @phan-suppress PhanUndeclaredClassReference
+	 */
+	public function testOutputGetResource():void{
+		$this->options->returnResource = true;
+		$this->outputInterface         = $this->getOutputInterface($this->options);
+
+		$actual = $this->outputInterface->dump();
+
+		/** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
+		\PHP_MAJOR_VERSION >= 8
+			? $this::assertInstanceOf(\GdImage::class, $actual)
+			: $this::assertIsResource($actual);
+	}
+
 }

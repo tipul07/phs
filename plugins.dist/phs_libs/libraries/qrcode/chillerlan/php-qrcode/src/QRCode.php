@@ -4,36 +4,23 @@
  *
  * @filesource   QRCode.php
  * @created      26.11.2015
+ * @package      chillerlan\QRCode
  * @author       Smiley <smiley@chillerlan.net>
  * @copyright    2015 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\QRCode;
 
-use chillerlan\QRCode\Data\Byte;
-use chillerlan\QRCode\Data\Kanji;
-use chillerlan\QRCode\Data\Number;
-use chillerlan\QRCode\Data\AlphaNum;
-use chillerlan\QRCode\Data\QRMatrix;
-use chillerlan\QRCode\Output\QRFpdf;
-use chillerlan\QRCode\Output\QRImage;
-use chillerlan\QRCode\Output\QRMarkup;
-use chillerlan\QRCode\Output\QRString;
-use chillerlan\QRCode\Output\QRImagick;
-use chillerlan\QRCode\Data\QRDataInterface;
-use chillerlan\QRCode\Data\MaskPatternTester;
-use chillerlan\QRCode\Data\QRCodeDataException;
-use chillerlan\QRCode\Output\QROutputInterface;
-use chillerlan\QRCode\Output\QRCodeOutputException;
+use chillerlan\QRCode\Data\{
+	AlphaNum, Byte, Kanji, MaskPatternTester, Number, QRCodeDataException, QRDataInterface, QRMatrix
+};
+use chillerlan\QRCode\Output\{
+	QRCodeOutputException, QRFpdf, QRImage, QRImagick, QRMarkup, QROutputInterface, QRString
+};
 use chillerlan\Settings\SettingsContainerInterface;
 
-use function ord;
-use function strlen;
-use function in_array;
-use function str_split;
-use function strtolower;
-use function class_exists;
-use function call_user_func_array;
+use function call_user_func_array, class_exists, in_array, ord, strlen, strtolower, str_split;
 
 /**
  * Turns a text string into a Model 2 QR Code
@@ -44,310 +31,283 @@ use function call_user_func_array;
  * @see https://en.wikipedia.org/wiki/QR_code
  * @see http://www.thonky.com/qr-code-tutorial/
  */
-class QRCode
-{
-    /** @var int */
-    public const VERSION_AUTO = -1;
+class QRCode{
 
-    /** @var int */
-    public const MASK_PATTERN_AUTO = -1;
+	/** @var int */
+	public const VERSION_AUTO       = -1;
+	/** @var int */
+	public const MASK_PATTERN_AUTO  = -1;
 
-    // ISO/IEC 18004:2000 Table 2
+	// ISO/IEC 18004:2000 Table 2
 
-    /** @var int */
-    public const DATA_NUMBER = 0b0001;
+	/** @var int */
+	public const DATA_NUMBER   = 0b0001;
+	/** @var int */
+	public const DATA_ALPHANUM = 0b0010;
+	/** @var int */
+	public const DATA_BYTE     = 0b0100;
+	/** @var int */
+	public const DATA_KANJI    = 0b1000;
 
-    /** @var int */
-    public const DATA_ALPHANUM = 0b0010;
+	/**
+	 * References to the keys of the following tables:
+	 *
+	 * @see \chillerlan\QRCode\Data\QRDataInterface::MAX_LENGTH
+	 *
+	 * @var int[]
+	 */
+	public const DATA_MODES = [
+		self::DATA_NUMBER   => 0,
+		self::DATA_ALPHANUM => 1,
+		self::DATA_BYTE     => 2,
+		self::DATA_KANJI    => 3,
+	];
 
-    /** @var int */
-    public const DATA_BYTE = 0b0100;
+	// ISO/IEC 18004:2000 Tables 12, 25
 
-    /** @var int */
-    public const DATA_KANJI = 0b1000;
+	/** @var int */
+	public const ECC_L = 0b01; // 7%.
+	/** @var int */
+	public const ECC_M = 0b00; // 15%.
+	/** @var int */
+	public const ECC_Q = 0b11; // 25%.
+	/** @var int */
+	public const ECC_H = 0b10; // 30%.
 
-    /**
-     * References to the keys of the following tables:
-     *
-     * @see \chillerlan\QRCode\Data\QRDataInterface::MAX_LENGTH
-     *
-     * @var int[]
-     */
-    public const DATA_MODES = [
-        self::DATA_NUMBER   => 0,
-        self::DATA_ALPHANUM => 1,
-        self::DATA_BYTE     => 2,
-        self::DATA_KANJI    => 3,
-    ];
+	/**
+	 * References to the keys of the following tables:
+	 *
+	 * @see \chillerlan\QRCode\Data\QRDataInterface::MAX_BITS
+	 * @see \chillerlan\QRCode\Data\QRDataInterface::RSBLOCKS
+	 * @see \chillerlan\QRCode\Data\QRMatrix::formatPattern
+	 *
+	 * @var int[]
+	 */
+	public const ECC_MODES = [
+		self::ECC_L => 0,
+		self::ECC_M => 1,
+		self::ECC_Q => 2,
+		self::ECC_H => 3,
+	];
 
-    // ISO/IEC 18004:2000 Tables 12, 25
+	/** @var string */
+	public const OUTPUT_MARKUP_HTML = 'html';
+	/** @var string */
+	public const OUTPUT_MARKUP_SVG  = 'svg';
+	/** @var string */
+	public const OUTPUT_IMAGE_PNG   = 'png';
+	/** @var string */
+	public const OUTPUT_IMAGE_JPG   = 'jpg';
+	/** @var string */
+	public const OUTPUT_IMAGE_GIF   = 'gif';
+	/** @var string */
+	public const OUTPUT_STRING_JSON = 'json';
+	/** @var string */
+	public const OUTPUT_STRING_TEXT = 'text';
+	/** @var string */
+	public const OUTPUT_IMAGICK     = 'imagick';
+	/** @var string */
+	public const OUTPUT_FPDF        = 'fpdf';
+	/** @var string */
+	public const OUTPUT_CUSTOM      = 'custom';
 
-    /** @var int */
-    public const ECC_L = 0b01; // 7%.
+	/**
+	 * Map of built-in output modules => capabilities
+	 *
+	 * @var string[][]
+	 */
+	public const OUTPUT_MODES = [
+		QRMarkup::class => [
+			self::OUTPUT_MARKUP_SVG,
+			self::OUTPUT_MARKUP_HTML,
+		],
+		QRImage::class => [
+			self::OUTPUT_IMAGE_PNG,
+			self::OUTPUT_IMAGE_GIF,
+			self::OUTPUT_IMAGE_JPG,
+		],
+		QRString::class => [
+			self::OUTPUT_STRING_JSON,
+			self::OUTPUT_STRING_TEXT,
+		],
+		QRImagick::class => [
+			self::OUTPUT_IMAGICK,
+		],
+		QRFpdf::class => [
+			self::OUTPUT_FPDF
+		]
+	];
 
-    /** @var int */
-    public const ECC_M = 0b00; // 15%.
+	/**
+	 * Map of data mode => interface
+	 *
+	 * @var string[]
+	 */
+	protected const DATA_INTERFACES = [
+		'number'   => Number::class,
+		'alphanum' => AlphaNum::class,
+		'kanji'    => Kanji::class,
+		'byte'     => Byte::class,
+	];
 
-    /** @var int */
-    public const ECC_Q = 0b11; // 25%.
+	/**
+	 * The settings container
+	 *
+	 * @var \chillerlan\QRCode\QROptions|\chillerlan\Settings\SettingsContainerInterface
+	 */
+	protected SettingsContainerInterface $options;
 
-    /** @var int */
-    public const ECC_H = 0b10; // 30%.
+	/**
+	 * The selected data interface (Number, AlphaNum, Kanji, Byte)
+	 */
+	protected QRDataInterface $dataInterface;
 
-    /**
-     * References to the keys of the following tables:
-     *
-     * @see \chillerlan\QRCode\Data\QRDataInterface::MAX_BITS
-     * @see \chillerlan\QRCode\Data\QRDataInterface::RSBLOCKS
-     * @see \chillerlan\QRCode\Data\QRMatrix::formatPattern
-     *
-     * @var int[]
-     */
-    public const ECC_MODES = [
-        self::ECC_L => 0,
-        self::ECC_M => 1,
-        self::ECC_Q => 2,
-        self::ECC_H => 3,
-    ];
+	/**
+	 * QRCode constructor.
+	 *
+	 * Sets the options instance, determines the current mb-encoding and sets it to UTF-8
+	 */
+	public function __construct(SettingsContainerInterface $options = null){
+		$this->options = $options ?? new QROptions;
+	}
 
-    /** @var string */
-    public const OUTPUT_MARKUP_HTML = 'html';
+	/**
+	 * Renders a QR Code for the given $data and QROptions
+	 *
+	 * @return mixed
+	 */
+	public function render(string $data, string $file = null){
+		return $this->initOutputInterface($data)->dump($file);
+	}
 
-    /** @var string */
-    public const OUTPUT_MARKUP_SVG = 'svg';
+	/**
+	 * Returns a QRMatrix object for the given $data and current QROptions
+	 *
+	 * @throws \chillerlan\QRCode\Data\QRCodeDataException
+	 */
+	public function getMatrix(string $data):QRMatrix{
 
-    /** @var string */
-    public const OUTPUT_IMAGE_PNG = 'png';
+		if(empty($data)){
+			throw new QRCodeDataException('QRCode::getMatrix() No data given.');
+		}
 
-    /** @var string */
-    public const OUTPUT_IMAGE_JPG = 'jpg';
+		$this->dataInterface = $this->initDataInterface($data);
 
-    /** @var string */
-    public const OUTPUT_IMAGE_GIF = 'gif';
+		$maskPattern = $this->options->maskPattern === $this::MASK_PATTERN_AUTO
+			? (new MaskPatternTester($this->dataInterface))->getBestMaskPattern()
+			: $this->options->maskPattern;
 
-    /** @var string */
-    public const OUTPUT_STRING_JSON = 'json';
+		$matrix = $this->dataInterface->initMatrix($maskPattern);
 
-    /** @var string */
-    public const OUTPUT_STRING_TEXT = 'text';
+		if((bool)$this->options->addQuietzone){
+			$matrix->setQuietZone($this->options->quietzoneSize);
+		}
 
-    /** @var string */
-    public const OUTPUT_IMAGICK = 'imagick';
+		return $matrix;
+	}
 
-    /** @var string */
-    public const OUTPUT_FPDF = 'fpdf';
+	/**
+	 * returns a fresh QRDataInterface for the given $data
+	 *
+	 * @throws \chillerlan\QRCode\Data\QRCodeDataException
+	 */
+	public function initDataInterface(string $data):QRDataInterface{
 
-    /** @var string */
-    public const OUTPUT_CUSTOM = 'custom';
+		// allow forcing the data mode
+		// see https://github.com/chillerlan/php-qrcode/issues/39
+		$interface = $this::DATA_INTERFACES[strtolower($this->options->dataModeOverride)] ?? null;
 
-    /**
-     * Map of built-in output modules => capabilities
-     *
-     * @var string[][]
-     */
-    public const OUTPUT_MODES = [
-        QRMarkup::class => [
-            self::OUTPUT_MARKUP_SVG,
-            self::OUTPUT_MARKUP_HTML,
-        ],
-        QRImage::class => [
-            self::OUTPUT_IMAGE_PNG,
-            self::OUTPUT_IMAGE_GIF,
-            self::OUTPUT_IMAGE_JPG,
-        ],
-        QRString::class => [
-            self::OUTPUT_STRING_JSON,
-            self::OUTPUT_STRING_TEXT,
-        ],
-        QRImagick::class => [
-            self::OUTPUT_IMAGICK,
-        ],
-        QRFpdf::class => [
-            self::OUTPUT_FPDF,
-        ],
-    ];
+		if($interface !== null){
+			return new $interface($this->options, $data);
+		}
 
-    /**
-     * Map of data mode => interface
-     *
-     * @var string[]
-     */
-    protected const DATA_INTERFACES = [
-        'number'   => Number::class,
-        'alphanum' => AlphaNum::class,
-        'kanji'    => Kanji::class,
-        'byte'     => Byte::class,
-    ];
+		foreach($this::DATA_INTERFACES as $mode => $dataInterface){
 
-    /**
-     * The settings container
-     *
-     * @var \chillerlan\QRCode\QROptions|\chillerlan\Settings\SettingsContainerInterface
-     */
-    protected SettingsContainerInterface $options;
+			if(call_user_func_array([$this, 'is'.$mode], [$data])){
+				return new $dataInterface($this->options, $data);
+			}
 
-    /** The selected data interface (Number, AlphaNum, Kanji, Byte) */
-    protected QRDataInterface $dataInterface;
+		}
 
-    /**
-     * QRCode constructor.
-     *
-     * Sets the options instance, determines the current mb-encoding and sets it to UTF-8
-     * @param null|SettingsContainerInterface $options
-     */
-    public function __construct(?SettingsContainerInterface $options = null)
-    {
-        $this->options = $options ?? new QROptions;
-    }
+		throw new QRCodeDataException('invalid data type'); // @codeCoverageIgnore
+	}
 
-    /**
-     * Renders a QR Code for the given $data and QROptions
-     *
-     * @param string $data
-     * @param null|string $file
-     * @return mixed
-     */
-    public function render(string $data, ?string $file = null)
-    {
-        return $this->initOutputInterface($data)->dump($file);
-    }
+	/**
+	 * returns a fresh (built-in) QROutputInterface
+	 *
+	 * @throws \chillerlan\QRCode\Output\QRCodeOutputException
+	 */
+	protected function initOutputInterface(string $data):QROutputInterface{
 
-    /**
-     * Returns a QRMatrix object for the given $data and current QROptions
-     *
-     * @param string $data
-     * @throws \chillerlan\QRCode\Data\QRCodeDataException
-     */
-    public function getMatrix(string $data) : QRMatrix
-    {
-        if (empty($data)) {
-            throw new QRCodeDataException('QRCode::getMatrix() No data given.');
-        }
+		if($this->options->outputType === $this::OUTPUT_CUSTOM && class_exists($this->options->outputInterface)){
+			/** @phan-suppress-next-line PhanTypeExpectedObjectOrClassName */
+			return new $this->options->outputInterface($this->options, $this->getMatrix($data));
+		}
 
-        $this->dataInterface = $this->initDataInterface($data);
+		foreach($this::OUTPUT_MODES as $outputInterface => $modes){
 
-        $maskPattern = $this->options->maskPattern === $this::MASK_PATTERN_AUTO
-            ? (new MaskPatternTester($this->dataInterface))->getBestMaskPattern()
-            : $this->options->maskPattern;
+			if(in_array($this->options->outputType, $modes, true) && class_exists($outputInterface)){
+				return new $outputInterface($this->options, $this->getMatrix($data));
+			}
 
-        $matrix = $this->dataInterface->initMatrix($maskPattern);
+		}
 
-        if ((bool)$this->options->addQuietzone) {
-            $matrix->setQuietZone($this->options->quietzoneSize);
-        }
+		throw new QRCodeOutputException('invalid output type');
+	}
 
-        return $matrix;
-    }
+	/**
+	 * checks if a string qualifies as numeric
+	 */
+	public function isNumber(string $string):bool{
+		return $this->checkString($string, QRDataInterface::CHAR_MAP_NUMBER);
+	}
 
-    /**
-     * returns a fresh QRDataInterface for the given $data
-     *
-     * @param string $data
-     * @throws \chillerlan\QRCode\Data\QRCodeDataException
-     */
-    public function initDataInterface(string $data) : QRDataInterface
-    {
-        // allow forcing the data mode
-        // see https://github.com/chillerlan/php-qrcode/issues/39
-        $interface = $this::DATA_INTERFACES[strtolower($this->options->dataModeOverride)] ?? null;
+	/**
+	 * checks if a string qualifies as alphanumeric
+	 */
+	public function isAlphaNum(string $string):bool{
+		return $this->checkString($string, QRDataInterface::CHAR_MAP_ALPHANUM);
+	}
 
-        if ($interface !== null) {
-            return new $interface($this->options, $data);
-        }
+	/**
+	 * checks is a given $string matches the characters of a given $charmap, returns false on the first invalid occurence.
+	 */
+	protected function checkString(string $string, array $charmap):bool{
 
-        foreach ($this::DATA_INTERFACES as $mode => $dataInterface) {
-            if (call_user_func_array([$this, 'is'.$mode], [$data])) {
-                return new $dataInterface($this->options, $data);
-            }
-        }
+		foreach(str_split($string) as $chr){
+			if(!isset($charmap[$chr])){
+				return false;
+			}
+		}
 
-        throw new QRCodeDataException('invalid data type'); // @codeCoverageIgnore
-    }
+		return true;
+	}
 
-    /**
-     * checks if a string qualifies as numeric
-     * @param string $string
-     */
-    public function isNumber(string $string) : bool
-    {
-        return $this->checkString($string, QRDataInterface::CHAR_MAP_NUMBER);
-    }
+	/**
+	 * checks if a string qualifies as Kanji
+	 */
+	public function isKanji(string $string):bool{
+		$i   = 0;
+		$len = strlen($string);
 
-    /**
-     * checks if a string qualifies as alphanumeric
-     * @param string $string
-     */
-    public function isAlphaNum(string $string) : bool
-    {
-        return $this->checkString($string, QRDataInterface::CHAR_MAP_ALPHANUM);
-    }
+		while($i + 1 < $len){
+			$c = ((0xff & ord($string[$i])) << 8) | (0xff & ord($string[$i + 1]));
 
-    /**
-     * checks if a string qualifies as Kanji
-     * @param string $string
-     */
-    public function isKanji(string $string) : bool
-    {
-        $i = 0;
-        $len = strlen($string);
+			if(!($c >= 0x8140 && $c <= 0x9FFC) && !($c >= 0xE040 && $c <= 0xEBBF)){
+				return false;
+			}
 
-        while ($i + 1 < $len) {
-            $c = ((0xFF & ord($string[$i])) << 8) | (0xFF & ord($string[$i + 1]));
+			$i += 2;
+		}
 
-            if (!($c >= 0x8140 && $c <= 0x9FFC) && !($c >= 0xE040 && $c <= 0xEBBF)) {
-                return false;
-            }
+		return $i >= $len;
+	}
 
-            $i += 2;
-        }
+	/**
+	 * a dummy
+	 */
+	public function isByte(string $data):bool{
+		return $data !== '';
+	}
 
-        return $i >= $len;
-    }
-
-    /**
-     * a dummy
-     * @param string $data
-     */
-    public function isByte(string $data) : bool
-    {
-        return $data !== '';
-    }
-
-    /**
-     * returns a fresh (built-in) QROutputInterface
-     *
-     * @param string $data
-     * @throws \chillerlan\QRCode\Output\QRCodeOutputException
-     */
-    protected function initOutputInterface(string $data) : QROutputInterface
-    {
-        if ($this->options->outputType === $this::OUTPUT_CUSTOM && class_exists($this->options->outputInterface)) {
-            /** @phan-suppress-next-line PhanTypeExpectedObjectOrClassName */
-            return new $this->options->outputInterface($this->options, $this->getMatrix($data));
-        }
-
-        foreach ($this::OUTPUT_MODES as $outputInterface => $modes) {
-            if (in_array($this->options->outputType, $modes, true) && class_exists($outputInterface)) {
-                return new $outputInterface($this->options, $this->getMatrix($data));
-            }
-        }
-
-        throw new QRCodeOutputException('invalid output type');
-    }
-
-    /**
-     * checks is a given $string matches the characters of a given $charmap, returns false on the first invalid occurence.
-     * @param string $string
-     * @param array $charmap
-     */
-    protected function checkString(string $string, array $charmap) : bool
-    {
-        foreach (str_split($string) as $chr) {
-            if (!isset($charmap[$chr])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

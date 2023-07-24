@@ -112,15 +112,10 @@ class PHS_Action_Agent_job_add extends PHS_Action
                 $job_extra_arr['run_async'] = (!empty($run_async) ? 1 : 0);
                 $job_extra_arr['stalling_minutes'] = $stalling_minutes;
 
-                if (($new_agent_job = PHS_Agent::add_job($handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr))) {
+                if (PHS_Agent::add_job($handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr)) {
                     PHS_Notifications::add_success_notice($this->_pt('Agent job details saved...'));
 
-                    $action_result = self::default_action_result();
-
-                    $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'agent_jobs_list'],
-                        ['agent_job_added' => 1]);
-
-                    return $action_result;
+                    return action_redirect(['p' => 'admin', 'a' => 'agent_jobs_list'], ['agent_job_added' => 1]);
                 }
 
                 if (PHS::st_has_error()) {

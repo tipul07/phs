@@ -60,6 +60,55 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return self::CODE_LENGTH;
     }
 
+    public function finish_tfa_setup($tfa_data) : ?array
+    {
+        $this->reset_error();
+
+        if (!($tfa_arr = $this->data_to_array($tfa_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid TFA data provided.'));
+
+            return null;
+        }
+
+        $edit_arr = $this->fetch_default_flow_params();
+        $edit_arr['fields'] = [];
+        $edit_arr['fields']['setup'] = date(self::DATETIME_DB);
+
+        if (!($new_tfa_arr = $this->edit($tfa_arr, $edit_arr))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error finishing two factor authenticatrion setup.'));
+
+            return null;
+        }
+
+        return $new_tfa_arr;
+    }
+
+    public function verify_code_for_tfa_data($tfa_data, string $code, ?array $params = null) : ?bool
+    {
+        $this->reset_error();
+
+        if (empty($params)) {
+            $params = [];
+        }
+
+        $params['discrepancy'] = (int)($params['discrepancy'] ?? 1);
+        $params['time_slice'] ??= null;
+
+        if (!($tfa_arr = $this->data_to_array($tfa_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid TFA data provided.'));
+
+            return null;
+        }
+
+        if (!($secret = $this->get_secret($tfa_arr))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error obtaining secret for provided TFA data.'));
+
+            return null;
+        }
+
+        return self::verify_code_with_secret($secret, $code, $params['discrepancy'], $params['time_slice']);
+    }
+
     public function generate_secret(int $length = 16) : ?string
     {
         $this->reset_error();
@@ -325,7 +374,10 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         PHS_Logger::notice('[SETUP] Generated TFA setup URL for account #'.$account_arr['id'],
             $this->_accounts_plugin::LOG_TFA);
 
-        return $setup_url;
+        return [
+            'url'      => $setup_url,
+            'tfa_data' => $tfa_arr ?? null,
+        ];
     }
 
     /**
@@ -619,5 +671,102 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         }
 
         return $encrypted_recovery;
+    }
+
+    public static function get_code_from_secret(string $secret, ?float $timeSlice = null) : string
+    {
+        if ($timeSlice === null) {
+            $timeSlice = floor(time() / 30);
+        }
+
+        $secretkey = self::_debase32($secret);
+
+        $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
+        $hm = hash_hmac(self::TFA_ALGO, $time, $secretkey, true);
+        $offset = ord(substr($hm, -1)) & 0x0F;
+        $hashpart = substr($hm, $offset, 4);
+
+        $value = unpack('N', $hashpart);
+        $value = $value[1];
+        $value &= 0x7FFFFFFF;
+
+        $modulo = 10 ** self::CODE_LENGTH;
+
+        return str_pad($value % $modulo, self::CODE_LENGTH, '0', STR_PAD_LEFT);
+    }
+
+    public static function verify_code_with_secret(string $secret, string $code, int $discrepancy = 1, ?float $time_slice = null) : bool
+    {
+        if ($time_slice === null) {
+            $time_slice = floor(time() / 30);
+        }
+
+        if (strlen($code) !== self::CODE_LENGTH) {
+            return false;
+        }
+
+        for ($i = -$discrepancy; $i <= $discrepancy; $i++) {
+            $calculatedCode = self::get_code_from_secret($secret, $time_slice + $i);
+            if (self::_safe_equal_strings($calculatedCode, $code)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function _debase32(string $secret) : string
+    {
+        if (empty($secret)) {
+            return '';
+        }
+
+        $base32chars = self::$SECRET_CHARS_ARR;
+        $base32chars[] = self::PADDING_CHAR;
+
+        $base32charsFlipped = array_flip($base32chars);
+
+        $paddingCharCount = substr_count($secret, self::PADDING_CHAR);
+        if (!in_array($paddingCharCount, [6, 4, 3, 1, 0], true)
+            || ($paddingCharCount > 0
+                && substr($secret, -($paddingCharCount)) !== str_repeat(self::PADDING_CHAR, $paddingCharCount))) {
+            return false;
+        }
+
+        $secret_arr = str_split(str_replace('=', '', $secret));
+        $result = '';
+        for ($i = 0, $iMax = count($secret_arr); $i < $iMax; $i += 8) {
+            $x = '';
+            if (!in_array($secret_arr[$i], $base32chars, true)) {
+                return false;
+            }
+            for ($j = 0; $j < 8; $j++) {
+                $x .= str_pad(base_convert(@$base32charsFlipped[@$secret_arr[$i + $j]], 10, 2), 5, '0', STR_PAD_LEFT);
+            }
+            $eightBits = str_split($x, 8);
+            for ($z = 0, $zMax = count($eightBits); $z < $zMax; $z++) {
+                $result .= (($y = chr(base_convert($eightBits[$z], 2, 10))) || ord($y) === 48) ? $y : '';
+            }
+        }
+
+        return $result;
+    }
+
+    private static function _safe_equal_strings(string $string_one, string $string_two) : bool
+    {
+        if (@function_exists('hash_equals')) {
+            return hash_equals($string_one, $string_two);
+        }
+
+        if (($userLen = strlen($string_two)) !== strlen($string_one)) {
+            return false;
+        }
+
+        $result = 0;
+        for ($i = 0; $i < $userLen; $i++) {
+            $result |= (ord($string_one[$i]) ^ ord($string_two[$i]));
+        }
+
+        return $result === 0;
     }
 }

@@ -62,8 +62,6 @@ class PHS_Action_Edit extends PHS_Action
          || !$domains_model->can_user_edit($domain_arr, $current_user)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid remote PHS domain...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'unknown_domain' => 1,
             ];
@@ -74,11 +72,7 @@ class PHS_Action_Edit extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
-
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect(add_url_params($back_page, $args));
         }
 
         if (PHS_params::_g('changes_saved', PHS_params::T_INT)) {
@@ -152,15 +146,11 @@ class PHS_Action_Edit extends PHS_Action
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
 
-            if (($new_domain = $domains_model->edit($domain_arr, $edit_params_arr))) {
+            if ($domains_model->edit($domain_arr, $edit_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('Remote PHS domain details saved in database.'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'edit', 'ad' => 'domains'],
+                return action_redirect(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'edit', 'ad' => 'domains'],
                     ['did' => $domain_arr['id'], 'changes_saved' => 1]);
-
-                return $action_result;
             }
 
             if ($domains_model->has_error()) {

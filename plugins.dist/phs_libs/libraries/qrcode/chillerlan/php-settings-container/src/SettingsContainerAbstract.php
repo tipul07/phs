@@ -7,168 +7,156 @@
  * @copyright    2018 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\Settings;
 
+use ReflectionClass, ReflectionProperty;
+
+use function get_object_vars, json_decode, json_encode, method_exists, property_exists;
 use const JSON_THROW_ON_ERROR;
 
-use ReflectionClass;
-use ReflectionProperty;
+abstract class SettingsContainerAbstract implements SettingsContainerInterface{
 
-use function json_decode;
-use function json_encode;
-use function method_exists;
-use function get_object_vars;
-use function property_exists;
+	/**
+	 * SettingsContainerAbstract constructor.
+	 */
+	public function __construct(iterable $properties = null){
 
-abstract class SettingsContainerAbstract implements SettingsContainerInterface
-{
-    /**
-     * SettingsContainerAbstract constructor.
-     * @param null|iterable $properties
-     */
-    public function __construct(?iterable $properties = null)
-    {
-        if (!empty($properties)) {
-            $this->fromIterable($properties);
-        }
+		if(!empty($properties)){
+			$this->fromIterable($properties);
+		}
 
-        $this->construct();
-    }
+		$this->construct();
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function toArray() : array
-    {
-        return get_object_vars($this);
-    }
+	/**
+	 * calls a method with trait name as replacement constructor for each used trait
+	 * (remember pre-php5 classname constructors? yeah, basically this.)
+	 */
+	protected function construct():void{
+		$traits = (new ReflectionClass($this))->getTraits();
 
-    /**
-     * @inheritdoc
-     */
-    public function fromIterable(iterable $properties) : SettingsContainerInterface
-    {
-        foreach ($properties as $key => $value) {
-            $this->__set($key, $value);
-        }
+		foreach($traits as $trait){
+			$method = $trait->getShortName();
 
-        return $this;
-    }
+			if(method_exists($this, $method)){
+				$this->{$method}();
+			}
+		}
 
-    /**
-     * @inheritdoc
-     */
-    public function toJSON(?int $jsonOptions = null) : string
-    {
-        return json_encode($this, $jsonOptions ?? 0);
-    }
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function fromJSON(string $json) : SettingsContainerInterface
-    {
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+	/**
+	 * @inheritdoc
+	 */
+	public function __get(string $property){
 
-        return $this->fromIterable($data);
-    }
+		if(!property_exists($this, $property) || $this->isPrivate($property)){
+			return null;
+		}
 
-    /**
-     * @inheritdoc
-     */
-    #[\ReturnTypeWillChange]
-    public function jsonSerialize() : array
-    {
-        return $this->toArray();
-    }
+		$method = 'get_'.$property;
 
-    /**
-     * calls a method with trait name as replacement constructor for each used trait
-     * (remember pre-php5 classname constructors? yeah, basically this.)
-     */
-    protected function construct() : void
-    {
-        $traits = (new ReflectionClass($this))->getTraits();
+		if(method_exists($this, $method)){
+			return $this->{$method}();
+		}
 
-        foreach ($traits as $trait) {
-            $method = $trait->getShortName();
+		return $this->{$property};
+	}
 
-            if (method_exists($this, $method)) {
-                $this->{$method}();
-            }
-        }
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function __set(string $property, $value):void{
 
-    /**
-     * @internal Checks if a property is private
-     * @param string $property
-     */
-    protected function isPrivate(string $property) : bool
-    {
-        return (new ReflectionProperty($this, $property))->isPrivate();
-    }
+		if(!property_exists($this, $property) || $this->isPrivate($property)){
+			return;
+		}
 
-    /**
-     * @inheritdoc
-     */
-    public function __get(string $property)
-    {
-        if (!property_exists($this, $property) || $this->isPrivate($property)) {
-            return null;
-        }
+		$method = 'set_'.$property;
 
-        $method = 'get_'.$property;
+		if(method_exists($this, $method)){
+			$this->{$method}($value);
 
-        if (method_exists($this, $method)) {
-            return $this->{$method}();
-        }
+			return;
+		}
 
-        return $this->{$property};
-    }
+		$this->{$property} = $value;
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function __set(string $property, $value) : void
-    {
-        if (!property_exists($this, $property) || $this->isPrivate($property)) {
-            return;
-        }
+	/**
+	 * @inheritdoc
+	 */
+	public function __isset(string $property):bool{
+		return isset($this->{$property}) && !$this->isPrivate($property);
+	}
 
-        $method = 'set_'.$property;
+	/**
+	 * @internal Checks if a property is private
+	 */
+	protected function isPrivate(string $property):bool{
+		return (new ReflectionProperty($this, $property))->isPrivate();
+	}
 
-        if (method_exists($this, $method)) {
-            $this->{$method}($value);
+	/**
+	 * @inheritdoc
+	 */
+	public function __unset(string $property):void{
 
-            return;
-        }
+		if($this->__isset($property)){
+			unset($this->{$property});
+		}
 
-        $this->{$property} = $value;
-    }
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function __isset(string $property) : bool
-    {
-        return isset($this->{$property}) && !$this->isPrivate($property);
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function __toString():string{
+		return $this->toJSON();
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function __unset(string $property) : void
-    {
-        if ($this->__isset($property)) {
-            unset($this->{$property});
-        }
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function toArray():array{
+		return get_object_vars($this);
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function __toString() : string
-    {
-        return $this->toJSON();
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function fromIterable(iterable $properties):SettingsContainerInterface{
+
+		foreach($properties as $key => $value){
+			$this->__set($key, $value);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function toJSON(int $jsonOptions = null):string{
+		return json_encode($this, $jsonOptions ?? 0);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function fromJSON(string $json):SettingsContainerInterface{
+		$data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+		return $this->fromIterable($data);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	#[\ReturnTypeWillChange]
+	public function jsonSerialize():array{
+		return $this->toArray();
+	}
+
 }

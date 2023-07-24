@@ -4,23 +4,22 @@
  *
  * @filesource   QRImagick.php
  * @created      04.07.2018
+ * @package      chillerlan\QRCode\Output
  * @author       smiley <smiley@chillerlan.net>
  * @copyright    2018 smiley
  * @license      MIT
  *
  * @noinspection PhpComposerExtensionStubsInspection
  */
+
 namespace chillerlan\QRCode\Output;
 
-use Imagick;
-use ImagickDraw;
-use ImagickPixel;
 use chillerlan\QRCode\Data\QRMatrix;
 use chillerlan\QRCode\QRCodeException;
 use chillerlan\Settings\SettingsContainerInterface;
+use Imagick, ImagickDraw, ImagickPixel;
 
-use function is_string;
-use function extension_loaded;
+use function extension_loaded, is_string;
 
 /**
  * ImageMagick output module (requires ext-imagick)
@@ -28,92 +27,93 @@ use function extension_loaded;
  * @see http://php.net/manual/book.imagick.php
  * @see http://phpimagick.com
  */
-class QRImagick extends QROutputAbstract
-{
-    protected Imagick $imagick;
+class QRImagick extends QROutputAbstract{
 
-    /**
-     * @inheritDoc
-     */
-    public function __construct(SettingsContainerInterface $options, QRMatrix $matrix)
-    {
-        if (!extension_loaded('imagick')) {
-            throw new QRCodeException('ext-imagick not loaded'); // @codeCoverageIgnore
-        }
+	protected Imagick $imagick;
 
-        parent::__construct($options, $matrix);
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct(SettingsContainerInterface $options, QRMatrix $matrix){
 
-    /**
-     * @inheritDoc
-     *
-     * @return string|\Imagick
-     */
-    public function dump(?string $file = null)
-    {
-        $file ??= $this->options->cachefile;
-        $this->imagick = new Imagick;
+		if(!extension_loaded('imagick')){
+			throw new QRCodeException('ext-imagick not loaded'); // @codeCoverageIgnore
+		}
 
-        $this->imagick->newImage(
-            $this->length,
-            $this->length,
-            new ImagickPixel($this->options->imagickBG ?? 'transparent'),
-            $this->options->imagickFormat
-        );
+		parent::__construct($options, $matrix);
+	}
 
-        $this->drawImage();
+	/**
+	 * @inheritDoc
+	 */
+	protected function setModuleValues():void{
 
-        if ($this->options->returnResource) {
-            return $this->imagick;
-        }
+		foreach($this::DEFAULT_MODULE_VALUES as $type => $defaultValue){
+			$v = $this->options->moduleValues[$type] ?? null;
 
-        $imageData = $this->imagick->getImageBlob();
+			if(!is_string($v)){
+				$this->moduleValues[$type] = $defaultValue
+					? new ImagickPixel($this->options->markupDark)
+					: new ImagickPixel($this->options->markupLight);
+			}
+			else{
+				$this->moduleValues[$type] = new ImagickPixel($v);
+			}
+		}
+	}
 
-        if ($file !== null) {
-            $this->saveToFile($imageData, $file);
-        }
+	/**
+	 * @inheritDoc
+	 *
+	 * @return string|\Imagick
+	 */
+	public function dump(string $file = null){
+		$file ??= $this->options->cachefile;
+		$this->imagick = new Imagick;
 
-        return $imageData;
-    }
+		$this->imagick->newImage(
+			$this->length,
+			$this->length,
+			new ImagickPixel($this->options->imagickBG ?? 'transparent'),
+			$this->options->imagickFormat
+		);
 
-    /**
-     * @inheritDoc
-     */
-    protected function setModuleValues() : void
-    {
-        foreach ($this::DEFAULT_MODULE_VALUES as $type => $defaultValue) {
-            $v = $this->options->moduleValues[$type] ?? null;
+		$this->drawImage();
 
-            if (!is_string($v)) {
-                $this->moduleValues[$type] = $defaultValue
-                    ? new ImagickPixel($this->options->markupDark)
-                    : new ImagickPixel($this->options->markupLight);
-            } else {
-                $this->moduleValues[$type] = new ImagickPixel($v);
-            }
-        }
-    }
+		if($this->options->returnResource){
+			return $this->imagick;
+		}
 
-    /**
-     * Creates the QR image via ImagickDraw
-     */
-    protected function drawImage() : void
-    {
-        $draw = new ImagickDraw;
+		$imageData = $this->imagick->getImageBlob();
 
-        foreach ($this->matrix->matrix() as $y => $row) {
-            foreach ($row as $x => $M_TYPE) {
-                $draw->setStrokeColor($this->moduleValues[$M_TYPE]);
-                $draw->setFillColor($this->moduleValues[$M_TYPE]);
-                $draw->rectangle(
-                    $x * $this->scale,
-                    $y * $this->scale,
-                    ($x + 1) * $this->scale,
-                    ($y + 1) * $this->scale
-                );
-            }
-        }
+		if($file !== null){
+			$this->saveToFile($imageData, $file);
+		}
 
-        $this->imagick->drawImage($draw);
-    }
+		return $imageData;
+	}
+
+	/**
+	 * Creates the QR image via ImagickDraw
+	 */
+	protected function drawImage():void{
+		$draw = new ImagickDraw;
+
+		foreach($this->matrix->matrix() as $y => $row){
+			foreach($row as $x => $M_TYPE){
+				$draw->setStrokeColor($this->moduleValues[$M_TYPE]);
+				$draw->setFillColor($this->moduleValues[$M_TYPE]);
+				$draw->rectangle(
+					$x * $this->scale,
+					$y * $this->scale,
+					($x + 1) * $this->scale,
+					($y + 1) * $this->scale
+				);
+
+			}
+		}
+
+		$this->imagick->drawImage($draw);
+	}
+
 }

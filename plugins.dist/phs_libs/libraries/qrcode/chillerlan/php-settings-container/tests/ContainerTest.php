@@ -7,116 +7,109 @@
  * @copyright    2018 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\SettingsTest;
 
-use TypeError;
-use JsonException;
 use PHPUnit\Framework\TestCase;
-
+use JsonException, TypeError;
 use function sha1;
 
-class ContainerTest extends TestCase
-{
-    public function test_construct()
-    {
-        $container = new TestContainer([
-            'test1' => 'test1',
-            'test2' => true,
-            'test3' => 'test3',
-            'test4' => 'test4',
-        ]);
+class ContainerTest extends TestCase{
 
-        $this::assertSame('test1', $container->test1);
-        $this::assertSame(true, $container->test2);
-        $this::assertNull($container->test3);
-        $this::assertSame('test4', $container->test4);
+	public function testConstruct(){
+		$container = new TestContainer([
+			'test1' => 'test1',
+			'test2' => true,
+			'test3' => 'test3',
+			'test4' => 'test4',
+		]);
 
-        $this::assertSame('success', $container->testConstruct);
-    }
+		$this::assertSame('test1', $container->test1);
+		$this::assertSame(true, $container->test2);
+		$this::assertNull($container->test3);
+		$this::assertSame('test4', $container->test4);
 
-    public function test_get()
-    {
-        $container = new TestContainer;
+		$this::assertSame('success', $container->testConstruct);
+	}
 
-        $this::assertSame('foo', $container->test1);
-        $this::assertNull($container->test2);
-        $this::assertNull($container->test3);
-        $this::assertNull($container->test4);
-        $this::assertNull($container->foo);
+	public function testGet(){
+		$container = new TestContainer;
 
-        // isset test
-        $this::assertTrue(isset($container->test1));
-        $this::assertFalse(isset($container->test2));
-        $this::assertFalse(isset($container->test3));
-        $this::assertFalse(isset($container->test4));
-        $this::assertFalse(isset($container->foo));
+		$this::assertSame('foo', $container->test1);
+		$this::assertNull($container->test2);
+		$this::assertNull($container->test3);
+		$this::assertNull($container->test4);
+		$this::assertNull($container->foo);
 
-        // custom getter
-        $container->test6 = 'foo';
-        $this::assertSame(sha1('foo'), $container->test6);
-        // nullable/isset test
-        $container->test6 = null;
-        $this::assertFalse(isset($container->test6));
-        $this::assertSame('null', $container->test6);
-    }
+		// isset test
+		$this::assertTrue(isset($container->test1));
+		$this::assertFalse(isset($container->test2));
+		$this::assertFalse(isset($container->test3));
+		$this::assertFalse(isset($container->test4));
+		$this::assertFalse(isset($container->foo));
 
-    public function test_set()
-    {
-        $container = new TestContainer;
-        $container->test1 = 'bar';
-        $container->test2 = false;
-        $container->test3 = 'nope';
+		// custom getter
+		$container->test6 = 'foo';
+		$this::assertSame(sha1('foo'), $container->test6);
+		// nullable/isset test
+		$container->test6 = null;
+		$this::assertFalse(isset($container->test6));
+		$this::assertSame('null', $container->test6);
+	}
 
-        $this::assertSame('bar', $container->test1);
-        $this::assertSame(false, $container->test2);
-        $this::assertNull($container->test3);
+	public function testSet(){
+		$container = new TestContainer;
+		$container->test1 = 'bar';
+		$container->test2 = false;
+		$container->test3 = 'nope';
 
-        // unset
-        unset($container->test1);
-        $this::assertFalse(isset($container->test1));
+		$this::assertSame('bar', $container->test1);
+		$this::assertSame(false, $container->test2);
+		$this::assertNull($container->test3);
 
-        // custom setter
-        $container->test5 = 'bar';
-        $this::assertSame('bar_test5', $container->test5);
-    }
+		// unset
+		unset($container->test1);
+		$this::assertFalse(isset($container->test1));
 
-    public function test_to_array()
-    {
-        $container = new TestContainer([
-            'test1'         => 'no',
-            'test2'         => true,
-            'testConstruct' => 'success',
-        ]);
+		// custom setter
+		$container->test5 = 'bar';
+		$this::assertSame('bar_test5', $container->test5);
+	}
 
-        $this::assertSame([
-            'test1'         => 'no',
-            'test2'         => true,
-            'testConstruct' => 'success',
-            'test4'         => null,
-            'test5'         => null,
-            'test6'         => null,
-        ], $container->toArray());
-    }
+	public function testToArray(){
+		$container = new TestContainer([
+			'test1'         => 'no',
+			'test2'         => true,
+			'testConstruct' => 'success',
+		]);
 
-    public function test_to_json()
-    {
-        $container = (new TestContainer)->fromJSON('{"test1":"no","test2":true,"testConstruct":"success"}');
+		$this::assertSame([
+			'test1'         => 'no',
+			'test2'         => true,
+			'testConstruct' => 'success',
+			'test4'         => null,
+			'test5'         => null,
+			'test6'         => null
+		], $container->toArray());
+	}
 
-        $expected = '{"test1":"no","test2":true,"testConstruct":"success","test4":null,"test5":null,"test6":null}';
+	public function testToJSON(){
+		$container = (new TestContainer)->fromJSON('{"test1":"no","test2":true,"testConstruct":"success"}');
 
-        $this::assertSame($expected, $container->toJSON());
-        $this::assertSame($expected, (string)$container);
-    }
+		$expected  = '{"test1":"no","test2":true,"testConstruct":"success","test4":null,"test5":null,"test6":null}';
 
-    public function test_from_json_exception()
-    {
-        $this->expectException(JsonException::class);
-        (new TestContainer)->fromJSON('-');
-    }
+		$this::assertSame($expected, $container->toJSON());
+		$this::assertSame($expected, (string)$container);
+	}
 
-    public function test_from_json_type_error()
-    {
-        $this->expectException(TypeError::class);
-        (new TestContainer)->fromJSON('2');
-    }
+	public function testFromJsonException(){
+		$this->expectException(JsonException::class);
+		(new TestContainer)->fromJSON('-');
+
+	}
+	public function testFromJsonTypeError(){
+		$this->expectException(TypeError::class);
+		(new TestContainer)->fromJSON('2');
+	}
+
 }

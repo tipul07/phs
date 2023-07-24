@@ -39,7 +39,7 @@ class PHS_Action_Login extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -87,7 +87,7 @@ class PHS_Action_Login extends PHS_Action
          && PHS::user_logged_in()
          && !PHS_Notifications::have_notifications_errors()) {
             if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-                && !empty($event_result['action_result'])) {
+                && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                 $this->set_action_result($event_result['action_result']);
 
                 return $event_result['action_result'];
@@ -140,7 +140,7 @@ class PHS_Action_Login extends PHS_Action
                     }
 
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-                        && !empty($event_result['action_result'])) {
+                        && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
 
                         return $event_result['action_result'];

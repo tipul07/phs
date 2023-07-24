@@ -38,7 +38,7 @@ class PHS_Action_Setup extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::TFA_SETUP, $this))
-         && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -67,7 +67,8 @@ class PHS_Action_Setup extends PHS_Action
         $do_submit = PHS_Params::_p('do_submit');
 
         if (!($tfa_details = $tfa_model->get_qr_code_url_for_tfa_setup($current_user))
-            || empty($tfa_details['full_url'])) {
+            || empty($tfa_details['url']['full_url'])
+            || empty($tfa_details['tfa_data'])) {
             if (!empty($do_submit)) {
                 unset($do_submit);
             }
@@ -75,27 +76,30 @@ class PHS_Action_Setup extends PHS_Action
             PHS_Notifications::add_warning_notice($this->_pt('Error obtaining two factor authentication setup link. Please refresh the page or contact support.'));
         }
 
-        $qr_code_url = $tfa_details['full_url'] ?? null;
+        $tfa_arr = $tfa_details['tfa_data'] ?? null;
+        $qr_code_url = $tfa_details['url']['full_url'] ?? null;
 
         if (!empty($do_submit)) {
             if (empty($tfa_code)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide a verification code.'));
-            } else {
-                if (true) {
-                    PHS_Notifications::add_success_notice($this->_pt('Two factor authentication setup with success.'));
-
-                    return action_redirect();
-                }
-
+            } elseif (!$tfa_model->verify_code_for_tfa_data($tfa_arr, $tfa_code)) {
                 PHS_Notifications::add_error_notice($this->_pt('Two factor authentication verification failed. Please try again.'));
+            } elseif (!($new_tfa_arr = $tfa_model->finish_tfa_setup($tfa_arr))) {
+                PHS_Notifications::add_error_notice($this->_pt('Error finializing two factor authentication setup. Please try again.'));
+            } else {
+                PHS_Notifications::add_success_notice($this->_pt('Two factor authentication setup with success.'));
+
+                $tfa_arr = $new_tfa_arr;
             }
         }
 
         $data = [
             'nick'        => $current_user['nick'],
             'qr_code_url' => $qr_code_url,
+            'tfa_data'    => $tfa_arr,
 
             'libs_plugin' => $libs_plugin,
+            'tfa_model'   => $tfa_model,
         ];
 
         return $this->quick_render_template('tfa/setup', $data);

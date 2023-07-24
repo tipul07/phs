@@ -146,14 +146,10 @@ class PHS_Action_Api_key_add extends PHS_Action
             $insert_params_arr = [];
             $insert_params_arr['fields'] = $insert_arr;
 
-            if (($new_role = $apikeys_model->insert($insert_params_arr))) {
+            if ($apikeys_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('API key details saved...'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'api_keys_list'], ['api_key_added' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'admin', 'a' => 'api_keys_list'], ['api_key_added' => 1]);
             }
 
             if ($apikeys_model->has_error()) {

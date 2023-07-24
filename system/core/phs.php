@@ -1963,12 +1963,6 @@ final class PHS extends PHS_Registry
 
         self::st_reset_error();
 
-        if (is_array($action_result)
-         && !empty($action_result['scope'])
-         && (int)$action_result['scope'] !== PHS_Scope::current_scope()) {
-            PHS_Scope::current_scope($action_result['scope']);
-        }
-
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));

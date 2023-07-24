@@ -297,17 +297,13 @@ class PHS_Action_Compose extends PHS_Action
             if (($new_message = $messages_model->write_message($message_params))) {
                 PHS_Notifications::add_success_notice($this->_pt('Message details saved in database.'));
 
-                $action_result = self::default_action_result();
-
                 if ($this->is_admin_controller()) {
                     $redirect_path = ['p' => 'messages', 'c' => 'admin', 'a' => 'compose'];
                 } else {
                     $redirect_path = ['p' => 'messages', 'a' => 'compose'];
                 }
 
-                $action_result['redirect_to_url'] = PHS::url($redirect_path, ['mid' => $new_message['message']['id'], 'message_queued' => 1]);
-
-                return $action_result;
+                return action_redirect($redirect_path, ['mid' => $new_message['message']['id'], 'message_queued' => 1]);
             }
 
             if ($messages_model->has_error()) {

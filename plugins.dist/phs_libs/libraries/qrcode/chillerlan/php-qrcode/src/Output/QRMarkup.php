@@ -4,151 +4,157 @@
  *
  * @filesource   QRMarkup.php
  * @created      17.12.2016
+ * @package      chillerlan\QRCode\Output
  * @author       Smiley <smiley@chillerlan.net>
  * @copyright    2016 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\QRCode\Output;
 
 use chillerlan\QRCode\QRCode;
 
-use function trim;
-use function sprintf;
-use function is_string;
-use function strip_tags;
+use function is_string, sprintf, strip_tags, trim;
 
 /**
  * Converts the matrix into markup types: HTML, SVG, ...
  */
-class QRMarkup extends QROutputAbstract
-{
-    protected string $defaultMode = QRCode::OUTPUT_MARKUP_SVG;
+class QRMarkup extends QROutputAbstract{
 
-    /** @see \sprintf() */
-    protected string $svgHeader = '<svg xmlns="http://www.w3.org/2000/svg" class="qr-svg %1$s" '
-                                  .'style="width: 100%%; height: auto;" viewBox="0 0 %2$d %2$d">';
+	protected string $defaultMode = QRCode::OUTPUT_MARKUP_SVG;
 
-    /**
-     * @inheritDoc
-     */
-    protected function setModuleValues() : void
-    {
-        foreach ($this::DEFAULT_MODULE_VALUES as $M_TYPE => $defaultValue) {
-            $v = $this->options->moduleValues[$M_TYPE] ?? null;
+	/**
+	 * @see \sprintf()
+	 */
+	protected string $svgHeader = '<svg xmlns="http://www.w3.org/2000/svg" class="qr-svg %1$s" '.
+	                              'style="width: 100%%; height: auto;" viewBox="0 0 %2$d %2$d">';
 
-            if (!is_string($v)) {
-                $this->moduleValues[$M_TYPE] = $defaultValue
-                    ? $this->options->markupDark
-                    : $this->options->markupLight;
-            } else {
-                $this->moduleValues[$M_TYPE] = trim(strip_tags($v), '\'"');
-            }
-        }
-    }
+	/**
+	 * @inheritDoc
+	 */
+	protected function setModuleValues():void{
 
-    /**
-     * HTML output
-     * @param null|string $file
-     */
-    protected function html(?string $file = null) : string
-    {
-        $html = empty($this->options->cssClass)
-            ? '<div>'
-            : '<div class="'.$this->options->cssClass.'">';
+		foreach($this::DEFAULT_MODULE_VALUES as $M_TYPE => $defaultValue){
+			$v = $this->options->moduleValues[$M_TYPE] ?? null;
 
-        $html .= $this->options->eol;
+			if(!is_string($v)){
+				$this->moduleValues[$M_TYPE] = $defaultValue
+					? $this->options->markupDark
+					: $this->options->markupLight;
+			}
+			else{
+				$this->moduleValues[$M_TYPE] = trim(strip_tags($v), '\'"');
+			}
 
-        foreach ($this->matrix->matrix() as $row) {
-            $html .= '<div>';
+		}
 
-            foreach ($row as $M_TYPE) {
-                $html .= '<span style="background: '.$this->moduleValues[$M_TYPE].';"></span>';
-            }
+	}
 
-            $html .= '</div>'.$this->options->eol;
-        }
+	/**
+	 * HTML output
+	 */
+	protected function html(string $file = null):string{
 
-        $html .= '</div>'.$this->options->eol;
+		$html = empty($this->options->cssClass)
+			? '<div>'
+			: '<div class="'.$this->options->cssClass.'">';
 
-        if ($file !== null) {
-            return '<!DOCTYPE html>'
-                   .'<head><meta charset="UTF-8"><title>QR Code</title></head>'
-                   .'<body>'.$this->options->eol.$html.'</body>';
-        }
+		$html .= $this->options->eol;
 
-        return $html;
-    }
+		foreach($this->matrix->matrix() as $row){
+			$html .= '<div>';
 
-    /**
-     * SVG output
-     *
-     * @see https://github.com/codemasher/php-qrcode/pull/5
-     * @param null|string $file
-     */
-    protected function svg(?string $file = null) : string
-    {
-        $matrix = $this->matrix->matrix();
+			foreach($row as $M_TYPE){
+				$html .= '<span style="background: '.$this->moduleValues[$M_TYPE].';"></span>';
+			}
 
-        $svg = sprintf($this->svgHeader, $this->options->cssClass, $this->options->svgViewBoxSize ?? $this->moduleCount)
-               .$this->options->eol
-               .'<defs>'.$this->options->svgDefs.'</defs>'
-               .$this->options->eol;
+			$html .= '</div>'.$this->options->eol;
+		}
 
-        foreach ($this->moduleValues as $M_TYPE => $value) {
-            $path = '';
+		$html .= '</div>'.$this->options->eol;
 
-            foreach ($matrix as $y => $row) {
-                // we'll combine active blocks within a single row as a lightweight compression technique
-                $start = null;
-                $count = 0;
+		if($file !== null){
+			return '<!DOCTYPE html>'.
+			       '<head><meta charset="UTF-8"><title>QR Code</title></head>'.
+			       '<body>'.$this->options->eol.$html.'</body>';
+		}
 
-                foreach ($row as $x => $module) {
-                    if ($module === $M_TYPE) {
-                        $count++;
+		return $html;
+	}
 
-                        if ($start === null) {
-                            $start = $x;
-                        }
+	/**
+	 * SVG output
+	 *
+	 * @see https://github.com/codemasher/php-qrcode/pull/5
+	 */
+	protected function svg(string $file = null):string{
+		$matrix = $this->matrix->matrix();
 
-                        if (isset($row[$x + 1])) {
-                            continue;
-                        }
-                    }
+		$svg = sprintf($this->svgHeader, $this->options->cssClass, $this->options->svgViewBoxSize ?? $this->moduleCount)
+		       .$this->options->eol
+		       .'<defs>'.$this->options->svgDefs.'</defs>'
+		       .$this->options->eol;
 
-                    if ($count > 0) {
-                        $len = $count;
-                        $start ??= 0; // avoid type coercion in sprintf() - phan happy
+		foreach($this->moduleValues as $M_TYPE => $value){
+			$path = '';
 
-                        $path .= sprintf('M%s %s h%s v1 h-%sZ ', $start, $y, $len, $len);
+			foreach($matrix as $y => $row){
+				//we'll combine active blocks within a single row as a lightweight compression technique
+				$start = null;
+				$count = 0;
 
-                        // reset count
-                        $count = 0;
-                        $start = null;
-                    }
-                }
-            }
+				foreach($row as $x => $module){
 
-            if (!empty($path)) {
-                $svg .= sprintf(
-                    '<path class="qr-%s %s" stroke="transparent" fill="%s" fill-opacity="%s" d="%s" />',
-                    $M_TYPE, $this->options->cssClass, $value, $this->options->svgOpacity, $path
-                );
-            }
-        }
+					if($module === $M_TYPE){
+						$count++;
 
-        // close svg
-        $svg .= '</svg>'.$this->options->eol;
+						if($start === null){
+							$start = $x;
+						}
 
-        // if saving to file, append the correct headers
-        if ($file !== null) {
-            return '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
-                   .$this->options->eol.$svg;
-        }
+						if(isset($row[$x + 1])){
+							continue;
+						}
+					}
 
-        if ($this->options->imageBase64) {
-            $svg = sprintf('data:image/svg+xml;base64,%s', base64_encode($svg));
-        }
+					if($count > 0){
+						$len   = $count;
+						$start ??= 0; // avoid type coercion in sprintf() - phan happy
 
-        return $svg;
-    }
+						$path .= sprintf('M%s %s h%s v1 h-%sZ ', $start, $y, $len, $len);
+
+						// reset count
+						$count = 0;
+						$start = null;
+					}
+
+				}
+
+			}
+
+			if(!empty($path)){
+				$svg .= sprintf(
+					'<path class="qr-%s %s" stroke="transparent" fill="%s" fill-opacity="%s" d="%s" />',
+					$M_TYPE, $this->options->cssClass, $value, $this->options->svgOpacity, $path
+				);
+			}
+
+		}
+
+		// close svg
+		$svg .= '</svg>'.$this->options->eol;
+
+		// if saving to file, append the correct headers
+		if($file !== null){
+			return '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'.
+			       $this->options->eol.$svg;
+		}
+
+		if($this->options->imageBase64){
+			$svg = sprintf('data:image/svg+xml;base64,%s', base64_encode($svg));
+		}
+
+		return $svg;
+	}
+
 }

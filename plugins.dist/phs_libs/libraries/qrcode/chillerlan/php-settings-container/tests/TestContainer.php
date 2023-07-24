@@ -7,6 +7,7 @@
  * @copyright    2018 Smiley
  * @license      MIT
  */
+
 namespace chillerlan\SettingsTest;
 
 use chillerlan\Settings\SettingsContainerAbstract;
@@ -19,9 +20,8 @@ use chillerlan\Settings\SettingsContainerAbstract;
  * @property $test5
  * @property $test6
  */
-class TestContainer extends SettingsContainerAbstract
-{
-    use TestOptionsTrait;
+class TestContainer extends SettingsContainerAbstract{
+	use TestOptionsTrait;
 
-    private string $test3 = 'what';
+	private string $test3 = 'what';
 }

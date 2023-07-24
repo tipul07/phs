@@ -4,7 +4,6 @@ namespace phs\plugins\backup\actions;
 use phs\PHS;
 use phs\PHS_Ajax;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -85,8 +84,6 @@ class PHS_Action_Result_files extends PHS_Action
          || !($rule_arr = $rules_model->get_details($result_arr['rule_id']))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid backup result...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'unknown_backup_result' => 1,
             ];
@@ -97,11 +94,7 @@ class PHS_Action_Result_files extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
-
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect(add_url_params($back_page, $args));
         }
 
         if (!($result_files_arr = $results_model->get_result_files($result_arr['id']))) {
@@ -121,7 +114,7 @@ class PHS_Action_Result_files extends PHS_Action
                          || !($backup_file_arr = $results_model->get_details($brfid, $brf_flow_params))) {
                         PHS_Notifications::add_error_notice($this->_pt('Backup result file not found in database.'));
                     } else {
-                        if (($delete_result = $results_model->unlink_result_file($backup_file_arr, ['update_result' => true]))) {
+                        if ($results_model->unlink_result_file($backup_file_arr, ['update_result' => true])) {
                             PHS_Notifications::add_success_notice($this->_pt('Backup file deleted with success.'));
 
                             if (empty($back_page)) {
@@ -130,7 +123,7 @@ class PHS_Action_Result_files extends PHS_Action
 
                             $url_params = ['result_id' => $result_arr['id'], 'back_page' => $back_page, 'file_deleted' => 1];
 
-                            if ($current_scope == PHS_Scope::SCOPE_AJAX) {
+                            if ($current_scope === PHS_Scope::SCOPE_AJAX) {
                                 $action_result['redirect_to_url'] = PHS_Ajax::url(['p' => 'backup', 'a' => 'result_files'], $url_params);
                             } else {
                                 $action_result['redirect_to_url'] = PHS::url(['p' => 'backup', 'a' => 'result_files'], $url_params);
@@ -150,7 +143,7 @@ class PHS_Action_Result_files extends PHS_Action
                     break;
             }
 
-            if ($current_scope == PHS_Scope::SCOPE_AJAX) {
+            if ($current_scope === PHS_Scope::SCOPE_AJAX) {
                 return $action_result;
             }
         }
