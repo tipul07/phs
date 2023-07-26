@@ -991,6 +991,15 @@ class PHS_Model_Accounts extends PHS_Model
         if (!empty($params['wid'])) {
             $edit_arr['wid'] = $params['wid'];
         }
+        if (array_key_exists('tfa_expiration', $params)) {
+            if (!empty($params['tfa_expiration'])) {
+                $params['tfa_expiration'] = date(self::DATETIME_DB, parse_db_date($params['tfa_expiration']));
+            } else {
+                $params['tfa_expiration'] = null;
+            }
+
+            $edit_arr['tfa_expiration'] = $params['tfa_expiration'];
+        }
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
         $edit_arr['expire_date'] = date(self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60);

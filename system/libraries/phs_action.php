@@ -14,7 +14,7 @@ abstract class PHS_Action extends PHS_Instantiable
     ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
     ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
     ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
-    ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify';
+    ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
 
     /** @var null|PHS_Controller */
     private ?PHS_Controller $_controller_obj = null;
@@ -40,6 +40,7 @@ abstract class PHS_Action extends PHS_Instantiable
         self::ACT_ROLE_REMOTE_PHS_CALL  => ['title' => 'Remote PHS Call'],
         self::ACT_ROLE_TFA_SETUP        => ['title' => 'Setup Two Factor Authentication'],
         self::ACT_ROLE_TFA_VERIFY       => ['title' => 'Verify Two Factor Authentication'],
+        self::ACT_ROLE_TFA_SETTINGS       => ['title' => 'Two Factor Authentication Settings'],
     ];
 
     /**

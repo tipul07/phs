@@ -3,7 +3,6 @@ namespace phs\system\core\scopes;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
@@ -39,10 +38,17 @@ class PHS_Scope_Web extends PHS_Scope
             && (empty($action_obj)
                 || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
         ) {
-            if ($this->_should_setup_tfa_for_account()) {
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'setup', 'ad' => 'tfa']);
+            $args = [];
+            if (!empty($action_result['redirect_to_url'])) {
+                $args['back_page'] = $action_result['redirect_to_url'];
             } else {
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa']);
+                $args['back_page'] = PHS::current_url();
+            }
+
+            if ($this->_should_setup_tfa_for_account()) {
+                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'setup', 'ad' => 'tfa'], $args);
+            } else {
+                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa'], $args);
             }
         } elseif (($expiration_arr = $this->_password_expired_for_current_account())) {
             if (!empty($action_obj)
@@ -204,15 +210,15 @@ class PHS_Scope_Web extends PHS_Scope
     private function _should_redirect_to_tfa_flow() : bool
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
         return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-               && $accounts_plugin->tfa_policy_is_enforced()
+               && ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && ($current_user = PHS::current_user())
+               && $accounts_plugin->tfa_policy_is_enforced()
                && ($settings_arr = $accounts_plugin->get_plugin_settings())
                && (empty($settings_arr['2fa_policy_account_level'])
                    || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))
-               && ($online_arr = PHS::current_user_session())
-               && (empty($online_arr['tfa_expiration'])
-                   || parse_db_date($online_arr['tfa_expiration']) < time());
+               && !$tfa_model->is_session_tfa_valid();
     }
 
     private function _should_setup_tfa_for_account() : bool
@@ -221,6 +227,6 @@ class PHS_Scope_Web extends PHS_Scope
         return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && PHS::current_user()
                && (!($tfa_arr = $tfa_model->get_tfa_for_current_account())
-                   || !$tfa_model->setup_completed($tfa_arr));
+                   || !$tfa_model->is_setup_completed($tfa_arr));
     }
 }

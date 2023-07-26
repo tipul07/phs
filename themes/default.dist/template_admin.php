@@ -7,14 +7,17 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
-use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\plugins\accounts\PHS_Plugin_Accounts;use phs\system\core\events\layout\PHS_Event_Layout;use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $accounts_plugin_settings = [];
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+if (!($accounts_model = PHS_Model_Accounts::get_instance())
+    || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
-    $accounts_model = false;
-} elseif (!($accounts_plugin_settings = $accounts_model->get_plugin_settings())) {
+    $accounts_model = null;
+    $accounts_plugin = null;
+} elseif (!($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())) {
     $accounts_plugin_settings = [];
 }
 
@@ -217,6 +220,17 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         ><?php echo $this::_t('Edit Profile'); ?></a></li>
                     <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'change_password']); ?>"
                         ><?php echo $this::_t('Change Password'); ?></a></li>
+                    <?php
+                    if( !$accounts_plugin->tfa_policy_is_off() ) {
+                        ?>
+                        <li><a href="<?php echo PHS::url([
+                                'p' => 'accounts',
+                                'ad' => 'tfa',
+                                'a' => 'settings',
+                            ]); ?>"><?php echo $this::_t('TFA Settings'); ?></a></li>
+                        <?php
+                    }
+                    ?>
                     <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'logout']); ?>"
                         ><?php echo $this::_t('Logout'); ?></a></li>
                     <?php

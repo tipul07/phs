@@ -22,7 +22,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
-    public const TFA_POLICY_OFF = 0, TFA_POLICY_OPTIONAL = 1, TFA_POLICY_ENFORCED = 2;
+    public const TFA_POLICY_OFF = 1, TFA_POLICY_OPTIONAL = 2, TFA_POLICY_ENFORCED = 3;
 
     public const ACCOUNTS_IMPORT_DIR = 'phs_accounts';
 
@@ -1960,7 +1960,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($params['accounts_model'])) {
-            $accounts_model = PHS::load_model('accounts', $this->instance_plugin_name());
+            $accounts_model = PHS_Model_Accounts::get_instance();
         } else {
             $accounts_model = $params['accounts_model'];
         }

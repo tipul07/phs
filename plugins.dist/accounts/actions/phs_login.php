@@ -10,6 +10,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 
@@ -63,8 +64,10 @@ class PHS_Action_Login extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
         }
 
         if (!empty($accounts_plugin)
@@ -147,6 +150,17 @@ class PHS_Action_Login extends PHS_Action
                     }
 
                     PHS_Notifications::add_success_notice($this->_pt('Successfully logged in...'));
+
+                    if( $accounts_plugin->tfa_policy_is_optional()
+                        && (!($tfa_data = $tfa_model->get_tfa_data_for_account($account_arr))
+                            || empty( $tfa_data['tfa_data']))) {
+                        $url_params = [];
+                        if (!empty($back_page)) {
+                            $url_params['back_page'] = $back_page;
+                        }
+
+                        return action_redirect(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'], $url_params);
+                    }
 
                     return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
                 }

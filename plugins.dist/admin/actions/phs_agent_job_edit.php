@@ -59,8 +59,6 @@ class PHS_Action_Agent_job_edit extends PHS_Action
          || !($agent_job_arr = $agent_jobs_model->get_details($aid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid agent job...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'unknown_agent_job' => 1,
             ];
