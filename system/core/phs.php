@@ -76,8 +76,8 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return ['accounts', 'accounts_3rd', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice', 'emails', 'hubspot', 'mailchimp', 'messages',
-            'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
+        return ['phs_libs', 'accounts', 'accounts_3rd', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice',
+            'emails', 'hubspot', 'mailchimp', 'messages', 'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
     }
 
     public static function get_always_active_plugins() : array
@@ -1962,12 +1962,6 @@ final class PHS extends PHS_Registry
         $controller_error_arr = self::st_get_error();
 
         self::st_reset_error();
-
-        if (is_array($action_result)
-         && !empty($action_result['scope'])
-         && (int)$action_result['scope'] !== PHS_Scope::current_scope()) {
-            PHS_Scope::current_scope($action_result['scope']);
-        }
 
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
             if (!self::st_has_error()) {

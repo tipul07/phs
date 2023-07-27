@@ -18,9 +18,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 {
     public const ERR_LOGOUT = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002, ERR_TOKEN = 40003;
 
-    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_SECURITY = 'phs_security.log';
+    public const LOG_IMPORT = 'phs_accounts_import.log', LOG_SECURITY = 'phs_security.log', LOG_TFA = 'phs_accounts_tfa.log';
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
+
+    public const TFA_POLICY_OFF = 1, TFA_POLICY_OPTIONAL = 2, TFA_POLICY_ENFORCED = 3;
 
     public const ACCOUNTS_IMPORT_DIR = 'phs_accounts';
 
@@ -48,6 +50,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         self::PASS_POLICY_SETUP     => 'Setup at fist login',
     ];
 
+    protected static array $TFA_POLICY_ARR = [
+        self::TFA_POLICY_OFF      => 'Off',
+        self::TFA_POLICY_OPTIONAL => 'Optional',
+        self::TFA_POLICY_ENFORCED => 'Enforced',
+    ];
+
     private static string $_session_key = 'PHS_sess';
 
     /**
@@ -55,6 +63,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_settings_structure()
     {
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        $accounts_levels_arr = [];
+        if (($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $accounts_levels_arr = $accounts_model->get_levels_as_key_val();
+        }
+
         return [
             'account_registration_group' => [
                 'display_name' => $this->_pt('Account Registration Settings'),
@@ -239,7 +253,71 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                     ],
                 ],
             ],
+            'two_factor_auth_group' => [
+                'display_name' => $this->_pt('Two Factor Authentication Settings'),
+                'display_hint' => $this->_pt('Settings related to two factor authentication feature.'),
+                'group_fields' => [
+                    '2fa_policy' => [
+                        'display_name' => $this->_pt('Account 2FA policy'),
+                        'display_hint' => $this->_pt('What 2FA policy should be applied on this platform'),
+                        'type'         => PHS_Params::T_INT,
+                        'values_arr'   => self::$TFA_POLICY_ARR,
+                        'default'      => self::TFA_POLICY_OFF,
+                    ],
+                    '2fa_policy_account_level' => [
+                        'display_name' => $this->_pt('2FA account levels'),
+                        'display_hint' => $this->_pt('Which account levels should follow selected 2FA policy. If no account level is selected, all will follow the policy.'),
+                        'input_type'   => self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT,
+                        'type'         => PHS_Params::T_ARRAY,
+                        'extra_type'   => ['type' => PHS_Params::T_INT],
+                        'values_arr'   => $accounts_levels_arr,
+                        'default'      => [],
+                    ],
+                    '2fa_session_length' => [
+                        'display_name' => $this->_pt('2FA session length (hours)'),
+                        'display_hint' => $this->_pt('How many hours should 2FA not be required on current session. 0 means forever'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 48,
+                    ],
+                    '2fa_issuer_name' => [
+                        'display_name' => $this->_pt('2FA Issuer'),
+                        'display_hint' => $this->_pt('How should this platform appear in Google Authenticator as name'),
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => PHS_SITE_NAME,
+                    ],
+                ],
+            ],
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_off() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OFF;
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_optional() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OPTIONAL;
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_policy_is_enforced() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['2fa_policy'])
+               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_ENFORCED;
     }
 
     /**
@@ -1081,7 +1159,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function get_guest_roles_and_role_units(): array
+    public function get_guest_roles_and_role_units() : array
     {
         static $resulting_roles = null;
 
@@ -1118,7 +1196,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_file(string $json_file, array $params = null)
+    public function import_accounts_from_json_file(string $json_file, ?array $params = null)
     {
         $this->reset_error();
 
@@ -1148,7 +1226,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return false|array
      */
-    public function import_accounts_from_json_array(array $json_arr, array $params = null)
+    public function import_accounts_from_json_array(array $json_arr, ?array $params = null)
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -1882,7 +1960,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($params['accounts_model'])) {
-            $accounts_model = PHS::load_model('accounts', $this->instance_plugin_name());
+            $accounts_model = PHS_Model_Accounts::get_instance();
         } else {
             $accounts_model = $params['accounts_model'];
         }
@@ -1951,7 +2029,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return bool
      */
-    private function _create_required_directories(): bool
+    private function _create_required_directories() : bool
     {
         $this->reset_error();
 
@@ -1980,7 +2058,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return string
      */
-    public static function session_key(?string $key = null): string
+    public static function session_key(?string $key = null) : string
     {
         if ($key === null) {
             return self::$_session_key;

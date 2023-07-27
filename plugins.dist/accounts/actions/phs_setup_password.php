@@ -36,7 +36,7 @@ class PHS_Action_Setup_password extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::SETUP_PASSWORD, $this))
-         && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -79,7 +79,7 @@ class PHS_Action_Setup_password extends PHS_Action
 
         $account_arr = $confirmation_parts['account_data'];
 
-        if( $accounts_model->is_locked($account_arr) ) {
+        if ($accounts_model->is_locked($account_arr)) {
             PHS_Notifications::add_error_notice($this->_pt('Account locked temporarily because of too many login attempts.'));
         }
 

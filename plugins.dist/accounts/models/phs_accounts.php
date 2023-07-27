@@ -53,7 +53,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.5';
+        return '1.3.7';
     }
 
     /**
@@ -220,56 +220,21 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return null|array
      */
-    public function manage_failed_password( $account_data ): ?array
+    public function manage_failed_password($account_data) : ?array
     {
         $this->reset_error();
 
-        if( !($account_arr = $this->data_to_array( $account_data ))
-         || $this->is_deleted( $account_arr ) ) {
-            $this->set_error( self::ERR_PARAMETERS, $this->_pt( 'Account not found in database.' ) );
+        if (!($account_arr = $this->data_to_array($account_data))
+         || $this->is_deleted($account_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+
             return null;
         }
 
         // Check account lockout policy..
-        if( ($new_account = $this->_check_lockout_policy( $account_arr )) ) {
+        if (($new_account = $this->_check_lockout_policy($account_arr))) {
             $account_arr = $new_account;
         }
-
-        return $account_arr;
-    }
-
-    private function _check_lockout_policy( array $account_arr ): ?array
-    {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( $this->is_locked( $account_arr )
-            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users' ]))
-            || !($users_table = $this->get_flow_table_name($flow_arr))
-            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-            || !($settings_arr = $accounts_plugin->get_plugin_settings())
-            || !$accounts_plugin->lockout_is_enabled() ) {
-            return null;
-        }
-
-        $lockout_failed_count = $settings_arr['lockout_failed_count'] ?? 5;
-        $account_failed_count = $account_arr['failed_logins'] ?? 0;
-
-        $extra_sql = '';
-        if( $account_failed_count + 1 >= $lockout_failed_count ) {
-            $lockout_period_minutes = $settings_arr['lockout_period_minutes'] ?? 15;
-
-            $locked_date = date( self::DATETIME_DB, (time() + $lockout_period_minutes * 60) );
-
-            $extra_sql = ', locked_date = \''.$locked_date.'\'';
-            $account_arr['locked_date'] = $locked_date;
-        }
-
-        // Low level query, so we don't trigger other actions...
-        db_query( 'UPDATE `'.$users_table.'` SET failed_logins = failed_logins + 1'.
-                  $extra_sql.
-                  ' WHERE id = \''.$account_arr['id'].'\'',
-            $flow_arr['db_connection'] );
-
-        $account_arr['failed_logins'] = $account_failed_count + 1;
 
         return $account_arr;
     }
@@ -587,7 +552,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array
      */
-    final public function get_statuses($lang = false): array
+    final public function get_statuses($lang = false) : array
     {
         static $statuses_arr = [];
 
@@ -693,7 +658,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return bool
      */
-    public function raw_check_pass($acc_pass, $acc_salt, $pass): bool
+    public function raw_check_pass($acc_pass, $acc_salt, $pass) : bool
     {
         return !(empty($acc_pass) || empty($acc_salt)
          || empty($pass)
@@ -705,9 +670,9 @@ class PHS_Model_Accounts extends PHS_Model
      * @param int|array $account_data
      * @param string $pass
      *
-     * @return array|null
+     * @return null|array
      */
-    public function check_pass($account_data, $pass): ?array
+    public function check_pass($account_data, $pass) : ?array
     {
         if (!($account_arr = $this->data_to_array($account_data))) {
             return null;
@@ -778,11 +743,10 @@ class PHS_Model_Accounts extends PHS_Model
 
     /**
      * @param int|array $account_data
-     * @param bool|array $params
      *
      * @return array
      */
-    public function is_password_expired($account_data, $params = false)
+    public function is_password_expired($account_data) : array
     {
         $return_arr = PHS_Hooks::default_password_expiration_data();
 
@@ -790,7 +754,6 @@ class PHS_Model_Accounts extends PHS_Model
          || !($account_arr = $this->data_to_array($account_data))
          || $this->is_deleted($account_arr)
          || !($settings_arr = $this->get_plugin_settings())
-         || !is_array($settings_arr)
          || empty($settings_arr['expire_passwords_days'])
          || ($expire_days = (int)$settings_arr['expire_passwords_days']) <= 0) {
             return $return_arr;
@@ -799,11 +762,7 @@ class PHS_Model_Accounts extends PHS_Model
         $now_time = time();
 
         // block_after_expiration in hours
-        if (empty($settings_arr['block_after_expiration'])) {
-            $settings_arr['block_after_expiration'] = 0;
-        } else {
-            $settings_arr['block_after_expiration'] = (int)$settings_arr['block_after_expiration'];
-        }
+        $settings_arr['block_after_expiration'] = (int)($settings_arr['block_after_expiration'] ?? 0);
 
         $block_after_seconds = -1;
         if ($settings_arr['block_after_expiration'] !== -1) {
@@ -1032,6 +991,15 @@ class PHS_Model_Accounts extends PHS_Model
         if (!empty($params['wid'])) {
             $edit_arr['wid'] = $params['wid'];
         }
+        if (array_key_exists('tfa_expiration', $params)) {
+            if (!empty($params['tfa_expiration'])) {
+                $params['tfa_expiration'] = date(self::DATETIME_DB, parse_db_date($params['tfa_expiration']));
+            } else {
+                $params['tfa_expiration'] = null;
+            }
+
+            $edit_arr['tfa_expiration'] = $params['tfa_expiration'];
+        }
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
         $edit_arr['expire_date'] = date(self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60);
@@ -1249,9 +1217,9 @@ class PHS_Model_Accounts extends PHS_Model
     /**
      * @param int|array $account_data
      *
-     * @return array|null
+     * @return null|array
      */
-    public function reset_account_locking($account_data): ?array
+    public function reset_account_locking($account_data) : ?array
     {
         $this->reset_error();
 
@@ -1269,7 +1237,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params = [];
         $edit_params['fields'] = $edit_arr;
 
-        if( !($account_arr = $this->edit($account_arr, $edit_params)) ) {
+        if (!($account_arr = $this->edit($account_arr, $edit_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error resetting account locking.'));
 
             return null;
@@ -1278,12 +1246,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    public function activate_account_after_registration($account_data): ?array
+    public function activate_account_after_registration($account_data) : ?array
     {
         $this->reset_error();
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return null;
@@ -1304,12 +1272,13 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_params['{activate_after_registration}'] = true;
         $edit_params['fields'] = $edit_arr;
 
-        if( !($result = $this->edit($account_arr, $edit_params)) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+        if (!($result = $this->edit($account_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
+
             return null;
         }
 
-        if( $accounts_plugin->should_log_account_creation() ) {
+        if ($accounts_plugin->should_log_account_creation()) {
             PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated after registration.',
                 $accounts_plugin::LOG_SECURITY);
         }
@@ -1328,7 +1297,7 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return null;
@@ -1364,12 +1333,13 @@ class PHS_Model_Accounts extends PHS_Model
 
         $edit_params['fields'] = $edit_arr;
 
-        if( !($result = $this->edit($account_arr, $edit_params)) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+        if (!($result = $this->edit($account_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
+
             return null;
         }
 
-        if( $accounts_plugin->should_log_account_creation() ) {
+        if ($accounts_plugin->should_log_account_creation()) {
             PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated.',
                 $accounts_plugin::LOG_SECURITY);
         }
@@ -1383,12 +1353,12 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array|bool|mixed
      */
-    public function inactivate_account($account_data, $params = false): ?array
+    public function inactivate_account($account_data, $params = false) : ?array
     {
         $this->reset_error();
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return null;
@@ -1421,12 +1391,13 @@ class PHS_Model_Accounts extends PHS_Model
 
         $edit_params['fields'] = $edit_arr;
 
-        if( !($result = $this->edit($account_arr, $edit_params)) ) {
-            $this->set_error( self::ERR_FUNCTIONALITY, $this->_pt( 'Error inactivating account.' ) );
+        if (!($result = $this->edit($account_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
+
             return null;
         }
 
-        if( $accounts_plugin->should_log_account_creation() ) {
+        if ($accounts_plugin->should_log_account_creation()) {
             PHS_Logger::notice('INACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was inactivated.',
                 $accounts_plugin::LOG_SECURITY);
         }
@@ -1440,12 +1411,12 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return array|bool|mixed
      */
-    public function delete_account($account_data, $params = false): ?array
+    public function delete_account($account_data, $params = false) : ?array
     {
         $this->reset_error();
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance()) ) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return null;
@@ -1501,7 +1472,7 @@ class PHS_Model_Accounts extends PHS_Model
             PHS_Roles::unlink_all_roles_from_user($account_arr);
         }
 
-        if( $accounts_plugin->should_log_account_creation() ) {
+        if ($accounts_plugin->should_log_account_creation()) {
             PHS_Logger::notice('DELETE Account #'.$account_arr['id'].': '.$account_arr['nick'].' was deleted.',
                 $accounts_plugin::LOG_SECURITY);
         }
@@ -1865,11 +1836,11 @@ class PHS_Model_Accounts extends PHS_Model
                         'length' => 2,
                     ],
                     'failed_logins' => [
-                        'type'   => self::FTYPE_TINYINT,
+                        'type'    => self::FTYPE_TINYINT,
                         'default' => 0,
                     ],
                     'locked_date' => [
-                        'type'  => self::FTYPE_DATETIME,
+                        'type'    => self::FTYPE_DATETIME,
                         'default' => null,
                     ],
                     'deleted' => [
@@ -1988,6 +1959,9 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'connected' => [
+                        'type' => self::FTYPE_DATETIME,
+                    ],
+                    'tfa_expiration' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'expire_date' => [
@@ -2245,7 +2219,7 @@ class PHS_Model_Accounts extends PHS_Model
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())
-            || !($accounts_plugin = $this->get_plugin_instance()) ) {
+            || !($accounts_plugin = $this->get_plugin_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -2330,15 +2304,15 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if( $accounts_plugin->should_log_account_creation() ) {
+        if ($accounts_plugin->should_log_account_creation()) {
             PHS_Logger::notice('CREATION Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was created.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
-        if( !empty( $roles_arr )
-         && $accounts_plugin->should_log_roles_changes() ) {
-            PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was assigned roles: '.
-                               implode( ', ', $roles_arr ).'.',
+        if (!empty($roles_arr)
+         && $accounts_plugin->should_log_roles_changes()) {
+            PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was assigned roles: '
+                               .implode(', ', $roles_arr).'.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
@@ -2540,7 +2514,7 @@ class PHS_Model_Accounts extends PHS_Model
     protected function edit_after_users($existing_data, $edit_arr, $params)
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
-        if( !($plugin_obj = PHS_Plugin_Accounts::get_instance()) ) {
+        if (!($plugin_obj = PHS_Plugin_Accounts::get_instance())) {
             $plugin_obj = null;
         }
 
@@ -2567,9 +2541,9 @@ class PHS_Model_Accounts extends PHS_Model
                 return false;
             }
 
-            if( $plugin_obj->should_log_roles_changes() ) {
-                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '.
-                                   implode( ', ', $params['{account_roles}'] ).'.',
+            if ($plugin_obj->should_log_roles_changes()) {
+                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '
+                                   .implode(', ', $params['{account_roles}']).'.',
                     $plugin_obj::LOG_SECURITY);
             }
         }
@@ -2633,7 +2607,7 @@ class PHS_Model_Accounts extends PHS_Model
                 }
             }
 
-            if( $plugin_obj->should_log_password_changes() ) {
+            if ($plugin_obj->should_log_password_changes()) {
                 PHS_Logger::notice('PASSWORD Account #'.$existing_data['id'].': '.$existing_data['nick'].' password changed.',
                     $plugin_obj::LOG_SECURITY);
             }
@@ -2818,6 +2792,42 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $params;
+    }
+
+    private function _check_lockout_policy(array $account_arr) : ?array
+    {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if ($this->is_locked($account_arr)
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users']))
+            || !($users_table = $this->get_flow_table_name($flow_arr))
+            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($settings_arr = $accounts_plugin->get_plugin_settings())
+            || !$accounts_plugin->lockout_is_enabled()) {
+            return null;
+        }
+
+        $lockout_failed_count = $settings_arr['lockout_failed_count'] ?? 5;
+        $account_failed_count = $account_arr['failed_logins'] ?? 0;
+
+        $extra_sql = '';
+        if ($account_failed_count + 1 >= $lockout_failed_count) {
+            $lockout_period_minutes = $settings_arr['lockout_period_minutes'] ?? 15;
+
+            $locked_date = date(self::DATETIME_DB, (time() + $lockout_period_minutes * 60));
+
+            $extra_sql = ', locked_date = \''.$locked_date.'\'';
+            $account_arr['locked_date'] = $locked_date;
+        }
+
+        // Low level query, so we don't trigger other actions...
+        db_query('UPDATE `'.$users_table.'` SET failed_logins = failed_logins + 1'
+                  .$extra_sql
+                  .' WHERE id = \''.$account_arr['id'].'\'',
+            $flow_arr['db_connection']);
+
+        $account_arr['failed_logins'] = $account_failed_count + 1;
+
+        return $account_arr;
     }
 
     private function validate_password_rules(string $pass, ?array $accounts_settings = null) : bool

@@ -87,11 +87,8 @@ class PHS_Action_Append_messages extends PHS_Action
          || empty($user_message['message_id'])) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
-            $action_result = self::default_action_result();
-
-            // $action_result['redirect_to_url'] = PHS::url( array( 'p' => 'messages', 'a' => 'inbox' ), array( 'unknown_message' => 1 ) );
-
-            return $action_result;
+            // return action_redirect( [ 'p' => 'messages', 'a' => 'inbox' ], ['unknown_message' => 1] );
+            return self::default_action_result();
         }
 
         if (!($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user))) {
@@ -99,11 +96,7 @@ class PHS_Action_Append_messages extends PHS_Action
              || !($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
             }
 
             if (empty($message_arr['message_user'])) {

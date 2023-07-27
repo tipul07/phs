@@ -31,7 +31,7 @@ class PHS_Action_Login extends PHS_Api_action
         $bearer_token_authentication = (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API);
 
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -75,9 +75,6 @@ class PHS_Action_Login extends PHS_Api_action
         if (empty($plugin_settings['session_expire_minutes_normal'])) {
             $plugin_settings['session_expire_minutes_normal'] = 0;
         } // till browser closes
-        if (empty($plugin_settings['block_after_expiration'])) {
-            $plugin_settings['block_after_expiration'] = 0;
-        } // hardcoded block
 
         if (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
          || !$accounts_model->is_active($account_arr)) {
@@ -91,7 +88,7 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         if (!$accounts_model->check_pass($account_arr, $pass)) {
-            if( ($new_account = $accounts_model->manage_failed_password($account_arr)) ) {
+            if (($new_account = $accounts_model->manage_failed_password($account_arr))) {
                 $account_arr = $new_account;
 
                 if ($accounts_model->is_locked($account_arr)) {
@@ -146,7 +143,7 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
 
             return $event_result['action_result'];

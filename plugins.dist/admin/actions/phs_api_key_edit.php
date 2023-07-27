@@ -73,8 +73,6 @@ class PHS_Action_Api_key_edit extends PHS_Action
          || !($apikey_arr = $apikeys_model->get_details($aid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid API key...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'unknown_api_key' => 1,
             ];
@@ -85,11 +83,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
-
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect(add_url_params($back_page, $args));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -202,10 +196,8 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
 
-            if (($new_role = $apikeys_model->edit($apikey_arr, $edit_params_arr))) {
+            if ($apikeys_model->edit($apikey_arr, $edit_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('API key details saved...'));
-
-                $action_result = self::default_action_result();
 
                 $url_params = [];
                 $url_params['changes_saved'] = 1;
@@ -214,9 +206,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
                     $url_params['back_page'] = $back_page;
                 }
 
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'api_key_edit'], $url_params);
-
-                return $action_result;
+                return action_redirect(['p' => 'admin', 'a' => 'api_key_edit'], $url_params);
             }
 
             if ($apikeys_model->has_error()) {

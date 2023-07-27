@@ -68,8 +68,6 @@ class PHS_Action_Rule_edit extends PHS_Action
          || !($rule_arr = $rules_model->get_details($rid, $r_flow_params))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid backup rule...'));
 
-            $action_result = self::default_action_result();
-
             $args = ['unknown_rule' => 1];
 
             if (empty($back_page)) {
@@ -78,11 +76,7 @@ class PHS_Action_Rule_edit extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
-
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect(add_url_params($back_page, $args));
         }
 
         if (($new_rule = $rules_model->get_rule_ftp_settings($rule_arr))) {
@@ -292,8 +286,6 @@ class PHS_Action_Rule_edit extends PHS_Action
                 PHS_Notifications::add_success_notice($this->_pt('Backup rule details saved.'));
 
                 if (!PHS_Notifications::have_errors_or_warnings_notifications()) {
-                    $action_result = self::default_action_result();
-
                     $url_args = [
                         'rid'           => $rid,
                         'changes_saved' => 1,
@@ -307,9 +299,7 @@ class PHS_Action_Rule_edit extends PHS_Action
                         }
                     }
 
-                    $action_result['redirect_to_url'] = PHS::url(['p' => 'backup', 'a' => 'rule_edit'], $url_args);
-
-                    return $action_result;
+                    return action_redirect(['p' => 'backup', 'a' => 'rule_edit'], $url_args);
                 }
             }
         }
