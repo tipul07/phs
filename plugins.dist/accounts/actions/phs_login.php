@@ -142,6 +142,19 @@ class PHS_Action_Login extends PHS_Action
                         }
                     }
 
+                    if( $accounts_plugin->tfa_policy_is_optional()
+                        && (!($tfa_data = $tfa_model->get_tfa_data_for_account($account_arr))
+                            || empty( $tfa_data['tfa_data'])
+                            || !$tfa_model->is_setup_completed($tfa_data['tfa_data']))
+                    ) {
+                        $url_params = [];
+                        if (!empty($back_page)) {
+                            $url_params['back_page'] = $back_page;
+                        }
+
+                        return action_redirect(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'], $url_params);
+                    }
+
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
                         && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
@@ -150,17 +163,6 @@ class PHS_Action_Login extends PHS_Action
                     }
 
                     PHS_Notifications::add_success_notice($this->_pt('Successfully logged in...'));
-
-                    if( $accounts_plugin->tfa_policy_is_optional()
-                        && (!($tfa_data = $tfa_model->get_tfa_data_for_account($account_arr))
-                            || empty( $tfa_data['tfa_data']))) {
-                        $url_params = [];
-                        if (!empty($back_page)) {
-                            $url_params['back_page'] = $back_page;
-                        }
-
-                        return action_redirect(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'], $url_params);
-                    }
 
                     return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
                 }

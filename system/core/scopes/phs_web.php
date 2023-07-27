@@ -212,13 +212,20 @@ class PHS_Scope_Web extends PHS_Scope
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
         return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+               && !$accounts_plugin->tfa_policy_is_off()
                && ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && ($current_user = PHS::current_user())
-               && $accounts_plugin->tfa_policy_is_enforced()
-               && ($settings_arr = $accounts_plugin->get_plugin_settings())
-               && (empty($settings_arr['2fa_policy_account_level'])
-                   || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))
-               && !$tfa_model->is_session_tfa_valid();
+               && !$tfa_model->is_session_tfa_valid()
+               && (
+                   (($tfa_arr = $tfa_model->get_tfa_data_for_account($current_user))
+                    && !empty( $tfa_arr['tfa_data'] ) && $tfa_model->is_setup_completed( $tfa_arr['tfa_data'] ))
+                   ||
+                   ($accounts_plugin->tfa_policy_is_enforced()
+                    && ($settings_arr = $accounts_plugin->get_plugin_settings())
+                    && (empty($settings_arr['2fa_policy_account_level'])
+                        || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))
+                   )
+               );
     }
 
     private function _should_setup_tfa_for_account() : bool

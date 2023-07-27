@@ -45,6 +45,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
     }
 
     if( !empty( $tfa_arr )
+        && $tfa_model->is_setup_completed($tfa_arr)
         && ($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr)) ) {
         ?>
         <form id="tfa_settings_download" name="tfa_settings_download" method="post"
