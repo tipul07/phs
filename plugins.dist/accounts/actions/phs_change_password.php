@@ -39,7 +39,7 @@ class PHS_Action_Change_password extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::CHANGE_PASSWORD, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -148,13 +148,13 @@ class PHS_Action_Change_password extends PHS_Action
                         PHS_Logger::TYPE_DEBUG);
                 }
 
-                if( $accounts_model->has_error() ) {
+                if ($accounts_model->has_error()) {
                     $error_msg = $accounts_model->get_simple_error_message();
                 } else {
                     $error_msg = $this->_pt('Error changing password. Please try again.');
                 }
 
-                PHS_Notifications::add_error_notice( $error_msg );
+                PHS_Notifications::add_error_notice($error_msg);
             }
         }
 

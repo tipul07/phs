@@ -90,11 +90,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $can_export_accounts = $this->_admin_plugin->can_admin_export_accounts();
         $account_lockout_enabled = $this->_accounts_plugin->lockout_is_enabled();
 
-        if( !($flow_arr = $this->_paginator_model->fetch_default_flow_params( ['table_name' => 'users'] )) ) {
+        if (!($flow_arr = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $flow_arr = [];
         }
 
-        if( !($users_table = $this->_paginator_model->get_flow_table_name()) ) {
+        if (!($users_table = $this->_paginator_model->get_flow_table_name())) {
             $users_table = 'users';
         }
 
@@ -149,7 +149,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $account_lockout_enabled ) {
+        if ($account_lockout_enabled) {
             $bulk_actions[] = [
                 'display_name'    => $this->_pt('Reset account locking'),
                 'action'          => 'bulk_reset_account_locking',
@@ -214,8 +214,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $account_lockout_enabled ) {
-            $filters_arr = array_merge( $filters_arr, [
+        if ($account_lockout_enabled) {
+            $filters_arr = array_merge($filters_arr, [
                 [
                     'display_name'  => $this->_pt('Account lockout'),
                     'display_hint'  => $this->_pt('Select only accounts with specific account lockout conditions'),
@@ -238,7 +238,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ]);
         }
 
-        $filters_arr = array_merge( $filters_arr, [
+        $filters_arr = array_merge($filters_arr, [
             [
                 'display_name'        => $this->_pt('Level'),
                 'var_name'            => 'flevel',
@@ -284,11 +284,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'extra_records_style' => 'text-align:center;',
             ],
             [
-                'column_title'        => $this->_pt('Status'),
-                'record_field'        => 'status',
-                'display_key_value'   => $users_statuses,
-                'invalid_value'       => $this->_pt('Undefined'),
-                //'extra_records_style' => 'text-align:center;',
+                'column_title'      => $this->_pt('Status'),
+                'record_field'      => 'status',
+                'display_key_value' => $users_statuses,
+                'invalid_value'     => $this->_pt('Undefined'),
+                // 'extra_records_style' => 'text-align:center;',
             ],
             [
                 'column_title'        => $this->_pt('Level'),
@@ -299,7 +299,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
-        if( $account_lockout_enabled ) {
+        if ($account_lockout_enabled) {
             $columns_arr = array_merge($columns_arr, [
                 [
                     'column_title'        => $this->_pt('Locked?'),
@@ -968,10 +968,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
         $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
 
-        $cell_str = (empty($account_arr['locked_date'])?$this->_pt('No'):
-            ($this->_paginator_model->is_locked($account_arr)?
-                '<span class="text-danger font-weight-bold">'.$this->_pt('YES').'</span>':$this->_pt('No')).'<br/> '.
-            $this->_paginator->pretty_date_independent($account_arr['locked_date'], $pretty_params));
+        $cell_str = (empty($account_arr['locked_date']) ? $this->_pt('No')
+            : ($this->_paginator_model->is_locked($account_arr)
+                ? '<span class="text-danger font-weight-bold">'.$this->_pt('YES').'</span>' : $this->_pt('No')).'<br/> '
+            .$this->_paginator->pretty_date_independent($account_arr['locked_date'], $pretty_params));
 
         if (empty($params['record']['failed_logins'])) {
             $params['record']['failed_logins'] = 0;
@@ -981,12 +981,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $paginator_obj::CELL_RENDER_JSON:
                 case $paginator_obj::CELL_RENDER_TEXT:
-                    $cell_str = strip_tags($cell_str ).' ('.$params['record']['failed_logins'].')';
-                break;
+                    $cell_str = strip_tags($cell_str).' ('.$params['record']['failed_logins'].')';
+                    break;
 
                 case $paginator_obj::CELL_RENDER_HTML:
-                    $cell_str .= '<br/>'.$this->_pt( '%s failures', $params['record']['failed_logins'] );
-                break;
+                    $cell_str .= '<br/>'.$this->_pt('%s failures', $params['record']['failed_logins']);
+                    break;
             }
         }
 
@@ -1017,7 +1017,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
 
         if ($is_active
-            && $this->_admin_plugin->can_admin_login_subaccounts() ) {
+            && $this->_admin_plugin->can_admin_login_subaccounts()) {
             ?>
             <a href="javascript:void(0)"
                onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']; ?>' )"
@@ -1025,8 +1025,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        if ($can_manage_account ) {
-            if($is_inactive || $is_active) {
+        if ($can_manage_account) {
+            if ($is_inactive || $is_active) {
                 ?>
                 <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
                     ['uid' => $account_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
@@ -1034,7 +1034,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 <?php
             }
 
-            if( $this->_accounts_plugin->lockout_is_enabled() ) {
+            if ($this->_accounts_plugin->lockout_is_enabled()) {
                 ?>
                 <a href="javascript:void(0)"
                     onclick="phs_users_list_reset_account_locking( '<?php echo $account_arr['id']; ?>' )"

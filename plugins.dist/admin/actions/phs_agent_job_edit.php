@@ -59,8 +59,6 @@ class PHS_Action_Agent_job_edit extends PHS_Action
          || !($agent_job_arr = $agent_jobs_model->get_details($aid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid agent job...'));
 
-            $action_result = self::default_action_result();
-
             $args = [
                 'unknown_agent_job' => 1,
             ];
@@ -73,9 +71,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
 
             $back_page = add_url_params($back_page, $args);
 
-            $action_result['redirect_to_url'] = $back_page;
-
-            return $action_result;
+            return action_redirect($back_page);
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -159,10 +155,8 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                 $job_extra_arr['run_async'] = (!empty($run_async) ? 1 : 0);
                 $job_extra_arr['stalling_minutes'] = $stalling_minutes;
 
-                if (($new_agent_job = PHS_Agent::add_job($handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr))) {
+                if (PHS_Agent::add_job($handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr)) {
                     PHS_Notifications::add_success_notice($this->_pt('Agent job details saved...'));
-
-                    $action_result = self::default_action_result();
 
                     $url_params = [];
                     $url_params['changes_saved'] = 1;
@@ -171,9 +165,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                         $url_params['back_page'] = $back_page;
                     }
 
-                    $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'agent_job_edit'], $url_params);
-
-                    return $action_result;
+                    return action_redirect(['p' => 'admin', 'a' => 'agent_job_edit'], $url_params);
                 }
 
                 if (PHS::st_has_error()) {

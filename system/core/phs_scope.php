@@ -106,11 +106,11 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     /**
      * @param false|array $action_result
-     * @param false $static_error_arr
+     * @param null|array $static_error_arr
      *
      * @return array|bool
      */
-    public function generate_response($action_result = false, $static_error_arr = false)
+    public function generate_response($action_result = false, ?array $static_error_arr = null)
     {
         $this->reset_error();
 

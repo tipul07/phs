@@ -1,0 +1,18 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "PHS Common Functionalities Plugin",
+    "description": "Different functionalities managed by the framework.",
+    "version": "1.0.1",
+    "agent_jobs": {
+        "phs_libs_index_bg_clean_qrcodes_ag": {
+            "title": "Clean QR codes files",
+            "route": {
+                "plugin": "phs_libs",
+                "controller": "index_bg",
+                "action": "clean_qrcodes_ag"
+            },
+            "timed_seconds": 3600
+        }
+    }
+}

@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\system\core\actions\PHS_Action_Foobar;
 
 abstract class PHS_Controller extends PHS_Instantiable
 {
@@ -14,7 +15,7 @@ abstract class PHS_Controller extends PHS_Instantiable
 
     // ! Tells if running controller should choose admin template if Scope should display a layout
     /** @var bool */
-    private $_is_admin_controller = false;
+    private bool $_is_admin_controller = false;
 
     /**
      * @return string
@@ -43,7 +44,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         return [];
     }
 
-    final public function is_admin_controller($is_admin = null)
+    final public function is_admin_controller($is_admin = null) : bool
     {
         if ($is_admin === null) {
             return $this->_is_admin_controller;
@@ -69,15 +70,15 @@ abstract class PHS_Controller extends PHS_Instantiable
             return false;
         }
 
-        return !(($allowed_scopes = $this->allowed_scopes())
-         && !in_array($scope, $allowed_scopes, true));
+        return !($allowed_scopes = $this->allowed_scopes())
+               || in_array($scope, $allowed_scopes, true);
     }
 
     /**
      * Overwrite this method to tell controller to redirect user to login page if not logged in
      * @return bool
      */
-    public function should_request_have_logged_in_user()
+    public function should_request_have_logged_in_user() : bool
     {
         return false;
     }
@@ -87,9 +88,45 @@ abstract class PHS_Controller extends PHS_Instantiable
      * If this method returns true, an user checked test is also made
      * @return bool
      */
-    public function should_user_have_any_of_defined_role_units()
+    public function should_user_have_any_of_defined_role_units() : bool
     {
         return false;
+    }
+
+    /**
+     * @param string $action Action to be loaded and executed
+     * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
+     * @param string $action_dir Directory (relative from actions dir) where action class is found
+     *
+     * @return bool|array Returns false on error or an action array on success
+     */
+    final public function pre_run_action(string $action, $plugin = null, string $action_dir = '')
+    {
+        PHS::running_controller($this);
+
+        if (!$this->instance_is_core()
+        && (!($plugin_instance = $this->get_plugin_instance())
+                || !$plugin_instance->plugin_active())) {
+            $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
+
+            return false;
+        }
+
+        if (($current_scope = PHS_Scope::current_scope())
+        && !$this->scope_is_allowed($current_scope)) {
+            if (!($emulated_scope = PHS_Scope::emulated_scope())
+             || !$this->scope_is_allowed($emulated_scope)) {
+                $this->set_error(self::ERR_RUN_ACTION, self::_t('Controller not allowed to run in current scope.'));
+
+                return false;
+            }
+        }
+
+        if ($plugin === null) {
+            $plugin = $this->instance_plugin_name();
+        }
+
+        return $this->_execute_action($action, $plugin, $action_dir);
     }
 
     /**
@@ -129,16 +166,16 @@ abstract class PHS_Controller extends PHS_Instantiable
     }
 
     /**
-     * @param array|bool $action_result stop execution from controller level using a standard action, just to have nice display...
+     * @param null|array $action_result stop execution from controller level using a standard action, just to have nice display...
      *
      * @return bool|array Returns an action result array which was generated from controller...
      */
-    public function execute_foobar_action($action_result = false)
+    public function execute_foobar_action(?array $action_result = null)
     {
         PHS::running_controller($this);
 
         if (!$this->instance_is_core()
-        && (!($plugin_instance = $this->get_plugin_instance())
+            && (!($plugin_instance = $this->get_plugin_instance())
                 || !$plugin_instance->plugin_active())) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
@@ -148,7 +185,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         self::st_reset_error();
 
         /** @var \phs\system\core\actions\PHS_Action_Foobar $foobar_action_obj */
-        if (!($foobar_action_obj = PHS::load_action('foobar'))) {
+        if (!($foobar_action_obj = PHS_Action_Foobar::get_instance())) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } else {
@@ -158,7 +195,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             return false;
         }
 
-        if ($action_result === false) {
+        if (empty($action_result)) {
             $action_result = PHS_Action::default_action_result();
         }
 
@@ -230,9 +267,8 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         // If page template is still "front-end" and controller told us it is an admin controller change page template
         // with default admin template
-        if ($this->is_admin_controller()
-        && is_array($action_result)
-        && !empty($action_result['page_template']) && $action_result['page_template'] === 'template_main') {
+        if (!empty($action_result['page_template']) && $action_result['page_template'] === 'template_main'
+            && $this->is_admin_controller()) {
             $action_result['page_template'] = 'template_admin';
         }
 

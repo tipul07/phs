@@ -3,32 +3,30 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Controller;
 use phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
     public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
 
-    public const SIGNAL_ACTION_BEFORE_RUN = 'action_before_run', SIGNAL_ACTION_AFTER_RUN = 'action_after_run';
-
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
     ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation', ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password',
     ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired', ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
     ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
-    ACT_REMOTE_PHS_CALL = 'phs_remote_phs_call';
+    ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
+    ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
 
-    /** @var PHS_Controller */
-    private $_controller_obj;
+    /** @var null|PHS_Controller */
+    private ?PHS_Controller $_controller_obj = null;
 
     /** @var null|array */
-    private $_action_result;
+    private ?array $_action_result = null;
 
-    private static $_action_roles = [];
+    private static array $_action_roles = [];
 
-    private static $_custom_action_roles = [];
+    private static array $_custom_action_roles = [];
 
-    private static $_builtin_action_roles = [
+    private static array $_builtin_action_roles = [
         self::ACT_ROLE_PAGE             => ['title' => 'Common Page'],
         self::ACT_ROLE_LOGIN            => ['title' => 'Login'],
         self::ACT_ROLE_LOGOUT           => ['title' => 'Logout'],
@@ -39,7 +37,10 @@ abstract class PHS_Action extends PHS_Instantiable
         self::ACT_ROLE_FORGOT_PASSWORD  => ['title' => 'Forgot Password'],
         self::ACT_ROLE_EDIT_PROFILE     => ['title' => 'Edit Profile'],
         self::ACT_ROLE_CHANGE_LANGUAGE  => ['title' => 'Change Language'],
-        self::ACT_REMOTE_PHS_CALL       => ['title' => 'Remote PHS Call'],
+        self::ACT_ROLE_REMOTE_PHS_CALL  => ['title' => 'Remote PHS Call'],
+        self::ACT_ROLE_TFA_SETUP        => ['title' => 'Setup Two Factor Authentication'],
+        self::ACT_ROLE_TFA_VERIFY       => ['title' => 'Verify Two Factor Authentication'],
+        self::ACT_ROLE_TFA_SETTINGS     => ['title' => 'Two Factor Authentication Settings'],
     ];
 
     /**
@@ -177,7 +178,7 @@ abstract class PHS_Action extends PHS_Instantiable
          && !in_array($scope, $allowed_scopes, true));
     }
 
-    final public function set_action_defaults()
+    final public function set_action_defaults() : void
     {
         $this->_action_result = self::default_action_result();
     }
@@ -185,7 +186,7 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * @return null|array
      */
-    final public function get_action_result()
+    final public function get_action_result() : ?array
     {
         return $this->_action_result;
     }
@@ -196,7 +197,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return array
      */
-    final public function set_action_result($result)
+    final public function set_action_result(array $result) : array
     {
         $this->_action_result = self::validate_array($result, self::default_action_result());
 
@@ -244,9 +245,9 @@ abstract class PHS_Action extends PHS_Instantiable
     }
 
     /**
-     * @return null|array|bool
+     * @return null|array
      */
-    final public function run_action()
+    final public function run_action() : ?array
     {
         PHS::running_action($this);
 
@@ -264,7 +265,7 @@ abstract class PHS_Action extends PHS_Instantiable
                 $route_parts[$part_value] = true;
             }
 
-            $action_body_classes .= ' '.implode(' ', array_keys($route_parts));
+            $action_body_classes .= ($action_body_classes !== '' ? ' ' : '').implode(' ', array_keys($route_parts));
         }
 
         if (!empty($action_body_classes)) {
@@ -276,7 +277,7 @@ abstract class PHS_Action extends PHS_Instantiable
                 || !$plugin_instance->plugin_active())) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active action.'));
 
-            return false;
+            return null;
         }
 
         $this->set_action_defaults();
@@ -287,7 +288,7 @@ abstract class PHS_Action extends PHS_Instantiable
              || !$this->scope_is_allowed($emulated_scope)) {
                 $this->set_error(self::ERR_RUN_ACTION, self::_t('Action not allowed to run in current scope.'));
 
-                return false;
+                return null;
             }
         }
 
@@ -309,7 +310,7 @@ abstract class PHS_Action extends PHS_Instantiable
         self::st_reset_error();
 
         if (!($action_result = $this->execute())) {
-            return false;
+            return null;
         }
 
         $action_result = self::validate_array($action_result, self::default_action_result());
@@ -334,7 +335,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
         if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args))
          && is_array($hook_args)
-         && !empty($hook_args['action_result'])) {
+         && !empty($hook_args['action_result']) && is_array($hook_args['action_result'])) {
             $action_result = $hook_args['action_result'];
         }
 
@@ -343,25 +344,17 @@ abstract class PHS_Action extends PHS_Instantiable
         return $this->get_action_result();
     }
 
-    final public function set_controller(PHS_Controller $controller_obj)
+    final public function set_controller(?PHS_Controller $controller_obj) : void
     {
-        if (!($controller_obj instanceof PHS_Controller)) {
-            self::st_set_error(self::ERR_CONTROLLER_INSTANCE, self::_t('Controller doesn\'t appear to be a PHS instance.'));
-
-            return false;
-        }
-
         $this->_controller_obj = $controller_obj;
-
-        return true;
     }
 
-    final public function get_controller()
+    final public function get_controller() : ?PHS_Controller
     {
         return $this->_controller_obj;
     }
 
-    final public function is_admin_controller()
+    final public function is_admin_controller() : bool
     {
         return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }
@@ -393,13 +386,13 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @param string $role_key
      *
-     * @return array|bool
+     * @return null|array
      */
-    final public static function valid_action_role(string $role_key)
+    final public static function valid_action_role(string $role_key) : ?array
     {
         if (!($roles_arr = self::get_action_roles())
          || empty($roles_arr[$role_key])) {
-            return false;
+            return null;
         }
 
         return $roles_arr[$role_key];
@@ -454,9 +447,6 @@ abstract class PHS_Action extends PHS_Instantiable
             'page_settings' => PHS::get_default_page_settings(),
             // anything that is required as attributes to body tag
             'page_body_extra_tags' => '',
-
-            // false means use current scope
-            'scope' => false,
         ];
     }
 }

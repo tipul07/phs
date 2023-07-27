@@ -10,6 +10,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 
@@ -39,7 +40,7 @@ class PHS_Action_Login extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::LOGIN, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -63,8 +64,10 @@ class PHS_Action_Login extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
         }
 
         if (!empty($accounts_plugin)
@@ -87,7 +90,7 @@ class PHS_Action_Login extends PHS_Action
          && PHS::user_logged_in()
          && !PHS_Notifications::have_notifications_errors()) {
             if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-                && !empty($event_result['action_result'])) {
+                && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                 $this->set_action_result($event_result['action_result']);
 
                 return $event_result['action_result'];
@@ -108,9 +111,6 @@ class PHS_Action_Login extends PHS_Action
         if (empty($plugin_settings['session_expire_minutes_normal'])) {
             $plugin_settings['session_expire_minutes_normal'] = 0;
         } // till browser closes
-        if (empty($plugin_settings['block_after_expiration'])) {
-            $plugin_settings['block_after_expiration'] = 0;
-        } // hardcoded block
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (!empty($do_submit)
@@ -124,13 +124,12 @@ class PHS_Action_Login extends PHS_Action
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
             } elseif (!$accounts_model->is_locked($account_arr)
                       && !$accounts_model->check_pass($account_arr, $pass)) {
-
-                if( ($new_account = $accounts_model->manage_failed_password($account_arr)) ) {
+                if (($new_account = $accounts_model->manage_failed_password($account_arr))) {
                     $account_arr = $new_account;
                 }
 
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
-            } elseif (!$accounts_model->is_locked($account_arr) ) {
+            } elseif (!$accounts_model->is_locked($account_arr)) {
                 $login_params = [];
                 $login_params['expire_mins'] = (!empty($do_remember) ? $plugin_settings['session_expire_minutes_remember'] : $plugin_settings['session_expire_minutes_normal']);
 
@@ -143,8 +142,21 @@ class PHS_Action_Login extends PHS_Action
                         }
                     }
 
+                    if ($accounts_plugin->tfa_policy_is_optional()
+                        && (!($tfa_data = $tfa_model->get_tfa_data_for_account($account_arr))
+                            || empty($tfa_data['tfa_data'])
+                            || !$tfa_model->is_setup_completed($tfa_data['tfa_data']))
+                    ) {
+                        $url_params = [];
+                        if (!empty($back_page)) {
+                            $url_params['back_page'] = $back_page;
+                        }
+
+                        return action_redirect(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'], $url_params);
+                    }
+
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-                        && !empty($event_result['action_result'])) {
+                        && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
 
                         return $event_result['action_result'];
