@@ -5,8 +5,8 @@ use phs\PHS;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Language;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
-use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $cuser_arr = PHS::user_logged_in();
 
@@ -47,35 +47,35 @@ if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
 if (!empty($cuser_arr)) {
     ?>
     <li><a href="<?php echo PHS::url([
-            'p' => 'accounts',
-            'a' => 'edit_profile',
-        ]); ?>"><?php echo $this::_t('Edit Profile'); ?></a></li>
+        'p' => 'accounts',
+        'a' => 'edit_profile',
+    ]); ?>"><?php echo $this::_t('Edit Profile'); ?></a></li>
     <li><a href="<?php echo PHS::url([
-            'p' => 'accounts',
-            'a' => 'change_password',
-        ]); ?>"><?php echo $this::_t('Change Password'); ?></a></li>
+        'p' => 'accounts',
+        'a' => 'change_password',
+    ]); ?>"><?php echo $this::_t('Change Password'); ?></a></li>
     <?php
-    if( !$accounts_plugin->tfa_policy_is_off() ) {
-    ?>
+    if (!$accounts_plugin->tfa_policy_is_off()) {
+        ?>
     <li><a href="<?php echo PHS::url([
-            'p' => 'accounts',
-            'ad' => 'tfa',
-            'a' => 'settings',
-        ]); ?>"><?php echo $this::_t('TFA Settings'); ?></a></li>
+        'p'  => 'accounts',
+        'ad' => 'tfa',
+        'a'  => 'settings',
+    ]); ?>"><?php echo $this::_t('TFA Settings'); ?></a></li>
     <?php
     }
     ?>
     <li><a href="<?php echo PHS::url([
-            'p' => 'accounts',
-            'a' => 'logout',
-        ]); ?>"><?php echo $this::_t('Logout'); ?></a></li>
+        'p' => 'accounts',
+        'a' => 'logout',
+    ]); ?>"><?php echo $this::_t('Logout'); ?></a></li>
     <?php
 } else {
     if (can(PHS_Roles::ROLEU_REGISTER)) {
         ?>
         <li><a href="<?php echo PHS::url([
-                'p' => 'accounts', 'a' => 'register',
-            ]); ?>"><?php echo $this::_t('Register'); ?></a></li>
+            'p' => 'accounts', 'a' => 'register',
+        ]); ?>"><?php echo $this::_t('Register'); ?></a></li>
         <?php
     }
     ?>

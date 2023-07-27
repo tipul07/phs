@@ -142,9 +142,9 @@ class PHS_Action_Login extends PHS_Action
                         }
                     }
 
-                    if( $accounts_plugin->tfa_policy_is_optional()
+                    if ($accounts_plugin->tfa_policy_is_optional()
                         && (!($tfa_data = $tfa_model->get_tfa_data_for_account($account_arr))
-                            || empty( $tfa_data['tfa_data'])
+                            || empty($tfa_data['tfa_data'])
                             || !$tfa_model->is_setup_completed($tfa_data['tfa_data']))
                     ) {
                         $url_params = [];

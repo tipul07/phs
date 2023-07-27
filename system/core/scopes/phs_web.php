@@ -218,9 +218,8 @@ class PHS_Scope_Web extends PHS_Scope
                && !$tfa_model->is_session_tfa_valid()
                && (
                    (($tfa_arr = $tfa_model->get_tfa_data_for_account($current_user))
-                    && !empty( $tfa_arr['tfa_data'] ) && $tfa_model->is_setup_completed( $tfa_arr['tfa_data'] ))
-                   ||
-                   ($accounts_plugin->tfa_policy_is_enforced()
+                    && !empty($tfa_arr['tfa_data']) && $tfa_model->is_setup_completed($tfa_arr['tfa_data']))
+                   || ($accounts_plugin->tfa_policy_is_enforced()
                     && ($settings_arr = $accounts_plugin->get_plugin_settings())
                     && (empty($settings_arr['2fa_policy_account_level'])
                         || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))

@@ -12,7 +12,7 @@ if (!($libs_plugin = $this->view_var('libs_plugin'))
     return $this->_pt('Error loading required resources.');
 }
 
-if (!($tfa_arr = $this->view_var('tfa_data')) ) {
+if (!($tfa_arr = $this->view_var('tfa_data'))) {
     $tfa_arr = null;
 }
 ?>
@@ -23,30 +23,30 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
     </section>
 
     <?php
-    if( empty( $tfa_arr )
+    if (empty($tfa_arr)
         || !$tfa_model->is_setup_completed($tfa_arr)) {
         ?>
         <div class="form-group row">
             <div class="col-sm-12">
-                <p class="text-center"><strong><?php echo $this->_pt('You didn\'t set up yet Two Factor Authentication for your account.')?></strong></p>
-                <p><?php echo $this->_pt('In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.' )?></p>
+                <p class="text-center"><strong><?php echo $this->_pt('You didn\'t set up yet Two Factor Authentication for your account.'); ?></strong></p>
+                <p><?php echo $this->_pt('In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.'); ?></p>
                 <p><a href="https://en.wikipedia.org/wiki/Help:Two-factor_authentication"
-                      target="_blank"><?php echo $this->_pt( 'What Two-Factor Authentication (TFA) means?' )?></a></p>
+                      target="_blank"><?php echo $this->_pt('What Two-Factor Authentication (TFA) means?'); ?></a></p>
             </div>
         </div>
 
         <div class="form-group row">
             <div class="col-sm-12">
-                <a href="<?php echo PHS::url(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'])?>"
+                <a href="<?php echo PHS::url(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup']); ?>"
                    class="btn btn-primary"><?php echo $this->_pte('Setup Two Factor Authentication'); ?></a>
             </div>
         </div>
         <?php
     }
 
-    if( !empty( $tfa_arr )
+    if (!empty($tfa_arr)
         && $tfa_model->is_setup_completed($tfa_arr)
-        && ($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr)) ) {
+        && ($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
         ?>
         <form id="tfa_settings_download" name="tfa_settings_download" method="post"
               action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'settings', 'ad' => 'tfa']); ?>">
@@ -54,7 +54,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             <div id="download_button_section">
                 <div class="form-group row">
                     <div class="col-sm-12">
-                        <p><?php echo $this->_pt( 'In case you didn\'t download your recovery codes yet, you still can, by providing a two factor authentication verification code first.' )?></p>
+                        <p><?php echo $this->_pt('In case you didn\'t download your recovery codes yet, you still can, by providing a two factor authentication verification code first.'); ?></p>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -68,7 +68,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             <div id="downloading_section" style="display:none;">
                 <div class="form-group row">
                     <div class="col-sm-12">
-                        <p><?php echo $this->_pt( 'In order to download your recovery codes, please provide a two factor authentication verification code first.' )?></p>
+                        <p><?php echo $this->_pt('In order to download your recovery codes, please provide a two factor authentication verification code first.'); ?></p>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -114,7 +114,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             <div id="cancel_tfa_button_section">
                 <div class="form-group row">
                     <div class="col-sm-12">
-                        <p><?php echo $this->_pt( 'Altough we don\'t recommend it, you can disable your Two Factor Authentication set up.' )?></p>
+                        <p><?php echo $this->_pt('Altough we don\'t recommend it, you can disable your Two Factor Authentication set up.'); ?></p>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -129,7 +129,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             <div id="cancel_tfa_section" style="display:none;">
                 <div class="form-group row">
                     <div class="col-sm-12">
-                        <p><?php echo $this->_pt( 'Altough we don\'t recommend it, you can disable your Two Factor Authentication set up after providing a verification code.' )?></p>
+                        <p><?php echo $this->_pt('Altough we don\'t recommend it, you can disable your Two Factor Authentication set up after providing a verification code.'); ?></p>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -173,12 +173,12 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
                     return false;
                 }
 
-                return confirm( "<?php echo $this::_e( $this->_pt( 'Are you sure you want to disable TFA setup for your account?' ), '"' )?>" );
+                return confirm( "<?php echo $this::_e($this->_pt('Are you sure you want to disable TFA setup for your account?'), '"'); ?>" );
             }
         </script>
         <?php
     }
-    ?>
+?>
 </div>
 
 

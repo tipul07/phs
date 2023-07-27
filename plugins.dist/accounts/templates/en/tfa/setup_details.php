@@ -1,7 +1,6 @@
 <?php
 /** @var \phs\system\core\views\PHS_View $this */
-
-if ( !($qr_code_url = $this->view_var('qr_code_url'))) {
+if (!($qr_code_url = $this->view_var('qr_code_url'))) {
     return $this->_pt('Error loading required resources.');
 }
 ?>

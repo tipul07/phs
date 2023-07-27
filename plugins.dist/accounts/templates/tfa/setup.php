@@ -13,7 +13,7 @@ if (!($libs_plugin = $this->view_var('libs_plugin'))
     return $this->_pt('Error loading required resources.');
 }
 
-if (!($tfa_arr = $this->view_var('tfa_data')) ) {
+if (!($tfa_arr = $this->view_var('tfa_data'))) {
     $tfa_arr = null;
 }
 ?>
@@ -28,20 +28,20 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
         </section>
 
         <?php
-        if( empty( $tfa_arr )
+        if (empty($tfa_arr)
             || !$tfa_model->is_setup_completed($tfa_arr)) {
             ?>
             <div class="form-group row">
                 <div class="col-sm-12">
                     <p class="text-center"><?php echo $this->_pt('You are setting up two factor authentication for account %s.',
-                            '<strong>'.$this->view_var('nick').'</strong>'); ?></p>
+                        '<strong>'.$this->view_var('nick').'</strong>'); ?></p>
                     <?php
-                    if( $accounts_plugin->tfa_policy_is_enforced() ) {
+                    if ($accounts_plugin->tfa_policy_is_enforced()) {
                         ?>
                         <p class="text-center"><?php echo $this->_pt('Please note that on this platform two factor authentication is mandatory.'); ?></p>
                         <?php
                     }
-                    ?>
+            ?>
                 </div>
             </div>
 
@@ -60,11 +60,11 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
                 </div>
             </div>
             <?php
-        } elseif( !($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr)) ) {
+        } elseif (!($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
             ?>
             <div class="form-group row">
                 <div class="col-sm-12">
-                    <p><?php echo $this->_pt( 'Error obtaining two factor authentication recovery codes. Please refresh the page.' )?></p>
+                    <p><?php echo $this->_pt('Error obtaining two factor authentication recovery codes. Please refresh the page.'); ?></p>
                 </div>
             </div>
             <?php
@@ -73,14 +73,14 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             ?>
             <ul>
                 <?php
-                foreach( $recovery_codes as $recovery_code ) {
-                    ?><li><?php echo $recovery_code?></li><?php
+                foreach ($recovery_codes as $recovery_code) {
+                    ?><li><?php echo $recovery_code; ?></li><?php
                 }
-                ?>
+            ?>
             </ul>
             <div class="form-group row">
                 <div class="col-sm-12">
-                    <p><?php echo $this->_pt( 'Please download your recovery codes and store them somewhere safe.' )?></p>
+                    <p><?php echo $this->_pt('Please download your recovery codes and store them somewhere safe.'); ?></p>
                 </div>
             </div>
             <div class="form-group row" id="download_button_section">
@@ -91,9 +91,9 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             </div>
             <div class="form-group row" id="downloading_section" style="display:none;">
                 <div class="col-sm-12">
-                    <p><?php echo $this->_pt( 'Downloading file. Please wait...' )?></p>
-                    <p><?php echo $this->_pt( 'After download finishes, you can continue browsing the site.' )?></p>
-                    <p><a href="<?php echo PHS::url()?>" class="btn btn-primary"><?php echo $this->_pt( 'Continue browsing the site' )?></a></p>
+                    <p><?php echo $this->_pt('Downloading file. Please wait...'); ?></p>
+                    <p><?php echo $this->_pt('After download finishes, you can continue browsing the site.'); ?></p>
+                    <p><a href="<?php echo PHS::url(); ?>" class="btn btn-primary"><?php echo $this->_pt('Continue browsing the site'); ?></a></p>
                 </div>
             </div>
             <script>
@@ -105,7 +105,7 @@ if (!($tfa_arr = $this->view_var('tfa_data')) ) {
             </script>
             <?php
         }
-        ?>
+?>
 
     </div>
 </form>

@@ -63,7 +63,7 @@ class PHS_Action_Verify extends PHS_Action
             return self::default_action_result();
         }
 
-        if( !($back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML)) ) {
+        if (!($back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML))) {
             $back_page = '';
         }
 
@@ -79,10 +79,10 @@ class PHS_Action_Verify extends PHS_Action
 
         $tfa_arr = $tfa_details['tfa_data'] ?? null;
 
-        if( empty( $tfa_arr )
-         || !$tfa_model->is_setup_completed($tfa_arr) ) {
+        if (empty($tfa_arr)
+         || !$tfa_model->is_setup_completed($tfa_arr)) {
             $args = [];
-            if( !empty( $back_page ) ) {
+            if (!empty($back_page)) {
                 $args['back_page'] = $back_page;
             }
 
@@ -121,13 +121,13 @@ class PHS_Action_Verify extends PHS_Action
         }
 
         $data = [
-            'back_page'        => $back_page,
-            'nick'        => $current_user['nick'],
-            'tfa_data'    => $tfa_arr,
+            'back_page' => $back_page,
+            'nick'      => $current_user['nick'],
+            'tfa_data'  => $tfa_arr,
 
-            'libs_plugin' => $libs_plugin,
-            'tfa_model'   => $tfa_model,
-            'accounts_plugin'   => $accounts_plugin,
+            'libs_plugin'     => $libs_plugin,
+            'tfa_model'       => $tfa_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('tfa/verify', $data);

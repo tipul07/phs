@@ -40,7 +40,7 @@ abstract class PHS_Action extends PHS_Instantiable
         self::ACT_ROLE_REMOTE_PHS_CALL  => ['title' => 'Remote PHS Call'],
         self::ACT_ROLE_TFA_SETUP        => ['title' => 'Setup Two Factor Authentication'],
         self::ACT_ROLE_TFA_VERIFY       => ['title' => 'Verify Two Factor Authentication'],
-        self::ACT_ROLE_TFA_SETTINGS       => ['title' => 'Two Factor Authentication Settings'],
+        self::ACT_ROLE_TFA_SETTINGS     => ['title' => 'Two Factor Authentication Settings'],
     ];
 
     /**

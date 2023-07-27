@@ -82,17 +82,17 @@ class PHS_Action_Setup extends PHS_Action
         $tfa_arr = $tfa_details['tfa_data'] ?? null;
         $qr_code_url = $tfa_details['url']['full_url'] ?? null;
 
-        if( $tfa_model->is_recovery_code_downloaded($tfa_arr) ) {
+        if ($tfa_model->is_recovery_code_downloaded($tfa_arr)) {
             return action_redirect();
         }
 
-        if( !empty( $do_download_codes ) ) {
-            if( !$tfa_model->is_setup_completed($tfa_arr) ) {
+        if (!empty($do_download_codes)) {
+            if (!$tfa_model->is_setup_completed($tfa_arr)) {
                 PHS_Notifications::add_warning_notice($this->_pt('You have to finalize two factor authentication setup first.'));
-            } elseif( !$tfa_model->download_recovery_codes_file( $tfa_arr ) ) {
-                $error_msg = $tfa_model->has_error() ?
-                    $tfa_model->get_simple_error_message() :
-                    $this->_pt('Couldn\'t generate recovery codes file.');
+            } elseif (!$tfa_model->download_recovery_codes_file($tfa_arr)) {
+                $error_msg = $tfa_model->has_error()
+                    ? $tfa_model->get_simple_error_message()
+                    : $this->_pt('Couldn\'t generate recovery codes file.');
 
                 PHS_Notifications::add_error_notice($this->_pt('Error downloading two factor authentication recovery codes file: %s', $error_msg));
             }
@@ -112,7 +112,7 @@ class PHS_Action_Setup extends PHS_Action
                 PHS_Notifications::add_success_notice($this->_pt('Two factor authentication setup with success.'));
             }
 
-            if( !empty( $new_tfa_arr ) ) {
+            if (!empty($new_tfa_arr)) {
                 $tfa_arr = $new_tfa_arr;
             }
         }
@@ -122,9 +122,9 @@ class PHS_Action_Setup extends PHS_Action
             'qr_code_url' => $qr_code_url,
             'tfa_data'    => $tfa_arr,
 
-            'libs_plugin' => $libs_plugin,
-            'tfa_model'   => $tfa_model,
-            'accounts_plugin'   => $accounts_plugin,
+            'libs_plugin'     => $libs_plugin,
+            'tfa_model'       => $tfa_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('tfa/setup', $data);

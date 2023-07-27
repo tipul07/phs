@@ -33,11 +33,11 @@ if (!($back_page = $this->view_var('back_page'))) {
             if (!empty($back_page)) {
                 ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
             }
-            ?>
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
-                    <p><?php echo $this->_pt( 'In order to access your account, please open Google Authenticator on you device and provide the code in the input below.' )?></p>
+                    <p><?php echo $this->_pt('In order to access your account, please open Google Authenticator on you device and provide the code in the input below.'); ?></p>
                 </div>
             </div>
             <div class="form-group row">
@@ -58,7 +58,7 @@ if (!($back_page = $this->view_var('back_page'))) {
     <div id="recovery_button_section">
         <div class="form-group row">
             <div class="col-sm-12">
-                <p><?php echo $this->_pt( 'In case you lost your device or you don\'t have access to Google Authenticator, you can use one of your recovery codes below.' )?></p>
+                <p><?php echo $this->_pt('In case you lost your device or you don\'t have access to Google Authenticator, you can use one of your recovery codes below.'); ?></p>
             </div>
         </div>
         <div class="form-group row">
@@ -75,14 +75,14 @@ if (!($back_page = $this->view_var('back_page'))) {
               action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa']); ?>">
             <input type="hidden" name="foobar" value="1" />
             <?php
-            if (!empty($back_page)) {
-                ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
-            }
-            ?>
+if (!empty($back_page)) {
+    ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
+}
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
-                    <p><?php echo $this->_pt( 'In order to download your recovery codes, please provide a two factor authentication verification code first.' )?></p>
+                    <p><?php echo $this->_pt('In order to download your recovery codes, please provide a two factor authentication verification code first.'); ?></p>
                 </div>
             </div>
             <div class="form-group row">
