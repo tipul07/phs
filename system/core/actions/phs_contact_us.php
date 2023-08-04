@@ -128,15 +128,11 @@ class PHS_Action_Contact_us extends PHS_Action
                     }
                 }
 
-                if ($email_failed) {
-                    PHS_Notifications::add_error_notice(self::_t('Failed sending email. Please try again.'));
-                } else {
-                    $action_result = self::default_action_result();
-
-                    $action_result['redirect_to_url'] = PHS::url(['a' => 'contact_us'], ['sent' => 1]);
-
-                    return $action_result;
+                if (!$email_failed) {
+                    return action_redirect(['a' => 'contact_us'], ['sent' => 1]);
                 }
+
+                PHS_Notifications::add_error_notice(self::_t('Failed sending email. Please try again.'));
             }
         }
 

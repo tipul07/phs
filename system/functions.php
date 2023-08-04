@@ -15,7 +15,7 @@ use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.9.3';
+    return '1.1.9.5';
 }
 
 // region Helper functions

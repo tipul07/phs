@@ -8,11 +8,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 class PHS_Controller_Admin extends \phs\libraries\PHS_Controller_Admin
 {
     /**
-     * @param string $action Action to be loaded and executed
-     * @param bool|string $plugin false means core plugin, string is name of plugin
-     * @param string $action_dir Directory (relative from actions dir) where action class is found
-     *
-     * @return bool|array Returns false on error or an action array on success
+     * @inheritdoc
      */
     protected function _execute_action($action, $plugin = null, $action_dir = '')
     {

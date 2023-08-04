@@ -39,7 +39,7 @@ class PHS_Action_Edit_profile extends PHS_Action
     public function execute()
     {
         if (($event_result = PHS_Event_Action_start::action(PHS_Event_Action_start::EDIT_PROFILE, $this))
-            && !empty($event_result['action_result'])) {
+            && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
             $this->set_action_result($event_result['action_result']);
             if (!empty($event_result['stop_execution'])) {
                 return $event_result['action_result'];
@@ -129,11 +129,7 @@ class PHS_Action_Edit_profile extends PHS_Action
             } else {
                 PHS_Notifications::add_success_notice($this->_pt('Verification email sent... Please follow the steps in email to acknowledge your email address.'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'edit_profile'], ['verification_email_sent' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'accounts', 'a' => 'edit_profile'], ['verification_email_sent' => 1]);
             }
         }
 

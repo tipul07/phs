@@ -173,8 +173,6 @@ class PHS_Action_Rule_add extends PHS_Action
                 if (($new_rule = $rules_model->insert($insert_params_arr))) {
                     PHS_Notifications::add_success_notice($this->_pt('Backup rule details saved...'));
 
-                    $action_result = self::default_action_result();
-
                     if (!empty($do_test_ftp)) {
                         $url_args = [
                             'rid'           => $new_rule['id'],
@@ -182,12 +180,12 @@ class PHS_Action_Rule_add extends PHS_Action
                             'do_test_ftp'   => 1,
                         ];
 
-                        $action_result['redirect_to_url'] = PHS::url(['p' => 'backup', 'a' => 'rule_edit'], $url_args);
+                        $redirect_url = PHS::url(['p' => 'backup', 'a' => 'rule_edit'], $url_args);
                     } else {
-                        $action_result['redirect_to_url'] = PHS::url(['p' => 'backup', 'a' => 'rules_list'], ['rule_added' => 1]);
+                        $redirect_url = PHS::url(['p' => 'backup', 'a' => 'rules_list'], ['rule_added' => 1]);
                     }
 
-                    return $action_result;
+                    return action_redirect($redirect_url);
                 }
 
                 if ($rules_model->has_error()) {

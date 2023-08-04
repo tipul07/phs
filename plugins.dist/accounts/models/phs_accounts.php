@@ -54,7 +54,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.6';
+        return '1.3.7';
     }
 
     /**
@@ -744,11 +744,10 @@ class PHS_Model_Accounts extends PHS_Model
 
     /**
      * @param int|array $account_data
-     * @param bool|array $params
      *
      * @return array
      */
-    public function is_password_expired($account_data, $params = false)
+    public function is_password_expired($account_data) : array
     {
         $return_arr = PHS_Hooks::default_password_expiration_data();
 
@@ -756,7 +755,6 @@ class PHS_Model_Accounts extends PHS_Model
          || !($account_arr = $this->data_to_array($account_data))
          || $this->is_deleted($account_arr)
          || !($settings_arr = $this->get_plugin_settings())
-         || !is_array($settings_arr)
          || empty($settings_arr['expire_passwords_days'])
          || ($expire_days = (int)$settings_arr['expire_passwords_days']) <= 0) {
             return $return_arr;
@@ -765,11 +763,7 @@ class PHS_Model_Accounts extends PHS_Model
         $now_time = time();
 
         // block_after_expiration in hours
-        if (empty($settings_arr['block_after_expiration'])) {
-            $settings_arr['block_after_expiration'] = 0;
-        } else {
-            $settings_arr['block_after_expiration'] = (int)$settings_arr['block_after_expiration'];
-        }
+        $settings_arr['block_after_expiration'] = (int)($settings_arr['block_after_expiration'] ?? 0);
 
         $block_after_seconds = -1;
         if ($settings_arr['block_after_expiration'] !== -1) {
@@ -997,6 +991,15 @@ class PHS_Model_Accounts extends PHS_Model
         }
         if (!empty($params['wid'])) {
             $edit_arr['wid'] = $params['wid'];
+        }
+        if (array_key_exists('tfa_expiration', $params)) {
+            if (!empty($params['tfa_expiration'])) {
+                $params['tfa_expiration'] = date(self::DATETIME_DB, parse_db_date($params['tfa_expiration']));
+            } else {
+                $params['tfa_expiration'] = null;
+            }
+
+            $edit_arr['tfa_expiration'] = $params['tfa_expiration'];
         }
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
@@ -1964,6 +1967,9 @@ class PHS_Model_Accounts extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'connected' => [
+                        'type' => self::FTYPE_DATETIME,
+                    ],
+                    'tfa_expiration' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'expire_date' => [

@@ -12,6 +12,7 @@ use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Logger::define_channel($accounts_plugin::LOG_SECURITY);
     PHS_Logger::define_channel($accounts_plugin::LOG_IMPORT);
+    PHS_Logger::define_channel($accounts_plugin::LOG_TFA);
 
     if (!PHS::prevent_session()) {
         $accounts_plugin->resolve_idler_sessions();

@@ -261,11 +261,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                             $url_params);
                     }
 
-                    $action_result = self::default_action_result();
-
-                    $action_result['redirect_to_url'] = $this->_paginator->get_full_url($url_params);
-
-                    return $action_result;
+                    return action_redirect($this->_paginator->get_full_url($url_params));
                 }
             }
 

@@ -87,9 +87,7 @@ class PHS_Action_Edit extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, $args);
-
-            return action_redirect($back_page);
+            return action_redirect(add_url_params($back_page, $args));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {

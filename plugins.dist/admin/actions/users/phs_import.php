@@ -192,9 +192,7 @@ class PHS_Action_Import extends PHS_Action
                         $url_args['update_details'] = ($update_details ? 1 : 0);
                         $url_args['import_level'] = $import_level;
 
-                        $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'import', 'ad' => 'users'], $url_args);
-
-                        return $action_result;
+                        return action_redirect(['p' => 'admin', 'a' => 'import', 'ad' => 'users'], $url_args);
                     }
                 }
             }

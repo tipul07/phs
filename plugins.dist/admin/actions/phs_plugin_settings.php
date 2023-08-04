@@ -63,9 +63,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $back_page = from_safe_url($back_page);
             }
 
-            $back_page = add_url_params($back_page, ['unknown_plugin' => 1]);
-
-            return action_redirect($back_page);
+            return action_redirect(add_url_params($back_page, ['unknown_plugin' => 1]));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -175,9 +173,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit($settings_fields, $callback_params, $new_settings_arr, $db_settings);
 
             if (!PHS_Notifications::have_notifications_errors()) {
-                if (($new_db_settings = $module_instance->save_db_settings($new_settings_arr))) {
-                    $action_result = self::default_action_result();
-
+                if ($module_instance->save_db_settings($new_settings_arr)) {
                     $args = [
                         'changes_saved'   => 1,
                         'pid'             => $pid,
@@ -185,9 +181,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                         'back_page'       => $back_page,
                     ];
 
-                    $action_result['redirect_to_url'] = PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], $args);
-
-                    return $action_result;
+                    return action_redirect(['p' => 'admin', 'a' => 'plugin_settings'], $args);
                 }
 
                 if ($module_instance->has_error()) {

@@ -113,12 +113,7 @@ class PHS_Action_Add extends PHS_Action
             if (($new_domain = $domains_model->insert($insert_params_arr))) {
                 PHS_Notifications::add_success_notice($this->_pt('Remote domain details saved in database.'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains'],
-                    ['domain_added' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains'], ['domain_added' => 1]);
             }
 
             if ($domains_model->has_error()) {

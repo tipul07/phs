@@ -85,11 +85,7 @@ class PHS_Action_View_message extends PHS_Action
         )) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
-
-            return $action_result;
+            return action_redirect(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
         }
 
         if (!($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user))) {
@@ -97,11 +93,7 @@ class PHS_Action_View_message extends PHS_Action
              || !($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
-                $action_result = self::default_action_result();
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
-
-                return $action_result;
+                return action_redirect(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
             }
 
             if (empty($message_arr['message_user'])) {
@@ -114,11 +106,7 @@ class PHS_Action_View_message extends PHS_Action
         } elseif (!($thread_arr = $messages_model->full_data_to_array($message_arr['message']['thread_id']))) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load thread of message.'));
 
-            $action_result = self::default_action_result();
-
-            $action_result['redirect_to_url'] = PHS::url(['p' => 'messages', 'a' => 'inbox'], ['unknown_thread' => 1]);
-
-            return $action_result;
+            return action_redirect(['p' => 'messages', 'a' => 'inbox'], ['unknown_thread' => 1]);
         }
 
         if (empty($message_arr['message']['thread_id'])

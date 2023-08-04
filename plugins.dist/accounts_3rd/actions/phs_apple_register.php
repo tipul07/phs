@@ -140,9 +140,6 @@ class PHS_Action_Apple_register extends PHS_Action
                 if (empty($plugin_settings['session_expire_minutes_normal'])) {
                     $plugin_settings['session_expire_minutes_normal'] = 0;
                 } // till browser closes
-                if (empty($plugin_settings['block_after_expiration'])) {
-                    $plugin_settings['block_after_expiration'] = 0;
-                } // hardcoded block
 
                 $login_params = [];
                 $login_params['expire_mins'] = $plugin_settings['session_expire_minutes_normal'];
@@ -157,7 +154,7 @@ class PHS_Action_Apple_register extends PHS_Action
                     }
 
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
-                        && !empty($event_result['action_result'])) {
+                        && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
 
                         return $event_result['action_result'];

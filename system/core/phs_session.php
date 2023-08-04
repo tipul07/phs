@@ -121,7 +121,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return bool
      */
-    public static function _s($key, $val)
+    public static function _s(string $key, string $val) : bool
     {
         if (PHS::prevent_session()
          || (!self::is_started() && !self::start())) {
