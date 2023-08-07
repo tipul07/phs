@@ -56,7 +56,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator()
+    public function we_initialized_paginator(): bool
     {
         $this->reset_error();
 
@@ -333,10 +333,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
@@ -368,8 +366,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_export_plugins_settings()) {
+                if (!$this->_admin_plugin->can_admin_export_plugins_settings()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export plugin settings.'));
 
                     return false;
@@ -411,8 +408,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_export_plugins_settings()) {
+                if (!$this->_admin_plugin->can_admin_export_plugins_settings()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export plugin settings.'));
 
                     return false;
@@ -443,8 +439,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -489,8 +484,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -535,8 +529,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -582,8 +575,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -638,8 +630,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -697,8 +688,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
 
                     return false;
@@ -785,6 +775,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
          || empty($params['record']) || !is_array($params['record'])
          || empty($params['record']['id'])) {
             return false;
+        }
+
+        if(!$this->_admin_plugin->can_admin_manage_plugins()) {
+            return '-';
         }
 
         ob_start();

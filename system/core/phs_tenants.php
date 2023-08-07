@@ -5,6 +5,7 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Registry;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\events\tenants\PHS_Event_Tenant_changed;
 
 final class PHS_Tenants extends PHS_Registry
 {
@@ -80,14 +81,22 @@ final class PHS_Tenants extends PHS_Registry
             return false;
         }
 
-        PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
-        self::$_current_tenant = $tenant_arr;
-
         // Make sure further requests use cookies...
         if (in_array(PHS_Scope::current_scope(), [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX], true)) {
             PHS_Session::set_cookie(self::REQUEST_TENANT_IDENTIFIER, $tenant_arr['identifier'],
                 ['expire_secs' => self::COOKIE_LIFETIME]);
         }
+
+        if(!empty(self::$_current_tenant['id'])
+           && (int)self::$_current_tenant['id'] === (int)$tenant_arr['id']) {
+            return true;
+        }
+
+        PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
+        $old_tenant = self::$_current_tenant;
+        self::$_current_tenant = $tenant_arr;
+
+        PHS_Event_Tenant_changed::trigger(['old_tenant' => $old_tenant, 'new_tenant' => self::$_current_tenant]);
 
         return true;
     }

@@ -42,13 +42,14 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_list_plugins()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list plugins.'));
+        if (!$admin_plugin->can_admin_manage_plugins()) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
 
         $pid = PHS_Params::_gp('pid', PHS_Params::T_NOHTML);
+        $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
         if ($pid !== PHS_Instantiable::CORE_PLUGIN
@@ -93,7 +94,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $modules_with_settings[$model_id]['instance'] = $model_instance;
                 $modules_with_settings[$model_id]['settings'] = $settings_arr;
                 $modules_with_settings[$model_id]['default_settings'] = $model_instance->get_default_settings();
-                $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings();
+                $modules_with_settings[$model_id]['db_settings'] = $model_instance->get_db_settings($tenant_id);
                 $modules_with_settings[$model_id]['db_version'] = $model_db_details['version'] ?? '0.0.0';
                 $modules_with_settings[$model_id]['script_version'] = $model_instance->get_model_version();
             }
@@ -106,6 +107,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
             'settings_fields'       => [],
             'db_settings'           => [],
             'plugin_obj'            => $this->_plugin_obj,
+            'tenant_id'            => $tenant_id,
         ];
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
@@ -117,6 +119,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $form_data['do_submit'] = $do_submit;
 
         /** @var \phs\libraries\PHS_Has_db_settings $module_instance */
+        $model_instance = null;
         $module_instance = null;
         $settings_fields = [];
         $default_settings = [];
@@ -126,7 +129,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
         if (!empty($form_data['selected_module'])
          && !empty($modules_with_settings[$form_data['selected_module']])) {
             if (!empty($modules_with_settings[$form_data['selected_module']]['instance'])) {
-                $module_instance = $modules_with_settings[$form_data['selected_module']]['instance'];
+                $model_instance = $module_instance = $modules_with_settings[$form_data['selected_module']]['instance'];
             }
             if (!empty($modules_with_settings[$form_data['selected_module']]['settings'])) {
                 $settings_fields = $modules_with_settings[$form_data['selected_module']]['settings'];
@@ -154,32 +157,84 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
                 $settings_fields = $this->_plugin_obj->validate_settings_structure();
                 $default_settings = $this->_plugin_obj->get_default_settings();
-                $db_settings = $this->_plugin_obj->get_db_settings();
+                $db_settings = $this->_plugin_obj->get_db_settings($tenant_id);
                 $db_version = (!empty($plugin_db_details['version']) ? $plugin_db_details['version'] : '0.0.0');
                 $script_version = $this->_plugin_obj->get_plugin_version();
+
+                var_dump( $this->_plugin_obj->get_db_settings(1) );
+                var_dump( $this->_plugin_obj->get_db_settings(0) );
+                exit;
             }
         }
 
-        $new_settings_arr = $this->_extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $foobar, $form_data);
+        // $rendered = PHS_Has_db_settings::render_settings_form_for_instance( $this->_plugin_obj, $model_instance );
+        // var_dump( $rendered['instance_info']['settings_structure'] ?? null );
+        // var_dump( $settings_fields );
+        // exit;
+
+        //echo self::var_dump( PHS_Has_db_settings::render_settings_form_for_instance( $this->_plugin_obj, $model_instance, $tenant_id ), [ 'max_level' => 4 ] );
+        //var_dump(PHS_Has_db_settings::st_get_error());
+        //exit;
+
+        //$new_settings_arr = $this->_extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $foobar, $form_data);
+
+        $new_settings_arr = [];
+        if( ($form_extraction = PHS_Has_db_settings::extract_settings_fields_from_submit(
+            $this->_plugin_obj, $model_instance, $tenant_id, $form_data, (bool)$foobar )) ) {
+            if( !empty( $form_extraction['form_settings'] ) ) {
+                $new_settings_arr = $form_extraction['form_settings'];
+            }
+            if( !empty( $form_extraction['form_data'] ) ) {
+                $form_data = $form_extraction['form_data'];
+            }
+        }
 
         if (!empty($do_submit)) {
-            $new_settings_arr = self::validate_array($new_settings_arr, $db_settings);
+            //$new_settings_arr = self::validate_array($new_settings_arr, $db_settings);
 
-            $callback_params = PHS_Plugin::st_default_custom_save_params();
-            $callback_params['plugin_obj'] = $this->_plugin_obj;
-            $callback_params['module_instance'] = $module_instance;
-            $callback_params['form_data'] = $form_data;
+            if( ($save_extraction = PHS_Has_db_settings::extract_custom_save_settings_fields_for_save(
+                $this->_plugin_obj, $model_instance, $tenant_id, $new_settings_arr, $form_data )) ) {
+                if( !empty( $save_extraction['new_settings'] ) ) {
+                    $new_settings_arr = $save_extraction['new_settings'];
+                }
 
-            $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit($settings_fields, $callback_params, $new_settings_arr, $db_settings);
+                if( !empty( $save_extraction['errors_arr'] ) ) {
+                    foreach( $save_extraction['errors_arr'] as $error_msg ) {
+                        PHS_Notifications::add_error_notice($error_msg);
+                    }
+                }
 
-            if (!PHS_Notifications::have_notifications_errors()) {
-                if ($module_instance->save_db_settings($new_settings_arr)) {
+                if( !empty( $save_extraction['warnings_arr'] ) ) {
+                    foreach( $save_extraction['warnings_arr'] as $warning_msg ) {
+                        PHS_Notifications::add_warning_notice($warning_msg);
+                    }
+                }
+            }
+
+            // $callback_params = PHS_Plugin::st_default_custom_save_params();
+            // $callback_params['plugin_obj'] = $this->_plugin_obj;
+            // $callback_params['model_obj'] = $module_instance;
+            // $callback_params['form_data'] = $form_data;
+            //
+            // $new_settings_arr = $this->_extract_custom_save_settings_fields_from_submit($settings_fields, $callback_params, $new_settings_arr, $db_settings);
+
+            if( empty( $new_settings_arr ) ) {
+                PHS_Notifications::add_error_notice($this->_pt('No settings to be saved.'));
+            }
+
+            elseif (!PHS_Notifications::have_notifications_errors()) {
+                if ($module_instance->save_db_settings($new_settings_arr, $tenant_id)) {
                     $args = [
                         'changes_saved'   => 1,
                         'pid'             => $pid,
                         'selected_module' => $selected_module,
-                        'back_page'       => $back_page,
                     ];
+
+                    if(PHS::is_multi_tenant()) {
+                        $args['tenant_id'] = $tenant_id;
+                    }
+
+                    $args['back_page'] = $back_page;
 
                     return action_redirect(['p' => 'admin', 'a' => 'plugin_settings'], $args);
                 }
@@ -282,7 +337,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 continue;
             }
 
-            if (PHS_Plugin::settings_field_is_group($field_details)) {
+            if (PHS_Has_db_settings::settings_field_is_group($field_details)) {
                 if (null !== ($group_settings = $this->_extract_settings_fields_from_submit($field_details['group_fields'], $default_settings, $db_settings, $is_post, $form_data))) {
                     $new_settings_arr = self::merge_array_assoc($new_settings_arr, $group_settings);
                 }

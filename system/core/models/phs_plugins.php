@@ -175,8 +175,15 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
+        var_dump('T',$tenant_id,'T');
+
         if (!($main_settings = $this->_get_plugins_db_main_settings($instance_id, $force))) {
             $main_settings = [];
+        }
+
+        if($tenant_id) {
+            var_dump('ten', $instance_id, $this->_get_plugins_db_tenant_settings($instance_id, 1, $force), 'ten');
+            var_dump('main', $main_settings, 'main');
         }
 
         if (empty($tenant_id)
@@ -184,6 +191,9 @@ class PHS_Model_Plugins extends PHS_Model
          || !($tenant_settings = $this->_get_plugins_db_tenant_settings($instance_id, $tenant_id, $force))) {
             return $main_settings;
         }
+
+        var_dump('ten', $tenant_settings, 'ten');
+        var_dump('main', $main_settings, 'main');
 
         return self::validate_array($main_settings, $tenant_settings);
     }
@@ -1597,7 +1607,7 @@ class PHS_Model_Plugins extends PHS_Model
         if (empty($fields_arr)
          || empty($instance_id)
          || empty($tenant_id)
-         || !self::valid_instance_id($instance_id)
+         || !($instance_details = self::valid_instance_id($instance_id))
          || !($params = $this->fetch_default_flow_params(['table_name' => 'plugins_tenants']))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Unknown instance database details.'));
 
@@ -1613,7 +1623,10 @@ class PHS_Model_Plugins extends PHS_Model
         if (!($existing_arr = $this->get_plugins_db_tenant_details($instance_id, $tenant_id))) {
             $existing_arr = null;
             $params['action'] = 'insert';
+            $fields_arr['tenant_id'] = $tenant_id;
             $fields_arr['instance_id'] = $instance_id;
+            $fields_arr['type'] = $instance_details['instance_type'] ?? null;
+            $fields_arr['plugin'] = $instance_details['plugin_name'] ?? null;
         } else {
             $params['action'] = 'edit';
         }
@@ -1643,7 +1656,7 @@ class PHS_Model_Plugins extends PHS_Model
             $new_fields_arr['status'] = self::STATUS_ACTIVE;
         }
 
-        $details_arr = [];
+        $details_arr = $this->fetch_default_flow_params(['table_name' => 'plugins_tenants']);
         $details_arr['fields'] = $new_fields_arr;
 
         if (empty($existing_arr)) {

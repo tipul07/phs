@@ -4,6 +4,7 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Crypt;
 use phs\PHS_Tenants;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
@@ -37,6 +38,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     // What keys should be obfuscated
     private ?array $_obfuscating_keys = null;
+
+    private static ?PHS_Plugin_Admin $_admin_plugin = null;
 
     /**
      * Override this function and return an array with settings fields definition
@@ -207,9 +210,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return $db_main_details;
         }
 
-        if (!PHS::is_multi_tenant()
-            || ($tenant_id === null
-                && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
+        if ($tenant_id === null
+            && !($tenant_id = PHS_Tenants::get_current_tenant_id())) {
             $tenant_id = 0;
         }
 
@@ -415,7 +417,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     {
         return [
             'plugin_obj'      => null,
-            'module_instance' => null,
+            'model_obj' => null,
             'field_name'      => '',
             'field_details'   => false,
             'field_value'     => null,
@@ -443,9 +445,411 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return bool
      */
-    public static function settings_field_is_group($settings_field) : bool
+    public static function settings_field_is_group(array $settings_field) : bool
     {
         return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
+    }
+
+    public static function render_settings_form_for_instance(
+        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
+        ?int $tenant_id = null
+    ): ?array
+    {
+        self::st_reset_error();
+
+        if( !self::_load_settings_dependencies()) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t( 'Error loading required resources.' ));
+            return null;
+        }
+
+        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj )) ) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt( 'Error obtaining instance settings fields.' ));
+            return null;
+        }
+
+        $render_result = $settings_fields;
+        $render_result['buffer'] = '';
+
+        $settings_structure = $settings_fields['settings_structure'] ?? [];
+
+        if( empty( $settings_structure ) || !is_array( $settings_structure ) ) {
+            $render_result['buffer'] = self::$_admin_plugin->_pt( 'Selected module doesn\'t have any settings.' );
+        } else {
+            foreach( $settings_fields['settings_structure']  as $field_name => $field_details ) {
+
+            }
+        }
+
+        return $render_result;
+    }
+
+    public static function extract_custom_save_settings_fields_for_save(
+        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj, ?int $tenant_id,
+        array $new_settings, ?array $form_data = null
+    ): ?array
+    {
+        self::st_reset_error();
+
+        if( !self::_load_settings_dependencies()) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t( 'Error loading required resources.' ));
+            return null;
+        }
+
+        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj, $tenant_id )) ) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt( 'Error obtaining instance settings fields.' ));
+            return null;
+        }
+
+        $settings_structure = $settings_fields['settings_structure'] ?? [];
+        $db_main_settings = $settings_fields['db_main_settings'] ?? [];
+        $db_settings = $settings_fields['db_settings'] ?? [];
+
+        $callback_params = self::st_default_custom_save_params();
+        $callback_params['plugin_obj'] = $plugin_obj;
+        $callback_params['model_obj'] = $model_obj;
+        $callback_params['form_data'] = $form_data;
+
+        $errors_arr = [];
+        $warnings_arr = [];
+
+        if( !empty( $settings_structure ) ) {
+            self::_extract_custom_save_settings_fields_for_save_fields(
+                $settings_structure, $callback_params, $db_main_settings, $db_settings,
+                $new_settings, $errors_arr, $warnings_arr
+            );
+        }
+
+        return [
+            'new_settings' => $new_settings,
+            'errors_arr' => $errors_arr,
+            'warnings_arr' => $warnings_arr,
+        ];
+    }
+
+    private static function _extract_custom_save_settings_fields_for_save_fields(
+        array $settings_structure, array $callback_params, array $db_main_settings, array $db_settings,
+        array &$new_settings, array &$errors_arr, array &$warnings_arr
+    ): void
+    {
+        $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
+        if( !empty( $settings_structure ) ) {
+            foreach( $settings_structure  as $field_name => $field_details ) {
+                if (!empty($field_details['ignore_field_value'])) {
+                    continue;
+                }
+
+                if (self::settings_field_is_group($field_details)) {
+                    self::_extract_custom_save_settings_fields_for_save_fields(
+                        $field_details['group_fields'], $callback_params, $db_main_settings, $db_settings,
+                        $new_settings, $errors_arr, $warnings_arr
+                    );
+
+                    continue;
+                }
+
+                if (empty($field_details['custom_save'])
+                    || !@is_callable($field_details['custom_save'])) {
+                    continue;
+                }
+
+                $new_callback_params = $callback_params;
+                $new_callback_params['field_name'] = $field_name;
+                $new_callback_params['field_details'] = $field_details;
+                $new_callback_params['field_value'] = ($new_settings[$field_name] ?? null);
+
+                // make sure static error is reset
+                self::st_reset_error();
+                // make sure static warnings are reset
+                self::st_reset_warnings();
+
+                /**
+                 * When there is a field in instance settings which has a custom callback for saving data, it will return
+                 * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
+                 * can be provided
+                 */
+                if (null !== ($save_result = @call_user_func($field_details['custom_save'], $new_callback_params))) {
+                    if (!is_array($save_result)) {
+                        $new_settings[$field_name] = $save_result;
+                    } else {
+                        $save_result = self::merge_array_assoc($save_result, $default_custom_save_callback_result);
+                        if (!empty($save_result['{new_settings_fields}'])
+                            && is_array($save_result['{new_settings_fields}'])) {
+                            // Main settings keep all key-values pairs
+                            foreach ($db_main_settings as $s_key => $s_val) {
+                                if (array_key_exists($s_key, $save_result['{new_settings_fields}'])) {
+                                    $new_settings[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                                }
+                            }
+                        } else {
+                            if (isset($save_result['{new_settings_fields}'])) {
+                                unset($save_result['{new_settings_fields}']);
+                            }
+
+                            $new_settings[$field_name] = $save_result;
+                        }
+                    }
+                } elseif (self::st_has_error()) {
+                    $errors_arr[] = self::st_get_simple_error_message();
+                }
+
+                if (self::st_has_warnings()
+                    && ($result_warnings_arr = self::st_get_warnings()) ) {
+                    $warnings_arr = array_merge($warnings_arr, $result_warnings_arr);
+                }
+            }
+        }
+    }
+
+    public static function extract_settings_fields_from_submit(
+        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
+        ?int $tenant_id = null, array $form_data = [], bool $is_post = false
+    ): ?array
+    {
+        self::st_reset_error();
+
+        if( !self::_load_settings_dependencies()) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t( 'Error loading required resources.' ));
+            return null;
+        }
+
+        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj, $tenant_id )) ) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt( 'Error obtaining instance settings fields.' ));
+            return null;
+        }
+
+        $settings_structure = $settings_fields['settings_structure'] ?? [];
+        $default_settings = $settings_fields['default_settings'] ?? [];
+        $db_main_settings = $settings_fields['db_main_settings'] ?? [];
+        $db_settings = $settings_fields['db_settings'] ?? [];
+
+        $form_settings = [];
+
+        if( !empty( $settings_structure ) ) {
+            self::_extract_settings_fields_from_submit_fields(
+                $settings_structure, $default_settings, $db_main_settings, $db_settings,
+                $form_settings, $form_data, $is_post);
+        }
+
+        return [
+            'form_data' => $form_data,
+            'form_settings' => $form_settings,
+        ];
+    }
+
+    private static function _extract_settings_fields_from_submit_fields(
+        array $settings_structure, array $default_settings, array $db_main_settings, array $db_settings,
+        array &$form_settings, array &$form_data,
+        bool $is_post = false
+    ): void
+    {
+        if( !empty( $settings_structure ) ) {
+            foreach( $settings_structure  as $field_name => $field_details ) {
+                if (!empty($field_details['ignore_field_value'])) {
+                    continue;
+                }
+
+                if (self::settings_field_is_group($field_details)) {
+                    self::_extract_settings_fields_from_submit_fields(
+                        $field_details['group_fields'], $default_settings, $db_main_settings, $db_settings,
+                        $form_settings, $form_data,
+                        $is_post);
+
+                    continue;
+                }
+
+                if (null === ($field_value = self::_extract_field_value_from_submit(
+                    $field_name, $field_details, $default_settings,
+                    $form_data,
+                    $is_post))) {
+                    continue;
+                }
+
+                $form_settings[$field_name] = $field_value;
+            }
+        }
+    }
+
+    private static function _extract_field_value_from_submit(
+        string $field_name, array $field_details, array $default_settings,
+        array &$form_data,
+        bool $is_post = false
+    )
+    {
+        $field_value = null;
+
+        if (empty($field_details['editable'])) {
+            // Check if default values have changed (upgrading plugin might change default value)
+            if (isset($default_settings[$field_name])) {
+                $field_value = $default_settings[$field_name];
+            }
+
+            return $field_value;
+        }
+
+        $form_data[$field_name] = PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
+
+        if (!empty($is_post)
+            && (int)$field_details['type'] === PHS_Params::T_BOOL) {
+            $form_data[$field_name] = (!empty($form_data[$field_name]));
+        }
+
+        if (!empty($field_details['custom_save'])) {
+            return null;
+        }
+
+        switch ($field_details['input_type']) {
+            default:
+            case self::INPUT_TYPE_ONE_OR_MORE:
+            case self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                if (isset($form_data[$field_name])) {
+                    $field_value = $form_data[$field_name];
+                } elseif (isset($default_settings[$field_name])) {
+                    $field_value = $default_settings[$field_name];
+                }
+            break;
+
+            case self::INPUT_TYPE_TEMPLATE:
+            break;
+
+            case self::INPUT_TYPE_KEY_VAL_ARRAY:
+                if (empty($default_settings[$field_name])) {
+                    $field_value = $form_data[$field_name];
+                } else {
+                    $field_value = self::validate_array_to_new_array($form_data[$field_name], $default_settings[$field_name]);
+                }
+            break;
+        }
+
+        return $field_value;
+    }
+
+    /**
+     * @param  null|\phs\libraries\PHS_Plugin  $plugin_obj
+     *
+     * @return array
+     */
+    public static function get_plugin_models_with_settings( ?PHS_Plugin $plugin_obj ): array
+    {
+        if( $plugin_obj === null ) {
+            $plugin_models_arr = PHS::get_core_models();
+        } else {
+            $plugin_models_arr = $plugin_obj->get_models();
+        }
+
+        if (empty($plugin_models_arr)) {
+            return [];
+        }
+
+        $return_arr = [];
+        foreach ($plugin_models_arr as $model_name) {
+            if (!($model_instance = PHS::load_model($model_name, ($plugin_obj ? $plugin_obj->instance_plugin_name() : null)))
+                || !($model_id = $model_instance->instance_id())) {
+                continue;
+            }
+
+            $return_arr[$model_id] = $model_instance;
+        }
+
+        return $return_arr;
+    }
+
+    private static function _get_plugin_settings_as_array_fields( ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null, ?int $tenant_id = null ): ?array
+    {
+        if( !($models_arr = self::get_plugin_models_with_settings($plugin_obj))
+         || !($models_with_settings = self::_get_models_with_settings_rendering_details( $models_arr, $tenant_id )) ) {
+            $models_with_settings = [];
+        }
+
+        if( $model_obj !== null ) {
+            $instance_info = $models_with_settings[$model_obj->instance_id()] ?? [];
+        } else {
+            $instance_info = self::_extract_rendering_details_from_instance( $plugin_obj, $tenant_id );
+        }
+
+        $return_arr = [];
+        $return_arr['plugin_info'] = $plugin_obj ? $plugin_obj->get_plugin_info() : PHS_Plugin::core_plugin_details_fields();
+        $return_arr['models_with_settings'] = $models_with_settings;
+        $return_arr['instance_info'] = $instance_info;
+        $return_arr['settings_structure'] = $instance_info['settings_structure'] ?? [];
+
+        return $return_arr;
+    }
+
+    /**
+     * @param  array  $models_arr
+     * @param  null|int  $tenant_id
+     *
+     * @return array
+     */
+    private static function _get_models_with_settings_rendering_details( array $models_arr, ?int $tenant_id = null ): array
+    {
+        if (empty($models_arr)) {
+            return [];
+        }
+
+        $return_arr = [];
+        foreach ($models_arr as $model_id => $model_instance) {
+            if (!$model_instance->validate_settings_structure()) {
+                continue;
+            }
+
+            $return_arr[$model_id] = self::_extract_rendering_details_from_instance( $model_instance, $tenant_id );
+        }
+
+        return $return_arr;
+    }
+
+    private static function _extract_rendering_details_from_instance( ?self $instance_obj, ?int $tenant_id = null ): array
+    {
+        if( $instance_obj === null ) {
+            $core_info = PHS_Plugin::core_plugin_details_fields();
+
+            $settings_structure_arr = [];
+            $default_settings = [];
+            $db_main_settings = [];
+            $db_tenant_settings = [];
+            $db_version = $core_info['db_version'] ?? '0.0.0';
+            $script_version = $core_info['script_version'] ?? '0.0.0';
+        } else {
+            if( !($settings_structure_arr = $instance_obj->validate_settings_structure()) ) {
+                $settings_structure_arr = [];
+            }
+            if( !($default_settings = $instance_obj->get_default_settings()) ) {
+                $default_settings = [];
+            }
+            if( !($db_tenant_settings = $instance_obj->get_db_settings($tenant_id)) ) {
+                $db_tenant_settings = [];
+            }
+            if (!($db_details = $instance_obj->get_db_main_details())) {
+                $db_details = [];
+            }
+            if( $instance_obj instanceof PHS_Model ) {
+                $script_version = $instance_obj->get_model_version();
+            } elseif( $instance_obj instanceof PHS_Plugin ) {
+                $script_version = $instance_obj->get_plugin_version();
+            } else {
+                $script_version = '0.0.0';
+            }
+
+            $db_main_settings = $tenant_id ? $instance_obj->get_db_settings(0) : $db_tenant_settings;
+            $db_version = $db_details['version'] ?? '0.0.0';
+        }
+
+        $return_arr = [];
+        $return_arr['instance'] = $instance_obj;
+        $return_arr['settings_structure'] = $settings_structure_arr;
+        $return_arr['default_settings'] = $default_settings;
+        $return_arr['db_main_settings'] = $db_main_settings;
+        $return_arr['db_settings'] = $db_tenant_settings;
+        $return_arr['db_version'] = $db_version;
+        $return_arr['script_version'] = $script_version;
+
+        return $return_arr;
+    }
+
+    private static function _load_settings_dependencies(): bool
+    {
+        return !empty( self::$_admin_plugin ) || (self::$_admin_plugin = PHS_Plugin_Admin::get_instance());
     }
 
     private static function _db_details_fields_prepare_for_merge(array $db_details) : array

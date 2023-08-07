@@ -128,7 +128,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return array Array of roles definition
      */
-    public function get_agent_jobs_definition()
+    public function get_agent_jobs_definition(): array
     {
         if (!($json_arr = $this->get_plugin_json_info())
          || empty($json_arr['agent_jobs'])

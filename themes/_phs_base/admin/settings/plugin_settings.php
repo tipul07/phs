@@ -17,10 +17,6 @@ if ((empty($form_data['pid']) || $form_data['pid'] !== PHS_Instantiable::CORE_PL
     return $this->_pt('Plugin ID is invalid or plugin was not found.');
 }
 
-if (!($tenant_id = $this->view_var('tenant_id'))) {
-    $tenant_id = 0;
-}
-
 if (!($back_page = $this->view_var('back_page'))) {
     $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
 }
@@ -49,15 +45,9 @@ if (empty($plugin_obj)) {
 }
 
 $current_user = PHS::user_logged_in();
-
-$args = [];
-$args['pid'] = $form_data['pid'];
-if(PHS::is_multi_tenant()) {
-    $args['tenant_id'] = $tenant_id;
-}
 ?>
 <form id="plugin_settings_form" name="plugin_settings_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], $args); ?>">
+      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], ['pid' => $form_data['pid']]); ?>">
     <input type="hidden" name="foobar" value="1" />
     <?php
     if (!empty($back_page)) {
