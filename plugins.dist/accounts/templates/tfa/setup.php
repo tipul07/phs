@@ -2,6 +2,7 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\libraries\PHS_Utils;
 
 /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -13,13 +14,25 @@ if (!($libs_plugin = $this->view_var('libs_plugin'))
     return $this->_pt('Error loading required resources.');
 }
 
+if (!($setup_completed = $this->view_var('setup_completed'))) {
+    $setup_completed = false;
+}
+
 if (!($tfa_arr = $this->view_var('tfa_data'))) {
     $tfa_arr = null;
+}
+if (!($device_session_length = $this->view_var('device_session_length'))) {
+    $device_session_length = 0;
 }
 ?>
 <form id="tfa_setup" name="tfa_setup" method="post"
       action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'setup', 'ad' => 'tfa']); ?>">
     <input type="hidden" name="foobar" value="1" />
+    <?php
+    if (!empty($back_page)) {
+        ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
+    }
+    ?>
 
     <div class="form_container">
 
@@ -29,7 +42,7 @@ if (!($tfa_arr = $this->view_var('tfa_data'))) {
 
         <?php
         if (empty($tfa_arr)
-            || !$tfa_model->is_setup_completed($tfa_arr)) {
+            || !$setup_completed) {
             ?>
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -49,11 +62,34 @@ if (!($tfa_arr = $this->view_var('tfa_data'))) {
 
             <div class="form-group row">
                 <label for="tfa_code" class="col-sm-2 col-form-label"><?php echo $this->_pt('Verification Code'); ?></label>
-                <div class="col-sm-5">
+                <div class="col-sm-10">
                     <input type="text" id="tfa_code" name="tfa_code" autocomplete="tfa_code" class="form-control"
                            required="required" value="" />
                 </div>
-                <div class="col-sm-5">
+            </div>
+
+            <?php
+            if( $device_session_length ) {
+                ?>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
+                                <?php echo $this->view_var('remember_device')?'checked="checked"':''?>
+                                   value="1">
+                            <label class="form-check-label" for="remember_device">
+                                <?php echo $this->_pt( 'Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true]) )?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+            ?>
+
+            <div class="form-group row">
+                <div class="col-sm-12">
                     <input type="submit" id="do_submit" name="do_submit"
                            class="btn btn-primary submit-protection ignore_hidden_required"
                            value="<?php echo $this->_pte('Check Code'); ?>" />
@@ -93,7 +129,8 @@ if (!($tfa_arr = $this->view_var('tfa_data'))) {
                 <div class="col-sm-12">
                     <p><?php echo $this->_pt('Downloading file. Please wait...'); ?></p>
                     <p><?php echo $this->_pt('After download finishes, you can continue browsing the site.'); ?></p>
-                    <p><a href="<?php echo PHS::url(); ?>" class="btn btn-primary"><?php echo $this->_pt('Continue browsing the site'); ?></a></p>
+                    <p><a href="<?php echo (!empty( $back_page )?$back_page:PHS::url()); ?>"
+                          class="btn btn-primary"><?php echo $this->_pt('Continue browsing the site'); ?></a></p>
                 </div>
             </div>
             <script>

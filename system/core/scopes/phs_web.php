@@ -95,6 +95,8 @@ class PHS_Scope_Web extends PHS_Scope
             exit;
         }
 
+        $this->_update_tfa_device_cookie_if_required();
+
         if (($event_result = PHS_Event_Template::template(PHS_Event_Template::GENERIC, $action_result['page_template'], $action_result['action_data']))) {
             if (!empty($event_result['page_template'])) {
                 $action_result['page_template'] = $event_result['page_template'];
@@ -207,6 +209,23 @@ class PHS_Scope_Web extends PHS_Scope
         return $expiration_arr;
     }
 
+    private function _update_tfa_device_cookie_if_required() : void
+    {
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || $accounts_plugin->tfa_policy_is_off()
+            || !$accounts_plugin->tfa_remember_device_length()
+            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
+            || !PHS::user_logged_in()
+            || !$tfa_model->is_device_tfa_valid()
+        ) {
+            return;
+        }
+
+        $tfa_model->mark_device_as_tfa_valid();
+    }
+
     private function _should_redirect_to_tfa_flow() : bool
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -215,6 +234,7 @@ class PHS_Scope_Web extends PHS_Scope
                && !$accounts_plugin->tfa_policy_is_off()
                && ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && ($current_user = PHS::current_user())
+               && !$tfa_model->is_device_tfa_valid()
                && !$tfa_model->is_session_tfa_valid()
                && (
                    (($tfa_arr = $tfa_model->get_tfa_data_for_account($current_user))

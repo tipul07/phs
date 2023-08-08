@@ -211,17 +211,17 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param string $name
+     * @param  string  $name
      * @param string $val
      * @param bool|array $params
      *
      * @return bool
      */
-    public static function set_cookie($name, $val, $params = false)
+    public static function set_cookie(string $name, $val, $params = false): bool
     {
         self::st_reset_error();
 
-        if (empty($name) || !is_string($name)) {
+        if (empty($name)) {
             self::st_set_error(self::ERR_COOKIE, self::_t('Please provide valid cookie name.'));
 
             return false;
@@ -241,17 +241,8 @@ final class PHS_Session extends PHS_Registry
 
         $params = self::validate_cookie_params($params);
 
-        if (!isset($params['alter_globals'])) {
-            $params['alter_globals'] = true;
-        } else {
-            $params['alter_globals'] = (!empty($params['alter_globals']));
-        }
-
-        if (!isset($params['expire_secs'])) {
-            $params['expire_secs'] = 0;
-        } else {
-            $params['expire_secs'] = (int)$params['expire_secs'];
-        }
+        $params['alter_globals'] = (!isset( $params['alter_globals'] ) || !empty( $params['alter_globals'] ));
+        $params['expire_secs'] = (int)($params['expire_secs'] ?? 0);
 
         if ($params['expire_secs'] < 0) {
             return self::delete_cookie($name, $params);
