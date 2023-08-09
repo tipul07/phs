@@ -43,14 +43,17 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         ];
     }
 
-    public function agreed_cookies()
+    public function agreed_cookies() : bool
     {
         return (bool)PHS_Session::get_cookie(self::COOKIE_NAME);
     }
 
-    public function accept_cookie_agreement()
+    public function accept_cookie_agreement() : bool
     {
-        return PHS_Session::set_cookie(self::COOKIE_NAME, 1, ['expire_secs' => self::COOKIE_EXPIRE_SECS]);
+        return PHS_Session::set_cookie(self::COOKIE_NAME, 1, [
+            'expire_secs' => self::COOKIE_EXPIRE_SECS,
+            'path'        => PHS_Session::get_data(PHS_Session::SESS_COOKIE_PATH),
+        ]);
     }
 
     public function get_cookie_notice_hook_args($hook_args)
@@ -88,8 +91,8 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         $view_params['parent_plugin_obj'] = $this;
         $view_params['plugin'] = $this->instance_plugin_name();
         $view_params['template_data'] = [
-            'rejection_url' => (!empty($settings_arr['rejection_url']) ? $settings_arr['rejection_url'] : ''),
-            'read_more_url' => (!empty($settings_arr['read_more_url']) ? $settings_arr['read_more_url'] : ''),
+            'rejection_url' => $settings_arr['rejection_url'] ?? '',
+            'read_more_url' => $settings_arr['read_more_url'] ?? '',
             'cookie_name'   => self::COOKIE_NAME,
             'plugin_obj'    => $this,
         ];
