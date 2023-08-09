@@ -10,6 +10,7 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
+use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Verify extends PHS_Action
@@ -69,9 +70,14 @@ class PHS_Action_Verify extends PHS_Action
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $tfa_code = PHS_Params::_p('tfa_code', PHS_Params::T_ASIS);
+        $remember_device = PHS_Params::_p('remember_device', PHS_Params::T_BOOL);
 
         $do_submit = PHS_Params::_p('do_submit');
         $do_check_recovery = PHS_Params::_p('do_check_recovery');
+
+        if (empty($foobar)) {
+            $remember_device = true;
+        }
 
         if (!($tfa_details = $tfa_model->get_tfa_data_for_account($current_user))) {
             $tfa_details = null;
@@ -116,14 +122,27 @@ class PHS_Action_Verify extends PHS_Action
             } else {
                 PHS_Notifications::add_success_notice($this->_pt('Two factor authentication verification passed.'));
 
+                if (!empty($remember_device) && !$tfa_model->mark_device_as_tfa_valid()) {
+                    PHS_Notifications::add_warning_notice($this->_pt('Error marking device as two factor authentication valid.'));
+                }
+
+                if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::TFA_VERIFIED, $this))
+                    && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
+                    $this->set_action_result($event_result['action_result']);
+
+                    return $event_result['action_result'];
+                }
+
                 return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
             }
         }
 
         $data = [
-            'back_page' => $back_page,
-            'nick'      => $current_user['nick'],
-            'tfa_data'  => $tfa_arr,
+            'back_page'             => $back_page,
+            'nick'                  => $current_user['nick'],
+            'tfa_data'              => $tfa_arr,
+            'remember_device'       => $remember_device,
+            'device_session_length' => $accounts_plugin->tfa_remember_device_length(),
 
             'libs_plugin'     => $libs_plugin,
             'tfa_model'       => $tfa_model,

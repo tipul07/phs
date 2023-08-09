@@ -279,6 +279,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'type'         => PHS_Params::T_INT,
                         'default'      => 48,
                     ],
+                    '2fa_remember_device_length' => [
+                        'display_name' => $this->_pt('Remember device length (hours)'),
+                        'display_hint' => $this->_pt('How many hours should 2FA not be required on current device. 0 means disable this option'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 0,
+                    ],
                     '2fa_issuer_name' => [
                         'display_name' => $this->_pt('2FA Issuer'),
                         'display_hint' => $this->_pt('How should this platform appear in Google Authenticator as name'),
@@ -318,6 +324,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['2fa_policy'])
                && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_ENFORCED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function tfa_remember_device_length() : int
+    {
+        return !($settings_arr = $this->get_plugin_settings()) || empty($settings_arr['2fa_remember_device_length'])
+            ? 0 : (int)$settings_arr['2fa_remember_device_length'];
     }
 
     /**

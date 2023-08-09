@@ -3,6 +3,7 @@ namespace phs\plugins\accounts\models;
 
 use phs\PHS;
 use phs\PHS_Crypt;
+use phs\PHS_Session;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
@@ -10,7 +11,7 @@ use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 
 class PHS_Model_Accounts_tfa extends PHS_Model
 {
-    public const RECOVERY_DOWNLOAD_PARAM = '_t';
+    public const DEVICE_COOKIE_NAME = '__phstf';
 
     private const PADDING_CHAR = '=';
 
@@ -92,6 +93,59 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return ($online_arr = PHS::current_user_session())
                && !empty($online_arr['tfa_expiration'])
                && parse_db_date($online_arr['tfa_expiration']) > time();
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_device_tfa_valid() : bool
+    {
+        return $this->_load_dependencies()
+               && $this->_accounts_plugin->tfa_remember_device_length()
+               && ($cookie_value = PHS_Session::get_cookie(self::DEVICE_COOKIE_NAME))
+               && $this->_tfa_cookie_is_valid($cookie_value);
+    }
+
+    public function should_mark_device_as_tfa_valid() : ?bool
+    {
+        return $this->_load_dependencies()
+               && $this->_accounts_plugin->tfa_remember_device_length();
+    }
+
+    public function mark_device_as_tfa_valid() : ?bool
+    {
+        $this->reset_error();
+
+        if (!$this->_load_dependencies()) {
+            return null;
+        }
+
+        if (!($device_session_length_hours = $this->_accounts_plugin->tfa_remember_device_length())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('This option is disabled.'));
+
+            return null;
+        }
+
+        if (!($account_arr = PHS::user_logged_in())
+            || !($tfa_data = $this->get_tfa_data_for_account($account_arr))
+            || !($tfa_arr = ($tfa_data['tfa_data'] ?? null))
+            || !$this->is_setup_completed($tfa_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error obtaining required account data.'));
+
+            return null;
+        }
+
+        if (!($cookie_value = $this->_encode_tfa_cookie_value($tfa_arr, $account_arr))
+            || !PHS_Session::set_cookie(self::DEVICE_COOKIE_NAME, $cookie_value,
+                ['expire_secs' => $device_session_length_hours * 3660,
+                    'path'     => PHS_Session::get_data(PHS_Session::SESS_COOKIE_PATH), ])) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this->_pt('Error marking this device as TFA valid.'));
+
+            return null;
+        }
+
+        return true;
     }
 
     public function validate_tfa_for_session() : ?bool
@@ -867,6 +921,91 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $params;
     }
 
+    private function _tfa_cookie_is_valid(string $cookie_value) : ?bool
+    {
+        $this->reset_error();
+
+        if (!$this->_load_dependencies()) {
+            return null;
+        }
+
+        if (!$this->_accounts_plugin->tfa_remember_device_length()) {
+            return false;
+        }
+
+        if (!($account_arr = PHS::user_logged_in())
+            || !($tfa_data = $this->get_tfa_data_for_account($account_arr))
+            || !($tfa_arr = ($tfa_data['tfa_data'] ?? null))
+            || !$this->is_setup_completed($tfa_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error obtaining required account data.'));
+
+            return null;
+        }
+
+        if (!($decoded_data = $this->_decode_tfa_cookie_value($cookie_value))
+            || empty($decoded_data['account_data']['id'])
+            || empty($decoded_data['tfa_data']['id'])
+            || (int)$account_arr['id'] !== (int)$decoded_data['account_data']['id']
+            || (int)$account_arr['id'] !== (int)($decoded_data['tfa_data']['uid'] ?? 0)
+            || (int)$tfa_arr['id'] !== (int)$decoded_data['tfa_data']['id']) {
+            if (!$this->has_error()) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error in TFA data.'));
+            }
+
+            return null;
+        }
+
+        return true;
+    }
+
+    private function _decode_tfa_cookie_value(string $cookie_value) : ?array
+    {
+        $this->reset_error();
+
+        if (!$this->_load_dependencies()
+            || !($session_length = $this->_accounts_plugin->tfa_remember_device_length())
+            || !($decoded_str = PHS_Crypt::quick_decode($cookie_value))
+            || !($parts_arr = explode(':', $decoded_str, 5))
+            || empty($parts_arr[0]) || empty($parts_arr[1]) || empty($parts_arr[2])
+            || empty($parts_arr[3]) || empty($parts_arr[4])
+            || $parts_arr[2] + $session_length * 3600 < time()
+            || !($account_arr = $this->_accounts_model->get_details($parts_arr[0], ['table_name' => 'users']))
+            || !$this->_accounts_model->is_active($account_arr)
+            || !($tfa_arr = $this->get_details($parts_arr[1], ['table_name' => 'users_tfa']))
+            || (int)$account_arr['id'] !== (int)$tfa_arr['uid']
+            || !$this->verify_code_for_tfa_data($tfa_arr, $parts_arr[3], ['time_slice' => (float)$parts_arr[4]])
+        ) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error decoding TFA details.'));
+
+            return null;
+        }
+
+        return [
+            'account_data' => $account_arr,
+            'tfa_data'     => $tfa_arr,
+        ];
+    }
+
+    private function _encode_tfa_cookie_value(array $tfa_arr, array $account_arr) : ?string
+    {
+        $this->reset_error();
+
+        if (empty($tfa_arr)
+            || empty($account_arr)
+            || !($now_time = time())
+            || !($secret = $this->get_secret($tfa_arr))
+            || !($time_slice = floor($now_time / 30))
+            || !($tfa_code = self::get_code_from_secret($secret, $time_slice))
+            || !($encoded_val = PHS_Crypt::quick_encode($account_arr['id'].':'.$tfa_arr['id'].':'.$now_time.':'.$tfa_code.':'.$time_slice))
+        ) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error encoding TFA details.'));
+
+            return null;
+        }
+
+        return $encoded_val;
+    }
+
     /**
      * @return bool
      */
@@ -960,19 +1099,19 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
     /**
      * @param string $secret
-     * @param null|float $timeSlice
+     * @param null|float $time_slice
      *
      * @return string
      */
-    public static function get_code_from_secret(string $secret, ?float $timeSlice = null) : string
+    public static function get_code_from_secret(string $secret, ?float $time_slice = null) : string
     {
-        if ($timeSlice === null) {
-            $timeSlice = floor(time() / 30);
+        if ($time_slice === null) {
+            $time_slice = floor(time() / 30);
         }
 
         $secretkey = self::_debase32($secret);
 
-        $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
+        $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $time_slice);
         $hm = hash_hmac(self::TFA_ALGO, $time, $secretkey, true);
         $offset = ord(substr($hm, -1)) & 0x0F;
         $hashpart = substr($hm, $offset, 4);
