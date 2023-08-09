@@ -36,7 +36,7 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
             if (!empty($back_page)) {
                 ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
             }
-            ?>
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -53,24 +53,24 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
             </div>
 
             <?php
-            if( $device_session_length ) {
-                ?>
+if ($device_session_length) {
+    ?>
                 <div class="form-group row">
                     <div class="col-sm-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
-                                <?php echo $this->view_var('remember_device')?'checked="checked"':''?>
+                                <?php echo $this->view_var('remember_device') ? 'checked="checked"' : ''; ?>
                                    value="1">
                             <label class="form-check-label" for="remember_device">
-                                <?php echo $this->_pt( 'Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
-                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true]) )?>
+                                <?php echo $this->_pt('Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true])); ?>
                             </label>
                         </div>
                     </div>
                 </div>
                 <?php
-            }
-            ?>
+}
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -102,10 +102,10 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
               action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa']); ?>">
             <input type="hidden" name="foobar" value="1" />
             <?php
-            if (!empty($back_page)) {
-                ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
-            }
-            ?>
+if (!empty($back_page)) {
+    ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
+}
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -122,24 +122,24 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
             </div>
 
             <?php
-            if( $device_session_length ) {
-                ?>
+if ($device_session_length) {
+    ?>
                 <div class="form-group row">
                     <div class="col-sm-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
-                                <?php echo $this->view_var('remember_device')?'checked="checked"':''?>
+                                <?php echo $this->view_var('remember_device') ? 'checked="checked"' : ''; ?>
                                    value="1">
                             <label class="form-check-label" for="remember_device">
-                                <?php echo $this->_pt( 'Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
-                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true]) )?>
+                                <?php echo $this->_pt('Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true])); ?>
                             </label>
                         </div>
                     </div>
                 </div>
                 <?php
-            }
-            ?>
+}
+?>
 
             <div class="form-group row">
                 <div class="col-sm-12">

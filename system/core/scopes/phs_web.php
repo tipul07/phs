@@ -213,7 +213,7 @@ class PHS_Scope_Web extends PHS_Scope
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
-        if( !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
             || !$accounts_plugin->tfa_remember_device_length()
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())

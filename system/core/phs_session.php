@@ -211,13 +211,13 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param  string  $name
+     * @param string $name
      * @param string $val
      * @param bool|array $params
      *
      * @return bool
      */
-    public static function set_cookie(string $name, $val, $params = false): bool
+    public static function set_cookie(string $name, $val, $params = false) : bool
     {
         self::st_reset_error();
 
@@ -241,7 +241,7 @@ final class PHS_Session extends PHS_Registry
 
         $params = self::validate_cookie_params($params);
 
-        $params['alter_globals'] = (!isset( $params['alter_globals'] ) || !empty( $params['alter_globals'] ));
+        $params['alter_globals'] = (!isset($params['alter_globals']) || !empty($params['alter_globals']));
         $params['expire_secs'] = (int)($params['expire_secs'] ?? 0);
 
         if ($params['expire_secs'] < 0) {

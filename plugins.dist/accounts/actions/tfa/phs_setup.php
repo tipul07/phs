@@ -10,8 +10,8 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
-use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Setup extends PHS_Action
 {
@@ -75,11 +75,11 @@ class PHS_Action_Setup extends PHS_Action
         $do_submit = PHS_Params::_p('do_submit');
         $do_download_codes = PHS_Params::_p('do_download_codes');
 
-        if( empty( $foobar ) ) {
+        if (empty($foobar)) {
             $remember_device = true;
         }
 
-        if( PHS_Params::_g('setup_success', PHS_Params::T_INT ) ) {
+        if (PHS_Params::_g('setup_success', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Two factor authentication setup with success.'));
         }
 
@@ -96,9 +96,9 @@ class PHS_Action_Setup extends PHS_Action
         $tfa_arr = $tfa_details['tfa_data'] ?? null;
         $qr_code_url = $tfa_details['url']['full_url'] ?? null;
 
-        $setup_completed = (!empty( $tfa_arr ) && $tfa_model->is_setup_completed($tfa_arr));
+        $setup_completed = (!empty($tfa_arr) && $tfa_model->is_setup_completed($tfa_arr));
 
-        if (!empty( $tfa_arr )
+        if (!empty($tfa_arr)
             && $tfa_model->is_recovery_code_downloaded($tfa_arr)) {
             return action_redirect();
         }
@@ -132,13 +132,13 @@ class PHS_Action_Setup extends PHS_Action
             if (!empty($new_tfa_arr)) {
                 $tfa_arr = $new_tfa_arr;
 
-                if( !PHS_Notifications::have_notifications_errors() ) {
+                if (!PHS_Notifications::have_notifications_errors()) {
                     if (!empty($remember_device) && !$tfa_model->mark_device_as_tfa_valid()) {
                         PHS_Notifications::add_warning_notice($this->_pt('Error marking device as two factor authentication valid.'));
                     }
 
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::TFA_SETUP,
-                            $this)) && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
+                        $this)) && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                         $this->set_action_result($event_result['action_result']);
 
                         return $event_result['action_result'];
@@ -157,13 +157,13 @@ class PHS_Action_Setup extends PHS_Action
         }
 
         $data = [
-            'back_page' => $back_page,
-            'nick'        => $current_user['nick'],
-            'qr_code_url' => $qr_code_url,
-            'tfa_data'    => $tfa_arr,
-            'setup_completed'    => $setup_completed,
-            'remember_device'    => $remember_device,
-            'device_session_length'    => $accounts_plugin->tfa_remember_device_length(),
+            'back_page'             => $back_page,
+            'nick'                  => $current_user['nick'],
+            'qr_code_url'           => $qr_code_url,
+            'tfa_data'              => $tfa_arr,
+            'setup_completed'       => $setup_completed,
+            'remember_device'       => $remember_device,
+            'device_session_length' => $accounts_plugin->tfa_remember_device_length(),
 
             'libs_plugin'     => $libs_plugin,
             'tfa_model'       => $tfa_model,

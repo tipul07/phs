@@ -331,8 +331,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function tfa_remember_device_length() : int
     {
-        return (!($settings_arr = $this->get_plugin_settings()) || empty($settings_arr['2fa_remember_device_length'])
-            ?0:(int)$settings_arr['2fa_remember_device_length']);
+        return !($settings_arr = $this->get_plugin_settings()) || empty($settings_arr['2fa_remember_device_length'])
+            ? 0 : (int)$settings_arr['2fa_remember_device_length'];
     }
 
     /**

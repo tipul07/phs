@@ -10,8 +10,8 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
-use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\system\core\events\actions\PHS_Event_Action_start;
 
 class PHS_Action_Verify extends PHS_Action
 {
@@ -75,7 +75,7 @@ class PHS_Action_Verify extends PHS_Action
         $do_submit = PHS_Params::_p('do_submit');
         $do_check_recovery = PHS_Params::_p('do_check_recovery');
 
-        if( empty( $foobar ) ) {
+        if (empty($foobar)) {
             $remember_device = true;
         }
 
@@ -138,11 +138,11 @@ class PHS_Action_Verify extends PHS_Action
         }
 
         $data = [
-            'back_page' => $back_page,
-            'nick'      => $current_user['nick'],
-            'tfa_data'  => $tfa_arr,
-            'remember_device'    => $remember_device,
-            'device_session_length'    => $accounts_plugin->tfa_remember_device_length(),
+            'back_page'             => $back_page,
+            'nick'                  => $current_user['nick'],
+            'tfa_data'              => $tfa_arr,
+            'remember_device'       => $remember_device,
+            'device_session_length' => $accounts_plugin->tfa_remember_device_length(),
 
             'libs_plugin'     => $libs_plugin,
             'tfa_model'       => $tfa_model,

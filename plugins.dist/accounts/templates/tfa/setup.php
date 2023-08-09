@@ -32,7 +32,7 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
     if (!empty($back_page)) {
         ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
     }
-    ?>
+?>
 
     <div class="form_container">
 
@@ -41,9 +41,9 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
         </section>
 
         <?php
-        if (empty($tfa_arr)
-            || !$setup_completed) {
-            ?>
+    if (empty($tfa_arr)
+        || !$setup_completed) {
+        ?>
             <div class="form-group row">
                 <div class="col-sm-12">
                     <p class="text-center"><?php echo $this->_pt('You are setting up two factor authentication for account %s.',
@@ -54,7 +54,7 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
                         <p class="text-center"><?php echo $this->_pt('Please note that on this platform two factor authentication is mandatory.'); ?></p>
                         <?php
                     }
-            ?>
+        ?>
                 </div>
             </div>
 
@@ -69,24 +69,24 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
             </div>
 
             <?php
-            if( $device_session_length ) {
-                ?>
+        if ($device_session_length) {
+            ?>
                 <div class="form-group row">
                     <div class="col-sm-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
-                                <?php echo $this->view_var('remember_device')?'checked="checked"':''?>
+                                <?php echo $this->view_var('remember_device') ? 'checked="checked"' : ''; ?>
                                    value="1">
                             <label class="form-check-label" for="remember_device">
-                                <?php echo $this->_pt( 'Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
-                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true]) )?>
+                                <?php echo $this->_pt('Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true])); ?>
                             </label>
                         </div>
                     </div>
                 </div>
                 <?php
-            }
-            ?>
+        }
+        ?>
 
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -96,23 +96,23 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
                 </div>
             </div>
             <?php
-        } elseif (!($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
-            ?>
+    } elseif (!($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
+        ?>
             <div class="form-group row">
                 <div class="col-sm-12">
                     <p><?php echo $this->_pt('Error obtaining two factor authentication recovery codes. Please refresh the page.'); ?></p>
                 </div>
             </div>
             <?php
-        } else {
-            echo $this->sub_view('tfa/setup_recovery_codes');
-            ?>
+    } else {
+        echo $this->sub_view('tfa/setup_recovery_codes');
+        ?>
             <ul>
                 <?php
-                foreach ($recovery_codes as $recovery_code) {
-                    ?><li><?php echo $recovery_code; ?></li><?php
-                }
-            ?>
+            foreach ($recovery_codes as $recovery_code) {
+                ?><li><?php echo $recovery_code; ?></li><?php
+            }
+        ?>
             </ul>
             <div class="form-group row">
                 <div class="col-sm-12">
@@ -129,7 +129,7 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
                 <div class="col-sm-12">
                     <p><?php echo $this->_pt('Downloading file. Please wait...'); ?></p>
                     <p><?php echo $this->_pt('After download finishes, you can continue browsing the site.'); ?></p>
-                    <p><a href="<?php echo (!empty( $back_page )?$back_page:PHS::url()); ?>"
+                    <p><a href="<?php echo !empty($back_page) ? $back_page : PHS::url(); ?>"
                           class="btn btn-primary"><?php echo $this->_pt('Continue browsing the site'); ?></a></p>
                 </div>
             </div>
@@ -141,7 +141,7 @@ if (!($device_session_length = $this->view_var('device_session_length'))) {
             }
             </script>
             <?php
-        }
+    }
 ?>
 
     </div>
