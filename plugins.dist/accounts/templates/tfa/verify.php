@@ -2,6 +2,7 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\libraries\PHS_Utils;
 
 /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -17,7 +18,9 @@ if (!($libs_plugin = $this->view_var('libs_plugin'))
 if (!($back_page = $this->view_var('back_page'))) {
     $back_page = '';
 }
-
+if (!($device_session_length = $this->view_var('device_session_length'))) {
+    $device_session_length = 0;
+}
 ?>
 <div class="form_container">
 
@@ -40,15 +43,39 @@ if (!($back_page = $this->view_var('back_page'))) {
                     <p><?php echo $this->_pt('In order to access your account, please open Google Authenticator on you device and provide the code in the input below.'); ?></p>
                 </div>
             </div>
+
             <div class="form-group row">
                 <label for="tfa_code" class="col-sm-2 col-form-label"><?php echo $this->_pt('Verification Code'); ?></label>
-                <div class="col-sm-5">
+                <div class="col-sm-10">
                     <input type="text" id="tfa_code" name="tfa_code" autocomplete="tfa_code" class="form-control"
                            required="required" value="" />
                 </div>
-                <div class="col-sm-5">
+            </div>
+
+            <?php
+if ($device_session_length) {
+    ?>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
+                                <?php echo $this->view_var('remember_device') ? 'checked="checked"' : ''; ?>
+                                   value="1">
+                            <label class="form-check-label" for="remember_device">
+                                <?php echo $this->_pt('Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true])); ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <?php
+}
+?>
+
+            <div class="form-group row">
+                <div class="col-sm-12">
                     <input type="submit" id="do_submit" name="do_submit"
-                           class="btn btn-primary submit-protection"
+                           class="btn btn-primary submit-protection ignore_hidden_required"
                            value="<?php echo $this->_pte('Check Code'); ?>" />
                 </div>
             </div>
@@ -85,22 +112,47 @@ if (!empty($back_page)) {
                     <p><?php echo $this->_pt('In order to download your recovery codes, please provide a two factor authentication verification code first.'); ?></p>
                 </div>
             </div>
+
             <div class="form-group row">
-                <label for="tfa_code" class="col-sm-2 col-form-label"><?php echo $this->_pt('Recovery Code'); ?></label>
-                <div class="col-sm-5">
-                    <input type="text" id="tfa_recovery_code" name="tfa_code" autocomplete="tfa_code" class="form-control"
+                <label for="tfa_recovery_code" class="col-sm-2 col-form-label"><?php echo $this->_pt('Recovery Code'); ?></label>
+                <div class="col-sm-10">
+                    <input type="text" id="tfa_recovery_code" name="tfa_code" autocomplete="tfa_recovery_code" class="form-control"
                            required="required" value="" />
                 </div>
-                <div class="col-sm-5">
+            </div>
+
+            <?php
+if ($device_session_length) {
+    ?>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device"
+                                <?php echo $this->view_var('remember_device') ? 'checked="checked"' : ''; ?>
+                                   value="1">
+                            <label class="form-check-label" for="remember_device">
+                                <?php echo $this->_pt('Remember this device. Ask for a two factor authentication code only after %s of inactivity.',
+                                    PHS_Utils::parse_period($device_session_length * 3600, ['only_big_part' => true])); ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <?php
+}
+?>
+
+            <div class="form-group row">
+                <div class="col-sm-12">
                     <input type="submit" id="do_check_recovery" name="do_check_recovery"
                            class="btn btn-primary submit-protection ignore_hidden_required"
                            value="<?php echo $this->_pte('Check Recovery Code'); ?>" />
                 </div>
             </div>
+
             <div class="form-group row">
                 <div class="col-sm-12">
                     <input type="button" id="do_cancel_recovery" name="do_cancel_recovery"
-                           onclick="cancel_recovery_check()" class="btn btn-primary"
+                           onclick="cancel_recovery_check()" class="btn btn-warning"
                            value="<?php echo $this->_pte('Cancel Recovery Check'); ?>" />
                 </div>
             </div>
