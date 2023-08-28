@@ -233,7 +233,7 @@ class PHS_Scope_Web extends PHS_Scope
         return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
                && !$accounts_plugin->tfa_policy_is_off()
                && ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
-               && ($current_user = PHS::current_user())
+               && ($current_user = PHS::user_logged_in())
                && !$tfa_model->is_device_tfa_valid()
                && !$tfa_model->is_session_tfa_valid()
                && (
