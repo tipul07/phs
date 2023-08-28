@@ -161,9 +161,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $db_version = (!empty($plugin_db_details['version']) ? $plugin_db_details['version'] : '0.0.0');
                 $script_version = $this->_plugin_obj->get_plugin_version();
 
-                var_dump( $this->_plugin_obj->get_db_settings(1) );
-                var_dump( $this->_plugin_obj->get_db_settings(0) );
-                exit;
+                // var_dump( $this->_plugin_obj->get_db_settings(1) );
+                // var_dump( $this->_plugin_obj->get_db_settings(0) );
+                // exit;
             }
         }
 

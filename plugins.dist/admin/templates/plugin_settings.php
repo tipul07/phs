@@ -49,6 +49,7 @@ if (empty($plugin_obj)) {
 }
 
 $current_user = PHS::user_logged_in();
+$is_multitenant = PHS::is_multi_tenant();
 
 $args = [];
 $args['pid'] = $form_data['pid'];
@@ -125,6 +126,36 @@ if (!empty($plugin_info['models'])
             <?php
     }
 
+    if (false && $is_multitenant) {
+        ?>
+        <div class="row">
+            <label for="selected_module" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select tenant'); ?></label>
+            <div class="col-sm-2" style="min-width:250px;max-width:360px;">
+                <select name="tenant_id" id="tenant_id" class="chosen-select-nosearch"
+                        onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
+                <option value=""><?php echo $this->_pt( '- Choose -' )?></option>
+                <?php
+                foreach ($modules_with_settings as $model_id => $model_arr) {
+                    if (!is_array($model_arr)
+                     || empty($model_arr['instance'])) {
+                        continue;
+                    }
+
+                    /** @var \phs\libraries\PHS_Model $model_instance */
+                    $model_instance = $model_arr['instance'];
+
+                    ?><option value="<?php echo $model_id; ?>" <?php echo $form_data['selected_module'] === $model_id ? 'selected="selected"' : ''; ?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
+                }
+                ?></select>
+            </div>
+            <div class="col-sm-2">
+            <input type="submit" id="select_module" name="select_module"
+                   class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
+            </div>
+        </div>
+            <?php
+    }
+
 ?><div class="row col-sm-12"><div><small><?php
 
 echo $this->_pt('Database version').': '.$db_version.', ';
@@ -134,7 +165,10 @@ if (version_compare($db_version, $script_version, '!=')) {
     echo ' - <span style="color:red;">'.$this->_pt('Please upgrade the plugin').'</span>';
 }
 
-?></div></small></div><?php
+?></div></small></div>
+
+        <div class="clearfix"></div>
+        <?php
 
 if (empty($settings_fields) || !is_array($settings_fields)) {
     ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt('Selected module doesn\'t have any settings.'); ?></p><?php

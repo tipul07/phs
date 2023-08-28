@@ -175,15 +175,8 @@ class PHS_Model_Plugins extends PHS_Model
     {
         $this->reset_error();
 
-        var_dump('T',$tenant_id,'T');
-
         if (!($main_settings = $this->_get_plugins_db_main_settings($instance_id, $force))) {
             $main_settings = [];
-        }
-
-        if($tenant_id) {
-            var_dump('ten', $instance_id, $this->_get_plugins_db_tenant_settings($instance_id, 1, $force), 'ten');
-            var_dump('main', $main_settings, 'main');
         }
 
         if (empty($tenant_id)
@@ -191,9 +184,6 @@ class PHS_Model_Plugins extends PHS_Model
          || !($tenant_settings = $this->_get_plugins_db_tenant_settings($instance_id, $tenant_id, $force))) {
             return $main_settings;
         }
-
-        var_dump('ten', $tenant_settings, 'ten');
-        var_dump('main', $main_settings, 'main');
 
         return self::validate_array($main_settings, $tenant_settings);
     }
