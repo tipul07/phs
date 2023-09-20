@@ -178,8 +178,9 @@ if (empty($settings_fields) || !is_array($settings_fields)) {
     <fieldset>
         <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
                value="<?php echo $this->_pte('Save settings'); ?>" />
-        <input type="button" id="cancel" class="btn btn-primary" style="margin-right:10px;"
-               onclick="document.location='<?php echo $this::_e($back_page, '\''); ?>';" value="<?php echo $this->_pte('Cancel'); ?>" />
+        <input type="submit" id="do_cancel" name="do_cancel" class="btn btn-primary submit-protection ignore_hidden_required"
+               style="margin-right:10px;"
+               value="<?php echo $this->_pte('Cancel'); ?>" />
     </fieldset>
     <?php
 }

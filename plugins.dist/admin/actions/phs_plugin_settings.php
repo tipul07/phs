@@ -52,19 +52,23 @@ class PHS_Action_Plugin_settings extends PHS_Action
         $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
-        if ($pid !== PHS_Instantiable::CORE_PLUGIN
-            && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
-                || empty($instance_details['instance_type'])
-                || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-                || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
-            )) {
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
+        $do_cancel = PHS_Params::_p('do_cancel');
 
-            return action_redirect(add_url_params($back_page, ['unknown_plugin' => 1]));
+        if (empty($back_page)) {
+            $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+        } else {
+            $back_page = from_safe_url($back_page);
+        }
+
+        if ($do_cancel
+            || ($pid !== PHS_Instantiable::CORE_PLUGIN
+                && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
+                    || empty($instance_details['instance_type'])
+                    || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                    || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
+                ))
+        ) {
+            return action_redirect($do_cancel?$back_page:add_url_params($back_page, ['unknown_plugin' => 1]) );
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
