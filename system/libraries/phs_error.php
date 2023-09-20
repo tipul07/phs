@@ -92,7 +92,7 @@ class PHS_Error
     /**
      *   Tells if current error is different from default error code provided in constructor meaning there is an error.
      *
-     *   @return bool True if there is an error, false if no error
+     * @return bool True if there is an error, false if no error
      **/
     public function has_error() : bool
     {
@@ -102,8 +102,8 @@ class PHS_Error
     /**
      *   Method returns number of warnings (for specified tag or as total)
      *
-     *   @param null|string $tag Check if we have warnings for provided tag (false by default)
-     *   @return int Return warnings number (for specified tag or as total)
+     * @param null|string $tag Check if we have warnings for provided tag (false by default)
+     * @return int Return warnings number (for specified tag or as total)
      **/
     public function has_warnings(?string $tag = null) : int
     {
@@ -195,9 +195,9 @@ class PHS_Error
      * Also, method will make a backtrace of this call and present all
      * functions/methods called (with their parameters) and files/line of call.
      *
-     *   @param string  $warning string Warning message
-     *   @param false|string|int $tag string Add warning for a specific tag (default false).
-     *                           If this is not provided, warning will be added as general warning.
+     * @param string $warning string Warning message
+     * @param false|string|int $tag string Add warning for a specific tag (default false).
+     *                              If this is not provided, warning will be added as general warning.
      **/
     public function add_warning(string $warning, $tag = false) : void
     {
@@ -268,7 +268,7 @@ class PHS_Error
     /**
      *   Method returns an array with current error code and message.
      *
-     *   @return array Array with indexes 'error_no' for error code and 'error_msg' for error message
+     * @return array Array with indexes 'error_no' for error code and 'error_msg' for error message
      **/
     public function get_error() : array
     {
@@ -408,10 +408,10 @@ class PHS_Error
     /**
      *   Return warnings array for specified tag (if any) or
      *
-     *   @param  bool  $simple_messages Tells which set of messages to get (simple or debugging)
-     *   @param null|int|string $tag Check if we have warnings for provided tag (false by default)
+     * @param bool $simple_messages Tells which set of messages to get (simple or debugging)
+     * @param null|int|string $tag Check if we have warnings for provided tag (false by default)
      *
-     *   @return null|array Return array of warnings (all or for specified tag) or false if no warnings
+     * @return null|array Return array of warnings (all or for specified tag) or false if no warnings
      **/
     public function get_warnings(bool $simple_messages = true, $tag = null) : ?array
     {
@@ -448,9 +448,9 @@ class PHS_Error
     /**
      *   Return all warnings array
      *
-     *   @param  bool  $simple_messages Tells which set of messages to get (simple or debugging)
+     * @param bool $simple_messages Tells which set of messages to get (simple or debugging)
      *
-     *   @return array Return array of all warnings
+     * @return array Return array of all warnings
      **/
     public function get_all_warnings(bool $simple_messages = true) : array
     {
@@ -482,10 +482,10 @@ class PHS_Error
     /**
      *  Used for debugging calls to functions or methods.
      *
-     *  @param  int  $lvl Tells from which level of backtrace should we cut trace (helps not showing calls to internal PHS_Error methods)
-     *  @param  null|int  $limit Tells how many calls in backtrace to return
+     * @param int $lvl Tells from which level of backtrace should we cut trace (helps not showing calls to internal PHS_Error methods)
+     * @param null|int $limit Tells how many calls in backtrace to return
      *
-     *  @return string Method will return a string representing function/method calls.
+     * @return string Method will return a string representing function/method calls.
      */
     public function debug_call_backtrace(int $lvl = 0, ?int $limit = null) : string
     {
@@ -731,9 +731,9 @@ class PHS_Error
      * Also, method will make a backtrace of this call and present all functions/methods
      * called (with their parameters) and files/line of call.
      *
-     *   @param int $error_no Error code
-     *   @param string $error_msg Error message
-     *   @param string $error_debug_msg Error message
+     * @param int $error_no Error code
+     * @param string $error_msg Error message
+     * @param string $error_debug_msg Error message
      * @return array
      **/
     public static function arr_set_error($error_no, $error_msg, $error_debug_msg = '')

@@ -198,6 +198,10 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
         $this->_set_input($input);
 
+        if (!$this->_pre_trigger_condition()) {
+            return $this->_validate_event_output();
+        }
+
         $output_validated = false;
         foreach ($callbacks as $priority_callbacks) {
             if (empty($priority_callbacks) || !is_array($priority_callbacks)) {
@@ -388,6 +392,17 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * @return bool
      */
     public function supports_background_listeners() : bool
+    {
+        return true;
+    }
+
+    /**
+     * Override this method if you want the event have an internal logic before trigger.
+     * If this logic returns false the triggering will stop before doing anything.
+     * Useful for events with background listeners as the trigger will be stopped before launching the background job.
+     * @return bool
+     */
+    protected function _pre_trigger_condition() : bool
     {
         return true;
     }
