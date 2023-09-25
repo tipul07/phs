@@ -1016,16 +1016,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         ob_start();
 
-        if ($is_active
-            && $this->_admin_plugin->can_admin_login_subaccounts()) {
-            ?>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-sign-in action-icons" title="<?php echo $this->_pt('Change login to this account'); ?>"></i></a>
-            <?php
-        }
-
         if ($can_manage_account) {
+            if ($is_active
+                && $this->_admin_plugin->can_admin_login_subaccounts()) {
+                ?>
+                <a href="javascript:void(0)"
+                   onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-sign-in action-icons" title="<?php echo $this->_pt('Change login to this account'); ?>"></i></a>
+                <?php
+            }
+
             if ($is_inactive || $is_active) {
                 ?>
                 <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
