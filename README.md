@@ -8,7 +8,7 @@
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/tipul07/phs?color=green)](https://github.com/tipul07/phs/commits/master)
 [![GitHub HitCount](http://hits.dwyl.io/tipul07/phs.svg)](http://hits.dwyl.io/tipul07/phs)
 
-Latest version 1.1.9.8
+Latest version 1.1.9.9
 
 Minimum PHP version required 7.4+ (required for class autloading)
 
