@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\system\core\events\generic\PHS_Event_Log;
 
 // ! Class which handles all logging in platform
 class PHS_Logger extends PHS_Registry
@@ -657,24 +658,25 @@ class PHS_Logger extends PHS_Registry
 
         $log_time = date('d-m-Y H:i:s T');
 
-        $hook_args = self::validate_array([
-            'stop_logging'       => false,
+        $stop_logging = false;
+        /** @var PHS_Event_Log $event_obj */
+        if (($event_obj = PHS_Event_Log::trigger([
+            'channel'            => $channel,
+            'log_level'          => $log_level,
+            'log_level_str'      => $log_details['log_title'] ?? '',
             'log_file'           => $log_file,
             'log_time'           => $log_time,
             'request_identifier' => self::$_request_identifier,
             'request_ip'         => $request_ip,
             'str'                => $str,
-        ], PHS_Hooks::default_common_hook_args());
-
-        $stop_logging = false;
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_LOG, $hook_args))
-         && is_array($hook_args)) {
-            $stop_logging = (!empty($hook_args['stop_logging']));
-            if (!empty($hook_args['request_ip'])) {
-                $request_ip = $hook_args['request_ip'];
+        ]))
+            && !($output_arr = $event_obj->get_output('action_result'))) {
+            $stop_logging = (!empty($output_arr['stop_logging']));
+            if (!empty($output_arr['request_ip'])) {
+                $request_ip = $output_arr['request_ip'];
             }
-            if (!empty($hook_args['str'])) {
-                $str = $hook_args['str'];
+            if (!empty($output_arr['str'])) {
+                $str = $output_arr['str'];
             }
         }
 
