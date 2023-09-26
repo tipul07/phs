@@ -17,6 +17,12 @@ if ((empty($form_data['pid']) || $form_data['pid'] !== PHS_Instantiable::CORE_PL
     return $this->_pt('Plugin ID is invalid or plugin was not found.');
 }
 
+/** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
+if (!($tenants_model = $this->view_var('tenants_model'))
+) {
+    return $this->_pt('Error loading required resources.');
+}
+
 if (!($tenant_id = $this->view_var('tenant_id'))) {
     $tenant_id = 0;
 }
@@ -29,6 +35,9 @@ if (!($settings_fields = $this->view_var('settings_fields'))) {
 }
 if (!($modules_with_settings = $this->view_var('modules_with_settings'))) {
     $modules_with_settings = [];
+}
+if (!($tenants_arr = $this->view_var('tenants_arr'))) {
+    $tenants_arr = [];
 }
 
 if (!($plugin_settings = $this->view_var('db_settings'))) {
@@ -50,15 +59,9 @@ if (empty($plugin_obj)) {
 
 $current_user = PHS::user_logged_in();
 $is_multitenant = PHS::is_multi_tenant();
-
-$args = [];
-$args['pid'] = $form_data['pid'];
-if(PHS::is_multi_tenant()) {
-    $args['tenant_id'] = $tenant_id;
-}
 ?>
 <form id="plugin_settings_form" name="plugin_settings_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], $args); ?>">
+      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'], ['pid' => $form_data['pid']]); ?>">
     <input type="hidden" name="foobar" value="1" />
     <?php
     if (!empty($back_page)) {
@@ -126,30 +129,28 @@ if (!empty($plugin_info['models'])
             <?php
     }
 
-    if (false && $is_multitenant) {
+    if ($is_multitenant) {
         ?>
         <div class="row">
-            <label for="selected_module" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select tenant'); ?></label>
+            <label for="tenant_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select tenant'); ?></label>
             <div class="col-sm-2" style="min-width:250px;max-width:360px;">
                 <select name="tenant_id" id="tenant_id" class="chosen-select-nosearch"
                         onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
-                <option value=""><?php echo $this->_pt( '- Choose -' )?></option>
+                <option value="0"><?php echo $this->_pt( '- Default setting -' )?></option>
                 <?php
-                foreach ($modules_with_settings as $model_id => $model_arr) {
-                    if (!is_array($model_arr)
-                     || empty($model_arr['instance'])) {
+                foreach ($tenants_arr as $t_id => $t_arr) {
+                    if ($tenants_model->is_deleted($t_arr)) {
                         continue;
                     }
 
-                    /** @var \phs\libraries\PHS_Model $model_instance */
-                    $model_instance = $model_arr['instance'];
-
-                    ?><option value="<?php echo $model_id; ?>" <?php echo $form_data['selected_module'] === $model_id ? 'selected="selected"' : ''; ?>><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
+                    ?><option value="<?php echo $t_id; ?>"
+                    <?php echo $tenant_id === $t_id ? 'selected="selected"' : ''; ?>
+                    ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option><?php
                 }
                 ?></select>
             </div>
             <div class="col-sm-2">
-            <input type="submit" id="select_module" name="select_module"
+            <input type="submit" id="select_tenant" name="select_tenant"
                    class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
             </div>
         </div>

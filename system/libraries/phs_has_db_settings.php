@@ -8,6 +8,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
+use phs\system\core\events\plugins\PHS_Event_Tenant_plugin_settings;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_obfuscated_keys;
 
 abstract class PHS_Has_db_settings extends PHS_Instantiable
@@ -35,6 +36,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     // Database settings field parsed as array
     private array $_db_settings = [];
+
+    // Tenant database settings field parsed as array
+    private array $_db_tenant_settings = [];
 
     // What keys should be obfuscated
     private ?array $_obfuscating_keys = null;
@@ -272,6 +276,49 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
+     * @param int $tenant_id For which tenant do we want settings?
+     * @param bool $force Forces reading details from database (ignoring cached value)
+     *
+     * @return array Settings saved in database for provided tenant for current instance
+     */
+    public function get_tenant_db_settings(int $tenant_id, bool $force = false) : array
+    {
+        if (empty($tenant_id)
+            || !PHS::is_multi_tenant()) {
+            return [];
+        }
+
+        if (empty($force)
+         && !empty($this->_db_tenant_settings[$tenant_id])) {
+            return $this->_db_tenant_settings[$tenant_id];
+        }
+
+        $instance_id = $this->instance_id();
+
+        if (!$this->_load_plugins_instance()
+            || !($db_settings = $this->_plugins_instance->get_plugins_db_tenant_settings($instance_id, $tenant_id, $force))
+            || !($db_settings = $this->_deobfuscate_settings_array($db_settings))) {
+            return [];
+        }
+
+        // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
+        /** @var PHS_Event_Tenant_plugin_settings $event_obj */
+        if (($event_obj = PHS_Event_Tenant_plugin_settings::trigger([
+            'tenant_id'    => $tenant_id,
+            'instance_id'  => $instance_id,
+            'settings_arr' => $db_settings,
+        ]))
+            && ($extra_settings_arr = $event_obj->get_output('settings_arr'))
+        ) {
+            $db_settings = self::validate_array($extra_settings_arr, $db_settings);
+        }
+
+        $this->_db_tenant_settings[$tenant_id] = $db_settings;
+
+        return $this->_db_tenant_settings[$tenant_id];
+    }
+
+    /**
      * @param array $settings_arr Settings to be saved
      * @param null|int $tenant_id For which tenant are we saving the settings (if any)
      *
@@ -452,7 +499,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     public static function render_settings_form_for_instance(
         ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
-        ?int $tenant_id = null
+        ?int $tenant_id = null,
+        ?array $form_data = null
     ): ?array
     {
         self::st_reset_error();
@@ -462,10 +510,13 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return null;
         }
 
-        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj )) ) {
+        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj, $tenant_id )) ) {
             self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt( 'Error obtaining instance settings fields.' ));
             return null;
         }
+
+        var_dump( $settings_fields['instance_info']['db_settings'], $settings_fields['instance_info']['db_main_settings'], $form_data );
+        exit;
 
         $render_result = $settings_fields;
         $render_result['buffer'] = '';
@@ -766,6 +817,9 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $instance_info = self::_extract_rendering_details_from_instance( $plugin_obj, $tenant_id );
         }
 
+        var_dump($instance_info['db_main_settings'], $instance_info['db_tenant_settings'], $instance_info['db_settings']);
+        exit;
+
         $return_arr = [];
         $return_arr['plugin_info'] = $plugin_obj ? $plugin_obj->get_plugin_info() : PHS_Plugin::core_plugin_details_fields();
         $return_arr['models_with_settings'] = $models_with_settings;
@@ -808,6 +862,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $default_settings = [];
             $db_main_settings = [];
             $db_tenant_settings = [];
+            $db_settings = [];
             $db_version = $core_info['db_version'] ?? '0.0.0';
             $script_version = $core_info['script_version'] ?? '0.0.0';
         } else {
@@ -817,7 +872,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             if( !($default_settings = $instance_obj->get_default_settings()) ) {
                 $default_settings = [];
             }
-            if( !($db_tenant_settings = $instance_obj->get_db_settings($tenant_id)) ) {
+            if(empty($tenant_id)
+               || !($db_tenant_settings = $instance_obj->get_tenant_db_settings($tenant_id)) ) {
                 $db_tenant_settings = [];
             }
             if (!($db_details = $instance_obj->get_db_main_details())) {
@@ -831,7 +887,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 $script_version = '0.0.0';
             }
 
-            $db_main_settings = $tenant_id ? $instance_obj->get_db_settings(0) : $db_tenant_settings;
+            $db_main_settings = $instance_obj->get_db_settings(0);
+            $db_settings = $instance_obj->get_db_settings($tenant_id);
             $db_version = $db_details['version'] ?? '0.0.0';
         }
 
@@ -840,7 +897,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $return_arr['settings_structure'] = $settings_structure_arr;
         $return_arr['default_settings'] = $default_settings;
         $return_arr['db_main_settings'] = $db_main_settings;
-        $return_arr['db_settings'] = $db_tenant_settings;
+        $return_arr['db_tenant_settings'] = $db_tenant_settings;
+        $return_arr['db_settings'] = $db_settings;
         $return_arr['db_version'] = $db_version;
         $return_arr['script_version'] = $script_version;
 

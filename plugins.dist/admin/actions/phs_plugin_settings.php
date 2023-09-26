@@ -11,6 +11,7 @@ use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Has_db_settings;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Plugin_settings extends PHS_Action
@@ -36,7 +37,9 @@ class PHS_Action_Plugin_settings extends PHS_Action
         }
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
+        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+            || !($tenants_model = PHS_Model_Tenants::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
@@ -48,11 +51,20 @@ class PHS_Action_Plugin_settings extends PHS_Action
             return self::default_action_result();
         }
 
+        $is_multi_tenant = PHS::is_multi_tenant();
+
         $pid = PHS_Params::_gp('pid', PHS_Params::T_NOHTML);
         $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
         $do_cancel = PHS_Params::_p('do_cancel');
+
+        if( !$is_multi_tenant ) {
+            $tenant_id = 0;
+            $tenants_arr = [];
+        } elseif(!($tenants_arr = $tenants_model->get_all_tenants())) {
+            $tenants_arr = [];
+        }
 
         if (empty($back_page)) {
             $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
@@ -60,15 +72,18 @@ class PHS_Action_Plugin_settings extends PHS_Action
             $back_page = from_safe_url($back_page);
         }
 
-        if ($do_cancel
-            || ($pid !== PHS_Instantiable::CORE_PLUGIN
-                && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
-                    || empty($instance_details['instance_type'])
-                    || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
-                    || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
-                ))
+        if ($do_cancel) {
+            return action_redirect($back_page);
+        }
+
+        if ($pid !== PHS_Instantiable::CORE_PLUGIN
+            && (!($instance_details = PHS_Instantiable::valid_instance_id($pid))
+                || empty($instance_details['instance_type'])
+                || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                || !($this->_plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
+            )
         ) {
-            return action_redirect($do_cancel?$back_page:add_url_params($back_page, ['unknown_plugin' => 1]) );
+            return action_redirect(['p' => 'admin', 'a' => 'plugins_list'], ['unknown_plugin' => 1]);
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -106,12 +121,14 @@ class PHS_Action_Plugin_settings extends PHS_Action
 
         $data = [
             'back_page'             => $back_page,
+            'tenant_id'            => $tenant_id,
+            'tenants_arr'             => $tenants_arr,
             'form_data'             => [],
             'modules_with_settings' => $modules_with_settings,
             'settings_fields'       => [],
             'db_settings'           => [],
             'plugin_obj'            => $this->_plugin_obj,
-            'tenant_id'            => $tenant_id,
+            'tenants_model'            => $tenants_model,
         ];
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
@@ -171,15 +188,6 @@ class PHS_Action_Plugin_settings extends PHS_Action
             }
         }
 
-        // $rendered = PHS_Has_db_settings::render_settings_form_for_instance( $this->_plugin_obj, $model_instance );
-        // var_dump( $rendered['instance_info']['settings_structure'] ?? null );
-        // var_dump( $settings_fields );
-        // exit;
-
-        //echo self::var_dump( PHS_Has_db_settings::render_settings_form_for_instance( $this->_plugin_obj, $model_instance, $tenant_id ), [ 'max_level' => 4 ] );
-        //var_dump(PHS_Has_db_settings::st_get_error());
-        //exit;
-
         //$new_settings_arr = $this->_extract_settings_fields_from_submit($settings_fields, $default_settings, $db_settings, $foobar, $form_data);
 
         $new_settings_arr = [];
@@ -192,6 +200,10 @@ class PHS_Action_Plugin_settings extends PHS_Action
                 $form_data = $form_extraction['form_data'];
             }
         }
+
+        // echo self::var_dump( PHS_Has_db_settings::render_settings_form_for_instance( $this->_plugin_obj, $model_instance, $tenant_id, $form_data ), [ 'max_level' => 4 ] );
+        // var_dump(PHS_Has_db_settings::st_get_error());
+        // exit;
 
         if (!empty($do_submit)) {
             //$new_settings_arr = self::validate_array($new_settings_arr, $db_settings);
@@ -234,7 +246,7 @@ class PHS_Action_Plugin_settings extends PHS_Action
                         'selected_module' => $selected_module,
                     ];
 
-                    if(PHS::is_multi_tenant()) {
+                    if($is_multi_tenant) {
                         $args['tenant_id'] = $tenant_id;
                     }
 

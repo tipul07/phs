@@ -50,12 +50,12 @@ abstract class PHS_Library extends PHS_Registry
     /**
      * Gets plugin instance where current instance is running
      *
-     * @return bool|false|PHS_Plugin
+     * @return null|PHS_Plugin
      */
-    final public function get_plugin_instance()
+    final public function get_plugin_instance(): ?PHS_Plugin
     {
         if (empty($this->_parent_plugin)) {
-            return false;
+            return null;
         }
 
         return $this->_parent_plugin;
@@ -64,7 +64,7 @@ abstract class PHS_Library extends PHS_Registry
     /**
      * @return array Array with settings of plugin of current model
      */
-    public function get_plugin_settings()
+    public function get_plugin_settings(): array
     {
         if (!($plugin_obj = $this->get_plugin_instance())) {
             return [];

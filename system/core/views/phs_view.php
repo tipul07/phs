@@ -929,7 +929,7 @@ class PHS_View extends PHS_Instantiable
             $params['controller_obj'] = false;
         }
         if (empty($params['parent_plugin_obj'])) {
-            $params['parent_plugin_obj'] = false;
+            $params['parent_plugin_obj'] = null;
         }
 
         if (empty($params['template_data']) || !is_array($params['template_data'])) {

@@ -84,9 +84,9 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * Gets plugin instance where current instance is running
      *
-     * @return bool|false|PHS_Plugin
+     * @return null|PHS_Plugin
      */
-    final public function get_plugin_instance()
+    final public function get_plugin_instance(): ?PHS_Plugin
     {
         $this->reset_error();
 
@@ -105,7 +105,7 @@ abstract class PHS_Instantiable extends PHS_Registry
                 $this->copy_static_error();
             }
 
-            return false;
+            return null;
         }
 
         return $plugin_obj;

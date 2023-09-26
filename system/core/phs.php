@@ -2046,7 +2046,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        $plugin_obj = false;
+        $plugin_obj = null;
         /** @var \phs\libraries\PHS_Plugin $plugin_obj */
         /** @var \phs\libraries\PHS_Controller $controller_obj */
         /** @var \phs\libraries\PHS_Action $action_obj */

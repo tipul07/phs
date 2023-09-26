@@ -181,7 +181,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         if (empty($tenant_id)
          || !PHS::is_multi_tenant()
-         || !($tenant_settings = $this->_get_plugins_db_tenant_settings($instance_id, $tenant_id, $force))) {
+         || !($tenant_settings = $this->get_plugins_db_tenant_settings($instance_id, $tenant_id, $force))) {
             return $main_settings;
         }
 
@@ -1360,7 +1360,7 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        if (!($old_settings = $this->_get_plugins_db_tenant_settings($instance_id, $tenant_id, true))) {
+        if (!($old_settings = $this->get_plugins_db_tenant_settings($instance_id, $tenant_id, true))) {
             $old_settings = [];
         }
 
@@ -1386,7 +1386,7 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        if (!($new_settings_arr = $this->_get_plugins_db_tenant_settings($instance_id, $tenant_id, true))) {
+        if (!($new_settings_arr = $this->get_plugins_db_tenant_settings($instance_id, $tenant_id, true))) {
             $new_settings_arr = [];
         }
 
@@ -1439,7 +1439,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array
      */
-    private function _get_plugins_db_tenant_settings(
+    public function get_plugins_db_tenant_settings(
         string $instance_id,
         int $tenant_id,
         bool $force = false) : ?array
@@ -1667,6 +1667,10 @@ class PHS_Model_Plugins extends PHS_Model
 
         PHS_Logger::notice('DONE Plugins model action ['.$params['action'].'] on tenant ['.$tenant_id.'] instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
+        if( empty( self::$db_tenant_plugins ) ) {
+            self::$db_tenant_plugins = [];
+        }
+
         self::$db_tenant_plugins[$tenant_id][$instance_id] = $plugin_arr;
 
         $return_arr = [];
@@ -1710,6 +1714,8 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         $this->_reset_tenants_db_plugin_cache();
+
+        self::$db_tenant_plugins = [];
 
         if (!PHS::is_multi_tenant()) {
             return true;
@@ -1941,7 +1947,7 @@ class PHS_Model_Plugins extends PHS_Model
 
     private function _reset_tenants_db_plugin_cache() : void
     {
-        self::$db_tenant_plugins = [];
+        self::$db_tenant_plugins = null;
         self::$db_plugin_tenant_plugins = [];
         self::$db_plugin_active_tenant_plugins = [];
     }
