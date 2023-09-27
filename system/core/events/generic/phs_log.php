@@ -20,6 +20,7 @@ class PHS_Event_Log extends PHS_Event
             'log_level'          => 0,
             'log_level_str'      => '',
             'log_file'           => '',
+            'log_timestamp'      => '',
             'log_time'           => '',
             'request_identifier' => '',
             'request_ip'         => '',

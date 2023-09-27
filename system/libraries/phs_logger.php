@@ -656,7 +656,8 @@ class PHS_Logger extends PHS_Registry
             $request_ip = '(unknown)';
         }
 
-        $log_time = date('d-m-Y H:i:s T');
+        $log_timestamp = time();
+        $log_time = date('d-m-Y H:i:s T', $log_timestamp);
 
         $stop_logging = false;
         /** @var PHS_Event_Log $event_obj */
@@ -665,12 +666,13 @@ class PHS_Logger extends PHS_Registry
             'log_level'          => $log_level,
             'log_level_str'      => $log_details['log_title'] ?? '',
             'log_file'           => $log_file,
+            'log_timestamp'      => $log_timestamp,
             'log_time'           => $log_time,
             'request_identifier' => self::$_request_identifier,
             'request_ip'         => $request_ip,
             'str'                => $str,
         ]))
-            && !($output_arr = $event_obj->get_output('action_result'))) {
+            && !($output_arr = $event_obj->get_output())) {
             $stop_logging = (!empty($output_arr['stop_logging']));
             if (!empty($output_arr['request_ip'])) {
                 $request_ip = $output_arr['request_ip'];
