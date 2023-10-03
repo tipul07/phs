@@ -163,6 +163,21 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
+     * @param bool $force Forces reading details from database (ignoring cached value)
+     *
+     * @return string
+     */
+    public function get_db_version(bool $force = false) : string
+    {
+        if (!($db_details = $this->get_db_main_details($force))
+            || empty($db_details['version']) ) {
+            return '0.0.0';
+        }
+
+        return $db_details['version'];
+    }
+
+    /**
      * @param null|int $tenant_id
      * @param bool $force Forces reading details from database (ignoring cached value)
      *
@@ -497,6 +512,155 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
     }
 
+    //region NEW settings section
+    private static function _default_context_array(): array
+    {
+        $context_arr = [];
+        $context_arr['tenant_id'] = 0;
+        $context_arr['plugin'] = '';
+        $context_arr['model_id'] = '';
+        $context_arr['extract_submit'] = false;
+
+        $context_arr['models_arr'] = [];
+
+        $context_arr['stop_executon'] = false;
+        $context_arr['redirect_to'] = null;
+        $context_arr['errors'] = null;
+
+        $context_arr['db_version'] = '0.0.0';
+        $context_arr['script_version'] = '0.0.0';
+
+        $context_arr['settings_structure'] = [];
+        $context_arr['default_settings'] = [];
+        $context_arr['db_main_settings'] = [];
+        $context_arr['db_tenant_settings'] = [];
+        $context_arr['db_settings'] = [];
+
+        $context_arr['submit_settings'] = [];
+        $context_arr['form_data'] = [];
+
+        $context_arr['plugin_instance'] = null;
+        $context_arr['model_instance'] = null;
+
+        return $context_arr;
+    }
+
+    public static function init_settings_context( array $context_arr ): ?array
+    {
+        self::st_reset_error();
+        $context_arr = self::validate_array( $context_arr, self::_default_context_array() );
+
+        $is_multi_tenant = PHS::is_multi_tenant();
+
+        $plugin = $context_arr['plugin'] ?? PHS_Instantiable::CORE_PLUGIN;
+        $model = $context_arr['model_id'] ?? '';
+        $plugin_obj = null;
+        $model_obj = null;
+
+        $tenant_id = !$is_multi_tenant ? 0 : ($context_arr['tenant_id'] ?? 0);
+
+        if ($plugin !== PHS_Instantiable::CORE_PLUGIN
+            && (!($instance_details = PHS_Instantiable::valid_instance_id($plugin))
+                || empty($instance_details['instance_type'])
+                || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                || !($plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
+            )
+        ) {
+            $context_arr['redirect_to'] = PHS::url(['p' => 'admin', 'a' => 'plugins_list'], ['unknown_plugin' => 1]);
+            $context_arr['errors'] = self::arr_set_error(self::ERR_PARAMETERS, self::_t('Unknown plugin.'));
+
+            return $context_arr;
+        }
+        $context_arr['plugin_instance'] = $plugin_obj;
+
+        if( $plugin_obj === null ) {
+            $context_arr['models_arr'] = PHS::get_core_models();
+        } else {
+            $context_arr['models_arr'] = $plugin_obj->get_models();
+        }
+
+        if( !empty( $model )
+            && (!in_array( $model, $context_arr['models_arr'], true)
+                || !($model_obj = PHS::load_model($model, $plugin_obj->instance_plugin_name()))
+            )
+        ) {
+            $context_arr['stop_executon'] = true;
+            $context_arr['errors'] = self::arr_set_error(self::ERR_PARAMETERS, self::_t('Unknown model.'));
+
+            return $context_arr;
+        }
+        $context_arr['model_instance'] = $model_obj;
+
+        if( ($settings_arr = self::_extract_settings_for_instance($plugin_obj ?? $model_obj, $tenant_id )) ) {
+            $context_arr = self::merge_array_assoc_existing( $context_arr, $settings_arr );
+        }
+
+        self::_extract_settings_fields_from_submit_fields(
+            $context_arr['settings_structure'] ?? [],
+            $context_arr['default_settings'] ?? [],
+            $context_arr['db_main_settings'] ?? [],
+            $context_arr['db_settings'] ?? [],
+            $context_arr['submit_settings'], $context_arr['form_data'], $context_arr['extract_submit']);
+
+        return $context_arr;
+    }
+
+    private static function _extract_settings_for_instance(?PHS_Has_db_settings $instance_obj, int $tenant_id): array
+    {
+        if( $instance_obj === null ) {
+            $core_info = PHS_Plugin::core_plugin_details_fields();
+
+            $settings_structure_arr = [];
+            $default_settings = [];
+            $db_main_settings = [];
+            $db_tenant_settings = [];
+            $db_settings = [];
+            $db_version = $core_info['db_version'] ?? '0.0.0';
+            $script_version = $core_info['script_version'] ?? '0.0.0';
+        } else {
+            if( !($settings_structure_arr = $instance_obj->validate_settings_structure()) ) {
+                $settings_structure_arr = [];
+            }
+
+            if( !($default_settings = $instance_obj->get_default_settings()) ) {
+                $default_settings = [];
+            }
+
+            if(empty($tenant_id)
+               || !($db_tenant_settings = $instance_obj->get_tenant_db_settings($tenant_id)) ) {
+                $db_tenant_settings = [];
+            }
+
+            if( $instance_obj instanceof PHS_Model ) {
+                $script_version = $instance_obj->get_model_version();
+            } elseif( $instance_obj instanceof PHS_Plugin ) {
+                $script_version = $instance_obj->get_plugin_version();
+            } else {
+                $script_version = '0.0.0';
+            }
+
+            $db_main_settings = $instance_obj->get_db_settings(0);
+            $db_settings = $instance_obj->get_db_settings($tenant_id);
+            $db_version = $instance_obj->get_db_version();
+        }
+
+        $return_arr = [];
+        $return_arr['db_version'] = $db_version;
+        $return_arr['script_version'] = $script_version;
+
+        $return_arr['settings_structure'] = $settings_structure_arr;
+        $return_arr['default_settings'] = $default_settings;
+        $return_arr['db_main_settings'] = $db_main_settings;
+        $return_arr['db_tenant_settings'] = $db_tenant_settings;
+        $return_arr['db_settings'] = $db_settings;
+
+        // Temporary TO BE DELETED
+        $return_arr['instance'] = $instance_obj;
+
+        return $return_arr;
+    }
+    //endregion END NEW settings section
+
     public static function render_settings_form_for_instance(
         ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
         ?int $tenant_id = null,
@@ -814,7 +978,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         if( $model_obj !== null ) {
             $instance_info = $models_with_settings[$model_obj->instance_id()] ?? [];
         } else {
-            $instance_info = self::_extract_rendering_details_from_instance( $plugin_obj, $tenant_id );
+            $instance_info = self::_extract_settings_for_instance( $plugin_obj, $tenant_id );
         }
 
         var_dump($instance_info['db_main_settings'], $instance_info['db_tenant_settings'], $instance_info['db_settings']);
@@ -847,60 +1011,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 continue;
             }
 
-            $return_arr[$model_id] = self::_extract_rendering_details_from_instance( $model_instance, $tenant_id );
+            $return_arr[$model_id] = self::_extract_settings_for_instance( $model_instance, $tenant_id );
         }
-
-        return $return_arr;
-    }
-
-    private static function _extract_rendering_details_from_instance( ?self $instance_obj, ?int $tenant_id = null ): array
-    {
-        if( $instance_obj === null ) {
-            $core_info = PHS_Plugin::core_plugin_details_fields();
-
-            $settings_structure_arr = [];
-            $default_settings = [];
-            $db_main_settings = [];
-            $db_tenant_settings = [];
-            $db_settings = [];
-            $db_version = $core_info['db_version'] ?? '0.0.0';
-            $script_version = $core_info['script_version'] ?? '0.0.0';
-        } else {
-            if( !($settings_structure_arr = $instance_obj->validate_settings_structure()) ) {
-                $settings_structure_arr = [];
-            }
-            if( !($default_settings = $instance_obj->get_default_settings()) ) {
-                $default_settings = [];
-            }
-            if(empty($tenant_id)
-               || !($db_tenant_settings = $instance_obj->get_tenant_db_settings($tenant_id)) ) {
-                $db_tenant_settings = [];
-            }
-            if (!($db_details = $instance_obj->get_db_main_details())) {
-                $db_details = [];
-            }
-            if( $instance_obj instanceof PHS_Model ) {
-                $script_version = $instance_obj->get_model_version();
-            } elseif( $instance_obj instanceof PHS_Plugin ) {
-                $script_version = $instance_obj->get_plugin_version();
-            } else {
-                $script_version = '0.0.0';
-            }
-
-            $db_main_settings = $instance_obj->get_db_settings(0);
-            $db_settings = $instance_obj->get_db_settings($tenant_id);
-            $db_version = $db_details['version'] ?? '0.0.0';
-        }
-
-        $return_arr = [];
-        $return_arr['instance'] = $instance_obj;
-        $return_arr['settings_structure'] = $settings_structure_arr;
-        $return_arr['default_settings'] = $default_settings;
-        $return_arr['db_main_settings'] = $db_main_settings;
-        $return_arr['db_tenant_settings'] = $db_tenant_settings;
-        $return_arr['db_settings'] = $db_settings;
-        $return_arr['db_version'] = $db_version;
-        $return_arr['script_version'] = $script_version;
 
         return $return_arr;
     }

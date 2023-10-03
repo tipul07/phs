@@ -266,7 +266,29 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function merge_array_assoc($arr1, $arr2)
+    public static function merge_array_assoc($arr1, $arr2): array
+    {
+        if (empty($arr1) || !is_array($arr1)) {
+            return is_array($arr2)?$arr2:[];
+        }
+        if (empty($arr2) || !is_array($arr2)) {
+            return $arr1;
+        }
+
+        foreach ($arr2 as $key => $val) {
+            $arr1[$key] = $val;
+        }
+
+        return $arr1;
+    }
+
+    /**
+     * @param array $arr1
+     * @param array $arr2
+     *
+     * @return array
+     */
+    public static function merge_array_assoc_existing($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return $arr2;
@@ -276,6 +298,10 @@ class PHS_Registry extends PHS_Language
         }
 
         foreach ($arr2 as $key => $val) {
+            if( !array_key_exists( $key, $arr1 ) ) {
+                continue;
+            }
+
             $arr1[$key] = $val;
         }
 
@@ -354,10 +380,10 @@ class PHS_Registry extends PHS_Language
         return $new_array;
     }
 
-    public static function merge_array_assoc_insensitive($arr1, $arr2, $params = false)
+    public static function merge_array_assoc_insensitive($arr1, $arr2, $params = false): array
     {
         if (empty($arr1) || !is_array($arr1)) {
-            return $arr2;
+            return is_array($arr2)?$arr2:[];
         }
         if (empty($arr2) || !is_array($arr2)) {
             return $arr1;
@@ -366,10 +392,10 @@ class PHS_Registry extends PHS_Language
         return self::unify_array_insensitive(self::merge_array_assoc($arr1, $arr2), $params);
     }
 
-    public static function merge_array_assoc_recursive($arr1, $arr2)
+    public static function merge_array_assoc_recursive($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
-            return $arr2;
+            return is_array($arr2)?$arr2:[];
         }
         if (empty($arr2) || !is_array($arr2)) {
             return $arr1;
