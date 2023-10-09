@@ -707,9 +707,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             return null;
         }
 
-        var_dump( $settings_fields['instance_info']['db_settings'], $settings_fields['instance_info']['db_main_settings'], $form_data );
-        exit;
-
         $render_result = $settings_fields;
         $render_result['buffer'] = '';
 
@@ -1062,9 +1059,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         } else {
             $instance_info = self::_extract_settings_for_instance( $plugin_obj, $tenant_id );
         }
-
-        var_dump($instance_info['db_main_settings'], $instance_info['db_tenant_settings'], $instance_info['db_settings']);
-        exit;
 
         $return_arr = [];
         $return_arr['plugin_info'] = $plugin_obj ? $plugin_obj->get_plugin_info() : PHS_Plugin::core_plugin_details_fields();
