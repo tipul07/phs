@@ -559,6 +559,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         $tenant_id = !$is_multi_tenant ? 0 : ($context_arr['tenant_id'] ?? 0);
 
+        $context_arr['plugin'] = $plugin;
+        $context_arr['model_id'] = $model;
+        $context_arr['tenant_id'] = $tenant_id;
+
         if ($plugin !== PHS_Instantiable::CORE_PLUGIN
             && (!($instance_details = PHS_Instantiable::valid_instance_id($plugin))
                 || empty($instance_details['instance_type'])
@@ -595,18 +599,37 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $context_arr = self::merge_array_assoc_existing( $context_arr, $settings_arr );
         }
 
-        self::_extract_settings_fields_from_submit_fields(
-            $context_arr['settings_structure'] ?? [],
-            $context_arr['default_settings'] ?? [],
-            $context_arr['db_main_settings'] ?? [],
-            $context_arr['db_settings'] ?? [],
-            $context_arr['submit_settings'], $context_arr['form_data'], $context_arr['extract_submit']);
+        return $context_arr;
+    }
+
+    /**
+     * Given a context, extract form data and setting according to subbmited data. If no submit array is provided,
+     * extract the data from a form submit as default
+     *
+     * @param  array  $context_arr
+     * @param  null|array  $submit_arr
+     *
+     * @return null|array
+     */
+    public static function extract_settings_and_form_data_from_context( array $context_arr, ?array $submit_arr = null ): ?array
+    {
+        self::st_reset_error();
+        $context_arr = self::validate_array($context_arr, self::_default_context_array());
+
+        self::_extract_settings_and_form_data_from_submit(
+            $context_arr['settings_structure'], $context_arr['db_settings'], $context_arr['default_settings'],
+            $context_arr['submit_settings'], $context_arr['form_data'],
+            $context_arr['extract_submit'], $submit_arr
+        );
 
         return $context_arr;
     }
 
-    private static function _extract_settings_for_instance(?PHS_Has_db_settings $instance_obj, int $tenant_id): array
+    private static function _extract_settings_for_instance(?PHS_Has_db_settings $instance_obj, ?int $tenant_id = null): array
     {
+        $tenant_id ??= 0;
+        $is_multi_tenant = PHS::is_multi_tenant();
+
         if( $instance_obj === null ) {
             $core_info = PHS_Plugin::core_plugin_details_fields();
 
@@ -626,7 +649,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 $default_settings = [];
             }
 
-            if(empty($tenant_id)
+            if(!$is_multi_tenant
+               || empty($tenant_id)
                || !($db_tenant_settings = $instance_obj->get_tenant_db_settings($tenant_id)) ) {
                 $db_tenant_settings = [];
             }
@@ -640,7 +664,11 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             }
 
             $db_main_settings = $instance_obj->get_db_settings(0);
-            $db_settings = $instance_obj->get_db_settings($tenant_id);
+            if( $is_multi_tenant ) {
+                $db_settings = $instance_obj->get_db_settings($tenant_id);
+            } else {
+                $db_settings = $db_main_settings;
+            }
             $db_version = $instance_obj->get_db_version();
         }
 
@@ -873,7 +901,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 }
 
                 if (null === ($field_value = self::_extract_field_value_from_submit(
-                    $field_name, $field_details, $default_settings,
+                    $field_name, $field_details, $db_settings, $default_settings,
                     $form_data,
                     $is_post))) {
                     continue;
@@ -885,27 +913,43 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     private static function _extract_field_value_from_submit(
-        string $field_name, array $field_details, array $default_settings,
+        string $field_name, array $field_details, array $db_settings, array $default_settings,
         array &$form_data,
-        bool $is_post = false
+        bool $is_post = false, ?array $submit_arr = null
     )
     {
         $field_value = null;
 
         if (empty($field_details['editable'])) {
             // Check if default values have changed (upgrading plugin might change default value)
-            if (isset($default_settings[$field_name])) {
+            if (isset($db_settings[$field_name])) {
+                $field_value = $db_settings[$field_name];
+            } elseif (isset($default_settings[$field_name])) {
                 $field_value = $default_settings[$field_name];
             }
 
             return $field_value;
         }
 
-        $form_data[$field_name] = PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
+        $field_details['type'] = (int)$field_details['type'];
+
+        if( isset($submit_arr[$field_name])) {
+            $form_data[$field_name] =
+                PHS_Params::set_type($submit_arr[$field_name], $field_details['type'], $field_details['extra_type']);
+        } else {
+            $form_data[$field_name] =
+                PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
+        }
 
         if (!empty($is_post)
-            && (int)$field_details['type'] === PHS_Params::T_BOOL) {
+            && ($field_details['type'] === PHS_Params::T_BOOL
+                || $field_details['type'] === PHS_Params::T_NUMERIC_BOOL)
+        ) {
             $form_data[$field_name] = (!empty($form_data[$field_name]));
+
+            if( $field_details['type'] === PHS_Params::T_NUMERIC_BOOL ) {
+                $form_data[$field_name] = $form_data[$field_name]?1:0;
+            }
         }
 
         if (!empty($field_details['custom_save'])) {
@@ -918,6 +962,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             case self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
                 if (isset($form_data[$field_name])) {
                     $field_value = $form_data[$field_name];
+                } elseif (isset($db_settings[$field_name])) {
+                    $field_value = $db_settings[$field_name];
                 } elseif (isset($default_settings[$field_name])) {
                     $field_value = $default_settings[$field_name];
                 }
@@ -927,15 +973,51 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             break;
 
             case self::INPUT_TYPE_KEY_VAL_ARRAY:
-                if (empty($default_settings[$field_name])) {
+                if (empty($db_settings[$field_name]) && empty($default_settings[$field_name])) {
                     $field_value = $form_data[$field_name];
                 } else {
-                    $field_value = self::validate_array_to_new_array($form_data[$field_name], $default_settings[$field_name]);
+                    $field_value = self::validate_array_to_new_array($form_data[$field_name],
+                        $db_settings[$field_name] ?? $default_settings[$field_name]);
                 }
             break;
         }
 
         return $field_value;
+    }
+
+    private static function _extract_settings_and_form_data_from_submit(
+        array $settings_structure, array $db_settings, array $default_settings,
+        array &$form_settings, array &$form_data,
+        bool $is_post = false, ?array $submit_arr = null
+    ): void
+    {
+        if( empty( $settings_structure ) ) {
+            return;
+        }
+
+        foreach( $settings_structure as $field_name => $field_details ) {
+            if (!empty($field_details['ignore_field_value'])) {
+                continue;
+            }
+
+            if (self::settings_field_is_group($field_details)) {
+                self::_extract_settings_and_form_data_from_submit(
+                    $field_details['group_fields'], $db_settings, $default_settings,
+                    $form_settings, $form_data,
+                    $is_post, $submit_arr);
+
+                continue;
+            }
+
+            if (null === ($field_value = self::_extract_field_value_from_submit(
+                $field_name, $field_details, $db_settings, $default_settings,
+                $form_data,
+                $is_post, $submit_arr))) {
+                continue;
+            }
+
+            $form_settings[$field_name] = $field_value;
+        }
     }
 
     /**

@@ -185,7 +185,7 @@ class PHS_Model_Plugins extends PHS_Model
             return $main_settings;
         }
 
-        return self::validate_array($main_settings, $tenant_settings);
+        return self::merge_array_assoc_existing($main_settings, $tenant_settings);
     }
 
     public function save_plugins_db_registry($registry_arr, $instance_id = null) : ?array
