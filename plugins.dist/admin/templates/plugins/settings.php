@@ -4,6 +4,7 @@
 use phs\PHS;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Has_db_settings;
 
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
@@ -38,8 +39,7 @@ if( !$plugin_obj ) {
     $plugin_info = [];
 }
 
-$current_user = PHS::user_logged_in();
-$is_multitenant = PHS::is_multi_tenant();
+$is_multitenant = $context_arr['is_multi_tenant'] ?? false;
 ?>
 <form id="plugin_settings_form" name="plugin_settings_form" method="post"
       action="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'], ['pid' => $pid]); ?>">
@@ -79,34 +79,6 @@ if (!empty($models_arr)) {
         <?php
     }
 
-    if (!empty($models_arr)) {
-        ?>
-        <div class="row form-group">
-            <label for="model_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select plugin or a model'); ?></label>
-            <div class="col-sm-2" style="min-width:250px;max-width:360px;">
-                <select name="model_id" id="model_id" class="chosen-select"
-                        onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
-                <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
-                <?php
-                foreach ($models_arr as $m_id => $m_name) {
-                    /** @var \phs\libraries\PHS_Model $model_instance */
-                    if (!($model_instance = PHS::load_model($m_name, $plugin_obj?$plugin_obj->instance_name():null ))) {
-                        continue;
-                    }
-
-                    ?><option value="<?php echo $m_name; ?>" <?php echo $model_id === $m_name ? 'selected="selected"' : ''; ?>
-                    ><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
-                }
-                ?></select>
-            </div>
-            <div class="col-sm-2">
-            <input type="submit" id="select_module" name="select_module"
-                   class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
-            </div>
-        </div>
-            <?php
-    }
-
     if ($is_multitenant) {
         ?>
         <div class="row form-group">
@@ -135,6 +107,34 @@ if (!empty($models_arr)) {
             <?php
     }
 
+    if (!empty($models_arr)) {
+        ?>
+        <div class="row form-group">
+            <label for="model_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select plugin or a model'); ?></label>
+            <div class="col-sm-2" style="min-width:250px;max-width:360px;">
+                <select name="model_id" id="model_id" class="chosen-select"
+                        onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
+                    <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
+                    <?php
+                    foreach ($models_arr as $m_id => $m_name) {
+                        /** @var \phs\libraries\PHS_Model $model_instance */
+                        if (!($model_instance = PHS::load_model($m_name, $plugin_obj?$plugin_obj->instance_name():null ))) {
+                            continue;
+                        }
+
+                        ?><option value="<?php echo $m_name; ?>" <?php echo $model_id === $m_name ? 'selected="selected"' : ''; ?>
+                        ><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
+                    }
+                    ?></select>
+            </div>
+            <div class="col-sm-2">
+                <input type="submit" id="select_module" name="select_module"
+                       class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
+            </div>
+        </div>
+        <?php
+    }
+
 ?><p><small><?php
 
 echo $this->_pt('Database version').': '.$plugin_info['db_version'].', ';
@@ -153,7 +153,7 @@ if (version_compare($plugin_info['db_version'], $plugin_info['script_version'], 
 if (empty($settings_structure) || !is_array($settings_structure)) {
     ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt('Selected module doesn\'t have any settings.'); ?></p><?php
 } else {
-    phs_display_plugin_settings_all_fields($settings_structure, $context_arr['form_data'] ?? [], $context_arr['db_settings'], $this, $plugin_obj);
+    phs_display_plugin_settings_all_fields($settings_structure, $context_arr, $this, $plugin_obj);
     ?>
     <div class="form-group">
         <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
@@ -190,17 +190,21 @@ function phs_toggle_settings_group( id )
 
     $("#phs_group_content_"+id).toggle();
 }
-$(window).resize(function () {
-    // var width = $("#ddlSpecialtyContainer")[0].offsetWidth + "px";
-    // $("#ddlSpecialtyContainer .chosen-container").css("width", width);
-    console.log("resize");
-    $(".chosen-select").each(function(index){
-        console.log("Item [" + index + "]");
-        $(this).trigger("chosen:updated");
-    });
-    // chosen( { disable_search_threshold: 7, search_contains: true } );
-    // $(".chosen-select-nosearch").chosen({disable_search: true});
-});
+<?php
+if($is_multitenant) {
+    ?>
+function toggle_custom_tenant_value_section(section_id)
+{
+    $("#"+section_id).toggle();
+    if($("#"+section_id).is(":visible")) {
+        $("#"+section_id+"_main_value").css("opacity", "0.5");
+    } else {
+        $("#"+section_id+"_main_value").css("opacity", "1");
+    }
+}
+<?php
+}
+?>
 </script>
 <?php
 /**
@@ -210,27 +214,25 @@ $(window).resize(function () {
  * @param \phs\system\core\views\PHS_View $fthis
  * @param null|\phs\libraries\PHS_Plugin $plugin_obj
  */
-function phs_display_plugin_settings_all_fields($settings_fields, $form_data, $plugin_settings, $fthis, $plugin_obj)
+function phs_display_plugin_settings_all_fields( array $settings_fields, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): void
 {
     foreach ($settings_fields as $field_name => $field_details) {
         if (!PHS_Plugin::settings_field_is_group($field_details)) {
-            phs_display_plugin_settings_field($field_name, $field_details, $form_data, $plugin_settings, $fthis, $plugin_obj);
+            phs_display_plugin_settings_field($field_name, $field_details, $context_arr, $fthis, $plugin_obj);
         } else {
             ?>
             <fieldset id="phs_group_<?php echo $field_name; ?>">
-                <legend>
-                    <?php
+                <legend><?php
+                    if (!empty($field_details['group_foldable'])) {
+                    ?><div class="lineformgrouptrigger" onclick="phs_toggle_settings_group( '<?php echo $field_name; ?>' )"><?php
+                        }
+
+                        echo $field_details['display_name'];
+
                         if (!empty($field_details['group_foldable'])) {
-                        ?><div class="lineformgrouptrigger" onclick="phs_toggle_settings_group( '<?php echo $field_name; ?>' )"><?php
-                            }
-
-                            echo $field_details['display_name'];
-
-                            if (!empty($field_details['group_foldable'])) {
-                            ?> <i id="phs_group_arrow_icon_<?php echo $field_name; ?>" class="fa fa-arrow-circle-up"></i></div><?php
-                    }
-                    ?>
-                </legend>
+                        ?> <i id="phs_group_arrow_icon_<?php echo $field_name; ?>" class="fa fa-arrow-circle-up"></i></div><?php
+                }
+                ?></legend>
                 <?php
                 if (!empty($field_details['display_hint'])) {
                     ?><small style="top:-15px;position:relative;"><?php echo $field_details['display_hint']; ?></small><?php
@@ -238,7 +240,7 @@ function phs_display_plugin_settings_all_fields($settings_fields, $form_data, $p
                 ?>
                 <div id="phs_group_content_<?php echo $field_name; ?>">
                     <?php
-                    phs_display_plugin_settings_all_fields($field_details['group_fields'], $form_data, $plugin_settings, $fthis, $plugin_obj);
+                    phs_display_plugin_settings_all_fields($field_details['group_fields'], $context_arr, $fthis, $plugin_obj);
                     ?>
                 </div>
             </fieldset>
@@ -254,250 +256,436 @@ function phs_display_plugin_settings_all_fields($settings_fields, $form_data, $p
  * @param \phs\system\core\views\PHS_View $fthis
  * @param \phs\libraries\PHS_Plugin $plugin_obj
  */
-function phs_display_plugin_settings_field($field_name, $field_details, $form_data, $plugin_settings, $fthis, $plugin_obj)
+function phs_display_plugin_settings_field(string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj)
 {
     if (!empty($field_details['skip_rendering'])) {
         return;
     }
 
-    if (!empty($field_details['display_placeholder'])) {
-        $field_placeholder = $field_details['display_placeholder'];
-    } else {
-        $field_placeholder = '';
-    }
-
-    $field_id = $field_name;
-    $field_value = null;
-    if (isset($form_data[$field_name])) {
-        $field_value = $form_data[$field_name];
-    } elseif (isset($plugin_settings[$field_name])) {
-        $field_value = $plugin_settings[$field_name];
-    } elseif ($field_details['default'] !== null) {
-        $field_value = $field_details['default'];
-    }
+    $tenant_id = $context_arr['tenant_id'] ?? 0;
+    $is_multi_tenant = $context_arr['is_multi_tenant'] ?? false;
 
     ?>
     <div class="form-group row">
-        <label for="<?php echo $field_id; ?>" class="col-sm-2 col-form-label"><?php echo $field_details['display_name']; ?>
+        <label for="<?php echo $field_name; ?>" class="col-sm-2 col-form-label"><?php echo $field_details['display_name']; ?>
             <?php echo empty($field_details['editable']) ? '<br/><small>'.$fthis->_pt('[Non-editable]').'</small>' : ''; ?></label>
         <div class="col-sm-10"><?php
 
-            $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
-            $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+            if($is_multi_tenant && $tenant_id && empty($field_details['ignore_field_value'])) {
+                $main_value = $context_arr['db_main_settings'][$field_name] ?? $context_arr['default_settings'][$field_name] ?? null;
+                $field_value = $context_arr['form_data'][$field_name] ?? $context_arr['db_tenant_settings'][$field_name]
+                                                                         ?? $context_arr['default_settings'][$field_name] ?? null;
+                $is_tenant_value = array_key_exists( $field_name, $context_arr['db_tenant_settings'] );
 
-            $callback_params = [];
-            if ($use_custom_renderer) {
-                $callback_params = PHS_Plugin::default_custom_renderer_params();
-                $callback_params['field_id'] = $field_id;
-                $callback_params['field_name'] = $field_name;
-                $callback_params['field_details'] = $field_details;
-                $callback_params['field_value'] = $field_value;
-                $callback_params['form_data'] = $form_data;
-                $callback_params['editable'] = (!empty($field_details['editable']));
-                $callback_params['plugin_obj'] = $plugin_obj;
+                $tenant_settings_section_id = 'phs_settings_'.str_replace(':', '_', $context_arr['plugin']).
+                                              (!empty( $context_arr['model'] )?'_'.$context_arr['model']:'').
+                                              '_'.$field_name;
 
-                // We should get default rendering of settings input...
-                if ($custom_renderer_get_preset_buffer) {
-                    ob_start();
-                }
-            }
-
-            if ($use_custom_renderer
-                && !$custom_renderer_get_preset_buffer) {
-                // Default settings input rendering is not required...
-                if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
-                    || $cell_content === null) {
-                    $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
+                if( empty( $field_details['only_main_tenant_value'] ) ) {
+                    ?>
+                    <div class="row form-check">
+                        <input type="checkbox" value="1" class="form-check-input"
+                            <?php echo $is_tenant_value ? 'checked="checked"':'';?>
+                               onchange="toggle_custom_tenant_value_section('<?php echo $tenant_settings_section_id?>');"
+                               id="tenant_custom_value_<?php echo $field_name?>"
+                               name="tenant_custom_values[<?php echo $field_name?>]" />
+                        <label for="tenant_custom_value_<?php echo $field_name?>"><?php echo $fthis->_pt('Use custom tenant value')?></label>
+                    </div>
+                    <?php
                 }
 
-                echo $cell_content;
-            } elseif (!empty($field_details['input_type'])) {
-                switch ($field_details['input_type']) {
-                    case PHS_Has_db_settings::INPUT_TYPE_KEY_VAL_ARRAY:
+                if( ($main_value_buf = phs_display_plugin_settings_get_field_value_as_string($main_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj))) {
+                    ?>
+                    <p id="<?php echo $tenant_settings_section_id?>_main_value">
+                        <strong><?php echo $fthis->_pt( 'Main settings value' )?></strong>:<br/>
+                        <?php echo $main_value_buf?>
+                    </p>
+                    <?php
+                }
 
-                        if (!is_array($field_value)) {
-                            echo $fthis->_pt('Not a key-value array...');
-                        } else {
-                            foreach ($field_value as $field_value_key => $field_value_val) {
-                                ?>
-                                <div style="margin-bottom:15px;">
-                                    <label for="<?php echo $field_id.'_'.$field_value_key; ?>" style="width:150px !important;"><?php echo $field_value_key; ?></label>
-                                    <input type="text" id="<?php echo $field_id.'_'.$field_value_key; ?>" name="<?php echo $field_name; ?>[<?php echo $field_value_key; ?>]" class="form-control <?php echo $field_details['extra_classes']; ?>" value="<?php echo form_str($field_value_val); ?>" <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> style="<?php echo $field_details['extra_style']; ?>" />
-                                </div>
-                                <div class="clearfix"></div>
-                                <?php
-
-                            }
-                        }
-                    break;
-
-                    case PHS_Has_db_settings::INPUT_TYPE_TEMPLATE:
-
-                        echo $fthis->_pt('Template file').': ';
-                        if (is_string($field_value)) {
-                            echo $field_value;
-                        } elseif (!empty($field_value['file'])) {
-                            echo $field_value['file'];
-                        } else {
-                            echo $fthis->_pt('N/A');
-                        }
-
-                        if (is_array($field_value)
-                            && !empty($field_value['extra_paths']) && is_array($field_value['extra_paths'])) {
-                            echo '<br/>'.$fthis->_pt('From paths').': ';
-
-                            $paths_arr = [];
-                            foreach ($field_value['extra_paths'] as $path_dir => $path_www) {
-                                $paths_arr[] = $path_dir;
-                            }
-
-                            if (empty($paths_arr)) {
-                                echo $fthis->_pt('N/A');
-                            } else {
-                                echo implode(', ', $paths_arr);
-                            }
-                        }
-                    break;
-
-                    case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE:
-                        if (empty($field_details['values_arr'])
-                            || !is_array($field_details['values_arr'])) {
-                            echo $fthis->_pt('Values array should be provided');
-                        } else {
-                            if (empty($field_value) || !is_array($field_value)) {
-                                $field_value = [];
-                            }
-
-                            foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
-                                $option_checked = in_array($one_more_key, $field_value, false);
-
-                                $option_field_id = $field_id.'_'.$one_more_key;
-                                ?>
-                                <div style="float:left; margin-right:10px;">
-                                    <input type="checkbox" id="<?php echo $option_field_id; ?>" name="<?php echo $field_name; ?>[]"
-                                           class="<?php echo $field_details['extra_classes']; ?>" value="<?php echo form_str($one_more_key); ?>" rel="skin_checkbox"
-                                        <?php echo(!empty($option_checked) ? 'checked="checked"' : '').(empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''); ?>
-                                           style="<?php echo $field_details['extra_style']; ?>" />
-                                    <label for="<?php echo $option_field_id; ?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text; ?></label>
-                                </div>
-                                <?php
-                            }
-                        }
-                    break;
-
-                    case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
-                        if (empty($field_details['values_arr'])
-                            || !is_array($field_details['values_arr'])) {
-                            echo $fthis->_pt('Values array should be provided');
-                        } else {
-                            if (empty($field_value) || !is_array($field_value)) {
-                                $field_value = [];
-                            }
-                            ?>
-                            <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>[]" multiple="multiple"
-                                    class="chosen-select <?php echo $field_details['extra_classes']; ?>" style="width: 100%;<?php echo $field_details['extra_style']; ?>"
-                                <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
-                            >
-                                <?php
-                                foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
-                                    $option_checked = in_array($one_more_key, $field_value, false);
-
-                                    $option_field_id = $field_id.'_'.$one_more_key;
-                                    ?>
-                                    <option value="<?php echo form_str($one_more_key); ?>" <?php echo !empty($option_checked) ? 'selected="selected"' : ''; ?>
-                                            id="<?php echo $option_field_id; ?>"><?php echo $one_more_text; ?></option>
-                                    <?php
-                                }
-                                ?>
-                            </select>
-                            <?php
-                        }
-                    break;
-
-                    case PHS_Has_db_settings::INPUT_TYPE_TEXTAREA:
-                        if (empty($field_details['extra_style'])) {
-                            $field_details['extra_style'] = 'width:100%;height:100px;';
-                        }
-                        ?>
-                        <textarea id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>"
-                                  class="form-control <?php echo $field_details['extra_classes']; ?>" style="<?php echo $field_details['extra_style']; ?>"
-                              <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
-                            <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>><?php echo textarea_str($field_value); ?></textarea>
-                        <?php
-                    break;
+                if( empty( $field_details['only_main_tenant_value'] ) ) {
+                    ?>
+                    <div id="<?php echo $tenant_settings_section_id?>" style="display: <?php echo $is_tenant_value?'block':'none'?>;">
+                    <?php
+                    echo phs_display_plugin_settings_get_field_input($field_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
+                    ?></div><?php
                 }
             } else {
-                if (!empty($field_details['values_arr'])
-                    && is_array($field_details['values_arr'])) {
-                    if (empty($field_details['extra_style'])) {
-                        $field_details['extra_style'] = 'width:100%';
-                    }
-                    ?>
-                    <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>"
-                            class="chosen-select <?php echo $field_details['extra_classes']; ?>"
-                            style="<?php echo $field_details['extra_style']; ?>"
-                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>><?php
+                $field_value = $context_arr['form_data'][$field_name] ?? $context_arr['db_settings'][$field_name] ?? null;
 
-                    foreach ($field_details['values_arr'] as $key => $val) {
-                        ?><option value="<?php echo $key; ?>" <?php echo $field_value == $key ? 'selected="selected"' : ''; ?>><?php echo $val; ?></option><?php
-                    }
-
-                    ?></select><?php
-                } else {
-                    switch ($field_details['type']) {
-                        case PHS_Params::T_DATE:
-                            ?>
-                            <input type="text" id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" class="datepicker form-control <?php echo $field_details['extra_classes']; ?>" value="<?php echo form_str($field_value); ?>" <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> style="<?php echo $field_details['extra_style']; ?>" /><?php
-                        break;
-
-                        case PHS_Params::T_BOOL:
-                            ?><input type="checkbox" value="1" rel="skin_checkbox"
-                                     id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>"
-                                     class="<?php echo $field_details['extra_classes']; ?>"
-                            <?php echo !empty($field_value) ? 'checked="checked"' : ''; ?>
-                            <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
-                                     style="<?php echo $field_details['extra_style']; ?>" /><?php
-                        break;
-
-                        default:
-                            // if (empty($field_details['extra_style'])) {
-                            //     $field_details['extra_style'] = 'width:100%';
-                            // }
-                            ?>
-                            <input type="text" id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>"
-                                   class="form-control  style="<?php echo $field_details['extra_style']; ?>" <?php echo $field_details['extra_classes']; ?>"
-                            value="<?php echo form_str($field_value); ?>"
-                            <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
-                            <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> /><?php
-                        break;
-                    }
-                }
+                echo phs_display_plugin_settings_get_field_input($field_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
             }
-
-            if (!empty($field_details['display_hint'])) {
-                ?>
-                <div><small><?php echo form_str($field_details['display_hint']); ?></small></div><?php
-            }
-
-            if ($use_custom_renderer
-                && $custom_renderer_get_preset_buffer) {
-                // We now have default rendering... call custom render function
-                if (!($default_render_buf = @ob_get_clean())) {
-                    $default_render_buf = '';
-                }
-
-                $callback_params['preset_content'] = $default_render_buf;
-                $callback_params['callback_params'] = (!empty($field_details['custom_renderer_params']) ? $field_details['custom_renderer_params'] : false);
-
-                if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
-                    || $cell_content === null) {
-                    $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
-                }
-
-                echo $cell_content;
-            }
-
-            ?></div>
+        ?></div>
     </div>
     <?php
+}
+
+function phs_display_plugin_settings_get_field_input($field_value, string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): string
+{
+    $form_data = $context_arr['form_data'] ?? [];
+
+    $field_placeholder = $field_details['display_placeholder'] ?? '';
+
+    $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
+    $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+
+    $callback_params = [];
+    if ($use_custom_renderer) {
+        $callback_params = PHS_Plugin::default_custom_renderer_params();
+        $callback_params['value_as_text'] = false;
+        $callback_params['field_id'] = $field_name;
+        $callback_params['field_name'] = $field_name;
+        $callback_params['field_details'] = $field_details;
+        $callback_params['field_value'] = $field_value;
+        $callback_params['form_data'] = $form_data;
+        $callback_params['editable'] = (!empty($field_details['editable']));
+        $callback_params['plugin_obj'] = $plugin_obj;
+    }
+
+    if ($use_custom_renderer
+        && !$custom_renderer_get_preset_buffer) {
+        // Default settings input rendering is not required...
+        if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+            || $cell_content === null) {
+            $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
+        }
+
+        return $cell_content;
+    }
+
+    ob_start();
+
+    if (!empty($field_details['input_type'])) {
+        switch ($field_details['input_type']) {
+            case PHS_Has_db_settings::INPUT_TYPE_KEY_VAL_ARRAY:
+
+                if (!is_array($field_value)) {
+                    echo $fthis->_pt('Not a key-value array...');
+                } else {
+                    foreach ($field_value as $field_value_key => $field_value_val) {
+                        ?>
+                        <div class="form-group">
+                            <label for="<?php echo $field_name.'_'.$field_value_key; ?>"><?php echo $field_value_key; ?></label>
+                            <input type="text" id="<?php echo $field_name.'_'.$field_value_key; ?>"
+                                   name="<?php echo $field_name; ?>[<?php echo $field_value_key; ?>]"
+                                   class="form-control <?php echo $field_details['extra_classes']; ?>"
+                                   value="<?php echo form_str($field_value_val); ?>"
+                                <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
+                                   style="<?php echo $field_details['extra_style']; ?>" />
+                        </div>
+                        <?php
+
+                    }
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_TEMPLATE:
+
+                echo $fthis->_pt('Template file').': ';
+                if (is_string($field_value)) {
+                    echo $field_value;
+                } elseif (!empty($field_value['file'])) {
+                    echo $field_value['file'];
+                } else {
+                    echo $fthis->_pt('N/A');
+                }
+
+                if (is_array($field_value)
+                    && !empty($field_value['extra_paths']) && is_array($field_value['extra_paths'])) {
+                    echo '<br/>'.$fthis->_pt('From paths').': ';
+
+                    $paths_arr = [];
+                    foreach ($field_value['extra_paths'] as $path_dir => $path_www) {
+                        $paths_arr[] = $path_dir;
+                    }
+
+                    if (empty($paths_arr)) {
+                        echo $fthis->_pt('N/A');
+                    } else {
+                        echo implode(', ', $paths_arr);
+                    }
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE:
+                if (empty($field_details['values_arr'])
+                    || !is_array($field_details['values_arr'])) {
+                    echo $fthis->_pt('Values array should be provided');
+                } else {
+                    if (empty($field_value) || !is_array($field_value)) {
+                        $field_value = [];
+                    }
+
+                    foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
+                        $option_checked = in_array($one_more_key, $field_value, false);
+
+                        $option_field_id = $field_name.'_'.$one_more_key;
+                        ?>
+                        <div style="float:left; margin-right:10px;">
+                            <input type="checkbox" id="<?php echo $option_field_id; ?>" name="<?php echo $field_name; ?>[]"
+                                   class="<?php echo $field_details['extra_classes']; ?>" value="<?php echo form_str($one_more_key); ?>" rel="skin_checkbox"
+                                <?php echo(!empty($option_checked) ? 'checked="checked"' : '').(empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''); ?>
+                                   style="<?php echo $field_details['extra_style']; ?>" />
+                            <label for="<?php echo $option_field_id; ?>" style="margin-left:5px;width:auto !important;float:right;"><?php echo $one_more_text; ?></label>
+                        </div>
+                        <?php
+                    }
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                if (empty($field_details['values_arr'])
+                    || !is_array($field_details['values_arr'])) {
+                    echo $fthis->_pt('Values array should be provided');
+                } else {
+                    if (empty($field_value) || !is_array($field_value)) {
+                        $field_value = [];
+                    }
+                    ?>
+                    <select id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>[]" multiple="multiple"
+                            class="chosen-select <?php echo $field_details['extra_classes']; ?>" style="width: 100%;<?php echo $field_details['extra_style']; ?>"
+                        <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
+                    >
+                        <?php
+                        foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
+                            $option_checked = in_array($one_more_key, $field_value, false);
+
+                            $option_field_id = $field_name.'_'.$one_more_key;
+                            ?>
+                            <option value="<?php echo form_str($one_more_key); ?>" <?php echo !empty($option_checked) ? 'selected="selected"' : ''; ?>
+                                    id="<?php echo $option_field_id; ?>"><?php echo $one_more_text; ?></option>
+                            <?php
+                        }
+                        ?>
+                    </select>
+                    <?php
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_TEXTAREA:
+                if (empty($field_details['extra_style'])) {
+                    $field_details['extra_style'] = 'width:100%;height:100px;';
+                }
+                ?>
+                <textarea id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
+                          class="form-control <?php echo $field_details['extra_classes']; ?>" style="<?php echo $field_details['extra_style']; ?>"
+                              <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
+                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>><?php echo textarea_str($field_value); ?></textarea>
+                <?php
+            break;
+        }
+    } else {
+        if (!empty($field_details['values_arr'])
+            && is_array($field_details['values_arr'])) {
+            if (empty($field_details['extra_style'])) {
+                $field_details['extra_style'] = 'width:100%';
+            }
+            ?>
+            <select id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
+                    class="chosen-select <?php echo $field_details['extra_classes']; ?>"
+                    style="<?php echo $field_details['extra_style']; ?>"
+            <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>><?php
+
+            foreach ($field_details['values_arr'] as $key => $val) {
+                ?><option value="<?php echo $key; ?>" <?php echo $field_value == $key ? 'selected="selected"' : ''; ?>><?php echo $val; ?></option><?php
+            }
+
+            ?></select><?php
+        } else {
+            switch ($field_details['type']) {
+                case PHS_Params::T_DATE:
+                    ?>
+                    <input type="text" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" class="datepicker form-control <?php echo $field_details['extra_classes']; ?>" value="<?php echo form_str($field_value); ?>" <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> style="<?php echo $field_details['extra_style']; ?>" /><?php
+                break;
+
+                case PHS_Params::T_BOOL:
+                    ?><input type="checkbox" value="1" rel="skin_checkbox"
+                             id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
+                             class="<?php echo $field_details['extra_classes']; ?>"
+                    <?php echo !empty($field_value) ? 'checked="checked"' : ''; ?>
+                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
+                             style="<?php echo $field_details['extra_style']; ?>" /><?php
+                break;
+
+                default:
+                    // if (empty($field_details['extra_style'])) {
+                    //     $field_details['extra_style'] = 'width:100%';
+                    // }
+                    ?>
+                    <input type="text" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
+                           class="form-control  style="<?php echo $field_details['extra_style']; ?>" <?php echo $field_details['extra_classes']; ?>"
+                    value="<?php echo form_str($field_value); ?>"
+                    <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
+                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> /><?php
+                break;
+            }
+        }
+    }
+
+    if (!empty($field_details['display_hint'])) {
+        ?>
+        <div><small><?php echo form_str($field_details['display_hint']); ?></small></div><?php
+    }
+
+    if( !($input_buffer = @ob_get_clean()) ) {
+        $input_buffer = '';
+    }
+
+    if ($use_custom_renderer
+        && $custom_renderer_get_preset_buffer) {
+        $callback_params['preset_content'] = $input_buffer;
+        $callback_params['callback_params'] = (!empty($field_details['custom_renderer_params']) ? $field_details['custom_renderer_params'] : false);
+
+        if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+            || $cell_content === null) {
+            $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
+        }
+
+        return $cell_content;
+    }
+
+    return $input_buffer;
+}
+
+function phs_display_plugin_settings_get_field_value_as_string($field_value, string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): string
+{
+    $form_data = $context_arr['form_data'] ?? [];
+
+    $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
+    $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+
+    $callback_params = [];
+    if ($use_custom_renderer) {
+        $callback_params = PHS_Plugin::default_custom_renderer_params();
+        $callback_params['value_as_text'] = true;
+        $callback_params['field_id'] = $field_name;
+        $callback_params['field_name'] = $field_name;
+        $callback_params['field_details'] = $field_details;
+        $callback_params['field_value'] = $field_value;
+        $callback_params['form_data'] = $form_data;
+        $callback_params['editable'] = (!empty($field_details['editable']));
+        $callback_params['plugin_obj'] = $plugin_obj;
+    }
+
+    if ($use_custom_renderer
+        && !$custom_renderer_get_preset_buffer) {
+        // Default settings input rendering is not required...
+        if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+            || $cell_content === null) {
+            $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
+        }
+
+        return $cell_content;
+    }
+
+    ob_start();
+
+    if (!empty($field_details['input_type'])) {
+        switch ($field_details['input_type']) {
+            case PHS_Has_db_settings::INPUT_TYPE_KEY_VAL_ARRAY:
+
+                if (!is_array($field_value)) {
+                    echo $fthis->_pt('Not a key-value array...');
+                } else {
+                    $value_buf = '';
+                    foreach ($field_value as $field_value_key => $field_value_val) {
+                        $value_buf .= ($value_buf!==''?', ':'').
+                                      '<em>'.$field_value_key.'</em>: '.($field_value_val ?? $fthis->_pt('N/A'));
+                    }
+
+                    echo $value_buf ?: $fthis->_pt( 'N/A' );
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_TEMPLATE:
+
+                echo $fthis->_pt('Template file').': ';
+                if (is_string($field_value)) {
+                    echo $field_value;
+                } elseif (!empty($field_value['file'])) {
+                    echo $field_value['file'];
+                } else {
+                    echo $fthis->_pt('N/A');
+                }
+
+                if (is_array($field_value)
+                    && !empty($field_value['extra_paths']) && is_array($field_value['extra_paths'])) {
+                    echo '<br/>'.$fthis->_pt('From paths').': ';
+
+                    $paths_arr = [];
+                    foreach ($field_value['extra_paths'] as $path_dir => $path_www) {
+                        $paths_arr[] = $path_dir;
+                    }
+
+                    if (empty($paths_arr)) {
+                        echo $fthis->_pt('N/A');
+                    } else {
+                        echo implode(', ', $paths_arr);
+                    }
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE:
+            case PHS_Has_db_settings::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                if (empty($field_details['values_arr'])
+                    || !is_array($field_details['values_arr'])) {
+                    echo $fthis->_pt('Values array should be provided');
+                } else {
+                    if (empty($field_value) || !is_array($field_value)) {
+                        $field_value = [];
+                    }
+
+                    $values_arr = [];
+                    foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
+                        if( !in_array($one_more_key, $field_value, false) ) {
+                            continue;
+                        }
+
+                        $values_arr[] = $one_more_text;
+                    }
+
+                    echo !empty( $values_arr ) ? implode( ', ', $values_arr ) : $fthis->_pt( 'N/A' );
+                }
+            break;
+
+            case PHS_Has_db_settings::INPUT_TYPE_TEXTAREA:
+                echo $field_value;
+            break;
+        }
+    } else {
+        if (!empty($field_details['values_arr'])
+            && is_array($field_details['values_arr'])) {
+            echo $field_details['values_arr'][$field_value] ?? $fthis->_pt( 'N/A' );
+        } else {
+            switch ($field_details['type']) {
+                default:
+                    echo $field_value;
+                break;
+
+                case PHS_Params::T_BOOL:
+                case PHS_Params::T_NUMERIC_BOOL:
+                    echo !empty($field_value) ? $fthis->_pt( 'Yes' ) : $fthis->_pt( 'No' );
+                break;
+            }
+        }
+    }
+
+    if( !($input_buffer = @ob_get_clean()) ) {
+        $input_buffer = '';
+    }
+
+    if ($use_custom_renderer
+        && $custom_renderer_get_preset_buffer) {
+        $callback_params['preset_content'] = $input_buffer;
+        $callback_params['callback_params'] = (!empty($field_details['custom_renderer_params']) ? $field_details['custom_renderer_params'] : false);
+
+        if (($cell_content = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+            || $cell_content === null) {
+            $cell_content = '['.$fthis->_pt('Render settings field call failed.').']';
+        }
+
+        return $cell_content;
+    }
+
+    return $input_buffer;
 }

@@ -102,23 +102,14 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
-        if (isset($params['field_details']['default'])) {
-            $default_value = $params['field_details']['default'];
-        } else {
-            $default_value = self::DIRNAME_IN_UPLOADS;
+        $default_value = $params['field_details']['default'] ?? self::DIRNAME_IN_UPLOADS;
+        $field_value = $params['field_value'] ?? $default_value;
+
+        if( !empty($params['value_as_text']) ) {
+            return $field_value;
         }
 
-        if (isset($params['field_value'])) {
-            $field_value = $params['field_value'];
-        } else {
-            $field_value = $default_value;
-        }
-
-        if (isset($params['field_id'])) {
-            $field_id = $params['field_id'];
-        } else {
-            $field_id = $params['field_name'];
-        }
+        $field_id = $params['field_id'] ?? $params['field_name'];
 
         $error_msg = '';
         $stats_str = '';

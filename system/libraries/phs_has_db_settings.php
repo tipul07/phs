@@ -266,10 +266,16 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         if (!$this->_load_plugins_instance()
             || !($db_settings = $this->_plugins_instance->get_plugins_db_settings($instance_id, $tenant_id, $force))
             || !($db_settings = $this->_deobfuscate_settings_array($db_settings))) {
-            return [];
+            if( $tenant_id ) {
+                return [];
+            }
+
+            $db_settings = [];
         }
 
-        if (($default_settings = $this->get_default_settings())) {
+        // Merge with defaults only for "main" settings
+        if (!$tenant_id
+            && ($default_settings = $this->get_default_settings())) {
             $db_settings = self::validate_array($db_settings, $default_settings);
         }
 
@@ -472,6 +478,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'editable'        => true,
             'preset_content'  => '',
             'plugin_obj'      => null,
+            'value_as_text'   => false,
         ];
     }
 
@@ -516,6 +523,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     private static function _default_context_array(): array
     {
         $context_arr = [];
+        $context_arr['is_multi_tenant'] = false;
         $context_arr['tenant_id'] = 0;
         $context_arr['plugin'] = '';
         $context_arr['model_id'] = '';
@@ -562,6 +570,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $context_arr['plugin'] = $plugin;
         $context_arr['model_id'] = $model;
         $context_arr['tenant_id'] = $tenant_id;
+        $context_arr['is_multi_tenant'] = $is_multi_tenant;
 
         if ($plugin !== PHS_Instantiable::CORE_PLUGIN
             && (!($instance_details = PHS_Instantiable::valid_instance_id($plugin))
@@ -585,7 +594,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         if( !empty( $model )
             && (!in_array( $model, $context_arr['models_arr'], true)
-                || !($model_obj = PHS::load_model($model, $plugin_obj->instance_plugin_name()))
+                || !($model_obj = PHS::load_model($model, $plugin_obj?$plugin_obj->instance_plugin_name():null))
             )
         ) {
             $context_arr['stop_executon'] = true;
@@ -1149,6 +1158,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             // If this field is not supposed to be a value to be saved in database, but a placeholder
             // for a functionality with a custom rendering
             'ignore_field_value' => false,
+            // true if this is supposed to have a single value for all tenants
+            'only_main_tenant_value' => false,
 
             'extra_style'   => '',
             'extra_classes' => '',

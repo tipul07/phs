@@ -68,6 +68,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 'custom_renderer'    => [$this, 'display_test_sending_emails'],
                 'default'            => false,
                 'ignore_field_value' => true,
+                'only_main_tenant_value' => true,
             ],
         ];
     }
@@ -132,7 +133,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $return_data;
     }
 
-    public function display_settings_routes($params)
+    public function display_settings_routes($params): ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -155,6 +156,24 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $email_routes[$route_name] = $route_arr;
         }
 
+        if( !empty($params['value_as_text']) ) {
+            $routes_buf = '';
+            $lang_na = $this->_pt('N/A');
+            foreach ($email_routes as $route_name => $route_arr) {
+                $routes_buf .= 'Route '.$route_name.':<br/>'.
+                               $this->_pt('Localhost').': '.($route_arr['localhost'] ?? $lang_na).', '.
+                               $this->_pt('Username').': '.($route_arr['smtp_user'] ?? $lang_na).', '.
+                               $this->_pt('Password').': '.($route_arr['smtp_pass'] ?? $lang_na).', '.
+                               $this->_pt('SMTP Host').': '.($route_arr['smtp_host'] ?? $lang_na).', '.
+                               $this->_pt('SMTP Port').': '.($route_arr['smtp_port'] ?? $lang_na).', '.
+                               $this->_pt('SMTP Timeout').': '.($route_arr['smtp_timeout'] ?? $lang_na).', '.
+                               $this->_pt('SMTP Encryption').': '.($route_arr['smtp_encryption'] ?? $lang_na).', '.
+                               $this->_pt('SMTP Authetication').': '.($route_arr['smtp_authentication'] ?? $lang_na).'.';
+            }
+
+            return $routes_buf;
+        }
+
         $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
         $data_arr['smtp_library'] = $this->smtp_library;
@@ -162,9 +181,13 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
 
-    public function display_test_sending_emails($params)
+    public function display_test_sending_emails($params): ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
+
+        if( !empty($params['value_as_text'])) {
+            return '';
+        }
 
         if (!($current_settings = $this->get_plugin_settings())) {
             $current_settings = [];
