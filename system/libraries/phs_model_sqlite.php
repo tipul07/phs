@@ -1934,21 +1934,31 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             case self::FTYPE_MEDIUMTEXT:
             case self::FTYPE_LONGTEXT:
 
-                if (!empty($mysql_type['max_bytes'])
-                 && (empty($field_details['length'])
-                        || 0 <= PHS_Utils::numeric_string_compare($field_details['length'], $mysql_type['max_bytes'])
-                 )) {
-                    $max_bytes = $mysql_type['max_bytes'];
+                if( $value === '' ) {
+                    if (!empty($field_details['nullable'])) {
+                        $value = null;
+                    }
+                } elseif( $value === null ) {
+                    if( empty($field_details['nullable'] ) ) {
+                        $value = '';
+                    }
                 } else {
-                    $max_bytes = $field_details['length'];
-                }
+                    if (!empty($mysql_type['max_bytes'])
+                        && (empty($field_details['length'])
+                            || 0 <= PHS_Utils::numeric_string_compare($field_details['length'], $mysql_type['max_bytes'])
+                        )) {
+                        $max_bytes = $mysql_type['max_bytes'];
+                    } else {
+                        $max_bytes = $field_details['length'];
+                    }
 
-                if (!is_string($value)) {
-                    $value = (string)$value;
-                }
+                    if (!is_string($value)) {
+                        $value = (string) $value;
+                    }
 
-                if (strlen($value) > $max_bytes) {
-                    $value = substr($value, 0, $max_bytes);
+                    if (strlen($value) > $max_bytes) {
+                        $value = substr($value, 0, $max_bytes);
+                    }
                 }
                 break;
 

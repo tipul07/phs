@@ -156,7 +156,7 @@ class PHS_Model_Plugins extends PHS_Model
             return $this->_save_plugins_db_main_settings($instance_id, $settings_arr, $update_params);
         }
 
-        return $this->_save_plugins_db_tenant_settings($instance_id, $settings_arr, $tenant_id, $update_params);
+        return $this->_save_plugins_db_tenant_settings($instance_id, $settings_arr, $tenant_id);
     }
 
     /**
@@ -1325,13 +1325,12 @@ class PHS_Model_Plugins extends PHS_Model
 
     /**
      * @param null|string $instance_id
-     * @param array|string $settings_arr array or PHS_Line_params string
+     * @param null|array|string $settings_arr array or PHS_Line_params string
      * @param int $tenant_id
-     * @param array $update_params
      *
      * @return null|array
      */
-    private function _save_plugins_db_tenant_settings(?string $instance_id, $settings_arr, int $tenant_id, array $update_params = []) : ?array
+    private function _save_plugins_db_tenant_settings(?string $instance_id, $settings_arr, int $tenant_id) : ?array
     {
         $this->reset_error();
 
@@ -1340,12 +1339,6 @@ class PHS_Model_Plugins extends PHS_Model
 
             return null;
         }
-
-        if (empty($update_params)) {
-            $update_params = [];
-        }
-
-        $update_params['skip_merging_old_settings'] = (!empty($update_params['skip_merging_old_settings']));
 
         $instance_id ??= $this->instance_id();
         if (!self::valid_instance_id($instance_id)) {
@@ -1360,18 +1353,10 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        if (!($old_settings = $this->get_plugins_db_tenant_settings($instance_id, $tenant_id, true))) {
-            $old_settings = [];
-        }
-
         // Nothing to save...
-        if (!($settings_arr = $this->_decode_settings_field($settings_arr))) {
-            return $old_settings;
-        }
-
-        if (empty($update_params['skip_merging_old_settings'])
-         && !empty($old_settings)) {
-            $settings_arr = self::merge_array_assoc($old_settings, $settings_arr);
+        if (empty($settings_arr)
+            || !($settings_arr = $this->_decode_settings_field($settings_arr))) {
+            $settings_arr = null;
         }
 
         $plugin_details = [];
@@ -1636,14 +1621,14 @@ class PHS_Model_Plugins extends PHS_Model
 
         $new_fields_arr = $validate_fields['data_arr'];
         // Try updating settings...
-        if (!empty($new_fields_arr['settings'])) {
-            $new_fields_arr['settings'] = $this->_encode_settings_field($new_fields_arr['settings']);
+        if (array_key_exists('settings', $new_fields_arr)) {
+            if( empty( $new_fields_arr['settings'] ) ) {
+                $new_fields_arr['settings'] = null;
+            } else {
+                $new_fields_arr['settings'] = $this->_encode_settings_field($new_fields_arr['settings']);
+            }
 
-            PHS_Logger::notice('New tenant settings for tenant ['.$tenant_id.'] ['.$new_fields_arr['settings'].']', PHS_Logger::TYPE_MAINTENANCE);
-        }
-
-        if (!empty($db_main_details['is_core'])) {
-            $new_fields_arr['status'] = self::STATUS_ACTIVE;
+            PHS_Logger::notice('New tenant settings for tenant ['.$tenant_id.'] ['.($new_fields_arr['settings'] ?? '(empty settings)').']', PHS_Logger::TYPE_MAINTENANCE);
         }
 
         $details_arr = $this->fetch_default_flow_params(['table_name' => 'plugins_tenants']);

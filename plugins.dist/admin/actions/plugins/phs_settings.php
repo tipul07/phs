@@ -3,6 +3,7 @@ namespace phs\plugins\admin\actions\plugins;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Crypt;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
@@ -63,7 +64,7 @@ class PHS_Action_Settings extends PHS_Action
         $do_cancel = PHS_Params::_p('do_cancel');
 
         if (empty($back_page)) {
-            $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+            $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
         } else {
             $back_page = from_safe_url($back_page);
         }
@@ -81,7 +82,7 @@ class PHS_Action_Settings extends PHS_Action
 
         if( !empty( $tenant_id )
             && empty( $tenants_arr[$tenant_id] ) ) {
-            return action_redirect(['p' => 'admin', 'a' => 'plugins_list'], ['unknown_tenant' => 1]);
+            return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins'], ['unknown_tenant' => 1]);
         }
 
         $context_arr = [];
@@ -118,17 +119,50 @@ class PHS_Action_Settings extends PHS_Action
             PHS_Notifications::add_success_notice($this->_pt('Settings saved in database.'));
         }
 
-        $instance_obj = $context_arr['plugin_instance'] ?? $context_arr['model_instance'] ?? null;
-
         if (!empty($do_submit)) {
-            if ($instance_obj->has_error()) {
-                PHS_Notifications::add_error_notice($instance_obj->get_simple_error_message()());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
+            $context_arr = PHS_Has_db_settings::get_custom_save_fields_settings_for_save($context_arr);
+
+            if( !empty( $context_arr['errors_arr'] ) ) {
+                foreach( $context_arr['errors_arr'] as $error_msg ) {
+                    PHS_Notifications::add_error_notice($error_msg);
+                }
+            }
+
+            if( !empty( $context_arr['warnings_arr'] ) ) {
+                foreach( $context_arr['warnings_arr'] as $warning_msg ) {
+                    PHS_Notifications::add_warning_notice($warning_msg);
+                }
+            }
+
+            /** @var PHS_Has_db_settings $instance_obj */
+            if( !($instance_obj = $context_arr['model_instance'] ?? $context_arr['plugin_instance'] ?? null) ) {
+                PHS_Notifications::add_error_notice($this->_pt('Cannot save settings. Unknown instance.'));
+            }
+
+            elseif (!PHS_Notifications::have_notifications_errors()) {
+                if (null !== $instance_obj->save_db_settings($context_arr['submit_settings'], $tenant_id)) {
+                    $args = [
+                        'changes_saved'   => 1,
+                        'pid'             => $pid,
+                        'model_id' => $model_id,
+                    ];
+
+                    if($is_multi_tenant) {
+                        $args['tenant_id'] = $tenant_id;
+                    }
+
+                    $args['back_page'] = $back_page;
+
+                    return action_redirect(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'], $args);
+                }
+
+                if ($instance_obj->has_error()) {
+                    PHS_Notifications::add_error_notice($instance_obj->get_error_message());
+                } else {
+                    PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
+                }
             }
         }
-
-
 
         $data = [
             'back_page' => $back_page,

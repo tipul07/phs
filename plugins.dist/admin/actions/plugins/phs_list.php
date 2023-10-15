@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\plugins;
 
 use phs\PHS;
 use phs\libraries\PHS_Params;
@@ -12,13 +12,10 @@ use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
-class PHS_Action_Plugins_list extends PHS_Action_Generic_list
+class PHS_Action_List extends PHS_Action_Generic_list
 {
     /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
-
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
-    private ?PHS_Model_Accounts $_accounts_model = null;
 
     /** @var null|\phs\system\core\models\PHS_Model_Tenants */
     private ?PHS_Model_Tenants $_tenants_model = null;
@@ -28,7 +25,6 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     public function load_depencies()
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_accounts_model = PHS_Model_Accounts::get_instance())
          || !($this->_tenants_model = PHS_Model_Tenants::get_instance())
          || !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
@@ -313,7 +309,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -806,7 +802,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 <?php
             }
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'],
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
                 ['pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
             ><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt('Plugin Settings'); ?>"></i></a>
             <?php

@@ -235,11 +235,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         // We don't force this call (if $force is true) as cache was already rebuild when calling get_db_main_details()
-        if (!($db_tenant_details = $this->get_db_tenant_details($tenant_id))) {
+        if (empty($tenant_id)
+            || !($db_tenant_details = $this->get_db_tenant_details($tenant_id))) {
             return $db_main_details;
         }
 
-        return self::validate_array($db_main_details, self::_db_details_fields_prepare_for_merge($db_tenant_details));
+        return self::merge_array_assoc($db_main_details, self::_db_details_fields_prepare_for_merge($db_tenant_details));
     }
 
     /**
@@ -288,7 +289,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         ]))
             && ($extra_settings_arr = $event_obj->get_output('settings_arr'))
         ) {
-            $db_settings = self::validate_array($extra_settings_arr, $db_settings);
+            $db_settings = self::merge_array_assoc($db_settings, $extra_settings_arr);
         }
 
         $this->_db_settings[$tenant_id] = $db_settings;
@@ -360,8 +361,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         if (!$this->_load_plugins_instance()
          || null === ($obfuscated_settings_arr = $this->_obfuscate_settings_array($settings_arr))
-         || !($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr, $tenant_id))
-         || !is_array($db_settings)) {
+         || null === ($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr, $tenant_id))
+        ) {
             if (!$this->has_error()
                 && $this->_plugins_instance->has_error()) {
                 $this->copy_error($this->_plugins_instance);
@@ -369,6 +370,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
             return null;
         }
+
+        $db_settings ??= [];
 
         PHS_Event_Plugin_settings_saved::trigger([
             'tenant_id'         => $tenant_id,
@@ -485,12 +488,14 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public static function st_default_custom_save_params() : array
     {
         return [
-            'plugin_obj'      => null,
-            'model_obj' => null,
+            'tenant_id'      => 0,
+            'is_multi_tenant'      => false,
             'field_name'      => '',
             'field_details'   => false,
             'field_value'     => null,
             'form_data'       => [],
+            'plugin_obj'      => null,
+            'model_obj' => null,
         ];
     }
 
@@ -503,7 +508,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public static function st_default_custom_save_callback_result() : array
     {
         return [
-            // fields with values to be saved in instance settings as key/value pairs
+            // If there are more fields affected by the callback, provide a full array which will be merged with full settings array
             '{new_settings_fields}' => [],
         ];
     }
@@ -525,6 +530,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $context_arr = [];
         $context_arr['is_multi_tenant'] = false;
         $context_arr['tenant_id'] = 0;
+        $context_arr['settings_for_tenant'] = false;
         $context_arr['plugin'] = '';
         $context_arr['model_id'] = '';
         $context_arr['extract_submit'] = false;
@@ -538,21 +544,32 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $context_arr['db_version'] = '0.0.0';
         $context_arr['script_version'] = '0.0.0';
 
-        $context_arr['settings_structure'] = [];
         $context_arr['default_settings'] = [];
         $context_arr['db_main_settings'] = [];
         $context_arr['db_tenant_settings'] = [];
         $context_arr['db_settings'] = [];
 
+        $context_arr['tenant_custom_fields'] = [];
         $context_arr['submit_settings'] = [];
         $context_arr['form_data'] = [];
 
+        $context_arr['settings_structure'] = [];
         $context_arr['plugin_instance'] = null;
         $context_arr['model_instance'] = null;
+
+        // Any errors or warnings from custom renenders or custom save callbacks
+        $context_arr['errors_arr'] = [];
+        $context_arr['warnings_arr'] = [];
 
         return $context_arr;
     }
 
+    /**
+     * First method called when extracting plugin settings (V2)
+     * @param  array  $context_arr
+     *
+     * @return null|array
+     */
     public static function init_settings_context( array $context_arr ): ?array
     {
         self::st_reset_error();
@@ -571,6 +588,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $context_arr['model_id'] = $model;
         $context_arr['tenant_id'] = $tenant_id;
         $context_arr['is_multi_tenant'] = $is_multi_tenant;
+        $context_arr['settings_for_tenant'] = ($is_multi_tenant && $tenant_id);
 
         if ($plugin !== PHS_Instantiable::CORE_PLUGIN
             && (!($instance_details = PHS_Instantiable::valid_instance_id($plugin))
@@ -579,7 +597,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 || !($plugin_obj = PHS::load_plugin($instance_details['plugin_name']))
             )
         ) {
-            $context_arr['redirect_to'] = PHS::url(['p' => 'admin', 'a' => 'plugins_list'], ['unknown_plugin' => 1]);
+            $context_arr['redirect_to'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins'], ['unknown_plugin' => 1]);
             $context_arr['errors'] = self::arr_set_error(self::ERR_PARAMETERS, self::_t('Unknown plugin.'));
 
             return $context_arr;
@@ -613,7 +631,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     /**
      * Given a context, extract form data and setting according to subbmited data. If no submit array is provided,
-     * extract the data from a form submit as default
+     * extract the data from a form submit as default (V2)
      *
      * @param  array  $context_arr
      * @param  null|array  $submit_arr
@@ -625,15 +643,170 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         self::st_reset_error();
         $context_arr = self::validate_array($context_arr, self::_default_context_array());
 
+        if( empty($context_arr['is_multi_tenant'])
+            || !($context_arr['tenant_custom_fields'] = PHS_Params::_gp('tenant_custom_fields', PHS_Params::T_ARRAY ))
+        ) {
+            $context_arr['tenant_custom_fields'] = [];
+        }
+
         self::_extract_settings_and_form_data_from_submit(
-            $context_arr['settings_structure'], $context_arr['db_settings'], $context_arr['default_settings'],
-            $context_arr['submit_settings'], $context_arr['form_data'],
+            $context_arr['settings_structure'], $context_arr,
+            $context_arr['submit_settings'], $context_arr['form_data'], $context_arr['tenant_custom_fields'],
             $context_arr['extract_submit'], $submit_arr
         );
 
         return $context_arr;
     }
 
+    /**
+     * Extract settings and form data from submit (V2)
+     *
+     * @param  array  $settings_structure
+     * @param  array  $context_arr
+     * @param  array  $submit_settings
+     * @param  array  $form_data
+     * @param  array  $custom_fields
+     * @param  bool  $is_post
+     * @param  null|array  $submit_arr
+     *
+     * @return void
+     */
+    private static function _extract_settings_and_form_data_from_submit(
+        array $settings_structure, array $context_arr,
+        array &$submit_settings, array &$form_data, array &$custom_fields,
+        bool $is_post = false, ?array $submit_arr = null
+    ): void
+    {
+        if( empty( $settings_structure ) ) {
+            return;
+        }
+
+        foreach( $settings_structure as $field_name => $field_details ) {
+            if (!empty($field_details['ignore_field_value'])) {
+                continue;
+            }
+
+            if (self::settings_field_is_group($field_details)) {
+                self::_extract_settings_and_form_data_from_submit(
+                    $field_details['group_fields'], $context_arr,
+                    $submit_settings, $form_data, $custom_fields,
+                    $is_post, $submit_arr);
+
+                continue;
+            }
+
+            if( !$is_post
+                && !empty( $context_arr['db_tenant_settings'][$field_name] ) ) {
+                $custom_fields[$field_name] = 1;
+                $context_arr['tenant_custom_fields'][$field_name] = 1;
+            }
+
+            if (null === ($field_value = self::_extract_field_value_for_settings_and_form_data_from_submit(
+                $field_name, $field_details, $context_arr,
+                $form_data,
+                $is_post, $submit_arr))) {
+                continue;
+            }
+
+            $submit_settings[$field_name] = $field_value;
+        }
+    }
+
+    /**
+     * Given a field name, extract settings and form data from submitted data (V2)
+     * @param  string  $field_name
+     * @param  array  $field_details
+     * @param  array  $context_arr
+     * @param  array  $form_data
+     * @param  bool  $is_post
+     * @param  null|array  $submit_arr
+     *
+     * @return null|array|bool|float|int|mixed|string
+     */
+    private static function _extract_field_value_for_settings_and_form_data_from_submit(
+        string $field_name, array $field_details, array $context_arr,
+        array &$form_data,
+        bool $is_post = false, ?array $submit_arr = null
+    )
+    {
+        $field_value = null;
+
+        $db_settings = ($context_arr['db_settings'] ?? []);
+        $tenant_settings = ($context_arr['db_tenant_settings'] ?? []);
+        $default_settings = ($context_arr['default_settings'] ?? []);
+        $field_for_tenant = $context_arr['settings_for_tenant'] ?? false;
+
+        if (empty($field_details['editable'])) {
+            if( $field_for_tenant ) {
+                return null;
+            }
+
+            // Check if default values have changed (upgrading plugin might change default value)
+            return $db_settings[$field_name] ?? $default_settings[$field_name] ?? null;
+        }
+
+        if( $field_for_tenant
+            && (
+                ($is_post && empty( $context_arr['tenant_custom_fields'][$field_name]))
+                || (!$is_post && !isset($tenant_settings[$field_name]) && $field_details['input_type'] !== self::INPUT_TYPE_KEY_VAL_ARRAY)
+            )
+        ) {
+            return null;
+        }
+
+        $field_details['type'] = (int)$field_details['type'];
+
+        if( isset($submit_arr[$field_name])) {
+            $form_data[$field_name] =
+                PHS_Params::set_type($submit_arr[$field_name], $field_details['type'], $field_details['extra_type']);
+        } else {
+            $form_data[$field_name] =
+                PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
+        }
+
+        if ($is_post
+            && ($field_details['type'] === PHS_Params::T_BOOL
+                || $field_details['type'] === PHS_Params::T_NUMERIC_BOOL)
+        ) {
+            $form_data[$field_name] = (!empty($form_data[$field_name]));
+
+            if( $field_details['type'] === PHS_Params::T_NUMERIC_BOOL ) {
+                $form_data[$field_name] = $form_data[$field_name]?1:0;
+            }
+        }
+
+        if( $is_post ) {
+            if (isset($form_data[$field_name])) {
+                $field_value = $form_data[$field_name];
+            }
+        } elseif( $field_for_tenant ) {
+            $field_value = $tenant_settings[$field_name] ?? $db_settings[$field_name] ?? $default_settings[$field_name] ?? null;
+        } else {
+            $field_value = $db_settings[$field_name] ?? $default_settings[$field_name] ?? null;
+        }
+
+        if($field_details['input_type'] === self::INPUT_TYPE_KEY_VAL_ARRAY) {
+            if( $field_for_tenant && !$is_post ) {
+                $field_value = $tenant_settings[$field_name] ?? $default_settings[$field_name];
+            } else {
+                $field_value = self::validate_array_to_new_array($form_data[$field_name] ?? [], $field_value);
+            }
+        }
+
+        if( !$is_post ) {
+            $form_data[$field_name] = $field_value;
+        }
+
+        return $field_value;
+    }
+
+    /**
+     * Details required when rendering settings (V2)
+     * @param  null|\phs\libraries\PHS_Has_db_settings  $instance_obj
+     * @param  null|int  $tenant_id
+     *
+     * @return array
+     */
     private static function _extract_settings_for_instance(?PHS_Has_db_settings $instance_obj, ?int $tenant_id = null): array
     {
         $tenant_id ??= 0;
@@ -698,40 +871,17 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
     //endregion END NEW settings section
 
-    public static function render_settings_form_for_instance(
-        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
-        ?int $tenant_id = null,
-        ?array $form_data = null
-    ): ?array
-    {
-        self::st_reset_error();
-
-        if( !self::_load_settings_dependencies()) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::_t( 'Error loading required resources.' ));
-            return null;
-        }
-
-        if( !($settings_fields = self::_get_plugin_settings_as_array_fields( $plugin_obj, $model_obj, $tenant_id )) ) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt( 'Error obtaining instance settings fields.' ));
-            return null;
-        }
-
-        $render_result = $settings_fields;
-        $render_result['buffer'] = '';
-
-        $settings_structure = $settings_fields['settings_structure'] ?? [];
-
-        if( empty( $settings_structure ) || !is_array( $settings_structure ) ) {
-            $render_result['buffer'] = self::$_admin_plugin->_pt( 'Selected module doesn\'t have any settings.' );
-        } else {
-            foreach( $settings_fields['settings_structure']  as $field_name => $field_details ) {
-
-            }
-        }
-
-        return $render_result;
-    }
-
+    /**
+     * OLD way which checked new settings for save
+     *
+     * @param  null|\phs\libraries\PHS_Plugin  $plugin_obj
+     * @param  null|\phs\libraries\PHS_Model  $model_obj
+     * @param  null|int  $tenant_id
+     * @param  array  $new_settings
+     * @param  null|array  $form_data
+     *
+     * @return null|array
+     */
     public static function extract_custom_save_settings_fields_for_save(
         ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj, ?int $tenant_id,
         array $new_settings, ?array $form_data = null
@@ -991,38 +1141,135 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $field_value;
     }
 
-    private static function _extract_settings_and_form_data_from_submit(
-        array $settings_structure, array $db_settings, array $default_settings,
-        array &$form_settings, array &$form_data,
-        bool $is_post = false, ?array $submit_arr = null
-    ): void
+    /**
+     * Check each fields for custom save callbacks and obtain values (V2)
+     *
+     * @param  array  $context_arr
+     *
+     * @return null|array
+     */
+    public static function get_custom_save_fields_settings_for_save(array $context_arr): ?array
     {
-        if( empty( $settings_structure ) ) {
-            return;
+        $callback_params = self::st_default_custom_save_params();
+        $callback_params['tenant_id'] = $context_arr['tenant_id'] ?? 0;
+        $callback_params['is_multi_tenant'] = $context_arr['is_multi_tenant'] ?? false;
+        $callback_params['plugin_obj'] = $context_arr['plugin_instance'] ?? null;
+        $callback_params['model_obj'] = $context_arr['model_instance'] ?? null;
+        $callback_params['form_data'] = $context_arr['form_data'] ?? [];
+
+        $context_arr['submit_settings'] = $context_arr['submit_settings'] ?? [];
+        $context_arr['errors_arr'] = $context_arr['errors_arr'] ?? [];
+        $context_arr['warnings_arr'] = $context_arr['warnings_arr'] ?? [];
+
+        if( !empty( $context_arr['settings_structure'] ) ) {
+            self::_get_custom_save_fields_settings_for_save_from_structure(
+                $context_arr['settings_structure'], $callback_params, $context_arr,
+                $context_arr['submit_settings'], $context_arr['errors_arr'], $context_arr['warnings_arr']
+            );
         }
 
+        return $context_arr;
+    }
+
+    /**
+     * Extract custom save value for each field in the group (V2)
+     * @param  array  $settings_structure
+     * @param  array  $callback_params
+     * @param  array  $context_arr
+     * @param  array  $new_settings
+     * @param  array  $errors_arr
+     * @param  array  $warnings_arr
+     *
+     * @return void
+     */
+    private static function _get_custom_save_fields_settings_for_save_from_structure(
+        array $settings_structure, array $callback_params, array $context_arr,
+        array &$new_settings, array &$errors_arr, array &$warnings_arr
+    ): void
+    {
+        // make sure static error is reset
+        self::st_reset_error();
+        // make sure static warnings are reset
+        self::st_reset_warnings();
+
+        $all_db_settings = $context_arr['db_settings'] ?? [];
+        $new_settings ??= [];
+
+        $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
         foreach( $settings_structure as $field_name => $field_details ) {
-            if (!empty($field_details['ignore_field_value'])) {
-                continue;
-            }
-
             if (self::settings_field_is_group($field_details)) {
-                self::_extract_settings_and_form_data_from_submit(
-                    $field_details['group_fields'], $db_settings, $default_settings,
-                    $form_settings, $form_data,
-                    $is_post, $submit_arr);
+                self::_get_custom_save_fields_settings_for_save_from_structure(
+                    $field_details['group_fields'], $callback_params, $context_arr,
+                    $new_settings, $errors_arr, $warnings_arr
+                );
 
                 continue;
             }
 
-            if (null === ($field_value = self::_extract_field_value_from_submit(
-                $field_name, $field_details, $db_settings, $default_settings,
-                $form_data,
-                $is_post, $submit_arr))) {
+            if (!empty($field_details['ignore_field_value'])
+                || (!empty($context_arr['settings_for_tenant'])
+                    && empty($context_arr['tenant_custom_fields'][$field_name]))
+                || empty($field_details['custom_save'])
+                || !@is_callable($field_details['custom_save'])
+            ) {
                 continue;
             }
 
-            $form_settings[$field_name] = $field_value;
+            if( $context_arr['settings_for_tenant'] ) {
+                $current_value = $context_arr['db_tenant_settings'][$field_name] ?? $context_arr['default_settings'][$field_name] ?? null;
+            } else {
+                $current_value = $context_arr['db_main_settings'][$field_name] ?? $context_arr['default_settings'][$field_name] ?? null;
+            }
+
+            $new_callback_params = $callback_params;
+            $new_callback_params['field_name'] = $field_name;
+            $new_callback_params['field_details'] = $field_details;
+            $new_callback_params['field_value'] = $current_value;
+
+            // make sure static error is reset
+            self::st_reset_error();
+            // make sure static warnings are reset
+            self::st_reset_warnings();
+
+            /**
+             * When there is a field in instance settings which has a custom callback for saving data, it will return
+             * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
+             * can be provided
+             */
+            if (null !== ($save_result = @call_user_func($field_details['custom_save'], $new_callback_params))) {
+                if (!is_array($save_result)) {
+                    $new_settings[$field_name] = $save_result;
+                } else {
+                    $save_result = self::merge_array_assoc($save_result, $default_custom_save_callback_result);
+                    if (!empty($save_result['{new_settings_fields}'])
+                        && is_array($save_result['{new_settings_fields}'])) {
+                        // Main settings keep all key-values pairs
+                        foreach ($all_db_settings as $s_key => $s_val) {
+                            if (array_key_exists($s_key, $save_result['{new_settings_fields}'])) {
+                                $new_settings[$s_key] = $save_result['{new_settings_fields}'][$s_key];
+                            }
+                        }
+                    } else {
+                        if (isset($save_result['{new_settings_fields}'])) {
+                            unset($save_result['{new_settings_fields}']);
+                        }
+
+                        $new_settings[$field_name] = $save_result;
+                    }
+                }
+            } elseif (self::st_has_error()) {
+                $errors_arr[] = self::st_get_simple_error_message();
+            }
+
+            if (self::st_has_warnings()
+                && ($result_warnings_arr = self::st_get_warnings()) ) {
+                $warnings_arr = array_merge($warnings_arr, $result_warnings_arr);
+            }
+
+            // make sure static error is reset
+            self::st_reset_error();
+            // make sure static warnings are reset
+            self::st_reset_warnings();
         }
     }
 

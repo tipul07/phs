@@ -19,7 +19,7 @@ if (!($tenant_id = $this->view_var('tenant_id'))) {
 }
 
 if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+    $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
 }
 if (!($tenants_arr = $this->view_var('tenants_arr'))) {
     $tenants_arr = [];
@@ -201,6 +201,8 @@ function toggle_custom_tenant_value_section(section_id)
     } else {
         $("#"+section_id+"_main_value").css("opacity", "1");
     }
+
+    $(".phs_custom_tenant_settings_section .chosen-container").css("width", "100%");
 }
 <?php
 }
@@ -264,6 +266,7 @@ function phs_display_plugin_settings_field(string $field_name, array $field_deta
 
     $tenant_id = $context_arr['tenant_id'] ?? 0;
     $is_multi_tenant = $context_arr['is_multi_tenant'] ?? false;
+    $settings_for_tenant = $context_arr['settings_for_tenant'] ?? false;
 
     ?>
     <div class="form-group row">
@@ -271,10 +274,15 @@ function phs_display_plugin_settings_field(string $field_name, array $field_deta
             <?php echo empty($field_details['editable']) ? '<br/><small>'.$fthis->_pt('[Non-editable]').'</small>' : ''; ?></label>
         <div class="col-sm-10"><?php
 
-            if($is_multi_tenant && $tenant_id && empty($field_details['ignore_field_value'])) {
-                $main_value = $context_arr['db_main_settings'][$field_name] ?? $context_arr['default_settings'][$field_name] ?? null;
-                $field_value = $context_arr['form_data'][$field_name] ?? $context_arr['db_tenant_settings'][$field_name]
-                                                                         ?? $context_arr['default_settings'][$field_name] ?? null;
+            if(!$settings_for_tenant || !empty($field_details['ignore_field_value'])
+               || $field_details['input_type'] === PHS_Has_db_settings::INPUT_TYPE_TEMPLATE ) {
+                $field_value = $context_arr['form_data'][$field_name] ?? $context_arr['db_settings'][$field_name] ?? null;
+
+                echo phs_display_plugin_settings_get_field_input($field_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
+            } else {
+                $default_value = $context_arr['default_settings'][$field_name] ?? null;
+                $main_value = $context_arr['db_main_settings'][$field_name] ?? $default_value;
+                $field_value = $context_arr['form_data'][$field_name] ?? null;
                 $is_tenant_value = array_key_exists( $field_name, $context_arr['db_tenant_settings'] );
 
                 $tenant_settings_section_id = 'phs_settings_'.str_replace(':', '_', $context_arr['plugin']).
@@ -288,32 +296,37 @@ function phs_display_plugin_settings_field(string $field_name, array $field_deta
                             <?php echo $is_tenant_value ? 'checked="checked"':'';?>
                                onchange="toggle_custom_tenant_value_section('<?php echo $tenant_settings_section_id?>');"
                                id="tenant_custom_value_<?php echo $field_name?>"
-                               name="tenant_custom_values[<?php echo $field_name?>]" />
+                               name="tenant_custom_fields[<?php echo $field_name?>]" />
                         <label for="tenant_custom_value_<?php echo $field_name?>"><?php echo $fthis->_pt('Use custom tenant value')?></label>
                     </div>
                     <?php
                 }
 
-                if( ($main_value_buf = phs_display_plugin_settings_get_field_value_as_string($main_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj))) {
-                    ?>
-                    <p id="<?php echo $tenant_settings_section_id?>_main_value">
-                        <strong><?php echo $fthis->_pt( 'Main settings value' )?></strong>:<br/>
-                        <?php echo $main_value_buf?>
-                    </p>
-                    <?php
+                $default_value_buf = '';
+                if( '' !== ($main_value_buf = phs_display_plugin_settings_get_field_value_as_string($main_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj)) ) {
+                    $default_value_buf = phs_display_plugin_settings_get_field_value_as_string($default_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
                 }
+                ?>
+                <p id="<?php echo $tenant_settings_section_id?>_main_value">
+                    <strong><?php echo $fthis->_pt( 'Main settings value' )?></strong>:<br/>
+                    <?php
+                    if( $main_value_buf !== '' ) {
+                        echo $main_value_buf;
+                    } else {
+                        echo '('.$fthis->_pt('Empty string value').')'.
+                             ('' !== $default_value_buf ?', '.$fthis->_pt('Default value').': '.$default_value_buf:'');
+                    }
+                    ?>
+                </p>
+                <?php
 
                 if( empty( $field_details['only_main_tenant_value'] ) ) {
                     ?>
-                    <div id="<?php echo $tenant_settings_section_id?>" style="display: <?php echo $is_tenant_value?'block':'none'?>;">
+                <div id="<?php echo $tenant_settings_section_id?>" class="phs_custom_tenant_settings_section" style="display: <?php echo $is_tenant_value?'block':'none'?>;">
                     <?php
                     echo phs_display_plugin_settings_get_field_input($field_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
                     ?></div><?php
                 }
-            } else {
-                $field_value = $context_arr['form_data'][$field_name] ?? $context_arr['db_settings'][$field_name] ?? null;
-
-                echo phs_display_plugin_settings_get_field_input($field_value, $field_name, $field_details, $context_arr, $fthis, $plugin_obj);
             }
         ?></div>
     </div>
@@ -441,7 +454,7 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
                     if (empty($field_value) || !is_array($field_value)) {
                         $field_value = [];
                     }
-                    ?>
+                    ?><div style="width:100%">
                     <select id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>[]" multiple="multiple"
                             class="chosen-select <?php echo $field_details['extra_classes']; ?>" style="width: 100%;<?php echo $field_details['extra_style']; ?>"
                         <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?>
@@ -457,7 +470,7 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
                             <?php
                         }
                         ?>
-                    </select>
+                    </select></div>
                     <?php
                 }
             break;
@@ -547,7 +560,8 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
     return $input_buffer;
 }
 
-function phs_display_plugin_settings_get_field_value_as_string($field_value, string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): string
+function phs_display_plugin_settings_get_field_value_as_string($field_value, string $field_name, array $field_details,
+    array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): string
 {
     $form_data = $context_arr['form_data'] ?? [];
 
@@ -670,7 +684,7 @@ function phs_display_plugin_settings_get_field_value_as_string($field_value, str
         }
     }
 
-    if( !($input_buffer = @ob_get_clean()) ) {
+    if( false === ($input_buffer = @ob_get_clean()) ) {
         $input_buffer = '';
     }
 

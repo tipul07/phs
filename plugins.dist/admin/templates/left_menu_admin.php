@@ -114,7 +114,7 @@ if ($can_list_plugins || $can_manage_plugins) {
     ?>
     <li><?php echo $this::_t('Plugins Management'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'plugins_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
             <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
         </ul>
     </li>
