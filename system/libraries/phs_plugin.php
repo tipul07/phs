@@ -46,11 +46,20 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
+     * @return bool Tells if plugin is allowed to have tenant settings or functionality can be used per tenant
+     */
+    public function is_multi_tenant() : bool
+    {
+        return !($json_arr = $this->get_json_info())
+               || !empty($json_arr['is_multi_tenant']);
+    }
+
+    /**
      * @return array An array of strings which are the models used by this plugin
      */
     public function get_models() : array
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['models'])) {
             return [];
         }
@@ -63,7 +72,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_plugin_version() : string
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['version'])) {
             return '0.0.0';
         }
@@ -128,9 +137,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return array Array of roles definition
      */
-    public function get_agent_jobs_definition(): array
+    public function get_agent_jobs_definition() : array
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['agent_jobs'])
          || !is_array($json_arr['agent_jobs'])) {
             return [];
@@ -1451,14 +1460,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * Returns plugin information as described in plugin JSON file (if available) as array or false in case there is no JSON file
      * @return array
      */
-    final public function get_plugin_json_info() : ?array
+    final public function get_json_info() : ?array
     {
         if ($this->_plugin_json_details !== null) {
             return $this->_plugin_json_details;
         }
 
         if (!($plugin_name = $this->instance_plugin_name())
-         || !($json_arr = PHS::get_plugin_json_info($plugin_name))) {
+         || !($json_arr = PHS_Instantiable::get_plugin_json_info($plugin_name))) {
             $json_arr = [];
         }
 
@@ -1481,7 +1490,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         $plugin_details = self::validate_array($this->get_plugin_details(), self::default_plugin_details_fields());
-        if (($json_info = $this->get_plugin_json_info())
+        if (($json_info = $this->get_json_info())
          && !empty($json_info['data_from_json'])) {
             $plugin_details = self::merge_array_assoc($plugin_details, $json_info);
         }
@@ -1657,6 +1666,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_core'          => false,
             'is_always_active' => false,
             'is_distribution'  => false,
+            'is_multi_tenant'  => true,
             'data_from_json'   => false,
             'db_details'       => false,
             'models'           => [],
@@ -1682,6 +1692,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_core'          => true,
             'is_always_active' => true,
             'is_distribution'  => true,
+            'is_multi_tenant'  => true,
             'models'           => PHS::get_core_models(),
         ];
 

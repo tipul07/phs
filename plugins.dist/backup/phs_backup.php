@@ -76,24 +76,27 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         return [
             'location' => [
-                'display_name'    => $this->_pt('Default backups location'),
-                'display_hint'    => $this->_pt('A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR),
-                'type'            => PHS_Params::T_NOHTML,
-                'default'         => self::DIRNAME_IN_UPLOADS,
-                'custom_renderer' => [$this, 'plugin_settings_render_location'],
-                'custom_save'     => [$this, 'plugin_settings_save_location'],
+                'display_name'           => $this->_pt('Default backups location'),
+                'display_hint'           => $this->_pt('A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR),
+                'type'                   => PHS_Params::T_NOHTML,
+                'default'                => self::DIRNAME_IN_UPLOADS,
+                'custom_renderer'        => [$this, 'plugin_settings_render_location'],
+                'custom_save'            => [$this, 'plugin_settings_save_location'],
+                'only_main_tenant_value' => true,
             ],
             'mysqldump_bin' => [
-                'display_name' => $this->_pt('mysqldump binary location'),
-                'display_hint' => $this->_pt('Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.'),
-                'type'         => PHS_Params::T_NOHTML,
-                'default'      => $mysql_dump_path,
+                'display_name'           => $this->_pt('mysqldump binary location'),
+                'display_hint'           => $this->_pt('Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.'),
+                'type'                   => PHS_Params::T_NOHTML,
+                'default'                => $mysql_dump_path,
+                'only_main_tenant_value' => true,
             ],
             'zip_bin' => [
-                'display_name' => $this->_pt('zip binary location'),
-                'display_hint' => $this->_pt('Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.'),
-                'type'         => PHS_Params::T_NOHTML,
-                'default'      => $zip_path,
+                'display_name'           => $this->_pt('zip binary location'),
+                'display_hint'           => $this->_pt('Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.'),
+                'type'                   => PHS_Params::T_NOHTML,
+                'default'                => $zip_path,
+                'only_main_tenant_value' => true,
             ],
         ];
     }
@@ -105,7 +108,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $default_value = $params['field_details']['default'] ?? self::DIRNAME_IN_UPLOADS;
         $field_value = $params['field_value'] ?? $default_value;
 
-        if( !empty($params['value_as_text']) ) {
+        if (!empty($params['value_as_text'])) {
             return $field_value;
         }
 

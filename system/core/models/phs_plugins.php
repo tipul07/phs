@@ -1031,6 +1031,49 @@ class PHS_Model_Plugins extends PHS_Model
     }
 
     /**
+     * Get settings from database
+     *
+     * @param string $instance_id
+     * @param int $tenant_id
+     * @param bool $force
+     *
+     * @return null|array
+     */
+    public function get_plugins_db_tenant_settings(
+        string $instance_id,
+        int $tenant_id,
+        bool $force = false) : ?array
+    {
+        $this->reset_error();
+
+        if (!PHS::is_multi_tenant()) {
+            return null;
+        }
+
+        if (!empty($force)
+         && isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
+            unset(self::$plugin_tenant_settings[$tenant_id][$instance_id]);
+        }
+
+        if (isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
+            return self::$plugin_tenant_settings[$tenant_id][$instance_id];
+        }
+
+        if (!($db_details = $this->get_plugins_db_tenant_details($instance_id, $tenant_id, $force))) {
+            return null;
+        }
+
+        if (empty($db_details['settings'])) {
+            self::$plugin_tenant_settings[$tenant_id][$instance_id] = [];
+        } else {
+            // parse settings in database...
+            self::$plugin_tenant_settings[$tenant_id][$instance_id] = $this->_decode_settings_field($db_details['settings']);
+        }
+
+        return self::$plugin_tenant_settings[$tenant_id][$instance_id];
+    }
+
+    /**
      * @param false|array $instance_details
      */
     protected function _do_construct($instance_details = false) : void
@@ -1415,49 +1458,6 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_settings[$instance_id];
     }
 
-    /**
-     * Get settings from database
-     *
-     * @param string $instance_id
-     * @param int $tenant_id
-     * @param bool $force
-     *
-     * @return null|array
-     */
-    public function get_plugins_db_tenant_settings(
-        string $instance_id,
-        int $tenant_id,
-        bool $force = false) : ?array
-    {
-        $this->reset_error();
-
-        if (!PHS::is_multi_tenant()) {
-            return null;
-        }
-
-        if (!empty($force)
-         && isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
-            unset(self::$plugin_tenant_settings[$tenant_id][$instance_id]);
-        }
-
-        if (isset(self::$plugin_tenant_settings[$tenant_id][$instance_id])) {
-            return self::$plugin_tenant_settings[$tenant_id][$instance_id];
-        }
-
-        if (!($db_details = $this->get_plugins_db_tenant_details($instance_id, $tenant_id, $force))) {
-            return null;
-        }
-
-        if (empty($db_details['settings'])) {
-            self::$plugin_tenant_settings[$tenant_id][$instance_id] = [];
-        } else {
-            // parse settings in database...
-            self::$plugin_tenant_settings[$tenant_id][$instance_id] = $this->_decode_settings_field($db_details['settings']);
-        }
-
-        return self::$plugin_tenant_settings[$tenant_id][$instance_id];
-    }
-
     private function _get_core_record_for_paginator() : array
     {
         $core_details = PHS_Plugin::core_plugin_details_fields();
@@ -1622,7 +1622,7 @@ class PHS_Model_Plugins extends PHS_Model
         $new_fields_arr = $validate_fields['data_arr'];
         // Try updating settings...
         if (array_key_exists('settings', $new_fields_arr)) {
-            if( empty( $new_fields_arr['settings'] ) ) {
+            if (empty($new_fields_arr['settings'])) {
                 $new_fields_arr['settings'] = null;
             } else {
                 $new_fields_arr['settings'] = $this->_encode_settings_field($new_fields_arr['settings']);
@@ -1652,7 +1652,7 @@ class PHS_Model_Plugins extends PHS_Model
 
         PHS_Logger::notice('DONE Plugins model action ['.$params['action'].'] on tenant ['.$tenant_id.'] instance ['.$instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-        if( empty( self::$db_tenant_plugins ) ) {
+        if (empty(self::$db_tenant_plugins)) {
             self::$db_tenant_plugins = [];
         }
 

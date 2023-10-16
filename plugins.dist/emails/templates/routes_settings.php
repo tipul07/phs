@@ -1,6 +1,5 @@
 <?php
 /** @var \phs\system\core\views\PHS_View $this */
-
 if (!($email_routes = $this->view_var('email_routes'))) {
     $email_routes = [];
 }
@@ -95,7 +94,7 @@ foreach ($email_routes as $route_name => $route_arr) {
                     <?php echo $route_arr['smtp_encryption'] === $encryption_type ? 'selected="selected"' : ''; ?>
                     ><?php echo $encryption_type; ?></option><?php
                 }
-                ?>
+            ?>
             </select>
             <?php
         } else {
@@ -106,36 +105,36 @@ foreach ($email_routes as $route_name => $route_arr) {
                    value="<?php echo form_str($route_arr['smtp_encryption']); ?>" />
             <?php
         }
-        ?>
+    ?>
     </div>
 
     <div class="form-group">
         <label for="routes_<?php echo $route_safe_name; ?>_smtp_authentication"><?php echo $this->_pt('SMTP Authetication'); ?></label>
         <?php
-        if (!empty($smtp_library)
-            && ($authentication_methods = $smtp_library->get_authentication_methods())) {
-            ?><select name="routes[<?php echo $route_name; ?>][smtp_authentication]"
+    if (!empty($smtp_library)
+        && ($authentication_methods = $smtp_library->get_authentication_methods())) {
+        ?><select name="routes[<?php echo $route_name; ?>][smtp_authentication]"
                       id="routes_<?php echo $route_safe_name; ?>_smtp_authentication"
                       class="form-control chosen-select-nosearch">
             <option value=""> - Choose - </option>
             <?php
-            foreach ($authentication_methods as $authentication_method) {
-                ?><option value="<?php echo $authentication_method; ?>"
+        foreach ($authentication_methods as $authentication_method) {
+            ?><option value="<?php echo $authentication_method; ?>"
                 <?php echo $route_arr['smtp_authentication'] === $authentication_method ? 'selected="selected"' : ''; ?>
                 ><?php echo $authentication_method; ?></option><?php
-            }
-            ?>
+        }
+        ?>
             </select>
             <?php
-        } else {
-            ?>
+    } else {
+        ?>
             <input type="text" class="form-control"
                    name="routes[<?php echo $route_name; ?>][smtp_authentication]"
                    id="routes_<?php echo $route_safe_name; ?>_smtp_authentication"
                    value="<?php echo form_str($route_arr['smtp_authentication']); ?>" />
             <?php
-        }
-        ?>
+    }
+    ?>
     </div>
     <?php
 }

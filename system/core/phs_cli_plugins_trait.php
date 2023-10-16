@@ -2,6 +2,7 @@
 namespace phs\traits;
 
 use phs\PHS;
+use phs\libraries\PHS_Instantiable;
 use phs\system\core\models\PHS_Model_Plugins;
 
 /**
@@ -42,7 +43,7 @@ trait PHS_Cli_plugins_trait
         $plugin_info['dir_name'] = $plugin_name;
 
         // If plugin has a JOSN available, try getting as much data from it
-        if (($json_arr = PHS::get_plugin_json_info($plugin_name))) {
+        if (($json_arr = PHS_Instantiable::get_plugin_json_info($plugin_name))) {
             foreach (['name', 'version', 'vendor_id', 'vendor_name'] as $field) {
                 if (!empty($json_arr[$field])) {
                     $plugin_info[$field] = $json_arr[$field];

@@ -199,7 +199,7 @@ final class PHS_Maintenance extends PHS_Registry
         // Check if JSON file is present in plugin directory
         if (!($json_file = PHS_Instantiable::get_plugin_details_json_file($plugin))
          || !($json_full_path = $real_path.$plugin.'/'.$json_file)
-         || !($json_arr = PHS::read_plugin_json_details($json_full_path))) {
+         || !($json_arr = PHS_Instantiable::read_plugin_json_details($json_full_path))) {
             self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin repository directory is not valid.'));
 
             return false;

@@ -60,20 +60,20 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                 'default'      => 20971520, // 20Mb
             ],
             'test_email_sending' => [
-                'display_name'       => 'Test sending emails',
-                'custom_renderer'    => [$this, 'display_test_sending_emails'],
-                'default'            => false,
-                'ignore_field_value' => true,
+                'display_name'           => 'Test sending emails',
+                'custom_renderer'        => [$this, 'display_test_sending_emails'],
+                'default'                => false,
+                'ignore_field_value'     => true,
                 'only_main_tenant_value' => true,
             ],
         ];
     }
 
-    public function display_test_sending_emails($params): ?string
+    public function display_test_sending_emails($params) : ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
-        if( !empty($params['value_as_text'])) {
+        if (!empty($params['value_as_text'])) {
             return '';
         }
 

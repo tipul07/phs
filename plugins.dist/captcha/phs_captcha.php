@@ -21,7 +21,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
     public const SESSION_VAR = 'phs_image_code';
 
-    public function get_output_as_key_vals()
+    public function get_output_as_key_vals() : array
     {
         return [
             self::OUTPUT_JPG => 'JPG',

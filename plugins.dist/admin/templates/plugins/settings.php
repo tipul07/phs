@@ -30,8 +30,9 @@ $model_id = $this->view_var('model_id') ?? '';
 
 /** @var PHS_Plugin $plugin_obj */
 $plugin_obj = $context_arr['plugin_instance'] ?? null;
-
 $models_arr = $context_arr['models_arr'] ?? [];
+$is_multitenant = $context_arr['is_multi_tenant'] ?? false;
+$settings_structure = $context_arr['settings_structure'] ?? [];
 
 if( !$plugin_obj ) {
     $plugin_info = PHS_Plugin::core_plugin_details_fields();
@@ -39,7 +40,19 @@ if( !$plugin_obj ) {
     $plugin_info = [];
 }
 
-$is_multitenant = $context_arr['is_multi_tenant'] ?? false;
+$models_with_settings = [];
+foreach ($models_arr as $m_id => $m_name) {
+    /** @var \phs\libraries\PHS_Model $model_instance */
+    if (!($model_instance = PHS::load_model($m_name, $plugin_obj?$plugin_obj->instance_name():null ))
+        || !$model_instance->get_settings_structure()) {
+        continue;
+    }
+
+    $models_with_settings[$m_id] = [
+        'name' => $m_name,
+        'instance' => $model_instance,
+    ];
+}
 ?>
 <form id="plugin_settings_form" name="plugin_settings_form" method="post"
       action="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'], ['pid' => $pid]); ?>">
@@ -48,107 +61,110 @@ $is_multitenant = $context_arr['is_multi_tenant'] ?? false;
     if (!empty($back_page)) {
         ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
     }
-?>
+    ?>
+
     <div class="form_container responsive">
 
         <?php
-if (!empty($back_page)) {
-    ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str(from_safe_url($back_page)); ?>"><?php echo $this->_pt('Back'); ?></a><?php
-}
-?>
+        if (!empty($back_page)) {
+            ?><i class="fa fa-chevron-left"></i> <a href="<?php echo form_str(from_safe_url($back_page)); ?>"><?php echo $this->_pt('Back'); ?></a><?php
+        }
+        ?>
 
         <section class="heading-bordered">
             <h3>
                 <?php echo $plugin_info['name'] ?? 'N/A'; ?>
                 <small>
-                <?php
-    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version'];
+                    <?php
+                    echo 'Db v'.$plugin_info['db_version'].' / S v'.$plugin_info['script_version'];
 
-if (!empty($models_arr)) {
-    echo ' - '.$this->_pt('%s models', count($models_arr));
-}
-?>
+                    if (!empty($models_arr)) {
+                        echo ' - '.$this->_pt('%s models', count($models_arr));
+                    }
+                    ?>
                 </small>
             </h3>
         </section>
 
         <?php
-    if (!empty($plugin_info['description'])) {
-        ?>
-        <div><small style="top:-15px;position:relative;"><?php echo $plugin_info['description']; ?></small></div>
-        <?php
-    }
-
-    if ($is_multitenant) {
-        ?>
-        <div class="row form-group">
-            <label for="tenant_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select tenant'); ?></label>
-            <div class="col-sm-2" style="min-width:250px;max-width:360px;">
-                <select name="tenant_id" id="tenant_id" class="chosen-select"
-                        onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
-                <option value="0"><?php echo $this->_pt( '- Default settings -' )?></option>
-                <?php
-                foreach ($tenants_arr as $t_id => $t_arr) {
-                    if ($tenants_model->is_deleted($t_arr)) {
-                        continue;
-                    }
-
-                    ?><option value="<?php echo $t_id; ?>"
-                    <?php echo $tenant_id === $t_id ? 'selected="selected"' : ''; ?>
-                    ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option><?php
-                }
-                ?></select>
-            </div>
-            <div class="col-sm-2">
-            <input type="submit" id="select_tenant" name="select_tenant"
-                   class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
-            </div>
-        </div>
+        if (!empty($plugin_info['description'])) {
+            ?>
+            <div><small style="top:-15px;position:relative;"><?php echo $plugin_info['description']; ?></small></div>
             <?php
-    }
+        }
 
-    if (!empty($models_arr)) {
-        ?>
-        <div class="row form-group">
-            <label for="model_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select plugin or a model'); ?></label>
-            <div class="col-sm-2" style="min-width:250px;max-width:360px;">
-                <select name="model_id" id="model_id" class="chosen-select"
-                        onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
-                    <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
-                    <?php
-                    foreach ($models_arr as $m_id => $m_name) {
-                        /** @var \phs\libraries\PHS_Model $model_instance */
-                        if (!($model_instance = PHS::load_model($m_name, $plugin_obj?$plugin_obj->instance_name():null ))) {
-                            continue;
+        if(empty($plugin_info['is_multi_tenant']) && PHS::is_multi_tenant()) {
+            ?>
+            <p class="text-center"><small><?php echo $this->_pt('This plugin is not a multi-tenant plugin! Settings will be same for all tenants.')?></small></p>
+            <?php
+        }
+
+        if ((!empty( $settings_structure ) || !empty( $models_with_settings ))
+            && $is_multitenant) {
+            ?>
+            <div class="row form-group">
+                <label for="tenant_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select tenant'); ?></label>
+                <div class="col-sm-2" style="min-width:250px;max-width:360px;">
+                    <select name="tenant_id" id="tenant_id" class="chosen-select"
+                            onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
+                        <option value="0"><?php echo $this->_pt( '- Default settings -' )?></option>
+                        <?php
+                        foreach ($tenants_arr as $t_id => $t_arr) {
+                            if ($tenants_model->is_deleted($t_arr)) {
+                                continue;
+                            }
+
+                            ?><option value="<?php echo $t_id; ?>"
+                            <?php echo $tenant_id === $t_id ? 'selected="selected"' : ''; ?>
+                            ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option><?php
                         }
-
-                        ?><option value="<?php echo $m_name; ?>" <?php echo $model_id === $m_name ? 'selected="selected"' : ''; ?>
-                        ><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
-                    }
-                    ?></select>
+                        ?></select>
+                </div>
+                <div class="col-sm-2">
+                    <input type="submit" id="select_tenant" name="select_tenant"
+                           class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
+                </div>
             </div>
-            <div class="col-sm-2">
-                <input type="submit" id="select_module" name="select_module"
-                       class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
+            <?php
+        }
+
+        if( !empty( $models_with_settings ) ) {
+            ?>
+            <div class="row form-group">
+                <label for="model_id" class="col-sm-3 col-form-label"><?php echo $this->_pt('Select plugin or a model'); ?></label>
+                <div class="col-sm-2" style="min-width:250px;max-width:360px;">
+                    <select name="model_id" id="model_id" class="chosen-select"
+                            onchange="document.plugin_settings_form.submit()" style="min-width:250px;max-width:360px;">
+                        <option value=""><?php echo $plugin_info['name'].(!empty($plugin_obj) ? ' ('.$plugin_obj->instance_type().')' : ''); ?></option>
+                        <?php
+                        foreach ($models_with_settings as $m_id => $m_arr) {
+                            /** @var \phs\libraries\PHS_Model $model_instance */
+                            $model_instance = $m_arr['instance'];
+
+                            ?><option value="<?php echo $m_arr['name']; ?>" <?php echo $model_id === $m_arr['name'] ? 'selected="selected"' : ''; ?>
+                            ><?php echo $model_instance->instance_name().' ('.$model_instance->instance_type().')'; ?></option><?php
+                        }
+                        ?></select>
+                </div>
+                <div class="col-sm-2">
+                    <input type="submit" id="select_module" name="select_module"
+                           class="btn btn-primary btn-small ignore_hidden_required" value="&raquo;" />
+                </div>
             </div>
-        </div>
-        <?php
-    }
+            <?php
+        }
 
-?><p><small><?php
+        ?><p><small><?php
 
-echo $this->_pt('Database version').': '.$plugin_info['db_version'].', ';
-echo $this->_pt('Script version').': '.$plugin_info['script_version'];
+                echo $this->_pt('Database version').': '.$plugin_info['db_version'].', ';
+                echo $this->_pt('Script version').': '.$plugin_info['script_version'];
 
-if (version_compare($plugin_info['db_version'], $plugin_info['script_version'], '!=')) {
-    echo ' - <span style="color:red;">'.$this->_pt('Please upgrade the plugin').'</span>';
-}
+                if (version_compare($plugin_info['db_version'], $plugin_info['script_version'], '!=')) {
+                    echo ' - <span style="color:red;">'.$this->_pt('Please upgrade the plugin').'</span>';
+                }
 
-?></small></p>
+                ?></small></p><?php
 
-        <?php
-
-        $settings_structure = $context_arr['settings_structure'] ?? [];
 
 if (empty($settings_structure) || !is_array($settings_structure)) {
     ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt('Selected module doesn\'t have any settings.'); ?></p><?php
@@ -264,8 +280,6 @@ function phs_display_plugin_settings_field(string $field_name, array $field_deta
         return;
     }
 
-    $tenant_id = $context_arr['tenant_id'] ?? 0;
-    $is_multi_tenant = $context_arr['is_multi_tenant'] ?? false;
     $settings_for_tenant = $context_arr['settings_for_tenant'] ?? false;
 
     ?>

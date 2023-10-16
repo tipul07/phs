@@ -5,7 +5,7 @@ use phs\PHS;
 
 abstract class PHS_Instantiable extends PHS_Registry
 {
-    public const ERR_INSTANCE = 20000, ERR_INSTANCE_ID = 20001, ERR_INSTANCE_CLASS = 20002, ERR_CLASS_NAME = 20002;
+    public const ERR_INSTANCE = 20000, ERR_INSTANCE_ID = 20001, ERR_INSTANCE_CLASS = 20002, ERR_CLASS_NAME = 20003, ERR_JSON_DETAILS = 20004;
 
     public const INSTANCE_TYPE_UNDEFINED = 'undefined',
     INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
@@ -86,7 +86,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|PHS_Plugin
      */
-    final public function get_plugin_instance(): ?PHS_Plugin
+    final public function get_plugin_instance() : ?PHS_Plugin
     {
         $this->reset_error();
 
@@ -956,15 +956,15 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_plugin_details_json_file($plugin_name)
+    public static function get_plugin_details_json_file($plugin_name) : ?string
     {
         self::st_reset_error();
 
         if (!($plugin_name = self::safe_escape_plugin_name($plugin_name))
-         || $plugin_name === self::CORE_PLUGIN) {
+            || $plugin_name === self::CORE_PLUGIN) {
             self::st_set_error(self::ERR_INSTANCE, self::_t('Plugin name not allowed.'));
 
-            return false;
+            return null;
         }
 
         return 'phs_'.strtolower($plugin_name).'.json';
@@ -1354,10 +1354,143 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $instance_obj;
     }
 
-    private static function _validate_instance_type_dir_from_namespace($type_dir)
+    final public static function default_instance_json_fields() : array
+    {
+        return [
+            'data_from_json' => false, // tells if data is populated from JSON
+            'vendor_id'      => '', // unique vendor identifier
+            'vendor_name'    => '', // readable vendor name
+            'name'           => '',
+            'description'    => '',
+            'version'        => '0.0.0',
+            // This is used internally by PHS
+            'script_version' => '0.0.0',
+            'update_url'     => '',
+            // Tells if plugin has any dependencies (key is plugin name and value is min version required) - TBD
+            'requires' => [],
+            // Only for plugins. Tells if plugin can be configured per tenant (if platform is multi-tenant)
+            'is_multi_tenant' => true,
+            // only for plugins...
+            'models' => [],
+            // only for plugins...
+            'agent_jobs' => [],
+        ];
+    }
+
+    /**
+     * @param string $json_file_full_path
+     *
+     * @return array
+     */
+    public static function read_plugin_json_details(string $json_file_full_path) : array
+    {
+        // Plugin might not have even directory created meaning no script files
+        if (!@file_exists($json_file_full_path)
+            || !@is_readable($json_file_full_path)
+            || !($json_str = @file_get_contents($json_file_full_path))
+            || !($json_arr = @json_decode($json_str, true))) {
+            return [];
+        }
+
+        $json_arr = self::validate_array_to_new_array($json_arr, self::default_instance_json_fields());
+
+        // script_version key is used internally by PHS
+        if (!empty($json_arr['version'])) {
+            $json_arr['script_version'] = $json_arr['version'];
+        }
+
+        $json_arr['data_from_json'] = true;
+
+        return $json_arr;
+    }
+
+    /**
+     * @param string $plugin_name
+     *
+     * @return null|array
+     */
+    public static function get_plugin_json_info(string $plugin_name) : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $plugin_name, self::INSTANCE_TYPE_PLUGIN);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $model_name
+     *
+     * @return null|array
+     */
+    public static function get_model_json_info(string $plugin_name, string $model_name) : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $model_name, self::INSTANCE_TYPE_MODEL);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $controller_name
+     *
+     * @return null|array
+     */
+    public static function get_controller_json_info(string $plugin_name, string $controller_name) : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $controller_name, self::INSTANCE_TYPE_CONTROLLER);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $action_name
+     * @param string $action_dir
+     *
+     * @return null|array
+     */
+    public static function get_action_json_info(string $plugin_name, string $action_name, string $action_dir = '') : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $action_name, self::INSTANCE_TYPE_ACTION, $action_dir);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $contract_name
+     * @param string $contract_dir
+     *
+     * @return null|array
+     */
+    public static function get_contract_json_info(string $plugin_name, string $contract_name, string $contract_dir = '') : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $contract_name, self::INSTANCE_TYPE_CONTRACT, $contract_dir);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $view_name
+     *
+     * @return null|array
+     */
+    public static function get_view_json_info(string $plugin_name, string $view_name) : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $view_name, self::INSTANCE_TYPE_VIEW);
+    }
+
+    /**
+     * @param string $plugin_name
+     * @param string $scope_name
+     *
+     * @return null|array
+     */
+    public static function get_scope_json_info(string $plugin_name, string $scope_name) : ?array
+    {
+        return self::_get_instance_json_details($plugin_name, $scope_name, self::INSTANCE_TYPE_SCOPE);
+    }
+
+    /**
+     * @param string $type_dir
+     *
+     * @return null|array
+     */
+    private static function _validate_instance_type_dir_from_namespace(string $type_dir) : ?array
     {
         if (!($types_arr = self::get_instance_types())) {
-            return false;
+            return null;
         }
 
         if (!($allow_subdirs = self::get_instance_type_dirs_that_allow_subdirs())) {
@@ -1365,7 +1498,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         foreach ($types_arr as $type => $type_details) {
-            $type_dir_parts = false;
+            $type_dir_parts = null;
             if ($type_details['dir_name'] === $type_dir
                 // Instances with subdirs
                 || (
@@ -1384,6 +1517,103 @@ abstract class PHS_Instantiable extends PHS_Registry
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * Read directory corresponding to $instance_type from $plugin and return instance type names (as required for PHS::load_* method)
+     * This only returns file names, does no check if class is instantiable...
+     *
+     * @param null|string $plugin Plugin name
+     * @param null|string $instance_name Model, controller, action, view or scope name
+     * @param string $instance_type What instance type to check for JSON info (types PHS_Instantiable::INSTANCE_TYPE_*)
+     * @param string $instance_subdir If instance allows subdirs, provide which subdir is that
+     *
+     * @return null|array
+     */
+    private static function _get_instance_json_details(?string $plugin = null, ?string $instance_name = null,
+        string $instance_type = self::INSTANCE_TYPE_PLUGIN, string $instance_subdir = '') : ?array
+    {
+        self::st_reset_error();
+
+        if (empty($instance_name)) {
+            $instance_name = 'Index';
+        } else {
+            $instance_name = ucfirst(strtolower($instance_name));
+        }
+
+        switch ($instance_type) {
+            case self::INSTANCE_TYPE_PLUGIN:
+                $class_name = 'PHS_Plugin_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_MODEL:
+                $class_name = 'PHS_Model_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_CONTROLLER:
+                $class_name = 'PHS_Controller_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_ACTION:
+                $class_name = 'PHS_Action_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_CONTRACT:
+                $class_name = 'PHS_Contract_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_VIEW:
+                $class_name = 'PHS_View_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_SCOPE:
+                $class_name = 'PHS_Scope_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_EVENT:
+                $class_name = 'PHS_Event_'.$instance_name;
+                break;
+
+            default:
+                self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Invalid instance type to get JSON info.'));
+
+                return null;
+        }
+
+        if (empty($plugin) || $plugin === self::CORE_PLUGIN) {
+            $plugin = null;
+
+            if ($instance_type === self::INSTANCE_TYPE_PLUGIN) {
+                self::st_set_error(self::ERR_JSON_DETAILS, self::_t('There is no CORE plugin.'));
+
+                return null;
+            }
+        } elseif (!($plugin = self::safe_escape_plugin_name($plugin))) {
+            self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Invalid plugin name to get JSON info.'));
+
+            return null;
+        }
+
+        // Get generic information about an index controller to obtain paths to be checked...
+        if (!($instance_details = self::get_instance_details($class_name, $plugin, $instance_type, $instance_subdir))) {
+            if (!self::st_has_error()) {
+                self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Couldn\'t obtain instance details for generic controller index from plugin %s .', (empty($plugin) ? self::CORE_PLUGIN : $plugin)));
+            }
+
+            return null;
+        }
+
+        if (empty($instance_details['instance_path'])) {
+            if (!self::st_has_error()) {
+                self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Couldn\'t obtain instance path for plugin %s, instance %s.',
+                    (empty($plugin) ? self::CORE_PLUGIN : $plugin), $instance_name));
+            }
+
+            return null;
+        }
+
+        // Plugin might not have even directory created meaning no script files
+        if (empty($instance_details['instance_json_file'])
+            || !@is_dir($instance_details['instance_path'])
+            || !@is_readable($instance_details['instance_path'])
+            || !($json_arr = self::read_plugin_json_details($instance_details['instance_path'].$instance_details['instance_json_file']))) {
+            return [];
+        }
+
+        return $json_arr;
     }
 }

@@ -42,13 +42,13 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     }
 
     // Do any actions required immediately after paginator was instantiated
-    public function we_have_paginator(): bool
+    public function we_have_paginator() : bool
     {
         return true;
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator(): bool
+    public function we_initialized_paginator() : bool
     {
         return true;
     }

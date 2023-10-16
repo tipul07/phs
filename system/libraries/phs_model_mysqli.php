@@ -1970,12 +1970,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             case self::FTYPE_MEDIUMTEXT:
             case self::FTYPE_LONGTEXT:
 
-                if( $value === '' ) {
+                if ($value === '') {
                     if (!empty($field_details['nullable'])) {
                         $value = null;
                     }
-                } elseif( $value === null ) {
-                    if( empty($field_details['nullable'] ) ) {
+                } elseif ($value === null) {
+                    if (empty($field_details['nullable'])) {
                         $value = '';
                     }
                 } else {
@@ -1989,7 +1989,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                     }
 
                     if (!is_string($value)) {
-                        $value = (string) $value;
+                        $value = (string)$value;
                     }
 
                     if (strlen($value) > $max_bytes) {

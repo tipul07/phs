@@ -87,7 +87,7 @@ final class PHS_Tenants extends PHS_Registry
                 ['expire_secs' => self::COOKIE_LIFETIME]);
         }
 
-        if(!empty(self::$_current_tenant['id'])
+        if (!empty(self::$_current_tenant['id'])
            && (int)self::$_current_tenant['id'] === (int)$tenant_arr['id']) {
             return true;
         }

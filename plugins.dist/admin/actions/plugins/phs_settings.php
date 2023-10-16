@@ -113,6 +113,10 @@ class PHS_Action_Settings extends PHS_Action
             }
         }
 
+        if($tenant_id !== $context_arr['tenant_id']) {
+            $tenant_id = $context_arr['tenant_id'];
+        }
+
         $context_arr = PHS_Has_db_settings::extract_settings_and_form_data_from_context( $context_arr );
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
