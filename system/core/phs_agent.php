@@ -3,8 +3,12 @@ namespace phs;
 
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Instantiable;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Agent_jobs;
+use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
 // ! @version 1.00
 
@@ -26,10 +30,18 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
 
             return false;
+        }
+
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
+        if( !($admin_plugin = PHS_Plugin_Admin::get_instance())
+            || !$admin_plugin->monitor_agent_jobs()
+            || !($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance()) ) {
+            $jobs_monitor_model = null;
         }
 
         if (empty($job_data)
@@ -73,7 +85,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         // Make sure we are not launching job from front-end...
-        if (!in_array(PHS_Scope::current_scope(), [PHS_Scope::SCOPE_AGENT, PHS_Scope::SCOPE_BACKGROUND, ], true)) {
+        if (!PHS::are_we_in_a_background_thread()) {
             $run_async = true;
         }
 
@@ -82,7 +94,7 @@ class PHS_Agent extends PHS_Registry
         $cmd_extra['agent_jobs_model'] = $agent_jobs_model;
         $cmd_extra['force_run'] = $extra['force_run'];
 
-        if (!($cmd_parts = $this->get_job_command($job_arr, $cmd_extra))
+        if (!($cmd_parts = $this->_get_job_command($job_arr, $cmd_extra))
          || empty($cmd_parts['cmd'])) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_COMMAND, self::_t('Couldn\'t get agent job command.'));
@@ -98,6 +110,11 @@ class PHS_Agent extends PHS_Registry
 
         PHS_Logger::notice('Launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT);
 
+        if($jobs_monitor_model !== null
+           && !$jobs_monitor_model->job_started($job_arr)) {
+            PHS_Logger::error('Error saving job monitor data START for agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT);
+        }
+
         if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Command ['.$cmd_parts['cmd'].']', PHS_Logger::TYPE_AGENT);
         }
@@ -111,7 +128,7 @@ class PHS_Agent extends PHS_Registry
      *
      * @return array|false
      */
-    public function get_job_command($job_data, $extra = false)
+    private function _get_job_command($job_data, $extra = false)
     {
         $this->reset_error();
 
@@ -119,17 +136,13 @@ class PHS_Agent extends PHS_Registry
             $extra = [];
         }
 
-        if (empty($extra['force_run'])) {
-            $extra['force_run'] = false;
-        } else {
-            $extra['force_run'] = true;
-        }
+        $extra['force_run'] = !empty($extra['force_run']);
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
         }
 
         if (empty($job_data)
@@ -185,8 +198,8 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
 
             return false;
         }
@@ -215,7 +228,7 @@ class PHS_Agent extends PHS_Registry
                 continue;
             }
 
-            if (!$agent_jobs_model->stop_job($job_arr)) {
+            if (!$agent_jobs_model->stop_job($job_arr,['last_error' => 'Job considered dead.'])) {
                 $return_arr['jobs_stopped_error']++;
             } else {
                 $return_arr['jobs_stopped']++;
@@ -230,8 +243,8 @@ class PHS_Agent extends PHS_Registry
         $this->reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
 
             return false;
         }
@@ -812,30 +825,31 @@ class PHS_Agent extends PHS_Registry
 
     /**
      * @param int|array $job_data
-     * @param false|array $extra
+     * @param null|array $extra
      *
-     * @return null|array|bool
+     * @return null|array
      */
-    public static function bg_run_job($job_data, $extra = false)
+    public static function bg_run_job($job_data, ?array $extra = null): ?array
     {
         self::st_reset_error();
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
+        $extra ??= [];
         $extra['force_run'] = !empty($extra['force_run']);
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
+        }
+
+        if (empty($agent_jobs_model)) {
+            self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+            return null;
         }
 
         if (empty($job_data)
-         || empty($agent_jobs_model)
-         || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
+            || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
             if ($agent_jobs_model->has_error()) {
                 self::st_copy_error($agent_jobs_model);
             }
@@ -844,7 +858,7 @@ class PHS_Agent extends PHS_Registry
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t get agent job details.'));
             }
 
-            return false;
+            return null;
         }
 
         self::current_job_data($job_arr);
@@ -855,19 +869,19 @@ class PHS_Agent extends PHS_Registry
                     self::st_copy_error($agent_jobs_model);
                 }
 
-                return false;
+                return null;
             }
 
-            if (empty($job_stalling)) {
+            if (!$job_stalling) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Agent job already running.'));
 
-                return false;
+                return null;
             }
 
             if (empty($extra['force_run'])) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Agent job seems to stall. Run not told to force execution.'));
 
-                return false;
+                return null;
             }
         }
 
@@ -883,7 +897,7 @@ class PHS_Agent extends PHS_Registry
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t save background jobs details in database.'));
             }
 
-            return false;
+            return null;
         }
 
         $job_arr = $new_job_arr;
@@ -891,7 +905,7 @@ class PHS_Agent extends PHS_Registry
         self::current_job_data($job_arr);
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_AGENT)
-         || !PHS::set_route($job_arr['route'])) {
+            || !PHS::set_route($job_arr['route'])) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
             }
@@ -899,33 +913,39 @@ class PHS_Agent extends PHS_Registry
             $error_arr = self::st_get_error();
 
             $error_params = [];
-            $error_params['last_error'] = self::st_get_error_message();
+            $error_params['last_error'] = self::st_get_simple_error_message();
+            $error_params['last_error_code'] = self::st_get_error_code();
 
             $agent_jobs_model->stop_job($job_arr, $error_params);
 
             self::st_copy_error_from_array($error_arr);
 
-            return false;
+            return null;
         }
 
         $execution_params = [];
         $execution_params['die_on_error'] = false;
 
-        if (!($action_result = PHS::execute_route($execution_params))) {
-            if (!self::st_has_error()) {
+        $technical_error = null;
+        if (!($action_result = PHS::execute_route($execution_params))
+            || (($technical_error = PHS_Action::get_technical_error_from_action_result($action_result))
+                && self::arr_has_error($technical_error))
+        ) {
+            if (!$technical_error && !self::st_has_error()) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Error executing route.'));
             }
 
-            $error_arr = self::st_get_error();
+            $error_arr = $technical_error ?? self::st_get_error();
 
             $error_params = [];
-            $error_params['last_error'] = self::st_get_error_message();
+            $error_params['last_error'] = self::arr_get_simple_error_message($error_arr);
+            $error_params['last_error_code'] = self::arr_get_error_code($error_arr);
 
             $agent_jobs_model->stop_job($job_arr, $error_params);
 
             self::st_copy_error_from_array($error_arr);
 
-            return false;
+            return null;
         }
 
         $agent_jobs_model->stop_job($job_arr);

@@ -147,7 +147,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         PHS::page_body_class('phs_paginator_action');
 
         if (($action_result = $this->should_stop_execution())) {
-            return self::validate_array($action_result, self::default_action_result());
+            return self::validate_action_result($action_result);
         }
 
         if (!$this->load_depencies()) {
@@ -175,7 +175,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!empty($paginator_params['force_action_result'])) {
-            return self::validate_array($paginator_params['force_action_result'], self::default_action_result());
+            return self::validate_action_result($paginator_params['force_action_result']);
         }
 
         // Generic action hooks...

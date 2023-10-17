@@ -169,7 +169,7 @@ class PHS_Hooks extends PHS_Registry
             return self::default_error_array();
         }
 
-        return self::validate_array($hook_args['hook_errors'], self::default_error_array());
+        return self::validate_error_arr($hook_args['hook_errors']);
     }
 
     /**

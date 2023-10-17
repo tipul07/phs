@@ -134,14 +134,14 @@ abstract class PHS_Controller extends PHS_Instantiable
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
      * @param string $action_dir Directory (relative from actions dir) where action class is found
      *
-     * @return bool|array Returns false on error or an action array on success
+     * @return bool|array|null Returns false on error or an action array on success
      */
     final public function run_action(string $action, $plugin = null, string $action_dir = '')
     {
         PHS::running_controller($this);
 
         if (!$this->instance_is_core()
-        && (!($plugin_instance = $this->get_plugin_instance())
+            && (!($plugin_instance = $this->get_plugin_instance())
                 || !$plugin_instance->plugin_active())) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
@@ -168,9 +168,9 @@ abstract class PHS_Controller extends PHS_Instantiable
     /**
      * @param null|array $action_result stop execution from controller level using a standard action, just to have nice display...
      *
-     * @return bool|array Returns an action result array which was generated from controller...
+     * @return null|array Returns an action result array which was generated from controller...
      */
-    public function execute_foobar_action(?array $action_result = null)
+    public function execute_foobar_action(?array $action_result = null): ?array
     {
         PHS::running_controller($this);
 
@@ -179,7 +179,7 @@ abstract class PHS_Controller extends PHS_Instantiable
                 || !$plugin_instance->plugin_active())) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
-            return false;
+            return null;
         }
 
         self::st_reset_error();
@@ -192,7 +192,7 @@ abstract class PHS_Controller extends PHS_Instantiable
                 $this->set_error(self::ERR_RUN_ACTION, self::_t('Couldn\'t load foobar action.'));
             }
 
-            return false;
+            return null;
         }
 
         if (empty($action_result)) {

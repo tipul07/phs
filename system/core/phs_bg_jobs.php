@@ -419,10 +419,7 @@ class PHS_Bg_jobs extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
+        $extra ??= [];
         $extra['force_run'] = !empty($extra['force_run']);
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
@@ -432,9 +429,12 @@ class PHS_Bg_jobs extends PHS_Registry
             $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        if (empty($bg_jobs_model)) {
+            self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+            return null;
+        }
+
         if (empty($job_data)
-         || empty($bg_jobs_model)
          || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
             if ($bg_jobs_model->has_error()) {
                 self::st_copy_error($bg_jobs_model);
@@ -448,28 +448,6 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         self::current_job_data($job_arr);
-
-        //        if ($bg_jobs_model->job_is_running($job_arr)) {
-        //            if (null === ($job_stalling = $bg_jobs_model->job_is_stalling($job_arr))) {
-        //                if ($bg_jobs_model->has_error()) {
-        //                    self::st_copy_error($bg_jobs_model);
-        //                }
-        //
-        //                return null;
-        //            }
-        //
-        //            if (empty($job_stalling)) {
-        //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job already running.'));
-        //
-        //                return null;
-        //            }
-        //
-        //            if (empty($extra['force_run'])) {
-        //                self::st_set_error(self::ERR_RUN_JOB, self::_t('Job seems to stall. Run not told to force execution.'));
-        //
-        //                return null;
-        //            }
-        //        }
 
         if (!($pid = @getmypid())) {
             $pid = -1;
@@ -495,7 +473,7 @@ class PHS_Bg_jobs extends PHS_Registry
         self::current_job_data($job_arr);
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_BACKGROUND)
-         || !PHS::set_route($job_arr['route'])) {
+            || !PHS::set_route($job_arr['route'])) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
             }
@@ -515,15 +493,20 @@ class PHS_Bg_jobs extends PHS_Registry
         $execution_params = [];
         $execution_params['die_on_error'] = false;
 
-        if (!($action_result = PHS::execute_route($execution_params))) {
-            if (!self::st_has_error()) {
+        $technical_error = null;
+        if (!($action_result = PHS::execute_route($execution_params))
+            || (($technical_error = PHS_Action::get_technical_error_from_action_result($action_result))
+                && self::arr_has_error($technical_error))
+        ) {
+            if (!$technical_error && !self::st_has_error()) {
                 self::st_set_error(self::ERR_RUN_JOB, self::_t('Error executing route.'));
             }
 
-            $error_arr = self::st_get_error();
+            $error_arr = $technical_error ?? self::st_get_error();
 
             $error_params = [];
-            $error_params['last_error'] = self::st_get_error_message();
+            $error_params['last_error'] = self::arr_get_simple_error_message($error_arr);
+            $error_params['last_error_code'] = self::arr_get_error_code($error_arr);
 
             $bg_jobs_model->job_error_stop($job_arr, $error_params);
 

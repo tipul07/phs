@@ -105,29 +105,24 @@ abstract class PHS_Scope extends PHS_Instantiable
     }
 
     /**
-     * @param false|array $action_result
-     * @param null|array $static_error_arr
+     * @param null|false|array $action_result
+     * @param null|array $end_user_error_arr
+     * @param null|array $technical_error_arr
      *
-     * @return array|bool
+     * @return array
      */
-    public function generate_response($action_result = false, ?array $static_error_arr = null)
+    public function generate_response($action_result, ?array $end_user_error_arr = null, ?array $technical_error_arr = null): array
     {
         $this->reset_error();
 
-        /** @var \phs\libraries\PHS_Action $action_obj */
-        if (!($action_obj = PHS::running_action())) {
-            $action_obj = false;
-        }
-
-        $default_action_result = PHS_Action::default_action_result();
-
-        if ($action_result === false) {
-            if (empty($action_obj)) {
-                $action_result = $default_action_result;
+        if (empty($action_result)) {
+            /** @var \phs\libraries\PHS_Action $action_obj */
+            if (!($action_obj = PHS::running_action())) {
+                $action_result = PHS_Action::default_action_result();
                 $action_result['buffer'] = self::_t('Unknown running action.');
             } else {
                 if (!($action_result = $action_obj->get_action_result())) {
-                    $action_result = $default_action_result;
+                    $action_result = PHS_Action::default_action_result();
                     $action_result['buffer'] = self::_t('Couldn\'t obtain action result.');
                 }
 
@@ -139,11 +134,16 @@ abstract class PHS_Scope extends PHS_Instantiable
             }
         }
 
-        $action_result = self::validate_array($action_result, $default_action_result);
+        $action_result = PHS_Action::validate_action_result($action_result);
 
-        $action_result = $this->process_action_result($action_result, $static_error_arr);
+        $action_result = $this->process_action_result($action_result, $end_user_error_arr);
 
-        $action_result = self::validate_array($action_result, $default_action_result);
+        $action_result = PHS_Action::validate_action_result($action_result);
+
+        if( !empty($end_user_error_arr) || !empty($technical_error_arr)) {
+            $action_result =
+                PHS_Action::set_action_result_errors($action_result, $end_user_error_arr, $technical_error_arr);
+        }
 
         PHS::set_data(PHS::PHS_END_TIME, microtime(true));
 
