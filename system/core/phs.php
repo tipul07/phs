@@ -379,7 +379,7 @@ final class PHS extends PHS_Registry
 
     /**
      * @param null|PHS_Action $action_obj
-     * @return bool|null|PHS_Action
+     * @return null|bool|PHS_Action
      */
     public static function running_action(?PHS_Action $action_obj = null)
     {
@@ -396,7 +396,7 @@ final class PHS extends PHS_Registry
 
     /**
      * @param null|PHS_Controller $controller_obj
-     * @return bool|null|PHS_Controller
+     * @return null|bool|PHS_Controller
      */
     public static function running_controller(?PHS_Controller $controller_obj = null)
     {
@@ -1861,7 +1861,7 @@ final class PHS extends PHS_Registry
         return PHS_PATH.$path;
     }
 
-    public static function get_route_details(): ?array
+    public static function get_route_details() : ?array
     {
         if (($controller = self::get_data(self::ROUTE_CONTROLLER)) === null) {
             self::set_route();
@@ -1880,7 +1880,7 @@ final class PHS extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_route_details_for_url($use_short_names = true): ?array
+    public static function get_route_details_for_url($use_short_names = true) : ?array
     {
         if (!($route_arr = self::get_route_details())) {
             return null;
@@ -1952,12 +1952,12 @@ final class PHS extends PHS_Registry
             }
         }
 
-        if( self::st_has_error() ) {
+        if (self::st_has_error()) {
             $controller_error_arr = $technical_error_arr = self::st_get_error();
-        } elseif( !empty($action_result)
-                  && PHS_Action::action_result_has_errors( $action_result) ) {
-            $controller_error_arr = PHS_Action::get_end_user_error_from_action_result( $action_result );
-            $technical_error_arr = PHS_Action::get_technical_error_from_action_result( $action_result );
+        } elseif (!empty($action_result)
+                  && PHS_Action::action_result_has_errors($action_result)) {
+            $controller_error_arr = PHS_Action::get_end_user_error_from_action_result($action_result);
+            $technical_error_arr = PHS_Action::get_technical_error_from_action_result($action_result);
         } else {
             $controller_error_arr = $technical_error_arr = null;
         }
@@ -2005,7 +2005,7 @@ final class PHS extends PHS_Registry
                 $error_msg = $scope_obj->get_full_error_message();
             }
 
-            if( !empty($error_msg)) {
+            if (!empty($error_msg)) {
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
             }
 

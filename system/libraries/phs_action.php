@@ -407,7 +407,7 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * Returns a default array as result of an action execution
      *
-     * @param bool|null|array $action_result
+     * @param null|bool|array $action_result
      *
      * @return array
      */
@@ -421,9 +421,9 @@ abstract class PHS_Action extends PHS_Instantiable
         return self::validate_array($action_result, $default_action_result);
     }
 
-    final public static function action_result_has_errors(array $action_result): bool
+    final public static function action_result_has_errors(array $action_result) : bool
     {
-        if(empty($action_result['end_user_error']) && empty($action_result['technical_error'])) {
+        if (empty($action_result['end_user_error']) && empty($action_result['technical_error'])) {
             return false;
         }
 
@@ -431,13 +431,13 @@ abstract class PHS_Action extends PHS_Instantiable
                || (!empty($action_result['technical_error']) && self::arr_has_error($action_result['technical_error']));
     }
 
-    final public static function set_action_result_errors(array $action_result, ?array $end_user_error, ?array $technical_error = null): array
+    final public static function set_action_result_errors(array $action_result, ?array $end_user_error, ?array $technical_error = null) : array
     {
-        if($technical_error === null && !empty($end_user_error)) {
+        if ($technical_error === null && !empty($end_user_error)) {
             $technical_error = $end_user_error;
         }
 
-        if( empty($action_result)) {
+        if (empty($action_result)) {
             $action_result = self::default_action_result();
         }
 
@@ -447,12 +447,12 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    final public static function get_end_user_error_from_action_result(array $action_result): ?array
+    final public static function get_end_user_error_from_action_result(array $action_result) : ?array
     {
         return $action_result['end_user_error'] ?? null;
     }
 
-    final public static function get_technical_error_from_action_result(array $action_result): ?array
+    final public static function get_technical_error_from_action_result(array $action_result) : ?array
     {
         return $action_result['technical_error'] ?? null;
     }
@@ -486,7 +486,7 @@ abstract class PHS_Action extends PHS_Instantiable
             'page_template'   => 'template_main', // if empty, scope template will be used...
 
             // Errors in action execute flow
-            'end_user_error' => null,
+            'end_user_error'  => null,
             'technical_error' => null,
 
             // page related variables

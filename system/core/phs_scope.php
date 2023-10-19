@@ -111,7 +111,7 @@ abstract class PHS_Scope extends PHS_Instantiable
      *
      * @return array
      */
-    public function generate_response($action_result, ?array $end_user_error_arr = null, ?array $technical_error_arr = null): array
+    public function generate_response($action_result, ?array $end_user_error_arr = null, ?array $technical_error_arr = null) : array
     {
         $this->reset_error();
 
@@ -140,9 +140,9 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = PHS_Action::validate_action_result($action_result);
 
-        if( !empty($end_user_error_arr) || !empty($technical_error_arr)) {
-            $action_result =
-                PHS_Action::set_action_result_errors($action_result, $end_user_error_arr, $technical_error_arr);
+        if (!empty($end_user_error_arr) || !empty($technical_error_arr)) {
+            $action_result
+                = PHS_Action::set_action_result_errors($action_result, $end_user_error_arr, $technical_error_arr);
         }
 
         PHS::set_data(PHS::PHS_END_TIME, microtime(true));

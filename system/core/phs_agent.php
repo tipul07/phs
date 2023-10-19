@@ -1,9 +1,9 @@
 <?php
 namespace phs;
 
+use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
-use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
@@ -38,9 +38,9 @@ class PHS_Agent extends PHS_Registry
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
-        if( !($admin_plugin = PHS_Plugin_Admin::get_instance())
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !$admin_plugin->monitor_agent_jobs()
-            || !($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance()) ) {
+            || !($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             $jobs_monitor_model = null;
         }
 
@@ -72,8 +72,8 @@ class PHS_Agent extends PHS_Registry
         }
 
         if (!$extra['force_run']
-        && $agent_jobs_model->job_is_running($job_arr)
-        && !$agent_jobs_model->job_is_stalling($job_arr)) {
+            && $agent_jobs_model->job_is_running($job_arr)
+            && !$agent_jobs_model->job_is_stalling($job_arr)) {
             $this->set_error(self::ERR_RUN_JOB, self::_t('Agent job is still running.'));
 
             return false;
@@ -110,7 +110,7 @@ class PHS_Agent extends PHS_Registry
 
         PHS_Logger::notice('Launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT);
 
-        if($jobs_monitor_model !== null
+        if ($jobs_monitor_model !== null
            && !$jobs_monitor_model->job_started($job_arr)) {
             PHS_Logger::error('Error saving job monitor data START for agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT);
         }
@@ -120,6 +120,103 @@ class PHS_Agent extends PHS_Registry
         }
 
         return @system($cmd_parts['cmd']) !== false;
+    }
+
+    /**
+     * Any agent jobs that are not following stalling policy will be stopped
+     * @return array|false
+     */
+    public function check_stalling_agent_jobs()
+    {
+        $this->reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
+
+        $return_arr = [];
+        $return_arr['jobs_running'] = 0;
+        $return_arr['jobs_not_dead'] = 0;
+        $return_arr['jobs_stopped'] = 0;
+        $return_arr['jobs_stopped_error'] = 0;
+
+        $list_arr = $agent_jobs_model->fetch_default_flow_params();
+        $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NOT NULL'];
+        $list_arr['fields']['pid'] = ['check' => '!=', 'value' => '0'];
+        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
+
+        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
+         || !is_array($jobs_list)) {
+            return $return_arr;
+        }
+
+        $return_arr['jobs_running'] = count($jobs_list);
+
+        foreach ($jobs_list as $job_arr) {
+            if (!$agent_jobs_model->is_job_dead_as_per_stalling_policy($job_arr)) {
+                $return_arr['jobs_not_dead']++;
+                continue;
+            }
+
+            if (!$agent_jobs_model->stop_job($job_arr, ['last_error' => 'Job considered dead.'])) {
+                $return_arr['jobs_stopped_error']++;
+            } else {
+                $return_arr['jobs_stopped']++;
+            }
+        }
+
+        return $return_arr;
+    }
+
+    public function check_agent_jobs()
+    {
+        $this->reset_error();
+
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
+
+        $return_arr = [];
+        $return_arr['jobs_count'] = 0;
+        $return_arr['jobs_errors'] = 0;
+        $return_arr['jobs_success'] = 0;
+
+        $list_arr = $agent_jobs_model->fetch_default_flow_params();
+        $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NULL'];
+        $list_arr['fields']['timed_action'] = ['check' => '<=', 'value' => date($agent_jobs_model::DATETIME_DB)];
+        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
+        $list_arr['order_by'] = 'run_async DESC';
+
+        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
+         || !is_array($jobs_list)) {
+            return $return_arr;
+        }
+
+        $return_arr['jobs_count'] = count($jobs_list);
+
+        foreach ($jobs_list as $job_arr) {
+            if ($this->run_job($job_arr)) {
+                $return_arr['jobs_success']++;
+            } else {
+                $return_arr['jobs_errors']++;
+
+                if ($this->has_error()) {
+                    $error_msg = $this->get_error_message();
+                } else {
+                    $error_msg = 'Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']';
+                }
+
+                PHS_Logger::error($error_msg, PHS_Logger::TYPE_AGENT);
+            }
+        }
+
+        return $return_arr;
     }
 
     /**
@@ -187,103 +284,6 @@ class PHS_Agent extends PHS_Registry
             'cmd'     => $cmd,
             'pub_key' => $pub_key,
         ];
-    }
-
-    /**
-     * Any agent jobs that are not following stalling policy will be stopped
-     * @return array|false
-     */
-    public function check_stalling_agent_jobs()
-    {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
-
-            return false;
-        }
-
-        $return_arr = [];
-        $return_arr['jobs_running'] = 0;
-        $return_arr['jobs_not_dead'] = 0;
-        $return_arr['jobs_stopped'] = 0;
-        $return_arr['jobs_stopped_error'] = 0;
-
-        $list_arr = $agent_jobs_model->fetch_default_flow_params();
-        $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NOT NULL'];
-        $list_arr['fields']['pid'] = ['check' => '!=', 'value' => '0'];
-        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
-
-        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
-         || !is_array($jobs_list)) {
-            return $return_arr;
-        }
-
-        $return_arr['jobs_running'] = count($jobs_list);
-
-        foreach ($jobs_list as $job_arr) {
-            if (!$agent_jobs_model->is_job_dead_as_per_stalling_policy($job_arr)) {
-                $return_arr['jobs_not_dead']++;
-                continue;
-            }
-
-            if (!$agent_jobs_model->stop_job($job_arr,['last_error' => 'Job considered dead.'])) {
-                $return_arr['jobs_stopped_error']++;
-            } else {
-                $return_arr['jobs_stopped']++;
-            }
-        }
-
-        return $return_arr;
-    }
-
-    public function check_agent_jobs()
-    {
-        $this->reset_error();
-
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
-
-            return false;
-        }
-
-        $return_arr = [];
-        $return_arr['jobs_count'] = 0;
-        $return_arr['jobs_errors'] = 0;
-        $return_arr['jobs_success'] = 0;
-
-        $list_arr = $agent_jobs_model->fetch_default_flow_params();
-        $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NULL'];
-        $list_arr['fields']['timed_action'] = ['check' => '<=', 'value' => date($agent_jobs_model::DATETIME_DB)];
-        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
-        $list_arr['order_by'] = 'run_async DESC';
-
-        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
-         || !is_array($jobs_list)) {
-            return $return_arr;
-        }
-
-        $return_arr['jobs_count'] = count($jobs_list);
-
-        foreach ($jobs_list as $job_arr) {
-            if ($this->run_job($job_arr)) {
-                $return_arr['jobs_success']++;
-            } else {
-                $return_arr['jobs_errors']++;
-
-                if ($this->has_error()) {
-                    $error_msg = $this->get_error_message();
-                } else {
-                    $error_msg = 'Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']';
-                }
-
-                PHS_Logger::error($error_msg, PHS_Logger::TYPE_AGENT);
-            }
-        }
-
-        return $return_arr;
     }
 
     public static function get_agent_routes()
@@ -829,7 +829,7 @@ class PHS_Agent extends PHS_Registry
      *
      * @return null|array
      */
-    public static function bg_run_job($job_data, ?array $extra = null): ?array
+    public static function bg_run_job($job_data, ?array $extra = null) : ?array
     {
         self::st_reset_error();
 
@@ -845,6 +845,7 @@ class PHS_Agent extends PHS_Registry
 
         if (empty($agent_jobs_model)) {
             self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+
             return null;
         }
 

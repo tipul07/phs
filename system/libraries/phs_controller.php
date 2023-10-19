@@ -134,7 +134,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      * @param null|bool|string $plugin NULL means same plugin as controller (default), false means core plugin, string is name of plugin
      * @param string $action_dir Directory (relative from actions dir) where action class is found
      *
-     * @return bool|array|null Returns false on error or an action array on success
+     * @return null|bool|array Returns false on error or an action array on success
      */
     final public function run_action(string $action, $plugin = null, string $action_dir = '')
     {
@@ -170,7 +170,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      *
      * @return null|array Returns an action result array which was generated from controller...
      */
-    public function execute_foobar_action(?array $action_result = null): ?array
+    public function execute_foobar_action(?array $action_result = null) : ?array
     {
         PHS::running_controller($this);
 

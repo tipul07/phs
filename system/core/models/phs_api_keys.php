@@ -174,7 +174,7 @@ class PHS_Model_Api_keys extends PHS_Model
         $list_arr['order_by'] = 'cdate DESC';
         $list_arr['fields'] = [];
         $list_arr['fields']['uid'] = $user_id;
-        $list_arr['fields']['status'] = [ 'check' => '!=', 'value' => self::STATUS_DELETED ];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => self::STATUS_DELETED];
 
         if (!($return_arr = $this->get_list($list_arr))) {
             return [];

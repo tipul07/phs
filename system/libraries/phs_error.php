@@ -168,7 +168,7 @@ class PHS_Error
         return $this->get_error();
     }
 
-    public function change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = ''): array
+    public function change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
     {
         $this->change_error_code($error_code);
         $this->change_error_message($error_msg, $error_debug_msg);
@@ -198,9 +198,9 @@ class PHS_Error
     }
 
     /**
-     * @param  int  $error_code
-     * @param  string  $error_msg
-     * @param  string  $error_debug_msg
+     * @param int $error_code
+     * @param string $error_msg
+     * @param string $error_debug_msg
      *
      * @return array
      */
@@ -217,7 +217,7 @@ class PHS_Error
      *
      * @param string $warning string Warning message
      * @param null|string $tag string Add warning for a specific tag (default null).
-     *                              If this is not provided, warning will be added as general warning.
+     *                         If this is not provided, warning will be added as general warning.
      **/
     public function add_warning(string $warning, ?string $tag = null) : void
     {
@@ -253,7 +253,7 @@ class PHS_Error
      * @param null|string $tag string Remove warnings of specific tag or all warnings. (default false)
      * @return int Returns number of warnings left after removing required warnings
      **/
-    public function reset_warnings(?string $tag = null): int
+    public function reset_warnings(?string $tag = null) : int
     {
         if ($tag !== null) {
             if (isset($this->warnings_arr[$tag]) && is_array($this->warnings_arr[$tag])) {
@@ -761,7 +761,7 @@ class PHS_Error
      * @param string $error_debug_msg Error message
      * @return array
      **/
-    public static function arr_set_error(int $error_no, string $error_msg, string $error_debug_msg = ''): array
+    public static function arr_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : array
     {
         $backtrace = self::st_debug_call_backtrace();
 
@@ -938,7 +938,7 @@ class PHS_Error
 
     public static function arr_change_error_code_and_message($err_arr, int $error_code, $error_msg, $error_debug_msg = '') : array
     {
-        return self::arr_change_error_message(self::arr_change_error_code($err_arr, $error_code), $error_msg, $error_debug_msg );
+        return self::arr_change_error_message(self::arr_change_error_code($err_arr, $error_code), $error_msg, $error_debug_msg);
     }
 
     public static function arr_merge_error_to_array($source_error_arr, $error_arr) : array
@@ -946,7 +946,7 @@ class PHS_Error
         $source_error_arr = self::validate_error_arr($source_error_arr);
         $error_arr = self::validate_error_arr($error_arr);
 
-        foreach(['error_msg', 'error_simple_msg', 'error_debug_msg', 'display_error', ] as $copy_field) {
+        foreach (['error_msg', 'error_simple_msg', 'error_debug_msg', 'display_error', ] as $copy_field) {
             if ($error_arr[$copy_field] !== '') {
                 $source_error_arr[$copy_field] .= ($source_error_arr[$copy_field] !== '' ? "\n\n" : '').$error_arr[$copy_field];
             }
@@ -960,7 +960,7 @@ class PHS_Error
         return $source_error_arr;
     }
 
-    public static function arr_append_error_to_array($error_arr, $error_msg, ?int $error_code = null): ?array
+    public static function arr_append_error_to_array($error_arr, $error_msg, ?int $error_code = null) : ?array
     {
         if (empty($error_msg)) {
             return null;

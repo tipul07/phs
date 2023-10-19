@@ -4,6 +4,7 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Scope;
 use phs\system\core\views\PHS_View;
+use phs\system\core\libraries\PHS_Paginator_exporter_csv;
 
 class PHS_Paginator extends PHS_Registry
 {
@@ -18,10 +19,10 @@ class PHS_Paginator extends PHS_Registry
     public const CELL_RENDER_HTML = 1, CELL_RENDER_TEXT = 2, CELL_RENDER_JSON = 3;
 
     // Bulk actions array
-    private $_bulk_actions = [];
+    private array $_bulk_actions = [];
 
     // Filters array
-    private $_filters = [];
+    private array $_filters = [];
 
     // Variables as provided in post or get
     private $_originals = [];
@@ -39,7 +40,7 @@ class PHS_Paginator extends PHS_Registry
 
     private array $_pagination_params_arr = [];
 
-    private $_columns_definition_arr = [];
+    private array $_columns_definition_arr = [];
 
     // Array with records to be displayed (limit set based on paginator parameters from model or provided array of records from external source)
     private $_records_arr = [];
@@ -817,18 +818,18 @@ class PHS_Paginator extends PHS_Registry
         return $this->_columns_definition_arr;
     }
 
-    public function reset_columns()
+    public function reset_columns() : void
     {
         $this->_columns_definition_arr = [];
     }
 
-    public function get_columns()
+    public function get_columns() : array
     {
         return $this->_columns_definition_arr;
     }
 
     /**
-     * @param false|int $scope
+     * @param null|int $scope
      *
      * @return array
      */
@@ -838,8 +839,6 @@ class PHS_Paginator extends PHS_Registry
 
         if ($scope === null) {
             $scope = PHS_Scope::current_scope();
-        } else {
-            $scope = (int)$scope;
         }
 
         if (!PHS_Scope::valid_scope($scope)) {
@@ -847,7 +846,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $scope_columns_arr = $columns_arr;
-        if (!empty($columns_arr) && is_array($columns_arr)) {
+        if (!empty($columns_arr)) {
             $scope_columns_arr = [];
             foreach ($columns_arr as $column_arr) {
                 if ((!empty($column_arr['hide_for_scopes']) && is_array($column_arr['hide_for_scopes'])
@@ -865,14 +864,19 @@ class PHS_Paginator extends PHS_Registry
         return $scope_columns_arr;
     }
 
-    public function set_filters($filters_arr)
+    /**
+     * @param array $filters_arr
+     *
+     * @return null|array
+     */
+    public function set_filters(array $filters_arr) : ?array
     {
         $this->reset_filters();
 
-        if (empty($filters_arr) || !is_array($filters_arr)) {
+        if (empty($filters_arr)) {
             $this->set_error(self::ERR_FILTERS, self::_t('Bad filters format.'));
 
-            return false;
+            return null;
         }
 
         $new_filters = [];
@@ -887,7 +891,7 @@ class PHS_Paginator extends PHS_Registry
                 $this->set_error(self::ERR_FILTERS, self::_t('var_name or (record_field, raw_query) not provided for %s filter.',
                     (!empty($new_filter['display_name']) ? $new_filter['display_name'] : '(???)')));
 
-                return false;
+                return null;
             }
 
             if (!empty($new_filter['autocomplete'])
@@ -897,7 +901,7 @@ class PHS_Paginator extends PHS_Registry
                 $this->set_error(self::ERR_FILTERS, self::_t('Filter %s doesn\'t have a valid autocomplete action.',
                     (!empty($new_filter['display_name']) ? $new_filter['display_name'] : '(???)')));
 
-                return false;
+                return null;
             }
 
             $new_filters[] = $new_filter;
@@ -908,24 +912,29 @@ class PHS_Paginator extends PHS_Registry
         return $this->_filters;
     }
 
-    public function reset_filters()
+    public function reset_filters() : void
     {
         $this->_filters = [];
     }
 
-    public function get_filters()
+    public function get_filters() : array
     {
         return $this->_filters;
     }
 
-    public function set_bulk_actions($actions_arr)
+    /**
+     * @param array $actions_arr
+     *
+     * @return null|array
+     */
+    public function set_bulk_actions(array $actions_arr) : ?array
     {
         $this->reset_bulk_actions();
 
-        if (empty($actions_arr) || !is_array($actions_arr)) {
+        if (empty($actions_arr)) {
             $this->set_error(self::ERR_BULK_ACTIONS, self::_t('Bad bulk actions format.'));
 
-            return false;
+            return null;
         }
 
         $new_actions = [];
@@ -938,7 +947,7 @@ class PHS_Paginator extends PHS_Registry
             if (empty($new_action['action']) || empty($new_action['js_callback'])) {
                 $this->set_error(self::ERR_FILTERS, self::_t('No action or js_callback provided for bulk action %s.', (!empty($new_action['display_name']) ? $new_action['display_name'] : '(???)')));
 
-                return false;
+                return null;
             }
 
             $new_actions[] = $new_action;
@@ -958,12 +967,12 @@ class PHS_Paginator extends PHS_Registry
         return $flow_params_arr['form_prefix'].'bulk_action';
     }
 
-    public function reset_bulk_actions()
+    public function reset_bulk_actions() : void
     {
         $this->_bulk_actions = [];
     }
 
-    public function get_bulk_actions()
+    public function get_bulk_actions() : array
     {
         return $this->_bulk_actions;
     }
@@ -986,7 +995,7 @@ class PHS_Paginator extends PHS_Registry
         return $this->_originals;
     }
 
-    public function reset_model()
+    public function reset_model() : void
     {
         $this->_model = false;
     }
@@ -1093,7 +1102,7 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
-    public function export_result_array()
+    public function export_result_array() : array
     {
         return [
             'export_file_dir'  => '',
@@ -1111,37 +1120,25 @@ class PHS_Paginator extends PHS_Registry
      *
      * @return array|false
      */
-    public function do_export_records($params = false)
+    public function do_export_records(?array $params = null)
     {
         $this->reset_error();
 
         $export_action_scope = PHS_Scope::SCOPE_WEB;
 
-        if (!($columns_arr = $this->get_columns_for_scope($export_action_scope))
-         || !is_array($columns_arr)) {
+        if (!($columns_arr = $this->get_columns_for_scope($export_action_scope))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('No columns defined for paginator. Export failed.'));
 
             return false;
         }
 
-        $columns_count = 0;
-        if (!empty($columns_arr) && is_array($columns_arr)) {
-            $columns_count = count($columns_arr);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
 
         if (empty($params['filter_records_fields']) || !is_array($params['filter_records_fields'])) {
             $params['filter_records_fields'] = false;
         }
 
-        if (empty($params['ignore_headers'])) {
-            $params['ignore_headers'] = false;
-        } else {
-            $params['ignore_headers'] = true;
-        }
+        $params['ignore_headers'] = !empty($params['ignore_headers']);
 
         if (empty($params['model_query_params'])) {
             $params['model_query_params'] = false;
@@ -1158,7 +1155,7 @@ class PHS_Paginator extends PHS_Registry
 
         if (empty($params['exporter_library'])) {
             $exporter_library_params = [];
-            $exporter_library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_Paginator_exporter_csv';
+            $exporter_library_params['full_class_name'] = PHS_Paginator_exporter_csv::class;
             $exporter_library_params['init_params'] = $params['exporter_library_params'];
 
             if (!($params['exporter_library'] = PHS::load_core_library('phs_paginator_exporter_csv', $exporter_library_params))) {
@@ -1393,18 +1390,17 @@ class PHS_Paginator extends PHS_Registry
     }
 
     /**
-     * @param false|int $scope
+     * @param null|int $scope
      *
      * @return array
      */
-    public function get_columns_header_as_array($scope = false)
+    public function get_columns_header_as_array(?int $scope = null) : array
     {
-        if ($scope === false) {
+        if ($scope === null) {
             $scope = PHS_Scope::current_scope();
         }
 
-        if (!($columns_arr = $this->get_columns_for_scope($scope))
-         || !is_array($columns_arr)) {
+        if (!($columns_arr = $this->get_columns_for_scope($scope))) {
             return [];
         }
 
@@ -1421,46 +1417,33 @@ class PHS_Paginator extends PHS_Registry
     }
 
     /**
-     * @param false|array $params
+     * @param null|array $params
      *
      * @return bool
      */
-    public function query_model_for_records($params = false)
+    public function query_model_for_records(?array $params = null) : bool
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
+        $params['force'] = !empty($params['force']);
+        $params['store_query_id'] = !empty($params['store_query_id']);
 
-        if (empty($params['force'])) {
-            $params['force'] = false;
-        }
-        if (empty($params['store_query_id'])) {
-            $params['store_query_id'] = false;
-        } else {
-            $params['store_query_id'] = true;
-        }
-
-        if (!empty($params['store_query_id'])) {
-            if (empty($params['ignore_query_limit'])) {
-                $params['ignore_query_limit'] = false;
-            } else {
-                $params['ignore_query_limit'] = true;
-            }
+        if ($params['store_query_id']) {
+            $params['ignore_query_limit'] = !empty($params['ignore_query_limit']);
         }
 
         $current_records = $this->get_records();
 
         if (empty($params['force'])
-        && (!empty($current_records)
+            && (!empty($current_records)
                 || $this->flow_param('did_query_database'))) {
             return true;
         }
 
         if (!empty($params['force'])
-         && !empty($current_records)
-         && !$this->flow_param('records_from_model')) {
+            && !empty($current_records)
+            && !$this->flow_param('records_from_model')) {
             return true;
         }
 
@@ -2107,11 +2090,12 @@ class PHS_Paginator extends PHS_Registry
                 }
 
                 if ($filter_details['default'] !== false
-                && $scope_val !== $filter_details['default']) {
+                    && $scope_val !== $filter_details['default']) {
                     $this->_scope[$filter_details['var_name']] = $scope_val;
+                    $ac_var_name = $filter_details['var_name'].'_phs_ac_name';
                     if (!empty($new_filter['autocomplete'])
-                     && isset($this->_originals[$filter_details['var_name'].'_phs_ac_name'])) {
-                        $this->_scope[$filter_details['var_name'].'_phs_ac_name'] = $this->_originals[$filter_details['var_name'].'_phs_ac_name'];
+                        && isset($this->_originals[$ac_var_name])) {
+                        $this->_scope[$ac_var_name] = $this->_originals[$ac_var_name];
                     }
                 }
             }
@@ -2134,7 +2118,7 @@ class PHS_Paginator extends PHS_Registry
                     if (is_string($checkbox_asis_value)) {
                         $scope_val = [];
                         if (($parts_arr = explode(',', $checkbox_asis_value))
-                        && is_array($parts_arr)) {
+                            && is_array($parts_arr)) {
                             foreach ($parts_arr as $part) {
                                 $scope_val[] = PHS_Params::set_type($part, $column_arr['checkbox_record_index_key']['type']);
                             }
@@ -2162,12 +2146,11 @@ class PHS_Paginator extends PHS_Registry
 
                 $this->pagination_params('page', $page);
             }
+
             if (!empty($pagination_params['per_page_var_name'])) {
-                if (($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'].'top', PHS_Params::T_INT)) !== null) {
-                    $this->pagination_params('records_per_page', $per_page);
-                } elseif (($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'].'bottom', PHS_Params::T_INT)) !== null) {
-                    $this->pagination_params('records_per_page', $per_page);
-                } elseif (($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'], PHS_Params::T_INT)) !== null) {
+                if (null !== ($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'].'top', PHS_Params::T_INT))
+                    || null !== ($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'].'bottom', PHS_Params::T_INT))
+                    || null !== ($per_page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['per_page_var_name'], PHS_Params::T_INT))) {
                     $this->pagination_params('records_per_page', $per_page);
                 }
             }

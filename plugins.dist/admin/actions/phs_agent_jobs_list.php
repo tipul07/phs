@@ -653,7 +653,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
 
                 case $paginator_obj::CELL_RENDER_HTML:
                     $last_error = '';
-                    if( !empty($agent_job['last_error'] ) ) {
+                    if (!empty($agent_job['last_error'])) {
                         ob_start();
                         ?>
                         <a href="javascript:void(0)" onclick="phs_open_agent_job_last_error( '<?php echo $agent_job['id']; ?>' )"

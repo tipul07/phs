@@ -3,10 +3,11 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-if (!($admin_plugin = PHS::load_plugin('admin'))) {
+if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     return $this->_pt('Error loading required resources.');
 }
 
@@ -97,9 +98,16 @@ if ($can_list_plugins || $can_manage_plugins) {
 }
 if ($can_list_agent_jobs || $can_manage_agent_jobs) {
     ?>
-    <li><?php echo $this::_t('Agent Script'); ?>
+    <li><?php echo $this::_t('Agent Jobs'); ?>
         <ul>
             <li><a href="<?php echo PHS::url(['a' => 'agent_jobs_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List agent jobs'); ?></a></li>
+            <?php
+            if ($admin_plugin->monitor_agent_jobs()) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'report', 'ad' => 'agent', 'p' => 'admin']); ?>"><?php echo $this::_t('Agent jobs report'); ?></a></li>
+                <?php
+            }
+    ?>
         </ul>
     </li>
     <?php

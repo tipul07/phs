@@ -78,7 +78,7 @@ class PHS_Scope_Remote extends PHS_Scope
         }
 
         if (!@headers_sent()) {
-            if(!empty($api_headers)) {
+            if (!empty($api_headers)) {
                 foreach ($api_headers as $key => $val) {
                     $header_str = $key;
                     if (null !== $val) {

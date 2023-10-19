@@ -211,9 +211,14 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         $init_went_ok = true;
         if (!$this->_paginator->set_columns($paginator_params['columns_arr'])
-         || (!empty($paginator_params['filters_arr']) && !$this->_paginator->set_filters($paginator_params['filters_arr']))
-         || (!empty($this->_paginator_model) && !$this->_paginator->set_model($this->_paginator_model))
-         || (!empty($paginator_params['bulk_actions']) && !$this->_paginator->set_bulk_actions($paginator_params['bulk_actions']))) {
+         || (!empty($paginator_params['filters_arr'])
+             && !$this->_paginator->set_filters($paginator_params['filters_arr']))
+         || (!empty($this->_paginator_model)
+             && !$this->_paginator->set_model($this->_paginator_model))
+         || (!empty($paginator_params['bulk_actions'])
+             && is_array($paginator_params['bulk_actions'])
+             && !$this->_paginator->set_bulk_actions($paginator_params['bulk_actions']))
+        ) {
             if ($this->_paginator->has_error()) {
                 $error_msg = $this->_paginator->get_simple_error_message();
             } else {

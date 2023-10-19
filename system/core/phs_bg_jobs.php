@@ -431,6 +431,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         if (empty($bg_jobs_model)) {
             self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
+
             return null;
         }
 
