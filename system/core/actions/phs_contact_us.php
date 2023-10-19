@@ -53,7 +53,7 @@ class PHS_Action_Contact_us extends PHS_Action
         }
 
         if (!can(PHS_Roles::ROLEU_CONTACT_US)) {
-            PHS_Notifications::add_error_notice(self::_t('You don\'t have rights to use contact us form.'));
+            PHS_Notifications::add_error_notice(self::_t('You don\'t have rights to access this section.'));
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */

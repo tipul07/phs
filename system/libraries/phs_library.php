@@ -17,10 +17,10 @@ abstract class PHS_Library extends PHS_Registry
         $this->_location_paths['library_path'] = rtrim($this->_location_paths['library_path'], '/\\').'/';
         $this->_location_paths['library_www'] = rtrim($this->_location_paths['library_www'], '/').'/';
 
-        if ($this->_location_paths['library_path'] == '/') {
+        if ($this->_location_paths['library_path'] === '/') {
             $this->_location_paths['library_path'] = '';
         }
-        if ($this->_location_paths['library_www'] == '/') {
+        if ($this->_location_paths['library_www'] === '/') {
             $this->_location_paths['library_www'] = '';
         }
 
@@ -64,14 +64,13 @@ abstract class PHS_Library extends PHS_Registry
     /**
      * @return array Array with settings of plugin of current model
      */
-    public function get_plugin_settings()
+    public function get_plugin_settings() : array
     {
         if (!($plugin_obj = $this->get_plugin_instance())) {
             return [];
         }
 
-        if (($plugins_settings = $plugin_obj->get_db_settings()) === false
-         || empty($plugins_settings) || !is_array($plugins_settings)) {
+        if (!($plugins_settings = $plugin_obj->get_db_settings())) {
             $plugins_settings = $plugin_obj->get_default_settings();
         }
 
@@ -87,7 +86,7 @@ abstract class PHS_Library extends PHS_Registry
         return $plugin_obj->quick_render_template_for_buffer($template, $template_data);
     }
 
-    public static function get_library_default_location_paths()
+    public static function get_library_default_location_paths() : array
     {
         return [
             'library_file' => '',

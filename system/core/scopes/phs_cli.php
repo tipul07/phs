@@ -21,7 +21,7 @@ class PHS_Scope_Cli extends PHS_Scope
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
+        $action_result = PHS_Action::validate_action_result($action_result);
 
         $notifications_list_arr = [
             'success'  => PHS_Notifications::notifications_success(),

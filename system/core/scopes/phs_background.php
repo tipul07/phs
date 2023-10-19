@@ -21,14 +21,7 @@ class PHS_Scope_Background extends PHS_Scope
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
-
-        if (empty($action_result['page_settings']['page_title'])) {
-            $action_result['page_settings']['page_title'] = '';
-        }
-        if (empty($action_result['buffer'])) {
-            $action_result['buffer'] = '';
-        }
+        $action_result = PHS_Action::validate_action_result($action_result);
 
         $notifications_list_arr = [
             'success'  => PHS_Notifications::notifications_success(),
@@ -53,11 +46,6 @@ class PHS_Scope_Background extends PHS_Scope
             PHS_Logger::warning('We are told to redirect to an URL ('.$action_result['redirect_to_url'].'), but we are in a background script...',
                 PHS_Logger::TYPE_BACKGROUND);
         }
-
-        // if( !empty( $action_result['page_settings']['page_title'] ) or !empty( $action_result['buffer'] ) )
-        //     PHS_Logger::info( 'Title ['.$action_result['page_settings']['page_title'].'], Body ['.$action_result['buffer'].']', PHS_Logger::TYPE_BACKGROUND );
-        // else
-        //     PHS_Logger::info( 'Action run with success.', PHS_Logger::TYPE_BACKGROUND );
 
         return $action_result;
     }

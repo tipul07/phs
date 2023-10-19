@@ -7,6 +7,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Agent_jobs extends PHS_Model
@@ -232,33 +233,26 @@ class PHS_Model_Agent_jobs extends PHS_Model
 
     /**
      * @param int|array $job_data
-     * @param false|array $params
+     * @param null|array $params
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function start_job($job_data, $params = false)
+    public function start_job($job_data, ?array $params = null) : ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['force_job'])) {
-            $params['force_job'] = false;
-        } else {
-            $params['force_job'] = true;
-        }
+        $params ??= [];
+        $params['force_job'] = !empty($params['force_job']);
 
         if (empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))) {
+            || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (empty($job_arr['params'])
-         || !($job_params_arr = @json_decode($job_arr['params'], true))) {
+            || !($job_params_arr = @json_decode($job_arr['params'], true))) {
             $job_params_arr = [];
         }
 
@@ -273,38 +267,41 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr = [];
         $edit_arr['is_running'] = date(self::DATETIME_DB);
         $edit_arr['pid'] = $pid;
+        $edit_arr['last_error'] = null;
         if (!empty($job_params_arr)) {
             $edit_arr['params'] = @json_encode($job_params_arr);
         }
 
         PHS_Logger::notice('Starting agent job (#'.$job_arr['id'].'), route ['.$job_arr['route'].'] with pid ['.$pid.']', PHS_Logger::TYPE_AGENT);
 
-        return $this->edit($job_arr, ['fields' => $edit_arr]);
+        if (!($new_job_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
+            $this->set_error(self::ERR_DB_JOB, $this->_pt('Error updating job record data.'));
+
+            return null;
+        }
+
+        return $new_job_arr;
     }
 
     /**
      * @param int|array $job_data
-     * @param false|array $params
+     * @param null|array $params
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function stop_job($job_data, $params = false)
+    public function stop_job($job_data, ?array $params = null) : ?array
     {
         $this->reset_error();
+
+        $params ??= [];
+        $params['last_error'] ??= null;
+        $params['last_error_code'] ??= 0;
 
         if (empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
 
-            return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['last_error'])) {
-            $params['last_error'] = '';
+            return null;
         }
 
         if (empty($job_arr['is_running'])) {
@@ -329,11 +326,29 @@ class PHS_Model_Agent_jobs extends PHS_Model
         $edit_arr['is_running'] = null;
         $edit_arr['last_action'] = date(self::DATETIME_DB);
         $edit_arr['timed_action'] = date(self::DATETIME_DB, $next_time);
-        if ($new_params !== false) {
-            $edit_arr['params'] = $new_params;
+        $edit_arr['params'] = $new_params;
+
+        if (!($new_job_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
+            return null;
         }
 
-        return $this->edit($job_arr, ['fields' => $edit_arr]);
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
+        if (($admin_plugin = PHS_Plugin_Admin::get_instance())
+            && $admin_plugin->monitor_agent_jobs()
+            && ($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
+            if (empty($params['last_error'])) {
+                if (!$jobs_monitor_model->job_success($job_arr)) {
+                    PHS_Logger::error('Error saving job monitor data SUCCESS for agent job: '
+                                      .'[#'.$job_arr['id'].']['.$job_arr['route'].']', PHS_Logger::TYPE_AGENT);
+                }
+            } elseif (!$jobs_monitor_model->job_error($job_arr, $params['last_error'], $params['last_error_code'])) {
+                PHS_Logger::error('Error saving job monitor data FAILED for agent job: '
+                                  .'[#'.$job_arr['id'].']['.$job_arr['route'].']: (Code: '.$params['last_error_code'].') '.$params['last_error'], PHS_Logger::TYPE_AGENT);
+            }
+        }
+
+        return $new_job_arr;
     }
 
     public function refresh_job($job_data)
@@ -455,7 +470,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->get_stalling_minutes();
     }
 
-    public function get_job_seconds_since_last_action($job_data)
+    public function get_job_seconds_since_last_action($job_data) : ?int
     {
         $this->reset_error();
 
@@ -474,7 +489,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return seconds_passed($job_arr['last_action']);
     }
 
-    public function job_is_stalling($job_data)
+    public function job_is_stalling($job_data) : ?bool
     {
         $this->reset_error();
 
@@ -490,14 +505,14 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || floor($this->get_job_seconds_since_last_action($job_arr) / 60) < $minutes_to_stall);
     }
 
-    public function job_runs_async($job_data)
+    public function job_runs_async($job_data) : bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || empty($job_arr['run_async']));
     }
 
-    public function job_is_running($job_data)
+    public function job_is_running($job_data) : bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
@@ -505,21 +520,21 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || empty_db_date($job_arr['is_running']));
     }
 
-    public function job_is_active($job_data)
+    public function job_is_active($job_data) : bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || (int)$job_arr['status'] !== self::STATUS_ACTIVE);
     }
 
-    public function job_is_inactive($job_data)
+    public function job_is_inactive($job_data) : bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || (int)$job_arr['status'] !== self::STATUS_INACTIVE);
     }
 
-    public function job_is_suspended($job_data)
+    public function job_is_suspended($job_data) : bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
@@ -758,7 +773,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return null|string
      */
-    private function _reset_job_parameters_on_stop($job_params_str)
+    private function _reset_job_parameters_on_stop(?string $job_params_str) : ?string
     {
         if (empty($job_params_str)
          || !($job_params_arr = @json_decode($job_params_str, true))) {

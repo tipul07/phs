@@ -1739,7 +1739,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return string Returns a CSV string line based on provided columns array
      */
-    public static function csv_line($line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"')
+    public static function csv_line($line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"') : string
     {
         if (empty($line_arr) || !is_array($line_arr)) {
             return '';

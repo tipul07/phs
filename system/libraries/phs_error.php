@@ -107,7 +107,7 @@ class PHS_Error
      **/
     public function has_warnings(?string $tag = null) : int
     {
-        if ($tag === false) {
+        if ($tag === null) {
             return $this->warnings_no;
         }
         if (isset($this->warnings_arr[$tag]) && is_array($this->warnings_arr[$tag])) {
@@ -157,17 +157,6 @@ class PHS_Error
     }
 
     /**
-     * @param string $error_msg
-     * @param string $error_debug_msg
-     *
-     * @return array
-     */
-    public function st_change_error_message($error_msg, $error_debug_msg = '') : array
-    {
-        return self::get_error_static_instance()->change_error_message($error_msg, $error_debug_msg);
-    }
-
-    /**
      * @param int $error_no
      *
      * @return array
@@ -177,6 +166,25 @@ class PHS_Error
         $this->error_no = $error_no;
 
         return $this->get_error();
+    }
+
+    public function change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    {
+        $this->change_error_code($error_code);
+        $this->change_error_message($error_msg, $error_debug_msg);
+
+        return $this->get_error();
+    }
+
+    /**
+     * @param string $error_msg
+     * @param string $error_debug_msg
+     *
+     * @return array
+     */
+    public function st_change_error_message(string $error_msg, string $error_debug_msg = '') : array
+    {
+        return self::get_error_static_instance()->change_error_message($error_msg, $error_debug_msg);
     }
 
     /**
@@ -189,6 +197,18 @@ class PHS_Error
         return self::get_error_static_instance()->change_error_code($error_no);
     }
 
+    /**
+     * @param int $error_code
+     * @param string $error_msg
+     * @param string $error_debug_msg
+     *
+     * @return array
+     */
+    public function st_change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    {
+        return self::get_error_static_instance()->change_error_code_and_message($error_code, $error_msg, $error_debug_msg);
+    }
+
     // ! Add a warning message
     /**
      * Add a warning message for a specified tag or as general warning.
@@ -196,10 +216,10 @@ class PHS_Error
      * functions/methods called (with their parameters) and files/line of call.
      *
      * @param string $warning string Warning message
-     * @param false|string|int $tag string Add warning for a specific tag (default false).
-     *                              If this is not provided, warning will be added as general warning.
+     * @param null|string $tag string Add warning for a specific tag (default null).
+     *                         If this is not provided, warning will be added as general warning.
      **/
-    public function add_warning(string $warning, $tag = false) : void
+    public function add_warning(string $warning, ?string $tag = null) : void
     {
         if (empty($this->warnings_arr[self::WARNING_NOTAG])) {
             $this->warnings_arr[self::WARNING_NOTAG] = [];
@@ -214,7 +234,7 @@ class PHS_Error
                            .$backtrace,
         ];
 
-        if (is_string($tag) || is_int($tag)) {
+        if ($tag !== null) {
             if (!isset($this->warnings_arr[$tag])) {
                 $this->warnings_arr[$tag] = [];
             }
@@ -227,16 +247,15 @@ class PHS_Error
         $this->warnings_no++;
     }
 
-    // ! Remove warnings
     /**
      * Remove warning messages for a speficied tag or all warnings.
      *
-     * @param false|string|int $tag string Remove warnings of specific tag or all warnings. (default false)
+     * @param null|string $tag string Remove warnings of specific tag or all warnings. (default false)
      * @return int Returns number of warnings left after removing required warnings
      **/
-    public function reset_warnings($tag = false)
+    public function reset_warnings(?string $tag = null) : int
     {
-        if ($tag !== false) {
+        if ($tag !== null) {
             if (isset($this->warnings_arr[$tag]) && is_array($this->warnings_arr[$tag])) {
                 $this->warnings_no -= count($this->warnings_arr[$tag]);
                 unset($this->warnings_arr[$tag]);
@@ -301,6 +320,14 @@ class PHS_Error
     }
 
     /**
+     * @return string Returns full error message
+     */
+    public function get_full_error_message() : string
+    {
+        return $this->error_msg;
+    }
+
+    /**
      * @return string Always returns short version error message
      */
     public function get_simple_error_message() : string
@@ -351,9 +378,9 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error_from_array($error_arr, ?int $force_error_code = null) : bool
+    public function copy_error_from_array(array $error_arr, ?int $force_error_code = null) : bool
     {
-        if (empty($error_arr) || !is_array($error_arr)
+        if (empty($error_arr)
          || !isset($error_arr['error_no']) || !isset($error_arr['error_msg'])
          || !isset($error_arr['error_simple_msg']) || !isset($error_arr['error_debug_msg'])) {
             return false;
@@ -409,11 +436,11 @@ class PHS_Error
      *   Return warnings array for specified tag (if any) or
      *
      * @param bool $simple_messages Tells which set of messages to get (simple or debugging)
-     * @param null|int|string $tag Check if we have warnings for provided tag (false by default)
+     * @param null|string $tag Check if we have warnings for provided tag (null by default)
      *
      * @return null|array Return array of warnings (all or for specified tag) or false if no warnings
      **/
-    public function get_warnings(bool $simple_messages = true, $tag = null) : ?array
+    public function get_warnings(bool $simple_messages = true, ?string $tag = null) : ?array
     {
         if (empty($this->warnings_arr)
          || ($tag !== null && !isset($this->warnings_arr[$tag]))) {
@@ -444,9 +471,8 @@ class PHS_Error
         return $ret_warnings;
     }
 
-    // ! Return warnings for specified tag or all warnings
     /**
-     *   Return all warnings array
+     * Return all warnings
      *
      * @param bool $simple_messages Tells which set of messages to get (simple or debugging)
      *
@@ -478,7 +504,6 @@ class PHS_Error
         return $ret_warnings;
     }
 
-    // ! \brief Returns function/method call backtrace
     /**
      *  Used for debugging calls to functions or methods.
      *
@@ -619,7 +644,7 @@ class PHS_Error
         return $err_arr['error_no'] !== self::ERR_OK;
     }
 
-    public static function st_has_warnings($tag = null) : int
+    public static function st_has_warnings(?string $tag = null) : int
     {
         return self::get_error_static_instance()->has_warnings($tag);
     }
@@ -736,12 +761,12 @@ class PHS_Error
      * @param string $error_debug_msg Error message
      * @return array
      **/
-    public static function arr_set_error($error_no, $error_msg, $error_debug_msg = '')
+    public static function arr_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : array
     {
         $backtrace = self::st_debug_call_backtrace();
 
         $error_arr = self::default_error_array();
-        $error_arr['error_no'] = (int)$error_no;
+        $error_arr['error_no'] = $error_no;
         $error_arr['error_simple_msg'] = $error_msg;
         if ($error_debug_msg !== '') {
             $error_arr['error_debug_msg'] = $error_debug_msg;
@@ -774,9 +799,9 @@ class PHS_Error
 
     /**
      * @param string $warning
-     * @param null|string|int $tag
+     * @param null|string $tag
      */
-    public static function st_add_warning(string $warning, $tag = null) : void
+    public static function st_add_warning(string $warning, ?string $tag = null) : void
     {
         self::get_error_static_instance()->add_warning($warning, $tag);
     }
@@ -786,7 +811,7 @@ class PHS_Error
      *
      * @return int
      */
-    public static function st_reset_warnings($tag = null) : int
+    public static function st_reset_warnings(?string $tag = null) : int
     {
         return self::get_error_static_instance()->reset_warnings($tag);
     }
@@ -826,12 +851,12 @@ class PHS_Error
         ];
     }
 
-    public static function st_copy_error_from_array($error_arr, $force_error_code = false) : bool
+    public static function st_copy_error_from_array(array $error_arr, ?int $force_error_code = null) : bool
     {
         return self::get_error_static_instance()->copy_error_from_array($error_arr, $force_error_code);
     }
 
-    public static function st_copy_error($obj, $force_error_code = false) : bool
+    public static function st_copy_error($obj, ?int $force_error_code = null) : bool
     {
         return self::get_error_static_instance()->copy_error($obj, $force_error_code);
     }
@@ -844,6 +869,11 @@ class PHS_Error
     public static function st_get_error_message() : string
     {
         return self::get_error_static_instance()->get_error_message();
+    }
+
+    public static function st_get_full_error_message() : string
+    {
+        return self::get_error_static_instance()->get_full_error_message();
     }
 
     public static function st_get_simple_error_message() : string
@@ -869,6 +899,13 @@ class PHS_Error
         return $err_arr['error_simple_msg'];
     }
 
+    public static function arr_get_full_error_message($err_arr) : string
+    {
+        $err_arr = self::validate_error_arr($err_arr);
+
+        return $err_arr['error_msg'];
+    }
+
     public static function arr_get_simple_error_message($err_arr) : string
     {
         $err_arr = self::validate_error_arr($err_arr);
@@ -890,41 +927,48 @@ class PHS_Error
         return $err_arr;
     }
 
+    public static function arr_change_error_code($err_arr, int $error_code) : array
+    {
+        $err_arr = self::validate_error_arr($err_arr);
+
+        $err_arr['error_no'] = $error_code;
+
+        return $err_arr;
+    }
+
+    public static function arr_change_error_code_and_message($err_arr, int $error_code, $error_msg, $error_debug_msg = '') : array
+    {
+        return self::arr_change_error_message(self::arr_change_error_code($err_arr, $error_code), $error_msg, $error_debug_msg);
+    }
+
     public static function arr_merge_error_to_array($source_error_arr, $error_arr) : array
     {
         $source_error_arr = self::validate_error_arr($source_error_arr);
         $error_arr = self::validate_error_arr($error_arr);
 
-        if ($error_arr['error_msg'] !== '') {
-            $source_error_arr['error_msg'] .= ($source_error_arr['error_msg'] !== '' ? "\n\n" : '').$error_arr['error_msg'];
-        }
-        if ($error_arr['error_simple_msg'] !== '') {
-            $source_error_arr['error_simple_msg'] .= ($source_error_arr['error_simple_msg'] !== '' ? "\n\n" : '').$error_arr['error_simple_msg'];
-        }
-        if ($error_arr['error_debug_msg'] !== '') {
-            $source_error_arr['error_debug_msg'] .= ($source_error_arr['error_debug_msg'] !== '' ? "\n\n" : '').$error_arr['error_debug_msg'];
-        }
-        if ($error_arr['display_error'] !== '') {
-            $source_error_arr['display_error'] .= ($source_error_arr['display_error'] !== '' ? "\n\n" : '').$error_arr['display_error'];
+        foreach (['error_msg', 'error_simple_msg', 'error_debug_msg', 'display_error', ] as $copy_field) {
+            if ($error_arr[$copy_field] !== '') {
+                $source_error_arr[$copy_field] .= ($source_error_arr[$copy_field] !== '' ? "\n\n" : '').$error_arr[$copy_field];
+            }
         }
 
         if (!self::arr_has_error($source_error_arr)
-        && self::arr_has_error($error_arr)) {
+            && self::arr_has_error($error_arr)) {
             $source_error_arr['error_no'] = (int)$error_arr['error_no'];
         }
 
         return $source_error_arr;
     }
 
-    public static function arr_append_error_to_array($error_arr, $error_msg, $error_code = false)
+    public static function arr_append_error_to_array($error_arr, $error_msg, ?int $error_code = null) : ?array
     {
         if (empty($error_msg)) {
-            return false;
+            return null;
         }
 
         $error_arr = self::validate_error_arr($error_arr);
 
-        if ($error_code === false) {
+        if ($error_code === null) {
             $error_code = self::arr_get_error_code($error_arr);
         }
 
@@ -943,7 +987,7 @@ class PHS_Error
     public static function st_restore_errors($errors_arr) : void
     {
         if (!empty($errors_arr['static_error'])
-        && ($static_errors = self::validate_error_arr($errors_arr['static_error']))) {
+            && ($static_errors = self::validate_error_arr($errors_arr['static_error']))) {
             self::st_copy_error_from_array($static_errors);
         }
     }
@@ -955,11 +999,11 @@ class PHS_Error
 
     /**
      * @param bool $simple_messages
-     * @param null|string|int $tag
+     * @param null|string $tag
      *
      * @return null|array
      */
-    public static function st_get_warnings(bool $simple_messages = true, $tag = null) : ?array
+    public static function st_get_warnings(bool $simple_messages = true, ?string $tag = null) : ?array
     {
         return self::get_error_static_instance()->get_warnings($simple_messages, $tag);
     }
@@ -981,12 +1025,12 @@ class PHS_Error
         return self::get_error_static_instance()->debug_call_backtrace($lvl);
     }
 
-    public static function st_throw_errors($mode = null) : bool
+    public static function st_throw_errors(?bool $mode = null) : bool
     {
         return self::get_error_static_instance()->throw_errors($mode);
     }
 
-    public static function st_debugging_mode($mode = null) : bool
+    public static function st_debugging_mode(?bool $mode = null) : bool
     {
         return self::get_error_static_instance()->debugging_mode($mode);
     }

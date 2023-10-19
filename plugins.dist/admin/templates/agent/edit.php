@@ -31,11 +31,11 @@ foreach ($plugins_arr as $plugin_name) {
 }
 
 if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = PHS::url(['p' => 'admin', 'a' => 'agent_jobs_list']);
+    $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'agent']);
 }
 ?>
 <form id="edit_agent_job_form" name="edit_agent_job_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'agent_job_edit'],
+      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'],
           ['aid' => $this->view_var('aid')]); ?>">
 <input type="hidden" name="foobar" value="1" />
 <?php

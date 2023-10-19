@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
 use phs\PHS_Agent;
@@ -12,7 +12,7 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 
-class PHS_Action_Agent_job_edit extends PHS_Action
+class PHS_Action_Edit extends PHS_Action
 {
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -47,7 +47,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
         }
 
         if (!$admin_plugin->can_admin_manage_agent_jobs()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage agent jobs.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -64,7 +64,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             ];
 
             if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'agent_jobs_list']);
+                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'agent']);
             } else {
                 $back_page = from_safe_url($back_page);
             }
@@ -165,7 +165,7 @@ class PHS_Action_Agent_job_edit extends PHS_Action
                         $url_params['back_page'] = $back_page;
                     }
 
-                    return action_redirect(['p' => 'admin', 'a' => 'agent_job_edit'], $url_params);
+                    return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'], $url_params);
                 }
 
                 if (PHS::st_has_error()) {
@@ -193,6 +193,6 @@ class PHS_Action_Agent_job_edit extends PHS_Action
             'agent_routes' => $agent_routes,
         ];
 
-        return $this->quick_render_template('agent_job_edit', $data);
+        return $this->quick_render_template('agent/edit', $data);
     }
 }

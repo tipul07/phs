@@ -145,7 +145,7 @@ class PHS_Model_Accounts_details extends PHS_Model
         }
 
         if (isset($params['fields']['uid']) && empty($params['fields']['uid'])) {
-            $this->set_error(self::ERR_INSERT, $this->_pt('Please provide an user account id.'));
+            $this->set_error(self::ERR_EDIT, $this->_pt('Please provide an user account id.'));
 
             return false;
         }
