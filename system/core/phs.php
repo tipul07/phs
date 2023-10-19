@@ -1678,6 +1678,8 @@ final class PHS extends PHS_Registry
             $extra = [];
         }
 
+        $extra['anchor'] ??= '';
+
         if (empty($extra['http']) || !is_array($extra['http'])) {
             $extra['http'] = [];
         }
@@ -1726,7 +1728,7 @@ final class PHS extends PHS_Registry
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
         // which is passed as a parameter in a JavaScript script
-        // (eg. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
+        // (e.g. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
         if (!empty($extra['raw_route']) && is_string($extra['raw_route'])) {
             if ($extra['use_rewrite_url']) {
                 $rewrite_route = $extra['raw_route'];
@@ -1738,7 +1740,7 @@ final class PHS extends PHS_Registry
                    .(!empty($route_arr['p']) ? $route_arr['p'] : '').'::'
                    .(!empty($route_arr['c']) ? $route_arr['c'] : '').'::'
                    .(!empty($route_arr['ad']) ? $route_arr['ad'] : '').'/'
-                   .(!empty($route_arr['a']) ? $route_arr['a'] : '').']';
+                   .(!empty($route_arr['a']) ? $route_arr['a'] : '').']'.$extra['anchor'];
         } else {
             if ($extra['use_rewrite_url']) {
                 $rewrite_route = $route;
@@ -1761,7 +1763,7 @@ final class PHS extends PHS_Registry
 
         if (!empty($extra['raw_args']) && is_array($extra['raw_args'])) {
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded, and we might add javascript code in parameters
-            // eg. $extra['raw_args'] might be an id passed as javascript function parameter
+            // e.g. $extra['raw_args'] might be an id passed as javascript function parameter
             if (($raw_query = array_to_query_string($extra['raw_args'],
                 ['arg_separator' => $extra['http']['arg_separator'], 'raw_encode_values' => false]))) {
                 $query_string .= ($query_string !== '' ? $extra['http']['arg_separator'] : '').$raw_query;
@@ -1770,11 +1772,14 @@ final class PHS extends PHS_Registry
 
         switch ($extra['for_scope']) {
             default:
-                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain']).($query_string !== '' ? '?'.$query_string : '');
+                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain']).
+                             ($query_string !== '' ? '?'.$query_string : '').
+                             $extra['anchor'];
                 break;
 
             case PHS_Scope::SCOPE_AJAX:
-                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain']).($query_string !== '' ? '?'.$query_string : '');
+                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain']).
+                             ($query_string !== '' ? '?'.$query_string : '');
                 break;
 
             case PHS_Scope::SCOPE_API:

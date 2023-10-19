@@ -356,11 +356,11 @@ abstract class PHS_Api_base extends PHS_Registry
                 $query_string = '';
             }
 
-            if (!empty($extra['raw_params']) && is_array($extra['raw_params'])) {
+            if (!empty($extra['raw_args']) && is_array($extra['raw_args'])) {
                 // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded,
                 // and we might add javascript code in parameters
-                // e.g. $extra['raw_params'] might be an id passed as javascript function parameter
-                if (($raw_query = array_to_query_string($extra['raw_params'], ['raw_encode_values' => false]))) {
+                // e.g. $extra['raw_args'] might be an id passed as javascript function parameter
+                if (($raw_query = array_to_query_string($extra['raw_args'], ['raw_encode_values' => false]))) {
                     $query_string .= ($query_string !== '' ? '&' : '').$raw_query;
                 }
             }
