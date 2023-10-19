@@ -397,6 +397,6 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             return false;
         }
 
-        return self::validate_array($bg_action_result, self::default_action_result());
+        return self::validate_action_result($bg_action_result);
     }
 }

@@ -30,9 +30,9 @@ class PHS_Scope_Web extends PHS_Scope
             $controller_obj = false;
         }
 
-        $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
+        $action_result = PHS_Action::validate_action_result($action_result);
 
-        // TFA preceeeds password expiration...
+        // TFA preceeds password expiration...
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if ($this->_should_redirect_to_tfa_flow()
             && (empty($action_obj)
@@ -143,9 +143,9 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         if (self::arr_has_error($static_error_arr)) {
-            echo self::arr_get_error_message($static_error_arr);
+            echo self::arr_get_simple_error_message($static_error_arr);
         } elseif (empty($action_obj)
-             || empty($action_result['page_template'])) {
+                  || empty($action_result['page_template'])) {
             echo $action_result['buffer'];
         } else {
             $view_params = [];
@@ -166,10 +166,7 @@ class PHS_Scope_Web extends PHS_Scope
                 exit;
             }
 
-            if (empty($action_result['page_settings']['page_title'])) {
-                $action_result['page_settings']['page_title'] = '';
-            }
-
+            $action_result['page_settings']['page_title'] ??= '';
             $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
 
             if (($result_buffer = $view_obj->render()) === null) {

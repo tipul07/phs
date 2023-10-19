@@ -15,15 +15,11 @@ use phs\libraries\PHS_Model_Core_base;
 
 function phs_version() : string
 {
-    return '1.1.9.9';
+    return '1.1.9.10';
 }
 
 // region Helper functions
 /**
- * @param array|string $path
- * @param null|array $args
- * @param null|array $extra
- *
  * @return array
  */
 function action_request_login() : array

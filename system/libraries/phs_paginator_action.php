@@ -147,7 +147,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         PHS::page_body_class('phs_paginator_action');
 
         if (($action_result = $this->should_stop_execution())) {
-            return self::validate_array($action_result, self::default_action_result());
+            return self::validate_action_result($action_result);
         }
 
         if (!$this->load_depencies()) {
@@ -175,7 +175,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!empty($paginator_params['force_action_result'])) {
-            return self::validate_array($paginator_params['force_action_result'], self::default_action_result());
+            return self::validate_action_result($paginator_params['force_action_result']);
         }
 
         // Generic action hooks...
@@ -211,9 +211,14 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         $init_went_ok = true;
         if (!$this->_paginator->set_columns($paginator_params['columns_arr'])
-         || (!empty($paginator_params['filters_arr']) && !$this->_paginator->set_filters($paginator_params['filters_arr']))
-         || (!empty($this->_paginator_model) && !$this->_paginator->set_model($this->_paginator_model))
-         || (!empty($paginator_params['bulk_actions']) && !$this->_paginator->set_bulk_actions($paginator_params['bulk_actions']))) {
+         || (!empty($paginator_params['filters_arr'])
+             && !$this->_paginator->set_filters($paginator_params['filters_arr']))
+         || (!empty($this->_paginator_model)
+             && !$this->_paginator->set_model($this->_paginator_model))
+         || (!empty($paginator_params['bulk_actions'])
+             && is_array($paginator_params['bulk_actions'])
+             && !$this->_paginator->set_bulk_actions($paginator_params['bulk_actions']))
+        ) {
             if ($this->_paginator->has_error()) {
                 $error_msg = $this->_paginator->get_simple_error_message();
             } else {

@@ -17,10 +17,10 @@ abstract class PHS_Library extends PHS_Registry
         $this->_location_paths['library_path'] = rtrim($this->_location_paths['library_path'], '/\\').'/';
         $this->_location_paths['library_www'] = rtrim($this->_location_paths['library_www'], '/').'/';
 
-        if ($this->_location_paths['library_path'] == '/') {
+        if ($this->_location_paths['library_path'] === '/') {
             $this->_location_paths['library_path'] = '';
         }
-        if ($this->_location_paths['library_www'] == '/') {
+        if ($this->_location_paths['library_www'] === '/') {
             $this->_location_paths['library_www'] = '';
         }
 

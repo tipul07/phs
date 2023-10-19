@@ -3,6 +3,7 @@ namespace phs\system\core\scopes;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Api_base;
 use phs\PHS_Api_remote;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
@@ -20,30 +21,32 @@ class PHS_Scope_Remote extends PHS_Scope
     {
         // We have already an error from flow before initiating scope class
         if (!empty($static_error_arr)
-         && self::arr_has_error($static_error_arr)) {
-            PHS_Api_remote::http_header_response(PHS_Api_remote::H_CODE_INTERNAL_SERVER_ERROR, self::arr_get_error_message($static_error_arr));
+            && self::arr_has_error($static_error_arr)) {
+            PHS_Api_remote::http_header_response(
+                PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
+                self::arr_get_simple_error_message($static_error_arr));
             exit;
         }
 
         if (!($api_obj = PHS_Api_remote::api_factory())) {
-            $api_obj = false;
+            $api_obj = null;
         }
 
-        $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
+        $action_result = PHS_Action::validate_action_result($action_result);
 
         // send custom headers as we will echo page content here...
         $api_flow_arr = [];
         if (!empty($api_obj)) {
             if (!($api_headers = $api_obj->response_headers(true))
-             || !is_array($api_headers)) {
+                || !is_array($api_headers)) {
                 $api_headers = [];
             }
 
             $api_flow_arr = $api_obj->api_flow_value();
 
             if (!empty($action_result['request_login'])
-             && !$api_obj->api_user_account_id()) {
-                PHS_Api_remote::http_header_response(PHS_Api_remote::H_CODE_UNAUTHORIZED);
+                && !$api_obj->api_user_account_id()) {
+                PHS_Api_remote::http_header_response(PHS_Api_base::H_CODE_UNAUTHORIZED);
                 exit;
             }
         } else {
@@ -74,32 +77,32 @@ class PHS_Scope_Remote extends PHS_Scope
             }
         }
 
-        if (!@headers_sent()
-         && !empty($api_headers)) {
-            foreach ($api_headers as $key => $val) {
-                $header_str = $key;
-                if (null !== $val) {
-                    $header_str .= ': '.$val;
+        if (!@headers_sent()) {
+            if (!empty($api_headers)) {
+                foreach ($api_headers as $key => $val) {
+                    $header_str = $key;
+                    if (null !== $val) {
+                        $header_str .= ': '.$val;
+                    }
+
+                    @header($header_str);
                 }
-
-                @header($header_str);
             }
-        }
 
-        // If we don't have a Content-Type header set, just set is as application/json (default API response)
-        if (empty($lowercase_api_headers['content-type'])
-         && !@headers_sent()) {
-            $api_headers['Content-Type'] = 'application/json';
+            // If we don't have a Content-Type header set, just set is as application/json (default API response)
+            if (empty($lowercase_api_headers['content-type'])) {
+                $api_headers['Content-Type'] = 'application/json';
 
-            @header('Content-Type: application/json');
+                @header('Content-Type: application/json');
 
-            if (empty($api_obj)) {
-                $lowercase_api_headers = self::array_lowercase_keys($api_headers);
-            } else {
-                $api_obj->set_response_headers($api_headers, false);
+                if (empty($api_obj)) {
+                    $lowercase_api_headers = self::array_lowercase_keys($api_headers);
+                } else {
+                    $api_obj->set_response_headers($api_headers, false);
 
-                if (!($lowercase_api_headers = $api_obj->response_headers(false))) {
-                    $lowercase_api_headers = [];
+                    if (!($lowercase_api_headers = $api_obj->response_headers(false))) {
+                        $lowercase_api_headers = [];
+                    }
                 }
             }
         }
@@ -113,10 +116,6 @@ class PHS_Scope_Remote extends PHS_Scope
             // CHeck if we have an AJAX response to convert it in API response
             elseif (is_array($action_result['ajax_result'])) {
                 $json_array = $action_result['ajax_result'];
-            }
-
-            if (empty($json_array)) {
-                $json_array = [];
             }
 
             $errors_arr = [];
