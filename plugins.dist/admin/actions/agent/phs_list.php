@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
 use phs\PHS_Agent;
@@ -13,18 +13,14 @@ use phs\system\core\models\PHS_Model_Agent_jobs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
-class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
+class PHS_Action_List extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
-    private ?PHS_Model_Accounts $_accounts_model = null;
-
     /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     public function load_depencies()
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_accounts_model = PHS_Model_Accounts::get_instance())
          || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
@@ -74,7 +70,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list agent jobs.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -248,7 +244,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'agent_jobs_list']);
+        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'agent']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -304,7 +300,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -363,7 +359,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -422,7 +418,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -479,7 +475,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent job.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -514,7 +510,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -549,7 +545,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -597,7 +593,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                 }
 
                 if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage agent jobs.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -831,7 +827,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         ob_start();
         if (!$job_is_suspended) {
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'agent_job_edit'], ['aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit agent job'); ?>"></i></a>
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'], ['aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit agent job'); ?>"></i></a>
             <?php
         }
         if ($job_is_inactive) {
@@ -863,7 +859,7 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <div style="width:97%;min-width:97%;margin: 15px auto 0;">
-          <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'agent_job_add']); ?>" class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('Add Agent Job'); ?></a>
+          <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'agent']); ?>" class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('Add Agent Job'); ?></a>
         </div>
         <div class="clearfix"></div>
         <?php

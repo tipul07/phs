@@ -31,7 +31,7 @@ foreach ($plugins_arr as $plugin_name) {
 }
 ?>
 <form id="add_agent_job_form" name="add_agent_job_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'agent_job_add']); ?>">
+      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'agent']); ?>">
 <input type="hidden" name="foobar" value="1" />
 
 <div class="form_container responsive" style="width: 100%;">

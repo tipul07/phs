@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
 use phs\PHS_Agent;
@@ -12,7 +12,7 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 
-class PHS_Action_Agent_job_add extends PHS_Action
+class PHS_Action_Add extends PHS_Action
 {
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -47,7 +47,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
         }
 
         if (!$admin_plugin->can_admin_manage_agent_jobs()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage agent jobs.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -115,7 +115,7 @@ class PHS_Action_Agent_job_add extends PHS_Action
                 if (PHS_Agent::add_job($handler, $job_route, $timed_seconds, $params_arr, $job_extra_arr)) {
                     PHS_Notifications::add_success_notice($this->_pt('Agent job details saved...'));
 
-                    return action_redirect(['p' => 'admin', 'a' => 'agent_jobs_list'], ['agent_job_added' => 1]);
+                    return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'agent'], ['agent_job_added' => 1]);
                 }
 
                 if (PHS::st_has_error()) {
@@ -141,6 +141,6 @@ class PHS_Action_Agent_job_add extends PHS_Action
             'agent_routes' => $agent_routes,
         ];
 
-        return $this->quick_render_template('agent_job_add', $data);
+        return $this->quick_render_template('agent/add', $data);
     }
 }
