@@ -116,7 +116,7 @@ function check_integrity()
 function send_server_request( data )
 {
     var defaults = {
-        command           : 'integrity_check',
+        command           : "integrity_check",
         check_plugin      : ""
     };
 
@@ -158,7 +158,7 @@ function send_server_request( data )
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'plugins_integrity'], false, ['raw_params' => ['_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "']]); ?>", ajax_params );
+    PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'plugins_integrity'], false, ['raw_args' => ['_r' => '" + Math.round(((new Date()).getTime()-Date.UTC(1970,0,1))/1000) + "']]); ?>", ajax_params );
 }
 function finish_single_request()
 {

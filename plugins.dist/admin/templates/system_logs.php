@@ -82,7 +82,7 @@ function do_download_log_file()
     if( !log_file_obj )
         return;
 
-    document.location = "<?php echo PHS::url(['p' => 'admin', 'a' => 'system_logs'], ['command' => 'download_file'], ['raw_params' => ['log_file' => '" + log_file_obj.val() + "']]); ?>";
+    document.location = "<?php echo PHS::url(['p' => 'admin', 'a' => 'system_logs'], ['command' => 'download_file'], ['raw_args' => ['log_file' => '" + log_file_obj.val() + "']]); ?>";
     // send_server_request( { command: "download_file", log_file: log_file_obj.val() } );
 }
 
@@ -91,7 +91,7 @@ function send_server_request( data )
     var defaults = {
         command           : 'display_file',
         log_file          : "",
-        log_lines         : <?php echo !empty($log_lines) ? intval($log_lines) : 20; ?>,
+        log_lines         : <?php echo !empty($log_lines) ? (int) $log_lines : 20; ?>,
         search_term       : ""
     };
 
