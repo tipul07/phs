@@ -25,7 +25,7 @@ class PHS_Scope_Ajax extends PHS_Scope
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        $action_result = self::validate_array($action_result, PHS_Action::default_action_result());
+        $action_result = PHS_Action::validate_action_result($action_result);
 
         $full_buffer = PHS_Params::_gp(PHS_Ajax::PARAM_FB_KEY, PHS_Params::T_INT);
 
@@ -92,7 +92,7 @@ class PHS_Scope_Ajax extends PHS_Scope
                 ];
 
                 if (!empty($full_buffer)
-                 && PHS_Notifications::have_any_notifications()) {
+                    && PHS_Notifications::have_any_notifications()) {
                     $hook_args = PHS_Hooks::default_notifications_hook_args();
                     $hook_args['output_ajax_placeholders'] = false;
 
@@ -113,7 +113,7 @@ class PHS_Scope_Ajax extends PHS_Scope
                 if (is_string($ajax_data)) {
                     echo $ajax_data;
                 } elseif (!empty($action_result['ajax_result'])
-                     && is_string($action_result['ajax_result'])) {
+                          && is_string($action_result['ajax_result'])) {
                     echo $action_result['ajax_result'];
                 }
             } else {

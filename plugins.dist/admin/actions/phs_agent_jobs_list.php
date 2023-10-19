@@ -652,10 +652,23 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
                     break;
 
                 case $paginator_obj::CELL_RENDER_HTML:
+                    $last_error = '';
+                    if (!empty($agent_job['last_error'])) {
+                        ob_start();
+                        ?>
+                        <a href="javascript:void(0)" onclick="phs_open_agent_job_last_error( '<?php echo $agent_job['id']; ?>' )"
+                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons company-notes"></i></a>
+                        <div id="phs_agent_jobs_agent_last_error_<?php echo $agent_job['id']; ?>" style="display:none;">
+                            <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['last_error'])); ?>
+                        </div>
+                        <?php
+                        $last_error = ob_get_clean();
+                    }
+
                     if (!empty($params['preset_content'])) {
-                        $params['preset_content'] .= '<br/><small>'.$params['record']['handler'].'</small>';
+                        $params['preset_content'] .= $last_error.'<br/><small>'.$params['record']['handler'].'</small>';
                     } else {
-                        $params['preset_content'] = $params['record']['handler'];
+                        $params['preset_content'] = $params['record']['handler'].$last_error;
                     }
                     break;
             }
@@ -871,6 +884,21 @@ class PHS_Action_Agent_jobs_list extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
+        function phs_open_agent_job_last_error( id )
+        {
+            $("#phs_agent_jobs_agent_last_error_" + id).dialog({
+                title: "<?php echo form_str($this->_pt('Agent job last error')); ?>",
+                width: "500px",
+                buttons: [
+                    {
+                        text: "<?php echo form_str($this->_pt('Ok')); ?>",
+                        click: function() {
+                            $( this ).dialog( "close" );
+                        }
+                    }
+                ]
+            }).show()
+        }
         function phs_agent_jobs_list_activate( id )
         {
             if( confirm( "<?php echo self::_e('Are you sure you want to activate this agent job?', '"'); ?>" ) )

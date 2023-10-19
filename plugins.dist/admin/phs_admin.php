@@ -75,7 +75,28 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     ],
                 ],
             ],
+            'agent_jobs_group' => [
+                'display_name' => $this->_pt('Agent Jobs Settings'),
+                'display_hint' => $this->_pt('Settings related to agent jobs details on this platform.'),
+                'group_fields' => [
+                    'monitor_agent_jobs' => [
+                        'display_name' => $this->_pt('Monitor agent jobs'),
+                        'display_hint' => $this->_pt('Monitor start, success or failure of agent jobs running on this platform'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                ],
+            ],
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function monitor_agent_jobs() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_agent_jobs']);
     }
 
     /**

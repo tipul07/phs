@@ -38,8 +38,7 @@ if (!($bulk_select_name = $paginator_obj->get_bulk_action_select_name())) {
     $bulk_select_name = '';
 }
 
-if (!($bulk_actions = $paginator_obj->get_bulk_actions())
- || !is_array($bulk_actions)) {
+if (!($bulk_actions = $paginator_obj->get_bulk_actions())) {
     $bulk_actions = [];
 }
 if (!($filters_arr = $paginator_obj->get_filters())) {
@@ -59,7 +58,7 @@ if (!($scope_arr = $paginator_obj->get_scope())) {
 $per_page_options_arr = [20, 50, 100];
 
 $columns_count = 0;
-$current_scope = (int)PHS_Scope::current_scope();
+$current_scope = PHS_Scope::current_scope();
 if (!empty($columns_arr) && is_array($columns_arr)) {
     foreach ($columns_arr as $column_arr) {
         if (!isset($column_arr['column_colspan'])) {

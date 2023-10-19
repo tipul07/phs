@@ -91,7 +91,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys'];
+        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor'];
     }
 
     /**
@@ -379,7 +379,7 @@ final class PHS extends PHS_Registry
 
     /**
      * @param null|PHS_Action $action_obj
-     * @return bool|PHS_Action
+     * @return null|bool|PHS_Action
      */
     public static function running_action(?PHS_Action $action_obj = null)
     {
@@ -396,7 +396,7 @@ final class PHS extends PHS_Registry
 
     /**
      * @param null|PHS_Controller $controller_obj
-     * @return bool|PHS_Controller
+     * @return null|bool|PHS_Controller
      */
     public static function running_controller(?PHS_Controller $controller_obj = null)
     {
@@ -1666,7 +1666,7 @@ final class PHS extends PHS_Registry
         $route_arr = self::validate_route_from_parts($route_arr, true);
 
         // As we run in a background job we don't know if initial request was made using https, so we force https links
-        if (in_array(PHS_Scope::current_scope(), [PHS_Scope::SCOPE_BACKGROUND, PHS_Scope::SCOPE_AGENT], true)) {
+        if (self::are_we_in_a_background_thread()) {
             $route_arr['force_https'] = true;
         }
 
@@ -1861,13 +1861,13 @@ final class PHS extends PHS_Registry
         return PHS_PATH.$path;
     }
 
-    public static function get_route_details()
+    public static function get_route_details() : ?array
     {
         if (($controller = self::get_data(self::ROUTE_CONTROLLER)) === null) {
             self::set_route();
 
             if (null === ($controller = self::get_data(self::ROUTE_CONTROLLER))) {
-                return false;
+                return null;
             }
         }
 
@@ -1880,10 +1880,10 @@ final class PHS extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_route_details_for_url($use_short_names = true)
+    public static function get_route_details_for_url($use_short_names = true) : ?array
     {
         if (!($route_arr = self::get_route_details())) {
-            return false;
+            return null;
         }
 
         if ($use_short_names) {
@@ -1923,28 +1923,21 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param bool|array $params
+     * @param null|array $params
      *
      * @return null|array|bool
      */
-    public static function execute_route($params = false)
+    public static function execute_route(?array $params = null)
     {
         self::st_reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!isset($params['die_on_error'])) {
-            $params['die_on_error'] = true;
-        } else {
-            $params['die_on_error'] = (!empty($params['die_on_error']));
-        }
+        $params ??= [];
+        $params['die_on_error'] = (!isset($params['die_on_error']) || !empty($params['die_on_error']));
 
         $action_result = false;
 
         if (!($route_details = self::get_route_details())
-         || empty($route_details[self::ROUTE_CONTROLLER])) {
+            || empty($route_details[self::ROUTE_CONTROLLER])) {
             self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain route details.'));
         }
 
@@ -1959,7 +1952,15 @@ final class PHS extends PHS_Registry
             }
         }
 
-        $controller_error_arr = self::st_get_error();
+        if (self::st_has_error()) {
+            $controller_error_arr = $technical_error_arr = self::st_get_error();
+        } elseif (!empty($action_result)
+                  && PHS_Action::action_result_has_errors($action_result)) {
+            $controller_error_arr = PHS_Action::get_end_user_error_from_action_result($action_result);
+            $technical_error_arr = PHS_Action::get_technical_error_from_action_result($action_result);
+        } else {
+            $controller_error_arr = $technical_error_arr = null;
+        }
 
         self::st_reset_error();
 
@@ -1969,7 +1970,7 @@ final class PHS extends PHS_Registry
             }
 
             if (!empty($params['die_on_error'])) {
-                $error_msg = self::st_get_error_message();
+                $error_msg = self::st_get_full_error_message();
 
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEF_DEBUG);
 
@@ -1982,30 +1983,31 @@ final class PHS extends PHS_Registry
 
         // Don't display technical stuff to end-user...
         if (!self::st_debugging_mode()
-         && self::arr_has_error($controller_error_arr)) {
-            $controller_error_arr = self::arr_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
+            && self::arr_has_error($controller_error_arr)) {
+            $controller_error_arr = self::arr_change_error_code_and_message($controller_error_arr,
+                self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
         }
 
         if (!empty($action_result) && is_array($action_result)
-         && !empty($action_result['custom_headers']) && is_array($action_result['custom_headers'])) {
+            && !empty($action_result['custom_headers']) && is_array($action_result['custom_headers'])) {
             $action_result['custom_headers']
                 = self::unify_array_insensitive($action_result['custom_headers'], ['trim_keys' => true]);
         }
 
-        $scope_action_result = $scope_obj->generate_response($action_result, $controller_error_arr);
+        $scope_action_result = $scope_obj->generate_response($action_result, $controller_error_arr, $technical_error_arr);
 
-        $error_msg = false;
-        if (self::st_has_error()) {
-            $error_msg = self::st_get_error_message();
-        } elseif (self::arr_has_error($controller_error_arr)) {
-            $error_msg = '['.self::get_route_as_string().'] - '
-                         .self::arr_get_simple_error_message($controller_error_arr);
-        } elseif ($scope_obj->has_error()) {
-            $error_msg = $scope_obj->get_error_message();
-        }
+        if (empty($action_result)) {
+            $error_msg = null;
+            if (self::arr_has_error($technical_error_arr)) {
+                $error_msg = '['.self::get_route_as_string().'] - '
+                             .self::arr_get_full_error_message($technical_error_arr);
+            } elseif ($scope_obj->has_error()) {
+                $error_msg = $scope_obj->get_full_error_message();
+            }
 
-        if ($error_msg !== false) {
-            PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
+            if (!empty($error_msg)) {
+                PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
+            }
 
             return false;
         }

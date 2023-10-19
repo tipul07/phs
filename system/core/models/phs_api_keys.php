@@ -12,7 +12,7 @@ class PHS_Model_Api_keys extends PHS_Model
 
     public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
 
-    protected static $STATUSES_ARR = [
+    protected static array $STATUSES_ARR = [
         self::STATUS_ACTIVE   => ['title' => 'Active'],
         self::STATUS_INACTIVE => ['title' => 'Inactive'],
         self::STATUS_DELETED  => ['title' => 'Deleted'],
@@ -72,8 +72,10 @@ class PHS_Model_Api_keys extends PHS_Model
         return $record_arr;
     }
 
-    public function act_activate($record_data, $params = false)
+    public function act_activate($record_data)
     {
+        $this->reset_error();
+
         if (empty($record_data)
          || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
@@ -94,8 +96,10 @@ class PHS_Model_Api_keys extends PHS_Model
         return $this->edit($record_arr, $edit_params);
     }
 
-    public function act_inactivate($record_data, $params = false)
+    public function act_inactivate($record_data)
     {
+        $this->reset_error();
+
         if (empty($record_data)
          || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
@@ -116,23 +120,19 @@ class PHS_Model_Api_keys extends PHS_Model
         return $this->edit($record_arr, $edit_params);
     }
 
-    public function act_delete($record_data, $params = false)
+    public function act_delete($record_data)
     {
         $this->reset_error();
 
         if (empty($record_data)
          || !($record_arr = $this->data_to_array($record_data))) {
-            $this->set_error(self::ERR_DELETE, $this->_pt('API key details not found in database.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
 
             return false;
         }
 
         if ($this->is_deleted($record_arr)) {
             return $record_arr;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         $edit_arr = [];
@@ -163,7 +163,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function get_apikeys_for_user_id($user_id, $params = false)
+    public function get_apikeys_for_user_id($user_id)
     {
         $user_id = (int)$user_id;
         if (empty($user_id)) {
@@ -171,8 +171,10 @@ class PHS_Model_Api_keys extends PHS_Model
         }
 
         $list_arr = [];
-        $list_arr['field']['uid'] = $user_id;
         $list_arr['order_by'] = 'cdate DESC';
+        $list_arr['fields'] = [];
+        $list_arr['fields']['uid'] = $user_id;
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => self::STATUS_DELETED];
 
         if (!($return_arr = $this->get_list($list_arr))) {
             return [];
@@ -181,7 +183,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function apikeys_count_for_user_id($user_id, $params = false) : int
+    public function apikeys_count_for_user_id($user_id) : int
     {
         $user_id = (int)$user_id;
         if (!empty($user_id)

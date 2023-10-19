@@ -199,7 +199,7 @@ abstract class PHS_Action extends PHS_Instantiable
      */
     final public function set_action_result(array $result) : array
     {
-        $this->_action_result = self::validate_array($result, self::default_action_result());
+        $this->_action_result = self::validate_action_result($result);
 
         return $this->_action_result;
     }
@@ -299,7 +299,7 @@ abstract class PHS_Action extends PHS_Instantiable
         if (($hook_result = PHS::trigger_hooks(PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args))) {
             if (!empty($hook_result['stop_execution'])
              && !empty($hook_result['action_result'])) {
-                $action_result = self::validate_array($hook_result['action_result'], self::default_action_result());
+                $action_result = self::validate_action_result($hook_result['action_result']);
 
                 $this->set_action_result($action_result);
 
@@ -308,12 +308,18 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         self::st_reset_error();
+        $this->reset_error();
 
         if (!($action_result = $this->execute())) {
-            return null;
+            // if execute() fails, it means it's a logic error, not an action flow error, so we return an action result with an error
+            $error_arr = $this->has_error()
+                ? $this->get_error()
+                : self::arr_set_error(self::ERR_RUN_ACTION, self::_t('Error in action execution.'));
+
+            return self::set_action_result_errors([], $error_arr);
         }
 
-        $action_result = self::validate_array($action_result, self::default_action_result());
+        $action_result = self::validate_action_result($action_result);
 
         if (($page_settings = self::validate_array(PHS::page_settings(), PHS::get_default_page_settings()))) {
             if (empty($action_result['page_settings']) || !is_array($action_result['page_settings'])) {
@@ -321,7 +327,7 @@ abstract class PHS_Action extends PHS_Instantiable
             } else {
                 foreach ($page_settings as $key => $val) {
                     if (!empty($val)
-                     && (!array_key_exists($key, $action_result['page_settings'])
+                        && (!array_key_exists($key, $action_result['page_settings'])
                             || empty($action_result['page_settings'][$key]))) {
                         $action_result['page_settings'][$key] = $val;
                     }
@@ -341,7 +347,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
         $this->set_action_result($action_result);
 
-        return $this->get_action_result();
+        return $action_result;
     }
 
     final public function set_controller(?PHS_Controller $controller_obj) : void
@@ -401,11 +407,11 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * Returns a default array as result of an action execution
      *
-     * @param null|array $action_result
+     * @param null|bool|array $action_result
      *
      * @return array
      */
-    final public static function validate_action_result(?array $action_result = null) : array
+    final public static function validate_action_result($action_result) : array
     {
         $default_action_result = self::default_action_result();
         if (empty($action_result)) {
@@ -413,6 +419,42 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         return self::validate_array($action_result, $default_action_result);
+    }
+
+    final public static function action_result_has_errors(array $action_result) : bool
+    {
+        if (empty($action_result['end_user_error']) && empty($action_result['technical_error'])) {
+            return false;
+        }
+
+        return (!empty($action_result['end_user_error']) && self::arr_has_error($action_result['end_user_error']))
+               || (!empty($action_result['technical_error']) && self::arr_has_error($action_result['technical_error']));
+    }
+
+    final public static function set_action_result_errors(array $action_result, ?array $end_user_error, ?array $technical_error = null) : array
+    {
+        if ($technical_error === null && !empty($end_user_error)) {
+            $technical_error = $end_user_error;
+        }
+
+        if (empty($action_result)) {
+            $action_result = self::default_action_result();
+        }
+
+        $action_result['end_user_error'] = $end_user_error;
+        $action_result['technical_error'] = $technical_error;
+
+        return $action_result;
+    }
+
+    final public static function get_end_user_error_from_action_result(array $action_result) : ?array
+    {
+        return $action_result['end_user_error'] ?? null;
+    }
+
+    final public static function get_technical_error_from_action_result(array $action_result) : ?array
+    {
+        return $action_result['technical_error'] ?? null;
     }
 
     /**
@@ -442,6 +484,10 @@ abstract class PHS_Action extends PHS_Instantiable
             'request_login'   => false,
             'redirect_to_url' => '', // any URLs that we should redirect to (we might have to do javascript redirect or header redirect)
             'page_template'   => 'template_main', // if empty, scope template will be used...
+
+            // Errors in action execute flow
+            'end_user_error'  => null,
+            'technical_error' => null,
 
             // page related variables
             'page_settings' => PHS::get_default_page_settings(),

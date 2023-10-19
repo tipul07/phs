@@ -6,11 +6,11 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
     // Registry used when exporting data
-    private $_export_registry = [];
+    private array $_export_registry = [];
 
     // Paginator object which started export
-    /** @var bool|\phs\libraries\PHS_Paginator */
-    private $_paginator_obj = false;
+    /** @var null|\phs\libraries\PHS_Paginator */
+    private ?PHS_Paginator $_paginator_obj = null;
 
     /**
      * @param false|array $init_params
@@ -34,14 +34,15 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return mixed
      */
-    abstract public function record_to_buffer($record_data, $params = false);
+    abstract public function record_to_buffer(array $record_data, ?array $params = null) : string;
 
     /**
      *  This method is called when starting export flow.
-     *  Make sure export can be done, prepare files to export to, set headers if exporting to browser, etc
-     *  You can override this method in child class in case you want to export to other sources or you want to change way this exports to output...
+     *  Make sure export can be done, prepare files to export to, set headers if exporting to browser, etc.
+     *  You can override this method in child class in case you want to export to other sources,
+     *  or if you want to change the way this exports to output...
      */
-    public function start_output()
+    public function start_output() : bool
     {
         if (!($export_registry = $this->export_registry())) {
             $export_registry = $this->default_export_registry();
@@ -64,7 +65,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                  || !@is_dir($export_file_dir)
                  || !@is_writable($export_file_dir)) {
                     $this->set_error(self::ERR_PARAMETERS, self::_t('No directory provided to save export data to or no rights to write in that directory.'));
-                    $this->record_error(false, $this->get_error_message());
+                    $this->record_error(null, $this->get_simple_error_message());
 
                     return false;
                 }
@@ -72,7 +73,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 $full_file_path = $export_file_dir.'/'.$export_registry['export_file_name'];
                 if (!($fd = @fopen($full_file_path, 'wb'))) {
                     $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t create export file.'));
-                    $this->record_error(false, $this->get_error_message());
+                    $this->record_error(null, $this->get_simple_error_message());
 
                     return false;
                 }
@@ -91,7 +92,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
             case self::EXPORT_TO_BROWSER:
                 if (@headers_sent()) {
                     $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Headers already sent. Cannot send export file to browser.'));
-                    $this->record_error(false, $this->get_error_message());
+                    $this->record_error(null, $this->get_simple_error_message());
 
                     return false;
                 }
@@ -117,16 +118,16 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 break;
         }
 
-        if (false && $export_registry['export_encoding']
-         && @function_exists('mb_internal_encoding')) {
-            if (($export_original_encoding = @mb_internal_encoding())) {
-                $this->export_registry([
-                    'export_original_encoding' => $export_original_encoding,
-                ]);
-            }
-
-            @mb_internal_encoding($export_registry['export_encoding']);
-        }
+        // if ($export_registry['export_encoding']
+        //  && @function_exists('mb_internal_encoding')) {
+        //     if (($export_original_encoding = @mb_internal_encoding())) {
+        //         $this->export_registry([
+        //             'export_original_encoding' => $export_original_encoding,
+        //         ]);
+        //     }
+        //
+        //     @mb_internal_encoding($export_registry['export_encoding']);
+        // }
 
         return true;
     }
@@ -139,20 +140,20 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      * @param array $record_data Record array to be sent to output
      * @return bool
      */
-    public function record_to_output($record_data)
+    public function record_to_output(array $record_data) : bool
     {
-        if (empty($record_data) || !is_array($record_data)
+        if (empty($record_data)
          || !isset($record_data['record_buffer'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Bad record data to export.'));
-            $this->record_error($record_data, $this->get_error_message());
+            $this->record_error($record_data, $this->get_simple_error_message());
 
             return false;
         }
 
-        if (!($paginator_obj = $this->paginator_obj())
+        if (!$this->paginator_obj()
          || !($export_registry = $this->export_registry())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Exporter setup failure.'));
-            $this->record_error($record_data, $this->get_error_message());
+            $this->record_error($record_data, $this->get_simple_error_message());
 
             return false;
         }
@@ -167,7 +168,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                 if (empty($export_registry['export_fd'])
                  || !@is_resource($export_registry['export_fd'])) {
                     $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid file descriptor for export.'));
-                    $this->record_error($record_data, $this->get_error_message());
+                    $this->record_error($record_data, $this->get_simple_error_message());
 
                     return false;
                 }
@@ -192,16 +193,17 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     public function finish_output()
     {
         if (!($export_registry = $this->export_registry())
-         || empty($export_registry['export_to'])
-         || !self::valid_export_to($export_registry['export_to'])) {
+            || empty($export_registry['export_to'])
+            || !self::valid_export_to($export_registry['export_to'])) {
             return true;
         }
 
-        if (false && $export_registry['export_original_encoding']
-        && @function_exists('mb_internal_encoding')) {
-            @mb_internal_encoding($export_registry['export_original_encoding']);
-        }
-
+        /**
+         * if ($export_registry['export_original_encoding']
+         * && @function_exists('mb_internal_encoding')) {
+         *     @mb_internal_encoding($export_registry['export_original_encoding']);
+         * }
+         */
         switch ($export_registry['export_to']) {
             case self::EXPORT_TO_FILE:
                 if (empty($export_registry['export_fd'])
@@ -227,35 +229,26 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     /**
      * By default, class won't do anything on error. Override this method to log in a file or whatever is required on an error.
      *
-     * @param bool|array $record_data Record which triggered the error
+     * @param null|array $record_data Record which triggered the error
      * @param string $error_buf Error message
-     *
-     * @return bool
      */
-    public function record_error($record_data, $error_buf)
+    public function record_error(?array $record_data, string $error_buf) : void
     {
-        return true;
     }
 
-    public function paginator_obj($paginator_obj = null)
+    public function paginator_obj(?PHS_Paginator $paginator_obj = null) : ?PHS_Paginator
     {
         if ($paginator_obj === null) {
             return $this->_paginator_obj;
         }
 
-        if (empty($paginator_obj)) {
-            $this->_paginator_obj = false;
-
-            return true;
-        }
-
         if (!($paginator_obj instanceof PHS_Paginator)) {
-            return false;
+            return null;
         }
 
         $this->_paginator_obj = $paginator_obj;
 
-        return true;
+        return $paginator_obj;
     }
 
     /**
@@ -263,7 +256,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return array Returns an array with default export settings...
      */
-    public function default_export_registry()
+    public function default_export_registry() : array
     {
         return [
             // To what encoding should we export (if false it will not do any encodings)
@@ -289,7 +282,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         ];
     }
 
-    public function reset_export_registry()
+    public function reset_export_registry() : void
     {
         $this->_export_registry = $this->default_export_registry();
     }
@@ -340,7 +333,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return bool
      */
-    public static function valid_export_to($export_to)
+    public static function valid_export_to(int $export_to) : bool
     {
         return !empty($export_to)
                && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);
