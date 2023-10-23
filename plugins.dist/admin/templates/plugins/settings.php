@@ -2,6 +2,7 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\PHS_Tenants;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\views\PHS_View;
@@ -99,6 +100,7 @@ foreach ($models_arr as $m_id => $m_name) {
             <?php
         }
 
+        $selected_tenant = null;
         if ((!empty( $settings_structure ) || !empty( $models_with_settings ))
             && $is_multitenant) {
             ?>
@@ -114,9 +116,13 @@ foreach ($models_arr as $m_id => $m_name) {
                                 continue;
                             }
 
+                            if($tenant_id === $t_id) {
+                                $selected_tenant = $t_arr;
+                            }
+
                             ?><option value="<?php echo $t_id; ?>"
                             <?php echo $tenant_id === $t_id ? 'selected="selected"' : ''; ?>
-                            ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option><?php
+                            ><?php echo PHS_Tenants::get_tenant_details_for_display($t_arr); ?></option><?php
                         }
                         ?></select>
                 </div>
@@ -156,8 +162,15 @@ foreach ($models_arr as $m_id => $m_name) {
 
         ?><p><small><?php
 
-                echo $this->_pt('Database version').': '.$plugin_info['db_version'].', ';
-                echo $this->_pt('Script version').': '.$plugin_info['script_version'];
+                $context_arr['db_version'] ??= '0.0.0';
+                $context_arr['script_version'] ??= '0.0.0';
+
+                echo $this->_pt('Database version').': '.$context_arr['db_version'].', ';
+                echo $this->_pt('Script version').': '.$context_arr['script_version'];
+                /** @var PHS_Has_db_settings $instance_obj */
+                if( ($instance_obj = ($context_arr['model_instance'] ?? $context_arr['plugin_instance'] ?? null)) ) {
+                    echo ', Instance Id: '.$instance_obj->instance_id();
+                }
 
                 if (version_compare($plugin_info['db_version'], $plugin_info['script_version'], '!=')) {
                     echo ' - <span style="color:red;">'.$this->_pt('Please upgrade the plugin').'</span>';

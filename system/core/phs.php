@@ -44,7 +44,7 @@ final class PHS extends PHS_Registry
     public const RUNNING_ACTION = 'r_action', RUNNING_CONTROLLER = 'r_controller';
 
     // "Hard-coded", Lowest level theme
-    public const BASE_THEME = '_phs_base';
+    public const BASE_THEME = '_phs_base', THEME_DIST_DIRNAME = 'default.dist';
 
     private static bool $inited = false;
 
@@ -585,6 +585,11 @@ final class PHS extends PHS_Registry
         }
 
         return !(defined('PHS_THEME') && !self::get_data(self::CURRENT_THEME) && !self::set_theme(PHS_THEME));
+    }
+
+    public static function get_defined_themes(): array
+    {
+
     }
 
     /**

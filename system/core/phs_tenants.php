@@ -49,6 +49,8 @@ final class PHS_Tenants extends PHS_Registry
 
                 return false;
             }
+
+            return true;
         }
 
         if (
@@ -63,14 +65,28 @@ final class PHS_Tenants extends PHS_Registry
         return self::st_has_error();
     }
 
-    public static function set_current_tenant($tenant_data) : bool
+    public static function get_tenant_details_for_display($tenant_data): ?string
     {
-        if (!self::_load_dependencies()) {
-            return false;
+        if (!PHS::is_multi_tenant()) {
+            return '';
         }
 
+        if(!self::_load_dependencies()
+           || !($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))) {
+            return null;
+        }
+
+        return $tenant_arr['name'].' ('.$tenant_arr['domain'].(!empty($tenant_arr['directory']) ? '/'.$tenant_arr['directory'] : '').')';
+    }
+
+    public static function set_current_tenant($tenant_data) : bool
+    {
         if (!PHS::is_multi_tenant()) {
             return true;
+        }
+
+        if (!self::_load_dependencies()) {
+            return false;
         }
 
         if (!($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))
@@ -92,7 +108,11 @@ final class PHS_Tenants extends PHS_Registry
             return true;
         }
 
-        PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
+        if(PHS::st_debugging_mode()) {
+            PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].',
+                PHS_Logger::TYPE_DEBUG);
+        }
+
         $old_tenant = self::$_current_tenant;
         self::$_current_tenant = $tenant_arr;
 
@@ -226,7 +246,7 @@ final class PHS_Tenants extends PHS_Registry
     private static function _get_tenant_identifier() : ?string
     {
         if (($tenant_id = self::_get_tenant_identifier_from_headers())
-         || ($tenant_id = self::_get_tenant_identifier_from_request())) {
+            || ($tenant_id = self::_get_tenant_identifier_from_request())) {
             return $tenant_id;
         }
 

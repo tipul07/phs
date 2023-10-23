@@ -52,7 +52,6 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     {
         return PHS_Session::set_cookie(self::COOKIE_NAME, 1, [
             'expire_secs' => self::COOKIE_EXPIRE_SECS,
-            'path'        => PHS_Session::get_data(PHS_Session::SESS_COOKIE_PATH),
         ]);
     }
 

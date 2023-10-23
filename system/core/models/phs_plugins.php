@@ -69,7 +69,7 @@ class PHS_Model_Plugins extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.2.1';
+        return '1.3.0';
     }
 
     /**
@@ -804,8 +804,8 @@ class PHS_Model_Plugins extends PHS_Model
         PHS_Maintenance::lock_db_structure_read();
 
         if ($this->check_table_exists(['table_name' => 'plugins'])
-         && $this->check_table_exists(['table_name' => 'plugins_registry'])
-         && $this->check_table_exists(['table_name' => 'plugins_tenants'])) {
+            && $this->check_table_exists(['table_name' => 'plugins_registry'])
+            && $this->check_table_exists(['table_name' => 'plugins_tenants'])) {
             PHS_Maintenance::unlock_db_structure_read();
 
             $check_result = true;
@@ -906,6 +906,10 @@ class PHS_Model_Plugins extends PHS_Model
                         'type'           => self::FTYPE_INT,
                         'primary'        => true,
                         'auto_increment' => true,
+                    ],
+                    'tenant_id' => [
+                        'type'  => self::FTYPE_INT,
+                        'index' => true,
                     ],
                     'instance_id' => [
                         'type'     => self::FTYPE_VARCHAR,
@@ -1493,7 +1497,7 @@ class PHS_Model_Plugins extends PHS_Model
     {
         if (empty($fields_arr)
          || empty($instance_id)
-         || !self::valid_instance_id($instance_id)
+         || !($instance_details = self::valid_instance_id($instance_id))
          || !($params = $this->fetch_default_flow_params(['table_name' => 'plugins']))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Unknown instance database details.'));
 
@@ -1504,8 +1508,22 @@ class PHS_Model_Plugins extends PHS_Model
             $existing_arr = null;
             $params['action'] = 'insert';
             $fields_arr['instance_id'] = $instance_id;
+
+            if( empty($fields_arr['type'])) {
+                $fields_arr['type'] = $instance_details['instance_type'] ?? null;
+            }
+            if( empty($fields_arr['plugin'])) {
+                $fields_arr['plugin'] = $instance_details['plugin_name'] ?? null;
+            }
         } else {
             $params['action'] = 'edit';
+
+            if( empty($existing_arr['type'])) {
+                $fields_arr['type'] = $instance_details['instance_type'] ?? null;
+            }
+            if( empty($existing_arr['plugin'])) {
+                $fields_arr['plugin'] = $instance_details['plugin_name'] ?? null;
+            }
         }
 
         $params['fields'] = $fields_arr;
@@ -1600,10 +1618,18 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'insert';
             $fields_arr['tenant_id'] = $tenant_id;
             $fields_arr['instance_id'] = $instance_id;
-            $fields_arr['type'] = $instance_details['instance_type'] ?? null;
-            $fields_arr['plugin'] = $instance_details['plugin_name'] ?? null;
+            if( !empty($db_main_details['status'])) {
+                $fields_arr['status'] = $db_main_details['status'];
+            }
         } else {
             $params['action'] = 'edit';
+
+            if( empty($existing_arr['type'])) {
+                $fields_arr['type'] = $instance_details['instance_type'] ?? null;
+            }
+            if( empty($existing_arr['plugin'])) {
+                $fields_arr['plugin'] = $instance_details['plugin_name'] ?? null;
+            }
         }
 
         $params['fields'] = $fields_arr;

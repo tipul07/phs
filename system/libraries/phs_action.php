@@ -272,13 +272,13 @@ abstract class PHS_Action extends PHS_Instantiable
             PHS::page_body_class($action_body_classes);
         }
 
-        if (!$this->instance_is_core()
-         && (!($plugin_instance = $this->get_plugin_instance())
-                || !$plugin_instance->plugin_active())) {
-            $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active action.'));
-
-            return null;
-        }
+        // if (!$this->instance_is_core()
+        //  && (!($plugin_instance = $this->get_plugin_instance())
+        //         || !$plugin_instance->plugin_active())) {
+        //     $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active action.'));
+        //
+        //     return null;
+        // }
 
         $this->set_action_defaults();
 

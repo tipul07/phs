@@ -2,10 +2,10 @@
 
 @header('Content-type: text/javascript');
 
-$check_main_dir = dirname(__DIR__, 3);
+$check_main_dir = dirname(__DIR__, 4);
 
 if (!@file_exists($check_main_dir.'/main.php')) {
-    $check_main_dir = dirname($_SERVER['SCRIPT_FILENAME'], 4);
+    $check_main_dir = dirname($_SERVER['SCRIPT_FILENAME'], 5);
     if (!@file_exists($check_main_dir.'/main.php')) {
         ?>
             alert( "Failed initializing Ractive.js library. Please contact support." );
@@ -32,32 +32,16 @@ if (!($view_obj = PHS::spawn_view_in_context(
 if (!($empty_img_url = $view_obj->get_resource_url('images/empty.png'))) {
     $empty_img_url = '';
 }
-
 ?>
 //var PHS_RActive_AJAX_requests_count = 0;
 //var PHS_RActive_AJAX_max_requests = 30;
 //var PHS_RActive_AJAX_calls_handler = false;
+//PHS_JSEN.max_simultaneous_requests( 1 );
+
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
     debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
     submit_protections_count: 0,
-
-    //onconstruct: function() {
-    //    var self = this;
-    //    PHS_RActive_AJAX_calls_handler = setTimeout( function(){ self.disable_ajax_timer( self ); }, 1000 );
-    //},
-    //
-    //ondestruct: function() {
-    //    if( PHS_RActive_AJAX_calls_handler )
-    //        clearTimeout( PHS_RActive_AJAX_calls_handler );
-    //
-    //    PHS_RActive_AJAX_calls_handler = false;
-    //},
-    //
-    //disable_ajax_timer: function( self ) {
-    //    PHS_RActive_AJAX_calls_handler = false;
-    //    PHS_RActive_AJAX_requests_count = PHS_RActive_AJAX_max_requests;
-    //},
 
     // These decorators help adding skinning on inputs (as in classic PHS default theme)
     // Chosen selects update chosen skinning when:

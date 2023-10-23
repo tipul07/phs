@@ -6,6 +6,7 @@ use phs\PHS;
 if (!($back_page = $this->view_var('back_page'))) {
     $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'tenants']);
 }
+echo $this->sub_view('ractive/bootstrap');
 ?>
 <form id="edit_apikey_form" name="edit_apikey_form" method="post"
       action="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'tenants'],
@@ -81,6 +82,8 @@ if (!empty($back_page)) {
         </div>
     </div>
 
+    <div id="PHS_RActive_Tenants_themes_target"></div>
+
     <fieldset>
         <input type="submit" id="do_submit" name="do_submit"
                class="btn btn-primary submit-protection ignore_hidden_required"
@@ -89,3 +92,30 @@ if (!empty($back_page)) {
 
 </div>
 </form>
+<script id="PHS_RActive_Tenants_themes_template" type="text/html">
+    It works for {{foobar.name}} @{{foobar.age}}...
+</script>
+<script type="text/javascript">
+let PHS_RActive_Tenants_themes_app = null;
+$(document).ready(function() {
+    PHS_RActive_Tenants_themes_app = PHS_RActive_Tenants_themes_app || new PHS_RActive({
+
+        target: "PHS_RActive_Tenants_themes_target",
+        template: "#PHS_RActive_Tenants_themes_template",
+
+        data: function () {
+            return {
+                foobar: {
+                    name: "Gigi",
+                    age: 14
+                }
+            }
+        },
+
+        onrender: function () {
+            //phs_refresh_input_skins();
+        }
+
+    });
+})
+</script>

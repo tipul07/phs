@@ -27,10 +27,6 @@ final class PHS_Session extends PHS_Registry
 
     public static function init() : bool
     {
-        if (PHS::prevent_session()) {
-            return true;
-        }
-
         self::reset_registry();
 
         if (defined('PHS_SESSION_DIR')) {
@@ -141,21 +137,19 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param array|bool $options_arr
+     * @param array|null $options_arr
      *
      * @return array
      */
     public static function validate_cookie_params(?array $options_arr = null) : array
     {
-        if (empty($options_arr) || !is_array($options_arr)) {
-            $options_arr = [];
-        }
+        $options_arr ??= [];
 
         if (empty($options_arr['expires'])) {
             $options_arr['expires'] = 0;
         }
         if (empty($options_arr['path']) || !is_string($options_arr['path'])) {
-            $options_arr['path'] = '/';
+            $options_arr['path'] = self::get_data(self::SESS_COOKIE_PATH);
         }
         if (empty($options_arr['domain']) || !is_string($options_arr['domain'])) {
             $options_arr['domain'] = PHS_DOMAIN;
@@ -177,10 +171,10 @@ final class PHS_Session extends PHS_Registry
     /**
      * @param string $name
      * @param string|int $value
-     * @param array|bool $options_arr
+     * @param array|null $options_arr
      * @return bool
      */
-    public static function raw_setcookie($name, $value, $options_arr = false)
+    public static function raw_setcookie(string $name, $value, ?array $options_arr = null): bool
     {
         $options_arr = self::validate_cookie_params($options_arr);
 
@@ -240,7 +234,6 @@ final class PHS_Session extends PHS_Registry
         }
 
         $params = self::validate_cookie_params($params);
-
         $params['alter_globals'] = (!isset($params['alter_globals']) || !empty($params['alter_globals']));
         $params['expire_secs'] = (int)($params['expire_secs'] ?? 0);
 
@@ -277,15 +270,15 @@ final class PHS_Session extends PHS_Registry
 
     /**
      * @param string $name
-     * @param bool|array $params
+     * @param null|array $params
      *
      * @return bool
      */
-    public static function delete_cookie(string $name, $params = false) : bool
+    public static function delete_cookie(string $name, ?array $params = null) : bool
     {
         self::st_reset_error();
 
-        if (empty($name) || !is_string($name)) {
+        if (empty($name)) {
             self::st_set_error(self::ERR_COOKIE, self::_t('Please provide valid cookie name and value.'));
 
             return false;
@@ -304,7 +297,6 @@ final class PHS_Session extends PHS_Registry
         }
 
         $params = self::validate_cookie_params($params);
-
         $params['alter_globals'] = (!isset($params['alter_globals']) || !empty($params['alter_globals']));
 
         $time_expire = time() - 90000;
@@ -368,12 +360,12 @@ final class PHS_Session extends PHS_Registry
         }
 
         @session_set_save_handler(
-            ['\\phs\\PHS_Session', 'sf_open'],
-            ['\\phs\\PHS_Session', 'sf_close'],
-            ['\\phs\\PHS_Session', 'sf_read'],
-            ['\\phs\\PHS_Session', 'sf_write'],
-            ['\\phs\\PHS_Session', 'sf_destroy'],
-            ['\\phs\\PHS_Session', 'sf_gc']
+            [__CLASS__, 'sf_open'],
+            [__CLASS__, 'sf_close'],
+            [__CLASS__, 'sf_read'],
+            [__CLASS__, 'sf_write'],
+            [__CLASS__, 'sf_destroy'],
+            [__CLASS__, 'sf_gc']
         );
 
         @session_save_path(self::get_data(self::SESS_DIR));

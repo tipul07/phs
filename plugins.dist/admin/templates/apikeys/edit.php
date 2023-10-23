@@ -3,6 +3,7 @@
 
 use phs\PHS;
 use phs\PHS_Api;
+use phs\PHS_Tenants;
 
 /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
 /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
@@ -79,7 +80,7 @@ if (!empty($back_page)) {
                             ?>
                             <option value="<?php echo $t_id; ?>"
                                 <?php echo (int)$t_id === (int)$this->view_var('tenant_id') ? 'selected="selected"' : ''; ?>
-                            ><?php echo $t_arr['name'].' ('.$t_arr['domain'].(!empty($t_arr['directory']) ? '/'.$t_arr['directory'] : '').')'; ?></option>
+                            ><?php echo PHS_Tenants::get_tenant_details_for_display($t_arr); ?></option>
                             <?php
                         }
             ?>
