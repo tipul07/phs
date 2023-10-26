@@ -33,10 +33,7 @@ if (!($empty_img_url = $view_obj->get_resource_url('images/empty.png'))) {
     $empty_img_url = '';
 }
 ?>
-//var PHS_RActive_AJAX_requests_count = 0;
-//var PHS_RActive_AJAX_max_requests = 30;
-//var PHS_RActive_AJAX_calls_handler = false;
-//PHS_JSEN.max_simultaneous_requests( 1 );
+PHS_JSEN.max_simultaneous_requests( 1 );
 
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
@@ -78,7 +75,6 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         },
         chosen_select_nosearch: function( node ) {
             var self = this;
-
             if( typeof node._ractive !== "undefined"
              && typeof node._ractive.binding !== "undefined"
              && typeof node._ractive.binding.model !== "undefined"

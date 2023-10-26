@@ -7,9 +7,9 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Agent_jobs;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
-use phs\system\core\models\PHS_Model_Plugins;
 
 // ! @version 1.00
 

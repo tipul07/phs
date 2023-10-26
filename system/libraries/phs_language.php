@@ -237,11 +237,11 @@ class PHS_Language extends PHS_Error
      *
      * @return bool|array Returns parsed lines from language CSV file or false on error
      */
-    public static function get_language_file_lines(string $file, string $lang): ?array
+    public static function get_language_file_lines(string $file, string $lang) : ?array
     {
         self::st_reset_error();
 
-        if( !($language_container = self::language_container())) {
+        if (!($language_container = self::language_container())) {
             return null;
         }
 

@@ -54,7 +54,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.7';
+        return '1.3.8';
     }
 
     /**

@@ -27,7 +27,7 @@ final class PHS_Tenants extends PHS_Registry
     public static function init() : bool
     {
         if (!PHS::is_multi_tenant()
-         || self::get_current_tenant_record()) {
+            || self::get_current_tenant_record()) {
             return true;
         }
 
@@ -65,13 +65,13 @@ final class PHS_Tenants extends PHS_Registry
         return self::st_has_error();
     }
 
-    public static function get_tenant_details_for_display($tenant_data): ?string
+    public static function get_tenant_details_for_display($tenant_data) : ?string
     {
         if (!PHS::is_multi_tenant()) {
             return '';
         }
 
-        if(!self::_load_dependencies()
+        if (!self::_load_dependencies()
            || !($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))) {
             return null;
         }
@@ -108,13 +108,31 @@ final class PHS_Tenants extends PHS_Registry
             return true;
         }
 
-        if(PHS::st_debugging_mode()) {
+        if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].',
                 PHS_Logger::TYPE_DEBUG);
         }
 
         $old_tenant = self::$_current_tenant;
         self::$_current_tenant = $tenant_arr;
+
+        if (($settings_arr = self::$_tenants_model->get_tenant_settings($tenant_arr))) {
+            if (!empty($settings_arr['default_theme'])
+                && !PHS::set_defaut_theme($settings_arr['default_theme'])) {
+                PHS_Logger::debug('Cannot set default theme ['.$settings_arr['default_theme'].'] '
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+            }
+            if (!empty($settings_arr['current_theme'])
+                && !PHS::set_theme($settings_arr['current_theme'])) {
+                PHS_Logger::debug('Cannot set current theme ['.$settings_arr['current_theme'].'] '
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+            }
+            if (!empty($settings_arr['cascading_themes']) && is_array($settings_arr['cascading_themes'])
+            && !PHS::set_cascading_themes($settings_arr['cascading_themes'])) {
+                PHS_Logger::debug('Cannot set cascading themes ['.print_r($settings_arr['cascading_themes'], true).'] '
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+            }
+        }
 
         PHS_Event_Tenant_changed::trigger(['old_tenant' => $old_tenant, 'new_tenant' => self::$_current_tenant]);
 

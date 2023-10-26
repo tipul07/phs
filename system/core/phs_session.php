@@ -137,7 +137,7 @@ final class PHS_Session extends PHS_Registry
     }
 
     /**
-     * @param array|null $options_arr
+     * @param null|array $options_arr
      *
      * @return array
      */
@@ -171,10 +171,10 @@ final class PHS_Session extends PHS_Registry
     /**
      * @param string $name
      * @param string|int $value
-     * @param array|null $options_arr
+     * @param null|array $options_arr
      * @return bool
      */
-    public static function raw_setcookie(string $name, $value, ?array $options_arr = null): bool
+    public static function raw_setcookie(string $name, $value, ?array $options_arr = null) : bool
     {
         $options_arr = self::validate_cookie_params($options_arr);
 

@@ -20,8 +20,11 @@ if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_LANGUAGE_DEFINITION, $hook_arg
  && !empty($hook_args['languages_arr']) && is_array($hook_args['languages_arr'])) {
     foreach ($hook_args['languages_arr'] as $lang_key => $lang_details) {
         if (!PHS_Language::define_language($lang_key, $lang_details)) {
-            // Do something if we cannot initialize English language
-            PHS_Language::st_throw_error();
+            PHS_Language::trigger_critical_error(
+                PHS_Language::st_has_error()
+                    ? PHS_Language::st_get_simple_error_message()
+                    : 'Error defining required languages.'
+            );
         }
     }
 }

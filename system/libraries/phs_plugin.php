@@ -1284,7 +1284,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         // Logging and error is set in method...
         // we don't stop all uninstall process because of registry failure...
-        $this->delete_db_registry();
+        $this->delete_all_db_registry();
 
         if ($db_details
          && !$this->_plugins_instance->hard_delete($db_details)) {

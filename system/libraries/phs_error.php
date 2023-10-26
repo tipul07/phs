@@ -1040,6 +1040,14 @@ class PHS_Error
         return self::get_error_static_instance()->suppress_backtrace($mode);
     }
 
+    public static function trigger_critical_error(string $error_msg) : void
+    {
+        if (@class_exists(PHS_Logger::class, false)) {
+            PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
+        }
+        trigger_error($error_msg, E_USER_ERROR);
+    }
+
     /**
      * @return \phs\libraries\PHS_Error
      */

@@ -16,6 +16,7 @@ class PHS_Event_Plugin_registry extends PHS_Event
     {
         return [
             'instance_id' => '',
+            'tenant_id' => 0,
             'registry_arr' => [],
         ];
     }

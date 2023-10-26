@@ -78,11 +78,14 @@ class PHS_Action_Edit extends PHS_Action
         }
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
-        $name = PHS_Params::_p('name', PHS_Params::T_NOHTML);
-        $domain = PHS_Params::_p('domain', PHS_Params::T_NOHTML);
-        $directory = PHS_Params::_p('directory', PHS_Params::T_NOHTML);
-        $identifier = PHS_Params::_p('identifier', PHS_Params::T_NOHTML);
+        $name = PHS_Params::_p('name', PHS_Params::T_NOHTML, ['trim_before' => true]);
+        $domain = PHS_Params::_p('domain', PHS_Params::T_NOHTML, ['trim_before' => true]);
+        $directory = PHS_Params::_p('directory', PHS_Params::T_NOHTML, ['trim_before' => true]);
+        $identifier = PHS_Params::_p('identifier', PHS_Params::T_NOHTML, ['trim_before' => true]);
         $is_default = PHS_Params::_p('is_default', PHS_Params::T_NUMERIC_BOOL);
+        $default_theme = PHS_Params::_p('default_theme', PHS_Params::T_NOHTML, ['trim_before' => true]);
+        $current_theme = PHS_Params::_p('current_theme', PHS_Params::T_NOHTML, ['trim_before' => true]);
+        $cascading_themes = PHS_Params::_p('cascading_themes', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]);
 
         $do_submit = PHS_Params::_p('do_submit');
 
@@ -92,6 +95,12 @@ class PHS_Action_Edit extends PHS_Action
             $directory = $tenant_arr['directory'];
             $identifier = $tenant_arr['identifier'];
             $is_default = (!empty($tenant_arr['is_default']) ? 1 : 0);
+
+            if (($settings_arr = $tenants_model->get_tenant_settings($tenant_arr))) {
+                $default_theme = $settings_arr['default_theme'] ?? '';
+                $current_theme = $settings_arr['current_theme'] ?? '';
+                $cascading_themes = $settings_arr['cascading_themes'] ?? [];
+            }
         }
 
         if (!empty($do_submit)) {
@@ -101,6 +110,11 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['directory'] = $directory;
             $edit_arr['identifier'] = $identifier;
             $edit_arr['is_default'] = $is_default;
+            $edit_arr['settings'] = [
+                'default_theme'    => $default_theme ?? '',
+                'current_theme'    => $current_theme ?? '',
+                'cascading_themes' => $cascading_themes ?? [],
+            ];
 
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
@@ -126,13 +140,16 @@ class PHS_Action_Edit extends PHS_Action
         }
 
         $data = [
-            'tid'        => $tenant_arr['id'],
-            'back_page'  => $back_page,
-            'name'       => $name,
-            'domain'     => $domain,
-            'directory'  => $directory,
-            'identifier' => $identifier,
-            'is_default' => $is_default,
+            'tid'              => $tenant_arr['id'],
+            'back_page'        => $back_page,
+            'name'             => $name,
+            'domain'           => $domain,
+            'directory'        => $directory,
+            'identifier'       => $identifier,
+            'is_default'       => $is_default,
+            'default_theme'    => $default_theme,
+            'current_theme'    => $current_theme,
+            'cascading_themes' => $cascading_themes,
         ];
 
         return $this->quick_render_template('tenants/edit', $data);

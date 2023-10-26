@@ -546,8 +546,8 @@ class PHS_Language_Container extends PHS_Error
     /**
      * Translate text $index. If $index contains %XX format vsprintf, arguments will be passed in $args parameter.
      *
-     * @param  string  $index  Language index to be translated
-     * @param  array  $args  Array of arguments to be used to populate $index
+     * @param string $index Language index to be translated
+     * @param array $args Array of arguments to be used to populate $index
      *
      * @return string Translated string
      * @see vsprintf
@@ -572,7 +572,7 @@ class PHS_Language_Container extends PHS_Error
     /**
      * Translate text $index for language $lang. If $index contains %XX format vsprintf, arguments will be passed in $args parameter.
      *
-     * @param  string  $index
+     * @param string $index
      * @param string $lang
      * @param array $args Array of arguments to be used to populate $index
      *

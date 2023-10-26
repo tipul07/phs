@@ -2,6 +2,7 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use phs\PHS_Tenants;
 
 abstract class PHS_Instantiable extends PHS_Registry
 {
@@ -144,20 +145,22 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
+     * @param null|int $tenant_id
      * @return array Array with registry records of plugin
      */
-    public function get_plugin_registry() : array
+    public function get_plugin_registry(?int $tenant_id = null) : array
     {
         if (!($plugin_obj = $this->get_plugin_instance())) {
             return [];
         }
 
-        if (!($plugin_registry = $plugin_obj->get_db_registry())
-         || !is_array($plugin_registry)) {
-            $plugin_registry = [];
+        if (!PHS::is_multi_tenant()
+            || ($tenant_id === null
+                && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
+            $tenant_id = 0;
         }
 
-        return $plugin_registry;
+        return $plugin_obj->get_db_registry($tenant_id) ?? [];
     }
 
     /**

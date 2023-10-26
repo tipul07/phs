@@ -587,9 +587,30 @@ final class PHS extends PHS_Registry
         return !(defined('PHS_THEME') && !self::get_data(self::CURRENT_THEME) && !self::set_theme(PHS_THEME));
     }
 
-    public static function get_defined_themes(): array
+    public static function get_defined_themes() : array
     {
+        if (empty(PHS_THEMES_DIR)
+            || !($themes_dir = rtrim(PHS_THEMES_DIR, '/'))
+            || !@file_exists($themes_dir)
+            || !@is_dir($themes_dir)
+            || !@is_readable($themes_dir)
+            || !($files_arr = @scandir($themes_dir))) {
+            return [];
+        }
 
+        $defined_themes = [];
+        foreach ($files_arr as $dir) {
+            if ('.' === $dir || '..' === $dir
+                || $dir === self::BASE_THEME
+                || $dir === self::THEME_DIST_DIRNAME
+                || !@is_dir($themes_dir.'/'.$dir)) {
+                continue;
+            }
+
+            $defined_themes[$dir] = $themes_dir.'/'.$dir;
+        }
+
+        return $defined_themes;
     }
 
     /**
@@ -1797,14 +1818,14 @@ final class PHS extends PHS_Registry
 
         switch ($extra['for_scope']) {
             default:
-                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain']).
-                             ($query_string !== '' ? '?'.$query_string : '').
-                             $extra['anchor'];
+                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain'])
+                             .($query_string !== '' ? '?'.$query_string : '')
+                             .$extra['anchor'];
                 break;
 
             case PHS_Scope::SCOPE_AJAX:
-                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain']).
-                             ($query_string !== '' ? '?'.$query_string : '');
+                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain'])
+                             .($query_string !== '' ? '?'.$query_string : '');
                 break;
 
             case PHS_Scope::SCOPE_API:
