@@ -45,7 +45,7 @@ class PHS_Model_Tenants extends PHS_Model
         return 'phs_tenants';
     }
 
-    public function is_active($record_data)
+    public function is_active($record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
@@ -59,7 +59,7 @@ class PHS_Model_Tenants extends PHS_Model
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data)
+    public function is_deleted($record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
@@ -232,7 +232,7 @@ class PHS_Model_Tenants extends PHS_Model
 
         $return_arr = [];
         foreach ($all_tenants_arr as $t_id => $t_arr) {
-            $return_arr[$t_id] = $t_arr['name'];
+            $return_arr[$t_id] = $this->get_tenant_details_for_display($t_arr);
         }
 
         return $return_arr;
@@ -266,6 +266,19 @@ class PHS_Model_Tenants extends PHS_Model
         $return_arr['account_data'] = $account_arr;
 
         return $return_arr;
+    }
+
+    public function get_tenant_details_for_display($tenant_data) : ?string
+    {
+        if (!PHS::is_multi_tenant()) {
+            return '';
+        }
+
+        if (!($tenant_arr = $this->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))) {
+            return null;
+        }
+
+        return $tenant_arr['name'].' ('.$tenant_arr['domain'].(!empty($tenant_arr['directory']) ? '/'.$tenant_arr['directory'] : '').')';
     }
 
     public function get_tenant_settings($record_data) : ?array

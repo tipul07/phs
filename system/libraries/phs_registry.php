@@ -11,7 +11,7 @@ class PHS_Registry extends PHS_Language
     // Array with variables set for current view only. General information will be set using self::set_data()
     protected array $_context = [];
 
-    private static $data = [];
+    private static array $data = [];
 
     public function get_full_context() : array
     {
@@ -70,7 +70,7 @@ class PHS_Registry extends PHS_Language
      * @param array $provided_arr Array to be walked
      * @param array $keys_arr Keys to be translated
      *
-     * @return array Array with first keys keys from $keys_arr and second set of keys first set of keys from $strings_arr
+     * @return array Array with first keys from $keys_arr and second set of keys first set of keys from $strings_arr
      */
     public function extract_array_keys(array $provided_arr, array $keys_arr) : array
     {

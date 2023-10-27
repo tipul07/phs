@@ -71,12 +71,11 @@ final class PHS_Tenants extends PHS_Registry
             return '';
         }
 
-        if (!self::_load_dependencies()
-           || !($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))) {
+        if (!self::_load_dependencies()) {
             return null;
         }
 
-        return $tenant_arr['name'].' ('.$tenant_arr['domain'].(!empty($tenant_arr['directory']) ? '/'.$tenant_arr['directory'] : '').')';
+        return self::$_tenants_model->get_tenant_details_for_display($tenant_data);
     }
 
     public static function set_current_tenant($tenant_data) : bool

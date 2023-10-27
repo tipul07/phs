@@ -281,11 +281,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+            || empty($action['action'])) {
             return $action_result_params;
         }
 
-        $can_manage_tenants = $this->_admin_plugin->can_admin_manage_tenants();
+        if (!$this->_admin_plugin->can_admin_manage_tenants()) {
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+            return false;
+        }
 
         $action_result_params['action'] = $action['action'];
 
@@ -307,12 +311,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     }
 
                     return true;
-                }
-
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
                 }
 
                 if (!($scope_arr = $this->_paginator->get_scope())
@@ -368,12 +366,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
-                }
-
                 if (!($scope_arr = $this->_paginator->get_scope())
                  || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
                  || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
@@ -427,12 +419,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
-                }
-
                 if (!($scope_arr = $this->_paginator->get_scope())
                  || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
                  || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
@@ -484,12 +470,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
-                }
-
                 if (!empty($action['action_params'])) {
                     $action['action_params'] = (int)$action['action_params'];
                 }
@@ -519,12 +499,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
-                }
-
                 if (!empty($action['action_params'])) {
                     $action['action_params'] = (int)$action['action_params'];
                 }
@@ -552,12 +526,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     }
 
                     return true;
-                }
-
-                if (!$can_manage_tenants) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage tenants.'));
-
-                    return false;
                 }
 
                 if (!empty($action['action_params'])) {

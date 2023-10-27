@@ -12,6 +12,7 @@ if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
 }
 
 $cuser_arr = PHS::current_user();
+$is_multi_tenant = PHS::is_multi_tenant();
 
 $can_list_plugins = $admin_plugin->can_admin_list_plugins();
 $can_manage_plugins = $admin_plugin->can_admin_manage_plugins();
@@ -38,8 +39,8 @@ if (!$can_list_plugins && !$can_manage_plugins
     return '';
 }
 
-if (PHS::is_multi_tenant()
- && ($can_list_tenants || $can_manage_tenants)) {
+if ($is_multi_tenant
+    && ($can_list_tenants || $can_manage_tenants)) {
     ?><li><?php echo $this::_t('Platform Tenants'); ?>
         <ul>
             <?php
@@ -116,6 +117,11 @@ if ($can_list_plugins || $can_manage_plugins) {
     <li><?php echo $this::_t('Plugins Management'); ?>
         <ul>
             <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
+            <?php
+            if($is_multi_tenant) {
+                ?><li><a href="<?php echo PHS::url(['a' => 'plugins', 'ad' => 'tenants', 'p' => 'admin']); ?>"><?php echo $this::_t('Tenants Plugin Management'); ?></a></li><?php
+            }
+            ?>
             <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
         </ul>
     </li>
