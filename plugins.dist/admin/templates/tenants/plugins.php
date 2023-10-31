@@ -19,6 +19,12 @@ $tenants_filter_arr = $this->view_var('tenants_filter_arr') ?: [];
 
 $na_str = $this->_pt( 'N/A' );
 
+$selected_plugins = [];
+foreach( $plugins_arr as $plugin_arr ) {
+    $plugin_name = $plugin_arr['plugin_name']?:'core';
+    $selected_plugins[$plugin_name] = false;
+}
+
 echo $this->sub_view('ractive/bootstrap');
 ?>
 <form id="tenant_plugins_form" name="tenant_plugins_form" method="post"
@@ -81,7 +87,11 @@ function tenant_changed()
     <table class="table table-bordered table-striped table-hover">
     <thead>
     <tr>
-        <th scope="col" class="text-center">#</th>
+        <th scope="col" class="text-center">
+            #<br/>
+            <input type="checkbox" name="selected_plugins_all" value="{{selected_plugins_all}}"
+                   id="selected_plugins_all" as-skin_checkbox="{}" />
+        </th>
         <th scope="col"><?php echo $this->_pt( 'Plugin' )?></th>
         <th scope="col" class="text-center"><?php echo $this->_pt( 'Version' )?></th>
         <th scope="col" class="text-center"><?php echo $this->_pt( 'Status' )?></th>
@@ -91,7 +101,12 @@ function tenant_changed()
     <tbody>
     {{#each @this.filter_all_plugins()}}
     <tr>
-        <th scope="row" class="text-center">{{@index+1}}</th>
+        <th scope="row" class="text-center">
+            {{@index+1}}<br/>
+            <input type="checkbox" name="selected_plugins[{{.plugin_name?.plugin_name:'core'}}]"
+                   value="{{selected_plugins[(.plugin_name?.plugin_name:'core')]}}"
+                   id="selected_plugins_{{.plugin_name ? .plugin_name : 'core'}}" as-skin_checkbox="{}" />
+        </th>
         <td>
             <strong>{{.name}}</strong>
             {{#if .description.length }}
@@ -127,7 +142,27 @@ function tenant_changed()
                         plugin_status: 0
                     },
                     statuses_filter_arr: statuses_filter_arr,
-                    all_tenants: <?php echo @json_encode($tenants_key_val_arr ?: null); ?>
+                    all_tenants: <?php echo @json_encode($tenants_key_val_arr ?: null); ?>,
+                    selected_plugins_all: false,
+                    selected_plugins: <?php echo @json_encode($selected_plugins ?: []); ?>
+                }
+            },
+
+            observe: {
+                selected_plugins_all ( value ) {
+                    console.log( `show changed to '${value}'` );
+
+                    let selected_plugins = this.get("selected_plugins");
+                    let plugin = null;
+                    for( plugin in selected_plugins ) {
+                        if( !selected_plugins.hasOwnProperty( plugin )) {
+                            continue;
+                        }
+
+                        selected_plugins[plugin] = !selected_plugins[plugin];
+                    }
+
+                    this.set("selected_plugins", selected_plugins);
                 }
             },
 
@@ -156,9 +191,6 @@ function tenant_changed()
                 let f_name = this.get("filters.plugin_name");
                 let f_status = this.get("filters.plugin_status");
 
-                console.log("fname", f_name);
-                console.log("fstatus", f_status);
-
                 let items_arr = [];
                 let knti = null;
                 for( knti in all_plugins ) {
@@ -170,7 +202,6 @@ function tenant_changed()
                         || (f_name.length > 0 && item.plugin_name.length > 0
                             && -1 === item.plugin_name.toLowerCase().indexOf( f_name ))
                         || (parseInt(f_status) !== 0 && parseInt(f_status) !== parseInt(item.status))) {
-                        console.log("Canci", item);
                         continue;
                     }
 

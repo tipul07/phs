@@ -291,7 +291,7 @@ class PHS_Model_Plugins extends PHS_Model
             $record_arr['name'] = $plugin_info_arr['name'];
             $record_arr['description'] = $plugin_info_arr['description'];
             $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
-            $record_arr['status'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status'] : -1);
+            $record_arr['status'] = (int)($plugin_info_arr['db_details']['status'] ?? -1);
             $record_arr['status_date'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status_date'] : null);
             $record_arr['cdate'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['cdate'] : null);
             $record_arr['models'] = ((!empty($plugin_info_arr['models']) && is_array($plugin_info_arr['models'])) ? $plugin_info_arr['models'] : []);
